@@ -1,0 +1,35 @@
+Announcement of MKCL version 1.0.0
+==================================
+
+This is ManKai Common Lisp (MKCL).
+
+MKCL finds its origin in the source code of the ECL project and thus shares
+a lot of features with ECL. MKCL, as ECL before it, aims to produce an implementation of
+the Common Lisp language which complies to the ANSI X3J13 Common Lisp standard,
+but in a more contained and controlled context.
+
+MKCL strives for greater reliability and stability in a quest for the ease of use
+that thus result. Over abundance of features and reckless search of performance
+are avoided in MKCL.
+
+MKCL supports the operating systems Linux and Microsoft Windows, running
+on top of Intel x86 or AMD64 compatible processors.
+
+MKCL is a multi-threaded only implementation.
+
+
+
+Notes for this release
+======================
+
+This release is the first one of MKCL, it includes an entirely new
+architecture for signal handling that we hope will improve very
+significantly the overall robustness of the whole MKCL system.
+
+
+
+Known issues:
+
+None reported at this moment.
+
+

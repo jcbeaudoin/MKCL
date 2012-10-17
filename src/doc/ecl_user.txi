@@ -1,0 +1,3489 @@
+\input texinfo                  @c -*-texinfo-*-
+@c %**start of header
+@setfilename ecl.info
+@settitle ECL User's Guide
+@setchapternewpage odd
+@c %**end of header
+
+@c Entries for @command{install-info} to use
+@dircategory Lisp Programming
+@direntry
+* ecl: (mkcl).           MKCL User's Manual
+@end direntry
+
+@include macros.txi
+
+@ifinfo
+@ecl{} is an implementation of @clisp{} designed for being @emph{embeddable}
+into C based applications.
+
+@noindent
+Copyright @copyright{} 2000, Juan Jose Garcia-Ripoll
+@noindent
+Copyright @copyright{} 1990, Giuseppe Attardi
+
+@end ifinfo
+
+@titlepage
+@title ECL User's Guide
+@author Giuseppe Attardi
+@author Juan Jose Garcia Ripoll (revised version)
+
+@page
+@vskip 0pt plus 1filll
+Copyright @copyright{} 1990, Giuseppe Attardi
+
+Copyright @copyright{} 2000, Juan Jose Garcia Ripoll
+@end titlepage
+
+@c ************************ TOP NODE **************************
+
+@ifnottex
+@node Top, Introduction, (dir), (dir)
+@top Top
+@end ifnottex
+
+@iftex
+@page
+@titlefont{Preface}
+@vskip 1cm
+@end iftex
+
+@ecl{} is an implementation of @clisp{} originally designed for being
+@emph{embeddable} into C based applications.
+This document describes the @ecl{} implementation and how it differs from
+@bibcite{ANSI} and @bibcite{Steele:84}.
+See @inforef{Top,,ecldev} for details about the implementation and how to
+interface with other languages.
+
+@menu
+* Introduction::                What ECL is and how to install it.
+* Standards::                   Deviations from standards.
+* Input and output::            Accessing files with ECL.
+* Memory management::           Bits and bytes of every object.
+* Program development::         Tracing, steppping, error handling, etc.
+* The interpreter::             The guts behind ECL.
+* The compiler::                When you need speed@dots{}
+* Declarations::                Helping the compiler
+* OS interface::                Operating system interface.
+* Macros::                      Implementation dependent features of macros.
+* CLOS::                        Common-Lisp's Object System.
+* Multithread::                 Lisp lightweight processes or threads.
+* Bibliography::                Some interesting books.
+@end menu
+
+@node Introduction, Standards, Top, Top
+@chapter Introduction
+
+@ecl{} is an implementation of the @clisp{} language that was developed
+by Giuseppe Attardi's up from the Kyoto Common-Lisp. See @ref{Credits}
+for the history of the code you are up to use.
+
+@ecl{} (ECL for short) uses standard C calling conventions for Lisp compiled
+functions, which allows C programs to easily call Lisp functions and
+vice versa. No foreign function interface is required: data can be exchanged
+between C and Lisp with no need for conversion.
+
+@ecl{} is based on a Common Runtime Support (CRS) which provides basic
+facilities for memory management, dynamic loading and dumping of binary images,
+support for multiple threads of execution.  The CRS is built into a library
+that can be linked with the code of the application.  @ecl{} is modular: main
+modules are the program development tools (top level, debugger, trace,
+stepper), the compiler, and CLOS.  A native implementation of CLOS is available
+in @ecl{}: one can configure @ecl{} with or without CLOS.  A runtime version
+of @ecl{} can be built with just the modules which are required by the
+application.
+
+The @ecl{} compiler compiles from Lisp to C, and then invokes the GNU C
+compiler to produce binaries. While former releases of ECL adhere to the
+the reference of the language given in @bibcite{Steele:84}, the aim of
+@ecl{} is now to achieve maximum compliance with @ansi{}, the most up to
+date standard for @clisp{}.
+
+Throughout this manual we will describe the @ecl{} implementation and
+how it differs from @bibcite{ANSI} and @bibcite{Steele:84}. In general, as
+work in @ecl{} is completed section by section, we will drop compatibility
+with @bibcite{Steele:84} and the corresponding chapter will be updated to
+document @emph{only} the differences with @bibcite{ANSI}.
+
+@menu
+* Credits::                     
+* Copyright::                   
+* Building ECL::                Building @ecl{} from sources.
+* Invoking ECL::                Basic skills.
+@end menu
+
+@node Credits, Copyright, Introduction, Introduction
+@section Credits
+
+The @ecl{} project is an implementation of the @clisp{} language that aims to
+comply with the @ansi{} standard. The first ECL implementations were developed
+by Giuseppe Attardi's who produced an interpreter and compiler fully conformat
+with the Common-Lisp as reported in @cite{Steele:84}. ECL derives itself mostly
+from Kyoto @clisp{}, an implementation developed at the Research Institute for
+Mathematical Sciences (RIMS), Kyoto University, with the cooperation of Nippon
+Data General Corporation.  The main developers of Kyoto @clisp{} were Taiichi
+Yuasa and Masami Hagiya, of the Research Institute for Mathematical Sciences,
+at Kyoto University.
+
+I must thank Giuseppe Attardi, Yuasa and Hagiya for their wonderful work with
+preceding implementations and for putting them in the Public Domain under the
+GNU General Public License as published by the Free Software Foundation.
+Without them this product would have never been possible.
+
+This document is an update of the original ECL documentation, which was based
+in part on the material in @bibcite{Yuasa:85}
+
+The following people or organizations must be credited for support in the
+development of Kyoto @clisp{}: Prof. Reiji Nakajima at RIMS, Kyoto University;
+Nippon Data General Corporation; Teruo Yabe; Toshiyasu Harada; Takashi Suzuki;
+Kibo Kurokawa; Data General Corporation; Richard Gabriel; Daniel Weinreb; Skef
+Wholey; Carl Hoffman; Naruhiko Kawamura; Takashi Sakuragawa; Akinori Yonezawa;
+Etsuya Shibayama; Hagiwara Laboratory; Shuji Doshita; Takashi Hattori.
+
+William F. Schelter improved KCL in several areas and developed Austin Kyoto
+@clisp{} (AKCL). Many ideas and code from AKCL have been incorporated in
+@ecl{}.
+
+The following is the full list of contributors to ECL: Taiichi Yuasa and
+Masami Hagiya (KCL), William F. Schelter (Dynamic loader, conservative Gc),
+Giuseppe Attardi (Top-level, trace, stepper, compiler, CLOS, multithread),
+Marcus Daniels (Linux port) Cornelis van der Laan (FreeBSD port) David Rudloff
+(NeXT port) Dan Stanger, Don Cohen, and Brian Spilsbury.
+
+We have to thank for the following pieces of software that have helped in the
+development of @ecl{}
+@table @sc
+@item Bruno Haible
+For the Cltl2-compliance test
+@item Peter Van Eynde
+For the ANSI-compliance test
+@item Symbolic's Inc.
+For the ANSI-compliant LOOP macro.
+@end table
+
+The @ecl{} project also owes a lot to the people who have tested this program
+and contributed with suggestions and error messages: Eric Marsden, Hannu
+Koivisto and Jeff Bowden, and others whose name I may have omitted.
+
+@node Copyright, Building ECL, Credits, Introduction
+@section Copyright
+
+@noindent
+Copyright @copyright{} 2000 Juan Jose Garcia Ripoll
+
+@noindent
+Copyright @copyright{} 1990, 1991, 1993 Giuseppe Attardi
+
+@noindent
+Copyright @copyright{} 1984 Taiichi Yuasa and Masami Hagiya
+
+@noindent
+All Rights Reserved
+
+@noindent
+Summary:
+
+@quotation
+Permission is granted to use, copy, modify this program,
+EXCEPT that the copyright notice must be reproduced on copies, and
+credit should be given to the authors where it is due.
+WE MAKE NO WARRANTY AND ACCEPT NO LIABILITY FOR THIS PROGRAM.
+@end quotation
+
+@noindent
+In detail:
+
+@enumerate
+@item
+Permission to use, copy, modify this software and its documentation
+for any purpose is hereby granted without fee, provided that
+@itemize
+@item the above copyright notice appears in all copies,
+@item both that copyright notice and this permission notice appears in supporting documentation, and that
+@item you cause modified files to carry prominent notices stating that you changed the files and the date of any change.
+@end itemize
+
+@item
+Please notify us if you are going to sell this software or its documentation
+for profit.
+
+@item
+WE DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL WE BE LIABLE FOR
+ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER
+RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE
+USE OR PERFORMANCE OF THIS SOFTWARE.
+@end enumerate
+
+@noindent
+Additionally:
+
+@quotation
+@ecl{} is free software; you can redistribute it and/or modify it
+under the terms of the GNU Library General Public License as published
+by the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version; see file 'Copying'.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Library General Public License for more details.
+
+You should have received a copy of the GNU Library General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+@end quotation
+
+@noindent
+Address for reporting bugs, comments, suggestions:
+@quotation
+@email{worm@@arrakis.es}
+@end quotation
+
+
+@node Building ECL, Invoking ECL, Copyright, Introduction
+@section Building ECL
+
+@enumerate
+@item Obtain the distribution from @uref{http://ecls.sourceforge.net}.
+The distribution is in a gzip-compressed tar file named like
+@file{ecl.tgz}
+
+@item Prepare a directory (hereafter called @dfn{ECL directory}) for
+ECL.  In the following examples, we suppose that the @emph{ECL
+directory} is @file{/usr/local/ecl}.
+
+@item  Extract the content from the compressed tar file.
+@smallformat
+$ zcat ecl.tgz | tar xf -
+@end smallformat
+
+@item An auto configuration mechanism allows you to perform a standard
+installation with the following commands:
+@smallformat
+$ ./configure
+@end smallformat
+This example will prepare to install executable files, manual pages and
+info files in standard directories like @file{/usr/local/bin},
+@file{/usr/local/man/man1}, @file{/usr/local/info}.
+
+@item If you don't have access rights to these directories, you should
+give to configure alternate places.  Try @code{./configure --help} for
+instructions on how to supply this information to configure, but
+a good starting point is
+@smallformat
+$ ./configure --prefix=$HOME
+@end smallformat
+
+@c FIXME: This information seems wrong!
+@c @item Make sure everything went OK with the configuration.
+@c The configuration script figures out the machine where it is running and
+@c creates a directory @code{machine} where to perform the installation.  If the
+@c program fails to recognize the machine, you will have to check whether it is
+@c one of the supported machines present in @code{src/h/machine.h}.
+
+@item Next you must build the program and install it
+@smallformat
+$ make
+$ make install
+@end smallformat
+@end enumerate
+
+At the end of installation, the destination directories will contain
+several files. If you have not modified these directories when
+invoking @file{configure} the layout should be
+
+@multitable @columnfractions .5 .5
+@item @b{Executable files:} @tab 
+@item @file{$HOME/bin/ecl}          @tab the @ecl{} interpreter and compiler
+@item @b{Help documents:} @tab
+@item @file{$HOME/lib/ecl/help.doc} @tab data for the online help
+@item @file{$HOME/man/man1/ecl.1}   @tab manual page for @ecl{}
+@item @file{$HOME/info/ecl.info}    @tab this manual you are reading
+@item @b{Library files and headers:} @tab 
+@item @file{$HOME/lib/ecl/libecl.a} @tab the core library in C
+@item @file{$HOME/lib/ecl/libgmp.a} @tab GNU library for bignums
+@item @file{$HOME/lib/ecl/libgc.a}  @tab Boehm-Weiser garbage collector
+@item @file{$HOME/lib/ecl/*.a}      @tab Other lisp compiled code
+@item @file{$HOME/lib/ecl/ecl/}     @tab Header files
+@end multitable
+
+You can remove all intermediate files produced during installation with the
+command @code{make clean}.
+
+
+@node Invoking ECL,  , Building ECL, Introduction
+@section Entering and leaving @ecl{}
+ 
+@mkcl{} is invoked by the command @code{mkcl}.
+
+@smallformat
+% mkcl
+
+This is ManKai Common Lisp 0.0e
+
+Copyright (C) 1984 Taiichi Yuasa and Masami Hagiya
+Copyright (C) 1993 Giuseppe Attardi
+Copyright (C) 2000 Juan J. Garcia-Ripoll
+Copyright (C) 2010 Jean-Claude Beaudoin
+        
+ManKai Common Lisp (MKCL) is free software,
+and you are welcome to redistribute and/or
+modify it under the terms of the GNU LGPL.
+See file 'Copyright' for details.
+
+Type :h for Help. 
+Top level in: #<process SI:INITIAL 08447e10>.
+> 
+@end smallformat
+
+When invoked, @ecl{} will print the banner and initialize the system.  The
+date in the @ecl{} banner identifies the revision of @ecl{}.  @code{Version
+(0.8) 05/14/1993} is the value of the function
+@code{lisp-implementation-version}.
+
+If there exists a file named @file{init.lsp} in the current working directory,
+@ecl{} successively evaluates the forms in the file, immediately after the
+system initialization.  The user may set up his or her own @ecl{} environment
+(e.g., the memory configuration) with @file{init.lsp}.
+
+After the initialization, @ecl{} enters the @dfn{top-level loop} and prints
+the prompt `@code{>}'.
+
+@smallformat
+Type :h for Help.  Top level.
+>
+@end smallformat
+
+The prompt indicates that @ecl{} is now ready to receive a form from the
+terminal and to evaluate it.
+
+Usually, the current package (i.e., the value of @var{*package*}) is the user
+package, and the prompt appears as above.  If, however, the current package is
+other than the user package, then the prompt will be prefixed by the package
+name.
+
+@smallformat
+> (in-package 'cl)
+#<"COMMON-LISP" package>
+COMMON-LISP> (in-package 'system)
+#<"SYSTEM" package>
+SYSTEM>
+@end smallformat
+
+To exit from @ecl{}, call the function @code{quit}.
+
+@smallformat
+>(quit)
+Bye.
+%
+@end smallformat
+
+Alternatively, you may type @myctrl{D}, i.e. press the key @key{D} while pressing
+down the control key (@key{Ctrl}).
+
+@smallformat
+>@myctrl{D}Bye.
+%
+@end smallformat
+
+You can disable @myctrl{D} as the exit command by setting to @code{T} the
+following variable:
+@defvr {System} {*ignore-eof-on-terminal-io*}
+This variable controls whether an end of file character (normally @myctrl{D})
+should terminate the session. The default value is @nil{}.
+@end defvr
+
+The top-level loop of @ecl{} is almost the same as that defined in Section
+20.2 of @bibcite{Steele:84}.  Since the input from the terminal is in line
+mode, each top-level form should be followed by a newline.  If more than one
+value is returned by the evaluation of the top-level form, the values will be
+printed successively.  If no value is returned, then nothing will be printed.
+@smallformat
+>(values 1 2)
+1
+2
+>(values)
+
+>
+@end smallformat
+
+When an error is signalled, control will enter the break loop.
+@smallformat
+>(defun foo (x) (bar x))
+foo
+
+>(defun bar (y) (bee y y))
+bar
+
+>(foo 'lish)
+Error: The function BEE is undefined.
+Error signalled by BAR.
+
+Broken at BAR.
+>>
+@end smallformat
+
+@c @vskip 1em
+
+`@code{>>}' in the last line is the prompt of the break loop.  Like in the
+top-level loop, the prompt will be prefixed by the current package name, if the
+current package is other than the @code{user} package.
+
+To go back to the top-level loop, type @code{:q}
+
+@smallformat
+>>:q
+
+Top level.
+>
+@end smallformat
+
+@c @vskip 1em
+
+See Section 5.4 for the details of the break loop.
+
+The terminal interrupt (usually caused by typing @myctrl{C} (Control-@code{C}))
+is a kind of error.  It breaks the running program and calls the break level
+loop.
+
+Example:
+@smallformat
+>(defun foo () (do () (nil)))
+foo
+
+>(foo)
+@myctrl{C}
+Correctable error: Console interrupt.
+Signalled by DO.
+
+Broken at FOO.
+>>
+@end smallformat
+
+@node Standards, Input and output, Introduction, Top
+@chapter Standards
+
+@ecl{} supports all @clisp{} data types exactly as defined in the
+@bibcite{Steele:84}.  This chapter simply complements Chapter 2 of
+@bibcite{Steele:84}, by describing implementation dependent features of
+@clisp{} data types.  Each section in this chapter corresponds to the section
+in Chapter 2 of @bibcite{Steele:84}, with the same section title.
+
+@menu
+* Numbers::                     
+* Characters::                  
+* Symbols::                     
+* List and conses::             
+* Arrays::                      
+* Hash tables::                 
+* Readtables::                  
+* Packages::                    
+* Pathnames::                   
+* Streams::                     
+* Random-states::               
+* Structures::                  
+* Functions::                   
+* Unreadable data objects::     
+* Overlap of types::            
+@end menu
+
+
+@node Numbers, Characters, Standards, Standards
+@section Numbers
+
+@menu
+* Integers::                    
+* Ratios::                      
+* Floating-point numbers::      
+* Complex numbers::             
+@end menu
+
+
+@node Integers, Ratios, Numbers, Numbers
+@subsection Integers
+
+@tindexed{Fixnum}'s in @ecl{} are those integers in the range (-2^29)
+to (2^29-1), inclusive.  They are represented as immediate data, so no
+memory allocation is involved when using @code{fixnum}'s.  Other
+integers are @code{bignums}. Thus 25 factorial (25!)
+
+@example
+15511210043330985984000000
+@end example
+
+@noindent
+is definitely a bignum in @ecl{}.
+
+@clisp{} constants related to integers have the following values
+in @ecl{}.
+
+@example
+most-positive-fixnum = 536870911 = 2^29-1
+most-negative-fixnum = -536870912 = - 2^29
+boole-1 = 3
+boole-2 = 5
+boole-and = 1
+boole-andc1 = 4
+boole-andc2 = 2
+boole-c1 = 12
+boole-c2 = 10
+boole-clr = 0
+boole-eqv = 9
+boole-ior = 7
+boole-nand = 14
+boole-nor = 8
+boole-orc1 = 13
+boole-orc2 = 11
+boole-set = 15
+boole-xor = 6
+@end example
+
+See Chapter 12 of @bibcite{Steele:84} for their meanings.
+
+
+@node Ratios, Floating-point numbers, Integers, Numbers
+@subsection Ratios
+
+There are no implementation-dependent features for ratios.
+
+@node Floating-point numbers, Complex numbers, Ratios, Numbers
+@subsection Floating-Point Numbers
+
+@ecl{} supports two floating point formats: @tindexed{single-float} and
+@tindexed{double-float}.  These are implemented with IEEE single and double
+float arithmetic, respectively.  @code{short-float} is a synonym for
+@code{single-float}, and @code{long-float} is a synonym for
+@code{double-float}.  The initial value of @vindexed{read-default-float-format}
+is @code{single-float}.
+
+Both @code{single-float} and @code{double-float} are represented with a pointer
+descriptor, so float operations can cause number consing.  Number consing is
+greatly reduced if type declarations are supplied in programs.
+
+An expression such as @code{(eql 1.0s0 1.0d0)} is false, but @code{(eql 1.0f0
+1.0d0)} is true.  Similarly, @code{(typep 1.0l0 'short-float)} is false, but
+@code{(typep 1.0l0 'double-float}) is true.  For output purposes all
+floating-point numbers are assumed to be of @emph{single} or @emph{double}
+format.
+
+The floating-point precisions and exponent sizes are:
+@multitable {Format} {precision} {exponent}
+@item @b{Format} @tab @b{precision} @tab @b{exponent}
+@item Short  @tab 24 bits @tab 8 bits
+@item Single @tab 24 bits @tab 8 bits
+@item Double @tab 53 bits @tab 11 bits
+@item Long   @tab 32 bits @tab 11 bits
+@end multitable
+
+There is no ``minus zero.'' @code{(eql 0.0 -0.0)} is true.
+
+@node Complex numbers,  , Floating-point numbers, Numbers
+@subsection Complex Numbers
+
+There are no implementation-dependent features for complex numbers.
+
+
+@node Characters, Symbols, Numbers, Standards
+@section Characters
+
+@ecl{} is fully @ansi{} compliant in all aspects of the character
+data type, with the following peculiarities.
+
+@menu
+* Character types::             
+* Standard characters::         
+* Line divisions::              
+* Non-standard characters::     
+* Character attributes::        
+@end menu
+
+@node Character types, Standard characters, Characters, Characters
+@subsection Character types
+
+In @ecl{} the @code{extended-character} is empty, and all characters
+are implemented using 8-bit codes.
+
+
+@node Standard characters, Line divisions, Character types, Characters
+@subsection Standard Characters
+
+@ecl{} supports all standard and semi-standard characters listed in Section
+2.2.1 of @bibcite{Steele:84}.  Non-printing characters have the following
+character codes.
+@multitable {Character} {Code (in octal)}
+@item @b{Character}     @tab @b{Code (in octal)}
+@item #@back{}Null      @tab  000
+@item #@back{}Space     @tab  040
+@item #@back{}Newline   @tab  012
+@item #@back{}Backspace @tab  010
+@item #@back{}Tab       @tab  011
+@item #@back{}Linefeed  @tab  012
+@item #@back{}Page      @tab  014
+@item #@back{}Return    @tab  015
+@item #@back{}Rubout    @tab  177
+@end multitable
+
+Note that @code{#@back{}Linefeed} is synonymous with @code{#@back{}Newline} and
+thus is a member of @code{standard-char}.  Other semi-standard characters are
+not members of @code{standard-char}.
+
+@node Line divisions, Non-standard characters, Standard characters, Characters
+@subsection Line Divisions
+
+Since @ecl{} represents the @code{#@back{}Newline} character by a single code
+12, problems with line divisions discussed in Section 2.2.2 of the
+@bibcite{Steele:84} are absent in @ecl{}.
+
+
+@node Non-standard characters, Character attributes, Line divisions, Characters
+@subsection Non-standard Characters
+
+@ecl{} supports no additional non-standard characters.
+
+
+@node Character attributes,  , Non-standard characters, Characters
+@subsection Character Attributes
+
+Characters in @ecl{} have no attributes, and thus it lacks the functions and
+variables @code{#'char-bits}, @code{#'char-font}, @code{char-bits-limit}, etc,
+defined in Chapter 13 of @bibcite{Steele:84}.
+
+
+@node Symbols, List and conses, Characters, Standards
+@section Symbols
+ 
+The print name of a symbol may consist of up to 16777216 (i.e., the value of
+@code{array-total-size-limit}) characters.  However, when a symbol is read, the
+number of characters (not counting escape characters) in the print name is
+limited to 2048.
+
+It is not recommended to write on the strings which have been passed to
+#'make-symbol or returned from #'symbol-name.
+
+@node List and conses, Arrays, Symbols, Standards
+@section List and Conses
+
+There are no implementation-dependent features for lists and conses.
+
+
+@node Arrays, Hash tables, List and conses, Standards
+@section Arrays
+
+When the value of the @clisp{} variable @code{*print-array*} (see Section
+22.1.6 of @bibcite{Steele:84}) is @nil{}, then bit-vectors are printed as
+@code{#<a bit-vector @var{address}>}, other vectors are printed as @code{#<a
+vector @var{address}>}, and other arrays are printed as @code{#<an array
+@var{address}>}. The default value for @code{*print-array*} is @nil{}.
+
+@ecl{} arrays can have up to 64 dimensions.
+@clisp{} constants related to arrays have the following values in @ecl{}.
+@multitable {array-total-size-limit} {array-dimension-limit}
+@item array-rank-limit @tab 64
+@item array-dimension-limit @tab most-positive-fixnum
+@item array-total-size-limit @tab array-dimension-limit
+@end multitable
+
+See Section 17.1 of @bibcite{Steele:84} for their meanings.
+
+@menu
+* Vectors::                     
+* Strings::                     
+* Bit-Vectors::                 
+@end menu
+
+
+@node Vectors, Strings, Arrays, Arrays
+@subsection Vectors
+
+In @ecl{}, array elements are represented in one of six ways depending on the
+type of the @code{array}.
+
+@multitable {(array short-float) and (vector short-float)} {64 bit floating point}
+@item @b{Array Type} @tab @b{Element Representation}
+@item (array t) and (vector t)
+        @tab a cell pointer
+@item (array fixnum) and (vector fixnum)
+        @tab 32 bit signed integer
+@item (array string-char) and string
+        @tab 8 bit code
+@item (array short-float) and (vector short-float)
+        @tab 32 bit floating point
+@item (array long-float) and (vector long-float)
+        @tab 64 bit floating point
+@item (array bit) and bit-vector
+        @tab 1 bit bit
+@end multitable
+
+
+@node Strings, Bit-Vectors, Vectors, Arrays
+@subsection Strings
+
+The @ecl{} implementation of strings is @ansi{} compliant. Four types 'string,
+'base-string, 'simple-string and 'simple-base-string are defined, but due to
+the lack of extended characters 'base-string and 'simple-base-string are
+simple aliases of 'string and 'simple-string.
+
+A string may consists of up to 16777216 (i.e., the value of
+@code{array-total-size-limit}) characters.  However, when a string is read, the
+number of characters in it (not counting escape characters) is limited
+to 2048.
+
+
+@node Bit-Vectors,  , Strings, Arrays
+@subsection Bit-Vectors
+
+There are no implementation-dependent features for bit-vectors.
+
+
+@node Hash tables, Readtables, Arrays, Standards
+@section Hash Tables
+
+All hash tables are printed as @code{#<a hash-table @var{address}>}.
+
+
+@node Readtables, Packages, Hash tables, Standards
+@section Readtables
+
+All readtables are printed as @code{#<a readtable @var{address}>}.
+
+
+@node Packages, Pathnames, Readtables, Standards
+@section Packages
+
+The following packages are built into @ecl{}.
+
+@multitable {common-lisp-user} {cl-user, user}
+@item @b{Name} @tab @b{Nicknames}
+@item common-lisp @tab cl, lisp
+@item common-lisp-user @tab cl-user, user
+@item system @tab si
+@item keyword
+@end multitable
+
+For instance, the @code{system} package has two nicknames @code{sys} and
+@code{si}; @code{system:symbol} may be written as @code{sys:symbol} or
+@code{si:symbol}.
+
+Depending on the configuration option by which @ecl{} has been built,
+additional packages may be available: @code{compiler}, @code{clos} and
+@code{xlib}.
+
+The @code{compiler} package contains symbols used by the @ecl{} compiler.
+Other packages are described in Section 11.6 of @bibcite{Steele:84}.  The
+@code{clos} package is used for the internal symbols of the @clisp{} Object
+System, which is described in Chapter 14.  The @code{xlib} package is used for
+the internal symbols of CLX, the @clisp{} Language X Interface to the X Window
+System, which is described in a separate manual.
+
+Packages are printed as @code{#<@var{package-name} package>}.
+
+
+@node Pathnames, Streams, Packages, Standards
+@section Pathnames
+
+@ecl{} provides a @code{#} macro @code{#P"} that reads a pathname:
+@code{#P"@var{string}"} is equivalent to @code{(pathname "@var{string}"}).  For
+example, @code{#P"foo.lsp"} is equivalent to @code{(pathname "foo.lsp")}.
+The same format is used when a pathname is printed.
+
+The initial value of the @clisp{} variable
+@var{*default-pathname-defaults*} is @code{#P""} (or, equivalently,
+@code{(pathname "")}).
+
+A pathname in the file system of @clisp{} consists of six elements:
+host, device, directory, name, type and version.
+
+Let me briefly explain how @ecl{} converts a namestring into a
+pathname. First @ecl{} tries parsing the namestring using the logical
+pathnames syntax, which is as follows
+@verbatim
+        [hostname:][;][directory-item;]*[name][.type[.version]]
+        hostname = word
+        directory-item = wildcard-word
+	type, name = wildcard-word without dots
+	version = NEWEST, newest or a number
+@end verbatim
+@noindent
+Here, @var{word} is a sequence of one or more characters excluding
+the @code{#\Null} character and the asterisk `*'. And
+@var{wildcard-word} is a sequence of any character excluding
+@code{#\Null} and consecutive asterisks (i.e.  @code{"**"} is not
+allowed).
+
+If @var{hostname} is not found or it is not a logical hostname, then
+@ecl{} tries the physical pathname syntax,
+@verbatim
+        [device:][[//hostname]/][directory-item/]*[name][.type]
+        device, hostname = word
+        directory-item, type = wildcard-word
+	name = a wildcard-word with maybe a single leading dot
+@end verbatim
+@noindent
+If this syntax also fails, then the namestring is not a valid
+pathname string.
+
+It is important to remark that in @ecl{}, all physical namestrings result into
+pathnames with a version equal to @code{:NEWEST}. Pathnames which are not
+logical and have any other version (i. e. @code{NIL} or a number), cannot
+be printed readably, but can produce a valid namestring which results of
+ignoring the version.
+
+The following rules apply to both physical and logical namestrings.
+First, if a namestring contains one or more periods `.', the last period
+separates the namestring into the file name and the filetype.
+
+@verbatim
+     "foo.lsp"
+         name:          "foo" 
+         type:          "lsp"
+
+     "a.b.c" 
+         name:          "a.b" 
+         type:          "c" 
+@end verbatim
+
+If a namestring ends with a period, the filetype becomes the null string.
+@verbatim
+     "foo." 
+          name:          "foo" 
+          type:          ""  (null string)
+@end verbatim
+
+If a namestring begins with a period, the file name becomes @nil{}.
+@verbatim
+     ".lsp" 
+          name:          nil 
+          type:          "lsp" 
+@end verbatim
+
+If a namestring contains no period, the filetype is @nil{}.
+@verbatim
+    "foo" 
+          name:          "foo" 
+          type:          nil 
+@end verbatim
+
+In a pathname, the file directory is represented as a list which
+always begins with either @code{:relative} or @code{:absolute}
+@verbatim
+     "common/demo/foo.lsp" 
+     ";common;demo;foo.lsp" 
+          directory:     (:relative "common"   "demo") 
+          name:          "foo" 
+          type:          "lsp" 
+     "/common/demo/foo.lsp" 
+     "common;demo;foo.lsp" 
+          directory:     (:absolute "common"   "demo") 
+          name:          "foo" 
+          type:          "lsp"
+@end verbatim
+
+If a namestring does not contain a directory, the directory component
+of the pathname is @nil{}.
+@verbatim
+     "foo.lsp" 
+          directory:     nil 
+          name:          "foo" 
+          type:          "lsp" 
+@end verbatim
+
+The abbreviation symbols `@code{.}' and `@code{..}' may be used in a
+namestring, but only the second one is translated to a standard
+keyword
+@verbatim
+     "./demo/queen.lsp" 
+          directory:     (:relative "." "demo") 
+          name:          "queen" 
+          type:          "lsp" 
+
+     "../../demo/queen.lsp" 
+          directory:     (:relative @pxlref{:up} :up "demo") 
+          name:          "queen" 
+          type:          "lsp" 
+@end verbatim
+
+The part of a namestring after the last directory separator (`@code{/}'
+or `@code{;}') is always regarded as representing the file name and the
+filetype.  In order to represent a pathname with both the name and the
+filetype @nil{}, end the pathname with a slash. 
+@verbatim
+     "/usr/common/" 
+          directory:     (:absolute "usr" "common") 
+          name:          nil 
+          type:          nil 
+
+     "/usr/common/.lsp" 
+          directory:     (:absolute "usr" "common") 
+          name:          ".lsp"
+          type:          nil
+@end verbatim
+
+`@code{*}' in the place of file name or filetype becomes  @code{:wild}
+@verbatim
+     "*.lsp" 
+          name:          :wild
+          type:          "lsp" 
+
+     "foo.*" 
+          name:          "foo" 
+          type:          :wild 
+@end verbatim
+
+
+@node Streams, Random-states, Pathnames, Standards
+@section Streams
+
+Streams are printed in the following formats.
+@table @code
+@item #<input stream @var{file-name}>
+An input stream from the file @var{file-name}.
+
+@item #<output stream @var{file-name}>
+An output stream to the file @var{file-name}.
+
+@item #<string-input stream from @var{string}>
+An input stream generated by @code{(make-string-input-stream
+@var{string} )}.
+
+@item #<a string-output stream>
+An output stream generated by the function @code{make-string-output-stream}.
+
+@item #<a two-way stream>
+A stream generated by the function @code{make-two-way-stream}.
+
+@item #<an echo stream>
+A bidirectional stream generated by the function @code{make-echo-stream}.
+
+@item #<synonym stream to @var{symbol}>
+The stream generated by @code{(make-synonym-stream @var{symbol} )}.
+
+@item #<a concatenated stream>
+An input stream generated by the function @code{make-concatenated-stream}.
+
+@item #<a broadcast stream>
+An output stream generated by the function @code{make-broadcast-stream}.
+@end table
+
+
+@node Random-states, Structures, Streams, Standards
+@section Random-States
+
+@ecl{} provides a @code{#} macro `@code{#$}' that reads a random state.
+@code{#$}@var{integer} is equivalent to @code{(make-random-state
+@var{integer})}.  The same format is used when a random state is printed.
+
+
+@node Structures, Functions, Random-states, Standards
+@section Structures
+
+There are no implementation-dependent features for structures.
+
+
+@node Functions, Unreadable data objects, Structures, Standards
+@section Functions
+
+All functions in @ecl{} are either compiled into bytecode to be interpreted,
+or they are translated into C and then compiled using a native C compiler.
+Interpreted functions are printed using the formats
+@verbatim
+     #<interpreted-function @var{name}>
+     #<interpreted-function @code{address}>
+@end verbatim
+@noindent
+Compiled functions (including compiled macro-expansion functions)
+are printed in the following formats.
+@verbatim
+     #<compiled-function @var{name}>
+     #<compiled-closure nil>
+@end verbatim
+
+The output of @code{(symbol-function @var{fun})} is a list, is either a
+function object if @code{'fun} is has a function definition,
+@code{(macro . function-object)} if @code{'fun} is a macro, and @code{'special}
+if @code{'fun} is a special form.
+
+@ecl{} usually drops the source code of a function unless the global
+variable @var{si:*keep-definitions*} was true when the function was
+translated into bytecode. Therefore, if you wish to use
+@code{#'compile} and @code{#'disassemble} on defined functions, you
+should issue @code{(setq si:*keep-definitions* t)} at the beginning of
+your session.
+
+@clisp{} constants related to functions have the following values in @ecl{}.
+@verbatim
+     call-arguments-limit = 64
+     lambda-list-keywords = (@optional{} @rest{} @keys{} @allow{}
+                               @aux{} &whole &environment &body)
+     lambda-parameters-limit = 64
+      multiple-values-limit = 32
+@end verbatim
+
+Refer to @bibcite{Steele:84} for their meanings.
+
+
+@node Unreadable data objects, Overlap of types, Functions, Standards
+@section Unreadable Data Objects
+
+There are no implementation-dependent features for unreadable data objects.
+
+
+@node Overlap of types,  , Unreadable data objects, Standards
+@section Overlap types
+
+In @ecl{}, the types @code{number} and @code{array} are certainly subtypes of
+@code{common}, since @ecl{} does not extend the set of objects of these types.
+
+
+@node Input and output, Memory management, Standards, Top
+@chapter Input and Output
+
+@menu
+* Read macros::                 
+* Input/Output functions::      
+* Network streams::             
+* CLOS streams::                
+@end menu
+
+
+@node Read macros, Input/Output functions, Input and output, Input and output
+@section Read macros
+
+@table @asis
+@item #P"
+@code{#"@var{string}"} reads a pathname. @code{#"@var{string}"} is equivalent
+to @code{(pathname "@var{string}")}.
+ 
+@item #$
+@code{#$@var{integer}} reads a random state. @code{#$}@var{integer} is
+equivalent to @code{(make-random-state @var{integer})}.
+@end table
+
+The @code{#} macro '@code{#,}' works as described in @bibcite{Steele:84}, only
+if it is included in a constant object.  The forms immediately after
+@code{`#,'} below will be evaluated when the compiled code is loaded.
+
+@example
+'#,x
+'(a b c (d #,e f) g)
+#(1 2 3 #,(+ a b c) 5 6)
+#C(0.0 #,(exp 1))
+@end example
+
+Otherwise, the effect of using '@code{#,}' is unpredictable.  Note that, when
+interpreted code is loaded, '@code{#,}' has the same effect as the @code{#}
+macro '@code{#.}'.
+
+
+@node Input/Output functions, Network streams, Read macros, Input and output
+@section Input and Output Functions
+
+The input and output functions of @ecl{} almost follow the definitions in
+Chapter 22 of @bibcite{Steele:84}.  Most of the differences come from the fact
+that, in @ecl{}, input from the terminal is always in line mode and binary I/O
+is not supported.
+
+In @ecl{}, @code{*terminal-io*} is a two-way stream from the standard input
+and to the standard output.  The echoing to the terminal is performed by the
+underlying operating system.  In particular, when a disk file is assigned to
+the standard output, nothing will be echoed at the terminal.
+
+Those functions that deviate from the definitions in @bibcite{Steele:84} are
+listed below.
+
+@defun {load} {@var{pathname} @keys{} :print :verbose :if-does-not-exist}
+If @var{pathname} does not specify the filetype of the input file, then load
+uses the association list @var{si::*load-search-list*} to find out a suitable
+filetype and the function to load it. Typically, this search list is made of
+the elements @code{.fas}, @code{.lsp} and @code{.lisp}, in this order. If
+everything fails, a file without filetype will be loaded.
+@end defun
+
+@defun {open} {}
+Streams can only have element type @code{base-char}, @code{(signed-byte 8)}
+and @code{(unsigned-byte 8)}. The @code{:external-format} is always @code{:default}.
+@end defun
+
+@defun {close} {}
+The keyword variable @var{:abort} is always ignored.
+@end defun
+
+@defun {listen} {}
+This routine requires some low level functions which are not available on
+all platforms (For instance on @code{Windows}). When ECL is not able to
+determine whether a stream is interactive, @code{listen} returns true unless
+an end of file has been previously detected.
+@end defun
+
+@defun {clear-input} {}
+The functions @code{clear-input} and @code{clear-output} do nothing.
+@end defun
+
+@defun {read-char-no-hang} {}
+@code{read-char-no-hang} is equivalent to @code{read-char}.
+@end defun
+
+The functions @code{princ}, @code{write-char} and @code{write-byte} do not
+always flush the stream.  The stream is flushed when
+@enumerate
+@item a newline character is written, or
+
+@item the input from the terminal is requested in the case that these
+functions operate on @code{*terminal-io*}
+@end enumerate
+
+
+@node Network streams, CLOS streams, Input/Output functions, Input and output
+@section Network Streams
+
+With a configuration option, the following function is available which opens
+streams across network connections.
+
+@defun {open-client-stream} {host port}
+The string @var{host} indicates the name of the host, while @var{port} is an
+integer which identifies the port number to which to connect.  This function
+returns a two-way stream which can be used in any of the stream operations.
+@end defun
+
+@defun {open-server-stream} {host port}
+A stream connected to port number @var{port} is created to which clients can
+connect.  This function returns a two-way stream which can be used in any of
+the stream operations.
+@end defun
+
+
+@node CLOS streams,  , Network streams, Input and output
+@section CLOS Streams
+
+When the optional CLOS subsystem is available, an interface is provided by
+@ecl{} for using CLOS objects as @clisp{} input/output character streams.
+Such support can be used for instance to build interactive character streams,
+which may be used by applications as the stream argument for @clisp{} I/O
+functions such as @code{read}, @code{listen}, @code{prin1}, etc.  The
+fundamental interface to @code{clos-stream} objects consists of
+(generic) functions which implement the basic @clisp{} character stream
+operations (see @clisp{}, Chapter 22) but whose details are implementation
+dependent.
+
+The following functions are automatically invoked by @ecl{} when a stream
+operation involves a CLOS object as a stream parameter. The programmer should
+define these methods for any class of objects which are to be used for
+character input/output.
+
+@menu
+* CLOS Stream Input::           
+* CLOS Stream Output::          
+* CLOS Stream common::          
+@end menu
+
+@node CLOS Stream Input, CLOS Stream Output, CLOS streams, CLOS streams
+@subsection CLOS Stream Input
+
+Character input from an @code{clos-stream} is implemented by the
+following methods.
+
+@deffn {Method} {stream-read-char} (object clos-stream)
+Returns the next character object read from the CLOS stream @var{object}.
+@end deffn
+
+@c @deffn {Method} {stream-read-line} (object clos-stream) @rest{} make-array-options
+@c Reads character objects from the CLOS stream @var{object}, up to and including
+@c the next @code{#\newline} character, and returns them as a string (without the
+@c @code{#\newline}. If given, the @var{make-array-options} arguments are passed
+@c to @code{make-array} when the returned string is created.
+@c @end deffn
+
+@deffn {Method} {stream-unread-char} (object clos-stream) character
+Unreads the character object @var{character} from the CLOS stream @var{object}.
+@var{character} will be the next character read by @code{stream-read-char}.
+@end deffn
+
+@c @deffn {Method} {stream-peek-char} (object clos-stream) peek-type
+@c Returns the character object which would be returned by @code{stream-read-char}
+@c but does not remove it from the input buffer.  If @var{peek-type} is @true{},
+@c @code{steam-peek-char} skips over any whitespace characters, removing them from
+@c the input buffer, and returns the next character.
+@c @end deffn
+
+@deffn {Method} {stream-listen} (object clos-stream)
+Returns @nil{} is no character is immediately available from the CLOS stream
+@var{object}. Otherwise, the next character is returned, as if
+@code{stream-peek-char} had been called.
+@end deffn
+
+@deffn {Method} {stream-clear-input} object
+Clears any buffered characters on the CLOS stream @var{object}. Returns @nil{}.
+@end deffn
+
+@node CLOS Stream Output, CLOS Stream common, CLOS Stream Input, CLOS streams
+@subsection CLOS Stream Output
+
+Character output from an @code{clos-stream} is implemented by the
+following methods.
+
+@deffn {Method} {stream-write-char}  (object clos-stream) character
+Outputs the character @var{character} to the CLOS stream @var{object} and
+returns it.
+@end deffn
+
+@c @deffn {Method} {stream-write-line}  (object clos-stream) string @optional{} start end
+@c Writes character objects from the string @var{string} onto the CLOS stream
+@c @var{object}. If given, the @var{start} and @var{end} arguments indicate a
+@c substring that is to be output.
+@c @end deffn
+
+@c @deffn {Method} {stream-fresh-line}  (object clos-stream)
+@c Outputs a @code{#\back}@code{newline} character to the CLOS stream @var{object}
+@c if and only if the stream is not already at the beginning of a new line.
+@c Returns non-@nil{} if a @code{#\back}@code{newline} was output and @nil{}
+@c otherwise.
+@c @end deffn
+
+@deffn {Method} {stream-clear-output}  (object clos-stream)
+Aborts any outstanding output operation on the CLOS stream @var{object} and
+returns @nil{}.
+@end deffn
+
+@deffn {Method} {stream-force-output}  (object clos-stream)
+Initiates the emptying of the internal buffers on the CLOS stream @var{object}
+and returns @nil{}.
+@end deffn
+
+@node CLOS Stream common,  , CLOS Stream Output, CLOS streams
+@subsection CLOS Stream common
+
+The following functions should be available for all CLOS streams.
+
+@deffn {Method} {stream-interactive-p} (object clos-stream)
+@end deffn
+
+@deffn {Method} {stream-close} (object clos-stream)
+Closes the stream for any further input or output.
+@end deffn
+
+@node Memory management, Program development, Input and output, Top
+@chapter Memory Management
+
+The following sections only apply to the @ecl{} original garbage collector.
+If @ecl{} is not compiled with @code{--disable-boehm}, then an alternative,
+less restrictive garbage collector is installed, with the disadvantage
+that many of the following functions @code{#'room}, @code{si:*gc-verbose*},
+@dots{} do no longer work.
+
+@menu
+* Implementation types::        
+* Heap and relocatable areas::  
+* The garbage collector::       
+* Allocation functions::        
+* Storage information::         
+@end menu
+ 
+@node Implementation types, Heap and relocatable areas, Memory management, Memory management
+@section Implementation Types
+
+Each @ecl{} object belongs to one of the 22 @emph{implementation types}.  The
+implementation types are shown in Table 4-1 with the corresponding @clisp{}
+data types.  In the table, the compiled functions are divided into three
+implementation types; @code{cfun} is the type of compiled functions without
+environment, @code{cclosure} is the type of compiled functions with environment
+(i.e., the type of compiled closures) and @code{gfun} is the type of compiled
+generic functions of CLOS.
+
+@center Table 4-1  Implementation Types
+@c @vspace{1 em}
+@multitable {@emph{Implementation Type}} {@emph{@clisp{} Data Type}}
+@item @b{@emph{Implementation Type}} @tab @b{@emph{@clisp{} Data Type}}
+@item @code{cons} @tab @code{cons}
+@item @code{fixnum} @tab @code{fixnum}
+@item @code{bignum} @tab @code{bignum}
+@item @code{ratio} @tab @code{ratio}
+@item @code{short-float} @tab @code{short-float}
+@item @code{long-float} @tab @code{long-float (= double-float = single-float)}
+@item @code{complex} @tab @code{complex}
+@item @code{character} @tab @code{character}
+@item @code{symbol} @tab @code{symbol}
+@item @code{package} @tab @code{package}
+@item @code{hash-table} @tab @code{hash-table}
+@item @code{array} @tab @code{(and array (not vector))}
+@item @code{vector} @tab  @code{(and vector (not string) (not bit-vector))}
+@item @code{string} @tab @code{string}
+@item @code{bit-vector} @tab @code{bit-vector}
+@item @code{structure} @tab @code{structure}
+@item @code{stream} @tab @code{stream}
+@item @code{random-state} @tab @code{random-state}
+@item @code{readtable} @tab @code{readtable}
+@item @code{cfun} @tab @code{compiled-function  without environment} 
+@item @code{cclosure} @tab @code{compiled-function  with environment} 
+@item @code{gfun} @tab @code{none (CLOS generic-function)} 
+@item @code{instance} @tab @code{none (CLOS instance)} 
+@item @code{thread} @tab @code{none (thread)} 
+@item
+@end multitable
+
+Each object is represented by a cell allocated in the heap area of the
+interpreter.  The size of the cell is determined by the implementation type of
+the object.
+
+The implementation types are classified according to the size of the cells for
+the objects of the type, as shown in Table 4-2.  The size of the cells in the
+same type class is the same.
+
+
+@center Table 4-2  Classification of Implementation Types
+@c @vspace{1 em}
+@multitable {@emph{Class}} {@emph{Implementation Types}}
+@item 1 @tab @code{CONS BIGNUM RATIO COMPLEX STRUCTURE}
+@item 2 @tab @code{SHORT-FLOAT RANDOM-STATE READTABLE}
+@item 3 @tab @code{LONG-FLOAT CFUN CCLOSURE}
+@item 4 @tab @code{SYMBOL}
+@item 5 @tab @code{PACKAGE}
+@item 6 @tab @code{ARRAY HASH-TABLE VECTOR BIT-VECTOR STREAM}
+@item 7 @tab @code{STRING}
+@item 8 @tab @code{PATHNAME}
+@end multitable
+
+For objects of the (implementation) types @code{readtable}, @code{symbol},
+@code{package}, @code{array}, @code{hash-table}, @code{vector},
+@code{bit-vector}, @code{stream}, @code{cclosure}, @code{string}, @code{cfun},
+and @code{structure} (or @code{instance}), the cell is simply a header of the
+object.  The body of the object is allocated separately from the cell and is
+managed in a different manner.  The memory space occupied by the body of such
+an object is called a @dfn{block}.  A block is either @dfn{contiguous} or
+@dfn{relocatable} depending on the area in which it is allocated.  The
+difference between the two areas will be explained below.  Table 4-3 lists
+these types, along with the contents of the body and the kind of the block.
+
+@center Table 4-3  Types with Bodies
+@c @vspace{1 em}
+@multitable {@emph{Type}} {@emph{Body}} {@emph{Block}}
+@item @code{readtable} @tab @code{read table} @tab @code{contiguous}
+@item @code{symbol} @tab @code{symbol name} @tab @code{relocatable}
+@item @code{package} @tab @code{hash table} @tab @code{contiguous}
+@item @code{array} @tab @code{array body} @tab @code{relocatable or contiguous}
+@item @code{hash-table} @tab @code{hash table} @tab @code{relocatable}
+@item @code{vector} @tab @code{vector body} @tab @code{relocatable or contiguous}
+@item @code{bit-vector} @tab @code{bit-vector body} @tab @code{relocatable or contiguous}
+@item @code{stream} @tab @code{I/O buffer} @tab @code{contiguous}
+@item @code{cclosure} @tab @code{code} @tab @code{contiguous}
+@item @code{string} @tab @code{string body} @tab @code{relocatable or contiguous}
+@item @code{cfun} @tab @code{code} @tab @code{contiguous}
+@item @code{structure} @tab @code{structure body} @tab @code{relocatable}
+@item @code{instance} @tab @code{instance slots} @tab @code{relocatable}
+@item @code{thread} @tab @code{thread data} @tab @code{contiguous}
+@end multitable
+
+Usually, the body of an array, a vector, a bit-vector, or a string is allocated
+as a relocatable block.  In @ecl{}, the function @code{make-array} takes an
+extra keyword argument @kwd{static}.  If the @kwd{static} argument is supplied
+with a non-@nil{} value, then the body of the array is allocated as a
+contiguous block.
+
+
+@node Heap and relocatable areas, The garbage collector, Implementation types, Memory management
+@section Heap and Relocatable Areas
+
+The memory space of @ecl{} is divided into two parts: the heap area and the
+relocatable area.  Both areas occupy a contiguous space in the memory.
+
+Cells of @ecl{} objects are allocated in the heap.  @ecl{} divides the heap
+into pages (1 page = 2048 bytes), and each page consists of cells in the same
+type class (see Table 4-2).  Cells in different type classes are allocated in
+different pages.  Some blocks are also allocated in the heap: They are called
+contiguous blocks.  The pages for contiguous blocks contain only contiguous
+blocks.  Thus each page in the heap is either a page for cells in a particular
+type class, or a page for contiguous blocks.  Blocks not in the heap are called
+relocatable blocks and are allocated in the relocatable area.
+
+The user may specify the maximum number of pages that can be allocated for each
+type class by calling the @ecl{} specific function @code{allocate}.  There is
+also a limit on the number of pages for contiguous blocks; the limit can be
+altered by calling the @ecl{} specific function
+@code{allocate-contiguous-pages} size of the relocatable area is specified by
+the @ecl{} specific function @code{allocate-relocatable-pages}.  See Section
+4.4 for these functions.
+
+In some installations of @ecl{}, the total amount of memory that @ecl{} can
+use is limited.  In such cases, the entire memory may become exhausted before
+the maximum number of pages for each type class, for contiguous blocks, or for
+the relocatable area have been allocated.
+
+The heap lies in a part of memory with lower address than the relocatable area
+and there is a ``hole'' between the two areas (see Figure 4-1).  On request for
+a new page of heap, the page with the lowest address in the hole is used.  When
+the hole is exhausted, the relocatable area is shifted toward the higher
+address space and a new hole of an appropriate size is created between the two
+areas.
+
+@center Figure 4-1  Heap and Relocatable Area
+@c @vspace{1 em}
+@verbatim
+    Lower address                         Higher address
+    +--------------+-------------------+---------------+
+    + HEAP         |   HOLE            | RELOCATABLE   |
+    +--------------+-------------------+---------------+
+@end verbatim
+
+@node The garbage collector, Allocation functions, Heap and relocatable areas, Memory management
+@section The Garbage Collector
+
+@ecl{} uses a @emph{conservative garbage collection} technique for collecting
+the C stack and a type accurate technique for areas containing Lisp objects.
+Scanning conservatively the C stack, looking for potential pointers to Lisp
+objects, ensures that no live Lisp objects get collected, even if they are
+passed to external procedures in C or some other language.  This approach
+greatly simplifies integration of Lisp and C code, since it is not necessary to
+protect Lisp object form collection when a foreign function is invoked.
+
+The garbage collector of @ecl{} has three levels according to what it
+collects:
+@enumerate
+@item cells
+@item cells and relocatable blocks
+@item cells, relocatable blocks and contiguous blocks.
+@end enumerate
+
+In levels 2 and 3, the relocatable area is shifted to the higher address space
+to reserve an appropriate number of pages in the hole.
+
+For each type class, @ecl{} keeps a free list of unused cells, and when the
+free list is exhausted, a new page is allocated, or the garbage collector is
+invoked, depending on whether the maximum number of pages for that class have
+been allocated or not.
+
+The garbage collector does not compact the heap.  That is, cells and
+contiguous blocks are never moved to another place.  Moreover, once a page is
+allocated for a particular type class or for contiguous blocks, that page will
+never be freed for other classes, even if the entire page becomes garbage.
+
+On the other hand, the relocatable area is compacted during level 2 and
+level 3 of garbage collection.  A relocatable block is really relocatable.
+
+The garbage collector is automatically invoked in one of the following
+situations.  The number in the parentheses indicates the level of garbage
+collection that is performed.
+
+@enumerate
+@item  The free list of a certain type class is exhausted
+after the maximum number of pages have been allocated for that type class (1).
+
+@item The hole is exhausted (2).
+
+@item The relocatable area is exhausted after the maximum number of
+pages have been allocated for the relocatable area (2).
+
+@item The contiguous blocks are exhausted after the maximum number of
+pages have been allocated for contiguous blocks (3).
+@end enumerate
+
+The garbage collector is also invoked by the following @ecl{} specific
+function.
+
+@defun {system} {gc} {x}
+The garbage collector is invoked with the level specified by @var{x}.  If
+@var{x} is @nil{}, the garbage collector is invoked for level 1 garbage
+collection.  If @var{x} is @true{}, it is invoked for level 3 garbage
+collection.  Otherwise, it is invoked for level 2 garbage collection.  If
+@code{sys:*gc-verbose*} is non-@nil{}, then it print messages at the start and
+end of each garbage collection.
+@end defun
+
+@defvar{*gc-verbose*}[system] This variable controls whether to print messages
+at the start and end of each garbage collection.  If @code{sys:*gc-verbose*} is
+@nil{}, @code{gc} fore goes printing any messages.  The default value is @code{T}.
+@end defvar
+
+
+@node Allocation functions, Storage information, The garbage collector, Memory management
+@section Allocation Functions
+ 
+The following functions are used to set or inspect the (maximum)
+number of pages for each type class, for contiguous blocks, or for
+relocatable blocks.
+
+@deffn {extensions} {allocate}  type number
+Sets the maximum number of pages for the type class of the implementation type
+@var{type} to @var{number}.  If more than @var{number} pages have already been
+allocated, an error is signalled.
+@end deffn
+
+@deffn {sys} {allocated-pages}  type
+Returns the number of pages currently allocated for the type class of the
+implementation type @var{type}.
+@end deffn
+
+@deffn {sys} {maximum-allocatable-pages}  type
+Returns the current maximum number of pages for type class of the
+implementation type @var{type}.
+@end deffn
+
+@deffn {sys} {allocate-contiguous-pages}  number
+Sets the maximum number of pages for contiguous blocks to @var{number}.
+@end deffn
+
+@deffn {sys} {allocated-contiguous-pages}  
+Returns the number of pages allocated for contiguous blocks.
+@end deffn
+
+@deffn {sys} {maximum-contiguous-pages}  
+Returns the current maximum number of pages for contiguous blocks.
+@end deffn
+
+@deffn {sys} {allocate-relocatable-pages}  number
+Sets the maximum number of pages for relocatable blocks to @var{number}.  The
+relocatable area is expanded to @var{number} pages immediately.
+Therefore,``the current maximum number'' and ``the number of pages allocated''
+have the same meanings for relocatable blocks.
+@end deffn
+
+@deffn {sys} {allocated-relocatable-pages}  
+Returns the number of pages allocated for relocatable blocks.
+@end deffn
+
+If the pages for a particular type class are exhausted after the maximum number
+of pages for that class have been allocated, and if there remain no free cells
+(actually, if there remain very few cells), @ecl{} behaves as directed by the
+argument that was initially passed to the @ecl{} specific function @code{(si::ignore-maximum-pages)}.  If the
+value is @nil{}, then @ecl{} signals a correctable error and enters the break loop.
+The user can reset the maximum number by calling @code{allocate} and then
+continue the execution of the program by typing @kwd{r}.
+
+Example:
+
+@smallformat
+>(make-list 100000)
+
+Correctable error: The storage for CONS is exhausted.
+                   Currently, 531 pages are allocated.
+                   Use ALLOCATE to expand the space.
+Signalled by MAKE-LIST.
+
+Broken at FUNCALL.
+>>(ALLOCATE 'CONS 1000)
+t
+
+>>:r
+
+(nil nil nil nil nil nil nil nil nil nil ............
+@end smallformat
+
+The user can also reset the maximum number of pages for relocatable blocks and
+for contiguous blocks in a similar manner.  On the other hand, if the value of
+@code{(si::ignore-maximum-pages)} is non-@nil{}, then @ecl{} automatically
+increments the maximum number of pages for the class by 50 percent.  The
+initial value of @code{(si::ignore-maximum-pages)} is @true{}.
+
+
+@node Storage information,  , Allocation functions, Memory management
+@section Storage Information
+ 
+@defun {room} {@optional{} x}
+The function @code{room} prints the storage information.  The argument
+@var{x}  is simply ignored and
+the output of @code{room}  is always in the same
+format.  @code{room}  prints the following information:
+@end defun
+
+@itemize
+
+@item for each type class
+@itemize
+@item the number of pages so-far allocated for the type class 
+@item the maximum number of pages for the type class
+@item the percentage of used cells to cells so-far allocated 
+@item the number of times the garbage collector has been 
+called to collect cells of the type class 
+@item the implementation types that belong to the type class
+@end itemize
+@item the number of pages actually allocated for contiguous blocks
+@item the maximum number of pages for contiguous blocks
+@item the number of times the garbage collector has been called to 
+collect contiguous blocks 
+@item the number of pages in the hole
+@item the maximum number of pages for relocatable blocks
+@item the number of times the garbage collector has been called to
+collect relocatable blocks 
+@item the total number of pages allocated for cells
+@item the total number of pages allocated
+@item the number of available pages
+@item the number of pages @ecl{} can use.
+@end itemize
+
+The number of times the garbage collector has been called is not shown, if the
+number is zero.
+
+In the following example, the maximum of @code{531} pages have already been
+allocated for the type class to which cons belongs, but only 16.9 percent of
+the cells are actually used.  The garbage collector was once invoked to collect
+cells in this type class.
+
+@smallformat
+> (room)
+ 200/200   48.4%    CONS BIGNUM RATIO COMPLEX STRUCTURE
+   1/5      7.4%    SHORT-FLOAT RANDOM-STATE READTABLE
+  10/34    99.3%    LONG-FLOAT CFUN CCLOSURE
+  47/64    71.9%    SYMBOL
+   1/1      8.9%    PACKAGE
+   2/69    81.8%    ARRAY HASH-TABLE VECTOR BIT-VECTOR STREAM
+  16/40    95.9%    STRING
+   1/1      6.8%    PATHNAME
+
+   0/271            contiguous (1 blocks)
+     127            hole
+     40     3.4%    relocatable
+
+  278 pages for cells
+  445 total pages
+14709 pages available
+ 1230 pages in heap but not gc'd + pages needed for gc marking
+16384 maximum pages
+@end smallformat
+
+
+@node Program development, The interpreter, Memory management, Top
+@chapter Program Development Facilities
+
+@menu
+* The tracer::                  
+* The stepper::                 
+* Errors::                      
+* The break loop::              
+* Describe and inspect::        
+* The profiler::                
+* Online help::                 
+@end menu
+
+@node The tracer, The stepper, Program development, Program development
+@section The Tracer
+
+The Tracer causes selected @code{functions} to be traced.  When such a traced
+@code{function} is invoked, it prints
+@example
+  @var{level} > (@var{name   arg1   ...   argn}) 
+@end example
+
+On return from a traced @code{function}, it prints
+@example
+  < @var{level}  (@var{name   value1   ...   valuen})
+@end example
+
+@var{name} is the name of the traced @code{function}, @var{args} are the
+arguments, and @var{values} are the return values.  @var{level} is a number
+which is incremented each time a traced @code{function} is invoked and is
+decremented at the completion of the invocation.  Trace print-outs are indented
+according to the @var{level}.
+
+In the current version of @ecl{}, macros and special forms cannot be traced.
+
+@defmac {trace} {@{function-name | (function-name @{@keys{} form@}*)@}*}
+
+Causes one or more functions to be traced.  Each @var{function-name} must be a
+symbol which is not evaluated.  If a function is called from a compiled
+function in the same file, tracing will not be enabled.  If this is the case,
+to enable tracing, recompile the caller with a @code{notinline} declaration for
+the called function. @code{trace} returns a name list of those functions that
+were traced by the call to trace.  If no @var{function-name} is given,
+@code{trace} simply returns a name list of all the currently traced functions.
+
+Trace options can cause the normal printout to be suppressed, or cause extra
+information to be printed.  Each option is a pair of an option keyword and a
+value form. If an already traced function is traced again, any new options
+replace the old options.  @var{form} is an expression to be evaluated in an
+environment where @var{sys::arglist} is bound to the current list of arguments
+to the function.
+
+The following options are defined:
+
+@table @asis
+@item @kwd{cond} @var{form}
+@item @kwd{cond-before} @var{form}
+@item @kwd{cond-after} @var{form}
+If @kwd{cond-before} is specified, then @code{trace} does nothing unless
+@var{form} evaluates to true at the time of the call.  @kwd{cond-after} is
+similar, but suppresses the initial printout, and is tested when the function
+returns.  @kwd{cond} tries both before and after.
+
+@item @kwd{step} @var{form}
+If @var{form} evaluates to true, the stepper is entered.
+
+@item @kwd{break} @var{form}
+@item @kwd{break-after} @var{form}
+If specified, and @var{form} evaluates to true, then the debugger is invoked at
+the start of the function or at the end of the function according to the
+respective option.
+
+@item @kwd{print} @var{form}
+@item @kwd{print-after} @var{form}
+In addition to the usual printout, the result of evaluating @var{form} is
+printed at the start of the function or at the end of the function, according
+to the respective option.  Multiple print options cause multiple values to be
+@end table
+@end defmac
+
+@defmac {untrace} {@{function-name@}*}
+
+Causes the specified functions to be not traced any more.  @var{function-names}
+must be symbols and they are not evaluated. @code{untrace} returns a name list
+of those functions that were untraced by the call to @code{untrace}.  If no
+@var{function-name} is given, @code{untrace} will untrace all the currently
+traced functions and will return a list of their names.
+
+@end defmac
+
+
+@node The stepper, Errors, The tracer, Program development
+@section The Stepper
+
+@defmac {step} {form}
+
+Starts evaluating the @var{form} in the single-step mode.  In this mode, before
+any form is evaluated, the Stepper will print the form and prompt the user for
+a Stepper command.  The Stepper binds the two variables @vindexed{print-level}
+and @vindexed{print-length} both to @code{2}, so that the current form may not
+occupy too much space on the screen.  A Stepper command will be executed when
+the user types the single character for the command followed by the required
+arguments, if any, and presses the newline key.  If the user presses the
+newline key without having typed any character, then the Stepper will assume
+that the Stepper command @code{n} was abbreviated.
+
+@end defmac
+
+The stepper commands are:
+
+@table @asis
+@item @code{Newline}
+Next.  Evaluates the current form in the single-step mode.
+
+@item @kwd{s}, @kwd{skip}
+Skip.  Evaluates the current form in the ordinary mode.  The single-step mode
+will be resumed at completion of the evaluation.
+
+@item @kwd{b}, @kwd{back}
+Backwards.  Steps back to previous step form.
+
+@item @kwd{pr}, @kwd{print}
+Print.  Pretty-prints the current form.
+
+@item @kwd{form}
+Form. Return the current form.  Nothing is done, but the current form is
+returned as the value of this command.  As a consequence, it is printed by the
+top level in the usual way and saved in the variable @code{*}.  The main
+purpose of this command is to allow the current form to be examined further by
+accessing @code{*}.
+
+@item @kwd{ret}, @kwd{return}
+Return. Return without evaluating the current form.
+
+@item @kwd{x}, @kwd{exit}
+Exit.  Evaluates the current form and any other forms in the ordinary mode.
+
+@item @code{?}
+Help. Lists the commands.
+@end table
+
+@node Errors, The break loop, The stepper, Program development
+@section Errors
+
+@defvar{*break-enable*}
+
+This variable is used to determine whether to enter the break loop (see Section
+5.4) when an error occurs.  Even the function @code{break} checks this
+variable.  Initially, this variable is set to @true{}, and thus an error will
+invoke the break loop.  If the value is @nil{}, functions that cause fatal
+errors, such as @code{ error}, will just print an error message and control
+will return to the top-level loop (or to the current break loop, if already in
+the break loop).  Functions that cause correctable errors, such as @code{
+cerror}, will print an error message and a ``continue message'', and control
+will return to the next form.  In @ecl{}, backtrace is not part of an error
+message, but a break loop command will print backtrace.  Therefore, if
+@vindexed{break-enable} is @nil{}, no backtrace appears on the screen.
+
+When the break loop is entered, @vindexed{break-enable} will be bound to
+@nil{}.
+
+@end defvar
+
+@node The break loop, Describe and inspect, Errors, Program development
+@section The Break Loop
+ 
+The break loop is a read-eval-print loop similar to the top-level loop.  In
+addition to ordinary Lisp forms, the break loop accepts various commands with
+which the user can inspect and modify the state of the program execution.  Each
+break loop command is identified with a keyword (i.e., a symbol in the
+@code{keyword} package).  A break loop command is executed when the user inputs
+a list whose first element is the keyword that identifies the command.  The
+rest of the list is the arguments to the command.  They are evaluated before
+being passed to the command.  If the command needs no arguments, then the user
+may input only the keyword.  It is an error if the given keyword does not
+identify any command.  Any other input to the break loop is regarded as an
+ordinary Lisp form; the form will be evaluated and the resulting values will be
+printed on the terminal.
+
+There can be several instances of the break loop at the same time, and each
+such instance is identified by a @emph{level number}.  When the break loop is
+entered during execution in the top-level loop, the break loop instance is
+given the level number 1.  The break loop instance that is entered from the
+level @emph{n} break loop is given the level number @var{n}@code{+1}.  The
+prompt of the level @emph{n} break loop is @var{n}@code{+1} consecutive
+@code{>}'s, occasionally prefixed with the name of the current package.
+
+The break loop keeps track of the invocation sequence of functions (including
+special forms and macro expansion functions), which led up to the break loop
+from the previous break loop (or from the top-level loop, if the current break
+loop is level 1).  The invocation sequence is maintained in a pushdown stack of
+@emph{events}.  An event consists of an @emph{event function} and an
+@emph{event environment}.  An event function is:
+@enumerate
+@item an interpreted (i.e., not compiled) function (global function, local function, lambda-expression, or closure), 
+
+@item a special form within an interpreted function, 
+
+@item a macro expansion function called from an interpreted function, 
+
+@item a compiled function called from an interpreted function, or 
+
+@item a compiled function called from another compiled function which
+was compiled while the @code{safety} optimize level is 3 or with a
+@code{notinline} declaration for the called function (see Chapter 7).
+@end enumerate
+
+An event is pushed on the event stack when execution of its event function
+begins, and is popped away at the completion of the execution.  An event
+environment is the `environment' of the event function at the time the next
+event is pushed.  Actually, an event environment is a pointer to the main stack
+of @ecl{}.  For each interpreted event function (i.e., event function in
+classes 1, 2, and 3), the pointer points to the first entry of the three
+contiguous main stack entries that hold the lexical environment of the event
+function.  For each compiled event function (i.e., event function in classes 4
+and 5), the pointer is set to the first entry of the main stack area that is
+used locally by the compiled code.  In most cases, the first argument to the
+compiled function is saved in the first entry, the second argument in the
+second entry, and so on.  The local variables of the function are allocated in
+the entries following the arguments.  However, this is not always the case.
+Refer to Section 7.3 for variable allocations in compiled functions.
+
+By break level commands, the user can choose one of the events as the
+@emph{current event}.  If the current event function is an interpreted event
+function, then the break loop evaluates Lisp forms in the lexical environment
+retrieved from the event environment.  In particular, local variables may be
+referenced by the variable names, local functions and local macros may be
+invoked as usual, established blocks may be exited from, and tags may be used
+as the destination of @code{go}.  If the current function is a compiled
+function, Lisp forms are evaluated in the null environment.
+
+Within the break loop, each event is represented by the @emph{event symbol}.
+The @kwd{backtrace} command, for example, lists events in terms of their event
+symbols.  If the event function is a named function (global or local) or a
+macro expansion function, then the function or macro name is used as the event
+symbol.  If the event function is a special form, then the name of the special
+form is used.  If the event function is a lambda-expression (or a closure),
+then the symbol lambda (or lambda-closure) is used.
+
+To suppress unnecessary information, the user can hide (or make invisible) some
+of the events.  Invisible events do not appear in the backtrace, for example.
+Initially, only those events are invisible whose event symbols belong to the
+system internal package system.  When the break loop is entered, the last
+visible event becomes the current event.
+
+The break loop commands are described below.  Some of the commands allow
+abbreviation in the keywords that identify them.  For example, the user may
+abbreviate @kwd{current} as @kwd{c}.  The break loop commands return no values
+at all.
+
+@deffn {Break Command} {:current}  
+@deffnx {Break Command} {:c} {}
+Prints the event symbol of the current event.
+@end deffn
+
+@deffn {Break Command} {:previous}  @optional{} n
+@deffnx {Break Command} {:p} {@optional{} n}
+Makes the @var{n}-th previous visible event the
+new current event.  Invisible events are not counted.  If there are
+less than @var{n} previous events, then the first visible event in the
+invocation sequence becomes the new current event. @var{n} must be a
+positive integer and the default is @code{1}.
+@end deffn
+
+@deffn {Break Command} {:next}  @optional{} n
+@deffnx {Break Command} {:n} {@optional{} n}
+Makes the @var{n}-th next visible event the
+new current event.  If there are less than @var{n} next events,
+then the last visible event in the invocation sequence
+becomes the new current event. @var{n}  must be a positive integer and the  
+default is @code{1}.
+@end deffn
+
+@deffn {Break Command} {:backtrace}  
+@deffnx {Break Command} {:b} {}
+Prints the event symbols of all visible events in order.  The symbol of
+the current event is printed
+in upper-case letters and the event symbols of other events are in lower-case.
+@end deffn
+
+@deffn {Break Command} {:help}  
+@deffnx {Break Command} {:h} {}
+Lists the break loop commands.
+@end deffn
+
+@deffn {Break Command} {:quit}  @optional{} n
+@deffnx {Break Command} {:q} {@optional{} n}
+Returns control to the level @var{n} break loop.  If @var{n} is 0 or if @var{n}
+is omitted, then control will return to the top-level loop. @var{n} must be a
+non-negative integer smaller than the current break level.
+@end deffn
+
+@deffn {Break Command} {:continue}  
+@deffnx {Break Command} {:c} {}
+Returns control to the caller of the break loop.  If the break loop has been
+entered from @code{cerror}, @code{cerror} returns @nil{} as its value and
+control will resume at that point.  Otherwise, this command returns control to
+the previous break loop (or to the top-level loop, if the current break level
+is @code{1}).
+@end deffn
+
+@deffn {Break Command} {:variables}  
+@deffnx {Break Command} {:v} {}
+Prints the names of the bound variables in the current
+environment.  To see the value of a bound variable, just type the
+variable name.
+@end deffn
+
+@deffn {Break Command} {:functions}  
+Prints the names of the local functions and local macros in the current
+environment.  To see the definition of a local function or macro, use the
+function special form in the usual way.  That is, @code{(function @var{name})}
+will return the definition of the local function or macro whose name is
+@var{name}.  Local functions and local macros may be invoked as usual.
+@end deffn
+
+@deffn {Break Command} {:blocks}  
+Prints the names of the blocks established in the current environment.  If a
+block @var{block} is established, then the @code{return-from} form
+@code{(return-from @var{block value})} works as usual.  That is, the block form
+that established @var{block} will return @var{value} as its value and control
+will resume at that point.
+@end deffn
+
+@deffn {Break Command} {:tags}  
+Prints the tags established in the current environment.  If a tag @var{tag} is
+established, then the @code{go} form @code{(go @var{tag})} works as usual.
+That is, control will resume at the position of @var{tag} in the surrounding
+@code{tagbody}.
+@end deffn
+
+@deffn {Break Command} {:local}  @optional{} n
+@deffnx {Break Command} {:l} {@optional{} n}
+If @var{n} is @code{0} or if it is omitted, then this command prints the value
+stored in the main stack entry that is pointed to by the current event
+environment. @var{n} is an offset from that entry.  If @var{n} is positive,
+then the value of the @emph{n}-th next (i.e., toward the top of the main stack)
+entry is printed.  If @var{n} is negative, then the value of the @var{n}-th
+previous (i.e., toward the bottom of the main stack) entry is printed. @var{n}
+must be an integer.  It is an error if the specified entry does not lie between
+the bottom and the top of the stack.
+@end deffn
+
+@deffn {Break Command} {:hide}  symbol
+Hides all events whose event symbol is @var{symbol}.  In particular, by
+@code{:hide 'lambda} and @code{hide 'lambda-closure}, all events become
+invisible whose event functions are lambda-expressions and closures,
+respectively.  If the event symbol of the current event happens to be
+@var{symbol}, then the last previous visible event will become the new current
+event.  @var{symbol} must be a symbol.
+
+Events of @code{eval} and @code{evalhook} may never become invisible and
+attempts to hide them are simply ignored.  It is always the case that the first
+event function is either @code{eval} or @code{evalhook}.  Keeping both of them
+visible is the simplest way to avoid the silly attempts of the user to hide all
+events.
+@end deffn
+
+@deffn {Break Command} {:hide-package}  package
+Hides all events whose event symbol belongs to the package
+@var{package}. @var{package} may be any object that represents a package, i.e.,
+a package object, a symbol, or a string.  If the event symbol of the current
+event happens to belong to the package @var{package}, then the last previous
+visible event will become the new current event.  Even if @code{lisp} package
+was specified as @var{package}, events of @code{eval} and @code{evalhook} do
+not become invisible.  See the description of @kwd{hide} above.
+@end deffn
+
+@deffn {Break Command} {:unhide}  symbol
+@kwd{unhide} is the inverse command of @kwd{hide}.  If, however, @var{ symbol}
+belongs to one of the @kwd{hide-package}d packages, events of @var{symbol}
+become visible only after the package is @code{:unhide-package
+'d}. @var{symbol} must be a symbol.
+@end deffn
+
+@deffn {Break Command} {:unhide-package}  package
+@kwd{unhide-package} is the inverse command of @kwd{hide-package}.  However, an
+event whose event symbol belongs to @var{package} becomes visible only after
+the symbol is @code{unhide 'd}, if the symbol was @kwd{code 'd}
+before. @var{package} may be any object that represents a package, i.e., a
+package object, a symbol, or a string.
+@end deffn
+
+Example:
+
+@smallformat
+> (defun fact (x) (if (= x 0) one (* x (fact (1- x)))))
+fact                    ;;;  Wrong definition for  fact, the factorial.
+
+> (fact 6)              ;;;  Tries to calculate factorial 6.
+
+Error: The variable ONE is unbound.
+Error signalled by IF.
+
+Broken at IF:           ;;;  Enters the break-loop.
+>> :h                   ;;;  Help.
+
+Break commands:
+:q(uit)         Return to some previous break level.
+:pop            Pop to previous break level.
+:c(ontinue)     Continue execution.
+:b(acktrace)    Print backtrace.
+:f(unction)     Show current function.
+:p(revious)     Go to previous function.
+:n(ext)         Go to next function.
+:g(o)           Go to next function.
+:fs             Search forward for function.
+:bs             Search backward for function.
+:v(ariables)    Show local variables, functions, blocks, and tags.
+:l(ocal)        Return the nth local value on the stack.
+:hide           Hide function.
+:unhide         Unhide function.
+:hp             Hide package.
+:unhp           Unhide package.
+:unhide-all     Unhide all variables and packages.
+:vs             Show value stack.
+:bds            Show binding stack.
+:m(essage)      Show error message.
+:hs             Help stack.
+
+Top level commands:
+:cf             Compile file.
+:exit or ^D     Exit Lisp.
+:ld             Load file.
+:step           Single step form.
+:tr(ace)        Trace function.
+:untr(ace)      Untrace function.
+
+Help commands:
+:apropos        Apropos.
+:doc(ument)     Document.
+:h(elp) or ?    Help.  Type ":help help" for more information.
+
+>> :b                   ;;;  Backtrace. 
+Backtrace: eval > fact > if > fact > if > fact > if > fact >
+if > fact > if > fact > if > fact > IF
+
+>>: p                   ;;;  Moves to the previous event. 
+Broken at FACT.
+
+>> :b                   ;;;  Now inside of  fact  but outside of  if. 
+Backtrace: eval > fact > if > fact > if > fact > if > fact > 
+if > fact > if > fact > if > FACT > if
+
+>> :v                   ;;;  Shows local variables. 
+Local variables:
+  X: 1
+Block names: FACT.
+
+>> x                    ;;;  The value of x is 1. 
+1
+
+>> (return-from fact 1) ;;;  Returns from the  fact  block with value  1. 
+720                     ;;;  Now the correct answer. 
+
+>                      ;;;  Top-level.
+@end smallformat
+
+
+@node Describe and inspect, The profiler, The break loop, Program development
+@section Describe and Inspect
+
+@defun {describe} {object}
+Prints the information about @var{object} to the stream that is the value of
+@code{*standard-output*}.  The description of an object consists of several
+fields, each of which is described in a recursive manner.  For example, a
+symbol may have fields such as home package, variable documentation, value,
+function documentation, function binding, type documentation, @code{deftype}
+definition, properties.
+@end defun
+
+@defun {inspect} {object}
+Prints the information about @var{object} in an interactive manner.  The output
+of inspect is similar to that of @code{describe}, but after printing the label
+and the value of a field (the value itself is not @code{describe 'd}), it
+prompts the user to input a one-character command.  The input to @code{inspect}
+is taken from the stream that is the value of @code{*query-io*}.  Normally, the
+inspection of @var{object} terminates after all of its fields have been
+inspected.  The following commands are supported:
+
+@table @asis
+@item @code{n}
+Next. Goes to the next level; the field is inspected recursively.
+
+@item @code{s}
+Skip. Skips the inspection of the field. @code{inspect} proceeds to the next
+field.
+
+@item @code{p}
+Print. Pretty-prints the field and prompts again.
+
+@item @code{u} @var{form}
+Update. The @var{form} is evaluated and the field is replaced by the resulting
+value.  If the field cannot be updated, the message @code{Not updated.}  will
+be printed.
+
+@item @code{a}
+Abort. Aborts the inspection of the current object.  The field and  
+the rest of the fields are not inspected.
+
+@item @code{e} @var{form}
+Eval. Evaluates the specified form in the null environment and prints the
+resulting values.  Then prompts again with the same field.
+
+@item @code{q}
+Quit. Aborts the entire inspection.
+
+@item @code{?}
+Help. Lists the @code{inspect} commands.
+@end table
+@end defun
+
+
+@node The profiler, Online help, Describe and inspect, Program development
+@section The Profiler
+
+The profiler tool is enabled by default in the basic @ecl{} configuration.  It
+can be disabled with the @code{configure} option @code{--disable-profiler}.
+
+@deffn {sys} {profile}  @var{grain} @optional{} @var{address}
+This function activates the profiling of subsequent executions.  @var{grain} is
+a value between 1 and 16384 which indicates the granularity of code segments to
+consider. There is a counter for each such segment.  With each clock tick, the
+current segment is identified and its corresponding histogram count is
+incremented.  A value of 0 for @var{grain} means stop profiling.  @var{address}
+indicates the base address for the code being profiled.
+@end deffn
+
+@deffn {sys} {display-profile}  
+Displays the histogram of accumulated tick counts.  The ticks are attributed to
+the compiled Lisp function whose base address is closest to the start of the
+segment.  This may not be totally accurate for system functions which invoke
+some auxiliary function to do the job.
+@end deffn
+
+@deffn {sys} {clear-profile}  
+Clears the profile histogram.
+@end deffn
+
+@defvar {sys} {*profile-array*}
+Contains the profile histogram: two short integer counters are packed in each
+value of this array of fixnums.
+@end defvar
+
+
+@node Online help,  , The profiler, Program development
+@section Online Help
+
+Online help is provided by the following functions.
+
+@defun {help} {@optional{} @var{symbol}}
+@code{help} with no arguments prints a greeting message to @ecl{} beginners.
+@code{help} with a symbol argument prints the documentation associated
+with the symbol.
+@end defun
+
+@defun {help*} {@var{string} @optional{} @var{package}}
+Prints the documentation associated with those symbols in the specified
+@var{package} whose print names contain @var{string} as substring.
+@var{string} may be a symbol, in which case the print name of that symbol is
+used. @var{package} is optional and defaults to the LISP package.
+If @var{package} is @nil{}, then all packages are searched.
+@end defun
+
+@node The interpreter, The compiler, Program development, Top
+@chapter The Interpreter
+
+Former versions of @ecl{}, as well as many other lisps, used linked lists to
+represent code. As of version 0.3 a bytecode compiler and a bytecode
+interpreter were developed to circumvent the limitations of linked lists.
+
+When you enter code at the lisp prompt, or when you load a source file,
+@ecl{} begins a process known as minimal compilation. Barely this
+process consists on parsing each form, macroexpanding it and translating
+it into an intermediate language made of @emph{bytecode}.
+
+The bytecode compiler is implemented in @file{src/c/compiler.d}. The main
+entry point is the lisp function @code{SI::MAKE-LAMBDA}, which takes a
+name for the function and the body of the lambda lists, and produces a
+lisp object that can be invoked. For instance,
+
+@smallformat
+> (defvar fun (si::make-lambda 'f '((x) (1+ x))))
+*FUN*
+> (funcall fun 2)
+3
+@end smallformat
+
+@ecl{} can only execute bytecode. When a list is passed to @code{EVAL} it
+must be first compiled to bytecode and, if the process succeeds, then the
+resulting bytecode are passed to the interpreter. Similarly, every time a
+function object is created, such as in @code{DEFUN} or @code{DEFMACRO}, the
+bytecode compiler processes the lambda form to produce a suitable bytecode
+object.
+
+The fact that @ecl{} performs this eager compilation means that changes on
+a macro are not immediately seen in code which was already compiled. This has
+subtle implications. Take the following code:
+@smallformat
+> (defmacro f (a b) `(+ ,a ,b))
+F
+> (defun g (x y) (f x y))
+G
+> (g 1 2)
+3
+> (defmacro f (a b) `(- ,a ,b))
+F
+> (g 1 2)
+3
+@end smallformat
+
+@noindent
+The last statement always outputs @code{3} while in former
+implementations based on processing of lambda lists it would produce @code{-1}.
+
+
+@node The compiler, Declarations, The interpreter, Top
+@chapter The Compiler
+ 
+The @ecl{} compiler translates a Lisp program stored in a source file into a C
+program, invokes the C compiler to compile the C program, and then generates an
+object file, called @emph{fasl file} (or @emph{o-file} because of the actual
+filetype).  The compiled program in a fasl file is loaded by the function
+@code{load}.
+
+Ordinarily, the object program generated by the @ecl{} compiler scarcely does
+runtime error-checking for runtime efficiency.  In addition, Lisp functions in
+the same source file are linked together and some system functions are
+open-coded in-line.  To control runtime error checking, supply appropriate
+@code{optimize} declarations (see Section 7.1).
+
+The @ecl{} compiler processes the @code{eval-when} special form exactly as
+specified in @bibcite{Steele:84} (see Section 5.3.3 of @bibcite{Steele:84}).
+
+The @ecl{} compiler is invoked by the functions @code{compile-file},
+@code{compile}, and @code{disassemble} described below.  In addition, the
+@ecl{} compiler may be invoked directly by the Shell commands @code{ecl}.
+This command requires the file name of the source file as its
+argument. @code{ecl} simply adds @code{.lsp} to the file name argument to
+obtain the full name of the source file.
+
+@smallformat
+        $ ecl @var{filename}
+@end smallformat
+
+@noindent
+has the same effect as the compiler invocation @code{(compile-file
+@var{filename})} from within @ecl{}, and
+
+@smallformat
+        $ ecl -C @var{filename}
+@end smallformat
+
+has the same effects as @code{(compile-file @var{filename}
+:c-file t :h-file t :data-file t)}.
+
+@defun {compile-file} {@var{pathname} @keys{} :output-file :verbose :print :c-file :h-file :data-file}
+@code{compile-file} compiles the Lisp program stored in the file specified by
+@var{pathname}, and generates a binary file.  If @kwd{verbose} is true, a
+message indicating what file is being compiled is printed.  If @kwd{print}
+is true, information about top-level forms in the file being compiled is
+printed.  @code{compile-file} generates the following temporary files:
+
+@multitable {Temporary File} {The include file referenced in the c-file}
+@item @b{Temporary File}
+@tab @b{Contents}
+@item @var{c-file}
+@tab C version of the Lisp program
+@item @var{h-file}
+@tab The include file referenced in the c-file
+@item @var{data-file}
+@tab The Lisp data to be used at load time
+@end multitable
+
+If files of these names already exist, the old files will be deleted first.
+Usually, these intermediate files are automatically deleted after execution of
+@code{compile-file}.
+
+The input-file is determined in the usual manner (see Section 2.9), except
+that, if the filetype is not specified, then the default filetype @code{.lsp}
+will be used.  The keyword parameter @code{:output-file} defines the default
+directory and the default name to be applied to the output files (i.e., the
+fasl file and the temporary files).  @kwd{output-file} itself defaults to
+@var{input-pathname}.  That is, if @kwd{output-file} is not supplied, then the
+directory and the name of the input file will be used as the default directory
+and the default name for the output files.  The file types of the output files
+are fixed as follows.
+
+@multitable {@b{Output File}} {@b{Filetype}}
+@item @b{Output File} @tab @b{Filetype}
+@item fasl file @tab @code{.o}
+@item c-file @tab @code{.c}
+@item h-file @tab @code{.h}
+@item data-file @tab @code{.data}
+@end multitable
+
+Each output file can be specified by the corresponding keyword parameter.
+If the value of the keyword parameter is @nil{}, then the output file will be
+deleted after execution of @code{compile-file}.  If the value of the
+keyword parameter is @true{}, then the output file will be left in the
+default directory under the default name.  Otherwise, the output file will
+be left in the directory under the name specified by the keyword parameter.
+The default value of @kwd{output-file} is @true{}, and the default values
+of @kwd{c-file}, @kwd{:h-file}, and @kwd{data-file} are all @nil{}.
+
+@table @code
+@item (compile-file 'foo) 
+The source file is @code{FOO.lsp} and the fasl file is @code{FOO.o}
+both in the current directory.
+
+@item (compile-file 'foo.lish) 
+The source file is @code{FOO.LISH} and the fasl file is @code{FOO.o}'.
+
+@item (compile-file "/usr/mas/foo" :output-file "/usr/tai/baa") 
+The source file is @code{foo.lsp} in the directory @file{/usr/mas}, and the
+fasl file is @code{baa.o} in the directory @file{/usr/tai}.
+@end table
+@end defun
+
+@defun {compile} {@var{name} @var{code} @optional{} @var{definition}}
+If @var{definition} is not supplied, @var{name} should be the name of a
+not-yet-compiled function.  In this case, compile compiles the function,
+replaces the previous definition of @var{name} with the compiled
+function,@emph{and} returns @var{name}.  If @var{definition} is supplied, it
+should be a lambda-expression to be compiled and @var{name} should be a symbol.
+If @var{name} is a non-@nil{} symbol, then compile installs the compiled
+function as the function definition of @var{name} and returns @var{name}.  If
+@var{name} is @nil{}, then compile simply returns the compiled function.
+
+The @ecl{} compiler is essentially a file compiler, and forms to be
+compiled are supposed to be stored in a file.  Thus compile actually
+creates a source file which contains the form designated by the
+arguments.  Then compile calls @code{compile-file} to get a fasl file,
+which is then loaded into @ecl{}.  The source file and the fasl file
+are given the names @file{gazonk.lsp} and @file{gazonk.fasl},
+respectively.  These files are not deleted automatically after the
+execution of @code{compile}.
+
+@end defun
+
+@defun {disassemble} {@optional{} @var{thing} @keys{} :h-file :data-file}
+
+This function does not actually disassemble.  It always calls the @ecl{}
+compiler and prints the contents of the c-file, i.e., the C-language code,
+generated by the @ecl{} compiler.  If @var{thing} is not supplied, or if it is
+@nil{}, then the previously compiled form by disassemble will be compiled
+again.  If @var{thing} is a symbol other than @nil{}, then it must be the name
+of a not-yet-compiled function, whose definition is to be compiled.  In this
+case, it is an error if the name is associated with a special form or a macro.
+If @var{thing} is a lambda-expression @code{(lambda @var{lambda-list .
+body})}, then @code{disassemble} first creates a function definition
+@code{(defun gazonk @var{lambda-list .  body})} and this definition is
+compiled.  (The function name @code{gazonk} has no special meanings.  Indeed,
+the displayed code is essentially independent of the function name.)
+Otherwise, @var{thing} itself will be compiled as a top-level form.  In any
+case, @code{disassemble} does not install the compiled function.
+@code{disassemble} returns no value.
+
+No intermediate h-file is created if the keyword parameter @code{:h-file} is
+@nil{} or if @kwd{h-file} is not supplied.  Otherwise, an intermediate h-file
+is created under the name specified by @kwd{h-file}.  Similarly, the
+intermediate data-file is specified by the keyword parameter @kwd{data-file}.
+
+@end defun
+
+
+@node Declarations, OS interface, The compiler, Top
+@chapter Declarations
+
+@ecl{} supports all kinds of declarations described in the
+@bibcite{Steele:84}.  Any valid declaration will affect the @ecl{} environment
+in some way or another, although information obtained by declarations, other
+than special declarations, is mainly used by the @ecl{} compiler.
+
+As described in @bibcite{Steele:84}, @clisp{} declarations are divided into two
+classes: @var{proclamations} and others.  A proclamation is a global
+declaration given by the function @code{proclaim}, the top-level @emph{macro}
+@code{defvar}, or the top-level macro @code{defparameter}.  Once given, a
+proclamation remains effective during the @ecl{} session unless it is shadowed
+by a local declaration or is canceled by another proclamation.  Any other
+declaration is a @emph{local declaration} and is given only by the special form
+@code{declare}.  A local declaration remains in effect only within the body of
+the construct that surrounds the declaration.
+
+In the following nonsensical example borrowed from Chapter 9 of
+@bibcite{Steele:84},
+@lisp
+(defun nonsense (k x z)
+   (foo z x)
+   (let ((j (foo k x))
+         (x (* k k)))
+        (declare (inline foo) (special x z))
+     (foo x j z)))
+@end lisp
+@noindent
+the @code{inline} and the special declarations both remain in effect within the
+surrounding @code{let} form.  In this case, we say that the @code{let} form is
+the @emph{surrounding construct} of these declarations.
+
+@defspec {the} {@var{value-type form}}
+
+The @ecl{} interpreter does actually check whether the value of the
+@emph{form} conforms to the data type specified by @emph{value-type} and
+signals an error if the value does not.  The type checking is performed by
+the function @code{typep}.  For example,
+@end defspec
+
+@lisp
+(the fixnum (foo))
+@end lisp
+
+@noindent
+is equivalent to
+
+@lisp
+(let ((values (multiple-value-list (foo))))
+   (cond ((endp values) (error ``Too few return values."))
+         ((not (endp (cdr values)))
+          (error ``Too many return values."))
+         ((typep (car values) 'fixnum) (car values))
+         (t (error ``~s is not of type fixnum." (car values)))))
+@end lisp
+
+On the other hand, the @ecl{} compiler uses the special form to
+obtain type information for compiled code optimization. No code for
+runtime type-checking is embedded in the compiled code.
+
+@menu
+* Declaration specifiers::      
+* Type specifiers::             
+* Type declarations::           
+* Variable allocations::        
+* Raw data functions::          
+* Arguments/Values passing::    
+@end menu
+
+
+@node Declaration specifiers, Type specifiers, Declarations, Declarations
+@section Declaration Specifiers
+
+@ecl{} recognizes all declaration specifiers defined in @bibcite{Steele:84}.
+The syntax of each such declaration specifier is exactly the same as defined in
+@bibcite{Steele:84}.  In addition, @ecl{} recognizes the @code{object}
+declaration specifier which is specific to @ecl{}.
+
+@deffn {Declaration} {special}  @{@var{variable-name}@}*
+The interpreter and the compiler of @ecl{} both treat special declarations
+exactly as described in @bibcite{Steele:84}.
+@end deffn
+
+@deffn {Declaration} {type}  @var{type} @{@var{variable-name}@}*
+A @code{type} proclamation @code{(type @emph{type var1 var2} ...)}  specifies
+that the dynamic values of the named variables are of the type @emph{type}.  A
+local @code{type} declaration specifies that the variables mentioned are bound
+by the surrounding construct and have values of the type @emph{type} during
+execution of the surrounding construct.  The compiler issues a warning if one
+of the named variables is not bound by the surrounding construct.  The
+information given by @code{type} declarations is used by the compiler to
+optimize the compiled code.  The behavior of the compiled code is unpredictable
+if a wrong @code{type} declaration is supplied.  The compiler detects certain
+wrong @code{type} declarations at compile time.
+@end deffn
+
+For example,
+@smallformat
+>(defun foo (x y)
+   (declare (fixnum x) (character y))
+   (setq x y)
+  ...))
+foo
+
+>(compile 'foo)
+
+; (defun foo ...) is being compiled.
+;; Warning: Type mismatches between x and y.
+@end smallformat
+
+See Section 7.3 for further information on @code{type} declarations.
+
+@deffn {Declaration} {type}  @{@var{variable-name}@}*
+(@var{type var1 var2} ...) is equivalent to @code{(type @var{type var1 var2}
+...)}, provided that @var{type} is one of the symbols in Table 4-1 of
+@bibcite{Steele:84}, other than @code{function}.  Declaration specifications
+that begin with @code{function} are regarded as @code{function} declarations
+(see below).
+@end deffn
+
+@deffn {Declaration} {function}  @var{function-name} @var{argument-types} . @var{return-types}
+A @code{function} declaration is used to obtain type information for function
+call forms.  That is, a @code{function} declaration specifies the argument and
+the return types of each form that calls the named function.
+@end deffn
+
+@lisp
+(defun foo ()
+  (declare (function bar (character) fixnum))
+  (+ (bar (atcholi1)) (bar (atcholi2))))
+@end lisp
+
+In this example, the @code{function} declaration specifies that the two
+functions @code{atcholi1} and @code{atcholi2} both return character objects
+when called within the body of @code{foo}, and that the function bar returns
+fixnum objects when called within the body of @code{foo}.  The type information
+given by function declarations is used by the compiler to optimize the compiled
+code.  The behavior of the compiled code is unpredictable if a wrong
+@code{function} declaration is supplied.  The compiler detects certain wrong
+@code{function} declarations at compile time.
+
+For example,
+
+@smallformat
+>(defun foo (x)
+   (declare (fixnum x)
+            (function bar (character) fixnum))
+   (bar x))
+foo
+
+>(compile 'foo)
+
+; (defun foo ...) is being compiled.
+;; Warning: The type of the form x is not character.
+@end smallformat
+
+However, the compiler does not check the number of arguments, and thus, the
+following function definition will be compiled successfully without any
+warnings.
+
+@lisp
+(defun foo ()
+  (declare (function bar (character character) fixnum))
+  (+ (bar (atcholi1)) (bar (atcholi2) (atcholi3) (atcholi4))))
+@end lisp
+
+For this definition, the compiler assumes that the three functions
+@code{atcholi1}, @code{atcholi2}, and @code{atcholi3} will return fixnum
+objects.  The return type of @code{atcholi4} is unknown at compile time.
+
+The complete syntax of a function declaration is:
+
+@example
+(function  function-name
+  (@{type@}* [@{@optional{} | @rest{} | @keys{}@} @{thing@}*])
+  @{(values @{type@}* ) | @{type@}*@}
+)
+@end example
+
+Although @optional{}, @rest{}, and @keys{} markers may appear in the list of
+argument types, only those @var{types} are recognized that appear before any
+such markers and the rest of the list is simply ignored.  Note that functions
+with @optional{}, @rest{}, or @keys{} parameters may still be declared by
+@code{function} declarations because of the use of @code{function} declarations
+mentioned above.
+
+The @code{values} construct in the specification of return types is almost
+useless: @code{(function @var{function-name argument-types} (@var{values}
+@var{type1 type2} @dots{}))} is equivalent to @code{(function
+@var{function-name argment-types type1 type2} @dots{})}.
+
+See Section 7.3 for further information on @code{function} declarations.
+
+@deffn {Declaration} {ftype}  @var{function-type} @{@var{function-name}@}*
+@var{function-type} must be a list whose first element is the symbol
+@code{function}.  @code{(ftype (function . @var{rest}) @var{function-name-1}
+...  @var{function-name-n})} is equivalent to @var{n} consecutive
+@code{function} declarations @code{(function @var{function-name-1}
+. @var{rest})} ... @code{(function @var{function-name-n} . @var{rest})}.
+@end deffn
+
+@deffn {Declaration} {notinline}  @{function-name@}*
+@code{(notinline @var{function1 function2} ...)}  specifies that the
+compiler should not compile the named functions in-line.  Calls to the
+named functions can be traced and an event (see Section 5.4) is pushed
+on the event stack when any one of the named functions is invoked.
+@end deffn
+
+@deffn {Declaration} {inline}  @{function-name@}*
+An @code{inline} proclamation cancels currently effective @code{notinline}
+proclamations, and a local @code{inline} declaration locally shadows currently
+effective @code{notinline} declarations.
+@end deffn
+
+@smallformat
+>(defun foo (x)
+   (cons (car x)
+         (locally (declare (inline car)) (car x))))
+foo
+>(defun bar (x)
+   (cons (car x)
+         (locally (declare (inline car)) (car x))))
+foo
+>(proclaim '(notinline car))
+nil
+>(compile 'foo)
+...
+>(proclaim '(inline car))
+nil
+>(compile 'bar)
+...
+@end smallformat
+
+Usually, primitive functions such as @code{car} are compiled in-line.
+Therefore, in this example, only the first call to @code{car} within @code{foo}
+is compiled not in-line.
+
+In general, the @ecl{} compiler compiles functions in-line whenever possible.
+Thus an @code{inline} declaration @code{(inline @var{function1 function2} ...)}
+is worthless if none of the named functions have previously been declared to be
+@code{notinline}.
+
+@deffn {Declaration} {ignore}  @{variable-name@}*
+Usually, the compiler issues a warning if a lexical variable is never referred
+to.  @code{(ignore @var{var1 ...  varn})} causes the compiler not to issue a
+warning even if the named variables are never referred to.  The compiler issues
+a warning if one of the named variables is not bound by the surrounding
+construct, or if a named variable is actually referred to.  @code{ignore}
+proclamations are simply ignored.
+@end deffn
+
+@deffn {Declaration} {optimize}  @{(quality value) | quality@}*
+@ecl{} supports the four @code{optimize} qualities listed in the
+@bibcite{Steele:84}.
+
+@code{speed} and @code{compilation-speed} are used to set up the optimization
+switch of the C language compiler which is invoked to compile the C-language
+code generated by the @ecl{} compiler (see Chapter 6).  @code{(optimize (speed
+@var{n}))} and @code{(optimize (compilation-speed @var{m}))} are equivalent,
+where @var{n} and @var{m} are integers between 0 and 3, and @var{m} is equal to
+3-@var{n}.  When a @ecl{} session is started, the @code{speed} quality is set
+to 3.  That is, by default, the compiler generates the fastest code in the
+longest compilation time.  The @code{space} quality specifies whether the code
+size is important or not: The compiled code is a little bit larger and faster
+when compiled with the space quality 0, than when compiled with the space
+quality 1, 2, or 3.  When a @ecl{} session is started, the @code{space}
+quality is set to 0.  The @code{safety} quality determines how much runtime
+error checking code should be embedded in the compiled code.  If the
+@code{safety} quality is 0, the compiled code scarcely does runtime error
+checking.  If the @code{safety} quality is 1, then the compiled code for a
+function will check the number of arguments to the function at runtime.  If the
+@code{safety} quality is 2 or 3, then the compiled code does full runtime error
+checking.  In addition, the highest quality value 3 causes the compiler to
+treat all functions as if they were declared to be @code{notinline}.  When a
+@ecl{} session is started, the @code{safety} quality is set to 0.
+@end deffn
+
+@deffn {Declaration} {declaration}  @{name@}*
+A @code{declaration} declaration is used exactly as specified in the
+@bibcite{Steele:84}.
+@end deffn
+
+@deffn {Declaration} {object}  @{variable-name@}*
+This is the only declaration specifier that is specific to @ecl{}.
+@code{(object @var{var1 ...  varn})} affects only variable bindings and
+specifies that the named variables can be allocated in the C stack (see Section
+7.3).  The compiler issues a warning if one of the named variables is not bound
+by the surrounding construct. @code{object} proclamations are simply ignored.
+@end deffn
+
+
+@node Type specifiers, Type declarations, Declaration specifiers, Declarations
+@section Significant Type Specifiers
+
+Whenever a declaration is encountered, each type specifier (if any) in the
+declaration is converted to one of the following type specifiers, which are
+collectively called the @emph{significant type specifiers}.
+@verbatim
+          |------------   fixnum
+          |------------   character
+          |------------   short-float
+          |------------   long-float
+      t --|----   (array t)  --------------  (vector t)
+          |----   (array fixnum)  ---------  (vector fixnum)
+          |----   (array string-char)   ---  string
+          |----   (array short-float)   ---  (vector short-float)
+          |----   (array long-float)    ---  (vector long-float)
+          |----   (array bit)   -----------   bit-vector
+@end verbatim
+
+Here, the lines indicate subtype relations; the right type is a subtype of the
+left type.  For instance, @code{(vector t)} is a subtype of @code{(array t)}
+and @true{}, and @code{(array t)} itself is a subtype of @true{}.  However,
+@code{(array t)} and @code{(array string-char)} are disjoint types.
+
+The function @code{subtypep} is used for the conversion to significant type
+specifiers: If the first value of @code{(subtypep @var{raw-type type})} is
+@true{} for one of the significant type specifiers @var{type}, then the type
+specifier @var{raw-type} in the declaration is converted to @var{type}.  If
+there are more than one such significant type specifiers, then the type
+specifier that is a subtype of other specifiers is selected.  For example, type
+specifiers @tindexed{fixnum}, @code{(mod 3)}, and @code{(member 0 1)} are all
+converted to @tindexed{fixnum}, though they are also subtypes of @true{}.
+
+Because of this type specifier conversion, @ecl{} may sometimes regard two
+seemingly distinct declarations as the same.  For example, the following
+@code{type} declarations are completely equivalent, internally in @ecl{}.
+
+@lisp
+(declare (type fixnum x)))
+
+(declare (type (mod 3) x))
+
+(declare (type (member 0 1) x))
+@end lisp
+
+Type specifiers in declaration specifications passed to the @ecl{} specific
+function @code{proclamation} are also converted to significant type specifiers.
+Thus, for example,
+
+@smallformat
+>(proclaim '(function foo (fixnum) fixnum))
+nil
+>(proclamation '(function foo ((mod 3)) (member 0 1)))
+t
+>(proclamation '(function foo (number) character))
+nil
+@end smallformat
+
+The first call to @code{proclamation} returns @true{} because both @code{(mod
+3)} and @code{(member 0 1)} are converted to @tindexed{fixnum} before the
+function type of @code{foo} is checked.
+
+
+@node Type declarations, Variable allocations, Type specifiers, Declarations
+@section Treatment of Type Declarations
+
+@ecl{} uses several runtime stacks.
+
+Arguments to functions, lexical and temporary variables are allocated on the C
+stack. Temporary values saved on the C stack may sometimes be represented as
+@var{raw data} instead of pointers to heap-allocated cells.  Accessing such raw
+data on the C stack results in faster compiled code, partly because no pointer
+dereferencing operation is necessary, and partly because no cell is newly
+allocated on the heap when a new object is created. This is particularly
+helpful for numeric code which computes with floating point numbers.
+
+@ecl{} uses a conservative garbage collector to scan the C stack and find
+references to live object.
+
+@node Variable allocations, Raw data functions, Type declarations, Declarations
+@section Variable Allocations
+
+If a lexical variable is declared to be of @tindexed{fixnum}, @code{character},
+@code{short-float}, @code{long-float}, or their subtypes, then it is allocated
+on the C stack rather than on the value stack.  In addition, the variable
+always has a raw datum as its value: 32 bit signed integer for fixnums, 8 bit
+character code with 24 bit padding for characters (remember that the font and
+bit fields of @ecl{} characters are always 0), 32 bit floating point
+representation for short-floats, and 64 bit floating point representation for
+long-floats.  Similarly, if a lexical variable is named in an @code{object}
+declaration (see Section 7.1), then it is allocated on the C stack but, in this
+case, the variable always has a cell pointer as its value.  The user is
+strongly recommended to make sure that objects stored in such an @code{object}
+variable may never be garbage collected unexpectedly.  For example,
+
+@lisp
+(do ((x (foo) (cdr x)))
+    ((endp x))
+    (let ((y (car x)))
+         (declare (object y))
+      (bar y)))
+@end lisp
+
+@noindent
+this @code{object} declaration is completely safe because the value of the
+variable @var{y} is always a substructure of the value of @var{x}, which in
+turn is protected against garbage collection.  Incidentally, loop variables of
+@code{dolist} may always be declared as object variables, since the
+@code{dolist} form has essentially the same control structure as the @code{do}
+form above.  On the other hand, the result of evaluation of the following form
+is unpredictable, because the cons cell pointed to from the @code{object}
+variable @var{z} may be garbage collected before @code{bar} is called.
+
+@lisp
+(let ((z (cons x y)))
+     (declare (object z))
+  (foo (cons x y))
+  (bar z))
+@end lisp
+
+Lexical variables that are not declared to be of @tindexed{fixnum},
+@tindexed{character}, @tindexed{short-float}, @tindexed{long-float}, or their
+subtypes, and that are not named in @code{object} declarations are usually
+allocated on the value stack, but may possibly be allocated on the C stack
+automatically by the compiler.
+
+
+@node Raw data functions, Arguments/Values passing, Variable allocations, Declarations
+@section Built-in Functions that Operate on Raw Data Directly
+ 
+Some built-in @clisp{} functions can directly operate on raw data, if
+appropriate declarations are supplied.  The addition function @code{+} is among
+such functions.
+
+@lisp
+(let ((x 1))
+     (declare (fixnum x))
+  ...
+  (setq x (+ x 2))
+  ...
+  )
+@end lisp
+
+In the compiled code for this @code{let} form, the raw fixnum datum (i.e., the
+32 bit signed integer) stored in @var{x} is simply incremented by 2 and the
+resulting 32 bit signed integer is stored back into @var{x}.  The compiler is
+sure that the addition for 32 bit signed integers will be performed on the call
+to @code{+}, because the arguments are both fixnums and the return value must
+be also a fixnum since the value is to be assigned to the @tindexed{fixnum}
+variable.  The knowledge of both the argument types and the return type is
+necessary for this decision: Addition of two fixnums may possibly produce a
+bignum and addition of two bignums may happen to produce a fixnum value.  If
+either the argument type or the return type were not known to the compiler, the
+general addition function would be called to handle the general case.  In the
+following form, for example, the compiler cannot be sure that the return value
+of the multiplication is a fixnum or that the arguments of the addition are
+fixnums.
+
+@lisp
+(setq x (+ (* x 3) 2))
+@end lisp
+
+In order to obtain the optimal code, a @code{the} special form should
+surround the multiplication.
+
+@lisp
+(setq x (+ (the fixnum (* x 3)) 2))
+@end lisp
+
+Built-in @clisp{} functions that can directly operate on raw data are:
+
+@enumerate
+@item arithmetic functions such as @code{+},  @code{-},
+@code{1+}, @code{1-},  @code{*}, @code{floor},  @code{mod}, @code{/}, and
+@code{expt}.
+
+@item predicates such as @code{eq}, @code{eql}, @code{equal},
+@code{zerop}, @code{plusp}, @code{minusp}, @code{=}, @code{/=}, @code{<},
+@code{<=}, @code{>}, @code{>=}, @code{char=}, @code{char/=}, @code{char<},
+@code{char<=}, @code{char>}, and @code{char>=}.
+
+@item sequence processing functions that receive or return one or more
+fixnum values, such as @code{nth}, @code{nthcdr}, @code{length}, and
+@code{elt}.
+
+@item array access functions such as @code{svref}, @code{char}, @code{schar},
+and @code{aref} (see below).
+
+@item system-internal functions for array update (see below).
+ 
+@item type-specific functions such as @code{char-code}, @code{code-char},
+and @code{float}.
+@end enumerate
+
+As mentioned in Section 2.5.1, array elements are represented in one of six
+ways depending on the type of the array.  By supplying appropriate array type
+declarations, array access and update operations can handle raw data stored in
+arrays.  For example,
+
+@lisp
+(let ((a (make-array n :element-type 'fixnum))
+      (sum 0))
+     (declare (type (array fixnum) a)
+              (fixnum sum))
+  (dotimes (i n)             ;;; Array initialization.
+           (declare (fixnum i))
+     (setf (aref a i) i))
+  ....
+  (dotimes (i n)             ;;; Summing up the elements.
+           (declare (fixnum i))
+     (setq sum (+ (aref a i) sum)))
+  ....
+  )
+@end lisp
+
+The @code{setf} form replaces the @code{i-th} element of the array a by the raw
+fixnum value of @code{i}.  The @code{aref} form retrieves the raw fixnum datum
+stored in @code{a}.  This raw datum is then added to the raw fixnum value of
+the fixnum variable @code{sum}, producing the raw fixnum datum to be stored in
+@code{sum}.  Similar raw data handling is possible for arrays of types
+@code{(array fixnum), (vector fixnum),
+ (array string-char),  string,
+ (array short-float),  (vector short-float),
+ (array long-float)}, and @code{(vector long-float)}.
+
+@node Arguments/Values passing,  , Raw data functions, Declarations
+@section Arguments/Values Passing
+
+Function proclamations @code{(function @var{function-name} (@var{arg-type1}
+@var{arg-type2} ...) @var{return-type})} or its equivalents give the compiler
+the chance to generate compiled code so that arguments to the named functions
+and resulting values of the named functions will be passed via the C stack,
+thus increasing the efficiency of calls to these functions.  Such
+arguments/values passing via the C stack is possible only if the called
+function is also defined in the same source file.  This is because the code for
+the called function must have two entries: One entry for C arguments/values
+passing and another for ordinary Lisp arguments/values passing.  (An ordinary
+function has only the latter entry.)  When the latter entry is used, the
+arguments are @emph{unboxed} and passed to the former entry.  On return from
+the function, the resulting value is cast into a Lisp data type.
+
+A good example of this follows.
+
+@lisp
+(eval-when (compile)
+  (proclaim '(function tak (fixnum fixnum fixnum) fixnum)))
+
+(defun tak (x y z)
+  (declare (fixnum x y z))
+  (if (not (< y x))
+      z
+      (tak (tak (1- x) y z)
+           (tak (1- y) z x)
+           (tak (1- z) x y))))
+
+;;; Call (tak 18 12 6).
+@end lisp
+
+When @code{tak} is called with the arguments @code{18, 12}, and @code{6}, the
+raw fixnum data of the arguments are set to the parameters @code{x}, @code{y},
+@code{z}.  After that, only raw C data are used to perform the execution: No
+cell pointers are newly allocated nor even referenced.  The built-in functions
+@code{<} and @code{1-} directly operate on the raw data.  Only at the return from
+the top-level call of @code{tak}, the resulting raw data value (which happens
+to be @code{7}) is reallocated on the heap.  Note that both the @code{function}
+proclamation and the local @tindexed{fixnum} declaration are necessary to
+obtain the optimal code.  The @code{function} proclamation is necessary for
+arguments/values passing via the C stack and the @tindexed{fixnum} declaration
+is necessary to unbox the parameters into C variables.
+
+
+@node OS interface, Macros, Declarations, Top
+@chapter Operating System Interface
+
+@ecl{} provides the following facilities that are not defined in
+@bibcite{Steele:84}.
+
+@defun {system} {string}
+Executes a Shell command as if @var{string} is an input to the Shell.  On
+return from the Shell command, @code{system} returns the exit code of the
+command as an integer.
+@end defun
+
+@defun {open-pipe} {string}
+Executes a Shell command as if @var{string} is an input to the Shell.  It
+returns a stream corresponding to the output stream of the Shell command, from
+which one can read its output.
+@end defun
+
+
+@defun {quit} {@optional{} exit-code}
+Terminates @ecl{} and returns the @var{exit-code} to the parent process.
+@var{exit-code} must be an integer and its default value is @code{0}.
+@end defun
+
+@node Macros, CLOS, OS interface, Top
+@chapter Macros
+
+A @dfn{defmacro lambda-list} is a lambda-list-like construct that is used as
+the third element in the @code{defmacro} form,
+@example
+(defmacro @var{name} @var{efmacro-lambda-list} [@var{declaration} | @var{doc-string}] @{@var{form}@}*)
+@end example
+
+The description of defmacro lambda-lists in @bibcite{Steele:84} is quite
+ambiguous.  @ecl{} employs the following syntax.
+
+The complete syntax of a defmacro lambda-list is:
+
+@example
+( [&whole @var{var}]
+  [&environment @var{var}]
+  [@var{pseudo-var}]
+  [@optional{} @{var | ( pseudo-var [initform [pseudo-var]] )@}]
+  @{[@{@rest{} | &body@} pseudo-var]
+   [@keys{} @{var
+          | (@{var | (keyword pseudo-var)@} [initform [pseudo-var]])@}*
+    [@allow{}]]
+   [@aux{} @{var | (pseudo-var [initform])@}*]
+   | . var @}
+)
+@end example
+
+@noindent
+where @var{pseudo-var} is either a symbol or a list of the following
+form:
+
+@example
+( @{pseudo-var@}*
+  [@optional{} @{var | (pseudo-var [initform [pseudo-var]])@}*]
+  @{[@{@rest{} | &body@} pseudo-var]
+   [@keys{} @{var | (@{var | (keyword pseudo-var)@} 
+                  [initform [pseudo-var]])@}*
+    [@allow{}]]
+   [@aux{} @{var | (pseudo-var [initform])@}]
+  | . var @}
+)
+@end example
+
+The defmacro lambda-list keyword @code{&whole} may appear only at the
+top-level, first in the defmacro lambda-list.  It is not allowed within
+@var{pseudo-var}.  Use of the @code{&whole} keyword does not affect the
+processing of the rest of the defmacro lambda-list:
+
+@lisp
+(defmacro foo (&whole w x y) ...)
+@end lisp
+and
+@lisp 
+(defmacro foo (x y) ...)
+@end lisp
+
+@noindent
+both bind the variables @code{x} and @code{y} to the second and the
+third elements, respectively, of macro forms of @code{foo}.
+
+The defmacro lambda-list keyword @code{&environment} may appear only at the
+top-level, first in the defmacro lambda-list if @code{&whole} is not supplied,
+or immediately after the variable that follows @code{&whole}, if @code{&whole}
+is supplied.  @code{&environment} is not allowed within @var{pseudo-var}.  Like
+@code{&whole}, use of @code{&environment} does not affect the processing of the
+rest of the defmacro lambda-list.  If an @code{&environment} parameter is
+supplied and if this parameter is not used at all, then the @ecl{} compiler
+will issue a warning.  To suppress the warning, just remove the parameter from
+the defmacro lambda-list, or add an @code{ignore} declaration.
+ 
+The defmacro lambda-list keyword @code{&body} is completely equivalent to the
+@rest{} keyword.  @ecl{} takes no special action for @code{&body} parameters.
+
+Although useless, @ecl{} allows supplied-p parameters to be destructured.
+This is useless because supplied-p parameters can never be bound to a non-empty
+list.  Our intention is to stick to the specification in the
+@bibcite{Steele:84} as far as possible, even if it is silly to do so.
+
+Like for ordinary lambda-lists, the interpreter detects invalid arguments to
+macro expansion functions.  When a parameter is destructured, the structure of
+the corresponding argument is also checked.  Such runtime argument checking may
+or may not be embedded in compiled code, depending on the environment when the
+code was generated.  If the code was generated while the @code{safety} optimize
+level is zero (that is, while the value of @code{(proclamation '(optimize
+(safety 0)))} is @true{}), then the generated code does not perform argument
+checking at all.  Otherwise, the compiled code does check the validity of
+arguments.
+
+
+@node CLOS, Multithread, Macros, Top
+@chapter CLOS
+
+@deffn {Generic} {add-method}  generic-function method
+@deffnx {Method} {add-method} {(generic-function standard-generic-function) (method method)}
+@end deffn
+
+@defmac {call-method} {method next-method-list}
+@end defmac
+
+@defmac {call-next-method} {@rest{} args}
+@end defmac
+
+@deffn {Generic} {change-class}  instance new-class
+@deffnx {Method} {change-class} {(instance standard-object) (new-class standard-class)}
+@deffnx {Method} {change-class} {(instance t) (new-class symbol)}
+@end deffn
+
+@deffn {Generic} {class-name}  class
+@deffnx {Method} {class-name} {(class class)}
+@end deffn
+
+@deffn {Generic} {(setf class-name)}  new-value class
+@deffnx {Method} {(setf class-name)} {new-value (class class)}
+@end deffn
+
+@defun {class-of} {object}
+The function @code{class-of} returns the class of which the given object is an
+instance.  The argument to class-of may be any @clisp{} object.
+@end defun
+
+@defun {compute-applicable-methods} {generic-function function-arguments}
+@end defun
+
+@defmac {defclass} {class-name (@{superclass-name@}*)} (@{slot-specifier@}*) [class-option]
+@example
+@var{class-name} ::= @var{symbol}
+@var{superclass-name} ::= @var{symbol}
+@var{slot-specifier} ::= @var{slot-name} | (@var{slot-name} [@var{slot-option}])
+@var{slot-name} ::= @var{symbol}
+@var{slot-option} ::= @{:reader @var{reader-function-name}@}*
+        | @{:writer @var{writer-function-name}@}*
+        | @{:accessor @var{reader-function-name}@}*
+        | @{:allocation @var{allocation-type}@}
+        | @{:initarg @var{initarg-name}@}*
+        | @{:initform @var{form}@}
+        | @{:type @var{type-specifier}@}
+        | @{:documentation @var{string}@}
+@var{reader-function-name} ::= @var{symbol}
+@var{writer-function-name} ::= @var{function-name}
+@var{function-name} ::= @var{symbol} |(setf @var{symbol})
+@var{initarg-name} ::= @var{symbol}
+@var{allocation-type} ::= :instance | :class
+@var{class-option} ::= (:default-initargs @var{initarg-list})
+        | (:documentation @var{string})
+        | (:metaclass @var{class-name})
+@var{initarg-list} ::= @{@var{initarg-name} @var{default-initial-value-form}@}*
+@end example
+@end defmac
+
+@defmac {defgeneric} {function-name lambda-list [option | @{method-description@}*]}
+@example
+@var{function-name} ::= @var{symbol} | (setf @var{symbol})
+@var{lambda-list} ::= (@{@var{var}@}*
+        [@optional{} @{@var{var} | (@var{var})@}*]
+        [@rest{} @var{var}]
+        [@keys{} @{@var{keyword-parameter}@}* [@allow{}]])
+@var{keyword-parameter} ::= @var{var} | ( @{@var{var} | (@var{keywordvar} )@})
+@var{option} ::= (:argument-precedence-order @{@var{parameter-name}@}+)
+        | (declare @{@var{declaration}@}+)
+        | (:documentation @var{string})
+        | (:method-combination symbol @{@var{arg}@}*)
+        | (:generic-function-class @var{class-name})
+        | (:method-class @var{class-name})
+@var{method-description} ::=
+        (:method @{@var{method-qualifier}@}* @var{specialized-lambda-list}
+         [@{@var{declaration}@}* | @var{documentation}]
+         @{@var{form}@}*)
+@var{method-qualifier} ::= @var{non-nil-atom}
+@var{specialized-lambda-list} ::= (@{@var{var} | (@var{var} @var{parameter-specializer-name})@}*
+        [@optional{} @{@var{var} | (@var{var} [@var{initform} [@var{supplied-p-parameter}]])@}*]
+        [@rest{} @var{var}]
+        [@keys{} @{@var{specialized-keyword-parameter}@}* [@allow{}]])
+        [@aux{} @{@var{var} | (@var{var} [@var{initform}])@}*] )
+@var{specialized-keyword-parameter} ::= @var{var}
+        | @{(@{@var{var} | (@var{keywordvar})@} [@var{initform} [@var{supplied-p-parameter}]])@}*
+@var{parameter-specializer-name} ::= @var{symbol} | (eql @var{eql-specializer-form})
+@end example
+@end defmac
+
+@defmac {define-method-combination} {name [short-form-option]}
+@defmacx {define-method-combination} {name lambda-list (@{method-group-specifier@}*) [(:arguments . lambda-list)] [(:generic-function generic-fn-symbol)] [@{declaration@}* | doc-string] @{form@}*}
+@example
+@var{short-form-option} ::= :documentation @var{string} 
+                        | :identity-with-one-argument @var{boolean} 
+                        | :operator @var{operator} 
+@var{method-group-specifier} ::= (@var{variable}  @{@var{qualifier-pattern}@}+ | @var{predicate}
+                        [@var{long-form-option}])
+@var{long-form-option} ::= :description @var{format-string} 
+                        | :order @var{order} 
+                        | :required @var{boolean}
+@end example
+@end defmac
+
+@defmac {defmethod} {function-name @{method-qualifier@}+ specialized-lambda-list [@{declaration@}* | doc-string] @{form@}*}
+@example
+@var{function-name} ::= @var{symbol} | (setf @var{symbol})
+@var{method-qualifier} ::= @var{non-nil-atom} 
+@var{parameter-specializer-name} ::= @var{symbol} | (eql @var{eql-specializer-form} )
+@end example
+@end defmac
+
+@deffn {Generic} {documentation}  x @optional{} doc-type
+@deffnx {Method} {documentation} {(method standard-method) @optional{} doc-type}
+@deffnx {Method} {documentation} {(generic-function standard-generic-function) @keys{@optional{} doc-type}}
+@deffnx {Method} {documentation} {(class standard-class) @optional{} doc-type}
+@deffnx {Method} {doumentation} {(method-combination method-combination) @optional{} doc-type}
+@deffnx {Method} {documentation} {(slot-description standard-slot-description) @keys{@optional{} doc-type}}
+@deffnx {Method} {documentation} {(symbol symbol) @optional{} doc-type}
+@deffnx {Method} {documentation} {(list list) @optional{} doc-type}
+@end deffn
+
+@deffn {Generic} {(setf documentation)}  new-value x @optional{} doc-type
+@deffnx {Method} {(setf documentation)} {new-value (method standard-method) @optional{} doc-type}
+@deffnx {Method} {(setf documentation)} {new-value (class standard-class) @optional{} doc-type}
+@deffnx {Method} {(setf documentation)} {new-value (method-combination method-combination)}
+@deffnx {Method} {(setf documentation)} {new-value (slot-description standard-slot-description) @optional{} doc-type}
+@deffnx {Method} {(setf documentation)} {new-value (symbol symbol) @optional{} doc-type}
+@deffnx {Method} {(setf documentation)} {new-value (list list) @optional{} doc-type}
+@end deffn
+
+@defun {ensure-generic-function} @{function-name @keys{} lambda-list @keys :argument-precedence-order :declare :documentation :generic-function-class|ekeys{:method-combination :method-class :environment}@}
+@example
+function-name ::= symbol | (setf symbol)
+@end example
+@end defun
+
+@defun {find-class} {symbol @optional{} errorp environment}
+
+The function find-class returns the class object named by the given symbol in the given environment.
+The first argument to find-class is a symbol. 
+@end defun
+
+@deffn {Generic} {find-method}  generic-function method-qualifiers specializers @optional{} errorp
+@deffnx {Method} {find-method} {(generic-function standard-generic-function)}
+                method-qualifiers specializers  @optional{} errorp
+@end deffn
+
+@deffn {Generic} {function-keywords}  method
+@deffnx {Method} {function-keywords} {(method standard-method)}
+@end deffn
+
+The generic function function-keywords is used to return the keyword parameter specifiers for a given method.
+
+@defmac {generic-function} @{lambda-list \mchoice{option | @{method-description@}*}@}
+
+@example
+option ::= (:argument-precedence-order @{parameter-name@}+)
+        | (declare @{declaration@}+)
+        | (:documentation string)
+        | (:method-combination symbol @{arg@}*)
+        | (:generic-function-class class-name)
+        | (:method-class class-name)
+method-description ::= (:method @{method-qualifier@}*
+                                specialized-lambda-list
+                                @{declaration | @var{documentation}@}*
+                                @{form@}*)
+@end example
+The @code{generic-function} macro creates an anonymous generic function. The
+generic function is created with the set of methods specified by its method
+descriptions.  The @var{option}, @var{method-qualifier}, and
+@var{specialized-lambda-list} arguments are the same as for @code{defgeneric}.
+The generic function object is returned as the result.  If no method
+descriptions are specified, an anonymous generic function with no methods is
+created.  See @macref{defgeneric}, @macref{generic-flet},
+@macref{generic-labels}, @macref{defmethod}.
+@end defmac
+
+@deffn {Generic} {initialize-instance}  instance @rest{} initargs
+@deffnx {Method} {initialize-instance} {(instance standard-object) @rest{} initargs}
+
+The generic function @code{initialize-instance} is called by
+@code{make-instance} to initialize a newly created instance.  The generic
+function @code{initialize-instance} is called with the new instance and the
+defaulted initialization arguments.
+@end deffn
+
+@defun {invalid-method-error} {method format-string @rest{} args}
+
+The function @code{invalid-method-error} is used to signal an error when there
+is an applicable method whose qualifiers are not valid for the method
+combination type.  The error message is constructed by using a format string
+and any arguments to it.  Because an implementation may need to add additional
+contextual information to the error message, invalid-method-error should be
+called only within the dynamic extent of a method combination function.  The
+function invalid-method-error is called automatically when a method fails to
+satisfy every qualifier pattern and predicate in a define-method-combination
+form.  A method combination function that imposes additional restrictions
+should call invalid-method-error explicitly if it encounters a method it cannot
+accept.
+@end defun
+
+@deffn {Generic} {make-instance}  class @rest{}@var{ initargs}
+@deffnx {Method} {make-instance} {(class standard-class) @rest{} initargs}
+@deffnx {Method} {make-instance} {(class symbol) @rest{} initargs}
+
+The generic function make-instance creates and returns a new instance of the
+given class.  The generic function make-instance may be used as described in
+section 1.9.  The class argument is a class object or a symbol that names a
+class.  The remaining arguments form a list of alternating initialization
+argument names and values.  If the second of the above methods is selected,
+that method invokes make-instance on the arguments (find-class class) and
+initargs.  The initialization arguments are checked within make-instance (see
+section 1.9).  The new instance is returned.
+@end deffn
+
+@deffn {Generic} {make-instances-obsolete}  class
+@deffnx {Method} {make-instances-obsolete} {(class standard-class)}
+@deffnx {Method} {make-instances-obsolete} {(class symbol)}
+@end deffn
+
+@defun {method-combination-error} {format-string @rest{} args}
+
+The function method-combination-error is used to signal an error in method
+combination.  The error message is constructed by using a format string and any
+arguments to it.  Because an implementation may need to add additional
+contextual information to the error message, method-combination-error should be
+called only within the dynamic extent of a method combination function.  The
+format-string argument is a control string that can be given to format, and
+args are any arguments required by that string.
+@end defun
+
+@deffn {Generic} {method-qualifiers}  method
+@deffnx {Method} {method-qualifiers} {(method standard-method)}
+
+The generic function method-qualifiers returns a list of the qualifiers
+of the given method.
+@end deffn
+
+@defun {next-method-p} {}
+
+The locally defined function next-method-p can be used within the body of a
+method defined by a method-defining form to determine whether a next method
+exists.
+@end defun
+
+@deffn {Generic} {no-applicable-method}  generic-function @rest{} function-arguments
+@deffnx {Method} {no-applicable-method} {(generic-function t) @rest{} function-arguments}
+
+The generic function no-applicable-method is called when a generic function of
+the class standard-generic-function is invoked and no method on that generic
+function is applicable. The default method signals an error.
+@end deffn
+
+@deffn {Generic} {no-next-method}  generic-function method @rest{} args
+@deffnx {Method} {no-next-method} {(generic-function standard-generic-function) (method standard-method) @rest{} args}
+@end deffn
+
+@deffn {Generic} {print-object}  object stream
+@deffnx {Method} {print-object} {(object standard-object) stream}
+
+The generic function print-object writes the printed representation of an
+object to a stream.  The function print-object is called by the print system;
+it should not be called by the user.
+@end deffn
+
+@deffn {Generic} {reinitialize-instance}  instance @rest{} initargs
+@deffnx {Method} {reinitialize-instance} {(instance standard-object) @rest{} initargs}
+
+The generic function reinitialize-instance can be used to change the
+values of local slots according to initialization arguments.  This
+generic function is called by the Meta-Object Protocol.  It can also be
+called by users.
+@end deffn
+
+@deffn {Generic} {remove-method}  generic-function method
+@deffnx {Method} {remove-method} {(generic-function standard-generic-function) method}
+
+The generic function remove-method removes a method from a generic function.
+It destructively modifies the specified generic function and returns the
+modified generic function as its result.
+@end deffn
+
+@deffn {Generic} {shared-initialize}  @var{instance slot-names @rest{} initargs}
+@deffnx {Method} {shared-initialize} {(instance standard-object) slot-names @rest{} initargs}
+
+The generic function shared-initialize is used to fill the slots of an instance
+using initialization arguments and :initform forms.  It is called when an
+instance is created, when an instance is re-initialized, when an instance is
+updated to conform to a redefined class, and when an instance is updated to
+conform to a different class.  The generic function @code{shared-initialize} is
+called by the system-supplied primary method for @code{initialize-instance},
+@code{reinitialize-instance}, @code{update-instance-for-redefined-class}, and
+@code{update-instance-for-different-class}.
+@end deffn
+
+@defun {slot-boundp} {instance slot-name}
+
+The function slot-boundp tests whether a specific slot in an instance is bound.
+The arguments are the instance and the name of the slot.
+@end defun
+
+@defun {slot-exists-p} {object slot-name}
+
+The function slot-exists-p tests whether the specified object has a slot of the
+given name.  The object argument is any object.  The slot-name argument is a
+symbol.
+@end defun
+
+@defun {slot-makunbound} {instance slot-name}
+
+The function slot-makunbound restores a slot in an instance to the unbound
+state.  The arguments to slot-makunbound are the instance and the name of the
+slot.
+@end defun
+
+@deffn {Generic} {slot-missing}  class object slot-name operation @optional{} new-value
+@deffnx {Method} {slot-missing} {(class t) object slot-name operation @optional{} new-value}
+
+The generic function slot-missing is invoked when an attempt is made to access
+a slot in an object whose metaclass is standard-class and the name of the slot
+provided is not a name of a slot in that class.  The default method signals an
+error.
+@end deffn
+
+@deffn {Generic} {slot-unbound}  class instance slot-name
+@deffnx {Method} {slot-unbound} {(class t) instance slot-name}
+
+The generic function slot-unbound is called when an unbound slot is read in an
+instance whose metaclass is standard-class. The default method signals an
+error.
+@end deffn
+
+@defun {slot-value} {object slot-name}
+
+The function slot-value returns the value contained in the slot slot-name of
+the given object.  If there is no slot with that name, slot-missing is called.
+If the slot is unbound, slot-unbound is called.  The macro setf can be used
+with slot-value to change the value of a slot.
+@end defun
+
+@deffn {Generic} {update-instance-for-different-class}  previous current @rest{} initargs
+@deffnx {Method} {update-instance-for-different-class} {(previous standard-object) (currentstandard-object) @rest{} initargs}
+@end deffn
+
+@deffn {Generic} {update-instance-for-redefined-class}  instance added-slots discarded-slots property-list @rest{} initargs
+@deffnx {Method} {update-instance-for-redefined-class} {(instance standard-object) added-slots discarded-slots property-list @rest{} initargs}
+@end deffn
+
+@defmac {with-accessors} {(@{slot-entry@}*) instance-form @{declaration@}* @{form@}*}
+
+The macro with-accessors creates a lexical environment in which specified slots
+are lexically available through their accessors as if they were variables.  The
+macro with-accessors invokes the appropriate accessors to access the specified
+slots.  Both setf and setq can be used to set the value of the slot.  The
+result returned is that obtained by executing the forms specified by the body
+argument.
+@end defmac
+
+@defmac {with-slots} {(@{slot-entry@}*) instance-form @{declaration@}* @{form@}*}
+@example
+@var{slot-entry} ::= @var{slot-name} | (@var{variable-name} @var{slot-name})
+@end example
+
+The macro @code{with-slots} creates a lexical context for referring to
+specified slots as though they were variables.  Within such a context the value
+of the slot can be specified by using its slot name, as if it were a lexically
+bound variable.  Both @code{setf} and @code{setq} can be used to set the value
+of the slot.
+@end defmac
+
+
+@node Multithread, Bibliography, CLOS, Top
+@chapter Multithread
+
+[To come once the interface is fixed]
+
+@node Bibliography,  , Multithread, Top
+@chapter Bibliography
+
+@table @b
+@item ANSI
+ANSI @clisp{} Specification, 1986.
+
+@item Steele:84
+Guy L. Steele Jr. et al. ``Common Lisp: the Language'',
+Digital Press, 1984.
+
+@item Steele:90
+Guy L. Steele Jr. at al. ``Common Lisp: the Language II'', second edition,
+Digital Press, 1990.
+
+@item Yasa:85
+Taiichi Yuasa and Masami Hagiya ``Kyoto @clisp{} Report'',
+Research Institute for Mathematical Sciences, Kyoto University, 1988.
+
+@item Smith:84
+B.C. Smith and J. des Rivieres  ``The Implementation of
+Procedurally Reflective Languages'', @emph{Proc. of the 1984 ACM
+Symposium on LISP and Functional Programming}, 1984.
+@end table
+
+@bye

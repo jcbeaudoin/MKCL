@@ -1,0 +1,158 @@
+;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
+;;;;
+;;;;  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+;;;;  Copyright by a number of previous anonymous authors
+;;;;            presumed to be the same as for the rest of MKCL.
+;;;;
+;;;;  This program is free software; you can redistribute it and/or
+;;;;  modify it under the terms of the GNU Lesser General Public
+;;;;  License as published by the Free Software Foundation; either
+;;;;  version 3 of the License, or (at your option) any later version.
+;;;;
+;;;;  See file '../../Copyright' for full details.
+
+;; @configure_input@
+;;
+;; Configuration file for MKCL
+;;
+(in-package "COMMON-LISP")
+
+#|
+;; Moved to unixsys.d on 2012/04/12. JCB
+
+#+(and (not mkcl-min) uname)
+(ffi:clines "
+#include <sys/utsname.h>
+")
+
+#+(and (not mkcl-min) uname)
+(defun uname ()
+ (ffi:c-inline () ()
+  :object "{
+	mkcl_object output;
+	struct utsname aux;
+	if (uname(&aux) < 0)
+	  output = mk_cl_Cnil;
+	else
+	  output = mk_cl_list(env, 5,
+                              mkcl_make_base_string_copy(env, aux.sysname),
+			      mkcl_make_base_string_copy(env, aux.nodename),
+			      mkcl_make_base_string_copy(env, aux.release),
+			      mkcl_make_base_string_copy(env, aux.version),
+			      mkcl_make_base_string_copy(env, aux.machine));
+	@(return) = output;
+}" :one-liner nil))
+|#
+
+;;
+;; * Short and long site names
+;;
+;; Edit these with the name of your site:
+;;
+(defun short-site-name ()
+  "Args: ()
+Returns, as a string, the location of the machine on which MKCL runs."
+  nil)
+
+(defun long-site-name () 
+  "Args: ()
+Returns, as a string, the location of the machine on which MKCL runs."
+  nil)
+
+;;
+;; * MKCL version, architecture, etc
+;;
+(defun si:mkcl-version ()
+  "Args:()
+Returns the version of your MKCL as a string."
+  "@PACKAGE_VERSION@")
+
+(defun si:mkcl-major-version ()
+  "Args:()
+Returns the version of your MKCL as a string."
+  "@MKCL_MAJOR_VERSION@")
+
+(defun si:mkcl-minor-version ()
+  "Args:()
+Returns the version of your MKCL as a string."
+  "@MKCL_MINOR_VERSION@")
+
+(defun si:mkcl-patch-level ()
+  "Args:()
+Returns the version of your MKCL as a string."
+  "@MKCL_PATCH_LEVEL@")
+
+(defun lisp-implementation-version ()
+  "Args:()
+Returns the version of your MKCL as a string."
+  (si:mkcl-version))
+
+
+
+
+(defun machine-type ()
+  "Args: ()
+Returns, as a string, the type of the machine on which MKCL runs."
+  (or (mkcl:getenv "HOSTTYPE")
+      #+windows
+      (mkcl:getenv "PROCESSOR_ARCHITECTURE")
+      (nth-value 4 (si:uname))
+      "@ARCHITECTURE@"))
+
+(defun machine-instance ()
+  "Args: ()
+Returns, as a string, the identifier of the machine on which MKCL runs."
+  (or (mkcl:getenv "HOSTNAME")
+      #+windows
+      (mkcl:getenv "COMPUTERNAME")
+      (nth-value 1 (si:uname))
+      ))
+
+(defun machine-version ()
+  "Args: ()
+Returns, as a string, the version of the machine on which MKCL runs. Obtained from
+uname(2) where available."
+  (or #+windows
+      (mkcl:getenv "PROCESSOR_LEVEL")))
+
+;;(pushnew :@thehost@ *features*) ;; This is done in c/main.d! JCB
+
+(defun software-type ()
+  "Args: ()
+Returns, as a string, the type of the software under which MKCL runs."
+  (or (nth-value 0 (si:uname)) "@SOFTWARE_TYPE@"))
+
+(defun software-version ()
+  "Args: ()
+Returns, as a string, the version of the software under which MKCL runs."
+  (or (nth-value 2 (si:uname))
+      #.(let ((aux "@SOFTWARE_VERSION@"))
+	  (if (plusp (length aux))
+	      aux
+	      nil))))
+
+;;
+;; * Set configuration of basic logical pathnames.
+;;
+#-mkcl-min
+(progn
+  (si::pathname-translations "SYS" `(("**;*.*" ,(merge-pathnames "**/*.*" (si::get-library-pathname)))))
+  (si::pathname-translations "CONTRIB" `(("**;*.*" ,(merge-pathnames "contrib/**/*.*" (si::get-library-pathname)))))
+  )
+
+#-msvc
+(si::pathname-translations "HOME" '(("**;*.*" "~/**/*.*")))
+#+msvc
+(si::pathname-translations "HOME" `(("**;*.*" ,(merge-pathnames "**/*.*" (user-homedir-pathname)))))
+
+;; For TMP: we try to follow the local platform customs.
+(let (x)
+  (cond #+unix ((and (setq x (mkcl:getenv "TMPDIR"))
+		     (setq x (probe-file x))))
+	#+windows ((and (setq x (mkcl:getenv "TMP"))
+			(setq x (probe-file x))))
+	#+windows ((and (setq x (mkcl:getenv "TEMP"))
+			(setq x (probe-file x))))
+	(t (setq x #+unix #P"/tmp/" #-unix #P"./")))
+  (si::pathname-translations "TMP" `(("**;*.*" ,(merge-pathnames "**/*.*" x)))))
+

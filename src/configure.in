@@ -1,0 +1,832 @@
+dnl				dnl 
+dnl  This is an autoconf script.
+dnl  To rebuild the `configure' script from this, execute the command
+dnl 	autoconf
+dnl  in the directory containing this script.
+dnl
+dnl  AUTOCONF configuration for MKCL
+dnl  Giuseppe Attardi 25.1.1994
+dnl  Jean-Claude Beaudoin 2012.04.28
+dnl
+
+AC_INIT([mkcl],[1.1.0],[])
+AC_REVISION([$Revision$])
+AC_CONFIG_SRCDIR([bare.lsp.in])
+AC_CONFIG_AUX_DIR([${srcdir}/gc])
+AC_PREREQ(2.59)
+
+dnl -----------------------------------------------------------------------
+dnl Make sure we do not configure within source directory
+dnl if test -f configure; then
+dnl   AC_MSG_ERROR([This program cannot be built within the source directory])
+dnl fi
+
+dnl -----------------------------------------------------------------------
+dnl Configure switches
+
+dnl AC_ARG_WITH(cross_config,
+dnl   AS_HELP_STRING( [--with-cross-config=f],
+dnl                   [supply configuration for a cross compiler]),
+dnl   [], [with_cross_config="`pwd`/cross_config"])
+
+dnl AC_ARG_ENABLE(shared,
+dnl   AS_HELP_STRING( [--enable-shared],
+dnl                   [enable loading compiled files (default=YES)]),
+dnl   [], [enable_shared=yes])
+enable_shared=yes
+
+dnl AC_ARG_ENABLE(threads,
+dnl   AS_HELP_STRING( [--enable-threads],
+dnl                   [support for native threads (default=YES).]),
+dnl   [], [enable_threads=yes])
+enable_threads=yes
+
+dnl AC_ARG_ENABLE(boehm,
+dnl   AS_HELP_STRING( [--enable-boehm],
+dnl                   [use the Boehm-Weiser garbage collector]
+dnl                   [(no|included|system|auto, default=included)] ),
+dnl   [], [enable_boehm=auto] )
+enable_boehm=included
+
+dnl AC_ARG_ENABLE(slow-config,
+dnl   AS_HELP_STRING( [--enable-slow-config],
+dnl 		  [use GMP to guess compiler/linker flags]
+dnl 		  [(no|yes, default=NO)]),
+dnl   [], [enable_slow_config=no] )
+enable_slow_config=no
+
+dnl AC_ARG_ENABLE(soname,
+dnl   AS_HELP_STRING( [--enable-soname],
+dnl 		  [link and install the library using version numbers]
+dnl 		  [(no|yes, default=yes)]),
+dnl   [], [enable_soname=yes] )
+enable_soname=yes
+
+dnl AC_ARG_WITH(system-boehm,
+dnl   AS_HELP_STRING( [--with-system-boehm], [Deprecated! See --enable-boehm] ),
+dnl   [AC_MSG_WARN(
+dnl     [--with-system-boehm is deprecated, use --enable-boehm=system instead!])
+dnl    test ${withval} = "no" || enable_boehm="system"])
+
+AC_ARG_WITH(gmp,
+  AS_HELP_STRING( [--with-gmp=args],
+                  [supply arguments for configuring GMP library]),
+  [], [with_gmp=""])
+
+AC_ARG_WITH(system-gmp,
+  AS_HELP_STRING( [--with-system-gmp],
+                  [use already installed GMP library (default=yes)]),
+  [], [with_system_gmp="yes"])
+
+AC_ARG_WITH(gmp-prefix,
+  AS_HELP_STRING( [--with-gmp-prefix=path],
+                  [prefix for system GMP includes and libraries] ),
+  [GMP_CFLAGS="-I$withval/include"; GMP_LDFLAGS="-L$withval/lib"], [])
+
+AC_ARG_WITH(gmp-incdir,
+  AS_HELP_STRING( [--with-gmp-incdir=path],
+		  [path to system GMP includes (overrides prefix)] ),
+  [GMP_CFLAGS="-I$withval"], [])
+
+AC_ARG_WITH(gmp-libdir,
+  AS_HELP_STRING( [--with-gmp-libdir=path],
+		  [path to system GMP libraries (overrides prefix)] ),
+  [GMP_LDFLAGS="-L$withval"], [])
+
+dnl AC_ARG_ENABLE(local-gmp,
+dnl   AS_HELP_STRING( [--enable-local-gmp],
+dnl                   [Deprecated! See --with-system-gmp]),
+dnl   [AC_MSG_WARN(
+dnl     [--with-local-gmp is deprecated, use --with-system-gmp instead!])
+dnl    with_system_gmp="${enableval}"])
+
+dnl AC_ARG_WITH(__thread,
+dnl   AS_HELP_STRING( [--with-__thread],
+dnl                   [Enable __thread thread-local variables (yes|no|AUTO)]
+dnl                   [(supported by NPTL-aware glibc and maybe Windows)] ),
+dnl   [], [with___thread=auto])
+with___thread=no
+
+AC_ARG_ENABLE(debug,
+  AS_HELP_STRING( [--enable-debug],
+                  [enable various debugging features (yes|no, default=NO)]),
+  [DEBUG_CFLAGS="-g -O0"; CFLAGS="$CFLAGS -g -O0"], [])
+
+dnl AC_ARG_ENABLE(opcode8,
+dnl   AS_HELP_STRING( [--enable-opcode8],
+dnl                   [interpreter uses 8-bit codes]
+dnl                   [(default=NO, only works on Intel)]),
+dnl   [opcode8=${enableval}], [opcode8=no])
+opcode8=no
+
+dnl AC_ARG_WITH(cxx,
+dnl   AS_HELP_STRING( [--with-cxx],
+dnl                   [build MKCL using C++ compiler (default=NO)]),
+dnl   [], [with_cxx=no])
+with_cxx=no
+
+dnl AC_ARG_WITH(tcp,
+dnl   AS_HELP_STRING( [--with-tcp],
+dnl                   [include socket interface (yes|builtin|no, default=YES)]),
+dnl   [], [with_tcp=${enable_shared}])
+with_tcp=${enable_shared}
+
+dnl AC_ARG_WITH(serve_event,
+dnl   AS_HELP_STRING( [--with-serve-event],
+dnl                   [include serve-event module (yes|builtin|no, default=YES)]),
+dnl   [], [with_serve_event=${enable_shared}])
+with_serve_event=${enable_shared}
+
+dnl AC_ARG_WITH(clx,
+dnl   AS_HELP_STRING( [--with-clx],
+dnl                   [include CLX library (yes|builtin|no, default=NO)]),
+dnl   [], [with_clx=no])
+with_clx=no
+
+dnl AC_ARG_WITH(clos-streams,
+dnl   AS_HELP_STRING( [--with-clos-streams],
+dnl                   [user defined stream objects (yes|builtin|no, default=YES)]),
+dnl   [], [with_clos_streams=yes])
+with_clos_streams=yes
+
+dnl AC_ARG_WITH(cmuformat,
+dnl   AS_HELP_STRING( [--with-cmuformat],
+dnl                   [use CMUCL's FORMAT routine (default=YES)]),
+dnl   [], [with_cmuformat=${with_clos_streams}])
+with_cmuformat=${with_clos_streams}
+
+dnl AC_ARG_WITH(asdf,
+dnl   AS_HELP_STRING( [--with-asdf],
+dnl                   [include ASDF building facility]
+dnl                   [(yes|builtin|no, default=YES)]),
+dnl   [], [with_asdf=${enable_shared}])
+with_asdf=${enable_shared}
+
+dnl AC_ARG_WITH(defsystem,
+dnl   AS_HELP_STRING( [--with-defsystem],
+dnl                   [include DEFSYSTEM building facility]
+dnl                   [(yes|builtin|no, default=YES)]),
+dnl   [], [with_defsystem=${enable_shared}])
+with_defsystem=${enable_shared}
+
+dnl AC_ARG_WITH(cmp,
+dnl   AS_HELP_STRING( [--with-cmp],
+dnl                   [build the compiler (yes|builtin|no, default=YES)] ),
+dnl   [], [with_cmp=yes])
+with_cmp=yes
+
+dnl AC_ARG_WITH(bytecmp,
+dnl   AS_HELP_STRING( [--with-bytecmp],
+dnl                   [build the bytecode compiler (yes|builtin|no, default=YES)] ),
+dnl   [], [with_bytecmp=yes])
+with_bytecmp=yes
+
+dnl AC_ARG_WITH(rt,
+dnl   AS_HELP_STRING( [--with-rt],
+dnl                   [include MIT-RT testing environment]
+dnl                   [(yes|builtin|no, default=YES)]),
+dnl   [], [with_rt=yes])
+with_rt=yes
+
+dnl AC_ARG_WITH(profile,
+dnl   AS_HELP_STRING( [--with-profile],
+dnl                   [include CMUCL's simple profiler]
+dnl                   [(yes|builtin|no, default=YES if Boehm-Weiser garbage collector used)]),
+dnl   [], [with_profile=yes])
+with_profile=yes
+
+dnl AC_ARG_WITH(fpe,
+dnl   AS_HELP_STRING( [--with-fpe],
+dnl                   [detect floating point exceptions]
+dnl                   [(default=YES)]),
+dnl   [], [with_fpe=yes])
+with_fpe=yes
+
+dnl AC_ARG_WITH(signed-zero,
+dnl   AS_HELP_STRING( [--with-signed-zero={yes|no}],
+dnl                   [allow for IEEE signed zeros (default=YES).]),
+dnl   [], [with_signed_zero="yes"])
+with_signed_zero="yes"
+
+dnl AC_ARG_WITH(ieee-fp,
+dnl   AS_HELP_STRING( [--with-ieee-fp={yes|no}],
+dnl                   [full IEEE floating point system, including denormals (default=YES).]
+dnl                   [Implies signed-zero and fpe]),
+dnl   [], [with_ieee_fp="yes"])
+with_ieee_fp="yes"
+
+dnl AC_ARG_ENABLE(unicode,
+dnl   AS_HELP_STRING( [--enable-unicode],
+dnl                   [enable support for unicode (default=NO)]),
+dnl   [], [enable_unicode=no])
+enable_unicode="yes"
+
+dnl AC_ARG_ENABLE(longdouble,
+dnl   AS_HELP_STRING( [--enable-longdouble],
+dnl                   [include support for long double]
+dnl                   [(default=NO)]),
+dnl   [enable_longdouble=${enableval}], [enable_longdouble=no])
+enable_longdouble=no
+
+dnl AC_ARG_ENABLE(c99complex,
+dnl   AS_HELP_STRING( [--enable-c99complex],
+dnl                   [include support for C complex type]
+dnl                   [(default=NO)]),
+dnl   [enable_c99complex=${enableval}], [enable_c99complex=no])
+enable_c99complex=no
+
+dnl AC_ARG_ENABLE(hpack,
+dnl   AS_HELP_STRING( [--enable-hierarchical-packages],
+dnl                   [hierarchical package names]
+dnl                   [(default=YES)]),
+dnl   [enable_hpack=${enableval}], [enable_hpack=yes])
+enable_hpack=yes
+
+dnl AC_ARG_ENABLE(asmapply,
+dnl   AS_HELP_STRING( [--enable-asmapply],
+dnl                   [enable optimizations written in assembler, EXPERIMENTAL]
+dnl                   [(default=NO)]),
+dnl   [enable_asmapply=${enableval}],[enable_asmapply=no])
+enable_asmapply=no
+
+dnl AC_ARG_ENABLE(smallcons,
+dnl   AS_HELP_STRING( [--enable-smallcons],
+dnl                   [use small (2 words) cons types. Requires Boehm-Weiser gc.]
+dnl                   [(default=YES)]),
+dnl   [enable_smallcons=${enableval}],[enable_smallcons=yes])
+enable_smallcons=no
+
+dnl AC_ARG_ENABLE(gengc,
+dnl   AS_HELP_STRING( [--enable-gengc],
+dnl 		  [use generational garbage collection. Requires Boehm-Weiser gc.]
+dnl 		  [(no|yes, default=NO)]),
+dnl   [], [enable_gengc=no] )
+enable_gengc=no
+
+dnl -----------------------------------------------------------------------
+dnl Installation directories
+mkcldir="${libdir}/mkcl-${PACKAGE_VERSION}"
+AC_SUBST([mkcldir])
+test -z "${docdir}" && docdir="${datadir}/doc/mkcl-${PACKAGE_VERSION}"
+AC_SUBST([docdir])
+
+dnl -----------------------------------------------------------------------
+dnl Initialize variables.
+boehm_configure_flags=""
+
+AC_EXEEXT dnl			Guess whether .exe is needed for executables
+AC_SUBST(buildir)               dnl For top-level Makefile.in
+AC_SUBST(MKCL_CFLAGS)            dnl Similar, but specific to MKCL (see src/util/mkcl-config)
+AC_SUBST(DEBUG_CFLAGS)		dnl Additional flags when debugging
+AC_SUBST(GMP_CFLAGS)		dnl CFLAGS needed for compiling with system GMP library
+AC_SUBST(GMP_LDFLAGS)		dnl LDFLAGS needed for compiling with system GMP library
+AC_SUBST(FASL_LIBS)             dnl Libraries to link into all mkcl code but not
+                                dnl into helper programs.
+AC_SUBST(CORE_LIBS, [])         dnl Locally compiled libs to link into
+                                dnl mkcl/mkcl_min/libmkcl.so and nowhere else.
+AC_SUBST(SHARED_LDFLAGS)        dnl Flags for shared libraries linker
+AC_SUBST(BUNDLE_LDFLAGS)        dnl Flags for FASL files linker
+AC_SUBST(EXTRA_OBJS)            dnl Extra *.o files to be compiled into libmkcl.a
+AC_SUBST(TARGETS, ['bin/mkcl$(EXE)'])dnl Versions of MKCL to be built 
+AC_SUBST(SUBDIRS, [c])          dnl Subdirectories that make should process
+AC_SUBST(LIBRARIES, [])         dnl GMP, Boehm's GC, etc
+AC_SUBST(LSP_LIBRARIES)         dnl Libraries produced by lisp translator
+dnl AC_SUBST(LSP_FEATURES, ['*features*']) dnl Symbols to add to *FEATURES* for conditional compilation
+AC_SUBST(LSP_FEATURES, []) dnl Symbols to add to *FEATURES* for conditional compilation
+AC_SUBST(TCP_LIBS)
+
+
+dnl -----------------------------------------------------------------------
+dnl Guess operating system of host. We do not allow cross-compiling.
+AC_CANONICAL_BUILD
+AC_CANONICAL_HOST
+
+
+dnl =====================================================================
+dnl Checks for programs
+AC_PROG_CC	      # sets variable CC
+AC_PROG_CXX           # sets variable CXX
+AC_PROG_CPP           # sets variable CPP
+AC_PROG_RANLIB        # sets variable RANLIB
+AC_PROG_INSTALL       # sets variables INSTALL, INSTALL_DATA, INSTALL_PROGRAM
+AC_PROG_LN_S          # sets variable LN_S
+AC_PROG_MAKE_SET      # set $(MAKE) if needed
+
+dnl -----------------------------------------------------------------------
+dnl GMP-based search of C/C++ compiler and linker flags
+if test "${enable_slow_config}" = "yes"; then
+MKCL_GMP_BASED_CONFIG
+fi
+
+dnl -----------------------------------------------------------------------
+dnl Checks which do not come with autoconf (must be after AC_PROG_CC)
+MKCL_MAKE_ABSOLUTE_SRCDIR
+dnl MKCL_CROSS_CONFIG
+MKCL_GUESS_HOST_OS
+MKCL___THREAD
+
+AC_SUBST(INFOEXT)
+AC_SUBST(INSTALL_INFO)
+AC_PATH_PROG([INSTALL_INFO], [install-info], [/bin/true], [$PATH:/sbin:/usr/sbin:/usr/etc])
+if test -z `which gzip`; then
+  INFOEXT=info.gz
+else
+  INFOEXT=info
+fi
+
+dnl =====================================================================
+dnl Checks for libraries
+
+LIBS="${LIBS} -lm"
+AC_CHECK_LIB(sun, getpwnam)         # on IRIX adds -lsun
+AC_ISC_POSIX
+
+dnl ----------------------------------------------------------------------
+dnl Native thread support
+if test "${enable_threads}" = "auto"; then
+  AC_MSG_CHECKING([for threads support])
+  if test -z "${THREAD_OBJ}"; then
+    AC_MSG_RESULT([no])
+    enable_threads="no"
+  else
+    AC_MSG_RESULT([yes])
+    enable_threads="yes"
+  fi
+fi
+if test "${enable_threads}" = "yes" ; then
+  if test -z "${THREAD_OBJ}"; then
+    AC_MSG_ERROR([Threads aren't supported on this system.])
+  else
+    boehm_configure_flags="${boehm_configure_flags} ${THREAD_GC_FLAGS}"
+    boehm_configure_flags="${boehm_configure_flags} --enable-parallel-mark"
+    EXTRA_OBJS="${EXTRA_OBJS} ${THREAD_OBJ}.${OBJEXT}"
+    LIBS="${THREAD_LIBS} ${LIBS}"
+    CFLAGS="${CFLAGS} ${THREAD_CFLAGS}"
+    AC_DEFINE( [MKCL_THREADS], [1], [Userland threads?])
+    if test "${with___thread}" = "auto"; then
+      with___thread=${ac_cv_mkcl___thread}
+    fi
+    AC_MSG_CHECKING([for use of __thread])
+    if test "${with___thread}" = "yes"; then
+      AC_DEFINE( [WITH___THREAD], [1], [__thread thread-local variables?] )
+      AC_MSG_RESULT([yes])
+    else
+      AC_MSG_RESULT([no])
+    fi
+  fi
+else
+  boehm_configure_flags="${boehm_configure_flags} --disable-threads"
+fi
+
+dnl ----------------------------------------------------------------------
+dnl		Boehm-Weiser garbage collector
+if test ${enable_boehm} = "no" ; then
+  AC_MSG_ERROR([Boehm GC library is currently needed to build MKCL]);
+fi
+if test ${enable_boehm} = "no" ; then
+  EXTRA_OBJS="${EXTRA_OBJS} alloc.${OBJEXT} gbc.${OBJEXT}"
+  enable_smallcons="no"
+else
+  if test ${enable_boehm} = "auto"; then
+    AC_CHECK_LIB( [gc], [MK_GC_malloc],
+                  [enable_boehm="system"], [enable_boehm="included"])
+  fi
+
+  if test ${enable_boehm} = "system"; then 
+    AC_CHECK_LIB( [gc], [MK_GC_malloc],
+dnl      [FASL_LIBS="${FASL_LIBS} -lgc"],
+      [LIBS="${LIBS} -lgc"],
+      [AC_MSG_ERROR([System Boehm GC library requested but not found.])])
+    AC_MSG_CHECKING( [if we need to copy GC private headers] )
+    AC_DEFINE(GBC_BOEHM, [1], [Use Boehm's garbage collector])
+  else
+    enable_boehm="included"
+    SUBDIRS="${SUBDIRS} gc"
+    CORE_LIBS="libmkclgc.a ${CORE_LIBS}"
+dnl    if test "${enable_shared}" = "no"; then
+    if test -n "${LIBRARIES}"; then
+      LIBRARIES="${LIBRARIES} ${LIBPREFIX}mkclgc.${LIBEXT}"
+    else
+      LIBRARIES="${LIBPREFIX}mkclgc.${LIBEXT}"
+    fi
+dnl    fi
+    AC_DEFINE(GBC_BOEHM, [0], [Use Boehm's garbage collector])
+  fi
+  EXTRA_OBJS="${EXTRA_OBJS} alloc_2.${OBJEXT}"
+fi
+if test "${enable_gengc}" = "yes" ; then
+  AC_DEFINE(GBC_BOEHM_GENGC)
+fi
+
+if test ${enable_smallcons} = "yes" ; then
+   AC_DEFINE(MKCL_SMALL_CONS)
+fi
+
+dnl ----------------------------------------------------------------------
+dnl GNU multiprecision library
+if test "x${with_gmp}" != "xno"; then
+
+  CFLAGS="$CFLAGS $GMP_CFLAGS"
+  LDFLAGS="$LDFLAGS $GMP_LDFLAGS"
+
+  if test ${with_system_gmp} = "auto"; then
+
+     AC_CHECK_LIB( [gmp], [__gmpz_init],
+                   [with_system_gmp=yes], [with_system_gmp=no] )
+  fi
+
+  if test "${with_system_gmp}" = "yes"; then
+    AC_CHECK_LIB( [gmp], [__gmpz_init],
+dnl      [FASL_LIBS="${FASL_LIBS} -lgmp"],
+      [LIBS="-lgmp ${LIBS}"],
+      [AC_MSG_ERROR([System gmp library requested but not found.])])
+dnl   else
+dnl     SUBDIRS="${SUBDIRS} gmp"
+dnl     CORE_LIBS="libmkclgmp.a ${CORE_LIBS}"
+dnl dnl    if test ${enable_shared} = "no"; then
+dnl       LIBRARIES="${LIBRARIES} ${LIBPREFIX}mkclgmp.${LIBEXT}"
+dnl dnl    fi
+  fi
+fi
+
+dnl ----------------------------------------------------------------------
+dnl SONAME is only active when SONAME_LDFLAGS and SONAME are non nil
+dnl
+AC_MSG_CHECKING(for soname flags)
+PACKAGE_MAJOR=`echo ${PACKAGE_VERSION} | sed -e 's,\(.*\)\..*\..*,\1,g'`
+PACKAGE_MINOR=`echo ${PACKAGE_VERSION} | sed -e 's,.*\.\(.*\)\..*,\1,g'`
+PACKAGE_LEAST=`echo ${PACKAGE_VERSION} | sed -e 's,.*\..*\.\(.*\),\1,g'`
+if test "${enable_soname}" != yes; then
+   SONAME=''
+   SONAME1=''
+   SONAME2=''
+   SONAME3=''
+   SONAME_ALIASES=''
+   SONAME_LDFLAGS=''
+   AC_MSG_RESULT([none])
+else
+   i="${PACKAGE_MAJOR}.${PACKAGE_MINOR}.${PACKAGE_LEAST}"
+   SONAME3=`echo $SONAME | sed "s,.SOVERSION,.$i,g"`
+   i="${PACKAGE_MAJOR}.${PACKAGE_MINOR}"
+   SONAME2=`echo $SONAME | sed "s,.SOVERSION,.$i,g"`
+   i="${PACKAGE_MAJOR}"
+   SONAME1=`echo $SONAME | sed "s,.SOVERSION,.$i,g"`
+   SONAME=`echo $SONAME | sed "s,.SOVERSION,,g"`
+   SONAME_LDFLAGS=`echo $SONAME_LDFLAGS | sed "s,SONAME,$SONAME2,g"`
+   AC_MSG_RESULT([${SONAME_LDFLAGS}])
+fi
+AC_SUBST(SONAME3)
+AC_SUBST(SONAME2)
+AC_SUBST(SONAME1)
+AC_SUBST(SONAME)
+AC_SUBST(SONAME_LDFLAGS)
+
+dnl Related to that, the package version number
+MKCL_VERSION_NUMBER=$(($PACKAGE_MAJOR * 1000000 + $PACKAGE_MINOR * 10000 + $PACKAGE_LEAST))
+AC_SUBST(MKCL_VERSION_NUMBER)
+
+MKCL_MAJOR_VERSION=$PACKAGE_MAJOR
+MKCL_MINOR_VERSION=$PACKAGE_MINOR
+MKCL_PATCH_LEVEL=$PACKAGE_LEAST
+AC_SUBST(MKCL_MAJOR_VERSION)
+AC_SUBST(MKCL_MINOR_VERSION)
+AC_SUBST(MKCL_PATCH_LEVEL)
+
+dnl ----------------------------------------------------------------------
+dnl Deactivate floating point exceptions if asked to
+if test "${with_ieee_fp}" = yes; then
+   with_signed_zero="yes"
+   with_fpe="yes"
+   AC_DEFINE(MKCL_IEEE_FP)
+fi
+if test "${with_fpe}" != yes; then
+   AC_DEFINE(MKCL_AVOID_FPE_H)
+fi
+if test "${with_signed_zero}" = yes; then
+   AC_DEFINE(MKCL_SIGNED_ZERO)
+fi
+
+dnl =====================================================================
+dnl Checks for header files
+
+dnl !!! autoscan
+dnl AC_PATH_X
+AC_HEADER_DIRENT
+AC_HEADER_STDBOOL
+AC_HEADER_STDC
+AC_HEADER_TIME
+AC_CHECK_HEADERS( [fcntl.h limits.h netdb.h netinet/in.h] \
+                  [stddef.h stdlib.h string.h sys/param.h] \
+                  [sys/socket.h sys/time.h unistd.h fenv.h] )
+dnl !!! end autoscan
+
+AC_CHECK_HEADERS( [sys/resource.h sys/utsname.h float.h pwd.h dlfcn.h link.h] \
+                  [mach-o/dyld.h ulimit.h dirent.h sys/ioctl.h sys/select.h] \
+                  [sys/wait.h] )
+
+dnl =====================================================================
+dnl Checks for typedefs, structures, and compiler characteristics.
+
+dnl !!! autoscan
+AC_C_CONST                      dnl !!! DNLed
+AC_C_INLINE
+AC_TYPE_SIZE_T                  dnl !!! DNLed
+AC_STRUCT_TM
+AC_C_VOLATILE
+AC_CHECK_TYPES([ptrdiff_t])
+AC_C_LONG_LONG
+dnl !!! end autoscan
+
+dnl !!! dnled in original
+dnl AC_TYPE_PID_T          # DEFS pid_t
+dnl AC_TYPE_UID_T          # DEFS uid_t, gid_t
+dnl AC_TYPE_OFF_T	   # DEFS off_t
+dnl AC_C_CHAR_UNSIGNED     # DEFS __CHAR_UNSIGNED__ if char is unsigned
+dnl !!! end dnled
+
+AC_C_BIGENDIAN([], [],
+  [AC_DEFINE(MKCL_WORDS_BIGENDIAN, [/* EDIT! - Undefine if small endian */])])
+
+dnl ----------------------------------------------------------------------
+dnl This flag is an optimization for GNU
+dnl if test "${GCC}" = "yes"; then
+dnl  CFLAGS="${CFLAGS} -fstrict-aliasing"
+dnl fi
+
+dnl ----------------------------------------------------------------------
+dnl Check the appropiate type for cl_fixnum/cl_index
+MKCL_FIXNUM_TYPE
+MKCL_INTEGER_TYPES
+
+MKCL_LINEFEED_MODE
+MKCL_FIND_SETJMP
+MKCL_FILE_STRUCTURE
+MKCL_FFI
+MKCL_FPE_MODEL
+
+if test "$enable_longdouble" != "no" ; then
+AC_CHECK_TYPES([long double])
+fi
+if test "$enable_c99complex" != "no" ; then
+AC_CHECK_TYPES([double complex, float complex],[],[],[#include <complex.h>])
+fi
+
+dnl -----------------------------------------------------------------------
+dnl Study the call conventions
+MKCL_STACK_DIRECTION
+
+dnl =====================================================================
+dnl Checks for library functions
+
+dnl !!! autoscan
+AC_FUNC_CLOSEDIR_VOID
+AC_FUNC_ERROR_AT_LINE
+AC_FUNC_FORK
+AC_PROG_GCC_TRADITIONAL
+AC_FUNC_MALLOC
+AC_FUNC_MEMCMP
+AC_FUNC_MMAP
+AC_FUNC_REALLOC
+AC_FUNC_SELECT_ARGTYPES
+AC_TYPE_SIGNAL
+AC_FUNC_STAT
+AC_FUNC_STRTOD
+AC_CHECK_FUNCS( [floor getcwd gethostbyaddr gethostbyname getpagesize] \
+                [memmove memset mkdir putenv socket sqrt] \
+                [strcasecmp strchr strerror strtol] )
+dnl !!! end autoscan
+
+AC_CHECK_FUNCS( [nanosleep alarm times select setenv putenv] \
+                [lstat mkstemp sigprocmask isatty feenableexcept tzset] \
+		[gettimeofday getrusage] )
+
+AC_CHECK_FUNCS( [expf logf sqrtf cosf sinf tanf sinhf coshf tanhf] \
+		[floorf ceilf fabsf frexpf ldexpf log1p log1pf log1pl])
+
+AC_CHECK_FUNCS( [sched_yield uname fseeko] )
+
+AC_CHECK_HEADER( [sys/mman.h], AC_DEFINE(MKCL_USE_MPROTECT) )
+
+dnl =====================================================================
+dnl Checks for system services
+
+dnl =====================================================================
+dnl Final pass over configuration files
+dnl
+dnl Notice that we build ${builddir}/mkcl/configpre.h from
+dnl ${srcdir}/mkcl/config.h.in, and then use all AC_DEF* to build
+dnl mkcl/config.h from mkcl/configpre.h
+
+dnl ----------------------------------------------------------------------
+dnl Do we use C or C++ compiler to compile mkcl?
+if test ${with_cxx} = "no" ; then
+  AC_SUBST([MKCL_CC], [${CC}])
+else
+  AC_SUBST([MKCL_CC], [${CXX}])
+  boehm_configure_flags="${boehm_configure_flags} --enable-cplusplus"
+fi
+
+dnl ----------------------------------------------------------------------
+dnl Do we need to have 8-bit opcodes?
+if test ! ${opcode8} = "no" ; then
+  AC_DEFINE( MKCL_SMALL_BYTECODE, [1], 
+             [Bytecode and arguments are 8 and 16 bits large, respectively])
+fi
+
+dnl ----------------------------------------------------------------------
+dnl Lisp library and libmkcl features
+if test ${enable_shared} = "yes"; then
+  AC_DEFINE(ENABLE_DLOPEN, [1], [Allow loading dynamically linked code])
+  LSP_LIBRARIES="${SHAREDPREFIX}mkcl_${PACKAGE_VERSION}.${SHAREDEXT}"
+  MKCL_ADD_FEATURE([wants-dlopen])
+else
+  enable_soname=no
+  LSP_LIBRARIES="${LIBPREFIX}mkcl_${PACKAGE_VERSION}.${LIBEXT}"
+  LDRPATH='~*'
+fi
+
+if test "${with_cmuformat}" = "yes"; then
+  with_clos_streams="yes"
+  AC_DEFINE(MKCL_CMU_FORMAT, [1], [Use CMU Common-Lisp's FORMAT routine])
+fi
+
+if test "${with_clos_streams}" = "yes"; then
+  AC_DEFINE( MKCL_CLOS_STREAMS, [1],
+             [Allow STREAM operations to work on arbitrary objects])
+fi
+
+if test "${with_cmp}" = "builtin"; then
+  MKCL_ADD_BUILTIN_MODULE([cmp])
+  with_cmp=yes
+fi
+if test "${with_cmp}" = "yes"; then
+  MKCL_ADD_LISP_MODULE([cmp])
+fi
+
+AC_SUBST(CLX_INFO)
+if test "${with_clx}" = "builtin"; then
+  MKCL_ADD_BUILTIN_MODULE([clx])
+  MKCL_ADD_BUILTIN_MODULE([sockets])
+  with_clx=yes
+fi
+if test ${with_clx} = "yes"; then
+  tcp="yes"
+  MKCL_ADD_LISP_MODULE([clx])
+  CLX_INFO="clx.${INFOEXT}"
+else
+  CLX_INFO=""
+fi
+
+if test "${with_tcp}" = "yes"; then
+  AC_DEFINE(TCP, [1], [Network streams])
+dnl  EXTRA_OBJS="${EXTRA_OBJS} tcp.${OBJEXT}"
+  MKCL_ADD_LISP_MODULE([sockets])
+dnl  LIBS="${LIBS} ${TCP_LIBS}"
+fi
+
+if test "${with_serve_event}" = "builtin"; then
+  MKCL_ADD_BUILTIN_MODULE([serve_event])
+  with_serve_event=yes
+fi
+if test "${with_serve_event}" = "yes"; then
+  case "${host_os}" in
+dnl    mingw*) ;;
+    cygwin*) ;;
+    *)
+      MKCL_ADD_LISP_MODULE([serve-event])
+    ;;
+  esac
+fi
+
+if test "${with_asdf}" = "builtin"; then
+  MKCL_ADD_BUILTIN_MODULE([asdf])
+  with_asdf=yes
+fi
+if test "${with_asdf}" = "yes"; then
+  MKCL_ADD_LISP_MODULE([asdf])
+fi
+
+if test "${with_defsystem}" = "builtin"; then
+  MKCL_ADD_BUILTIN_MODULE([defsystem])
+  with_defsystem=yes
+fi
+if test "${with_defsystem}" = "yes"; then
+  MKCL_ADD_LISP_MODULE([defsystem])
+fi
+
+if test "${with_profile}" = "builtin"; then
+  MKCL_ADD_BUILTIN_MODULE([profile])
+  with_profile=yes
+fi
+if test "${with_profile}" = "yes"; then
+  if test "${enable_boehm}" != "no"; then
+    MKCL_ADD_LISP_MODULE([profile])
+  fi
+fi
+
+if test "${with_bytecmp}" = "builtin"; then
+  MKCL_ADD_BUILTIN_MODULE([bytecmp])
+  with_bytecmp=yes
+fi
+if test "${with_bytecmp}" = "yes"; then
+  MKCL_ADD_LISP_MODULE([bytecmp])
+fi
+
+if test "${with_rt}" = "builtin"; then
+  MKCL_ADD_BUILTIN_MODULE([rt])
+  with_rt=yes
+fi
+if test "${with_rt}" = "yes"; then
+  MKCL_ADD_LISP_MODULE([rt])
+fi
+
+if test "${enable_unicode}" = "yes"; then
+   AC_DEFINE(MKCL_UNICODE, [1], [Support for Unicode])
+fi
+
+if test "${enable_hpack}" = "yes"; then
+   AC_DEFINE(MKCL_RELATIVE_PACKAGE_NAMES, [1], [Hierarchical package names])
+fi
+
+dnl ----------------------------------------------------------------------
+dnl Configure included Boehm GC if needed
+AC_SUBST(MKCL_BOEHM_GC_HEADER)
+case "${enable_boehm}" in
+  included)
+    AC_MSG_NOTICE([Configuring included Boehm GC library:])
+dnl    test -d gc && rm -rf gc
+dnl    if mkdir gc; then
+      echo "(destdir=`${PWDCMD}`; cd gc; \
+      CC="${CC} ${PICFLAG}" CFLAGS="-DMK_GC_BUILD ${CFLAGS}" LDFLAGS="${LDFLAGS}" \
+        $srcdir/gc/configure --disable-shared --prefix=${destdir} \
+	--includedir=${destdir}/mkcl/ --libdir=${destdir} --build=${build_alias} \
+	--host=${host_alias} --enable-large-config ${boehm_configure_flags})"
+     (destdir=`${PWDCMD}`; cd gc; \
+      CC="${CC} ${PICFLAG}" CFLAGS="-DMK_GC_BUILD ${CFLAGS}" LDFLAGS="${LDFLAGS}" \
+        $srcdir/gc/configure --disable-shared --prefix=${destdir} \
+	--includedir=${destdir}/mkcl/ --libdir=${destdir} --build=${build_alias} \
+	--host=${host_alias} --enable-large-config ${boehm_configure_flags})
+      MKCL_BOEHM_GC_HEADER='mkcl/gc/gc.h'
+dnl     else
+dnl       AC_MSG_ERROR([Unable to create 'gc' directory])
+dnl     fi
+    ;;
+  system)
+    AC_CHECK_HEADER([gc.h],[MKCL_BOEHM_GC_HEADER='gc.h'],[],[])
+    if test -z "$MKCL_BOEHM_GC_HEADER"; then
+       AC_CHECK_HEADER([gc/gc.h],[MKCL_BOEHM_GC_HEADER='gc/gc.h'],[],[])
+    fi
+    if test -z "$MKCL_BOEHM_GC_HEADER"; then
+       AC_MSG_ERROR([Boehm-Weiser garbage collector's headers not found])
+    fi
+    ;;
+  no)
+    MKCL_BOEHM_GC_HEADER='none';;
+  *)
+    AC_MSG_ERROR([Not a valid argument for --enable-boehm $enable_boehm]);;
+esac
+
+dnl ----------------------------------------------------------------------
+dnl Configure local GMP if needed
+AC_SUBST(MKCL_GMP_HEADER)
+if test "${with_gmp}" = "no" ; then
+  AC_MSG_ERROR([Cannot build without GMP library])
+  dnl AC_MSG_NOTICE(Not using GMP library at all.  Are you sure?)
+  dnl EXTRA_OBJS="${EXTRA_OBJS} big_ll.o"
+  dnl MKCL_GMP_HEADER='nofile'
+else
+  AC_DEFINE( [WITH_GMP], [1], [Use GMP for bignums] )
+  EXTRA_OBJS="${EXTRA_OBJS} big.o"
+  MKCL_GMP_HEADER='gmp.h'
+dnl   if test "${with_system_gmp}" = "no" ; then
+dnl     AC_MSG_NOTICE(Configuring included GMP library:)
+dnl dnl    test -d gmp && rm -rf gmp
+dnl     if test -z "$gmp_build"; then
+dnl       gmp_build="${build_alias}"
+dnl     fi
+dnl dnl    if mkdir gmp; then
+dnl      MKCL_GMP_HEADER='mkcl/gmp.h'
+dnl      dnl Notice we need -DPIC to force the assembler to generate PIC code
+dnl      echo "(destdir=`${PWDCMD}`; cd gmp; CC="${CC} ${PICFLAG}" \
+dnl        $srcdir/gmp/configure --disable-shared --prefix=${destdir} \
+dnl 	--infodir=${destdir}/doc --includedir=${destdir}/mkcl --with-pic \
+dnl         --libdir=${destdir} --build=${gmp_build} --host=${host_alias} $with_gmp)"
+dnl      (destdir=`${PWDCMD}`; cd gmp; CC="${CC} ${PICFLAG}" \
+dnl        $srcdir/gmp/configure --disable-shared --prefix=${destdir} \
+dnl 	--infodir=${destdir}/doc --includedir=${destdir}/mkcl --with-pic \
+dnl         --libdir=${destdir} --build=${gmp_build} --host=${host_alias} $with_gmp)
+dnl dnl    fi
+dnl   fi
+fi
+
+
+AC_CONFIG_FILES([
+  bare.lsp lsp/load.lsp clos/load.lsp cmp/load.lsp
+  ../Makefile Makefile c/Makefile doc/Makefile doc/mkcl.man doc/mkcl-config.man
+  mkcl/mkcl-gc.h
+  mkcl/configpre.h:mkcl/config.h.in bin/mkcl-config.pre:util/mkcl-config
+  lsp/config.pre:lsp/config.lsp.in compile.pre:compile.lsp.in
+  cmp/cmpdefs.pre:cmp/cmpdefs.lsp.in
+ ])
+AC_CONFIG_HEADERS([mkcl/config.h:mkcl/configpre.h]) # FIXME
+AC_OUTPUT

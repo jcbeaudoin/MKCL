@@ -1,0 +1,344 @@
+/*
+ * Copyright (c) 1994 by Xerox Corporation.  All rights reserved.
+ * Copyright (c) 1996 by Silicon Graphics.  All rights reserved.
+ * Copyright (c) 1998 by Fergus Henderson.  All rights reserved.
+ * Copyright (c) 2000-2009 by Hewlett-Packard Development Company.
+ * All rights reserved.
+ *
+ * THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY EXPRESSED
+ * OR IMPLIED.  ANY USE IS AT YOUR OWN RISK.
+ *
+ * Permission is hereby granted to use or copy this program
+ * for any purpose,  provided the above notices are retained on all copies.
+ * Permission to modify the code and to distribute modified code is granted,
+ * provided the above notices are retained, and a notice that the code was
+ * modified is included with the above copyright notice.
+ */
+
+/* This should never be included directly; it is included only from gc.h. */
+/* We separate it only to make gc.h more suitable as documentation.       */
+#if defined(MK_GC_H)
+
+/* Some tests for old macros.  These violate our namespace rules and    */
+/* will disappear shortly.  Use the MK_GC_ names.                          */
+#if defined(SOLARIS_THREADS) || defined(_SOLARIS_THREADS) \
+    || defined(_SOLARIS_PTHREADS) || defined(MK_GC_SOLARIS_PTHREADS)
+  /* We no longer support old style Solaris threads.            */
+  /* MK_GC_SOLARIS_THREADS now means pthreads.                     */
+# ifndef MK_GC_SOLARIS_THREADS
+#   define MK_GC_SOLARIS_THREADS
+# endif
+#endif
+#if defined(IRIX_THREADS)
+# define MK_GC_IRIX_THREADS
+#endif
+#if defined(DGUX_THREADS) && !defined(MK_GC_DGUX386_THREADS)
+# define MK_GC_DGUX386_THREADS
+#endif
+#if defined(AIX_THREADS)
+# define MK_GC_AIX_THREADS
+#endif
+#if defined(HPUX_THREADS)
+# define MK_GC_HPUX_THREADS
+#endif
+#if defined(OSF1_THREADS)
+# define MK_GC_OSF1_THREADS
+#endif
+#if defined(LINUX_THREADS)
+# define MK_GC_LINUX_THREADS
+#endif
+#if defined(WIN32_THREADS)
+# define MK_GC_WIN32_THREADS
+#endif
+#if defined(RTEMS_THREADS)
+# define MK_GC_RTEMS_PTHREADS
+#endif
+#if defined(USE_LD_WRAP)
+# define MK_GC_USE_LD_WRAP
+#endif
+
+#if defined(MK_GC_WIN32_PTHREADS) && !defined(MK_GC_WIN32_THREADS)
+  /* Using pthreads-w32 library. */
+# define MK_GC_WIN32_THREADS
+#endif
+
+#if defined(MK_GC_AIX_THREADS) || defined(MK_GC_DARWIN_THREADS) \
+    || defined(MK_GC_DGUX386_THREADS) || defined(MK_GC_FREEBSD_THREADS) \
+    || defined(MK_GC_GNU_THREADS) || defined(MK_GC_HPUX_THREADS) \
+    || defined(MK_GC_IRIX_THREADS) || defined(MK_GC_LINUX_THREADS) \
+    || defined(MK_GC_NETBSD_THREADS) || defined(MK_GC_OPENBSD_THREADS) \
+    || defined(MK_GC_OSF1_THREADS) || defined(MK_GC_SOLARIS_THREADS) \
+    || defined(MK_GC_WIN32_THREADS) || defined(MK_GC_RTEMS_PTHREADS)
+# ifndef MK_GC_THREADS
+#   define MK_GC_THREADS
+# endif
+#elif defined(MK_GC_THREADS)
+# if defined(__linux__)
+#   define MK_GC_LINUX_THREADS
+# endif
+# if !defined(__linux__) && (defined(_PA_RISC1_1) || defined(_PA_RISC2_0) \
+                             || defined(hppa) || defined(__HPPA)) \
+     || (defined(__ia64) && defined(_HPUX_SOURCE))
+#   define MK_GC_HPUX_THREADS
+# endif
+# if !defined(__linux__) && (defined(__alpha) || defined(__alpha__))
+#   define MK_GC_OSF1_THREADS
+# endif
+# if defined(__mips) && !defined(__linux__)
+#   define MK_GC_IRIX_THREADS
+# endif
+# if defined(__sparc) && !defined(__linux__) \
+     || defined(sun) && (defined(i386) || defined(__i386__) \
+                         || defined(__amd64__))
+#   define MK_GC_SOLARIS_THREADS
+# elif defined(__APPLE__) && defined(__MACH__)
+#   define MK_GC_DARWIN_THREADS
+# elif defined(__OpenBSD__)
+#   define MK_GC_OPENBSD_THREADS
+# elif !defined(MK_GC_LINUX_THREADS) && !defined(MK_GC_HPUX_THREADS) \
+       && !defined(MK_GC_OSF1_THREADS) && !defined(MK_GC_IRIX_THREADS)
+    /* FIXME: Should we really need for FreeBSD and NetBSD to check     */
+    /* that no other MK_GC_xxx_THREADS macro is set?                       */
+#   if defined(__FreeBSD__) || defined(__DragonFly__)
+#     define MK_GC_FREEBSD_THREADS
+#   elif defined(__NetBSD__)
+#     define MK_GC_NETBSD_THREADS
+#   endif
+# endif
+# if defined(DGUX) && (defined(i386) || defined(__i386__))
+#   define MK_GC_DGUX386_THREADS
+# endif
+# if defined(_AIX)
+#   define MK_GC_AIX_THREADS
+# endif
+# if (defined(_WIN32) || defined(_MSC_VER) || defined(__BORLANDC__) \
+      || defined(__CYGWIN32__) || defined(__CYGWIN__) || defined(__CEGCC__) \
+      || defined(_WIN32_WCE) || defined(__MINGW32__)) \
+     && !defined(MK_GC_WIN32_THREADS)
+    /* Either posix or native Win32 threads. */
+#   define MK_GC_WIN32_THREADS
+# endif
+# if defined(__rtems__) && (defined(i386) || defined(__i386__))
+#   define MK_GC_RTEMS_PTHREADS
+# endif
+#endif /* MK_GC_THREADS */
+
+#undef MK_GC_PTHREADS
+#if (!defined(MK_GC_WIN32_THREADS) || defined(MK_GC_WIN32_PTHREADS) \
+     || defined(MK_GC_RTEMS_PTHREADS) || defined(__CYGWIN32__) \
+     || defined(__CYGWIN__)) && defined(MK_GC_THREADS)
+  /* Posix threads. */
+# define MK_GC_PTHREADS
+#endif
+
+#if !defined(_PTHREADS) && defined(MK_GC_NETBSD_THREADS)
+# define _PTHREADS
+#endif
+
+#if defined(MK_GC_DGUX386_THREADS) && !defined(_POSIX4A_DRAFT10_SOURCE)
+# define _POSIX4A_DRAFT10_SOURCE 1
+#endif
+
+#if !defined(_REENTRANT) && defined(MK_GC_PTHREADS) && !defined(MK_GC_WIN32_THREADS)
+  /* Better late than never.  This fails if system headers that depend  */
+  /* on this were previously included.                                  */
+# define _REENTRANT
+#endif
+
+#define __GC
+#if !defined(_WIN32_WCE) || defined(__GNUC__)
+# include <stddef.h>
+# if defined(__MINGW32__) && !defined(_WIN32_WCE)
+#   include <stdint.h>
+    /* We mention uintptr_t.                                            */
+    /* Perhaps this should be included in pure msft environments        */
+    /* as well?                                                         */
+# endif
+#else /* _WIN32_WCE */
+  /* Yet more kludges for WinCE.        */
+# include <stdlib.h> /* size_t is defined here */
+# ifndef _PTRDIFF_T_DEFINED
+    /* ptrdiff_t is not defined */
+#   define _PTRDIFF_T_DEFINED
+    typedef long ptrdiff_t;
+# endif
+#endif /* _WIN32_WCE */
+
+#if defined(_DLL) && !defined(MK_GC_NOT_DLL) && !defined(MK_GC_DLL) \
+        && !defined(__GNUC__)
+# define MK_GC_DLL
+#endif
+
+#if defined(MK_GC_DLL) && !defined(MK_GC_API)
+
+# if defined(__MINGW32__) || defined(__CEGCC__)
+#   ifdef MK_GC_BUILD
+#     define MK_GC_API __declspec(dllexport)
+#   else
+#     define MK_GC_API __declspec(dllimport)
+#   endif
+
+# elif defined(_MSC_VER) || defined(__DMC__) || defined(__BORLANDC__) \
+        || defined(__CYGWIN__)
+#   ifdef MK_GC_BUILD
+#     define MK_GC_API extern __declspec(dllexport)
+#   else
+#     define MK_GC_API __declspec(dllimport)
+#   endif
+
+# elif defined(__WATCOMC__)
+#   ifdef MK_GC_BUILD
+#     define MK_GC_API extern __declspec(dllexport)
+#   else
+#     define MK_GC_API extern __declspec(dllimport)
+#   endif
+
+# elif defined(__GNUC__)
+    /* Only matters if used in conjunction with -fvisibility=hidden option. */
+#   if __GNUC__ >= 4 && defined(MK_GC_BUILD)
+#     define MK_GC_API extern __attribute__((__visibility__("default")))
+#   endif
+# endif
+#endif /* MK_GC_DLL */
+
+#ifndef MK_GC_API
+# define MK_GC_API extern
+#endif
+
+#ifndef MK_GC_CALL
+# define MK_GC_CALL
+#endif
+
+#ifndef MK_GC_CALLBACK
+# define MK_GC_CALLBACK MK_GC_CALL
+#endif
+
+#ifndef MK_GC_ATTR_MALLOC
+  /* 'malloc' attribute should be used for all malloc-like functions    */
+  /* (to tell the compiler that a function may be treated as if any     */
+  /* non-NULL pointer it returns cannot alias any other pointer valid   */
+  /* when the function returns).  If the client code violates this rule */
+  /* by using custom MK_GC_oom_func then define MK_GC_OOM_FUNC_RETURNS_ALIAS. */
+# if !defined(MK_GC_OOM_FUNC_RETURNS_ALIAS) && defined(__GNUC__) \
+        && (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
+#   define MK_GC_ATTR_MALLOC __attribute__((__malloc__))
+# else
+#   define MK_GC_ATTR_MALLOC
+# endif
+#endif
+
+#ifndef MK_GC_ATTR_ALLOC_SIZE
+  /* 'alloc_size' attribute improves __builtin_object_size correctness. */
+  /* Only single-argument form of 'alloc_size' attribute is used.       */
+# if defined(__GNUC__) && (__GNUC__ > 4 \
+        || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3 && !defined(__ICC)))
+#   define MK_GC_ATTR_ALLOC_SIZE(argnum) __attribute__((__alloc_size__(argnum)))
+# else
+#   define MK_GC_ATTR_ALLOC_SIZE(argnum)
+# endif
+#endif
+
+#if defined(__sgi) && !defined(__GNUC__) && _COMPILER_VERSION >= 720
+# define MK_GC_ADD_CALLER
+# define MK_GC_RETURN_ADDR (MK_GC_word)__return_address
+#endif
+
+#if defined(__linux__) || defined(__GLIBC__)
+# if !defined(__native_client__)
+#   include <features.h>
+# endif
+# if (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 1 || __GLIBC__ > 2) \
+        && !defined(__ia64__) && !defined(__UCLIBC__) \
+        && !defined(MK_GC_HAVE_BUILTIN_BACKTRACE)
+#   define MK_GC_HAVE_BUILTIN_BACKTRACE
+# endif
+# if defined(__i386__) || defined(__x86_64__)
+#   define MK_GC_CAN_SAVE_CALL_STACKS
+# endif
+#endif /* GLIBC */
+
+#if defined(_MSC_VER) && _MSC_VER >= 1200 /* version 12.0+ (MSVC 6.0+) */ \
+        && !defined(_AMD64_) && !defined(_M_X64) && !defined(_WIN32_WCE) \
+        && !defined(MK_GC_HAVE_NO_BUILTIN_BACKTRACE) \
+        && !defined(MK_GC_HAVE_BUILTIN_BACKTRACE)
+# define MK_GC_HAVE_BUILTIN_BACKTRACE
+#endif
+
+#if defined(MK_GC_HAVE_BUILTIN_BACKTRACE) && !defined(MK_GC_CAN_SAVE_CALL_STACKS)
+# define MK_GC_CAN_SAVE_CALL_STACKS
+#endif
+
+#if defined(__sparc__)
+# define MK_GC_CAN_SAVE_CALL_STACKS
+#endif
+
+/* If we're on an a platform on which we can't save call stacks, but    */
+/* gcc is normally used, we go ahead and define MK_GC_ADD_CALLER.          */
+/* We make this decision independent of whether gcc is actually being   */
+/* used, in order to keep the interface consistent, and allow mixing    */
+/* of compilers.                                                        */
+/* This may also be desirable if it is possible but expensive to        */
+/* retrieve the call chain.                                             */
+#if (defined(__linux__) || defined(__NetBSD__) || defined(__OpenBSD__) \
+     || defined(__FreeBSD__) || defined(__DragonFly__) \
+     || defined(PLATFORM_ANDROID)) && !defined(MK_GC_CAN_SAVE_CALL_STACKS)
+# define MK_GC_ADD_CALLER
+# if __GNUC__ >= 3 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 95)
+    /* gcc knows how to retrieve return address, but we don't know      */
+    /* how to generate call stacks.                                     */
+#   define MK_GC_RETURN_ADDR (MK_GC_word)__builtin_return_address(0)
+# else
+    /* Just pass 0 for gcc compatibility.       */
+#   define MK_GC_RETURN_ADDR 0
+# endif
+#endif /* !MK_GC_CAN_SAVE_CALL_STACKS */
+
+#ifdef MK_GC_PTHREADS
+
+# if (defined(MK_GC_DARWIN_THREADS) || defined(MK_GC_WIN32_PTHREADS) \
+      || defined(__native_client__) || defined(MK_GC_RTEMS_PTHREADS)) \
+      && !defined(MK_GC_NO_DLOPEN)
+    /* Either there is no dlopen() or we do not need to intercept it.   */
+#   define MK_GC_NO_DLOPEN
+# endif
+
+# if (defined(MK_GC_DARWIN_THREADS) || defined(MK_GC_WIN32_PTHREADS) \
+      || defined(MK_GC_OPENBSD_THREADS) || defined(__native_client__)) \
+     && !defined(MK_GC_NO_PTHREAD_SIGMASK)
+    /* Either there is no pthread_sigmask() or no need to intercept it. */
+#   define MK_GC_NO_PTHREAD_SIGMASK
+# endif
+
+# if defined(__native_client__)
+    /* At present, NaCl pthread_create() prototype does not have        */
+    /* "const" for its "attr" argument; also, NaCl pthread_exit() one   */
+    /* does not have "noreturn" attribute.                              */
+#   ifndef MK_GC_PTHREAD_CREATE_CONST
+#     define MK_GC_PTHREAD_CREATE_CONST /* empty */
+#   endif
+#   ifndef MK_GC_PTHREAD_EXIT_ATTRIBUTE
+#     define MK_GC_PTHREAD_EXIT_ATTRIBUTE /* empty */
+#   endif
+# endif
+
+# if !defined(MK_GC_PTHREAD_EXIT_ATTRIBUTE) && !defined(PLATFORM_ANDROID) \
+     && (defined(MK_GC_LINUX_THREADS) || defined(MK_GC_SOLARIS_THREADS))
+    /* Intercept pthread_exit on Linux and Solaris.     */
+#   if defined(__GNUC__) /* since GCC v2.7 */
+#     define MK_GC_PTHREAD_EXIT_ATTRIBUTE __attribute__((__noreturn__))
+#   elif defined(__NORETURN) /* used in Solaris */
+#     define MK_GC_PTHREAD_EXIT_ATTRIBUTE __NORETURN
+#   else
+#     define MK_GC_PTHREAD_EXIT_ATTRIBUTE /* empty */
+#   endif
+# endif
+
+# if (!defined(MK_GC_PTHREAD_EXIT_ATTRIBUTE) || defined(__native_client__)) \
+     && !defined(MK_GC_NO_PTHREAD_CANCEL)
+    /* Either there is no pthread_cancel() or no need to intercept it.  */
+#   define MK_GC_NO_PTHREAD_CANCEL
+# endif
+
+#endif /* MK_GC_PTHREADS */
+
+#endif

@@ -1,0 +1,71 @@
+;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
+;;;;
+;;;;  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+;;;;  Copyright by a number of previous anonymous authors
+;;;;            presumed to be the same as for the rest of MKCL.
+;;;;
+;;;;    This program is free software; you can redistribute it and/or
+;;;;    modify it under the terms of the GNU Lesser General Public
+;;;;    License as published by the Free Software Foundation; either
+;;;;    version 3 of the License, or (at your option) any later version.
+;;;;
+;;;;    See file '../Copyright' for full details.
+
+(princ "
+;;;
+;;; Welcome to bare.lsp. Let's bring this instance up!
+;;;")
+
+;;(si::pathname-translations "SRC" `(("**;*.*.*" "./**/*.*")))
+;;(si::pathname-translations "EXT" `(("**;*.*.*" "./../contrib/**/*.*")))
+;;;
+;;; * Set ourselves in the 'SYSTEM package
+;;;
+(setq *package* (find-package "SYSTEM"))
+(setq si::*keep-definitions* nil)
+
+;;;
+;;; * Load Common-Lisp base library
+;;;
+(princ "
+;;;
+;;; About to load lsp/load.lsp
+;;; ")
+
+;;(if (member "MKCL-MIN" *features* :test #'string-equal)
+  (load "lsp/load.lsp" :verbose nil :external-format '(:ascii :lf))
+;;)
+
+(defun si::process-command-args () )
+
+;;;
+;;; * Load PCL-based Common-Lisp Object System
+;;;
+;;(setf sys::*gc-verbose* nil)
+;;#+mkcl-min
+(progn
+ (terpri)
+ (princ ";;; Loading clos/load.lsp")
+ (load "clos/load.lsp" :verbose nil :external-format '(:ascii :lf)))
+
+;;;
+;;; * Load the compiler.
+;;;
+
+(terpri)
+(princ ";;; About to load cmp/load.lsp")
+
+(load "cmp/load.lsp" :external-format '(:ascii :lf))
+
+;;;
+;;; * Go back to build directory to start compiling
+;;;
+;;#+mkcl-min
+;;(setq *features* (delete :mkcl-min *features*))
+(setq *features* (remove :mkcl-min *features*))
+
+(terpri)
+(princ ";;;
+;;; Now we are in shape to do something useful.
+;;; End of bare.lsp")
+(terpri)

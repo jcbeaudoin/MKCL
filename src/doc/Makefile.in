@@ -1,0 +1,166 @@
+#
+#  Makefile for documentation of MKCL.
+#
+#  Copyright by a number of anonymous authors
+#            presumed to be the same as for the rest of MKCL.
+#
+#  MKCL is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 3 of the License, or (at your option) any later version.
+#
+#  See file '../../Copyright' for full details.
+#
+#
+top_srcdir= @top_srcdir@
+srcdir	= @srcdir@
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+infodir = @infodir@
+mandir=@mandir@
+docdir=@docdir@
+datarootdir=@datarootdir@
+manext=1
+
+INFOEXT = @INFOEXT@
+SHELL = @SHELL@
+INSTALL	= @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_INFO = @INSTALL_INFO@
+mkinstalldirs = $(SHELL) $(top_srcdir)/gc/mkinstalldirs
+INFO_FILES = mkcl.$(INFOEXT) mkcldev.$(INFOEXT) @CLX_INFO@
+HTML_FILES = index.html license.html lgpl.html news.html benchmark.html \
+	install.html download.html cvs.html
+
+VERSION=@PACKAGE_VERSION@
+
+FILTER = sed 's,@VERSION@,$(VERSION),g'
+
+MKCL = ../mkcl
+
+all: $(INFO_FILES)
+
+html: $(HTML_FILES)
+
+mkcl.dvi: $(srcdir)/user.txi $(srcdir)/macros.txi clisp.sty mkcl.sty
+	tex $(srcdir)/user.txi
+mkcldev.dvi: $(srcdir)/devel.txi $(srcdir)/macros.txi clisp.sty mkcl.sty
+	tex $(srcdir)/devel.txi
+clx.dvi: clx.texinfo
+	tex clx.texinfo
+
+mkcl.ps: mkcl.dvi $(srcdir)/macros.txi
+	dvips -o $@ mkcl.dvi
+mkcldev.ps: mkcldev.dvi $(srcdir)/macros.txi
+	dvips -o $@ mkcldev.dvi
+clx.ps: clx.dvi
+	dvips -o $@ clx.dvi
+
+install: all
+	$(mkinstalldirs) $(DESTDIR)$(infodir)
+	for k in $(INFO_FILES); do \
+	  $(INSTALL_DATA) $$k $(DESTDIR)$(infodir); \
+	  if [ -x $(INSTALL_INFO) ]; then \
+	    $(INSTALL_INFO) --info-dir=$(DESTDIR)$(infodir) $$k; \
+	  fi; \
+	done
+	$(mkinstalldirs) $(DESTDIR)$(docdir)
+	for i in Copyright LGPL; do \
+	  $(INSTALL_DATA) $(top_srcdir)/../$$i $(DESTDIR)$(docdir); \
+	done
+	$(mkinstalldirs) $(DESTDIR)$(mandir)/man$(manext)
+	$(INSTALL_DATA) mkcl.man $(DESTDIR)$(mandir)/man$(manext)/mkcl.$(manext)
+	$(INSTALL_DATA) mkcl-config.man $(DESTDIR)$(mandir)/man$(manext)/mkcl-config.$(manext)
+flatinstall: all $(HTML_FILES)
+	$(mkinstalldirs) $(DESTDIR)$(docdir)
+	for k in $(INFO_FILES); do $(INSTALL_DATA) $$k $(DESTDIR)$(docdir); done
+	if [ -f user.html ]; then \
+	  $(INSTALL_DATA) $$i $(DESTDIR)$(docdir)/; \
+	else \
+	  $(mkinstalldirs) $(DESTDIR)$(docdir)/mkcl; \
+	  for i in mkcl/*; do $(INSTALL_DATA) $$i $(DESTDIR)$(docdir)/mkcl/; done; \
+	fi
+	if [ -f devel.html ]; then \
+	  $(INSTALL_DATA) devel.html $(DESTDIR)$(docdir)/; \
+	else \
+	  $(mkinstalldirs) $(DESTDIR)$(docdir)/mkcldev; \
+	  for i in mkcldev/*; do $(INSTALL_DATA) $$i $(DESTDIR)$(docdir)/mkcldev/; done; \
+	fi
+	for i in Copyright LGPL; do \
+	  $(INSTALL_DATA) $(top_srcdir)/../$$i $(DESTDIR)$(docdir); \
+	done
+	for i in *.html; do $(INSTALL_DATA) $$i $(DESTDIR)$(docdir)/; done
+
+uninstall:
+	-for k in $(INFO_FILES); do \
+	  rm $$k; \
+	  if [ -x $(INSTALL_INFO) ]; then \
+	    $(INSTALL_INFO) --remove $$k; \
+	  fi; \
+	done
+	rm -r $(DESTDIR)$(infodir)/mkcl.$(INFOEXT) $(DESTDIR)$(infodir)/mkcldev.$(INFOEXT); \
+	rm $(DESTDIR)$(mandir)/man$(manext)/mkcl.$(manext)
+
+head: developers_manual user_manual $(srcdir)/head
+	if [ -f mkcl/index.html ]; then \
+	  sed -e 's,mkcl/user.html,mkcl/index.html,g' \
+	      -e 's,mkcldev/devel.html,mkcldev/index.html,g' $(srcdir)/head > head; \
+	else \
+	  cp $(srcdir)/head head; \
+	fi
+mkcl.info.gz: mkcl.info
+	gzip < mkcl.info > mkcl.info.gz
+mkcldev.info.gz: mkcldev.info
+	gzip < mkcldev.info > mkcldev.info.gz
+clx.info.gz: clx.info
+	gzip < clx.info > clx.info.gz
+mkcl.info: $(srcdir)/user.txi $(srcdir)/macros.txi
+	makeinfo -I $(srcdir) --no-split $(srcdir)/user.txi
+mkcldev.info: $(srcdir)/devel.txi $(srcdir)/macros.txi
+	makeinfo -I $(srcdir) --no-split $(srcdir)/devel.txi
+clx.info: clx.texinfo
+	-makeinfo --no-split clx.texinfo
+clx.texinfo: $(top_srcdir)/clx/manual/clx.texinfo
+	cp $(top_srcdir)/clx/manual/clx.texinfo .
+
+download.html: $(srcdir)/download.in.html head
+	cat head $(srcdir)/download.in.html $(srcdir)/end | $(FILTER) > $@
+index.html: $(srcdir)/index.in.html head
+	cat head $(srcdir)/index.in.html $(srcdir)/end | $(FILTER) > $@
+cvs.html: $(srcdir)/cvs.in.html head
+	cat head $(srcdir)/cvs.in.html $(srcdir)/end | $(FILTER) > $@
+install.html: $(srcdir)/install.in.html head
+	cat head $(srcdir)/install.in.html $(srcdir)/end | $(FILTER) > $@
+news.html: head $(srcdir)/../..ANNOUNCEMENT
+	(cat head; echo '<pre>'; cat $(srcdir)/../../ANNOUNCEMENT; echo '</pre>';\
+	 cat $(srcdir)/end) | $(FILTER) > $@
+benchmark.html: $(srcdir)/benchmark.in.html BENCHMARK head
+	(cat head; cat $(srcdir)/benchmark.in.html; \
+	 echo '<pre>'; cat BENCHMARK; echo '</pre>'; \
+	 cat $(srcdir)/end) | $(FILTER) > $@
+BENCHMARK:
+	echo "No benchmarks available" > $@
+license.html: $(top_srcdir)/../Copyright head
+	(cat head; \
+	 echo '<pre>'; cat $(top_srcdir)/../Copyright; echo '</pre>'; \
+	 cat $(srcdir)/end) | $(FILTER) > $@
+lgpl.html: $(top_srcdir)/../LGPL head
+	(cat head; \
+	 echo '<pre>'; cat $(top_srcdir)/../LGPL; echo '</pre>'; \
+	 cat $(srcdir)/end) | $(FILTER) > $@
+user_manual: $(srcdir)/user.txi $(srcdir)/macros.txi
+	echo "Producing mkcl.html; ignore error messages."
+	test -d mkcl || mkdir mkcl; \
+	(makeinfo --output-indent=0 -I $(srcdir) --css-include=$(srcdir)/basic.css --html $(srcdir)/user.txi || \
+	 texi2html -I=$(srcdir) -subdir=mkcl -split=chapter $(srcdir)/user.txi)  \
+	&& touch user_manual
+developers_manual: $(srcdir)/devel.txi $(srcdir)/macros.txi
+	echo "Producing mkcldev.html; ignore error messages."
+	test -d mkcldev || mkdir mkcldev; \
+	(makeinfo --output-indent=0 -I $(srcdir) --css-include=$(srcdir)/basic.css --html $(srcdir)/devel.txi || \
+	 texi2html -I=$(srcdir) -subdir=mkcldev -split=chapter $(srcdir)/devel.txi) \
+	&& touch developers_manual
+clean:
+	rm -r -f mkcl mkcldev mkcl.info* mkcldev.info* *.html user_manual developers_manual

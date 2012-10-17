@@ -1,0 +1,146 @@
+.TH MKCL 1 03/10/03
+.UC 4
+.SH NAME
+mkcl \- A Common LISP system
+.SH SYNOPSIS
+\fBmkcl\fP
+[\fB\-dir\fP \fIdir\fP]
+[\fB\-load\fP \fIfile\fP]
+[\fB\-eval\fP \fIexpr\fP]
+.if n .ti +4
+.if t .ti +.5i
+[\fB\-compile\fP \fIfile\fP
+.if n .ti +8
+.if t .ti +.5i
+[\fB\-o\fP \fIofile\fP]
+[\fB\-c\fP [\fIcfile\fP]]
+[\fB\-h\fP [\fIhfile\fP]]
+[\fB\-data\fP [\fIdatafile\fP]]
+[\fB\-s\fP] [\fB\-q\fP]]
+
+.SH DESCRIPTION
+.sp
+MKCL stands for ManKai Common Lisp.
+MKCL implements an environment that strives
+to comply with the X3J13 ANSI Common Lisp standard.
+.PP
+The current MKCL implementation features:
+.IP \(bu
+A bytecode compiler and interpreter.
+.IP \(bu
+A translator to C.
+.IP \(bu
+An interface to foreign functions.
+.IP \(bu
+A dynamic loader.
+.IP \(bu
+The possibility to build standalone executables.
+.IP \(bu
+The Common-Lisp Object System (CLOS).
+.IP \(bu
+Conditions and restarts for handling errors.
+.IP \(bu
+Sockets as ordinary streams.
+.IP \(bu
+The Gnu Multiprecision library for fast bignum operations.
+.IP \(bu
+A simple conservative mark & sweep garbage collector.
+.IP \(bu
+The Boehm-Weiser garbage collector.
+
+.PP
+\fBmkcl\fP without any argument gives you the
+interactive lisp.
+.SH OPTIONS
+.TP 1i
+.BI \-shell " file"
+Executes the given file and exits, without providing a read-eval-print loop.
+If you want to use lisp as a scripting language, you can write
+.BR "#!@bindir@/mkcl -shell"
+on the first line of the file to be executed, and then MKCL will be
+automatically invoked.
+.TP
+.B \-norc
+Do not try to load the file
+.I ~/.mkclrc
+at startup.
+.TP
+.B \-dir
+Use
+.I dir
+as system directory.
+.TP
+.BI \-load " file"
+Loads
+.I file
+before entering the read-eval-print loop.
+.TP
+.BI \-eval " expr"
+Evaluates
+.I expr
+before entering the read-eval-print loop.
+.TP
+.BI \-compile " file"
+Translates
+.I file
+to C and invokes the local C compiler to produce a 
+shared library with .fas as extension per default.
+.TP
+.BI \-o " ofile"
+When compiling
+.I file
+name the resulting shared library
+\fIofile\fP.
+.TP
+.BI \-c " cfile"
+When compiling name the intermediary C file
+.I cfile
+and do not delete it afterwards.
+.TP
+.BI \-h " hfile"
+When compiling name the intermediary C header
+.I hfile
+and do not delete it afterwards.
+.TP
+.BI \-data " [datafile]"
+Dumps compiler data into \fIdatafile\fP or, if not
+supplied, into a file named after the source file, but
+with .data as extension.
+.TP
+.B \-s
+Produce a linkable object file. It cannot be loaded 
+with load, but it can be used to build libraries 
+or standalone executable programs. 
+.TP
+.B \-q
+Produce less notes when compiling.
+
+.PP
+The options
+.B \-load,
+.B \-shell,
+and
+.B \-eval
+may appear any number of times, and they are combined and processed from left
+to right.
+.SH AUTHORS
+MKCL was forked from ECL 9.6.2 by Jean-Claude Beaudoin, who currently maintains it.
+
+The original version of ECL was developed by Giuseppe Attardi starting from the Kyoto
+Common Lisp implementation by Taiichi Yuasa and Masami Hagiya.  ECL was later taken
+over and further developed by Juan Jose Garcia Ripoll.
+.SH FILES
+.TP
+.BR "~/.mkcl, ~/.mkclrc"
+Default initialization files loaded at startup unless the option
+.BR \-norc
+is provided.
+(if they exist).
+.SH SEE ALSO
+.IP ""
+ANSI Common Lisp standard X3.226-1994
+.IP ""
+The Common Lisp HyperSpec
+.SH "BUGS"
+Probably some. Report them!
+

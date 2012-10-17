@@ -1,0 +1,231 @@
+;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
+;;;;
+;;;;  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+;;;;  Copyright by a number of previous anonymous authors
+;;;;            presumed to be the same as for the rest of MKCL.
+;;;;
+;;;;    This program is free software; you can redistribute it and/or
+;;;;    modify it under the terms of the GNU Lesser General Public
+;;;;    License as published by the Free Software Foundation; either
+;;;;    version 3 of the License, or (at your option) any later version.
+;;;;
+;;;;    See file '../Copyright' for full details.
+
+;;; @configure_input@
+;;;
+;;; This is the "compile" file for building MKCL. The purpose of this file is
+;;;	- Compile the core of the Common-Lisp library (lsp, clos)
+;;;	- Build an executable
+;;;
+
+(progn
+  (setq *package* (find-package "SYSTEM"))
+  (setq *features* (cons :mkcl-bootstrap *features*))
+  )
+
+;;;
+;;; * Ensure that we have the whole of Common-Lisp before we start to compile
+;;;
+;;(load "bare.lsp" :verbose nil)
+(let ((real-start (get-internal-real-time))
+      (run-start (get-internal-run-time))
+      real-end run-end)
+  (load "bare.lsp" :verbose nil :external-format '(:ascii :lf))
+  (setq run-end (get-internal-run-time)
+	real-end (get-internal-real-time))
+  (format *trace-output*
+	  "~2&load real time : ~,3F secs~%~
+           load run time  : ~,3F secs~2%"
+	  (/ (- real-end real-start) internal-time-units-per-second)
+	  (/ (- run-end run-start) internal-time-units-per-second))
+  )
+
+
+;;(setq compiler::*trace-cc* t)
+
+#|
+(setq *compile-verbose* t
+      *compile-print* t
+      compiler::*suppress-compiler-messages* nil
+      compiler::*suppress-compiler-warnings* nil
+      compiler::*suppress-compiler-notes* nil)
+|#
+
+(load "compile-utils.lsp" :external-format '(:ascii :lf))
+
+;;;
+;;; * Trick to make names shorter in C files
+;;;
+(si::reopen-package "CL")
+(rename-package "CL" "CL" '("COMMON-LISP" "LISP"))
+
+
+;(setq compiler::*compiler-break-enable* t) ;; to drop into the debugger on an error.
+(setf compiler::*ld-flags* compiler::*external-ld-flags*
+#|
+      compiler::*ld-shared-flags*
+      (concatenate 'base-string
+		   "@SHARED_LDFLAGS@ @SHAREDPREFIX@mkcl.@SHAREDEXT@ " compiler::*ld-flags*)
+      compiler::*ld-bundle-flags*
+      #+:mingw32 ;; I bet this one is not even needed on mingw32! JCB
+      (concatenate 'base-string
+		   "@BUNDLE_LDFLAGS@ @SHAREDPREFIX@mkcl.@SHAREDEXT@ " compiler::*ld-flags*)
+      #-:mingw32
+      "@BUNDLE_LDFLAGS@"
+|#
+      )
+
+;;;
+;;; * Compile and link Common-Lisp base library
+;;;
+
+(setq si::*keep-documentation* nil) ;; Remove documentation from compiled files
+
+(let* (#+windows (compiler::*cc-flags* (concatenate 'string "-DMKCL_API " compiler::*cc-flags*))
+       ;;(lsp-objects (compile-if-old "src:lsp;" +lisp-module-files+ :fasl-p nil))
+       (lsp-objects (compile-if-old "./lsp/" +lisp-module-files+ :fasl-p nil))
+       )
+  (let* ((compiler::*compile-to-linking-call* nil))
+    (setq lsp-objects 
+	  (append lsp-objects
+		  ;;(compile-if-old "src:clos;" +clos-module-files+ :fasl-p nil)
+		  (compile-if-old "./clos/" +clos-module-files+ :fasl-p nil)
+		  )))
+
+  (let (;;(compiler::*suppress-compiler-messages* nil)
+	;;(compiler::*suppress-compiler-warnings* nil)
+	;;(compiler::*suppress-compiler-notes* nil)
+	;;(*compile-verbose* t)
+	;;(*compile-print* t)
+	)
+    (format t "~&;;About to build static library liblsp.a~%")
+    (unless (compiler:build-static-library "lsp" :lisp-object-files lsp-objects)
+      (mkcl:quit :exit-code 1))
+    (format t "~&;;Done building liblsp.a!~%")
+    ))
+
+;;;
+;;;
+(let* ((compiler::*ld-shared-flags*
+	#+unix
+	;;"@SHARED_LDFLAGS@ @LDFLAGS@ @SONAME_LDFLAGS@ @CORE_LIBS@ @FASL_LIBS@ @LIBS@"
+	"@SHARED_LDFLAGS@ @LDFLAGS@ @FASL_LIBS@ @LIBS@"
+	#+mingw64
+	"-shared c:/Users/Jean-Claude/GNU2/mingw64/lib/libgmp.a -lws2_32    -lm"
+	#+(or mingw32 cygwin)
+	;;"@SHARED_LDFLAGS@ @LDFLAGS@ @SONAME_LDFLAGS@ @TCP_LIBS@ @LIBS@"
+	"@SHARED_LDFLAGS@ @LDFLAGS@ @TCP_LIBS@ @LIBS@"
+	#+msvc 
+	"@SHARED_LDFLAGS@ @LDFLAGS@ @STATICLIBS@ @CLIBS@"
+	)
+       ;;(extra-ld-flags "@SONAME_LDFLAGS@")
+       (extra-ld-flags #+unix (mkcl:bstr+ "-Wl,-soname,@SHAREDPREFIX@mkcl_" (si:mkcl-version) ".@SHAREDEXT@"))
+       ;;#+windows
+       ;;(compiler::*cc-flags* (concatenate 'string "-DMKCL_API " compiler::*cc-flags*))
+       ;;(extra-args nil)
+       )
+  ;; #+(or mingw32 mingw64 cygwin)
+  ;; (progn
+  ;;   ;; We need these two to force dllwrap to export the symbols
+  ;;   ;; in these libraries. Otherwise it will not be possible to
+  ;;   ;; call functions from GMP or GC in code that embeds MKCL.
+  ;;   (when (probe-file "@LIBPREFIX@mkclgc.@LIBEXT@")
+  ;;     (push "@LIBPREFIX@mkclgc.@LIBEXT@" extra-args))
+  ;;   ;; (when (probe-file "@LIBPREFIX@mkclgmp.@LIBEXT@")
+  ;;   ;;   (push "@LIBPREFIX@mkclgmp.@LIBEXT@" extra-args))
+  ;;   )
+  (let (;;(compiler::*suppress-compiler-messages* nil)
+	;;(compiler::*suppress-compiler-warnings* nil)
+	;;(compiler::*suppress-compiler-notes* nil)
+	;;(*compile-verbose* t)
+	;;(*compile-print* t)
+	)
+    (format t "~&;;About to build shared library libmkcl.so~%")
+    (unless (compiler:build-shared-library (mkcl:bstr+ "mkcl_" (si:mkcl-version) ".so")
+					   ;;"mkcl" ;;(compile-file-pathname "mkcl" :type :dll)
+					   :extra-ld-flags extra-ld-flags
+					   :object-files (list "c/all_symbols2.@OBJEXT@"
+							       "@LIBPREFIX@lsp.@LIBEXT@"
+							       "@LIBPREFIX@mkclmin.@LIBEXT@"
+							       "@LIBRARIES@"
+							       ;;extra-args
+							       )
+					   )
+      (mkcl:quit :exit-code 1))
+    (format t "~&;;Done building libmkcl.so!~%")
+    )
+  )
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;
+;;; THE FINAL EXECUTABLE
+;;;
+
+(terpri) (princ ";;; About to build main executable mkcl.")
+
+#+unix
+(let (;;(compiler::*suppress-compiler-messages* nil)
+      ;;(compiler::*suppress-compiler-warnings* nil)
+      ;;(compiler::*suppress-compiler-notes* nil)
+      ;;(*compile-verbose* t)
+      ;;(*compile-print* t)
+      #+(or)
+      (compiler::*ld-flags* (concatenate 
+			     'base-string
+			     " -rdynamic libmkcltop.a liblsp.a "
+			     "libmkclmin.a "
+			     "@LIBRARIES@ "
+			     compiler::*external-ld-flags*
+			     ))
+      (compiler::*ld-flags* compiler::*external-ld-flags*) ;; prevent -lmkcl from showing up.
+      (object-files '("libmkcltop.a" "liblsp.a" "libmkclmin.a" "@LIBRARIES@"))
+      )
+  (unless (compiler:build-program
+	   "bin/mkcl-small"
+	   :object-files object-files
+	   :extra-ld-flags "-rdynamic" ;; export main executable symbols to loaded modules and fasls.
+;;	   :extra-ld-flags "-pg -rdynamic"  ;; for profiling
+	   )
+    (mkcl:quit :exit-code 1))
+  )
+
+#+windows
+(let (;;(compiler::*suppress-compiler-messages* nil)
+      ;;(compiler::*suppress-compiler-warnings* nil)
+      ;;(compiler::*suppress-compiler-notes* nil)
+      ;;(*compile-verbose* t)
+      ;;(*compile-print* t)
+      (compiler::*ld-flags* compiler::*external-ld-flags*) ;; prevent -lmkcl from showing up.
+      (mkcl-lib-name (concatenate 'base-string
+				  compiler::+shared-library-prefix+
+				  "mkcl_" (si:mkcl-version) "."
+				  compiler::+shared-library-extension+))
+      (target-name #+msvc "bin/mkcl2" #+(or mingw32 mingw64) "bin/mkcl-small")
+      )
+  (unless (compiler:build-program
+	   target-name
+	   :object-files (list mkcl-lib-name)
+	   )
+    (mkcl:quit :exit-code 1))
+  )
+
+(terpri) (princ ";;; Generating supplemental character encoding external support files.")
+
+(defvar *generate-verbose*)
+(setq *generate-verbose* nil) ;; Makes the generate.lisp script more verbose.
+
+(defvar *update-mapping*)
+(setq *update-mapping* nil) ;; Setting this to something other than nil may result in network activity.
+
+#+UNICODE
+(load "../contrib/encodings/generate.lisp" :external-format '(:ascii :lf))
+
+
+
+(terpri)
+(princ ";;; All done in compile.lsp!")
+(terpri)
+(finish-output)
+
+(mkcl:quit :exit-code 0) ;; signal to "make" that all is well.

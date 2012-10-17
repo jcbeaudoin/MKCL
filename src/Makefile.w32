@@ -1,0 +1,505 @@
+#
+#  Makefile for MKCL
+#
+#  Copyright (c) 2010, Jean-Claude Beaudoin.
+#  Copyright by a number of previous anonymous authors
+#            presumed to be the same as for the rest of MKCL.
+#
+#  MKCL is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 3 of the License, or (at your option) any later version.
+#
+#  See file '../Copyright' for full details.
+#
+#
+top_srcdir= /home/Jean-Claude/mkcl/src
+srcdir	= /home/Jean-Claude/mkcl/src
+
+# Programs used by "make":
+#
+
+
+CC	= gcc
+LIBS	= -lws2_32    -lm
+FASL_LIBS = 
+CORE_LIBS = -lmkclgmp libmkclgc.a 
+LDFLAGS	=  
+RM	= rm -f
+LN_S	= ln -s
+EXE	= .exe
+
+# ==================== Where To Install Things ====================
+
+# The default location for installation.  Everything is placed in
+# subdirectories of this directory.  The default values for many of
+# the variables below are expressed in terms of this one, so you may
+# not need to change them.  This defaults to /usr/local.
+prefix=z:/GNU/mingw
+exec_prefix=${prefix}
+bindir=${exec_prefix}/bin/
+libdir=${exec_prefix}/lib/
+includedir=${prefix}/include/
+mkcldir=${exec_prefix}/lib/mkcl-1.0.0/
+localmkcldir=./lib/mkcl-1.0.0/
+
+# Programs used by "make install":
+#
+SHELL = /bin/sh
+INSTALL	= /bin/install -c
+INSTALL_PROGRAM = ${INSTALL}
+INSTALL_SCRIPT = ${INSTALL}
+INSTALL_LIBRARY = $(INSTALL_SCRIPT)
+INSTALL_DATA = ${INSTALL} -m 644
+mkinstalldirs = $(SHELL) $(top_srcdir)/gc/mkinstalldirs
+
+# Files
+
+SUBDIRS = c gc gmp
+LIBRARIES =  libmkclgc.a libmkclgmp.a
+LSP_LIBRARIES = mkcl.dll
+TARGETS = bin/mkcl$(EXE)
+
+MKCL_HFILES = mkcl/config.h \
+              mkcl/list.h \
+              mkcl/external.h \
+              mkcl/internal.h \
+              mkcl/mkcl-fenv.h \
+              mkcl/mkcl-gc.h \
+              mkcl/mkcl-inl.h \
+              mkcl/mkcl-math.h \
+              mkcl/number.h \
+              mkcl/object.h \
+              mkcl/stacks.h
+#              mkcl/cs.h \
+
+
+CONTRIB_FASLS = asdf.fasb \
+                bytecmp.fasb \
+                defsystem.fasb \
+                profile.fasb \
+                rt.fasb \
+                serve-event.fasb \
+                sockets.fasb \
+                trivial-features.fasb \
+                trivial-garbage.fasb \
+                alexandria.fasb \
+                babel.fasb \
+                cffi.fasb \
+                bordeaux-threads.fasb
+
+CONTRIB_STATIC_LIBS = $(CONTRIB_FASLS:%.fasb=lib%.a)
+
+BUILTINS = asdf profile rt serve-event sockets
+
+
+all: bin/mkcl-config $(TARGETS) $(CONTRIB_FASLS) help.doc
+.PHONY:	all
+
+Makefile: Makefile.in config.status
+	./config.status
+
+mkcl/config.h: mkcl/config.h.in
+	./config.status
+	touch mkcl/config.h
+
+
+bin/mkcl-small$(EXE) liblsp.a $(LSP_LIBRARIES): mkcl_min$(EXE) libmkcltop.a compile.lsp lsp/config.lsp cmp/cmpdefs.lsp lsp/*.lsp clos/*.lsp cmp/*.lsp mkcl/mkcl-cmp.h mkcl/config-install.h BUILD-STAMP
+	cp $(top_srcdir)/../contrib/unicode/ucd.dat .
+	MKCL_LIBDIR=`pwd`/ ./mkcl_min compile
+	for i in $(LSP_LIBRARIES) ; do \
+	  if test -s $$i ; then \
+	    case $$i in \
+	      *.dll) $(INSTALL_LIBRARY) $$i ./bin/ ;; \
+	      *) ;; \
+	    esac \
+	  fi \
+	done
+
+
+../contrib/asdf/asdf.lisp: ../contrib/asdf/asdf-mkcl.lisp
+	touch ../contrib/asdf/asdf.lisp
+
+asdf.fasb libasdf.a: bin/mkcl-small$(EXE) build-asdf.lsp ../contrib/asdf/*.lisp
+	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -load build-asdf.lsp
+
+bytecmp.fasb libbytecmp.a: bin/mkcl-small$(EXE) build-bytecmp.lsp ../contrib/bytecmp/bytecmp.lsp
+	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -load build-bytecmp.lsp
+
+defsystem.fasb libdefsystem.a: bin/mkcl-small$(EXE) build-defsystem.lsp ../contrib/defsystem/defsystem.lisp
+	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -load build-defsystem.lsp
+
+profile.fasb libprofile.a: bin/mkcl-small$(EXE) build-profile.lsp ../contrib/profile/profile.lisp
+	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -load build-profile.lsp
+
+#rt.fasb librt.a: bin/mkcl$(EXE) build-rt.lsp ../contrib/rt/rt.lisp
+#	MKCL_LIBDIR=$$(pwd)/ bin/mkcl$(EXE) -norc -load build-rt.lsp
+
+../contrib/sockets/package.lisp: ../contrib/sockets/sockets.lisp
+	touch ../contrib/sockets/package.lisp
+
+sockets.fasb libsockets.a: bin/mkcl-small$(EXE) build-sockets.lsp ../contrib/sockets/*.lisp
+	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -load build-sockets.lsp
+
+serve-event.fasb libserve-event.a: bin/mkcl-small$(EXE) build-serve-event.lsp ../contrib/serve-event/serve-event.lisp
+	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -load build-serve-event.lsp
+
+
+trivial-features.fasb libtrivial-features.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp ../contrib/trivial-features*/src/*.lisp
+	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -load build-asdf-contrib.lsp -- trivial-features ../contrib/trivial-features*/
+	cp -p ../contrib/trivial-features*/trivial-features.fasb .
+	cp -p ../contrib/trivial-features*/libtrivial-features.a .
+
+
+trivial-garbage.fasb libtrivial-garbage.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp ../contrib/trivial-garbage*/*.lisp
+	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -load build-asdf-contrib.lsp -- trivial-garbage ../contrib/trivial-garbage*/
+	cp -p ../contrib/trivial-garbage*/trivial-garbage.fasb .
+	cp -p ../contrib/trivial-garbage*/libtrivial-garbage.a .
+
+
+alexandria.fasb libalexandria.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp ../contrib/alexandria/*.lisp
+	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -load build-asdf-contrib.lsp -- alexandria ../contrib/alexandria/
+	cp -p ../contrib/alexandria/alexandria.fasb .
+	cp -p ../contrib/alexandria/libalexandria.a .
+
+babel.fasb libbabel.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp trivial-features.fasb alexandria.fasb ../contrib/babel*/src/*.lisp
+	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -load build-asdf-contrib.lsp -- babel ../contrib/babel*/
+	cp -p ../contrib/babel*/babel.fasb .
+	cp -p ../contrib/babel*/libbabel.a .
+
+cffi.fasb libcffi.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp babel.fasb ../contrib/cffi*/src/*.lisp
+	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -load build-asdf-contrib.lsp -- cffi ../contrib/cffi*/
+	cp -p ../contrib/cffi*/cffi.fasb .
+	cp -p ../contrib/cffi*/libcffi.a .
+
+bordeaux-threads.fasb libbordeaux-threads.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp ../contrib/bordeaux-threads*/src/*.lisp
+	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -load build-asdf-contrib.lsp -- bordeaux-threads ../contrib/bordeaux-threads_0.6.0/
+	cp -p ../contrib/bordeaux-threads*/bordeaux-threads.fasb .
+	cp -p ../contrib/bordeaux-threads*/libbordeaux-threads.a .
+
+rt.fasb librt.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp babel.fasb ../contrib/rt*/*.lisp
+	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -load build-asdf-contrib.lsp -- rt ../contrib/rt*/
+	cp -p ../contrib/rt*/rt.fasb .
+	cp -p ../contrib/rt*/librt.a .
+
+cmp.fasb: bin/mkcl-small$(EXE) cmp/*.lsp build-cmp.lsp
+	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -load build-cmp.lsp
+
+bin/mkcl-dyn: bin/mkcl-small$(EXE) cmp.fasb build-dynamic-mkcl.lsp
+	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -load build-dynamic-mkcl.lsp
+
+bin/mkcl$(EXE): bin/mkcl-small$(EXE) cmp.fasb build-mkcl.lsp
+	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -load build-mkcl.lsp
+
+ifeq (mingw32,mingw32)
+bin/mkcl-full$(EXE): bin/mkcl-small$(EXE) build-full-mkcl.lsp $(BUILTINS:%=lib%.a)
+	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -load build-full-mkcl.lsp -- $(BUILTINS:%=lib%.a)
+else
+bin/mkcl-full$(EXE): bin/mkcl-small$(EXE) build-full-mkcl.lsp $(BUILTINS)
+	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -load build-full-mkcl.lsp -- $(BUILTINS)
+endif
+
+help.doc: dump-doc.lsp
+	MKCL_LIBDIR=$$(pwd)/ bin/mkcl$(EXE) -norc -load dump-doc.lsp
+
+generate-encodings:
+	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -load generate-encodings.lsp
+
+
+mkcl_min$(EXE): $(LIBRARIES) libmkclgc.a libmkclmin.a c/cinit.o c/all_symbols.o .gdbinit
+	$(CC) $(LDFLAGS) -o $@ c/cinit.o c/all_symbols.o libmkclmin.a libmkclgc.a $(LIBRARIES) $(FASL_LIBS) $(LIBS)
+
+
+.gdbinit: $(srcdir)/util/gdbinit
+	cp $(srcdir)/util/gdbinit $@
+
+c/cinit.o:
+	cd c; $(MAKE) depend; $(MAKE) cinit.o
+
+c/all_symbols.o:
+	cd c; $(MAKE) depend; $(MAKE) all_symbols.o
+
+lsp/config.lsp: lsp/config.pre
+	sed -e 's,@mkcldir\\@,$(mkcldir),g' < lsp/config.pre > lsp/config.lsp
+
+lsp/config.pre: lsp/config.lsp.in
+	./config.status
+
+cmp/cmpdefs.lsp: cmp/cmpdefs.pre
+	sed -e 's,@mkcldir\\@,"$(mkcldir)",g' \
+	    -e 's,@libdir\\@,"$(libdir)",g' \
+	    -e 's,@includedir\\@,"$(includedir)",g' < cmp/cmpdefs.pre > $@
+
+cmp/cmpdefs.pre: cmp/cmpdefs.lsp.in
+	./config.status
+
+compile.lsp: compile.pre bare.lsp lsp/load.lsp clos/load.lsp cmp/load.lsp
+	sed -e 's,@mkcldir\\@,$(mkcldir),g' \
+	    -e 's,@libdir\\@,$(libdir),g' < compile.pre > compile.lsp
+
+compile.pre: compile.lsp.in
+	./config.status
+
+bare.lsp: bare.lsp.in
+	./config.status
+
+lsp/load.lsp: lsp/load.lsp.in
+	./config.status
+
+clos/load.lsp: clos/load.lsp.in
+	./config.status
+
+cmp/load.lsp: cmp/load.lsp.in
+	./config.status
+
+bin/mkcl-config: bin/mkcl-config.pre
+	sed -e 's,@libdir\\@,$(libdir),' \
+	    -e 's,@includedir\\@,$(includedir),' bin/mkcl-config.pre > bin/mkcl-config
+
+bin/mkcl-config.pre: util/mkcl-config
+	./config.status
+
+
+libmkclmin.a: c/*.d mkcl/*.h c/arch/*.d
+	cd c; $(MAKE) depend; $(MAKE)
+
+libmkcltop.a: c/main.d c/all_symbols.d c/symbols_list.h
+	cd c; $(MAKE) depend; $(MAKE)
+
+gc/.libs/libgc.a:
+	cd gc; $(MAKE)
+
+libmkclgc.a: gc/.libs/libgc.a
+	cp -p gc/.libs/libgc.a ./libmkclgc.a
+	mkdir -p mkcl/gc
+	cp -p gc/include/*.h mkcl/gc
+
+gmp/.libs/libgmp.a:
+	cd gmp; $(MAKE)
+
+libmkclgmp.a: gmp/.libs/libgmp.a
+	cp -p gmp/.libs/libgmp.a ./libmkclgmp.a
+	cp -p gmp/gmp.h mkcl/
+
+
+mkcl/mkcl-cmp.h: mkcl/mkcl.h c/symbols_list.h
+	touch $@
+
+mkcl/mkcl.h: $(MKCL_HFILES)
+	touch $@
+
+mkcl/config-install.h: mkcl/config.h
+	sed '/-CUT-/,$$d' ./mkcl/config.h > ./mkcl/config-install.h
+
+
+rt.lisp:
+	$(LN_S) -f $(srcdir)/../contrib/rt/rt.lisp ./
+
+BUILD-STAMP: config.status
+	echo "#" `uname -a` > $@
+	head -8 config.log | tail -6 >> $@
+
+install: install-base install-contribs
+#	cd doc; $(MAKE) prefix=$(prefix) install
+
+install-base: all
+	$(mkinstalldirs) $(bindir) $(libdir) \
+	  $(mkcldir) $(includedir) $(includedir)/mkcl
+	cp -p $(top_srcdir)/../Copyright $(top_srcdir)/../LGPL $(mkcldir)
+	cp -p $(top_srcdir)/../Copyright $(top_srcdir)/../LGPL $(includedir)/mkcl
+	for i in $(TARGETS); do \
+	  $(INSTALL_PROGRAM) $$i $(bindir); \
+	done
+	$(INSTALL_DATA) ucd.dat $(mkcldir)/
+	if [ -d encodings ]; then \
+	  $(mkinstalldirs) $(mkcldir)/encodings; \
+	  for i in ./encodings/*; do \
+	    $(INSTALL_DATA) $$i $(mkcldir)/encodings; \
+	  done \
+	fi
+	$(INSTALL_DATA) ./mkcl/*.h $(includedir)/mkcl
+	if (echo $(SUBDIRS) | grep gc); then \
+	  $(mkinstalldirs) $(includedir)/mkcl/gc; \
+	  $(INSTALL_DATA) ./mkcl/gc/*.h $(includedir)/mkcl/gc; \
+	  #$(INSTALL_DATA) ./mkcl/gc/private/*.h $(includedir)/mkcl/gc/private; \
+	fi
+	rm $(includedir)/mkcl/config.h
+	mv $(includedir)/mkcl/config-install.h $(includedir)/mkcl/config.h
+	$(INSTALL_SCRIPT) bin/mkcl-config $(bindir)
+	for i in BUILD-STAMP help.doc ; do \
+	  $(INSTALL_DATA) $$i $(mkcldir); \
+	done
+	for i in $(LSP_LIBRARIES) $(LIBRARIES); do \
+	  if test -s $$i ; then \
+	    case $$i in \
+	      *.dll) $(INSTALL_LIBRARY) $$i $(libdir); \
+		     $(INSTALL_LIBRARY) $$i $(bindir);; \
+	      *) $(INSTALL_LIBRARY) $$i $(libdir);; \
+	    esac \
+	  fi \
+	done
+	if [ "x" != "x" -a -f "" ]; then \
+	  ( cd $(libdir) && rm -f    && \
+	    mv   && \
+	    $(LN_S)   && \
+	    $(LN_S)   && \
+	    $(LN_S)   ) \
+	fi
+	$(INSTALL_DATA) c/dpp$(EXE) $(mkcldir)
+	$(INSTALL_DATA) mkcl_min$(EXE) $(mkcldir)
+	$(INSTALL_DATA) cmp.asd $(mkcldir)
+	$(INSTALL_PROGRAM) cmp.fasb $(mkcldir)
+
+install-contribs: $(CONTRIB_FASLS)
+	$(mkinstalldirs) $(mkcldir)/contrib/
+	for i in *.asd; do $(INSTALL_DATA) $${i} $(mkcldir)/contrib/; done
+	for i in $(CONTRIB_FASLS); do \
+	  case $$i in \
+	    *.fasb) $(INSTALL_PROGRAM) $$i $(mkcldir)/contrib/;; \
+	    *) $(INSTALL_DATA) $$i $(mkcldir)/contrib/;; \
+	  esac \
+	done
+
+install-local: install-base-local install-contribs-local
+
+install-base-local: all
+	$(mkinstalldirs) ./lib/ \
+	  $(localmkcldir) ./include/ ./include//mkcl
+	cp -p $(top_srcdir)/../Copyright $(top_srcdir)/../LGPL $(localmkcldir)
+	cp -p $(top_srcdir)/../Copyright $(top_srcdir)/../LGPL ./include/mkcl
+	$(INSTALL_DATA) ucd.dat $(localmkcldir)/
+	if [ -d encodings ]; then \
+	  $(mkinstalldirs) $(localmkcldir)/encodings; \
+	  for i in ./encodings/*; do \
+	    $(INSTALL_DATA) $$i $(localmkcldir)/encodings; \
+	  done \
+	fi
+	$(INSTALL_DATA) ./mkcl/*.h ./include//mkcl
+	if (echo $(SUBDIRS) | grep gc); then \
+	  $(mkinstalldirs) ./include//mkcl/gc; \
+	  $(INSTALL_DATA) ./mkcl/gc/*.h ./include//mkcl/gc; \
+	fi
+	rm ./include//mkcl/config.h
+	mv ./include//mkcl/config-install.h ./include//mkcl/config.h
+	for i in BUILD-STAMP help.doc ; do \
+	  $(INSTALL_DATA) $$i $(localmkcldir); \
+	done
+	for i in $(LSP_LIBRARIES) $(LIBRARIES); do \
+	  if test -s $$i ; then \
+	    case $$i in \
+	      *.dll) $(INSTALL_LIBRARY) $$i ./lib/; \
+		     $(INSTALL_LIBRARY) $$i ./bin/;; \
+	      *) $(INSTALL_LIBRARY) $$i ./lib/;; \
+	    esac \
+	  fi \
+	done
+	if [ "x" != "x" -a -f "" ]; then \
+	  ( cd ./lib/ && rm -f    && \
+	    mv   && \
+	    $(LN_S)   && \
+	    $(LN_S)   && \
+	    $(LN_S)   ) \
+	fi
+	$(INSTALL_DATA) c/dpp$(EXE) $(localmkcldir)
+	$(INSTALL_DATA) mkcl_min$(EXE) $(localmkcldir)
+	$(INSTALL_DATA) cmp.asd $(localmkcldir)
+	$(INSTALL_PROGRAM) cmp.fasb $(localmkcldir)
+
+install-contribs-local: $(CONTRIB_FASLS)
+	$(mkinstalldirs) $(localmkcldir)/contrib/
+	for i in *.asd; do $(INSTALL_DATA) $${i} $(localmkcldir)/contrib/; done
+	for i in $(CONTRIB_FASLS); do \
+	  case $$i in \
+	    *.fasb) $(INSTALL_PROGRAM) $$i $(localmkcldir)/contrib/;; \
+	    *) $(INSTALL_DATA) $$i $(localmkcldir)/contrib/;; \
+	  esac \
+	done
+
+# flatinstall: BUILD-STAMP
+# 	$(MAKE) DESTDIR=$(DESTDIR) bindir=$(prefix) libdir=$(prefix) \
+# 	  includedir=$(prefix) mkcldir=$(prefix) install-base
+# #	cd doc; $(MAKE) DESTDIR=$(DESTDIR) prefix=$(prefix) docdir=$(prefix)/doc flatinstall
+
+uninstall:
+	for i in $(TARGETS) mkcl-config; do $(RM) $(bindir)/$$i; done
+	$(RM) -r $(includedir)/mkcl $(mkcldir)
+	for i in $(LSP_LIBRARIES) $(LIBRARIES); do \
+	  case $$i in \
+	    *.dll) $(RM) $(libdir)/$$i || : ; $(RM) $(bindir)/$$i || : ;;
+	    *) $(RM) $(libdir)/$$i || : ;; \
+	  esac \
+	done
+#	cd doc; $(MAKE) uninstall
+
+doc: $(TARGETS)
+	cd doc; $(MAKE)
+
+clean: clean_lisp clean_contribs
+	cd c; $(MAKE) clean
+	$(RM) compile.lsp bin/mkcl-config BUILD-STAMP
+	$(RM) mkcl_min$(EXE) bin/mkcl$(EXE) bin/mkcl-dyn bin/mkcl-small bin/mkcl-full
+	$(RM) MODULES help.doc TAGS *.asd ucd.dat
+	$(RM) *.dll bin/*.dll
+	$(RM) *.o *.a *.la *.so *.data *.fasb *.fas core core.* a.out
+	$(RM) -r lib include
+
+clean_contribs:
+#	cd ext; $(RM) *.o *.c *.h *.data
+	$(RM) -r ext
+	cd ../contrib; sh ./clean_up.sh
+	$(RM) $(CONTRIB_FASLS) $(CONTRIB_FASLS:%.fasb=%.asd)
+
+clean_lisp:
+	for i in lsp cmp clos; \
+	do $(RM) lib$$i.a $$i/?*.{o,data,c,sdat,h,fasb,fas}; done
+	$(RM) lsp/config.lsp cmp/cmpdefs.lsp
+	$(RM) help.doc
+
+distclean: clean
+	cd c; $(MAKE) distclean
+	$(RM) bin/mkcl-config.pre
+	$(RM) Makefile bare.lsp compile.pre
+	$(RM) doc/Makefile doc/mkcl.man doc/mkcl-config.man
+	$(RM) mkcl/config.h mkcl/configpre.h mkcl/config-install.h
+	$(RM) lsp/config.pre lsp/load.lsp clos/load.lsp
+	$(RM) cmp/cmpdefs.pre cmp/load.lsp
+	if [[ "$(SUBDIRS)" == *gc* ]]; then (cd gc; $(MAKE) distclean); fi
+	if [[ "$(SUBDIRS)" == *gmp* ]]; then (cd gmp; $(MAKE) distclean); fi
+	$(RM) config.status config.version config.log config.cache
+
+realclean: distclean
+	cd c; $(MAKE) realclean
+	$(RM) *~
+
+#
+# Rebuild MKCL using recent changes and compare
+#
+# test_changes:
+# 	test -d old || mkdir old
+# 	cp -rf lsp clos cmp old/
+# 	$(MAKE) clean_lisp; $(MAKE) -C c clean; $(RM) -f bin/mkcl$(EXE)
+# 	$(MAKE)
+# 	for i in lsp clos cmp; do diff --exclude=\*.o $$i old/$$i; done
+
+#
+# Rebuild MKCL using its own image and compare. Does not work
+# right now.
+#
+# selfbuild:
+# 	exit 2
+# 	test -d stage2 || mkdir stage2
+# 	cp -rf lsp clos cmp stage2
+# 	-for i in lsp cmp clos clx tk; do test -f lib$$i.a && mv lib$$i.a stage2; done
+# 	$(MAKE) clean_lisp
+# 	./mkcl compile
+# 	-for i in lsp clos cmp clx tk; do test -d $$i && diff --exclude=\*.o $$i stage2/$$i; done | less
+
+
+TAGS: lsp/*.lsp clos/*.lsp cmp/*.lsp c/*.d c/*.h c/arch/*.d mkcl/*.h
+	etags -R lsp/*.lsp clos/*.lsp cmp/*.lsp --language=c c/*.d c/*.h c/arch/*.d mkcl/*.h
+
+
+depend:
+	cd c; $(MAKE) depend
+
+

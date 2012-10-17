@@ -1,0 +1,10 @@
+prefix=/home/jean-claude/CL/MKCL/dev/mkcl-1.1/mkcl-1.1.0/src
+exec_prefix=${prefix}
+libdir=/home/jean-claude/CL/MKCL/dev/mkcl-1.1/mkcl-1.1.0/src
+includedir=/home/jean-claude/CL/MKCL/dev/mkcl-1.1/mkcl-1.1.0/src/mkcl
+
+Name: The atomic_ops project
+Description: Atomic memory update operations portable implementation
+Version: 7.2
+Libs: -L${libdir} -latomic_ops
+Cflags: -I${includedir}

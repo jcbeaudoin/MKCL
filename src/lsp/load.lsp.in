@@ -1,0 +1,132 @@
+;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
+;;;;
+;;;;  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+;;;;  Copyright by a number of previous anonymous authors
+;;;;            presumed to be the same as for the rest of MKCL.
+;;;;
+;;;;  This program is free software; you can redistribute it and/or
+;;;;  modify it under the terms of the GNU Lesser General Public
+;;;;  License as published by the Free Software Foundation; either
+;;;;  version 3 of the License, or (at your option) any later version.
+;;;;
+;;;;  See file '../../Copyright' for full details.
+
+;;; @configure_input@
+
+;; This is commented out because printing of long double based long-float
+;; is still unstable. 2011/02/07 JCB
+;; (if (member :unix *features*) (setq *features* (cons :long-float *features*)))
+
+#|
+(terpri)
+(princ ";;; Loading src:lsp;export.lsp")
+(finish-output)
+(load "src:lsp;export.lsp" :verbose nil :external-format '(:ascii :lf))
+(terpri)
+(princ ";;; Loading src:lsp;defmacro.lsp")
+(finish-output)
+(load "src:lsp;defmacro.lsp" :verbose nil :external-format '(:ascii :lf))
+(terpri)
+(princ ";;; Loading src:lsp;helpfile.lsp")
+(finish-output)
+(load "src:lsp;helpfile.lsp" :verbose nil :external-format '(:ascii :lf))
+(terpri)
+(princ ";;; Loading src:lsp;evalmacros.lsp")
+(finish-output)
+(load "src:lsp;evalmacros.lsp" :verbose nil :external-format '(:ascii :lf))
+(terpri)
+(princ ";;; Loading src:lsp;cmuutil.lsp")
+(finish-output)
+(load "src:lsp;cmuutil.lsp" :verbose nil :external-format '(:ascii :lf)) ;;; This file contains mostly macros but is there really
+					                                  ;;; a reason not to include it in the compiled image? JCB
+
+(sys:*make-constant '+lisp-module-files+
+'("src:lsp;export.lsp"
+  "src:lsp;defmacro.lsp"
+  "src:lsp;helpfile.lsp"
+  "src:lsp;evalmacros.lsp"
+  "src:lsp;autoload.lsp"
+  "src:lsp;setf.lsp"
+  "src:lsp;predlib.lsp"
+  "src:lsp;seq.lsp"
+  "src:lsp;arraylib.lsp"
+  "src:lsp;assert.lsp"
+  "src:lsp;defstruct.lsp"
+  "src:lsp;iolib.lsp"
+  "src:lsp;listlib.lsp"
+  "src:lsp;mislib.lsp"
+  "src:lsp;numlib.lsp"
+  "src:lsp;packlib.lsp"
+  "src:lsp;seqlib.lsp"
+  "src:lsp;trace.lsp"
+  ;;"src:lsp;loop2.lsp"
+  "src:lsp;loop3.lsp"
+  "src:lsp;pprint-macros.lsp"
+  "src:lsp;format.lsp"
+  "src:lsp;defpackage.lsp"
+  "src:lsp;ffi.lsp"
+  "src:lsp;mp.lsp"
+  "src:lsp;config.lsp"
+  "src:lsp;cmdline.lsp"
+))
+|#
+
+(terpri)
+(princ ";;; Loading ./lsp/export.lsp")
+(finish-output)
+(load "./lsp/export.lsp" :verbose nil :external-format '(:ascii :lf))
+(terpri)
+(princ ";;; Loading ./lsp/defmacro.lsp")
+(finish-output)
+(load "./lsp/defmacro.lsp" :verbose nil :external-format '(:ascii :lf))
+(terpri)
+(princ ";;; Loading ./lsp/helpfile.lsp")
+(finish-output)
+(load "./lsp/helpfile.lsp" :verbose nil :external-format '(:ascii :lf))
+(terpri)
+(princ ";;; Loading ./lsp/evalmacros.lsp")
+(finish-output)
+(load "./lsp/evalmacros.lsp" :verbose nil :external-format '(:ascii :lf))
+(terpri)
+(princ ";;; Loading ./lsp/cmuutil.lsp")
+(finish-output)
+(load "./lsp/cmuutil.lsp" :verbose nil :external-format '(:ascii :lf)) ;;; This file contains mostly macros but is there really
+					                                  ;;; a reason not to include it in the compiled image? JCB
+
+(sys:*make-constant '+lisp-module-files+
+'("./lsp/export.lsp"
+  "./lsp/defmacro.lsp"
+  "./lsp/helpfile.lsp"
+  "./lsp/evalmacros.lsp"
+  "./lsp/autoload.lsp"
+  "./lsp/setf.lsp"
+  "./lsp/predlib.lsp"
+  "./lsp/seq.lsp"
+  "./lsp/arraylib.lsp"
+  "./lsp/assert.lsp"
+  "./lsp/defstruct.lsp"
+  "./lsp/iolib.lsp"
+  "./lsp/listlib.lsp"
+  "./lsp/mislib.lsp"
+  "./lsp/numlib.lsp"
+  "./lsp/packlib.lsp"
+  "./lsp/seqlib.lsp"
+  "./lsp/trace.lsp"
+  ;;"./lsp/loop2.lsp"
+  "./lsp/loop3.lsp"
+  "./lsp/pprint-macros.lsp"
+  "./lsp/format.lsp"
+  "./lsp/defpackage.lsp"
+  "./lsp/ffi.lsp"
+  "./lsp/mp.lsp"
+  "./lsp/config.lsp"
+  "./lsp/cmdline.lsp"
+))
+
+(mapc #'(lambda (x)
+         (terpri)
+         (princ ";;; Loading ")
+         (princ x)
+	 (finish-output)
+         (load x :verbose nil :external-format '(:ascii :lf)))
+ (cddddr +lisp-module-files+))

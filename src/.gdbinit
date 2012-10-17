@@ -1,0 +1,30 @@
+#
+# Recommended settings for debugging either mkcl_min or mkcl.
+#
+delete break
+break mk_si_gdb
+break mk_cl_error
+break mk_cl_cerror
+break mkcl_CEerror
+break mkcl_FEerror
+break mkcl_internal_C_error
+#break mkcl_FEunbound_variable
+#break mkcl_FEundefined_function
+#break mkcl_FEwrong_type_argument
+#break mkcl_FEinvalid_function
+#break error
+#break mk_si_signal_simple_error
+set confirm off
+#handle SIGXCPU nostop noprint # default Boehm's GC restart
+#handle SIGPWR nostop noprint # default Boehm's GC suspend
+handle SIGINT nostop pass
+# our resume signal
+handle SIG35 nostop pass
+# our interrupt signal
+handle SIG36 nostop pass
+# our wake up signal
+handle SIG37 nostop pass
+# our GC thread restart signal
+handle SIG38 nostop pass
+# our GC thread suspend signal
+handle SIG39 nostop pass

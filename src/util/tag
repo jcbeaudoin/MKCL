@@ -1,0 +1,11 @@
+#!/bin/sh
+k="CVS `date +"%Y-%m-%d %H:%M"`"
+file="src/lsp/config.lsp.in"
+if [ -f $file  ]; then
+  echo "Tagging ECL with date $k"
+  sed "s,@PACKAGE_VERSION@.*\",@PACKAGE_VERSION@ ($k)\",g" < $file > foo && \
+    mv foo $file && grep PACKAGE_VERSION $file
+else
+  echo "Cannot find file to tag"
+  exit 1
+fi

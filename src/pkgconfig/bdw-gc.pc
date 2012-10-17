@@ -1,0 +1,10 @@
+prefix=/home/Jean-Claude/CL/ECL/build/git-jcb/mecl/src
+exec_prefix=${prefix}
+libdir=/home/Jean-Claude/CL/ECL/build/git-jcb/mecl/src
+includedir=/home/Jean-Claude/CL/ECL/build/git-jcb/mecl/src/ecl/
+
+Name: Boehm-Demers-Weiser Conservative Garbage Collector
+Description: A garbage collector for C and C++
+Version: 7.1
+Libs: -L${libdir} -lgc
+Cflags: -I${includedir}

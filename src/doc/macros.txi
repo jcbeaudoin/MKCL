@@ -1,0 +1,97 @@
+@macro myctrl {a}
+^\a\@c
+@end macro
+@rmacro mopt {a}
+[\a\]@c
+@end rmacro
+@macro mchoice {a}
+<\a\>@c
+@end macro
+@rmacro mstar {a}
+@{\a\@}*@c
+@end rmacro
+@rmacro mplus {a}
+@{\a\@}+@c
+@end rmacro
+@rmacro mgroup {a} 
+@{\a\@},@c
+@end rmacro
+
+@macro kwd{a}
+@var{:\a\}@c
+@end macro
+
+@macro pxlref{a}
+\a\@c
+@end macro
+
+@macro defec{a}
+@defun \a\ 
+@end macro
+
+@macro aux
+&aux@c
+@end macro
+@macro keys
+&key@c
+@end macro
+@macro rest
+&rest@c
+@end macro
+@macro optional
+&optional@c
+@end macro
+@macro allow
+&allow-other-keys@c
+@end macro
+
+@macro macref{foo}
+\foo\@c
+@end macro
+@macro tindexed{foo}
+\foo\@c
+@end macro
+@macro cindexed{foo}
+\foo\@c
+@end macro
+@macro vindexed{foo}
+\foo\@c
+@end macro
+@ifhtml
+@macro bibcite{foo}
+[@pxref{Bibliography, \foo\}]
+@end macro
+@end ifhtml
+@ifnothtml
+@macro bibcite{foo}
+[\foo\, @pxref{Bibliography}]
+@end macro
+@end ifnothtml
+
+@macro back
+\\@c
+@end macro
+
+@macro nil
+()@c
+@end macro
+
+@macro true 
+@var{T}@c
+@end macro
+
+@macro ansi
+@r{ANSI Common-Lisp}@c
+@end macro
+@macro ecl
+@b{@r{ECL}}
+@end macro
+@macro clisp
+@r{Common-Lisp}@c
+@end macro
+@macro llisp
+@b{@r{Lisp}}
+@end macro
+@macro cltl
+@emph{@clisp{}: The Language}@c
+@end macro

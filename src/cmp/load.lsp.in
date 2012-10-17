@@ -1,0 +1,113 @@
+;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
+;;;;
+;;;;  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+;;;;  Copyright by a number of previous anonymous authors
+;;;;            presumed to be the same as for the rest of MKCL.
+;;;;
+;;;;  This program is free software; you can redistribute it and/or
+;;;;  modify it under the terms of the GNU Lesser General Public
+;;;;  License as published by the Free Software Foundation; either
+;;;;  version 3 of the License, or (at your option) any later version.
+;;;;
+;;;;  See file '../../Copyright' for full details.
+
+;;; @configure_input@
+
+#|
+(defconstant +cmp-module-files+
+'("src:cmp;cmpdefs.lsp"
+  "src:cmp;cmpmac.lsp"
+  "src:cmp;cmpinline.lsp"
+  "src:cmp;cmputil.lsp"
+  "src:cmp;cmptype.lsp"
+  "src:cmp;cmpbind.lsp"
+  "src:cmp;cmpblock.lsp"
+  "src:cmp;cmpcall.lsp"
+  "src:cmp;cmpcatch.lsp"
+  "src:cmp;cmpenv.lsp"
+  "src:cmp;cmpeval.lsp"
+  "src:cmp;cmpexit.lsp"
+  "src:cmp;cmpflet.lsp"
+  "src:cmp;cmpfun.lsp"
+  "src:cmp;cmpif.lsp"
+  "src:cmp;cmplam.lsp"
+  "src:cmp;cmplet.lsp"
+  "src:cmp;cmploc.lsp"
+  "src:cmp;cmpmap.lsp"
+  "src:cmp;cmpstack.lsp"
+  "src:cmp;cmpmulti.lsp"
+  "src:cmp;cmpspecial.lsp"
+  "src:cmp;cmptag.lsp"
+  "src:cmp;cmptop.lsp"
+  "src:cmp;cmpvar.lsp"
+  "src:cmp;cmpwt.lsp"
+  "src:cmp;cmpffi.lsp"
+  "src:cmp;cmpcbk.lsp"
+  "src:cmp;cmpct.lsp"
+  "src:cmp;cmpnum.lsp"
+  "src:cmp;cmpname.lsp"
+  "src:cmp;cmpopt.lsp"
+  "src:cmp;cmpprop.lsp"
+  "src:cmp;cmpclos.lsp"
+  "src:cmp;cmpstructures.lsp"
+  "src:cmp;cmparray.lsp"
+  "src:cmp;cmpmain.lsp"
+  "src:cmp;sysfun.lsp"))
+|#
+
+(defconstant +cmp-module-files+
+'("./cmp/cmpdefs.lsp"
+  "./cmp/cmpmac.lsp"
+  "./cmp/cmpinline.lsp"
+  "./cmp/cmputil.lsp"
+  "./cmp/cmptype.lsp"
+  "./cmp/cmpbind.lsp"
+  "./cmp/cmpblock.lsp"
+  "./cmp/cmpcall.lsp"
+  "./cmp/cmpcatch.lsp"
+  "./cmp/cmpenv.lsp"
+  "./cmp/cmpeval.lsp"
+  "./cmp/cmpexit.lsp"
+  "./cmp/cmpflet.lsp"
+  "./cmp/cmpfun.lsp"
+  "./cmp/cmpif.lsp"
+  "./cmp/cmplam.lsp"
+  "./cmp/cmplet.lsp"
+  "./cmp/cmploc.lsp"
+  "./cmp/cmpmap.lsp"
+  "./cmp/cmpstack.lsp"
+  "./cmp/cmpmulti.lsp"
+  "./cmp/cmpspecial.lsp"
+  "./cmp/cmptag.lsp"
+  "./cmp/cmptop.lsp"
+  "./cmp/cmpvar.lsp"
+  "./cmp/cmpwt.lsp"
+  "./cmp/cmpffi.lsp"
+  "./cmp/cmpcbk.lsp"
+  "./cmp/cmpct.lsp"
+  "./cmp/cmpnum.lsp"
+  "./cmp/cmpname.lsp"
+  "./cmp/cmpopt.lsp"
+  "./cmp/cmpprop.lsp"
+  "./cmp/cmpclos.lsp"
+  "./cmp/cmpstructures.lsp"
+  "./cmp/cmparray.lsp"
+  "./cmp/cmpmain.lsp"
+  "./cmp/sysfun.lsp"))
+
+;; This is commented out because printing of long double based long-float
+;; is still unstable. 2011/02/07 JCB
+;; #+:unix (pushnew :long-float *features*)
+
+(let ((si::*keep-documentation* nil)
+      (*features* (cons :mkcl-cmp-bootstrap *features*)))
+  (mapc #'(lambda (x)
+	    (terpri)
+	    (princ ";;; Loading ")
+	    (princ x)
+	    (finish-output)
+	    (load x :verbose nil :external-format '(:ascii :lf)))
+	+cmp-module-files+
+	))
+
+
