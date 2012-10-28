@@ -1,0 +1,13 @@
+*~
+*.o
+*.dylib
+*.dll
+*.bundle
+*.so
+*.a
+*.fasl
+*.fas
+*.fasb
+ASDF-TMP-*
+MKCLINIT*
+Makefile

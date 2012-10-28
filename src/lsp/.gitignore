@@ -1,0 +1,6 @@
+*.c
+*.h
+*.data
+config.lsp
+config.pre
+load.lsp

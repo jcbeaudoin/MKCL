@@ -1,0 +1,14 @@
+*.asd
+mkcl_min
+ucd.dat
+help.doc
+BUILD-STAMP
+TAGS
+bare.lsp
+compile.lsp
+compile.pre
+config.log
+config.status
+ext/
+bin/
+encodings/

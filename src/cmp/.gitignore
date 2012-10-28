@@ -1,0 +1,7 @@
+*.c
+*.h
+*.data
+load.lsp
+cmpdefs.pre
+cmpdefs.lsp
+
