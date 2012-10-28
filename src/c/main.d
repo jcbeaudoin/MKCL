@@ -548,8 +548,8 @@ static void _mkcl_boot_inner(MKCL)
   @si::pathname-translations(env, 2, mkcl_make_simple_base_string(env, "SYS"),
 			     mk_cl_list(env, 1,
 					mk_cl_list(env, 2,
-						   mkcl_make_simple_base_string(env, "*.*"),
-						   mkcl_make_simple_base_string(env, "./*.*"))));
+						   mkcl_make_simple_base_string(env, "**;*.*"),
+						   mkcl_make_simple_base_string(env, "./**/*.*"))));
 
   /*
    * Ininitialize numbers

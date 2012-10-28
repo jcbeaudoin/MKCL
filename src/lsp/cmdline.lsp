@@ -99,7 +99,8 @@ Usage: mkcl [-? | --help]
      (progn
        (require 'cmp)
        (funcall (read-from-string "compiler::build-program")
-		(or output-file "lisp.exe") :lisp-files '&rest)
+		(typecase output-file ((or string pathname) output-file) (t "lisp.exe"))
+		:lisp-object-files '&rest)
        (setq output-file t quit t)))
     ("-o" 1 (setq output-file 1))
     ("-c" 1 (setq c-file 1))

@@ -502,7 +502,7 @@ coprocessor).")
 (defvar *external-ld-flags* "@LDFLAGS@ @FASL_LIBS@ @TCP_LIBS@ @LIBS@ ") ;; @TCP_LIBS@ ??
 
 (defvar *ld-flags*
-  #+unix (mkcl:bstr+ "-lmkcl " *external-ld-flags*)
+  #+unix (mkcl:bstr+ "\"~A@SHAREDPREFIX@mkcl_" (si:mkcl-version) ".@SHAREDEXT@\" " *external-ld-flags*)
   #+(or mingw32 mingw64) (mkcl:bstr+ "\"~Amkcl_" (si:mkcl-version) ".dll\" " *external-ld-flags*)
   #+msvc (mkcl:bstr+ "mkcl.lib " *external-ld-flags*)
   )

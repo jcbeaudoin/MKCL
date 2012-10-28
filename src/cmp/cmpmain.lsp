@@ -125,15 +125,16 @@
 	  ((and *mkcl-include-directory*
 		(mkcl:probe-file-p (merge-pathnames #P"mkcl/mkcl.h" *mkcl-include-directory*)))
 	   *mkcl-include-directory*)
-	  ((mkcl:probe-file-p #P"SYS:mkcl;mkcl.h")
+	  ((mkcl:probe-file-p #P"SYS:..;..;include;mkcl;mkcl.h")
 	   (setf *mkcl-include-directory* 
-		 (namestring (translate-logical-pathname #P"SYS:"))))
+		 (namestring (translate-logical-pathname #P"SYS:..;..;include;"))))
 	  ((error "Unable to find include directory")))))
 
 (let* ((bin-dir (make-pathname :name nil :type nil :version nil :defaults (si:self-truename)))
        (lib-dir (merge-pathnames "../lib/" bin-dir))
+       (shared-lib-pathname-name (make-pathname :name (mkcl:bstr+ "mkcl_" (si:mkcl-version))))
        (lib-dir-probe
-	(merge-pathnames (builder-internal-pathname (mkcl:bstr+ "mkcl_" (si:mkcl-version) ".so") :shared-library) lib-dir))
+	(merge-pathnames (builder-internal-pathname shared-lib-pathname-name :shared-library) lib-dir))
        )
   (defun mkcl-library-directory ()
     "Finds the directory in which the MKCL core library was installed."
@@ -141,13 +142,11 @@
 	   lib-dir
 	   )
 	  ((and *mkcl-library-directory*
-		(probe-file (merge-pathnames (builder-internal-pathname
-					      (mkcl:bstr+ "mkcl_" (si:mkcl-version) ".so")
-					      :shared-library)
+		(probe-file (merge-pathnames (builder-internal-pathname shared-lib-pathname-name :shared-library)
 					     *mkcl-library-directory*)))
 	   *mkcl-library-directory*)
 	  ((mkcl:probe-file-p #P"SYS:BUILD-STAMP")
-	   (setf *mkcl-library-directory* (namestring (translate-logical-pathname #P"SYS:"))))
+	   (setf *mkcl-library-directory* (namestring (translate-logical-pathname #P"SYS:..;"))))
 	  ((error "Unable to find library directory")))))
 
 
