@@ -14,3 +14,4 @@ bin/
 encodings/
 include/
 lib/
+test/
