@@ -15,3 +15,5 @@ encodings/
 include/
 lib/
 test/
+autom4te.cache/
+
