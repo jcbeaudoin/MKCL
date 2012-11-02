@@ -1564,6 +1564,11 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
 	mkcl_write_char(env, ' ', stream);
 	write_str(env, "imported", stream);
       }
+    else if (x->thread.result_value == @':imported-and-gc-registered')
+      {
+	mkcl_write_char(env, ' ', stream);
+	write_str(env, "imported-and-gc-registered", stream);
+      }
     mkcl_write_char(env, ' ', stream);
     mkcl_write_char(env, '(', stream);
     mk_si_write_object(env, MKCL_MAKE_FIXNUM(x->thread.tid), stream);

@@ -2072,14 +2072,11 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
   {{MKCL_EXT_ "OCTETS", MKCL_EXT_ORDINARY, mk_mkcl_octets, 1, MKCL_OBJNULL}},
   {{MKCL_EXT_ "DOUBLE-OCTETS", MKCL_EXT_ORDINARY, mk_mkcl_double_octets, 1, MKCL_OBJNULL}},
 
-#if 0
-  {{SYS_ "TRACE-CLOSURE-CREATION", SI_ORDINARY, mk_si_trace_closure_creation, 0, MKCL_OBJNULL}}, /* debug only */
-  {{SYS_ "UNTRACE-CLOSURE-CREATION", SI_ORDINARY, mk_si_untrace_closure_creation, 0, MKCL_OBJNULL}}, /* debug only */
-#endif
+  /* High water mark for MKCL 1.1.0 */
 
-#if 0
-  {{SYS_ "*ORIGINAL-ERROR-OUTPUT*", SI_SPECIAL, NULL, -1, MKCL_OBJNULL}},
-#endif
+  {{KEY_ "IMPORTED-AND-GC-REGISTERED", KEYWORD, NULL, -1, MKCL_OBJNULL}},
+
+  /* High water mark for MKCL 1.1.1 */
 
   /* Tag for end of list!
      This entry, with a first field of NULL value,

@@ -872,6 +872,10 @@ long mkcl_exit_status(MKCL)
     return MKCL_THREAD_TERMINATED;
   else if (result_value == @':invalid-value')
     return MKCL_THREAD_INVALID_VALUE;
+  else if (result_value == @':imported')
+    return MKCL_THREAD_INVALID_VALUE;
+  else if (result_value == @':imported-and-gc-registered')
+    return MKCL_THREAD_INVALID_VALUE;
   else if (result_value == @':aborted')
     return MKCL_THREAD_ABORTED;
   else if (result_value == @':gc-abort')

@@ -130,7 +130,9 @@ thread_final_cleanup(MKCL, mkcl_object thread)
 
   mkcl_set_thread_env(NULL);
 
-  if (thread->thread.detached || thread->thread.result_value == @':imported')
+  if (thread->thread.detached
+      || thread->thread.result_value == @':imported'
+      || thread->thread.result_value == @':imported-and-gc-registered')
     {
       mkcl_remove_thread_from_global_thread_list(env, thread);
     }
@@ -1345,20 +1347,35 @@ mkcl_import_current_thread(mkcl_object name, mkcl_object bindings, mkcl_thread_i
     const mkcl_env env = (thread ? thread->thread.env : NULL);
 
     if (env)
+      { errno = ENOMEM; return NULL; }
+    else
       {
-	volatile bool locked = false;
-	
+	struct MK_GC_stack_base sb;
+
+	if (MK_GC_SUCCESS != MK_GC_get_stack_base(&sb))
+	  { errno = ENOSYS; return(NULL); }
+
 	/* cannot be interrupted since we are not known yet by the rest of the Lisp world. */
-	MK_GC_register_my_thread((void *) &name);
-
-	thread->thread.thread = current;
-	thread->thread.base_thread = current;
-
-	/* imported threads are presumed not to be under lisp full (ultimate) control. */
-	thread->thread.result_value = @':imported';
-	
+	switch (MK_GC_register_my_thread(&sb))
+	  {
+	  case MK_GC_SUCCESS:
+	    thread->thread.thread = current;
+	    thread->thread.base_thread = current;
+	    /* imported threads are presumed not to be under lisp full (ultimate) control. */
+	    thread->thread.result_value = @':imported-and-gc-registered';
+	    return(env);
+	  case MK_GC_DUPLICATE:
+	    thread->thread.thread = current;
+	    thread->thread.base_thread = current;
+	    /* imported threads are presumed not to be under lisp full (ultimate) control. */
+	    thread->thread.result_value = @':imported';
+	    return(env);
+	  default: /* This case should not be possible with Boehm GC 7.2 */
+	    mkcl_release_current_thread(env);
+	    errno = ENOSYS;
+	    return NULL;
+	  }
       }
-    return(env);
   }
 }
 
@@ -1366,12 +1383,15 @@ void
 mkcl_release_current_thread(MKCL)
 {
   mkcl_object thread = env->own_thread;
+  bool must_unregister = thread->thread.result_value == @':imported-and-gc-registered';
 
   thread_final_cleanup(env, thread);
 
   thread->thread.status = mkcl_thread_initialized;
   push_in_imported_thread_pool(env, thread);
-  MKCL_GC_NO_INTR(env, MK_GC_unregister_my_thread());
+  
+  if (must_unregister)
+    MKCL_GC_NO_INTR(env, MK_GC_unregister_my_thread());
 }
 
 
@@ -2875,10 +2895,13 @@ mkcl_object mk_mt_abandon_thread(MKCL, mkcl_object result_value)
 {
   mkcl_call_stack_check(env);
   mkcl_disable_interrupts(env);
-#if 0
-  if (env->own_thread->thread.result_value == MKCL_OBJNULL) /* Why this test??? In case of detached thread? */
-#endif
-    env->own_thread->thread.result_value = result_value;
+
+  {
+    mkcl_object current_result_value = env->own_thread->thread.result_value;
+      
+    if (!(current_result_value == @':imported-and-gc-registered' || current_result_value == @':imported'))
+      env->own_thread->thread.result_value = result_value;
+  }
 
   mkcl_unwind(env, NULL); /* With NULL there is no stack unwinding done. We jump directly to the root of the stack. */
 
@@ -2922,10 +2945,12 @@ mk_mt_exit_thread(MKCL, mkcl_object result_value)
 
   mkcl_call_stack_check(env);
   mkcl_disable_interrupts(env);
-#if 0
-  if (env->own_thread->thread.result_value == MKCL_OBJNULL)
-#endif
-    env->own_thread->thread.result_value = result_value;
+  {
+    mkcl_object current_result_value = env->own_thread->thread.result_value;
+      
+    if (!(current_result_value == @':imported-and-gc-registered' || current_result_value == @':imported'))
+      env->own_thread->thread.result_value = result_value;
+  }
 
   mkcl_unwind(env, env->frs_org);
 
