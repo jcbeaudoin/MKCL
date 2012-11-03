@@ -502,7 +502,7 @@ coprocessor).")
 (defvar *external-ld-flags* "   -lws2_32    -lm ") ;; -lws2_32 ??
 
 (defvar *ld-flags*
-  #+unix (mkcl:bstr+ "-lmkcl " *external-ld-flags*)
+  #+unix (mkcl:bstr+ "\"~Amkcl_" (si:mkcl-version) ".dll\" " *external-ld-flags*)
   #+(or mingw32 mingw64) (mkcl:bstr+ "\"~Amkcl_" (si:mkcl-version) ".dll\" " *external-ld-flags*)
   #+msvc (mkcl:bstr+ "mkcl.lib " *external-ld-flags*)
   )

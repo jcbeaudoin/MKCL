@@ -140,8 +140,8 @@
 	;;(*compile-verbose* t)
 	;;(*compile-print* t)
 	)
-    (format t "~&;;About to build shared library libmkcl.so~%")
-    (unless (compiler:build-shared-library (mkcl:bstr+ "mkcl_" (si:mkcl-version) ".so")
+    (format t "~&;;About to build shared library mkcl_~A.dll~%" (si:mkcl-version))
+    (unless (compiler:build-shared-library (mkcl:bstr+ "mkcl_" (si:mkcl-version) ".dll")
 					   ;;"mkcl" ;;(compile-file-pathname "mkcl" :type :dll)
 					   :extra-ld-flags extra-ld-flags
 					   :object-files (list "c/all_symbols2.o"

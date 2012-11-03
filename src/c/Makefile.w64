@@ -13,9 +13,9 @@
 #  See file '../../Copyright' for full details.
 #
 #
-top_srcdir= /home/Jean-Claude/mkcl/src
-srcdir	= /home/Jean-Claude/mkcl/src/c
-VPATH	= /home/Jean-Claude/mkcl/src/c
+top_srcdir= /home/Jean-Claude/mkcl-1.1.1/src
+srcdir	= /home/Jean-Claude/mkcl-1.1.1/src/c
+VPATH	= /home/Jean-Claude/mkcl-1.1.1/src/c
 
 # Programs used by "make":
 #
@@ -83,7 +83,7 @@ all: ../libmkclmin.a ../libmkcltop.a all_symbols.o all_symbols2.o cinit.o
 	$(DPP) $< $@
 
 unixfsys.o: unixfsys.c
-	$(CC) -DMKCL_LIBDIR="\"${exec_prefix}/lib/mkcl-1.1.0\"" -DMKCL_VERSION="\"1.1.0\"" $(CFLAGS) -o $@ -c $<
+	$(CC) -DMKCL_LIBDIR="\"${exec_prefix}/lib/mkcl-1.1.1\"" -DMKCL_VERSION="\"1.1.1\"" $(CFLAGS) -o $@ -c $<
 
 $(DCFILES) all_symbols.c cinit.c: $(DPP)
 

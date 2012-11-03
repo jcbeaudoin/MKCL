@@ -40,8 +40,8 @@ exec_prefix=${prefix}
 bindir=${exec_prefix}/bin/
 libdir=${exec_prefix}/lib/
 includedir=${prefix}/include/
-mkcldir=${exec_prefix}/lib/mkcl-1.1.0/
-localmkcldir=./lib/mkcl-1.1.0/
+mkcldir=${exec_prefix}/lib/mkcl-1.1.1/
+localmkcldir=./lib/mkcl-1.1.1/
 
 # Programs used by "make install":
 #
@@ -57,7 +57,7 @@ mkinstalldirs = $(SHELL) ./gc/mkinstalldirs
 
 SUBDIRS = c gc
 LIBRARIES = libmkclgc.a
-LSP_LIBRARIES = mkcl_1.1.0.dll
+LSP_LIBRARIES = mkcl_1.1.1.dll
 TARGETS = bin/mkcl$(EXE)
 
 MKCL_HFILES = mkcl/config.h \
