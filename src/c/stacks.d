@@ -898,6 +898,9 @@ void mkcl_init_call_stack_overflow_area(MKCL, char * const stack_mark_address)
     char * stack_base = mbi.AllocationBase;
     mkcl_index stack_size = stack_top - stack_base;
 
+    if (mbi_size != sizeof(mbi))
+      mkcl_C_lose(env, "mkcl_init_call_stack_overflow_area() failed on VirtualQuery");
+
 # if 0
     printf("\ntid = %d, mbi info: BaseAddress = 0x%p, AllocationBase = 0x%p, RegionSize = %lu",
 	   (env->own_thread ? env->own_thread->thread.tid : 0),

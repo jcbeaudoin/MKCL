@@ -734,6 +734,8 @@ MK_GC_INNER word MK_GC_page_size = 0;
                             || (prot) == PAGE_WRITECOPY \
                             || (prot) == PAGE_EXECUTE_READWRITE \
                             || (prot) == PAGE_EXECUTE_WRITECOPY)
+
+#  if 1  /* "#if 0" for MKCL 1.2.0 and later, "#if 1" before. */
     /* Return the number of bytes that are writable starting at p.      */
     /* The pointer p is assumed to be page aligned.                     */
     /* If base is not 0, *base becomes the beginning of the             */
@@ -765,6 +767,24 @@ MK_GC_INNER word MK_GC_page_size = 0;
       sb -> mem_base = trunc_sp + size;
       return MK_GC_SUCCESS;
     }
+#  else
+    MK_GC_API int MK_GC_CALL MK_GC_get_stack_base(struct MK_GC_stack_base *sb)
+    { /* JCB */
+      word a_var = 0;
+      MEMORY_BASIC_INFORMATION mbi;
+
+      SIZE_T mbi_size = VirtualQuery(&a_var, &mbi, sizeof(mbi));
+
+      ptr_t stack_top = mbi.BaseAddress + mbi.RegionSize;
+      ptr_t stack_base = mbi.AllocationBase;
+      word stack_size = stack_top - stack_base;
+
+      if (mbi_size != sizeof(mbi)) ABORT("Weird VirtualQuery result");
+
+      sb -> mem_base = stack_top;
+      return MK_GC_SUCCESS;
+    }
+#  endif
 # else /* CYGWIN32 */
     /* An alternate version for Cygwin (adapted from Dave Korn's        */
     /* gcc version of boehm-gc).                                        */
