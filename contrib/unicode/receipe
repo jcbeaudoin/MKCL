@@ -1,0 +1,1 @@
+mkcl -norc -q -eval "(progn (load \"ucd.lisp\") (slurp-ucd) (output-c-code) (quit))"
