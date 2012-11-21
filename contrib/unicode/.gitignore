@@ -1,0 +1,6 @@
+pasture/
+misc.lisp-expr
+mkcl-unicode.h
+numerics.lisp-expr
+titlecases.lisp-expr
+unicode.c
