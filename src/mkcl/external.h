@@ -271,12 +271,14 @@ extern "C" {
     volatile mkcl_object children;
     volatile mkcl_object detached_children;
 
+#if 0
     mkcl_object unicode_database;
     uint8_t *ucd_misc;
     uint8_t *ucd_pages;
     uint8_t *ucd_data;
 
     mkcl_object clear_compiler_properties;
+#endif
 
 #ifdef HASHTABLE_STATS /* JCB */
     mkcl_object hashtables[mkcl_htt_package + 1];
@@ -549,7 +551,89 @@ extern "C" {
   extern MKCL_API mkcl_object mk_cl_upper_case_p(MKCL, mkcl_object c);
   extern MKCL_API int mkcl_string_case(mkcl_object s);
 
+  static inline bool mkcl_graphic_char_p(mkcl_character code) { return code > 159 || ((31 < code) && (code < 127)); } /* SBCL compatible */
 
+
+#if 1
+#include <mkcl/mkcl-unicode.h>
+
+  static inline const struct mkcl_unichar_info * mkcl_unicode_character_information(mkcl_character code)
+  {
+    if (code >= MKCL_CHAR_CODE_LIMIT)
+      return NULL;
+    else
+      {
+	const mkcl_uint8_t page_index = _mkcl_unichar_info_pages[code >> 8];
+	return &(_mkcl_unichar_info[page_index][code & 0xFF]);
+      }
+  }
+
+  static inline enum mkcl_ucd_general_category  mkcl_unicode_character_general_category(mkcl_character code)
+  {
+    const struct mkcl_unichar_info * char_info = mkcl_unicode_character_information(code);
+    if (char_info)
+      return _mkcl_unichar_properties_signatures[char_info->properties_signature_index].general_category;
+    else
+      return (enum mkcl_ucd_general_category) -1;
+  }
+
+  static inline int mkcl_ucd_decimal_digit(mkcl_character code)
+  {
+    const struct mkcl_unichar_info * char_info = mkcl_unicode_character_information(code);
+    if (char_info)
+      return _mkcl_unichar_properties_signatures[char_info->properties_signature_index].decimal_digit;
+    else
+      return -1;
+  }
+
+  static inline bool mkcl_alpha_char_p(mkcl_character code)
+  {
+    const enum mkcl_ucd_general_category gc = mkcl_unicode_character_general_category(code);
+    return mkcl_ucd_Uppercase_Letter <= gc && gc <= mkcl_ucd_Other_Letter;
+  }
+
+  static inline bool mkcl_upper_case_p(mkcl_character code)
+  {
+    const struct mkcl_unichar_info * char_info = mkcl_unicode_character_information(code);
+    return (char_info && char_info->properties_signature_index == 0);
+  }
+  static inline bool mkcl_lower_case_p(mkcl_character code)
+  {
+    const struct mkcl_unichar_info * char_info = mkcl_unicode_character_information(code);
+    return (char_info && char_info->properties_signature_index == 1);
+  }
+  static inline bool mkcl_both_case_p(mkcl_character code)
+  {
+    const struct mkcl_unichar_info * char_info = mkcl_unicode_character_information(code);
+    return (char_info && char_info->properties_signature_index < 2);
+  }
+  
+  static inline bool mkcl_alphanumericp(mkcl_character code)
+  {
+    const enum mkcl_ucd_general_category gc = mkcl_unicode_character_general_category(code);
+    return ((mkcl_ucd_Uppercase_Letter <= gc && gc <= mkcl_ucd_Other_Letter)
+	    || (mkcl_ucd_Decimal_Number <= gc && gc <= mkcl_ucd_Other_Number));
+  }
+
+  static inline mkcl_character mkcl_char_upcase(mkcl_character code)
+  {
+    const struct mkcl_unichar_info * char_info = mkcl_unicode_character_information(code);
+    if (char_info && char_info->properties_signature_index == 1)
+      return char_info->transform;
+    else 
+      return code;
+  }
+
+  static inline mkcl_character mkcl_char_downcase(mkcl_character code)
+  {
+    const struct mkcl_unichar_info * char_info = mkcl_unicode_character_information(code);
+    if (char_info && char_info->properties_signature_index == 0)
+      return char_info->transform;
+    else 
+      return code;
+  }
+
+#else
   static inline uint8_t * mkcl_ucd_char_data(mkcl_character code)
   {
     unsigned char page = mkcl_core.ucd_pages[code >> 8];
@@ -566,7 +650,7 @@ extern "C" {
 
   static inline int mkcl_ucd_general_category(mkcl_character code) {return mkcl_core.ucd_misc[8 * mkcl_ucd_value_0(code)];}
   static inline int mkcl_ucd_decimal_digit(mkcl_character code) {return mkcl_core.ucd_misc[3 + 8 * mkcl_ucd_value_0(code)];}
-  static inline bool mkcl_graphic_char_p(mkcl_character code) { return code > 159 || ((31 < code) && (code < 127)); } /* SBCL compatible */
+
   static inline bool mkcl_alpha_char_p(mkcl_character code) { return mkcl_ucd_general_category(code) < 5; }
   static inline bool mkcl_upper_case_p(mkcl_character code) { return mkcl_ucd_value_0(code) == 0; }
   static inline bool mkcl_lower_case_p(mkcl_character code) { return mkcl_ucd_value_0(code) == 1; }
@@ -597,7 +681,7 @@ extern "C" {
     } else 
       return code;
   }
-
+#endif
 
   extern MKCL_API void mkcl_FEtype_error_character(MKCL, mkcl_object x) mkcl_noreturn;
   extern MKCL_API void mkcl_FEtype_error_base_char(MKCL, mkcl_object x) mkcl_noreturn;
@@ -1134,6 +1218,7 @@ extern "C" {
   extern MKCL_API mkcl_object mk_cl_macroexpand(MKCL, mkcl_narg narg, mkcl_object form, ...);
   extern MKCL_API mkcl_object mk_cl_macroexpand_1(MKCL, mkcl_narg narg, mkcl_object form, ...);
   extern MKCL_API mkcl_object mk_cl_macro_function(MKCL, mkcl_narg narg, mkcl_object sym, ...);
+
 
 
   /* main.c */
