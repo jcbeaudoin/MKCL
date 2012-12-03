@@ -19,6 +19,7 @@
  */
 /* Boehm, December 8, 1995 1:53 pm PST */
 # include <stdio.h>
+# include <stdint.h> /* JCB */
 # include <string.h>
 # include <stdlib.h>
 # include <stdarg.h>
@@ -429,13 +430,13 @@ void CORD_ec_append_cord(CORD_ec x, CORD s)
 /*ARGSUSED*/
 char CORD_nul_func(size_t i, void * client_data)
 {
-    return((char)(unsigned long)client_data);
+  return((char)(unsigned long)(uintptr_t)client_data);  /* JCB */
 }
 
 
 CORD CORD_chars(char c, size_t i)
 {
-    return(CORD_from_fn(CORD_nul_func, (void *)(unsigned long)c, i));
+  return(CORD_from_fn(CORD_nul_func, (void *)(uintptr_t)(unsigned long)c, i));  /* JCB */
 }
 
 CORD CORD_from_file_eager(FILE * f)
