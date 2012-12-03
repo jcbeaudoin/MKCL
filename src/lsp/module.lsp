@@ -83,7 +83,6 @@ module."
 			 (error "Error loading file: ~A, Condition: ~A" path condition)))))
 	       (let* ((sysdir (translate-logical-pathname #P"SYS:"))
 		      (contribdir (translate-logical-pathname #P"CONTRIB:"))
-		      ;;(asdfdir (translate-logical-pathname #P"CONTRIB:asdf;"))
 		      (module (string module)))
 		 (or
 		  (try-load (merge-pathnames (make-pathname :name module) sysdir))

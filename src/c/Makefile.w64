@@ -1,7 +1,7 @@
 #
 #  Makefile for MKCL core library
 #
-#  Copyright (c) 2010-2011, Jean-Claude Beaudoin.
+#  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
 #  Copyright by a number of previous anonymous authors
 #            presumed to be the same as for the rest of MKCL.
 #
@@ -13,9 +13,9 @@
 #  See file '../../Copyright' for full details.
 #
 #
-top_srcdir= /home/Jean-Claude/mkcl-1.1.1/src
-srcdir	= /home/Jean-Claude/mkcl-1.1.1/src/c
-VPATH	= /home/Jean-Claude/mkcl-1.1.1/src/c
+top_srcdir= /usr/home/Jean-Claude/mkcl-1.1.2/src
+srcdir	= /usr/home/Jean-Claude/mkcl-1.1.2/src/c
+VPATH	= /usr/home/Jean-Claude/mkcl-1.1.2/src/c
 
 # Programs used by "make":
 #
@@ -48,7 +48,7 @@ HDIR	= ../mkcl
 HFILES	= $(HDIR)/config.h $(HDIR)/mkcl.h $(HDIR)/mkcl-cmp.h\
 	$(HDIR)/object.h $(HDIR)/stacks.h\
 	$(HDIR)/external.h $(HDIR)/eval.h\
-	$(HDIR)/number.h $(HDIR)/mkcl-inl.h # $(HDIR)/page.h 
+	$(HDIR)/number.h $(HDIR)/mkcl-inl.h
 
 
 OBJS	= main.o symbol.o package.o list.o \
@@ -63,6 +63,7 @@ OBJS	= main.o symbol.o package.o list.o \
 	time.o unixint.o \
 	mapfun.o multival.o hash.o format.o pathname.o \
 	structure.o load.o unixfsys.o unixsys.o \
+	unicode.o \
 	ffi.o  threads.o alloc_2.o ffi_x86_64_w64.o big.o
 
 DCFILES = $(OBJS:%.o=%.c)
@@ -81,9 +82,6 @@ all: ../libmkclmin.a ../libmkcltop.a all_symbols.o all_symbols2.o cinit.o
 
 .d.c:
 	$(DPP) $< $@
-
-unixfsys.o: unixfsys.c
-	$(CC) -DMKCL_LIBDIR="\"${exec_prefix}/lib/mkcl-1.1.1\"" -DMKCL_VERSION="\"1.1.1\"" $(CFLAGS) -o $@ -c $<
 
 $(DCFILES) all_symbols.c cinit.c: $(DPP)
 
@@ -129,7 +127,6 @@ symbols_list2.h: symbols_list.h
 	sed -e 's%{{\([A-Z ]*.*".*"\),[^,]*,[ ]*NULL,.*}}%{\1,NULL,-1}%g' \
 	    -e 's%{{\([A-Z ]*.*".*"\),[^,]*,[ ]*\([^,]*\),[ ]*\([^,]*\),.*}}%{\1,"\2",\3}%g' \
 	    -e 's%{{NULL.*%{NULL,NULL,-1}};%' > $@
-#	cat symbols_list.h | \
 
 $(OBJS): $(DPP)
 

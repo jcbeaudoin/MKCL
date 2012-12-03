@@ -32,17 +32,13 @@
 ;;; About to load lsp/load.lsp
 ;;; ")
 
-;;(if (member "MKCL-MIN" *features* :test #'string-equal)
-  (load "lsp/load.lsp" :verbose nil :external-format '(:ascii :lf))
-;;)
+(load "lsp/load.lsp" :verbose nil :external-format '(:ascii :lf))
 
 (defun si::process-command-args () )
 
 ;;;
 ;;; * Load PCL-based Common-Lisp Object System
 ;;;
-;;(setf sys::*gc-verbose* nil)
-;;#+mkcl-min
 (progn
  (terpri)
  (princ ";;; Loading clos/load.lsp")
@@ -60,8 +56,6 @@
 ;;;
 ;;; * Go back to build directory to start compiling
 ;;;
-;;#+mkcl-min
-;;(setq *features* (delete :mkcl-min *features*))
 (setq *features* (remove :mkcl-min *features*))
 
 (terpri)

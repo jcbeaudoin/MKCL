@@ -11,8 +11,10 @@
 
 ;;;
 ;;;
+(push :mkcl-bootstrap *features*)
 
-(load "cmp.fasb")
+;;(load "cmp.fasb")
+(load "cmp/load.lsp" :external-format '(:ascii :lf))
 
 ;;(proclaim '(optimize (debug 1))) ;; faster, no debug info.
 (proclaim '(optimize (debug 0))) ;; faster, no debug info.
@@ -36,54 +38,23 @@
       )
 
 #+unix
-(let (;;(compiler::*suppress-compiler-messages* nil)
-      ;;(compiler::*suppress-compiler-warnings* nil)
-      ;;(compiler::*suppress-compiler-notes* nil)
-      ;;(*compile-verbose* t)
-      ;;(*compile-print* t)
-      #+(or)
-      (compiler::*ld-flags* (concatenate 
-		      'base-string
-		      " -rdynamic libmkcltop.a liblsp.a "
-		      ;;"libmkclmin.a libmkclgc.a "
-		      "libmkclmin.a "
-		      compiler::*support-libraries*
-		      compiler::*external-ld-flags*
-		      ))
-      (compiler::*ld-flags* compiler::*external-ld-flags*) ;; prevent -lmkcl from showing up.
-      (object-files (list "libmkcltop.a" "liblsp.a" "libmkclmin.a" compiler::*support-libraries*))
-      )
-  (unless (compiler::build-program
-	   "bin/mkcl"
-	   :lisp-object-files '( "libcmp.a" ) ;; list of built-ins.
-	   :object-files object-files
-	   :extra-ld-flags "-rdynamic" ;; export main executable symbols to loaded modules and fasls.
-;;	   :extra-ld-flags "-pg -rdynamic"  ;; for profiling
-	   )
-    (mkcl:quit :exit-code 1))
-  )
+(unless (compiler::build-program
+	 "bin/mkcl"
+	 :lisp-object-files '( "libcmp.a" ) ;; list of pre-loads.
+	 :use-mkcl-shared-libraries nil ;; force static linking
+	 ;;:extra-ld-flags "-pg"  ;; for profiling
+	 )
+  (mkcl:quit :exit-code 1))
 
 
 #+windows
-(let (;;(compiler::*suppress-compiler-messages* nil)
-      ;;(compiler::*suppress-compiler-warnings* nil)
-      ;;(compiler::*suppress-compiler-notes* nil)
-      ;;(*compile-verbose* t)
-      ;;(*compile-print* t)
-      (compiler::*ld-flags* compiler::*external-ld-flags*)  ;; prevent -lmkcl from showing up.
-      (mkcl-lib-name (concatenate 'base-string
-				  compiler::+shared-library-prefix+
-				  "mkcl_" (si:mkcl-version) "."
-				  compiler::+shared-library-extension+))
-      )
-  (unless (compiler::build-program
-	   "bin/mkcl"
-	   :extra-ld-flags "-Wl,--stack,0x800000" ;; Stack of 8MB.
-	   :object-files (list mkcl-lib-name)
-	   :epilogue-code '(PROGN (REQUIRE "CMP") (SI::TOP-LEVEL))
-	   )
-    (mkcl:quit :exit-code 1))
-  )
+(unless (compiler::build-program
+	 "bin/mkcl"
+	 :extra-ld-flags "-Wl,--stack,0x800000" ;; Stack of 8MB.
+	 :epilogue-code '(PROGN (REQUIRE "CMP") (SI::TOP-LEVEL))
+	 )
+  (mkcl:quit :exit-code 1))
+
 
 (mkcl:quit :exit-code 0) ;; tell make that all is well.
 

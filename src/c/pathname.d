@@ -410,20 +410,20 @@ parse_word(MKCL, mkcl_object s, delim_fn delim, int flags, mkcl_index start, mkc
 	wild_inferiors = (i > start && mkcl_char(env, s, i-1) == '*');
 	valid_char = TRUE; /* single "*" */
       }
-#if 0
-    } else if (c == ';' && (flags & WORD_DISALLOW_SEMICOLON)) {
-#else
-    } else if (is_semicolon(c) && (flags & WORD_DISALLOW_SEMICOLON)) {
-#endif
+    } else if (is_semicolon(c) && (flags & (WORD_DISALLOW_SEMICOLON | WORD_LOGICAL))) {
       valid_char = FALSE;
-#if 0
-    } else if (c == '/' && (flags & WORD_DISALLOW_SLASH)) {
-#else
-    } else if (is_slash(c) && (flags & WORD_DISALLOW_SLASH)) {
-#endif
+    } else if (is_slash(c) && (flags & (WORD_DISALLOW_SLASH | WORD_LOGICAL))) {
       valid_char = FALSE;
     } else {
-      valid_char = c != 0;
+      if (flags & WORD_LOGICAL)
+	{
+	  if ((mkcl_alphanumericp(c) && mkcl_upper_case_p(c)) || c == '-')
+	    valid_char = TRUE;
+	  else
+	    valid_char = FALSE;
+	}
+      else
+	valid_char = c != 0; /* What is wrong with character code 0? JCB */
     }
     if (!valid_char) {
       *end_of_word = start;

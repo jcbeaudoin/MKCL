@@ -78,7 +78,6 @@ mk_cl_set(MKCL, mkcl_object var, mkcl_object val)
     MKCL_SYM_FUN(sym) = def;
     if (!MKCL_INSTANCEP(def) && mkcl_Null(mk_si_compiled_function_name(env, def)))
       mk_si_set_compiled_function_name(env, def, sym);
-    mkcl_clear_compiler_properties(env, sym);
   } else {
     if (mflag)
       mkcl_FEerror(env, "~S is not a valid name for a macro.", 1, fname);
@@ -112,7 +111,6 @@ mk_cl_fmakunbound(MKCL, mkcl_object fname)
 			 "Ignore lock and proceed", 2, fname, pack);
   }
   if (MKCL_SYMBOLP(fname)) {
-    mkcl_clear_compiler_properties(env, sym);
     MKCL_SYM_FUN(sym) = mk_cl_Cnil;
     mkcl_symbol_type_set(env, sym, mkcl_symbol_type(env, sym) & ~mkcl_stp_macro);
   } else {
@@ -122,32 +120,6 @@ mk_cl_fmakunbound(MKCL, mkcl_object fname)
     mk_si_rem_sysprop(env, sym, @'si::setf-update');
   }
   @(return fname);
-}
-
-void
-mkcl_clear_compiler_properties(MKCL, mkcl_object sym)
-{
-  mkcl_object fun = mkcl_core.clear_compiler_properties; /* fun cache */
-
-  if (mkcl_likely(!mkcl_Null(fun)))
-    mkcl_funcall1(env, fun, sym);
-  else if (mkcl_get_option(MKCL_OPT_BOOTED))
-    {
-      static const mkcl_base_string_object(compiler_pkg_name_obj, "COMPILER");
-      mkcl_object compiler_pkg = mk_cl_find_package(env, (mkcl_object) &compiler_pkg_name_obj);
-	
-      if (!mkcl_Null(compiler_pkg))
-	{
-	  static const mkcl_base_string_object(fun_name_obj, "CLEAR-COMPILER-PROPERTIES");
-	  int intern_flag;
-	  mkcl_object fun_sym = mkcl_find_symbol(env, (mkcl_object) &fun_name_obj, compiler_pkg, &intern_flag);
-	    
-	  if (!mkcl_Null(fun_sym))
-	    mkcl_core.clear_compiler_properties = fun = MKCL_SYM_FUN(fun_sym);
-	  if (!mkcl_Null(fun))
-	    mkcl_funcall1(env, fun, sym);
-	}
-    }
 }
 
 

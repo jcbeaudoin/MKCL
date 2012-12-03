@@ -182,12 +182,22 @@ when_macro(MKCL, mkcl_object whole, mkcl_object lex_env)
   return mk_cl_list(env, 3, @'if', MKCL_CAR(args), MKCL_CONS(env, @'progn', MKCL_CDR(args)));
 }
 
+static mkcl_object
+unless_macro(MKCL, mkcl_object whole, mkcl_object lex_env)
+{
+  mkcl_object args = MKCL_CDR(whole);
+  if (mkcl_endp(env, args))
+    mkcl_FEprogram_error(env, "Syntax error: ~S.", 1, whole);
+  return mk_cl_list(env, 3, @'if', mk_cl_list(env, 2, @'not', MKCL_CAR(args)), MKCL_CONS(env, @'progn', MKCL_CDR(args)));
+}
+
 void
 mkcl_init_macros(MKCL)
 {
-	MKCL_SET(@'*macroexpand-hook*', @'funcall');
-	mkcl_def_c_macro(env, @'or', or_macro, 2);
-	mkcl_def_c_macro(env, @'and', and_macro, 2);
-	mkcl_def_c_macro(env, @'when', when_macro, 2);
+  MKCL_SET(@'*macroexpand-hook*', @'funcall');
+  mkcl_def_c_macro(env, @'or', or_macro, 2);
+  mkcl_def_c_macro(env, @'and', and_macro, 2);
+  mkcl_def_c_macro(env, @'when', when_macro, 2);
+  mkcl_def_c_macro(env, @'unless', unless_macro, 2);
 }
 

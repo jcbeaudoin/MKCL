@@ -343,6 +343,24 @@ stops when it reaches the end of one of the given sequences."
 (define-compiler-macro mkcl::bstr+ (&whole form &rest strings)
   `(concatenate 'base-string ,@strings))
 
+(defun mkcl::split-string (str delim)
+  (let ((start 0) (end 0) out)
+    (declare (fixnum start end))
+    (dotimes (i (length str) (setq end i))
+      (declare (fixnum i))
+      (when (char= delim (char str i))
+	(setq end i)
+	(when (> (- end start) 0)
+	  (push (subseq str start end) out))
+	(setq start (1+ end))
+	)
+      )
+    (when (> (- end start) 0)
+      (push (subseq str start end) out))
+    (nreverse out)
+    )
+  )
 
-(export '(mkcl::str+ mkcl::bstr+) :mkcl)
+
+(export '(mkcl::str+ mkcl::bstr+ mkcl::split-string) :mkcl)
 

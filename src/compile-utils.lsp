@@ -73,30 +73,35 @@
 (defun compile-if-old (destdir sources &rest options)
   (unless (probe-file destdir)
     (si::mkdir destdir #o0777))
-  (mapcar #'(lambda (source &aux (orig-source source))
-	      #+(or)
-	      (format t "~&In compile-if-old in ~S for ~S~%" destdir source)
-	      (setq source (translate-logical-pathname source))
-	      (let ((object (object-file-pathname destdir source))
-		    (*print-pretty* nil))
-		(unless (and (probe-file object)
-			     (>= (file-write-date object) (file-write-date source))
-			     (>= (file-write-date object) 
-				 (file-write-date "./mkcl/mkcl-cmp.h")))
-		  (format t "~&(compile-file ~S :output-file ~S~{ ~S~})~%"
-			  source object (append options *compile-extra-options*))
-		  (unless (apply #'compile-file source
-				 :output-file object
-				 :fasl-p nil
-				 (append options *compile-extra-options*))
-		    (clean-up destdir sources)
-		    #+(or)
-		    (format t "~&Bailing out from compile-if-old!~%") (finish-output)
-		    (mkcl:quit :exit-code 1) ;; exit if compilation failed
+  (with-compilation-unit ()
+    (mapcar #'(lambda (source &aux (orig-source source))
+		#+(or)
+		(format t "~&In compile-if-old in ~S for ~S~%" destdir source)
+		(setq source (translate-logical-pathname source))
+		(let ((object (object-file-pathname destdir source))
+		      (*print-pretty* nil))
+		  (unless (and (probe-file object)
+			       (>= (file-write-date object) (file-write-date source))
+			       (>= (file-write-date object) 
+				   (file-write-date "./mkcl/mkcl-cmp.h")))
+		    (format t "~&(compile-file ~S :output-file ~S~{ ~S~})~%"
+			    source object (append options *compile-extra-options*))
+		    (multiple-value-bind (output-truename warnings-p failure-p)
+		        (apply #'compile-file source
+			       :output-file object
+			       :fasl-p nil
+			       (append options *compile-extra-options*))
+		      (declare (ignorable output-truename warnings-p))
+		      (when failure-p
+			(clean-up destdir sources)
+			#+(or)
+			(format t "~&Bailing out from compile-if-old!~%") (finish-output)
+			(mkcl:quit :exit-code 1) ;; exit if compilation failed
+			)
+		      )
 		    )
-		  )
-		object))
-	  sources))
+		  object))
+	    sources)))
 
 
 (defun build-substitute-asd-file (name system-attribs #|depends-on|#)
@@ -136,11 +141,6 @@
 	     (mkcl:quit :exit-code 1))
 	   )
        (let* ((objects (compile-if-old dir sources))
-	      ;;(compiler::*suppress-compiler-messages* nil)
-	      ;;(compiler::*suppress-compiler-warnings* nil)
-	      ;;(compiler::*suppress-compiler-notes* nil)
-	      ;;(*compile-verbose* t)
-	      ;;(*compile-print* t)
 	      )
 	 (let (result)
 	   (format t "~&(compiler::build-bundle ~S :lisp-object-files ~S)" name objects)
@@ -157,7 +157,6 @@
 	     (clean-up dir sources)
 	     (format t "~&Bailing out from build-module static library step!~%") (finish-output)
 	     (mkcl:quit :exit-code 1)))
-	 (terpri)
-	 )))))
+	 (terpri))))))
 
 

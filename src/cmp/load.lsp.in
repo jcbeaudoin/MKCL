@@ -108,6 +108,7 @@
 	    (finish-output)
 	    (load x :verbose nil :external-format '(:ascii :lf)))
 	+cmp-module-files+
-	))
+	)
+  (terpri))
 
 

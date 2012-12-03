@@ -19,18 +19,16 @@
 
 (load "compile-utils" :external-format '(:ascii :lf))
 
-(setq cl:*compile-verbose* t cl:*load-verbose* nil)
+(setq cl:*compile-verbose* t cl:*load-verbose* t)
 
 ;;(setq compiler::*trace-cc* t)
 
-;(defparameter arg-base 5)
 (defparameter arg-base 7)
 
 (load "asdf.fasb") ;; load the local one.
 
 ;; Let's get rid of the compiler output cache!
 #+asdf2
-;;(asdf:initialize-output-translations "/:") ;; it would be "/;" on MS-windows.
 (asdf:disable-output-translations)
 
 #+asdf2 (setq asdf::*asdf-verbose* nil)
@@ -43,7 +41,8 @@
   )
 |#
 
-(let ((asdf:*central-registry* (cons (translate-logical-pathname #P"CONTRIB:asdf-bundle;")
+(let ((asdf:*central-registry* (cons (make-pathname :directory '(:relative "asdf-bundle")
+						    :defaults (translate-logical-pathname #P"CONTRIB:"))
 				     asdf:*central-registry*)))
   (asdf::clear-system :asdf-bundle) ;; we hope to force a reload.
   (multiple-value-bind (result bundling-error)

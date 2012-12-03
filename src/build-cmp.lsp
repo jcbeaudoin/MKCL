@@ -12,16 +12,16 @@
 ;;;
 ;;;
 
+(push :mkcl-bootstrap *features*)
+
 ;;(setq compiler::*trace-cc* t)
 
-;;(si::pathname-translations "SRC" `(("**;*.*.*" "./**/*.*")))
 (load "cmp/load.lsp" :external-format '(:ascii :lf))
 
 (load "compile-utils" :external-format '(:ascii :lf))
 
 (build-module "cmp" +cmp-module-files+ 
 	      :dir (pathname "./cmp/")
-	      #|:prefix "CMP"|#
 	      )
 
 (mkcl:quit :exit-code 0) ;; signal to "make" that all is well.

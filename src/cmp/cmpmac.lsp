@@ -3,8 +3,18 @@
 ;;; ----------------------------------------------------------------------
 ;;; Macros only used in the code of the compiler itself:
 
+;;;;  Copyright by a number of previous anonymous authors
+;;;;            presumed to be the same as for the rest of MKCL.
+;;;;  Copyright (c) 2012. Jean-Claude Beaudoin.
+;;;;
+;;;;    MKCL is free software; you can redistribute it and/or
+;;;;    modify it under the terms of the GNU Lesser General Public
+;;;;    License as published by the Free Software Foundation; either
+;;;;    version 3 of the License, or (at your option) any later version.
+;;;;
+;;;;    See file '../../Copyright' for full details.
+
 (in-package "COMPILER")
-;;(import 'sys::arglist "COMPILER")
 
 (defun same-fname-p (name1 name2) (equal name1 name2))
 

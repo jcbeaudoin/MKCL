@@ -125,9 +125,6 @@
 	  ((and *mkcl-include-directory*
 		(mkcl:probe-file-p (merge-pathnames #P"mkcl/mkcl.h" *mkcl-include-directory*)))
 	   *mkcl-include-directory*)
-	  ((mkcl:probe-file-p #P"SYS:..;..;include;mkcl;mkcl.h")
-	   (setf *mkcl-include-directory* 
-		 (namestring (translate-logical-pathname #P"SYS:..;..;include;"))))
 	  ((error "Unable to find include directory")))))
 
 (let* ((bin-dir (make-pathname :name nil :type nil :version nil :defaults (si:self-truename)))
@@ -142,56 +139,79 @@
 	   lib-dir
 	   )
 	  ((and *mkcl-library-directory*
-		(probe-file (merge-pathnames (builder-internal-pathname shared-lib-pathname-name :shared-library)
-					     *mkcl-library-directory*)))
+		#-mkcl-bootstrap
+		(mkcl:probe-file-p (merge-pathnames (builder-internal-pathname shared-lib-pathname-name :shared-library)
+						    *mkcl-library-directory*)))
 	   *mkcl-library-directory*)
-	  ((mkcl:probe-file-p #P"SYS:BUILD-STAMP")
-	   (setf *mkcl-library-directory* (namestring (translate-logical-pathname #P"SYS:..;"))))
 	  ((error "Unable to find library directory")))))
 
 
-(defun linker-cc (out-pathname extra-ld-flags o-files &optional (working-directory "."))
-  (run-command
-   (format nil
-	   *ld-format*
-	   *ld*
-	   out-pathname
-	   (or extra-ld-flags "")
-	   o-files
-	   *ld-flags* (mkcl-library-directory))
-   (namestring working-directory)))
+(defun libs-ld-flags (libraries mkcl-libraries mkcl-shared external-shared)
+  (declare (ignorable mkcl-shared))
+  (let ((libdir (namestring (mkcl-library-directory)))
+	(out (reverse libraries)))
+    #-mkcl-bootstrap
+    (unless mkcl-shared (setq libdir (mkcl:bstr+ libdir "mkcl-" (si:mkcl-version) "/")))
+    (dolist (lib mkcl-libraries)
+      (push (mkcl:bstr+ "\"" libdir lib "\" ") out)
+      )
+    (unless external-shared
+      (push "-Wl,-Bstatic " out)
+      )
+    (push *external-ld-flags* out)
+    (apply #'concatenate 'base-string (nreverse out))
+    )
+  )
 
-(defun shared-cc (out-pathname extra-ld-flags o-files &optional (working-directory "."))
-  (run-command
-   (format nil
-	   *ld-format*
-	   *ld*
-	   (merge-pathnames out-pathname (builder-internal-pathname out-pathname :dll))
-	   (or extra-ld-flags "")
-	   #+msvc o-files
-	   #-msvc (cons "-Wl,--whole-archive" (nconc o-files '("-Wl,--no-whole-archive")))
-	   *ld-shared-flags* (mkcl-library-directory))
-   (namestring working-directory)))
+(defun link-program (out-pathname extra-ld-flags o-files libraries mkcl-shared external-shared &optional (working-directory "."))
+  (run-command (format nil
+		       *ld-format*
+		       *ld*
+		       out-pathname
+		       (or extra-ld-flags "")
+		       o-files
+		       *program-ld-flags*
+		       (libs-ld-flags libraries (if mkcl-shared *mkcl-shared-libs* *mkcl-static-libs*) mkcl-shared external-shared)
+		       )
+	       (namestring working-directory)))
 
-(defun bundle-cc (out-pathname init-name extra-ld-flags o-files &optional (working-directory "."))
+(defun link-shared-lib (out-pathname extra-ld-flags o-files libraries mkcl-shared external-shared &optional (working-directory "."))
+  (run-command (format nil
+		       *ld-format*
+		       *ld*
+		       (merge-pathnames out-pathname (builder-internal-pathname out-pathname :dll))
+		       (or extra-ld-flags "")
+		       #+msvc o-files
+		       #-msvc (cons "-Wl,--whole-archive" (nconc o-files '("-Wl,--no-whole-archive")))
+		       *shared-ld-flags*
+		       ;; during bootstrap the only shared lib we will build is MKCL's main lib which cannot depend on itself.
+		       (libs-ld-flags libraries
+				      (and #+unix nil #+mkcl-bootstrap nil *mkcl-shared-libs*)
+				      mkcl-shared external-shared))
+	       (namestring working-directory)))
+
+(defun link-fasl (out-pathname init-name extra-ld-flags o-files libraries mkcl-shared external-shared &optional (working-directory "."))
   (declare (ignorable init-name))
-  (run-command
-   (format nil
-	   *ld-format*
-	   *ld*
-	   out-pathname
-	   (or extra-ld-flags "")
-	   o-files
-	   #-msvc *ld-bundle-flags* #-msvc (mkcl-library-directory)
-	   #+msvc (concatenate 'string
-			       *ld-bundle-flags*
-			       " /EXPORT:"
-			       init-name
-			       " /LIBPATH:"
-			       (mkcl-library-directory)
-			       " /IMPLIB:"
-			       (builder-internal-pathname out-pathname :import-library)))
-   (namestring working-directory)))
+  (run-command (format nil
+		       *ld-format*
+		       *ld*
+		       out-pathname
+		       (or extra-ld-flags "")
+		       o-files
+		       *bundle-ld-flags*
+		       #-msvc (libs-ld-flags libraries
+					     (if mkcl-shared 
+						 (and #+unix nil *mkcl-shared-libs*)
+					       *mkcl-static-libs*)
+					     mkcl-shared external-shared)
+		       #+msvc (concatenate 'string
+					   " /EXPORT:"
+					   init-name
+					   " /LIBPATH:"
+					   (mkcl-library-directory)
+					   " /IMPLIB:"
+					   (builder-internal-pathname out-pathname :import-library)))
+	       (namestring working-directory)))
 
 (defun preserve-escapes (string)
   (let ((new (prin1-to-string string)))
@@ -199,16 +219,14 @@
   )
 
 (defun compiler-cc (c-pathname o-pathname &optional (working-directory "."))
-  (run-command
-   (format nil
-	   *cc-format*
-	   *cc* *cc-flags* (>= (cmp-env-optimization 'speed) 2) *cc-optimize*
-	   (preserve-escapes (namestring (mkcl-include-directory)))
-	   c-pathname
-	   o-pathname
-	   )
-   (namestring working-directory)
-   ))
+  (run-command (format nil
+		       *cc-format*
+		       *cc* *cc-flags* (>= (cmp-env-optimization 'speed) 2) *cc-optimize*
+		       (preserve-escapes (namestring (mkcl-include-directory)))
+		       c-pathname
+		       o-pathname
+		       )
+	       (namestring working-directory)))
 
 
 (defconstant +lisp-program-full-header+ "~
@@ -573,6 +591,9 @@ filesystem or in the database of ASDF modules."
 		       (init-name nil)
 		       (prologue-code "" prologue-p)
 		       (epilogue-code (when (eq target :program) '(SI::TOP-LEVEL)))
+		       (libraries nil) ;; a list of strings, each naming a library
+		       (use-mkcl-shared-libraries t)
+		       (use-external-shared-libraries t)
 		       #+windows (subsystem :console) ;; only for :program target on :windows
 		       &aux
 		       (*builder-to-delete* nil)
@@ -670,7 +691,8 @@ filesystem or in the database of ASDF modules."
 	     (ecase subsystem
 		    (:console (push "-mconsole" object-files))
 		    (:windows (push "-mwindows" object-files)))
-	     (linker-cc output-internal-name extra-ld-flags (cons (namestring o-pathname) object-files) cwd))
+	     (link-program output-internal-name extra-ld-flags (cons (namestring o-pathname) object-files)
+			   libraries use-mkcl-shared-libraries use-external-shared-libraries cwd))
 	    ((:static-library :library :lib)
 	     (let ((output-filename output-internal-name))
 	       (format c-file +lisp-program-init+ init-name prologue-code submodules epilogue-code)
@@ -699,14 +721,16 @@ filesystem or in the database of ASDF modules."
 	     (close c-file)
 	     (rename-file c-file c-pathname)
 	     (compiler-cc c-basename o-basename work-dir)
-	     (shared-cc output-internal-name extra-ld-flags (cons o-pathname object-files) cwd))
+	     (link-shared-lib output-internal-name extra-ld-flags (cons o-pathname object-files)
+			      libraries use-mkcl-shared-libraries use-external-shared-libraries cwd))
 	    ((:fasl :fasb)
 	     #+windows (format c-file +lisp-program-init-export+ init-name)
 	     (format c-file +lisp-program-init+ init-name prologue-code submodules epilogue-code)
 	     (close c-file)
 	     (rename-file c-file c-pathname)
 	     (compiler-cc c-basename o-basename work-dir)
-	     (bundle-cc output-internal-name init-name extra-ld-flags (cons o-pathname object-files) cwd))
+	     (link-fasl output-internal-name init-name extra-ld-flags (cons o-pathname object-files)
+			libraries use-mkcl-shared-libraries use-external-shared-libraries cwd))
 	    )
 
 	  (unless (equal output-name output-internal-name)
@@ -861,6 +885,7 @@ filesystem or in the database of ASDF modules."
 			(h-file *h-file*)
 			(data-file *data-file*)
 			(fasl-p t)
+			(libraries nil) ;; a list of strings, each naming a foreign library
 			&aux
 			(*standard-output* *standard-output*)
 			(*error-output* *error-output*)
@@ -979,7 +1004,7 @@ compiled successfully, returns the pathname of the compiled file."
 	   (when fasl-p
 	     (push o-pathname to-delete)
 	     (setq tmp-output (compile-file-internal-pathname output-file :fasl))
-	     (bundle-cc (mkcl:file-pathname tmp-output) init-name "" (list o-basename) tool-wd))
+	     (link-fasl (mkcl:file-pathname tmp-output) init-name "" (list o-basename) libraries t t tool-wd))
 	   (unless (equal output-file tmp-output)
 	     ;;(format t "~&MKCL;; compiler had to rename its output from ~A to ~A.~%" tmp-output output-file) (finish-output)
 	     (rename-file tmp-output output-file))
@@ -1004,6 +1029,7 @@ compiled successfully, returns the pathname of the compiled file."
   )
 
 (defun cl:compile (name &optional (definition nil definition-supplied-p)
+			&key (libraries nil) ;; a list of strings, each naming a foreign library
 			&aux 
 			form
 			data-pathname
@@ -1087,7 +1113,7 @@ returned as the value of COMPILE."
 	 (setf si:*compiler-constants* (data-dump data-file #|data-pathname|# :close-when-done t))
 
 	 (compiler-cc (file-namestring c-pathname) (file-namestring o-pathname) tool-wd)
-	 (bundle-cc (file-namestring so-pathname) init-name "" (list (file-namestring o-pathname)) tool-wd)
+	 (link-fasl (file-namestring so-pathname) init-name "" (list (file-namestring o-pathname)) libraries t t tool-wd)
 	 
 	 (cond ((mkcl:probe-file-p so-pathname)
 		(load so-pathname :verbose nil)

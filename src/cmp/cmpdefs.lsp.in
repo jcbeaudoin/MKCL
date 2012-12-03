@@ -490,24 +490,24 @@ coprocessor).")
 (defvar *cc-optimize* #-msvc ""
                       #+msvc "@CFLAGS_OPTIMIZE@")
 
-(defvar *ld-format* #-msvc "\"~A\" -o \"~A\" ~A ~{\"~A\" ~} ~@?"
-                    #+msvc "\"~A\" -Fe\"~A\" ~A ~{\"~A\" ~} ~@?")
+(defvar *ld-format* #-msvc "\"~A\" -o \"~A\" ~A ~{\"~A\" ~} ~A ~@?"
+                    #+msvc "\"~A\" -Fe\"~A\" ~A ~{\"~A\" ~} ~A ~@?")
 
 (defvar *cc-format* #-msvc "\"~A\" ~A ~:[~*~;~A~] \"-I~A\" -c \"~A\" -o \"~A\""
                     #+msvc "\"~A\" ~A ~:[~*~;~A~] -I\"~A\" -w -c \"~A\" -Fo\"~A\"")
 
 
-(defvar *support-libraries* "@LIBRARIES@")
+(defvar *support-libraries* (mkcl:split-string "@LIBRARIES@" #\space))
+(defvar *mkcl-shared-libs* (list (mkcl:bstr+ "@SHAREDPREFIX@mkcl_" (si:mkcl-version) ".@SHAREDEXT@")))
+(defvar *mkcl-static-libs* (list* "libmkcltop.a" "liblsp.a" "libmkclmin.a" *support-libraries*))
 
-(defvar *external-ld-flags* "@LDFLAGS@ @FASL_LIBS@ @TCP_LIBS@ @LIBS@ ") ;; @TCP_LIBS@ ??
+(defvar *external-ld-flags* "@LDFLAGS@ @TCP_LIBS@ @LIBS@ ")
 
-(defvar *ld-flags*
-  #+unix (mkcl:bstr+ "\"~A@SHAREDPREFIX@mkcl_" (si:mkcl-version) ".@SHAREDEXT@\" " *external-ld-flags*)
-  #+(or mingw32 mingw64) (mkcl:bstr+ "\"~Amkcl_" (si:mkcl-version) ".dll\" " *external-ld-flags*)
-  #+msvc (mkcl:bstr+ "mkcl.lib " *external-ld-flags*)
-  )
-(defvar *ld-shared-flags* (mkcl:bstr+ "@SHARED_LDFLAGS@ " *ld-flags*))
-(defvar *ld-bundle-flags* (mkcl:bstr+ "@BUNDLE_LDFLAGS@ " #+windows *ld-flags*))
+(defvar *shared-ld-flags* "@SHARED_LDFLAGS@")
+(defvar *bundle-ld-flags* "@BUNDLE_LDFLAGS@")
+(defvar *program-ld-flags*
+  #+linux "-rdynamic -Wl,--enable-new-dtags -Wl,-rpath,$ORIGIN/../lib"
+  #-linux "")
 
 (defvar +shared-library-prefix+ "@SHAREDPREFIX@")
 (defvar +shared-library-extension+ "@SHAREDEXT@")
@@ -516,6 +516,7 @@ coprocessor).")
 (defvar +static-library-extension+ "@LIBEXT@")
 (defvar +static-library-format+ "@LIBPREFIX@~a.@LIBEXT@")
 (defvar +object-file-extension+ "@OBJEXT@")
+(defvar +executable-file-extension+ "@EXEEXT@")
 (defvar +executable-file-format+ "~a@EXEEXT@")
 
 (defvar *mkcl-include-directory* (pathname @includedir\@))

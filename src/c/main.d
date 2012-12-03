@@ -24,18 +24,7 @@
 #if defined(MKCL_WINDOWS)
 # include <windows.h>
 # include <shellapi.h>
-/* # define MAXPATHLEN 512 */
 # include <winbase.h>
-#endif
-
-#if 0
-#ifndef MAXPATHLEN
-# ifdef PATH_MAX
-#  define MAXPATHLEN PATH_MAX
-# else
-#  define NO_PATH_MAX
-# endif
-#endif
 #endif
 
 #include <unistd.h>
@@ -151,70 +140,6 @@ mkcl_set_option(mkcl_option option, mkcl_word value)
 #include "iso_latin_names.h"
 
 
-static void
-read_char_database(MKCL)
-{
-  static const mkcl_base_string_object(ucd_basename_obj, "ucd.dat");
-  mkcl_object ucd_filename = mk_si_concatenate_strings(env, 2,
-						       mkcl_namestring(env, mk_si_get_library_pathname(env), FALSE),
-						       (mkcl_object) &ucd_basename_obj);
-#if 0
-  mkcl_object os_ucd_filename = mkcl_string_to_OSstring(env, ucd_filename);
-#else
-  mkcl_dynamic_extent_OSstring(env, os_ucd_filename, ucd_filename);
-#endif
-
-#ifdef MKCL_WINDOWS
-  FILE *f = _wfopen(mkcl_OSstring_self(os_ucd_filename), L"rb");
-#else
-  FILE *f = fopen(mkcl_OSstring_self(os_ucd_filename), "rb");
-#endif
-  if (f) {
-    mkcl_object output = mk_cl_Cnil;
-    mkcl_index size, read;
-    if (!fseek(f, 0, SEEK_END)) {
-      size = ftell(f);
-      fseek(f, 0, SEEK_SET);
-      output = mk_si_make_vector(env, @'mkcl::natural8', MKCL_MAKE_FIXNUM(size),
-				 mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil);
-	    
-      read = 0;
-      while (read < size) {
-	mkcl_index res;
-	res = fread(output->vector.self.b8 + read, 1, size - read, f);
-	if (res > 0) {
-	  read += res;
-	} else if (ferror(f) || (feof(f) && read < size)) {
-	  output = mk_cl_Cnil;
-#ifdef MKCL_WINDOWS
-	  fwprintf(stderr, L"\nMKCL: Unable to read Unicode character database: %s\n", mkcl_OSstring_self(os_ucd_filename));
-#else
-	  fprintf(stderr, "\nMKCL: Unable to read Unicode character database: %s\n", mkcl_OSstring_self(os_ucd_filename));
-#endif
-	  perror("MKCL Error");
-	  mk_mt_abandon_thread(env, @':aborted');  /* Maybe a tad too radical. JCB */
-	}
-      }
-    }
-    mkcl_safe_fclose(env, f, mk_cl_Cnil);
-    {
-      uint8_t *p = output->vector.self.b8;
-      mkcl_core.unicode_database = output;
-      mkcl_core.ucd_misc = p + 2;
-      mkcl_core.ucd_pages = mkcl_core.ucd_misc + (p[0] + (p[1]<<8));
-      mkcl_core.ucd_data = mkcl_core.ucd_pages + (0x110000 / 256);
-    }
-    MKCL_SET(@'si::+unicode-database+', output);
-  } else {
-#ifdef MKCL_WINDOWS
-    fwprintf(stderr, L"\nMKCL: Unable to open Unicode character database file: %s\n", mkcl_OSstring_self(os_ucd_filename));
-#else
-    fprintf(stderr, "\nMKCL: Unable to open Unicode character database file: %s\n", mkcl_OSstring_self(os_ucd_filename));
-#endif
-    perror("MKCL Error");
-    mk_mt_abandon_thread(env, @':aborted'); /* Maybe a tad too radical. JCB */
-  }
-}
 
 
 static mkcl_object mkcl_true_self(MKCL)
@@ -234,7 +159,7 @@ static mkcl_object mkcl_true_self(MKCL)
   }
 #elif defined(MKCL_WINDOWS)
   {
-    wchar_t buf[48 * 1024]; /* UNC paths are said in MS documentation to be more or less 32k long. */
+    wchar_t buf[48 * 1024]; /* UNC paths are said in MS documentation to be more or less 32k long maximum. */
     DWORD nSize = MKCL_NB_ELEMS(buf);
     DWORD rc;
 
@@ -368,7 +293,9 @@ static void _mkcl_boot_inner(MKCL)
   mk_cl_Ct->symbol.stype = mkcl_stp_constant;
 
 
+#if 1
   mkcl_core.packages = mk_cl_Cnil;
+#endif
   mkcl_core.packages_to_be_created = mk_cl_Cnil;
 
   mkcl_core.lisp_package =
@@ -501,11 +428,6 @@ static void _mkcl_boot_inner(MKCL)
 #endif
 
   /*
-   * Initialize Unicode character database.
-   */
-  read_char_database(env);
-
-  /*
    * Load character names. The following hash table is a map
    * from names to character codes and viceversa. Note that we
    * need EQUALP because it has to be case insensitive.
@@ -635,9 +557,6 @@ static void _mkcl_boot_inner(MKCL)
 
   MKCL_SET(@'*package*', mkcl_core.lisp_package);
 
-  mkcl_core.clear_compiler_properties = mk_cl_Cnil;
-
-
   {
     mkcl_object fpe_set = mk_si_initial_floating_point_exception_set(env);
     
@@ -699,13 +618,6 @@ static void get_basic_OS_params(void)
 
     usleep(1);
   }
-#if 0
-  {
-    long pagesize = getpagesize(); /* The old way! sysconf() is better. */
-    if (pagesize != mkcl_core.pagesize)
-      printf("\nIncoherent page size!\n");
-  }
-#endif
 #elif defined(MKCL_WINDOWS)
 {
    SYSTEM_INFO siSysInfo;
@@ -995,11 +907,7 @@ int mkcl_shutdown_watchdog(MKCL) /* We expect to run this function with interrup
 	    = mk_si_shutdown_mkcl(env, own_thread->thread.result_value, watchdog_thread, mk_cl_Ct, mk_cl_Ct);
 	else
 	  {
-#if 0
-	    own_thread->thread.result_value = mk_mt_thread_join(env, shutdown_thread);
-#else
 	    own_thread->thread.result_value = join_thread(env, shutdown_thread);
-#endif
 	  }
       } MKCL_CATCH_ALL_IF_CAUGHT {
 	own_thread->thread.result_value = @':invalid-value';
@@ -1157,11 +1065,7 @@ mkcl_object mkcl_getenv(MKCL, mkcl_object var)
 {
   mkcl_OSstring_raw_type raw_os_value;
   mkcl_unlock_process_env unlocker = NULL;
-#if 0
-  mkcl_object os_var = mkcl_string_to_OSstring(env, var);
-#else
   mkcl_dynamic_extent_OSstring(env, os_var, var);
-#endif
 
   if (process_lock_unlock_callback) unlocker = process_lock_unlock_callback();
 #ifdef MKCL_WINDOWS
@@ -1214,11 +1118,7 @@ mkcl_setenv(MKCL, mkcl_object var, mkcl_object value)
 #  endif
 # endif
   } else {
-#if 0
-    mkcl_object os_value = mkcl_string_to_OSstring(env, value);
-#else
   mkcl_dynamic_extent_OSstring(env, os_value, value);
-#endif
 
 # ifdef HAVE_SETENV
     ret_val = setenv((char*)mkcl_OSstring_self(os_var), (char*)mkcl_OSstring_self(os_value), TRUE);

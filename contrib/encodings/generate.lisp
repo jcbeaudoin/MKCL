@@ -17,7 +17,7 @@
    ;;for orig = (make-pathname :name name :type "BIN" :defaults "ext:encodings;")
    ;;for copy = (ensure-directories-exist (merge-pathnames "build:encodings;" orig))
    for orig = (make-pathname :name name :type "BIN" :defaults "../contrib/encodings/")
-   for copy = (ensure-directories-exist (make-pathname :directory '(:relative "encodings") :defaults orig))
+   for copy = (ensure-directories-exist (make-pathname :directory '(:relative "ENCODINGS") :defaults orig))
    do (progn
 	(unless (probe-file orig)
 	  (format t "~&Mapping file ~A is missing. Update needed.~%" orig)
@@ -88,15 +88,15 @@
 
 (loop for (name . aliases) in +aliases+
    do (loop for alias in aliases
-	    ;;for filename0 = (make-pathname :name (symbol-name alias) :defaults "build:encodings;")
-	    for filename0 = (make-pathname :name (symbol-name alias) :defaults "./encodings/")
+	    ;;for filename0 = (make-pathname :name (symbol-name alias) :defaults "build:ENCODINGS;")
+	    for filename0 = (make-pathname :name (symbol-name alias) :defaults "./ENCODINGS/")
 	    for filename = (ensure-directories-exist filename0)
 	    do (with-open-file (out filename :direction :output :if-exists :supersede
 				    :if-does-not-exist :create :external-format '(:ascii :lf))
 			       (when *generate-verbose* (format t "~%;;; Creating alias ~A -> ~A, ~A" alias name filename))
 			       (format out "(defparameter mk-ext::~A (si::make-encoding 'mk-ext::~A))~%" alias name))))
 
-;;(copy-file "../contrib/encodings/tools.lisp" "./encodings/tools.lisp" :verbose *generate-verbose*)
-(copy-file "../contrib/encodings/ISO-2022-JP" "./encodings/ISO-2022-JP" :verbose *generate-verbose*)
-(copy-file "../contrib/encodings/ISO-2022-JP-1" "./encodings/ISO-2022-JP-1" :verbose *generate-verbose*)
+;;(copy-file "../contrib/encodings/tools.lisp" "./ENCODINGS/tools.lisp" :verbose *generate-verbose*)
+(copy-file "../contrib/encodings/ISO-2022-JP" "./ENCODINGS/ISO-2022-JP" :verbose *generate-verbose*)
+(copy-file "../contrib/encodings/ISO-2022-JP-1" "./ENCODINGS/ISO-2022-JP-1" :verbose *generate-verbose*)
 (when *generate-verbose* (terpri) (terpri))

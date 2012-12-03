@@ -23,14 +23,12 @@
 
 ;;(setq compiler::*trace-cc* t)
 
-;(defparameter arg-base 5)
 (defparameter arg-base 7)
 
 (load "asdf.fasb") ;; load the local one.
 
 ;; Let's get rid of the compiler output cache!
 #+asdf2
-;;(asdf:initialize-output-translations "/:") ;; it would be "/;" on MS-windows.
 (asdf:disable-output-translations)
 
 #+asdf2 (setq asdf::*asdf-verbose* nil)
@@ -96,7 +94,7 @@
   (build-substitute-asd-file sys-name sys-attr)
   )
 
-(unless (progn #|ignore-errors|# (asdf:bundle-system sys))
+(unless (ignore-errors (asdf:bundle-system sys))
   (format t "~%asdf:bundle-system failed.~%")
   (finish-output)
   (mkcl:quit :exit-code 1))

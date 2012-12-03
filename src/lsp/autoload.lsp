@@ -24,11 +24,11 @@ Returns the string \"MKCL\"."
 
 ;;; Compiler functions.
 
-(defun autoload (pathname &rest function-names)
+(defun autoload (module &rest function-names)
   (dolist (fname function-names)
     (let ((thename fname))
       (fset fname #'(lambda (&rest args)
-		      (load pathname)
+		      (require module)
 		      (apply thename args))))))
 
 (unless (fboundp 'compile)
@@ -37,8 +37,27 @@ Returns the string \"MKCL\"."
 Gives a global declaration.  See DECLARE for possible DECL-SPECs."
     (when (eq (car d) 'SPECIAL) (mapc #'sys::*make-special (cdr d))))
   
-  (autoload "SYS:cmp" 'compile-file 'compile 'compile-file-pathname 'disassemble)
+  (autoload "cmp" 'compile-file 'compile 'compile-file-pathname 'disassemble)
   )
+
+
+
+;;;
+;;; These default settings are equivalent to (optimize (speed 3) (space 0) (safety 2) (debug 2))
+;;;
+(defvar *safety* 2)
+(defvar *speed* 3)
+(defvar *space* 0)
+(defvar *debug* 2)
+(defvar *compilation-speed* 0)
+
+(defvar *compilation-unit-environment* nil) ;; NIL stands for the null lexical environment.
+
+(defvar *compiler-floating-point-exclusion-set* '(floating-point-inexact
+						  floating-point-invalid-operation
+						  floating-point-underflow
+						  floating-point-overflow
+						  division-by-zero))
 
 ;; This definition of with-compilation-unit is a dummy place holder
 ;; to be redefined by a more specific version when the compiler is loaded.
@@ -109,6 +128,4 @@ Good luck!
 
 ;;; Import functions which are useful for user interaction
 
-;; (in-package "CL-USER")
-;; (import '(sys::help sys::help* mkcl::quit))
 (import '(sys::help sys::help* mkcl::quit) (find-package "CL-USER"))

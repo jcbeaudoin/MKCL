@@ -490,24 +490,24 @@ coprocessor).")
 (defvar *cc-optimize* #-msvc ""
                       #+msvc "@CFLAGS_OPTIMIZE@")
 
-(defvar *ld-format* #-msvc "\"~A\" -o \"~A\" ~A ~{\"~A\" ~} ~@?"
-                    #+msvc "\"~A\" -Fe\"~A\" ~A ~{\"~A\" ~} ~@?")
+(defvar *ld-format* #-msvc "\"~A\" -o \"~A\" ~A ~{\"~A\" ~} ~A ~@?"
+                    #+msvc "\"~A\" -Fe\"~A\" ~A ~{\"~A\" ~} ~A ~@?")
 
 (defvar *cc-format* #-msvc "\"~A\" ~A ~:[~*~;~A~] \"-I~A\" -c \"~A\" -o \"~A\""
                     #+msvc "\"~A\" ~A ~:[~*~;~A~] -I\"~A\" -w -c \"~A\" -Fo\"~A\"")
 
 
-(defvar *support-libraries* "libmkclgc.a")
+(defvar *support-libraries* (mkcl:split-string "libmkclgc.a" #\space))
+(defvar *mkcl-shared-libs* (list (mkcl:bstr+ "mkcl_" (si:mkcl-version) ".dll")))
+(defvar *mkcl-static-libs* (list* "libmkcltop.a" "liblsp.a" "libmkclmin.a" *support-libraries*))
 
-(defvar *external-ld-flags* "   -lws2_32    -lm ") ;; -lws2_32 ??
+(defvar *external-ld-flags* "  -lws2_32    -lm ")
 
-(defvar *ld-flags*
-  #+unix (mkcl:bstr+ "\"~Amkcl_" (si:mkcl-version) ".dll\" " *external-ld-flags*)
-  #+(or mingw32 mingw64) (mkcl:bstr+ "\"~Amkcl_" (si:mkcl-version) ".dll\" " *external-ld-flags*)
-  #+msvc (mkcl:bstr+ "mkcl.lib " *external-ld-flags*)
-  )
-(defvar *ld-shared-flags* (mkcl:bstr+ "-shared  " *ld-flags*))
-(defvar *ld-bundle-flags* (mkcl:bstr+ "-shared  " #+windows *ld-flags*))
+(defvar *shared-ld-flags* "-shared ")
+(defvar *bundle-ld-flags* "-shared ")
+(defvar *program-ld-flags*
+  #+linux "-rdynamic -Wl,--enable-new-dtags -Wl,-rpath,$ORIGIN/../lib"
+  #-linux "")
 
 (defvar +shared-library-prefix+ "")
 (defvar +shared-library-extension+ "dll")
@@ -516,6 +516,7 @@ coprocessor).")
 (defvar +static-library-extension+ "a")
 (defvar +static-library-format+ "lib~a.a")
 (defvar +object-file-extension+ "o")
+(defvar +executable-file-extension+ ".exe")
 (defvar +executable-file-format+ "~a.exe")
 
 (defvar *mkcl-include-directory* (pathname @includedir\@))

@@ -17,8 +17,6 @@
   (:export "CLINES" "DEFENTRY" "DEFLA" "DEFCBODY" "DEFINLINE" "C-INLINE" ;; extension to UFFI
 	   "DEFCALLBACK" "CALLBACK"                                      ;; extension to UFFI
 
-	   "VOID" "OBJECT" "CHAR*" "INT" "DOUBLE" ;; needed by DEFENTRY? JCB
-
 	   ;; The UFFI Protocol
 	   "DEF-CONSTANT" "DEF-FOREIGN-TYPE" "DEF-ENUM" "DEF-STRUCT"
 	   "DEF-ARRAY-POINTER" "DEF-FUNCTION" "DEF-UNION" "DEF-ARRAY"
@@ -37,7 +35,7 @@
            "WITH-CAST-POINTER" "WITH-CSTRINGS"
 
 	   )
-  (:import-from "SYS" "NULL-POINTER-P" #|"GET-SYSPROP" "PUT-SYSPROP"|#))
+  (:import-from "SYS" "NULL-POINTER-P"))
 
 (in-package "FFI")
 
@@ -640,11 +638,17 @@
 	  )))))
   nil)
 
+#|
+;; This code, here commented out, is useful only for the UFFI interface and only on
+;; MS-Windows were the linker demands to have access to the linkee function object code
+;; at link time. JCB
+;; This whole facility is in deep need of a redesign anyway, so it is decommissoned for now.
+;; Use CFFI instead. JCB
 (defvar +loaded-libraries+ nil)
 
-(defun do-load-foreign-library (tmp &optional system-library)
+(defun do-load-foreign-library (tmp &optional system-library) ;; What is the use of this? JCB
  (let* ((path (cond ((pathnamep tmp) tmp)
-                    ((mkcl:probe-file-p (setf tmp (string tmp))) tmp)
+                    ((mkcl:probe-file-p (setf tmp (pathname (string tmp)))) tmp)
                     (t (compile-file-pathname tmp :type #+msvc :lib #-msvc :dll))))
         (filename (namestring path))
         (pack (find-package "COMPILER"))
@@ -654,25 +658,27 @@
    (unless (find filename ffi::+loaded-libraries+ :test #'string-equal)
      (setf (symbol-value (intern "*LD-FLAGS*" pack))
 	   (concatenate 'string (symbol-value (intern "*LD-FLAGS*" pack)) " " flag))
-     (setf (symbol-value (intern "*LD-BUNDLE-FLAGS*" pack))
-	   (concatenate 'string (symbol-value (intern "*LD-BUNDLE-FLAGS*" pack))
+     (setf (symbol-value (intern "*BUNDLE-LD-FLAGS*" pack))
+	   (concatenate 'string (symbol-value (intern "*BUNDLE-LD-FLAGS*" pack))
 			" " flag))
-     (setf (symbol-value (intern "*LD-SHARED-FLAGS*" pack))
-	   (concatenate 'string (symbol-value (intern "*LD-SHARED-FLAGS*" pack))
+     (setf (symbol-value (intern "*SHARED-LD-FLAGS*" pack))
+	   (concatenate 'string (symbol-value (intern "*SHARED-LD-FLAGS*" pack))
 			" " flag))
      (push filename ffi::+loaded-libraries+))
    t))
+|#
 
 (defmacro load-foreign-library (filename &key module supporting-libraries force-load
 				system-library)
  (declare (ignore module force-load supporting-libraries))
- (let ((compile-form (and (constantp filename)
+ (let (#|(compile-form (and (constantp filename)
                           `((eval-when (:compile-toplevel)
                               (do-load-foreign-library ,filename
-				,system-library)))))
+				,system-library)))))|#
        (dyn-form (unless system-library
 		   `((si:load-foreign-module ,filename)))))
-   `(progn ,@compile-form ,@dyn-form)))
+   ;;(declare (ignore compile-form)) ;; JCB
+   `(progn #|,@compile-form|# ,@dyn-form)))
 
 ;;;----------------------------------------------------------------------
 ;;; CALLBACKS

@@ -1,7 +1,8 @@
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
+;;;;  Copyright (c) 2012, Jean-Claude Beaudoin.
 ;;;;
-;;;;    This program is free software; you can redistribute it and/or modify
+;;;;    MKCL is free software; you can redistribute it and/or modify
 ;;;;    it under the terms of the GNU General Public License as published by
 ;;;;    the Free Software Foundation; either version 2 of the License, or
 ;;;;    (at your option) any later version.
@@ -12,7 +13,6 @@
 ;;;;
 ;;;;                    Sets doc-strings for built-in symbols.
 
-(in-package "COMPILER")			; in case it does not exist
 (in-package "SYSTEM")
 (si::reopen-package "SYSTEM")
 
@@ -20,7 +20,6 @@
   (do-docfun symbol kind args doc))
 
 (defun do-docfun (symbol kind args doc)
-  ;(print symbol)
   (cond ((and doc (search "Syntax:" doc))
 	 (setf args nil))
 	((and doc (search "Args:" doc))
@@ -44,7 +43,6 @@
   (do-docvar symbol kind doc))
 
 (defun do-docvar (symbol kind doc)
-  ;(print symbol)
   (si::set-documentation
    symbol 'variable
    (format nil "~@(~A~) in ~A package:~A~%"
@@ -54,7 +52,6 @@
   (do-doctype symbol doc))
 
 (defun do-doctype (symbol doc)
-  ;(print symbol)
   (si::set-documentation symbol 'type doc))
 
 (defun tree-search (tree x)
@@ -134,6 +131,12 @@ The top-level form MKCL is currently evaluating.")
 
 (docvar * variable "
 The value of the last top-level form.")
+
+(docvar ** variable "
+The value of the last-but-one top-level form.")
+
+(docvar *** variable "
+The value of the last-but-two top-level form.")
 
 (docfun * function (&rest numbers) "
 Returns the product of the args.  With no args, returns 1.")
@@ -1917,7 +1920,7 @@ Returns RATIONAL if it is an integer.")
 Returns T if INTEGER is an odd number; NIL otherwise.")
 
 (docfun open function (filespec &key (direction :input) element-type
-                     if-exists if-does-not-exist) "
+                     if-exists if-does-not-exist (external-format :default)) "
 Opens the specified file and returns a file stream to/from the file.  FILESPEC
 may be a symbol, a string, a pathname, or a file stream.  DIRECTION may be
 :INPUT, :OUTPUT, :IO, or :PROBE.  ELEMENT-TYPE is simply ignored in MKCL.  IF-
@@ -2844,3 +2847,4 @@ Outputs STRING to STREAM.  Returns STRING.")
 Returns T if the arg is zero; NIL otherwise.")
 
 ;;;----------------------------------------------------------------------
+

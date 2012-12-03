@@ -1620,7 +1620,7 @@ mk_si_get_library_pathname(MKCL)
 	}
       else
 	{
-	  mkcl_object lib_dir_tip = mkcl_make_simple_base_string(env, "../lib/mkcl-" MKCL_VERSION "/");
+	  mkcl_object lib_dir_tip = mkcl_make_simple_base_string(env, "../lib/mkcl-" MKCL_VERSION_STRING "/");
 	  mkcl_object lib_dir_root = mk_cl_make_pathname(env, 8,
 							 @':name', mk_cl_Cnil,
 							 @':type', mk_cl_Cnil,
@@ -1630,13 +1630,31 @@ mk_si_get_library_pathname(MKCL)
 
 	  if (mkcl_Null(mk_mkcl_probe_file_p(env, lib_pathname)))
 	    {
-	      mkcl_object default_libdir_pathstring = mkcl_cstring_to_string(env, MKCL_LIBDIR "/");
-	      libdir = mk_cl_parse_namestring(env, 1, default_libdir_pathstring);
+	      int i;
+#ifdef MKCL_WINDOWS
+	      char os_dir0[] = "c:\\Program Files\\MKCL " MKCL_VERSION_STRING "\\";
+	      char os_dir1[] = "c:\\Program Files\\MKCL " MKCL_MAJOR_VERSION_STRING "." MKCL_MINOR_VERSION_STRING "\\";
+#else
+	      char os_dir0[] = "/usr/local/lib/mkcl-" MKCL_VERSION_STRING "/";
+	      char os_dir1[] = "/usr/lib/mkcl-" MKCL_VERSION_STRING "/";
+#endif
+	      mkcl_base_string_object(dir0_obj, os_dir0);
+	      mkcl_base_string_object(dir1_obj, os_dir1);
+	      mkcl_object dirnames[] = { (mkcl_object) &dir0_obj, (mkcl_object) &dir1_obj };
+
+	      for (i = 0; i < MKCL_NB_ELEMS(dirnames); i++)
+		if (!mkcl_Null(mk_mkcl_probe_file_p(env, dirnames[i])))
+		  { libdir = mk_cl_pathname(env, dirnames[i]); break;}
+
+	      if (mkcl_Null(libdir))
+		{
+		  mkcl_object default_libdir_pathstring = mkcl_cstring_to_string(env, MKCL_LIBDIR_DEFAULT "/");
+		  libdir = mk_cl_parse_namestring(env, 1, default_libdir_pathstring);
+		}
 	    }
 	  else
 	    libdir = lib_pathname;
 	}
-
       mkcl_core.library_pathname = libdir;
     }
   @(return libdir);

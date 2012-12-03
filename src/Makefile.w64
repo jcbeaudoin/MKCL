@@ -13,8 +13,8 @@
 #  See file '../Copyright' for full details.
 #
 #
-top_srcdir= /usr/home/Jean-Claude/mkcl/src
-srcdir	= /usr/home/Jean-Claude/mkcl/src
+top_srcdir= /usr/home/Jean-Claude/mkcl-1.1.2/src
+srcdir	= /usr/home/Jean-Claude/mkcl-1.1.2/src
 
 # Programs used by "make":
 #
@@ -22,8 +22,6 @@ srcdir	= /usr/home/Jean-Claude/mkcl/src
 
 CC	= gcc
 LIBS	= /mingw/lib/libgmp.a -lws2_32 -lm
-FASL_LIBS = 
-CORE_LIBS = libmkclgc.a 
 LDFLAGS	=  
 RM	= rm -f
 LN_S	= ln -s
@@ -40,8 +38,8 @@ exec_prefix=${prefix}
 bindir=${exec_prefix}/bin/
 libdir=${exec_prefix}/lib/
 includedir=${prefix}/include/
-mkcldir=${exec_prefix}/lib/mkcl-1.1.1/
-localmkcldir=./lib/mkcl-1.1.1/
+mkcldir=${exec_prefix}/lib/mkcl-1.1.2/
+localmkcldir=./lib/mkcl-1.1.2/
 
 # Programs used by "make install":
 #
@@ -57,7 +55,7 @@ mkinstalldirs = $(SHELL) ./gc/mkinstalldirs
 
 SUBDIRS = c gc
 LIBRARIES = libmkclgc.a
-LSP_LIBRARIES = mkcl_1.1.1.dll
+LSP_LIBRARIES = mkcl_1.1.2.dll
 TARGETS = bin/mkcl$(EXE)
 
 MKCL_HFILES = mkcl/config.h \
@@ -68,12 +66,13 @@ MKCL_HFILES = mkcl/config.h \
               mkcl/mkcl-gc.h \
               mkcl/mkcl-inl.h \
               mkcl/mkcl-math.h \
+              mkcl/mkcl-unicode.h \
               mkcl/number.h \
               mkcl/object.h \
               mkcl/stacks.h
-#              mkcl/cs.h \
 
-ASDF_FASLS = asdf.fasb ../contrib/asdf-bundle/mkcl.fas
+
+ASDF_FASLS = asdf.fasb ../contrib/asdf-bundle/asdf-bundle.fas
 
 CONTRIB_FASLS = \
                 bytecmp.fasb \
@@ -98,7 +97,7 @@ BUILTINS = asdf profile rt serve-event sockets
 MKCL_STATIC_PARTS = libmkcltop.a liblsp.a libmkclmin.a
 
 
-all: bin/mkcl-config $(TARGETS) $(ASDF_FASLS) $(CONTRIB_FASLS) help.doc
+all: bin/mkcl-config $(TARGETS) $(ASDF_FASLS) $(CONTRIB_FASLS) HELP.DOC
 .PHONY:	all
 
 Makefile: Makefile.in config.status
@@ -109,7 +108,7 @@ mkcl/config.h: mkcl/config.h.in
 	touch mkcl/config.h
 
 
-bin/mkcl-small$(EXE) liblsp.a $(LSP_LIBRARIES) encodings: mkcl_min$(EXE) libmkcltop.a compile.lsp lsp/config.lsp cmp/cmpdefs.lsp lsp/*.lsp clos/*.lsp cmp/*.lsp mkcl/mkcl-cmp.h mkcl/config.h BUILD-STAMP ucd.dat
+bin/mkcl-small$(EXE) liblsp.a $(LSP_LIBRARIES) ENCODINGS: compile.lsp lsp/config.lsp cmp/cmpdefs.lsp lsp/*.lsp clos/*.lsp cmp/*.lsp mkcl/mkcl-cmp.h mkcl/config.h BUILD-STAMP mkcl_min$(EXE) libmkcltop.a
 	MKCL_LIBDIR=`pwd`/ ./mkcl_min$(EXE) compile
 	for i in $(LSP_LIBRARIES) ; do \
 	  if test -s $$i ; then \
@@ -119,9 +118,6 @@ bin/mkcl-small$(EXE) liblsp.a $(LSP_LIBRARIES) encodings: mkcl_min$(EXE) libmkcl
 	    esac \
 	  fi \
 	done
-
-ucd.dat: ../contrib/unicode/ucd.dat
-	cp ../contrib/unicode/ucd.dat .
 
 
 asdf.fasb libasdf.a: bin/mkcl-small$(EXE) build-asdf.lsp ../contrib/asdf/*.lisp
@@ -149,7 +145,7 @@ walker.fasb walker.a: bin/mkcl-small$(EXE) build-serve-event.lsp ../contrib/walk
 	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-walker.lsp
 
 
-../contrib/asdf-bundle/mkcl.fas: bin/mkcl-small$(EXE) build-asdf-bundle.lsp ../contrib/asdf-bundle/*.lisp
+../contrib/asdf-bundle/asdf-bundle.fas: bin/mkcl-small$(EXE) build-asdf-bundle.lsp ../contrib/asdf-bundle/*.lisp
 	if [ "$${LOCALAPPDATA}" ]; then (cd "$${LOCALAPPDATA}"; rm -rf ./common-lisp/cache/mkcl-*); elif [ "$${APPDATA}" ]; then (cd "$${APPDATA}"; rm -rf ./common-lisp/cache/mkcl-*); else rm -rf $$HOME/.cache/common-lisp/mkcl-*/$$(cd ..;pwd -P)/contrib/asdf-bundle; fi
 	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-bundle.lsp
 
@@ -212,15 +208,12 @@ bin/mkcl-full$(EXE): bin/mkcl-small$(EXE) build-full-mkcl.lsp $(BUILTINS)
 	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-full-mkcl.lsp -- $(BUILTINS)
 endif
 
-help.doc: dump-doc.lsp bin/mkcl$(EXE) doc/help.lsp
-	MKCL_LIBDIR=$$(pwd)/ bin/mkcl$(EXE) -norc -q --external-format "(:ascii :lf)" -load dump-doc.lsp
-
-#encodings: bin/mkcl-small$(EXE) generate-encodings.lsp
-#	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load generate-encodings.lsp
+HELP.DOC: dump-doc.lsp bin/mkcl$(EXE) doc/help.lsp
+	MKCL_LIBDIR=$$(pwd)/ bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load dump-doc.lsp
 
 
 mkcl_min$(EXE): $(LIBRARIES) libmkclgc.a libmkclmin.a c/cinit.o c/all_symbols.o .gdbinit
-	$(CC) $(LDFLAGS) -o $@ c/cinit.o c/all_symbols.o libmkclmin.a $(LIBRARIES) $(FASL_LIBS) $(LIBS)
+	$(CC) $(LDFLAGS) -o $@ c/cinit.o c/all_symbols.o libmkclmin.a $(LIBRARIES) $(LIBS)
 
 
 .gdbinit: util/gdbinit
@@ -287,13 +280,6 @@ libmkclgc.a: gc/.libs/libgc.a
 	mkdir -p mkcl/gc
 	cp -p gc/include/*.h mkcl/gc
 
-# gmp/.libs/libgmp.a:
-# 	cd gmp; $(MAKE)
-
-# libmkclgmp.a: gmp/.libs/libgmp.a
-# 	cp -p gmp/.libs/libgmp.a ./libmkclgmp.a
-# 	cp -p gmp/gmp.h mkcl/
-
 
 mkcl/mkcl-cmp.h: mkcl/mkcl.h c/symbols_list.h
 	touch $@
@@ -320,23 +306,21 @@ install-base: all mkcl/config-install.h
 	for i in $(TARGETS); do \
 	  $(INSTALL_PROGRAM) $$i $(bindir); \
 	done
-	$(INSTALL_DATA) ucd.dat $(mkcldir)/
-	if [ -d encodings ]; then \
-	  $(mkinstalldirs) $(mkcldir)/encodings; \
-	  for i in ./encodings/*; do \
-	    $(INSTALL_DATA) $$i $(mkcldir)/encodings; \
+	if [ -d ENCODINGS ]; then \
+	  $(mkinstalldirs) $(mkcldir)/ENCODINGS; \
+	  for i in ./ENCODINGS/*; do \
+	    $(INSTALL_DATA) $$i $(mkcldir)/ENCODINGS; \
 	  done \
 	fi
 	$(INSTALL_DATA) ./mkcl/*.h $(includedir)/mkcl
 	if (echo $(SUBDIRS) | grep gc); then \
 	  $(mkinstalldirs) $(includedir)/mkcl/gc; \
 	  $(INSTALL_DATA) ./mkcl/gc/*.h $(includedir)/mkcl/gc; \
-	  #$(INSTALL_DATA) ./mkcl/gc/private/*.h $(includedir)/mkcl/gc/private; \
 	fi
 	rm $(includedir)/mkcl/config.h
 	mv $(includedir)/mkcl/config-install.h $(includedir)/mkcl/config.h
 	$(INSTALL_SCRIPT) bin/mkcl-config $(bindir)
-	for i in BUILD-STAMP help.doc ; do \
+	for i in BUILD-STAMP HELP.DOC ; do \
 	  $(INSTALL_DATA) $$i $(mkcldir); \
 	done
 	for i in $(LSP_LIBRARIES); do \
@@ -366,7 +350,7 @@ install-base: all mkcl/config-install.h
 	if [ -f libcmp.a ] ; then $(INSTALL_DATA) libcmp.a $(mkcldir); fi
 	$(INSTALL_PROGRAM) cmp.fasb $(mkcldir)
 
-install-contribs: $(ASDF_FASLS) $(CONTRIB_FASLS) # $(CONTRIB_STATIC_LIBS)
+install-contribs: $(ASDF_FASLS) $(CONTRIB_FASLS)
 	$(mkinstalldirs) $(mkcldir)/contrib/
 	for i in *.asd; do $(INSTALL_DATA) $${i} $(mkcldir)/contrib/; done
 	for i in asdf.fasb $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
@@ -391,11 +375,10 @@ install-base-local: all mkcl/config-install.h
 	  $(localmkcldir) ./include/ ./include//mkcl
 	$(INSTALL_DATA) ../Copyright ../LGPL $(localmkcldir)
 	$(INSTALL_DATA) ../Copyright ../LGPL ./include/mkcl
-	$(INSTALL_DATA) ucd.dat $(localmkcldir)/
-	if [ -d encodings ]; then \
-	  $(mkinstalldirs) $(localmkcldir)/encodings; \
-	  for i in ./encodings/*; do \
-	    $(INSTALL_DATA) $$i $(localmkcldir)/encodings; \
+	if [ -d ENCODINGS ]; then \
+	  $(mkinstalldirs) $(localmkcldir)/ENCODINGS; \
+	  for i in ./ENCODINGS/*; do \
+	    $(INSTALL_DATA) $$i $(localmkcldir)/ENCODINGS; \
 	  done \
 	fi
 	$(INSTALL_DATA) ./mkcl/*.h ./include//mkcl
@@ -405,7 +388,7 @@ install-base-local: all mkcl/config-install.h
 	fi
 	rm ./include//mkcl/config.h
 	mv ./include//mkcl/config-install.h ./include//mkcl/config.h
-	for i in BUILD-STAMP help.doc ; do \
+	for i in BUILD-STAMP HELP.DOC ; do \
 	  $(INSTALL_DATA) $$i $(localmkcldir); \
 	done
 	for i in $(LSP_LIBRARIES); do \
@@ -469,8 +452,8 @@ clean: clean_lisp clean_contribs
 	$(RM) mkcl_min$(EXE) bin/mkcl$(EXE) bin/mkcl-dyn bin/mkcl-small$(EXE) bin/mkcl-full$(EXE)
 	$(RM) MKCLINIT* bin/MKCLINIT*
 	$(RM) MKC*.c MKC*.tmp bin/MKC*.c bin/MKC*.tmp
-	$(RM) -r encodings
-	$(RM) MODULES help.doc TAGS *.asd ucd.dat
+	$(RM) -r ENCODINGS
+	$(RM) MODULES HELP.DOC TAGS *.asd
 	$(RM) mkcl/gc/*.h ./libmkclgc.a
 	$(RM) mkcl/gmp.h ./libmkclgmp.a
 	$(RM) *.dll bin/*.dll
@@ -487,7 +470,7 @@ clean_lisp:
 	for i in lsp cmp clos; \
 	do $(RM) lib$$i.a $$i/?*.{o,data,c,sdat,h,fasb,fas}; done
 	$(RM) lsp/config.lsp cmp/cmpdefs.lsp
-	$(RM) help.doc
+	$(RM) HELP.DOC
 
 distclean: clean
 	cd c; $(MAKE) distclean

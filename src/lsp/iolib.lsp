@@ -413,9 +413,9 @@ the one defined in the ANSI standard. *print-base* is 10, *print-array* is t,
           (setf all-encodings basic-encodings)
           #+unicode
 	  (progn
-	    (dolist (i (directory "sys:encodings;*"))
+	    (dolist (i (directory "SYS:ENCODINGS;*"))
 	      (push (intern (pathname-name i) "KEYWORD") all-encodings))
-	    (dolist (i (directory "sys:encodings;*.BIN"))
+	    (dolist (i (directory "SYS:ENCODINGS;*.BIN"))
 	      (push (intern (pathname-name i) "KEYWORD") all-encodings)))
           all-encodings))))
 
@@ -423,7 +423,7 @@ the one defined in the ANSI standard. *print-base* is 10, *print-array* is t,
   #-unicode
   (error "Cannot load encoding ~A because this MKCL instance does not have Unicode support" name)
   #+unicode
-  (let ((filename (make-pathname :name (symbol-name name) :defaults "sys:encodings;")))
+  (let ((filename (make-pathname :name (symbol-name name) :defaults "SYS:ENCODINGS;")))
     (cond ((mkcl:probe-file-p filename)
 	   (load filename :verbose nil)
 	   name)
@@ -506,7 +506,7 @@ successfully, T is returned, else error."
   (let ((*autoload-translations* nil))
     (unless (or (string-equal host "sys")
                 (si::pathname-translations host))
-      (with-open-file (in-str (make-pathname :defaults "sys:"
+      (with-open-file (in-str (make-pathname :defaults (translate-logical-pathname #P"SYS:")
                                              :name (string-downcase host)
                                              :type "translations"))
         (if *load-verbose*

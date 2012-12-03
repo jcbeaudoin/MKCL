@@ -61,11 +61,10 @@
 (defun search-help-file (key path &aux (pos 0))
   (labels ((bin-search (file start end &aux (delta 0) (middle 0) sym)
 	     (declare (fixnum start end delta middle))
-	     (when (< start end)
+	     (when (<= start end)
 	       (setq middle (round (+ start end) 2))
 	       (file-position file middle)
-	       (if (and (plusp (setq delta (scan-for #\^_ file)))
-			(<= delta (- end middle)))
+	       (if (plusp (setq delta (scan-for #\^_ file)))
 		 (if (equal key (setq sym (read file)))
 		   t
 		   (if (string< key sym)
@@ -79,7 +78,6 @@
 		 ((or (eql v #\^_) (not v)) (if v n -1))
 	       (declare (fixnum n)))))
     (when (not (mkcl:probe-file-p path))
-      ;;(format t "~&search-help-file: file not found: ~S" path)(finish-output) ;; debug JCB
       (return-from search-help-file nil))
     (ignore-errors
      (let* ((*package* (find-package "CL"))
@@ -87,7 +85,9 @@
 	    output)
        (when (and 
 	      (not (consp key)) ;; we cannot yet handle (setf foo) as function name. JCB
-	      (bin-search file 0 (file-length file)))
+	      (let ((result (bin-search file 0 (file-length file))))
+		result)
+	      )
 	 (setq output (read file))) ;; What if this read blows up! JCB
        (close file)
        output))))
@@ -104,34 +104,36 @@
   (setq *keep-documentation* t))
 #-mkcl-min
 (progn
-  (defvar *documentation-pool* (list (make-hash-table :test #'eq :size 128) #P"SYS:help.doc"))
+  (defvar *documentation-pool*
+    (list (make-hash-table :test #'eq :size 128) #P"SYS:HELP.DOC")) ;; should be #'equal for (setf foo) handling
   (defvar *keep-documentation* t))
 
 (defun get-documentation (object doc-type &aux output doc-plist)
+  (unless (symbolp object) (return-from get-documentation nil))
   (dolist (dict *documentation-pool*)
     (cond ((hash-table-p dict)
 	   (when (and (setq doc-plist (gethash object dict))
 		      (setq output (getf doc-plist doc-type)))
-	     ;;(format t "~&get-documentation: a hashtable returned: ~S" output)(finish-output) ;; debug JCB
-	     (return-from get-documentation output)))
-	  ((and (or (pathnamep dict) (stringp dict))
-                (or (symbolp object)
-                    (functionp object)))
-	   ;;(format t "~&get-documentation: about to search help-file: ~S" dict)(finish-output) ;; debug JCB
-	   (when (and (setq doc-plist (search-help-file 
-				       (if (functionp object)
-					   (compiled-function-name object)
-					 object)
-				       dict))
-		      (setq output (getf doc-plist doc-type)))
-	     ;;(format t "~&get-documentation: a help-file returned: ~S~%doc-plist = ~S.~%" output doc-plist)(finish-output) ;; debug JCB
 	     (return-from get-documentation output))
-	   ;;(format t "~&get-documentation: a help-file failed with output: ~S~%doc-plist = ~S.~%" output doc-plist)(finish-output) ;; debug JCB
-	   ))))
+	   )
+	  ((and (or (pathnamep dict) (stringp dict))
+                #-(and) (or (symbolp object) (functionp object)))
+	   (when (and (setq doc-plist (search-help-file object dict))
+		      (setq output (getf doc-plist doc-type)))
+	     (return-from get-documentation output))
+	   )
+	  #-(and)
+	  (t (format t "~&get-documentation: looking for documentation in unknown source: ~S" dict)(finish-output)) ;; debug JCB
+	  )))
 
 (defun set-documentation (object doc-type string)
   (when (not (or (stringp string) (null string)))
     (error "~S is not a valid documentation string" string))
+  (unless (symbolp object)
+    (if (si::valid-function-name-p object)
+	 ;; we silently ignore (setf foobar) function names until we implement proper support. JCB
+	(return-from set-documentation string)
+      (error "In set-documentation: first argument ~S must be a symbol" object)))
   (let ((dict (first *documentation-pool*)))
     (when (hash-table-p dict)
       (let ((plist (gethash object dict)))
@@ -166,6 +168,7 @@ the help file."
       (rplaca *documentation-pool* file))))
 
 #|
+;; This stuff is CLTL1 at best. JCB
 #-clos
 (defun documentation (object type)
   "Args: (symbol doc-type)

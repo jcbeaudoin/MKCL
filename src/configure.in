@@ -9,7 +9,7 @@ dnl  Giuseppe Attardi 25.1.1994
 dnl  Jean-Claude Beaudoin 2012.04.28
 dnl
 
-AC_INIT([mkcl],[1.1.1],[])
+AC_INIT([mkcl],[1.1.2],[])
 AC_REVISION([$Revision$])
 AC_CONFIG_SRCDIR([bare.lsp.in])
 AC_CONFIG_AUX_DIR([${srcdir}/gc])
@@ -265,7 +265,8 @@ enable_gengc=no
 
 dnl -----------------------------------------------------------------------
 dnl Installation directories
-mkcldir="${libdir}/mkcl-${PACKAGE_VERSION}"
+dnl mkcldir="${libdir}/mkcl-${PACKAGE_VERSION}"
+mkcldir="${prefix}/lib/mkcl-${PACKAGE_VERSION}"
 AC_SUBST([mkcldir])
 test -z "${docdir}" && docdir="${datadir}/doc/mkcl-${PACKAGE_VERSION}"
 AC_SUBST([docdir])
@@ -274,9 +275,9 @@ dnl -----------------------------------------------------------------------
 dnl Initialize variables.
 boehm_configure_flags=""
 
-AC_EXEEXT dnl			Guess whether .exe is needed for executables
+AC_EXEEXT                       dnl Guess whether .exe is needed for executables
 AC_SUBST(buildir)               dnl For top-level Makefile.in
-AC_SUBST(MKCL_CFLAGS)            dnl Similar, but specific to MKCL (see src/util/mkcl-config)
+AC_SUBST(MKCL_CFLAGS)           dnl Similar, but specific to MKCL (see src/util/mkcl-config)
 AC_SUBST(DEBUG_CFLAGS)		dnl Additional flags when debugging
 AC_SUBST(GMP_CFLAGS)		dnl CFLAGS needed for compiling with system GMP library
 AC_SUBST(GMP_LDFLAGS)		dnl LDFLAGS needed for compiling with system GMP library
@@ -292,7 +293,7 @@ AC_SUBST(SUBDIRS, [c])          dnl Subdirectories that make should process
 AC_SUBST(LIBRARIES, [])         dnl GMP, Boehm's GC, etc
 AC_SUBST(LSP_LIBRARIES)         dnl Libraries produced by lisp translator
 dnl AC_SUBST(LSP_FEATURES, ['*features*']) dnl Symbols to add to *FEATURES* for conditional compilation
-AC_SUBST(LSP_FEATURES, []) dnl Symbols to add to *FEATURES* for conditional compilation
+AC_SUBST(LSP_FEATURES, [])      dnl Symbols to add to *FEATURES* for conditional compilation
 AC_SUBST(TCP_LIBS)
 
 

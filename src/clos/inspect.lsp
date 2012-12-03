@@ -1,8 +1,9 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: CLOS -*-
 ;;;;
 ;;;;  Copyright (c) 1992, Giuseppe Attardi.
+;;;;  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
 ;;;;
-;;;;    This program is free software; you can redistribute it and/or
+;;;;    MKCL is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
 ;;;;    License as published by the Free Software Foundation; either
 ;;;;    version 3 of the License, or (at your option) any later version.
@@ -17,7 +18,7 @@
 
 (defmethod select-clos-N ((instance standard-object))
   (let* ((class (si:instance-class instance))
-	 (local-slotds (class-local-slots class) #|(slot-value class 'CLOS::SLOTS)|#)
+	 (local-slotds (class-local-slots class))
 	 (class-slotds (class-shared-slots class))
 	 )
         (if local-slotds
@@ -61,7 +62,7 @@
 
 (defmethod select-clos-N ((instance standard-class))
   (let* ((class (si:instance-class instance))
-	 (local-slotds (class-local-slots class) #|(slot-value class 'CLOS::SLOTS)|#))
+	 (local-slotds (class-local-slots class)))
         (if local-slotds
 	    (progn
 	      (si::inspect-indent)
@@ -84,7 +85,7 @@
 
 (defmethod select-clos-N ((instance t))
   (let* ((class (si:instance-class instance))
-	 (local-slotds (class-local-slots class) #|(slot-value class 'CLOS::SLOTS)|#))
+	 (local-slotds (class-local-slots class)))
         (if local-slotds
 	    (progn
 	      (si::inspect-indent)
@@ -107,7 +108,7 @@
 
 (defmethod select-clos-L ((instance standard-object))
   (let* ((class (si:instance-class instance))
-	 (local-slotds (class-local-slots class) #|(slot-value class 'CLOS::SLOTS)|#)
+	 (local-slotds (class-local-slots class))
 	 (class-slotds (class-shared-slots class))
 	 )
         (terpri)
@@ -130,7 +131,7 @@
 
 (defmethod select-clos-L ((instance standard-class))
   (let* ((class (si:instance-class instance))
-	 (local-slotds (class-local-slots class) #|(slot-value class 'CLOS::SLOTS)|#))
+	 (local-slotds (class-local-slots class)))
         (terpri)
 	(if local-slotds
 	    (progn
@@ -143,7 +144,7 @@
 
 (defmethod select-clos-L ((instance t))
   (let* ((class (si:instance-class instance))
-	 (local-slotds (class-local-slots class) #|(slot-value class 'CLOS::SLOTS)|#))
+	 (local-slotds (class-local-slots class)))
         (terpri)
 	(if local-slotds
 	    (progn
@@ -156,7 +157,7 @@
 
 (defmethod select-clos-J ((instance standard-object))
   (let* ((class (si:instance-class instance))
-	 (local-slotds (class-local-slots class) #|(slot-value class 'CLOS::SLOTS)|#)
+	 (local-slotds (class-local-slots class))
 	 (class-slotds (class-shared-slots class))
 	 io-slot-name
 	 (slotd (car (member (prog1
@@ -213,7 +214,7 @@
 
 (defmethod select-clos-J ((instance standard-class))
   (let* ((class (si:instance-class instance))
-	 (local-slotds (class-local-slots class) #|(slot-value class 'CLOS::SLOTS)|#)
+	 (local-slotds (class-local-slots class))
 	 io-slot-name
 	 (slotd (car (member (prog1
 			       (setq io-slot-name
@@ -243,7 +244,7 @@
 
 (defmethod select-clos-J ((instance t))
   (let* ((class (si:instance-class instance))
-	 (local-slotds (class-local-slots class) #|(slot-value class 'CLOS::SLOTS)|#)
+	 (local-slotds (class-local-slots class))
 	 io-slot-name
 	 (slotd (car (member (prog1
 			       (setq io-slot-name
@@ -295,7 +296,7 @@ q (or Q):             quits the inspection.~%~
           (throw 'SI::ABORT-INSPECT nil))
   (decf si::*inspect-level*)
   (let* ((class (si:instance-class instance))
-	 (local-slotds (class-local-slots class) #|(slot-value class 'CLOS::SLOTS)|#)
+	 (local-slotds (class-local-slots class))
 	 (class-slotds (class-shared-slots class))
 	 )
     (declare (type class class))
@@ -347,7 +348,7 @@ q (or Q):             quits the inspection.~%~
 (defmethod inspect-obj ((instance standard-class))
   (decf si::*inspect-level*)
   (let* ((class (si:instance-class instance))
-	 (local-slotds (class-local-slots class) #|(class-slots class)|#)
+	 (local-slotds (class-local-slots class))
 	 )
     (declare (type class class))
     (loop
@@ -398,7 +399,7 @@ q (or Q):             quits the inspection.~%~
 (defmethod inspect-obj ((instance t))
   (decf si::*inspect-level*)
   (let* ((class (si:instance-class instance))
-	 (local-slotds (class-local-slots class) #|(slot-value class 'CLOS::SLOTS)|#))
+	 (local-slotds (class-local-slots class)))
     (declare (type class))
     (loop
       (format t "~S - clos object:" instance)
@@ -459,49 +460,21 @@ q (or Q):             quits the inspection.~%~
 
 (defmethod documentation ((object symbol) doc-type)
   (when (member doc-type +valid-documentation-types+)
-    (case doc-type
-      (type
-       (let ((c (find-class object nil)))
-	 (or
-	  (documentation c t)
-	  (si::get-documentation object doc-type))))
-      (function
-       (or (and (fboundp object)
-		(documentation (or (macro-function object)
-				   (fdefinition object))
-			       doc-type))
-	   (si::get-documentation object doc-type)))
-      (otherwise
-       (si::get-documentation object doc-type)))))
+    (si::get-documentation object doc-type)
+    ))
 
 (defmethod (setf documentation) (new-value (object symbol) doc-type)
   (when (member doc-type +valid-documentation-types+)
-    (case doc-type
-      (type
-       (let ((c (find-class object nil)))
-	 (if c
-	     (progn
-	       (si::set-documentation object 'type nil)
-	       (si::set-documentation object 'structure nil)
-	       (setf (documentation c t) new-value))
-	     (si::set-documentation object doc-type new-value))))
-      (function
-       (if (fboundp object)
-	   (let ((c (or (macro-function object) (fdefinition object))))
-	     (si::set-documentation c 'function nil)
-	     (setf (documentation c 'function) new-value))
-	   (si::set-documentation object doc-type new-value)))
-      (otherwise
-       (si::set-documentation object doc-type new-value))))
-  new-value)
+    (si::set-documentation object doc-type new-value)
+    ))
 
 (defmethod documentation ((object package) doc-type)
   (when (member doc-type '(t package))
-    (si::get-documentation object 'package)))
+    (si::get-documentation (intern (package-name object) :keyword) 'package)))
 
 (defmethod (setf documentation) (new-value (object package) doc-type)
   (when (member doc-type '(t package))
-    (si::set-documentation object 'package new-value)))
+    (si::set-documentation (intern (package-name object) :keyword) 'package new-value)))
 
 (defmethod documentation ((object class) doc-type)
   (when (and (member doc-type '(t type)) (slot-boundp object 'documentation))
@@ -522,12 +495,13 @@ q (or Q):             quits the inspection.~%~
 (defmethod documentation ((object list) doc-type)
   (when (and (si::valid-function-name-p object)
 	     (member doc-type '(function compiler-macro)))
-    (si::get-documentation object doc-type)))
+    (documentation (fdefinition object) doc-type)))
 
 (defmethod (setf documentation) (new-value (object list) doc-type)
   (when (and (si::valid-function-name-p object)
 	     (member doc-type '(function compiler-macro)))
-    (si::set-documentation object doc-type new-value)))
+    (setf (documentation (fdefinition object) doc-type) new-value)
+    ))
 
 (defmethod documentation ((object standard-generic-function) doc-type)
   (when (member doc-type '(t function))
@@ -547,11 +521,15 @@ q (or Q):             quits the inspection.~%~
 
 (defmethod documentation ((object function) doc-type)
   (when (member doc-type '(t function))
-    (si::get-documentation object doc-type)))
+    (let ((fun-name (compiled-function-name object)))
+      (when (and fun-name (symbolp fun-name))
+	(si::get-documentation object doc-type)))))
 
 (defmethod (setf documentation) (new-value (object function) doc-type)
   (when (member doc-type '(t function))
-    (si::set-documentation object doc-type new-value)))
+    (let ((fun-name (compiled-function-name object)))
+      (when (and fun-name (symbolp fun-name))
+	(si::set-documentation object doc-type new-value)))))
 
 (defmethod documentation ((object slot-definition) doc-type)
   (when (member doc-type '(t function))
@@ -560,4 +538,13 @@ q (or Q):             quits the inspection.~%~
 (defmethod (setf documentation) (new-value (object slot-definition) doc-type)
   (when (member doc-type '(t function))
     (setf (slot-value object 'documentation) new-value)))
+
+(defmethod documentation ((object method-combination) doc-type)
+  (when (member doc-type '(t method-combination))
+    nil ;; FIXME
+    ))
+
+(defmethod (setf documentation) (new-value (object method-combination) doc-type)
+  (when (member doc-type '(t method-combination))
+    new-value)) ;; FIXME
 

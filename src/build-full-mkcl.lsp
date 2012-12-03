@@ -28,26 +28,11 @@
     ;;(format t "~&i = ~D, arg = ~S~%" i (si:argv i))
     )
 
-;;(format t "~&modules: ~S ~%" *modules*)
-
-
-(let (;;(compiler::*suppress-compiler-messages* nil)
-      ;;(compiler::*suppress-compiler-warnings* nil)
-      ;;(compiler::*suppress-compiler-notes* nil)
-      ;;(*compile-verbose* t)
-      ;;(*compile-print* t)
-      (compiler::*ld-flags* (concatenate 
-		      'base-string
-		      " -rdynamic libmkcltop.a libmkcllsp.a "
-		      "libmkclmin.a libmkclgc.a "
-		      compiler::*external-ld-flags*
-		      ))
-      )
-  (unless (compiler::build-program
-	   "bin/mkcl-full"
-	   :lisp-object-files (list* "libcmp.a" *modules*) ;; list of built-ins.
-	   )
-    (mkcl:quit :exit-code 1))
-  )
+(unless (compiler::build-program
+	 "bin/mkcl-full"
+	 :lisp-object-files (list* "libcmp.a" *modules*) ;; list of built-ins.
+	 :use-mkcl-shared-libraries nil ;; force static linking
+	 )
+  (mkcl:quit :exit-code 1))
 
 (mkcl:quit :exit-code 0)
