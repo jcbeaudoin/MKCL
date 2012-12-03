@@ -2,10 +2,5 @@
 (module
  (:fullname "asdf-bundle"
   :build-depends-on ("/asdf")
-  :depends-on
-  ("specials"
-   "bundle"
-   (:cond
-     ((:featurep :ecl) "ecl")
-     ((:featurep (:or :sbcl :clozure)) "fasl-concat")))
+  :depends-on ("asdf-bundle")
   :supersedes-asdf ("asdf-bundle")))
