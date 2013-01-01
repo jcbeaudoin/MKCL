@@ -1632,8 +1632,9 @@ mk_si_get_library_pathname(MKCL)
 	    {
 	      int i;
 #ifdef MKCL_WINDOWS
-	      char os_dir0[] = "c:\\Program Files\\MKCL " MKCL_VERSION_STRING "\\";
-	      char os_dir1[] = "c:\\Program Files\\MKCL " MKCL_MAJOR_VERSION_STRING "." MKCL_MINOR_VERSION_STRING "\\";
+	      char os_dir0[] = "c:\\Program Files\\MKCL " MKCL_VERSION_STRING "\\lib\\mkcl-" MKCL_VERSION_STRING "\\";
+	      char os_dir1[] = "c:\\Program Files\\MKCL " MKCL_MAJOR_VERSION_STRING "." MKCL_MINOR_VERSION_STRING
+		                 "\\lib\\mkcl-" MKCL_VERSION_STRING "\\";
 #else
 	      char os_dir0[] = "/usr/local/lib/mkcl-" MKCL_VERSION_STRING "/";
 	      char os_dir1[] = "/usr/lib/mkcl-" MKCL_VERSION_STRING "/";
