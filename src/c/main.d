@@ -19,7 +19,6 @@
 /******************************** GLOBALS *****************************/
 
 #include <mkcl/mkcl.h>
-#include <limits.h>
 
 #if defined(MKCL_WINDOWS)
 # include <windows.h>

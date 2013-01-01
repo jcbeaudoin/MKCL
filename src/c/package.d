@@ -20,8 +20,6 @@
 #include <mkcl/internal.h>
 #include <mkcl/mkcl-inl.h>
 
-#include <limits.h>
-
 /******************************* ------- ******************************/
 /*
  * NOTE 1: we only need to use the package locks when reading/writing the hash

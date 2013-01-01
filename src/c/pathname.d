@@ -23,7 +23,6 @@
 #include <mkcl/mkcl.h>
 #include <mkcl/mkcl-inl.h>
 #include <mkcl/internal.h>
-#include <limits.h>
 #include <string.h>
 #include <ctype.h>
 

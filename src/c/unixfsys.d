@@ -21,7 +21,6 @@
 #include <mkcl/mkcl.h>
 #include <string.h>
 #include <stdio.h>
-#include <limits.h>
 #ifdef __unix
 # include <unistd.h>
 # include <pwd.h>

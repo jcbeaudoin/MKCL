@@ -2,7 +2,6 @@
 
 #include <mkcl/mkcl.h>
 #include <ctype.h>
-#include <limits.h>
 #include <string.h>
 #include <mkcl/internal.h>
 

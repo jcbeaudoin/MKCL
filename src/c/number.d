@@ -19,9 +19,6 @@
 #include <mkcl/mkcl.h>
 #include <mkcl/mkcl-math.h>
 #include <float.h>
-#include <limits.h>
-#include <signal.h>
-#include <float.h>
 #include <mkcl/internal.h>
 #include <mkcl/mkcl-fenv.h>
 

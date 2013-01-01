@@ -21,8 +21,6 @@
 #include <string.h>
 #include <ctype.h>
 
-#include <limits.h>
-
 #include <mkcl/mkcl-inl.h>
 #include <mkcl/internal.h>
 #include <mkcl/mkcl-fenv.h>

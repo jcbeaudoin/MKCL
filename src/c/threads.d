@@ -20,8 +20,6 @@
 #include <mkcl/mkcl-inl.h>
 #include <mkcl/internal.h>
 
-#include <limits.h>
-
 #include <string.h>
 #include <errno.h>
 #include <time.h>

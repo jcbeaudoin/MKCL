@@ -18,7 +18,6 @@
 
 #include <mkcl/mkcl.h>
 #include <mkcl/internal.h>
-#include <limits.h>
 #include <mkcl/mkcl-inl.h>
 
 

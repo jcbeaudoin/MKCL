@@ -18,7 +18,6 @@
 
 #include <mkcl/mkcl.h>
 #include <mkcl/internal.h>
-#include <limits.h>
 #include <string.h>
 
 static const mkcl_index mkcl_aet_size[] = {

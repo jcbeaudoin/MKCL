@@ -19,7 +19,6 @@
 #include <mkcl/mkcl.h>
 #include <mkcl/mkcl-math.h>
 #include <stdio.h>
-#include <limits.h>
 #include <float.h>
 #include <string.h>
 #include <stdlib.h>
