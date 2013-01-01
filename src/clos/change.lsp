@@ -151,8 +151,10 @@
 			      (mapcar #'slot-definition-name new-local-slotds)))
 	(dolist (slot-name discarded-slots)
 	  (let* ((ndx (position slot-name old-local-slotds :key #'slot-definition-name)))
-	    (push (cons slot-name (si::instance-ref old-instance ndx))
-		  property-list)))
+	    ;; (push (cons slot-name (si::instance-ref old-instance ndx))
+	    ;; 	  property-list) ;; This is building an a-list! JCB
+	    (setq property-list (list* slot-name (si::instance-ref old-instance ndx) property-list)) ;; This builds a p-list.
+	    ))
 	(dolist (new-slot new-local-slotds)
 	  (let* ((name (slot-definition-name new-slot))
 		 (old-i (position name old-local-slotds :key #'slot-definition-name)))
