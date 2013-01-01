@@ -186,7 +186,7 @@ extern "C" {
     mkcl_object packages_to_be_created;
 
     mkcl_object pathname_translations;
-    mkcl_object library_pathname;
+    mkcl_object SYS_library_pathname;
 
     mkcl_object terminal_io;
     mkcl_object null_stream;
@@ -2320,7 +2320,7 @@ extern "C" {
   extern MKCL_API int mkcl_backup_open(MKCL, mkcl_object filename, int option, int mode);
   extern MKCL_API mkcl_object mkcl_file_len(MKCL, int f);
   extern MKCL_API mkcl_object mkcl_homedir_pathname(MKCL, mkcl_object user);
-  extern MKCL_API mkcl_object mk_si_get_library_pathname(MKCL);
+  extern MKCL_API mkcl_object mk_si_get_SYS_library_pathname(MKCL);
   extern MKCL_API mkcl_object mk_si_copy_file(MKCL, mkcl_object orig, mkcl_object end);
 
   extern MKCL_API pid_t mkcl_gettid(void);

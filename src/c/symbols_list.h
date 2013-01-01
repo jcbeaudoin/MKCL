@@ -1115,7 +1115,7 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
   {{SYS_ "FRS-TOP", SI_ORDINARY, mk_si_frs_top, 0, MKCL_OBJNULL}},
   {{SYS_ "FSET", SI_ORDINARY, mk_si_fset, -1, MKCL_OBJNULL}},
   {{SYS_ "FUNCTION-BLOCK-NAME", SI_ORDINARY, mk_si_function_block_name, 1, MKCL_OBJNULL}},
-  {{SYS_ "GET-LIBRARY-PATHNAME", SI_ORDINARY, mk_si_get_library_pathname, 0, MKCL_OBJNULL}},
+  {{SYS_ "GET-SYS-LIBRARY-PATHNAME", SI_ORDINARY, mk_si_get_SYS_library_pathname, 0, MKCL_OBJNULL}},
   {{SYS_ "GET-SYSPROP", SI_ORDINARY, mk_si_get_sysprop, 2, MKCL_OBJNULL}},
   {{MKCL_EXT_ "GETENV", MKCL_EXT_ORDINARY, mk_mkcl_getenv, 1, MKCL_OBJNULL}},
   {{MKCL_EXT_ "GETCWD", MKCL_EXT_ORDINARY, mk_mkcl_getcwd, -1, MKCL_OBJNULL}},

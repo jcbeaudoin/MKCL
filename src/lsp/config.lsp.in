@@ -136,8 +136,8 @@ Returns, as a string, the version of the software under which MKCL runs."
 ;;
 #-mkcl-min
 (progn
-  (si::pathname-translations "SYS" `(("**;*.*" ,(merge-pathnames "**/*.*" (si::get-library-pathname)))))
-  (si::pathname-translations "CONTRIB" `(("**;*.*" ,(merge-pathnames "contrib/**/*.*" (si::get-library-pathname)))))
+  (si::pathname-translations "SYS" `(("**;*.*" ,(merge-pathnames "**/*.*" (si::get-SYS-library-pathname)))))
+  (si::pathname-translations "CONTRIB" `(("**;*.*" ,(merge-pathnames "contrib/**/*.*" (si::get-SYS-library-pathname)))))
   )
 
 #-msvc

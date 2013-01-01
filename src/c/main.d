@@ -409,7 +409,7 @@ static void _mkcl_boot_inner(MKCL)
    * Initialize default pathnames
    */
   mkcl_core.pathname_translations = mk_cl_Cnil;
-  mkcl_core.library_pathname = mk_cl_Cnil;
+  mkcl_core.SYS_library_pathname = mk_cl_Cnil;
   mkcl_core.empty_default_pathname_defaults = mkcl_make_pathname(env,
 								 mkcl_core.localhost_string, @':unspecific', mk_cl_Cnil,
 								 mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil);

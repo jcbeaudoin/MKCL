@@ -119,12 +119,9 @@
        )
   (defun mkcl-include-directory ()
     "Finds the directory in which the header files were installed."
-    (cond ((mkcl:probe-file-p inc-dir-probe)
-	   inc-dir
-	   )
-	  ((and *mkcl-include-directory*
-		(mkcl:probe-file-p (merge-pathnames #P"mkcl/mkcl.h" *mkcl-include-directory*)))
-	   *mkcl-include-directory*)
+    (cond (*mkcl-include-directory*)
+          ((mkcl:probe-file-p inc-dir-probe) inc-dir)
+          (*mkcl-default-include-directory*)
 	  ((error "Unable to find include directory")))))
 
 (let* ((bin-dir (make-pathname :name nil :type nil :version nil :defaults (si:self-truename)))
@@ -135,14 +132,11 @@
        )
   (defun mkcl-library-directory ()
     "Finds the directory in which the MKCL core library was installed."
-    (cond ((mkcl:probe-file-p lib-dir-probe)
+    (cond (*mkcl-library-directory*)
+          ((mkcl:probe-file-p lib-dir-probe)
 	   lib-dir
 	   )
-	  ((and *mkcl-library-directory*
-		#-mkcl-bootstrap
-		(mkcl:probe-file-p (merge-pathnames (builder-internal-pathname shared-lib-pathname-name :shared-library)
-						    *mkcl-library-directory*)))
-	   *mkcl-library-directory*)
+          (*mkcl-default-library-directory*)
 	  ((error "Unable to find library directory")))))
 
 

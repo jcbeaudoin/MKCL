@@ -1599,23 +1599,33 @@ static void warn_early(MKCL, char * msg)
 }
 
 mkcl_object
-mk_si_get_library_pathname(MKCL)
+mk_si_get_SYS_library_pathname(MKCL)
 {
-  mkcl_object libdir = mkcl_core.library_pathname;
+  mkcl_object SYS_libdir = mkcl_core.SYS_library_pathname;
 
   mkcl_call_stack_check(env);
-  if (mkcl_Null(libdir))
+  if (mkcl_Null(SYS_libdir))
     {
-      static const mkcl_base_string_object(libdir_string_obj, "MKCL_LIBDIR");
-      mkcl_object libdir_pathstring = mkcl_getenv(env, (mkcl_object)&libdir_string_obj);
+      static const mkcl_base_string_object(SYS_libdir_string_obj, "MKCL_SYS_LIBDIR");
+      mkcl_object SYS_libdir_pathstring;
+      static const mkcl_base_string_object(libdir_string_obj, "MKCL_LIBDIR"); /* deprecated in favor of MKCL_SYS_LIBDIR */
+      mkcl_object libdir_pathstring;
 
-      if (!mkcl_Null(libdir_pathstring))
+      if (!mkcl_Null(SYS_libdir_pathstring = mkcl_getenv(env, (mkcl_object)&SYS_libdir_string_obj)))
+	{
+	  mkcl_character ch = mkcl_string_last(env, SYS_libdir_pathstring);
+
+	  if (!MKCL_IS_DIR_SEPARATOR(ch))
+	    mkcl_string_push_extend(env, SYS_libdir_pathstring, MKCL_DIR_SEPARATOR);
+	  SYS_libdir = mk_cl_parse_namestring(env, 1, SYS_libdir_pathstring);
+	}
+      else if (!mkcl_Null(libdir_pathstring = mkcl_getenv(env, (mkcl_object)&libdir_string_obj)))
 	{
 	  mkcl_character ch = mkcl_string_last(env, libdir_pathstring);
 
 	  if (!MKCL_IS_DIR_SEPARATOR(ch))
 	    mkcl_string_push_extend(env, libdir_pathstring, MKCL_DIR_SEPARATOR);
-	  libdir = mk_cl_parse_namestring(env, 1, libdir_pathstring);
+	  SYS_libdir = mk_cl_parse_namestring(env, 1, libdir_pathstring);
 	}
       else
 	{
@@ -1644,20 +1654,21 @@ mk_si_get_library_pathname(MKCL)
 
 	      for (i = 0; i < MKCL_NB_ELEMS(dirnames); i++)
 		if (!mkcl_Null(mk_mkcl_probe_file_p(env, dirnames[i])))
-		  { libdir = mk_cl_pathname(env, dirnames[i]); break;}
+		  { SYS_libdir = mk_cl_pathname(env, dirnames[i]); break;}
 
-	      if (mkcl_Null(libdir))
+	      if (mkcl_Null(SYS_libdir))
 		{
-		  mkcl_object default_libdir_pathstring = mkcl_cstring_to_string(env, MKCL_LIBDIR_DEFAULT "/");
-		  libdir = mk_cl_parse_namestring(env, 1, default_libdir_pathstring);
+		  mkcl_object default_SYS_libdir_pathstring = mkcl_cstring_to_string(env, MKCL_SYS_LIBDIR_DEFAULT "/");
+		  SYS_libdir = mk_cl_parse_namestring(env, 1, default_SYS_libdir_pathstring);
 		}
 	    }
 	  else
-	    libdir = lib_pathname;
+	    SYS_libdir = lib_pathname;
 	}
-      mkcl_core.library_pathname = libdir;
+
+      mkcl_core.SYS_library_pathname = SYS_libdir;
     }
-  @(return libdir);
+  @(return SYS_libdir);
 }
 
 @(defun mkcl::chdir (directory &optional (change_d_p_d mk_cl_Cnil))

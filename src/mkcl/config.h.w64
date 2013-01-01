@@ -58,7 +58,7 @@
 #define MKCL_MINOR_VERSION_STRING "1"
 #define MKCL_PATCH_LEVEL_STRING "2"
 
-#define MKCL_LIBDIR_DEFAULT "c:/Program Files/MKCL 1.1/lib/mkcl-1.1.2"
+#define MKCL_SYS_LIBDIR_DEFAULT "c:/Program Files/MKCL 1.1/lib/mkcl-1.1.2"
 
 /*
  * FEATURES LINKED IN
