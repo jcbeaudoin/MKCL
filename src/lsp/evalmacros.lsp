@@ -392,9 +392,9 @@ values of the last FORM.  If no FORM is given, returns NIL."
 
 (defmacro define-symbol-macro (&whole whole symbol expansion)
   (cond ((not (symbolp symbol))
-	 (error "DEFINE-SYMBOL-MACRO: ~A is not a symbol" symbol))
+	 (simple-program-error "DEFINE-SYMBOL-MACRO: ~A is not a symbol" symbol))
 	((specialp symbol)
-	 (error "DEFINE-SYMBOL-MACRO: cannot redefine a special variable, ~A" symbol))
+	 (simple-program-error "DEFINE-SYMBOL-MACRO: cannot redefine a special variable, ~A" symbol))
 	(t
 	 `(define-when (:load-toplevel :execute) ;;progn
 	   (put-sysprop ',symbol 'si::symbol-macro

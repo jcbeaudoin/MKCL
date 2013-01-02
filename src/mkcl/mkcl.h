@@ -21,6 +21,7 @@
 #ifdef __MINGW32__
 /* These defines have to be done before any system include. */
 # define __USE_MINGW_ANSI_STDIO 1
+# include <w32api.h>
 # define WINVER WindowsXP /* Don't want to support below that. JCB */
 # ifndef __MSVCRT_VERSION__
 /*  High byte is the major version, low byte is the minor. */
@@ -51,6 +52,10 @@
 
 #ifdef MKCL_WINDOWS
 # define WIN32_LEAN_AND_MEAN 1 /* Do not include winsock.h */
+#ifndef WINVER
+# define WINVER 0x0501 /* We require at least Windows XP or later. */
+# define _WIN32_WINNT WINVER
+#endif
 # include <winsock2.h>
 # include <windows.h>
 # include <malloc.h> /* for alloca() */

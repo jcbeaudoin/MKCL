@@ -83,8 +83,6 @@ all: ../libmkclmin.a ../libmkcltop.a all_symbols.o all_symbols2.o cinit.o
 .d.c:
 	$(DPP) $< $@
 
-#unixfsys.o: unixfsys.c
-#	$(CC) -DMKCL_LIBDIR="\"@mkcldir@\"" -DMKCL_VERSION="\"@PACKAGE_VERSION@\"" $(CFLAGS) -o $@ -c $<
 
 $(DCFILES) all_symbols.c cinit.c: $(DPP)
 

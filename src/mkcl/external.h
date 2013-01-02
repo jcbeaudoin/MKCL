@@ -289,6 +289,7 @@ extern "C" {
 
   /* alloc.c / alloc_2.c */
 
+  extern MKCL_API void * mkcl_alloc_pages(MKCL, mkcl_index nb_pages);
   extern MKCL_API mkcl_object mkcl_alloc_cdisplay(MKCL, mkcl_index nb_levels);
   extern MKCL_API mkcl_object mkcl_alloc_clevel_block(MKCL, mkcl_object producer, const union mkcl_lispunion * const outer, const mkcl_index nb_vars);
   extern MKCL_API mkcl_object mkcl_alloc_raw_instance(MKCL, mkcl_index nb_slots);
@@ -1227,6 +1228,10 @@ extern "C" {
   extern MKCL_API mkcl_object mk_si_argc(MKCL);
   extern MKCL_API mkcl_object mkcl_argv(MKCL, mkcl_index index);
   extern MKCL_API mkcl_object mk_si_argv(MKCL, mkcl_object index);
+#ifdef MKCL_WINDOWS
+  extern MKCL_API void mkcl_get_commandline_args_from_Windows(int * argc_ref, char *** argv_ref);
+  extern MKCL_API bool mkcl_has_console();
+#endif
   extern MKCL_API mkcl_object mk_mkcl_getenv(MKCL, mkcl_object var);
   extern MKCL_API mkcl_object mkcl_getenv(MKCL, mkcl_object var);
   extern MKCL_API mkcl_object mk_mkcl_setenv(MKCL, mkcl_object var, mkcl_object value);

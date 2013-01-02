@@ -16,6 +16,7 @@
   (:nicknames "UFFI")
   (:export "CLINES" "DEFENTRY" "DEFLA" "DEFCBODY" "DEFINLINE" "C-INLINE" ;; extension to UFFI
 	   "DEFCALLBACK" "CALLBACK"                                      ;; extension to UFFI
+	   "FOREIGN"                                                     ;; extension to UFFI
 
 	   ;; The UFFI Protocol
 	   "DEF-CONSTANT" "DEF-FOREIGN-TYPE" "DEF-ENUM" "DEF-STRUCT"
@@ -52,6 +53,8 @@
 ;;;----------------------------------------------------------------------
 ;;; FOREIGN TYPES
 ;;;
+
+(deftype foreign () 'si:foreign)
 
 (defvar *ffi-types* (make-hash-table :size 128))
 
@@ -188,6 +191,32 @@
        (def-foreign-type ,name :int)
        ,@forms)))
 
+;;;----------------------------------------------------------------------
+;;;
+
+(defun %foreign-data-set (obj ndx type value)
+  (cond ((foreign-elt-type-p type)
+         (si::foreign-set-elt obj ndx type value))
+	((atom type)
+	 (error "Unknown foreign primitive type: ~A" type))
+	((eq (first type) '*)
+	 (si::foreign-set-elt obj ndx :pointer-void value))
+	(t
+	 (si::foreign-set obj ndx value))))
+
+(defun %foreign-data-ref (obj ndx type size) ;;&optional (size 0 size-p))
+  (cond ((foreign-elt-type-p type) ;; primitive types.
+         (si::foreign-ref-elt obj ndx type))
+	((atom type)
+	 (error "Unknown foreign primitive type: ~A" type))
+	((eq (first type) '*) ;; pointer types
+	 (si::foreign-recast (si::foreign-ref-elt obj ndx :pointer-void)
+	                          (size-of-foreign-type (second type))
+				  type))
+	(t ;; agregate types (:struct :union :array)
+	 ;;(si::foreign-ref obj ndx (if size-p size (size-of-foreign-type type)) type)
+	 (si::foreign-ref obj ndx size type)
+	 )))
 
 ;;;----------------------------------------------------------------------
 ;;; STRUCTURE TYPES
@@ -241,14 +270,14 @@
       (slot-position struct-type field)
     (unless slot-size
       (error "~A is not a field of the type ~A" field struct-type))
-    (%foreign-ref object slot-ndx slot-type slot-size)))
+    (%foreign-data-ref object slot-ndx slot-type slot-size)))
 
 (defun (setf get-slot-value) (value object struct-type field)
   (multiple-value-bind (slot-ndx slot-type slot-size)
       (slot-position struct-type field)
     (unless slot-size
       (error "~A is not a field of the type ~A" field struct-type))
-    (%foreign-set object slot-ndx slot-type value)))
+    (%foreign-data-set object slot-ndx slot-type value)))
 
 (defun get-slot-pointer (object struct-type field)
   (multiple-value-bind (slot-ndx slot-type slot-size)
@@ -287,27 +316,6 @@
       (error "Out of bounds when accessing array ~A." array))
     (%foreign-data-set (si::foreign-recast array (+ ndx element-size) array-type) ndx element-type value)))
 
-(defun %foreign-data-set (obj ndx type value)
-  (cond ((foreign-elt-type-p type)
-         (si::foreign-set-elt obj ndx type value))
-	((atom type)
-	 (error "Unknown foreign primitive type: ~A" type))
-	((eq (first type) '*)
-	 (si::foreign-set-elt obj ndx :pointer-void value))
-	(t
-	 (si::foreign-set obj ndx value))))
-
-(defun %foreign-data-ref (obj ndx type &optional (size 0 size-p))
-  (cond ((foreign-elt-type-p type) ;; primitive types.
-         (si::foreign-ref-elt obj ndx type))
-	((atom type)
-	 (error "Unknown foreign primitive type: ~A" type))
-	((eq (first type) '*) ;; pointer types
-	 (si::foreign-recast (si::foreign-ref-elt obj ndx :pointer-void)
-	                          (size-of-foreign-type (second type))
-				  type))
-	(t ;; agregate types (:struct :union :array)
-	 (si::foreign-ref obj ndx (if size-p size (size-of-foreign-type type)) type))))
 
 ;;;----------------------------------------------------------------------
 ;;; UNIONS
@@ -638,47 +646,24 @@
 	  )))))
   nil)
 
-#|
-;; This code, here commented out, is useful only for the UFFI interface and only on
-;; MS-Windows were the linker demands to have access to the linkee function object code
-;; at link time. JCB
-;; This whole facility is in deep need of a redesign anyway, so it is decommissoned for now.
-;; Use CFFI instead. JCB
-(defvar +loaded-libraries+ nil)
+(defvar *referenced-libraries* nil) ;; used by the CMP compiler during link phase.
 
-(defun do-load-foreign-library (tmp &optional system-library) ;; What is the use of this? JCB
- (let* ((path (cond ((pathnamep tmp) tmp)
-                    ((mkcl:probe-file-p (setf tmp (pathname (string tmp)))) tmp)
-                    (t (compile-file-pathname tmp :type #+msvc :lib #-msvc :dll))))
-        (filename (namestring path))
-        (pack (find-package "COMPILER"))
-        (flag (if system-library
-		  (concatenate 'string "-l" tmp)
-		  filename)))
-   (unless (find filename ffi::+loaded-libraries+ :test #'string-equal)
-     (setf (symbol-value (intern "*LD-FLAGS*" pack))
-	   (concatenate 'string (symbol-value (intern "*LD-FLAGS*" pack)) " " flag))
-     (setf (symbol-value (intern "*BUNDLE-LD-FLAGS*" pack))
-	   (concatenate 'string (symbol-value (intern "*BUNDLE-LD-FLAGS*" pack))
-			" " flag))
-     (setf (symbol-value (intern "*SHARED-LD-FLAGS*" pack))
-	   (concatenate 'string (symbol-value (intern "*SHARED-LD-FLAGS*" pack))
-			" " flag))
-     (push filename ffi::+loaded-libraries+))
-   t))
-|#
-
-(defmacro load-foreign-library (filename &key module supporting-libraries force-load
-				system-library)
- (declare (ignore module force-load supporting-libraries))
- (let (#|(compile-form (and (constantp filename)
-                          `((eval-when (:compile-toplevel)
-                              (do-load-foreign-library ,filename
-				,system-library)))))|#
-       (dyn-form (unless system-library
-		   `((si:load-foreign-module ,filename)))))
-   ;;(declare (ignore compile-form)) ;; JCB
-   `(progn #|,@compile-form|# ,@dyn-form)))
+(defun do-load-foreign-library (tmp)
+  (let* ((path (if (pathnamep tmp) tmp (pathname (string tmp))))
+	 (filename (namestring path))
+	 )
+    (unless (find filename ffi::*referenced-libraries* :test #+unix #'string= #+windows #'string-equal)
+      (push filename ffi::*referenced-libraries*)
+      t)))
+  
+(defmacro load-foreign-library (filename &key module supporting-libraries force-load)
+  (declare (ignore module force-load supporting-libraries))
+  (let ((compile-form (and (constantp filename)
+			   `(eval-when (:compile-toplevel)
+				       (do-load-foreign-library ,filename))))
+	(dyn-form `(si:load-foreign-module ,filename)))
+    (or compile-form dyn-form)
+    ))
 
 ;;;----------------------------------------------------------------------
 ;;; CALLBACKS
@@ -707,8 +692,9 @@
 ;;;
 
 (defun clines (&rest args)
-  (error "The special form clines cannot be used in the interpreter: ~A"
-	 args))
+  (declare (ignore args))
+  ;;(error "The special form clines cannot be used in the interpreter: ~A" args) ;; why be so anal?
+  )
 
 (eval-when (:load-toplevel :execute)
   (defmacro c-inline (args arg-types ret-type &rest others)

@@ -421,7 +421,7 @@ the one defined in the ANSI standard. *print-base* is 10, *print-array* is t,
 
 (defun load-encoding (name)
   #-unicode
-  (error "Cannot load encoding ~A because this MKCL instance does not have Unicode support" name)
+  (values nil (format nil "Cannot load encoding ~A because this MKCL instance does not have Unicode support" name))
   #+unicode
   (let ((filename (make-pathname :name (symbol-name name) :defaults "SYS:ENCODINGS;")))
     (cond ((mkcl:probe-file-p filename)
@@ -435,11 +435,11 @@ the one defined in the ANSI standard. *print-base* is 10, *print-array* is t,
 	       (read-sequence s in)
 	       s)))
 	  (t
-	   (error "Unable to find mapping file ~A for encoding ~A" filename name)))))
+	   (values nil (format nil "Unable to find mapping file ~A for encoding ~A" filename name))))))
 
 (defun make-encoding (mapping)
   #-unicode
-  (error "Not a valid external format ~A" mapping)
+  (values nil (format nil "Not a valid external format ~A" mapping))
   #+unicode
   (cond
     ((symbolp mapping)
@@ -447,7 +447,7 @@ the one defined in the ANSI standard. *print-base* is 10, *print-array* is t,
 		 #+unicode '(:UTF-8 :UTF-16 :UTF-16BE :UTF-16LE :UTF-32 :UTF-32BE :UTF-32LE :ISO-8859-1 :US-ASCII :DEFAULT)
 		 #-unicode '(:DEFAULT)
 		 :test #'string=)
-	 (values (intern (symbol-name mapping) (find-package "KEYWORD"))) ;; This is a built-in mapping.
+	 (values (intern (symbol-name mapping) keyword-package #|(find-package "KEYWORD")|#)) ;; This is a built-in mapping.
        (let* ((mk-ext-pkg (find-package "MK-EXT"))
 	      (var (find-symbol (symbol-name mapping) mk-ext-pkg)))
 	 (unless var
@@ -457,7 +457,11 @@ the one defined in the ANSI standard. *print-base* is 10, *print-array* is t,
 		 (progn
 		   (when mk-ext-was-closed (reopen-package mk-ext-pkg))
 		   (setq var (intern (symbol-name mapping) mk-ext-pkg))
-		   (setq encoding (make-encoding (load-encoding mapping)))
+		   (multiple-value-bind (array-map failure-reason)
+		       (load-encoding mapping)
+		     (if array-map
+			 (setq encoding (make-encoding array-map))
+		       (values nil failure-reason)))
 		   (set var encoding)
 		   )
 	       (when mk-ext-was-closed (close-package mk-ext-pkg)))))
@@ -485,8 +489,7 @@ the one defined in the ANSI standard. *print-base* is 10, *print-array* is t,
 	  (setf (gethash byte output) unicode-char)
 	  (setf (gethash unicode-char output) byte))))
     (t
-     (error "Not a valid external format ~A" mapping))))
-
+     (values nil (format nil "Not a valid external format ~A" mapping)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

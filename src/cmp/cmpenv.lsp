@@ -59,6 +59,7 @@
     (*space* *space*)   ;; JCB
     (*speed* *speed*)   ;; JCB
     (*compiler-floating-point-exclusion-set* *compiler-floating-point-exclusion-set*) ;; JCB
+    (ffi::*referenced-libraries* ffi::*referenced-libraries*) ;; JCB
     ))
 
 (defun next-lcl () (list 'LCL (incf *lcl*)))

@@ -133,21 +133,28 @@
   (defun mkcl-library-directory ()
     "Finds the directory in which the MKCL core library was installed."
     (cond (*mkcl-library-directory*)
-          ((mkcl:probe-file-p lib-dir-probe)
-	   lib-dir
-	   )
+          ((mkcl:probe-file-p lib-dir-probe) lib-dir)
           (*mkcl-default-library-directory*)
 	  ((error "Unable to find library directory")))))
 
-
 (defun libs-ld-flags (libraries mkcl-libraries mkcl-shared external-shared)
   (declare (ignorable mkcl-shared))
-  (let ((libdir (namestring (mkcl-library-directory)))
-	(out (reverse libraries)))
+  (let ((mkcl-libdir (namestring (mkcl-library-directory)))
+	out)
+
+    (dolist (lib-set (si:dyn-list libraries ffi::*referenced-libraries*))
+      (dolist (lib-spec lib-set)
+	(if (pathnamep lib-spec)
+	    (push (mkcl:str+ (namestring lib-spec) " ") out)
+	  (let ((lib-spec-as-path (pathname lib-spec)))
+	    (if (or (pathname-directory lib-spec-as-path) (pathname-type lib-spec-as-path))
+		(push (mkcl:str+ (namestring lib-spec-as-path) " ") out)
+	      (push (mkcl:str+ "-l" lib-spec " ") out))))))
+
     #-mkcl-bootstrap
-    (unless mkcl-shared (setq libdir (mkcl:bstr+ libdir "mkcl-" (si:mkcl-version) "/")))
+    (unless mkcl-shared (setq mkcl-libdir (mkcl:bstr+ mkcl-libdir "mkcl-" (si:mkcl-version) "/")))
     (dolist (lib mkcl-libraries)
-      (push (mkcl:bstr+ "\"" libdir lib "\" ") out)
+      (push (mkcl:bstr+ "\"" mkcl-libdir lib "\" ") out)
       )
     (unless external-shared
       (push "-Wl,-Bstatic " out)
@@ -381,10 +388,6 @@ main(int argc, char **argv)
       env->own_thread->thread.status = mkcl_thread_done;
       /* MKCL's shutdown watchdog should be inserted here. */
       return mkcl_shutdown_watchdog(env);
-#if 0
-      mkcl_thread_exit(env, MKCL_THREAD_KILLED);
-      return(-1); /* This line is normally never reached. */
-#endif
     }
 }~%")
 
@@ -419,10 +422,6 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdS
       } MKCL_CATCH_ALL_END;
       env->own_thread->thread.status = mkcl_thread_done;
       return mkcl_shutdown_watchdog(env);
-#if 0
-      mkcl_thread_exit(env, MKCL_THREAD_KILLED);
-      return(-1);
-#endif
     }
 }~%")
 
@@ -583,12 +582,12 @@ filesystem or in the database of ASDF modules."
 		       object-files
 		       extra-ld-flags
 		       (init-name nil)
-		       (prologue-code "" prologue-p)
-		       (epilogue-code (when (eq target :program) '(SI::TOP-LEVEL)))
 		       (libraries nil) ;; a list of strings, each naming a library
 		       (use-mkcl-shared-libraries t)
 		       (use-external-shared-libraries t)
 		       #+windows (subsystem :console) ;; only for :program target on :windows
+		       (prologue-code "" prologue-p)
+		       (epilogue-code (when (and (eq target :program) #+windows (eq subsystem :console)) '(SI::TOP-LEVEL)))
 		       &aux
 		       (*builder-to-delete* nil)
 		       output-internal-name
@@ -674,14 +673,15 @@ filesystem or in the database of ASDF modules."
 	  (ecase target
 	    (:program
 	     (format c-file +lisp-program-init+ init-name "" submodules "")
-	     (format c-file #+windows (ecase subsystem (:console +lisp-program-main+)
+	     (format c-file #+windows (ecase subsystem
+                                             (:console +lisp-program-main+)
 					     (:windows +lisp-program-winmain+))
 		     #-windows +lisp-program-main+
 		     prologue-code init-name epilogue-code)
 	     (close c-file)
 	     (rename-file c-file c-pathname)
 	     (compiler-cc c-basename o-basename work-dir)
-	     #+mingw32
+	     #+(or mingw32 mingw64)
 	     (ecase subsystem
 		    (:console (push "-mconsole" object-files))
 		    (:windows (push "-mwindows" object-files)))
@@ -1102,7 +1102,7 @@ returned as the value of COMPILE."
 	 (compiler-conditions)
 	 (data-init)
 	 (t1expr form)
-	 (let (#+(or mingw32 msvc cygwin)(*self-destructing-fasl* t))
+	 (let (#+(or mingw32 mingw64 msvc cygwin)(*self-destructing-fasl* t))
 	   (compiler-pass2 c-pathname h-pathname data-pathname init-name :input-designator (format nil "~A" definition)))
 	 (setf si:*compiler-constants* (data-dump data-file #|data-pathname|# :close-when-done t))
 

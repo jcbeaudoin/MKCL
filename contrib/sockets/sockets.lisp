@@ -473,7 +473,7 @@ raw_buffer_pointer(MKCL, mkcl_object x, mkcl_index size)
 " /* This callback is used as IO Completion routine by WSARecvFrom and WSASend and WSASendTo here below. */
 static void CALLBACK _socket_io_done(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags)
 {
-  lpOverlapped->hEvent = (HANDLE) cbTransferred;
+  lpOverlapped->hEvent = (HANDLE) (uintptr_t) cbTransferred;
 }
 "
 )
@@ -526,7 +526,7 @@ static void CALLBACK _socket_io_done(DWORD dwError, DWORD cbTransferred, LPWSAOV
 
 	  mk_mt_test_for_thread_shutdown(env);
 
-	  len = (DWORD) RecvOverlapped.hEvent;
+	  len = (DWORD) (uintptr_t) RecvOverlapped.hEvent;
 	}
       else
         { @(return 0) = -1; goto _MKCL_RECEIVE_ERROR; }
@@ -909,7 +909,7 @@ static void fill_inet_sockaddr(struct sockaddr_in *sockaddr, int port,
 
 	  mk_mt_test_for_thread_shutdown(env);
 
-	  len = (DWORD) SendOverlapped.hEvent;
+	  len = (DWORD) (uintptr_t) SendOverlapped.hEvent;
 	}
       else
         { @(return) = -1; goto _MKCL_SENDTO_ERROR; }
@@ -956,7 +956,7 @@ _MKCL_SENDTO_ERROR:;
 
 	  mk_mt_test_for_thread_shutdown(env);
 
-	  len = (DWORD) SendOverlapped.hEvent;
+	  len = (DWORD) (uintptr_t) SendOverlapped.hEvent;
 	}
       else
         { @(return) = -1; goto _MKCL_SEND_ERROR; }

@@ -666,9 +666,6 @@ mkcl_fficall_overflow(MKCL, size_t new_bytes)
   size_t size = fficall->buffer_size;
   size_t new_size;
 
-#if 0
-  printf("\nIn mkcl_fficall_overflow(): new_bytes = %lu", new_bytes); fflush(NULL);
-#endif
   if (size < MKCL_FFICALL_ARGS_STAGING_AREA_GROWTH_INCREMENT)
     if (new_bytes < size)
       new_size = size + size;
@@ -680,12 +677,6 @@ mkcl_fficall_overflow(MKCL, size_t new_bytes)
     else
       new_size = size + new_bytes;
 
-#if 0
-  printf("\nIn mkcl_fficall_overflow(): sp = %lu, old size = %lu, new_size = %lu",
-	 fficall->buffer_sp - fficall->buffer, size, new_size);
-  fflush(NULL);
-#endif
-
   char * new_buffer = mkcl_alloc(env, new_size);
   char * new_buffer_sp = new_buffer + (fficall->buffer_sp - fficall->buffer);
 
@@ -694,10 +685,6 @@ mkcl_fficall_overflow(MKCL, size_t new_bytes)
   fficall->buffer = new_buffer;
   fficall->buffer_sp = new_buffer_sp;
   fficall->buffer_size = new_size;
-
-#if 0
-  mkcl_FEerror(env, "Stack overflow on SI:CALL-CFUN", 0);
-#endif
 }
 
 mkcl_object
@@ -748,20 +735,8 @@ mkcl_fficall_push_bytes(MKCL, void *data, size_t bytes)
 {
   struct mkcl_fficall *fficall = env->fficall;
 
-#if 0
-  printf("\nIn mkcl_fficall_push_bytes(): data = %p, bytes = %lu", data, bytes);
-  printf("\nIn mkcl_fficall_push_bytes(): buffer = %p, sp = %lu\n", fficall->buffer, fficall->buffer_sp - fficall->buffer);
-  fflush(NULL);
-#endif
-
-#if 0
-  fficall->buffer_size += bytes;
-  if (fficall->buffer_size >= MKCL_FFICALL_LIMIT)
-    mkcl_fficall_overflow(env);
-#else
   if (((fficall->buffer_sp + bytes) - fficall->buffer) > fficall->buffer_size)
     mkcl_fficall_overflow(env, bytes);
-#endif
   memcpy(fficall->buffer_sp, (char*)data, bytes);
   fficall->buffer_sp += bytes;
 }
@@ -772,68 +747,23 @@ mkcl_fficall_push_int(MKCL, int data)
   mkcl_fficall_push_bytes(env, &data, sizeof(int));
 }
 
-#if 0
-void
-mkcl_fficall_align(MKCL, int data)
-{ /* Note that the value of 'data' must be a power of 2 for this code to work. */
-  struct mkcl_fficall *fficall = env->fficall;
-
-#if 0
-  printf("\nIn mkcl_fficall_align(): data = %d\n", data); fflush(NULL);
-#endif
-
-  if (data == 1)
-    return;
-  else {
-    size_t sp = fficall->buffer_sp - fficall->buffer;
-    size_t mask = data - 1;
-    size_t new_sp = (sp + mask) & ~mask;
-
-#if 0
-    if (new_sp >= MKCL_FFICALL_LIMIT)
-      mkcl_fficall_overflow(env);
-#else
-    if (new_sp > fficall->buffer_size)
-      mkcl_fficall_overflow(env, 16); /* This case should never happen! JCB */
-#endif
-
-    if (new_sp != sp)
-      { printf("\nIn mkcl_fficall_align(): sp = %lu, new_sp = %lu\n", sp, new_sp); fflush(NULL); }
-
-    fficall->buffer_sp = fficall->buffer + new_sp;
-    /* fficall->buffer_size = new_sp; */
-  }
-}
-#endif
 
 void mkcl_fficall_align4(MKCL)
 {
-#if 1
   struct mkcl_fficall * const fficall = env->fficall;
   fficall->buffer_sp = (char *) (((intptr_t) (fficall->buffer_sp + 0x3)) & ~((uintptr_t)0x3));
-#else
-  mkcl_fficall_align(env, 4);
-#endif
 }
 
 void mkcl_fficall_align8(MKCL)
 {
-#if 1
   struct mkcl_fficall * const fficall = env->fficall;
   fficall->buffer_sp = (char *) (((intptr_t) (fficall->buffer_sp + 0x7)) & ~((uintptr_t)0x7));
-#else
-  mkcl_fficall_align(env, 8);
-#endif
 }
 
 void mkcl_fficall_align16(MKCL)
 {
-#if 1
   struct mkcl_fficall * const fficall = env->fficall;
   fficall->buffer_sp = (char *) (((intptr_t) (fficall->buffer_sp + 0xF)) & ~((uintptr_t)0xF));
-#else
-  mkcl_fficall_align(env, 16);
-#endif
 }
 
 @(defun si::call-cfun (fun return_type arg_types args &optional (cc_type @':cdecl'))
@@ -851,8 +781,6 @@ void mkcl_fficall_align16(MKCL)
     type = mkcl_foreign_type_code(env, MKCL_CAR(arg_types));
     if (type == MKCL_FFI_CSTRING) {
       object = mkcl_null_terminated_base_string(env, MKCL_CAR(args));
-      /* if (MKCL_CAR(args) != object) */
-      /* 	fficall->cstring = MKCL_CONS(env, object, fficall->cstring); */
     } else {
       object = MKCL_CAR(args);
     }
@@ -869,10 +797,7 @@ void mkcl_fficall_align16(MKCL)
     {
       mkcl_object return_value = mkcl_foreign_ref_elt(env, &fficall->output, return_type_tag);
   
-      /* fficall->buffer_size = 0; */
-      fficall->buffer_sp = fficall->buffer;
-      /* fficall->cstring = mk_cl_Cnil; */
-  
+      fficall->buffer_sp = fficall->buffer;  
       @(return return_value);
     }
 @)
@@ -882,12 +807,7 @@ void mkcl_fficall_align16(MKCL)
 	mkcl_object cbk;
 @
   data = mk_cl_list(env, 3, fun, rtype, argtypes);
-#if 0
-  cbk  = mkcl_make_foreign(env, @':pointer-void', 0,
-				mkcl_dynamic_callback_make(env, data, mkcl_foreign_cc_code(env, cctype)));
-#else
   cbk  = mkcl_make_foreign(env, @':void', 0, mkcl_dynamic_callback_make(env, data, mkcl_foreign_cc_code(env, cctype)));
-#endif
 
   mk_si_put_sysprop(env, sym, @':callback', MKCL_CONS(env, cbk, data));
   @(return cbk);

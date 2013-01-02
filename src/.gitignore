@@ -2,6 +2,7 @@
 mkcl_min
 ucd.dat
 help.doc
+HELP.DOC
 BUILD-STAMP
 TAGS
 bare.lsp
@@ -12,6 +13,7 @@ config.status
 ext/
 bin/
 encodings/
+ENCODINGS/
 include/
 lib/
 test/

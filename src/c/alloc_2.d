@@ -270,6 +270,32 @@ static inline void * MKCL_GC_MALLOC_ATOMIC_IGNORE_OFF_PAGE(MKCL, mkcl_index size
 
 
 
+static inline void * MKCL_GC_MEMALIGN(MKCL, mkcl_index alignment, mkcl_index size)
+{
+  void * new;
+
+  MKCL_GC_NO_INTR(env, new = MK_GC_memalign(alignment, size));
+
+  if (mkcl_likely(new != NULL))
+    return new;
+  else
+    {
+      grow_memory(env);
+      MKCL_GC_NO_INTR(env, new = MK_GC_memalign(alignment, size));
+      if (mkcl_likely(new != NULL))
+	return new;
+      else
+	mkcl_lose(env, "Memory exhausted, quitting program.");
+    }
+}
+
+void * mkcl_alloc_pages(MKCL, mkcl_index nb_pages)
+{
+  long pagesize = mkcl_core.pagesize;
+
+  return MKCL_GC_MEMALIGN(env, pagesize, nb_pages * pagesize);
+}
+
 /****************************************************/
 
 mkcl_object mkcl_alloc_cdisplay(MKCL, mkcl_index nb_levels)
@@ -820,6 +846,7 @@ void
 mkcl_dealloc(MKCL, void *ptr)
 {
   /* Intentionally left empty! Broken on any platform after all... */
+  /* Beside, we believe that the GC will do the right thing, eventually... */
 }
 
 void *

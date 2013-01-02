@@ -16,6 +16,9 @@
 
 #include <mkcl/mkcl.h>
 #include <string.h>
+#if __unix
+#include <sys/mman.h>
+#endif
 #include <mkcl/internal.h>
 
 struct mkcl_fficall_reg *
@@ -193,7 +196,9 @@ mkcl_dynamic_callback_execute(mkcl_object cbk_info, char *arg_buffer)
   rtype = MKCL_CADR(cbk_info);
   argtypes = MKCL_CADDR(cbk_info);
 
-  arg_buffer += 4; /* Skip return address */
+  arg_buffer += sizeof(void *); /* Skip saved stack frame pointer */
+  arg_buffer += sizeof(void *); /* Skip return address */
+
   for (i=0; !mkcl_endp(env, argtypes); argtypes = MKCL_CDR(argtypes), i++) {
     tag = mkcl_foreign_type_code(env, MKCL_CAR(argtypes));
     size = mkcl_fixnum_to_word(mk_si_size_of_foreign_elt_type(env, MKCL_CAR(argtypes)));
@@ -328,42 +333,69 @@ mkcl_dynamic_callback_execute(mkcl_object cbk_info, char *arg_buffer)
 void *
 mkcl_dynamic_callback_make(MKCL, mkcl_object data, enum mkcl_ffi_calling_convention cc_type)
 {
-  /*
-   *	push	%esp				54
-   *	pushl	<data>				68 <addr32>
-   *	call	mkcl_dynamic_callback_call	E8 <disp32>
-   * [ Here we could use also lea 4(%esp), %esp, but %ecx seems to be free ]
-   *	pop	%ecx				59
-   *	pop	%ecx				59
-   *	ret					c3
-   *	nop					90
-   *	nop					90
-   */
-  char *buf = (char*)mkcl_alloc_atomic_align(env, sizeof(char)*16, 4);
-  *(char*) (buf+0)  = 0x54;
-  *(char*) (buf+1)  = 0x68;
-  *(long*) (buf+2)  = (long)data;
-  *(unsigned char*) (buf+6)  = 0xE8;
-  *(long*) (buf+7)  = (long)mkcl_dynamic_callback_execute - (long)(buf+11);
-  *(char*) (buf+11) = 0x59;
-  *(char*) (buf+12) = 0x59;
+  char *buf = mkcl_alloc_pages(env, 1); /* An entire page (usually 4096 bytes) for a single callback!
+                                         * That is quite some waist. FIXME. JCB */
+  unsigned char * ip = buf; /* the instruction pointer (ip) */
+  union { unsigned char b[4]; void * p; unsigned long l; unsigned short s; } imm; /* a staging buffer for immediate data */
+
+#define i(byte) *(ip++) = (byte)
+#define immed_ptr(val_ptr) imm.p = (val_ptr); i(imm.b[0]); i(imm.b[1]); i(imm.b[2]); i(imm.b[3]);
+#define immed16(val_short) imm.s = (val_short);	i(imm.b[0]); i(imm.b[1]);
+#define immed32(val_long) imm.l = (val_long); i(imm.b[0]); i(imm.b[1]); i(imm.b[2]); i(imm.b[3]);
+    
+
+  /* pushl  %ebp           */  i(0x55);                             /* build stack frame, step 1 of 2 */
+  /* movl   %esp, %ebp     */  i(0x89); i(0xe5);                    /* build stack frame, step 2 of 2 */
+  /* pushl  %esp           */  i(0x54);                             /* push arg_list pointer */
+  /* movl   <addr32>, %eax */  i(0xb8); immed_ptr(data);
+  /* pushl  %eax           */  i(0x50);                             /* push data */   
+  /* movl   <addr32>, %eax */  i(0xb8); immed_ptr(mkcl_dynamic_callback_execute);
+  /* call   *%eax          */  i(0xff); i(0xd0);                    /* call mkcl_dynamic_callback_execute() */
+  /* addl   $16, %esp      */  i(0x83); i(0xc4); i(0x10);           /* cleanup arg list of previous call, 16 bytes. */
+  /* leave                 */  i(0xc9);                             /* undo stack frame */
+#ifndef MKCL_WINDOWS
+  /* ret                   */  i(0xc3);                             /* return */
+#else
   if (cc_type == MKCL_FFI_CC_CDECL) {
-    *(unsigned char*) (buf+13) = 0xc3;
-    *(unsigned short*)(buf+14) = 0x9090;
+    /* ret                 */  i(0xc3);                             /* return */
   } else { /* This would be MKCL_FFI_CC_STDCALL. JCB */
     mkcl_object arg_types = MKCL_CADDR(data);
-    int byte_size = 0;
-    const unsigned int mask = 3;
+    unsigned long arg_list_byte_size = 0;
+    const unsigned long mask = 3;
 
     while (MKCL_CONSP(arg_types)) {
-      int sz = mkcl_fixnum_to_word(mk_si_size_of_foreign_elt_type(env, MKCL_CAR(arg_types)));
-      byte_size += ((sz+mask)&(~mask));
+      unsigned int sz = mkcl_fixnum_to_word(mk_si_size_of_foreign_elt_type(env, MKCL_CAR(arg_types)));
+      arg_list_byte_size += ((sz+mask)&(~mask));
       arg_types = MKCL_CDR(arg_types);
     }
 
-    *(unsigned char*) (buf+13) = 0xc2;
-    *(unsigned short*)(buf+14) = (unsigned short)byte_size; /* This caps the value (of what?) to 65536! JCB */
+    if (arg_list_byte_size > USHRT_MAX)
+      {
+	/* popl  %ecx                  */ i(0x59);                  /* get return %eip. */
+	/* addl  <immed32>, %esp       */ i(0x81); i(0xc4); immed32(arg_list_byte_size); /* pop byte_size bytes. */
+	/* jmp   *%ecx                 */ i(0xff); i(0xe1);         /* jump to return %eip. */
+      }
+    else
+      {
+	/* ret <immed16> */ i(0xc2); immed16(arg_list_byte_size);   /* return and pop byte_size bytes. */
+      }
   }
+#endif
+  /* nop                   */  i(0x90);  /* Fill with nop until end of I-cache line (multiple of 16 bytes). */
+  /* nop                   */  i(0x90);
+  /* nop                   */  i(0x90);
+  /* nop                   */  i(0x90);
+  /* nop                   */  i(0x90);
+  /* nop                   */  i(0x90);
 
+#if __unix
+  int rc = mprotect(buf, mkcl_core.pagesize, PROT_READ | /* PROT_WRITE | */ PROT_EXEC);
+  if (rc)
+    mkcl_FElibc_error(env, "mkcl_dynamic_callback_make() failed on mprotect()", 0);
+#endif
+
+#if 0
+  printf("\nIn mkcl_dynamic_callback_make(), returning %p.\n", buf); fflush(NULL); /* debug JCB */
+#endif
   return buf;
 }

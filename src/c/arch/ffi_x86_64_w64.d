@@ -1,6 +1,6 @@
 /* -*- mode: c -*- */
 /*
-    ffi_x86.c -- Nonportable component of the FFI
+    ffi_x86_64_w64.c -- Nonportable component of the FFI for Microsoft Win64 on x86_64.
 */
 /*
     Copyright (c) 2005, Juan Jose Garcia Ripoll.
@@ -205,7 +205,7 @@ static const mkcl_base_string_object(mkcl_dynamic_callback_import_thread_name__o
 static const mkcl_object mkcl_dynamic_callback_import_thread_name = (mkcl_object) &mkcl_dynamic_callback_import_thread_name__obj_;
 
 
-static void
+static uint64_t
 mkcl_dynamic_callback_execute(int64_t i1, int64_t i2, int64_t i3, int64_t i4,
 			      mkcl_object cbk_info, char *arg_buffer)
 {
@@ -218,6 +218,10 @@ mkcl_dynamic_callback_execute(int64_t i1, int64_t i2, int64_t i3, int64_t i4,
   union reg reg[MAX_REGISTERS];
   mkcl_env env = MKCL_ENV();
   mkcl_env imported_env = NULL;
+
+#if 0
+  printf("\nIn mkcl_dynamic_callback_execute(), i1 = %llx, i2 = %llx, i3 = %llx, i4 = %llx,\n\t cbk_info = %p, arg_buffer = %p.\n", i1, i2, i3, i4, cbk_info, arg_buffer); fflush(NULL);
+#endif
 
   if (env == NULL)
     {
@@ -239,7 +243,7 @@ mkcl_dynamic_callback_execute(int64_t i1, int64_t i2, int64_t i3, int64_t i4,
   reg[3].i = i4;
 
   arg_buffer += 2*sizeof(void*); /* Skip return address and base pointer */
-  arg_buffer += 4*sizeof(int64_t); /* Skip homes of the 4 register arguments */
+  arg_buffer += 4*sizeof(int64_t); /* Skip the spill-over homes of the 4 register arguments */
 
   for (; !mkcl_endp(env, argtypes); argtypes = MKCL_CDR(argtypes))
     {
@@ -279,11 +283,7 @@ mkcl_dynamic_callback_execute(int64_t i1, int64_t i2, int64_t i3, int64_t i4,
 	result = mkcl_apply_from_temp_stack_frame(env, frame, fun);
 
 	mkcl_disable_interrupts(env);
-#if 1
 	mkcl_cleanup_thread_lisp_context(env);
-#else
-	mkcl_bds_unwind1(env);
-#endif
       } MKCL_CATCH_ALL_END;
       thread->thread.status = mkcl_thread_done;
     }
@@ -298,41 +298,51 @@ mkcl_dynamic_callback_execute(int64_t i1, int64_t i2, int64_t i3, int64_t i4,
     mkcl_release_current_thread(imported_env);
 
   errno = 0;
-  switch (tag) {
-    register uint64_t rax asm("rax");
-  case MKCL_FFI_CHAR: rax = output.c; return;
-  case MKCL_FFI_UNSIGNED_CHAR: rax = output.uc; return;
-  case MKCL_FFI_BYTE: rax = output.b; return;
-  case MKCL_FFI_UNSIGNED_BYTE: rax = output.ub; return;
-  case MKCL_FFI_INT16_T: rax = output.i16; return;
-  case MKCL_FFI_UINT16_T: rax = output.u16; return;
-  case MKCL_FFI_SHORT: rax = output.s; return;
-  case MKCL_FFI_UNSIGNED_SHORT: rax = output.us; return;
-  case MKCL_FFI_INT32_T: rax = output.i32; return;
-  case MKCL_FFI_UINT32_T: rax = output.u32; return;
-  case MKCL_FFI_INT: rax = output.i; return;
-  case MKCL_FFI_UNSIGNED_INT: rax = output.ui; return;
-  case MKCL_FFI_LONG: rax = output.l; return;
-  case MKCL_FFI_UNSIGNED_LONG: rax = output.ul; return;
+  {
+    volatile uint64_t val = 0;
+    switch (tag) {
+    case MKCL_FFI_CHAR: val = output.c; break;
+    case MKCL_FFI_UNSIGNED_CHAR: val = output.uc; break;
+    case MKCL_FFI_BYTE: val = output.b; break;
+    case MKCL_FFI_UNSIGNED_BYTE: val = output.ub; break;
+    case MKCL_FFI_INT16_T: val = output.i16; break;
+    case MKCL_FFI_UINT16_T: val = output.u16; break;
+    case MKCL_FFI_SHORT: val = output.s; break;
+    case MKCL_FFI_UNSIGNED_SHORT: val = output.us; break;
+    case MKCL_FFI_INT32_T: val = output.i32; break;
+    case MKCL_FFI_UINT32_T: val = output.u32; break;
+    case MKCL_FFI_INT: val = output.i; break;
+    case MKCL_FFI_UNSIGNED_INT: val = output.ui; break;
+    case MKCL_FFI_LONG: val = output.l; break;
+    case MKCL_FFI_UNSIGNED_LONG: val = output.ul; break;
 
-  case MKCL_FFI_INT64_T:
-  case MKCL_FFI_UINT64_T:
-  case MKCL_FFI_LONG_LONG:
-  case MKCL_FFI_UNSIGNED_LONG_LONG:
-  case MKCL_FFI_POINTER_VOID:
-  case MKCL_FFI_CSTRING:
-  case MKCL_FFI_OBJECT:
-    rax = output.ull; return;
-  case MKCL_FFI_DOUBLE:
-    asm("movsd (%0),%%xmm0" :: "a" (&output.d));
-    return;
-  case MKCL_FFI_FLOAT:
-    asm("movss (%0),%%xmm0" :: "a" (&output.f));
-    return;
-  case MKCL_FFI_VOID:
-    return;
-  default:
-    mkcl_FEerror(env, "Invalid C function callback return type", 0);
+    case MKCL_FFI_INT64_T:
+    case MKCL_FFI_UINT64_T:
+    case MKCL_FFI_LONG_LONG:
+    case MKCL_FFI_UNSIGNED_LONG_LONG:
+    case MKCL_FFI_POINTER_VOID:
+    case MKCL_FFI_CSTRING:
+    case MKCL_FFI_OBJECT:
+      val = output.ull; break;
+    case MKCL_FFI_DOUBLE:
+      asm("movsd (%0),%%xmm0" :: "a" (&output.d));
+      break;
+    case MKCL_FFI_FLOAT:
+      asm("movss (%0),%%xmm0" :: "a" (&output.f));
+      break;
+    case MKCL_FFI_VOID:
+      break;
+    default:
+      mkcl_FEerror(env, "Invalid C function callback return type", 0);
+    }
+    {
+#if 0
+      register uint64_t rax asm("rax");
+      rax = val;
+#endif
+      asm __volatile__ ("mov %0,%%rax\n\t" :: "m" (val));
+      return val;
+    }
   }
 }
 
@@ -341,34 +351,38 @@ mkcl_dynamic_callback_execute(int64_t i1, int64_t i2, int64_t i3, int64_t i4,
 void*
 mkcl_dynamic_callback_make(MKCL, mkcl_object data, enum mkcl_ffi_calling_convention cc_type)
 {
-  /*
-   *	push    %rbp                    55
-   *	push    %rsp                    54
-   *	mov     <addr64>,%rax           48 b8 <addr64>
-   *	push    %rax                    50
-   *    push    %r9                     41 51           ; push arg3
-   *    push    %r8                     41 50           ; push arg2
-   *    push    %rdx                    52              ; push arg1
-   *    push    %rcx                    51              ; push arg0
-   *	mov     <addr64>,%rax           48 b8 <addr64>
-   *	callq   *%rax                   48 ff d0
-   *	pop     %rcx                    59
-   *	pop     %rcx                    59
-   *	pop     %rbp                    5d
-   *	ret                             c3
-   *	nop				90
-   *	nop				90
-   *	nop				90
-   *	nop				90
-   *	nop				90
-   *	nop				90
-   *	nop				90
-   *	nop				90
-   *	nop				90
-   *	nop				90
-   *	nop				90
-   *	nop				90
-   */
+  unsigned char *buf = mkcl_alloc_pages(env, 1); /* An entire page (usually 4096 bytes) for a single callback!
+						  * That is quite some waste. FIXME. JCB */
+  unsigned char * ip = buf; /* the instruction pointer (ip) */
+  union { unsigned char b[8]; void * p; long long ll; long l; } imm; /* a staging buffer for immediate data */
+
+#define i(byte) *(ip++) = (byte)
+#define immed_ptr(val_ptr) imm.p = (val_ptr);	\
+  i(imm.b[0]); i(imm.b[1]); i(imm.b[2]); i(imm.b[3]); i(imm.b[4]); i(imm.b[5]); i(imm.b[6]); i(imm.b[7]);
+    
+
+  /* pushq   %rbp           */  i(0x55);                             /* build stack frame, step 1 of 2 */
+  /* movq    %rsp, %rbp     */  i(0x48); i(0x89); i(0xe5);           /* build stack frame, step 2 of 2 */
+  /* pushq   %rsp           */  i(0x54);                             /* push arg_list pointer */
+  /* movq    <addr64>, %rax */  i(0x48); i(0xb8); immed_ptr(data);
+  /* pushq   %rax           */  i(0x50);                             /* push data */   
+  /* pushq   %r9            */  i(0x41); i(0x51);                    /* push arg3 */
+  /* pushq   %r8            */  i(0x41); i(0x50);                    /* push arg2 */
+  /* pushq   %rdx           */  i(0x52);                             /* push arg1 */
+  /* pushq   %rcx           */  i(0x51);                             /* push arg0 */
+  /* movq    <addr64>, %rax */  i(0x48); i(0xb8); immed_ptr(mkcl_dynamic_callback_execute);
+  /* callq   *%rax          */  i(0x48); i(0xff); i(0xd0);           /* call mkcl_dynamic_callback_execute() */
+  /* addq    $48, %rsp      */  i(0x48); i(0x83); i(0xc4); i(0x30);  /* cleanup arg list of previous call, 48 bytes. */
+  /* leave                  */  i(0xc9);                             /* undo stack frame */
+  /* ret                    */  i(0xc3);                             /* return */
+  /* nop                    */  i(0x90);  /* Fill with nop until end of I-cache line (multiple of 16 bytes). */
+  /* nop                    */  i(0x90);
+  /* nop                    */  i(0x90);
+  /* nop                    */  i(0x90);
+  /* nop                    */  i(0x90);
+  /* nop                    */  i(0x90);
+  /* nop                    */  i(0x90);
+  /* nop                    */  i(0x90);
 
   /*
    * we could also adjust the SP register this way
@@ -378,28 +392,18 @@ mkcl_dynamic_callback_make(MKCL, mkcl_object data, enum mkcl_ffi_calling_convent
    *
    */
 
-  /* round the size of the routine to the next I-cache line boundary (48=3*16). */
-  char *buf = (char*)mkcl_alloc_atomic_align(env, 48, 8);
+  { /* By default on Win64 data is PAGE_READWRITE only and we would get
+       an ACCESS_VIOLATION if we didn't set it to EXECUTE. */
+    DWORD old_protection_flags;
+    BOOL ok = VirtualProtect(buf, mkcl_core.pagesize, PAGE_EXECUTE_READ, &old_protection_flags);
+    
+    if (!ok)
+      mkcl_FEwin32_error(env, "mkcl_dynamic_callback_make() failed on VirtualProtect()", 0);
+  }
 
-  *(unsigned char*) (buf+0)  = 0x55;
-  *(unsigned char*) (buf+1)  = 0x54;
-  *(unsigned short*)(buf+2)  = 0xb848;
-  *(uintptr_t*)     (buf+4)  = (uintptr_t)data;
-  *(unsigned char*) (buf+12) = 0x50;
-  *(unsigned short*)(buf+13) = 0x5141;
-  *(unsigned short*)(buf+15) = 0x5041;
-  *(unsigned char*) (buf+17) = 0x52;
-  *(unsigned char*) (buf+18) = 0x51;
-  *(unsigned short*)(buf+19) = 0xb848;
-  *(uintptr_t*)     (buf+21) = (uintptr_t)mkcl_dynamic_callback_execute;
-  *(unsigned int*)  (buf+29) = (unsigned int)0x00d0ff48;/* leading null byte is overwritten */
-  *(unsigned char*) (buf+32) = 0x59;
-  *(unsigned char*) (buf+33) = 0x59;
-  *(unsigned char*) (buf+34) = 0x5d;
-  *(unsigned char*) (buf+35) = 0xc3;
-  *(unsigned long*) (buf+36) = 0x90909090;
-  *(uint64_t*)(buf+40) = 0x9090909090909090LL;
-
+#if 0
+  printf("\nIn mkcl_dynamic_callback_make(), data = %p, returning = %p.\n", data, buf); fflush(NULL);
+#endif
   return buf;
 }
 

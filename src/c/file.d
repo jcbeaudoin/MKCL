@@ -1635,7 +1635,7 @@ mk_si_make_string_output_stream_from_string(MKCL, mkcl_object s, mkcl_object enc
   if (!mkcl_stringp(env, s) || !s->base_string.hasfillp)
     mkcl_FEerror(env, "~S is not a string with a fill-pointer.", 1, s);
   strm->stream.ops = duplicate_dispatch_table(env, &str_out_ops);
-  strm->stream.mode = (short)mkcl_smm_string_output;
+  strm->stream.mode = mkcl_smm_string_output;
   MKCL_STRING_OUTPUT_STREAM_STRING(strm) = s;
   MKCL_STRING_OUTPUT_STREAM_COLUMN(strm) = 0;
   if (mkcl_type_of(s) == mkcl_t_base_string) {
@@ -1881,7 +1881,7 @@ mkcl_make_string_input_stream(MKCL, mkcl_object strng, mkcl_index istart, mkcl_i
 
   strm = alloc_stream(env);
   strm->stream.ops = duplicate_dispatch_table(env, &str_in_ops);
-  strm->stream.mode = (short)mkcl_smm_string_input;
+  strm->stream.mode = mkcl_smm_string_input;
   MKCL_STRING_INPUT_STREAM_STRING(strm) = strng;
   MKCL_STRING_INPUT_STREAM_POSITION(strm) = istart;
   MKCL_STRING_INPUT_STREAM_LIMIT(strm) = iend;
@@ -3196,9 +3196,20 @@ static const struct mkcl_file_ops input_file_ops = {
 
 /******************************************/
 
-
 static void
-set_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_stream_flag_set flags, mkcl_object external_format)
+set_file_stream_elt_type_defaults(MKCL, mkcl_object stream)
+{
+  stream->stream.flags = MKCL_STREAM_TEXT | MKCL_STREAM_LF;
+  stream->stream.byte_size = 8;
+  MKCL_IO_STREAM_ELT_TYPE(stream) = @'base-char';
+  stream->stream.format = mkcl_cons(env, @':iso-8859-1', mkcl_list1(env, @':LF'));
+  stream->stream.format_table = mk_cl_Cnil;
+  stream->stream.encoder = passthrough_encoder;
+  stream->stream.decoder = passthrough_decoder;
+}
+
+static mkcl_object
+set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_stream_flag_set flags, mkcl_object external_format)
 {
   if (byte_size == 0) flags |= MKCL_STREAM_TEXT;
 
@@ -3214,13 +3225,9 @@ set_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_stream_f
 	flags &= ~MKCL_STREAM_SIGNED_BYTES;
 	element_type = @'unsigned-byte';
       } else {/* byte_size == 0 */
-	mkcl_FEerror(env, "Binary stream of unspecified element-type", 0);
+	static const mkcl_base_string_object(reason_string_obj, "Binary stream of unspecified element-type");
+	@(return mk_cl_Cnil ((mkcl_object) &reason_string_obj));
       }
-
-      MKCL_IO_STREAM_ELT_TYPE(stream) = mk_cl_list(env, 2, element_type, MKCL_MAKE_FIXNUM(byte_size));
-      stream->stream.format = element_type;
-      stream->stream.ops->read_char = not_character_read_char;
-      stream->stream.ops->write_char = not_character_write_char;
 
       if (external_format == @':LITTLE-ENDIAN')
 	flags |= MKCL_STREAM_LITTLE_ENDIAN;
@@ -3232,22 +3239,42 @@ set_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_stream_f
 	    flags |= MKCL_STREAM_LITTLE_ENDIAN; /* Good for x86 and x86_64. JCB */
 	}
       else if (!mkcl_Null(external_format))
-	mkcl_FEerror(env, "Invalid binary stream external-format specifier: ~S", 1, external_format);
+	{
+	  static const mkcl_base_string_object(reason_control_string_obj,
+					       "Invalid binary stream external-format specifier: ~S");
+	  @(return mk_cl_Cnil mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, external_format));
+	}
+
+      /* commit new binary parameters to object */
+      MKCL_IO_STREAM_ELT_TYPE(stream) = mk_cl_list(env, 2, element_type, MKCL_MAKE_FIXNUM(byte_size));
+      stream->stream.format = element_type;
+      stream->stream.ops->read_char = not_character_read_char;
+      stream->stream.ops->write_char = not_character_write_char;
     }
   else
     { /* Text stream */
       mkcl_object line_termination;
+      mkcl_character (*read_char)(MKCL, mkcl_object strm);
+      mkcl_character (*write_char)(MKCL, mkcl_object strm, mkcl_character c);
+      mkcl_object stream_format = stream->stream.format;
+      mkcl_object stream_format_table = stream->stream.format_table;
+      mkcl_eformat_encoder encoder = stream->stream.encoder;
+      mkcl_eformat_decoder decoder = stream->stream.decoder;
+      mkcl_object element_type = MKCL_IO_STREAM_ELT_TYPE(stream);
 
-      stream->stream.ops->read_char = eformat_read_char;
-      stream->stream.ops->write_char = eformat_write_char;
+      read_char = eformat_read_char;
+      write_char = eformat_write_char;
+#ifdef MKCL_WINDOWS
+      line_termination = @':CRLF'; /* default line termination */
+#else
+      line_termination = @':LF'; /* default line termination */
+#endif
   
       if (external_format == @':default')
 	{
 	  external_format = mkcl_symbol_value(env, @'si::*default-external-format*');
 	  if (external_format == @':default')
-	    { /* This is the hardcoded fallback. */
-	      external_format = mkcl_core.default_default_external_format;
-	    }
+	    external_format = mkcl_core.default_default_external_format; /* This is the hardcoded fallback. */
 	}
 
       if (MKCL_CONSP(external_format)) {
@@ -3256,8 +3283,10 @@ set_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_stream_f
 	external_format = mk_cl_car(env, format_spec);
 	line_termination = mk_cl_cadr(env, format_spec);
 
-	if (!mkcl_Null(mk_cl_cddr(env, format_spec)))
-	  mkcl_FEerror(env, "Invalid external-format specifier: ~S", 1, external_format);
+	if (!mkcl_Null(mk_cl_cddr(env, format_spec))) {
+	  static const mkcl_base_string_object(reason_control_string_obj, "Invalid external-format specifier: ~S");
+	  @(return mk_cl_Cnil mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, external_format));
+	}
 
 	if (line_termination == @':CR')
 	  flags = (flags | MKCL_STREAM_CR) & ~MKCL_STREAM_LF;
@@ -3265,142 +3294,163 @@ set_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_stream_f
 	  flags = (flags | MKCL_STREAM_LF) & ~MKCL_STREAM_CR;
 	else if (line_termination == @':CRLF')
 	  flags = flags | (MKCL_STREAM_CR | MKCL_STREAM_LF);
-	else
-	  mkcl_FEerror(env, "Invalid line termination specifier: ~S", 1, line_termination);
-      } else {
-#ifdef MKCL_WINDOWS
-	line_termination = @':CRLF'; /* default line termination */
-#else
-	line_termination = @':LF'; /* default line termination */
-#endif
+	else {
+	  static const mkcl_base_string_object(reason_control_string_obj, "Invalid line termination specifier: ~S");
+	  @(return mk_cl_Cnil mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, line_termination));
+	}
       }
 
       if (external_format == @':ISO-8859-1' || external_format == @':LATIN-1')
 	{
-	  MKCL_IO_STREAM_ELT_TYPE(stream) = @'base-char';
+	  element_type = @'base-char';
 	  byte_size = 8;
-	  stream->stream.format = @':iso-8859-1';
-	  stream->stream.encoder = passthrough_encoder;
-	  stream->stream.decoder = passthrough_decoder;
+	  stream_format = @':iso-8859-1';
+	  encoder = passthrough_encoder;
+	  decoder = passthrough_decoder;
 	}
       else if (external_format == @':UTF-8')
 	{
-	  MKCL_IO_STREAM_ELT_TYPE(stream) = @'character';
+	  element_type = @'character';
 	  byte_size = 8;
-	  stream->stream.format = @':utf-8';
-	  stream->stream.encoder = utf_8_encoder;
-	  stream->stream.decoder = utf_8_decoder;
+	  stream_format = @':utf-8';
+	  encoder = utf_8_encoder;
+	  decoder = utf_8_decoder;
 	}
       else if (external_format == @':UTF-16')
 	{
-	  MKCL_IO_STREAM_ELT_TYPE(stream) = @'character';
+	  element_type = @'character';
 	  byte_size = 8*2;
-	  stream->stream.format = @':utf-16';
-	  stream->stream.encoder = utf_16_encoder;
-	  stream->stream.decoder = utf_16_decoder;
+	  stream_format = @':utf-16';
+	  encoder = utf_16_encoder;
+	  decoder = utf_16_decoder;
 	}
       else if (external_format == @':UTF-16BE')
 	{
-	  MKCL_IO_STREAM_ELT_TYPE(stream) = @'character';
+	  element_type = @'character';
 	  byte_size = 8*2;
-	  stream->stream.format = @':utf-16be';
-	  stream->stream.encoder = utf_16be_encoder;
-	  stream->stream.decoder = utf_16be_decoder;
+	  stream_format = @':utf-16be';
+	  encoder = utf_16be_encoder;
+	  decoder = utf_16be_decoder;
 
-	  if (flags | MKCL_STREAM_LITTLE_ENDIAN)
-	    mkcl_FEerror(env, "Incoherent stream format :UTF-16BE on a little-endian stream", 0);
+	  if (flags | MKCL_STREAM_LITTLE_ENDIAN) {
+	    static const mkcl_base_string_object(reason_string_obj,
+						 "Incoherent stream format :UTF-16BE on a little-endian stream");
+	    @(return mk_cl_Cnil ((mkcl_object) &reason_string_obj));
+	  }
 	}
       else if (external_format == @':UTF-16LE')
 	{
-	  MKCL_IO_STREAM_ELT_TYPE(stream) = @'character';
+	  element_type = @'character';
 	  byte_size = 8*2;
-	  stream->stream.format = @':utf-16le';
-	  stream->stream.encoder = utf_16le_encoder;
-	  stream->stream.decoder = utf_16le_decoder;
+	  stream_format = @':utf-16le';
+	  encoder = utf_16le_encoder;
+	  decoder = utf_16le_decoder;
 
 	  flags |= MKCL_STREAM_LITTLE_ENDIAN;
 	}
       else if (external_format == @':UTF-32')
 	{
-	  MKCL_IO_STREAM_ELT_TYPE(stream) = @'character';
+	  element_type = @'character';
 	  byte_size = 8*4;
-	  stream->stream.format = @':utf-32';
-	  stream->stream.encoder = utf_32_encoder;
-	  stream->stream.decoder = utf_32_decoder;
+	  stream_format = @':utf-32';
+	  encoder = utf_32_encoder;
+	  decoder = utf_32_decoder;
 	}
       else if (external_format == @':UTF-32BE')
 	{
-	  MKCL_IO_STREAM_ELT_TYPE(stream) = @'character';
+	  element_type = @'character';
 	  byte_size = 8*4;
-	  stream->stream.format = @':utf-32be';
-	  stream->stream.encoder = utf_32be_encoder;
-	  stream->stream.decoder = utf_32be_decoder;
+	  stream_format = @':utf-32be';
+	  encoder = utf_32be_encoder;
+	  decoder = utf_32be_decoder;
 
-	  if (flags | MKCL_STREAM_LITTLE_ENDIAN)
-	    mkcl_FEerror(env, "Incoherent stream format :UTF-32BE on a little-endian stream", 0);
+	  if (flags | MKCL_STREAM_LITTLE_ENDIAN) {
+	    static const mkcl_base_string_object(reason_string_obj,
+						 "Incoherent stream format :UTF-32BE on a little-endian stream");
+	    @(return mk_cl_Cnil ((mkcl_object) &reason_string_obj));
+	  }
 	}
       else if (external_format == @':UTF-32LE')
 	{
-	  MKCL_IO_STREAM_ELT_TYPE(stream) = @'character';
+	  element_type = @'character';
 	  byte_size = 8*4;
-	  stream->stream.format = @':utf-32le';
-	  stream->stream.encoder = utf_32le_encoder;
-	  stream->stream.decoder = utf_32le_decoder;
+	  stream_format = @':utf-32le';
+	  encoder = utf_32le_encoder;
+	  decoder = utf_32le_decoder;
 
 	  flags |= MKCL_STREAM_LITTLE_ENDIAN;
 	}
       else if (external_format == @':US-ASCII' || external_format == @':ASCII')
 	{
-	  MKCL_IO_STREAM_ELT_TYPE(stream) = @'base-char';
+	  element_type = @'base-char';
 	  byte_size = 8;
-	  stream->stream.format = @':us-ascii';
-	  stream->stream.encoder = ascii_encoder;
-	  stream->stream.decoder = ascii_decoder;
+	  stream_format = @':us-ascii';
+	  encoder = ascii_encoder;
+	  decoder = ascii_decoder;
 	}
       else if (MKCL_SYMBOLP(external_format))
 	{
 	  mkcl_object format_table = mkcl_funcall1(env, @+'si::make-encoding', external_format);
+	  mkcl_object failure_reason = MKCL_VALUES(1);
 
-	  MKCL_IO_STREAM_ELT_TYPE(stream) = @'character';
-	  byte_size = 8;
-	  stream->stream.format_table = format_table;
-	  stream->stream.format = external_format;
-	  if (MKCL_CONSP(format_table))
-	    {
-	      stream->stream.encoder = user_multistate_encoder;
-	      stream->stream.decoder = user_multistate_decoder;
-	    }
+	  if (mkcl_Null(format_table))
+	    { @(return mk_cl_Cnil failure_reason); }
 	  else
 	    {
-	      stream->stream.encoder = user_encoder;
-	      stream->stream.decoder = user_decoder;
+	      element_type = @'character';
+	      byte_size = 8;
+	      stream_format_table = format_table;
+	      stream_format = external_format;
+	      if (MKCL_CONSP(format_table))
+		{
+		  encoder = user_multistate_encoder;
+		  decoder = user_multistate_decoder;
+		}
+	      else
+		{
+		  encoder = user_encoder;
+		  decoder = user_decoder;
+		}
 	    }
 	}
       else if (MKCL_HASH_TABLE_P(external_format))
 	{
-	  MKCL_IO_STREAM_ELT_TYPE(stream) = @'character';
+	  element_type = @'character';
 	  byte_size = 8;
-	  stream->stream.format = stream->stream.format_table = external_format;
-	  stream->stream.encoder = user_encoder;
-	  stream->stream.decoder = user_decoder;
+	  stream_format = external_format;
+	  stream_format_table = external_format;
+	  encoder = user_encoder;
+	  decoder = user_decoder;
 	}
       else
-	mkcl_FEerror(env, "Invalid or unsupported stream :external-format ~S with flags #x~X",
-		     2, external_format, MKCL_MAKE_FIXNUM(flags));
+	{
+	  static const mkcl_base_string_object(reason_string_obj,
+					       "Invalid or unsupported stream :external-format ~S with flags #x~X");
+	  @(return mk_cl_Cnil mk_cl_format(env, 4,
+					   mk_cl_Cnil, (mkcl_object) &reason_string_obj,
+					   external_format, MKCL_MAKE_FIXNUM(flags)));
+	}
 
       if (stream->stream.ops->write_char == eformat_write_char && (flags & MKCL_STREAM_CR)) {
 	if (flags & MKCL_STREAM_LF) {
-	  stream->stream.ops->read_char = eformat_read_char_crlf;
-	  stream->stream.ops->write_char = eformat_write_char_crlf;
+	  read_char = eformat_read_char_crlf;
+	  write_char = eformat_write_char_crlf;
 	  line_termination = @':CRLF';
 	} else {
-	  stream->stream.ops->read_char = eformat_read_char_cr;
-	  stream->stream.ops->write_char = eformat_write_char_cr;
+	  read_char = eformat_read_char_cr;
+	  write_char = eformat_write_char_cr;
 	  line_termination = @':CR';
 	}
       }
-      stream->stream.format = mkcl_cons(env, stream->stream.format, mkcl_list1(env, line_termination));
 
+      /* commit new text parameters to object */
+      MKCL_IO_STREAM_ELT_TYPE(stream) = element_type;
+      stream->stream.format = mkcl_cons(env, stream_format, mkcl_list1(env, line_termination));
+      stream->stream.format_table = stream_format_table;
+      stream->stream.ops->read_char = read_char;
+      stream->stream.ops->write_char = write_char;
+      stream->stream.encoder = encoder;
+      stream->stream.decoder = decoder;
     }
 
   {
@@ -3423,6 +3473,7 @@ set_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_stream_f
       read_byte = generic_read_byte_be;
       write_byte = generic_write_byte_be;
     }
+
     if (mkcl_input_stream_p(env, stream)) {
       stream->stream.ops->read_byte = read_byte;
     }
@@ -3432,6 +3483,7 @@ set_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_stream_f
   }
   stream->stream.flags = flags;
   stream->stream.byte_size = byte_size;
+  @(return stream  mk_cl_Cnil);
 }
 
 mkcl_object
@@ -3439,8 +3491,8 @@ mk_si_stream_external_format_set(MKCL, mkcl_object stream, mkcl_object format)
 {
   mkcl_call_stack_check(env);
   if (mkcl_unlikely(MKCL_INSTANCEP(stream))) {
-    mkcl_FEerror(env, "Cannot change external format of stream ~A", 1, stream);
-    @(return);
+    static const mkcl_base_string_object(reason_control_string_obj, "Cannot change external format of stream ~A");
+    @(return mk_cl_Cnil mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, stream));
   }
   switch (stream->stream.mode) 
     {
@@ -3455,16 +3507,28 @@ mk_si_stream_external_format_set(MKCL, mkcl_object stream, mkcl_object format)
     case mkcl_smm_io_socket:
       {
 	mkcl_object elt_type = mkcl_stream_element_type(env, stream);
-	if (mkcl_unlikely(!(elt_type == @'character' || elt_type == @'base-char')))
-	  mkcl_FEerror(env, "Cannot change external format of binary stream ~A", 1, stream);
-	set_stream_elt_type(env, stream, stream->stream.byte_size, stream->stream.flags, format);
+
+	if (mkcl_unlikely(!(elt_type == @'character' || elt_type == @'base-char'))){
+	  static const mkcl_base_string_object(reason_control_string_obj,
+					       "Cannot change external format of binary stream ~A");
+	  @(return mk_cl_Cnil mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, stream));
+	} else {
+	  mkcl_object status = set_file_stream_elt_type(env, stream, stream->stream.byte_size, stream->stream.flags, format);
+	  mkcl_object failure_reason = MKCL_VALUES(1);
+	  
+	  if (mkcl_Null(status))
+	    { @(return mk_cl_Cnil failure_reason); }
+	  else
+	    { @(return mk_cl_Ct mk_cl_Cnil); }
+	}
       }
       break;
     default:
-      mkcl_FEerror(env, "Cannot change external format of stream ~A", 1, stream);
-      break;
+      {
+	static const mkcl_base_string_object(reason_control_string_obj, "Cannot change external format of stream ~A");
+	@(return mk_cl_Cnil mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, stream));
+      }
     }
-  @(return);
 }
 
 
@@ -3503,7 +3567,8 @@ make_file_stream_from_fd(MKCL, mkcl_object fname, int fd, enum mkcl_smmode smm,
     mkcl_FEerror(env, "Not a valid mode ~D for make_file_stream_from_fd()", 1, MKCL_MAKE_FIXNUM(smm));
   }
   int flags = 0;
-  set_stream_elt_type(env, stream, byte_size, flags, external_format);
+  set_file_stream_elt_type_defaults(env, stream);
+  set_file_stream_elt_type(env, stream, byte_size, flags, external_format);
   stream->stream.last_op = 0;
   mk_si_set_finalizer(env, stream, mk_cl_Ct);
   return stream;
@@ -4258,7 +4323,8 @@ make_stream_from_FILE(MKCL, mkcl_object fname, FILE *f, enum mkcl_smmode smm,
 
   flags = MKCL_STREAM_C_STDIO_STREAM;
 
-  set_stream_elt_type(env, stream, byte_size, flags, external_format);
+  set_file_stream_elt_type_defaults(env, stream);
+  set_file_stream_elt_type(env, stream, byte_size, flags, external_format);
   MKCL_IO_STREAM_FILENAME(stream) = fname; /* not really used */
   MKCL_IO_STREAM_COLUMN(stream) = 0;
   MKCL_IO_STREAM_FILE(stream) = f;
@@ -5627,17 +5693,13 @@ mkcl_init_file(MKCL)
   mkcl_object error_output;
   mkcl_object null_stream;
 #ifdef MKCL_WINDOWS
-  /* We presume the 3 standard streams were opened in TEXT mode. */
-  mkcl_object external_format = mk_cl_list(env, 2, @':UTF-8', @':LF'); /* temporary default to be adjusted in late init */
-  /* WSAStartUp() to be called here? */
   WSADATA wsadata;
 
   if (WSAStartup(MAKEWORD(2,2), &wsadata) != NO_ERROR) /* We demand WinSock 2.2 */
     mkcl_FEerror(env, "Unable to initialize Windows Socket library", 0);
   /* Microsoft's documentation says that we should have a matching call to WSACleanup(), but when? JCB */
-#else
-  mkcl_object external_format = @':default';
 #endif
+  mkcl_object external_format = @':default';
 
   null_stream = make_stream_from_FILE(env, 
 				      mkcl_make_simple_base_string(env, "/dev/null"),
@@ -5646,18 +5708,31 @@ mkcl_init_file(MKCL)
   null_stream = mk_cl_make_two_way_stream(env, null_stream, mk_cl_make_broadcast_stream(env, 0));
   mkcl_core.null_stream = null_stream;
 
-  standard_input = make_file_stream_from_fd(env, 
-					    mkcl_make_simple_base_string(env, "stdin"),
-					    STDIN_FILENO, mkcl_smm_input_file,
-					    0, external_format);
-  standard_output = make_file_stream_from_fd(env, 
-					     mkcl_make_simple_base_string(env, "stdout"),
-					     STDOUT_FILENO, mkcl_smm_output_file,
-					     0, external_format);
-  error_output = make_file_stream_from_fd(env, 
-					  mkcl_make_simple_base_string(env, "stderr"),
-					  STDERR_FILENO, mkcl_smm_output_file,
-					  0, external_format);
+#ifdef MKCL_WINDOWS
+  if (mkcl_has_console())
+#endif
+    {
+      standard_input = make_file_stream_from_fd(env, 
+						mkcl_make_simple_base_string(env, "stdin"),
+						STDIN_FILENO, mkcl_smm_input_file,
+						0, external_format);
+      standard_output = make_file_stream_from_fd(env, 
+						 mkcl_make_simple_base_string(env, "stdout"),
+						 STDOUT_FILENO, mkcl_smm_output_file,
+						 0, external_format);
+      error_output = make_file_stream_from_fd(env, 
+					      mkcl_make_simple_base_string(env, "stderr"),
+					      STDERR_FILENO, mkcl_smm_output_file,
+					      0, external_format);
+    }
+#ifdef MKCL_WINDOWS
+  else
+    {
+      standard_input = null_stream;
+      standard_output = mkcl_make_string_output_stream(env, 128, TRUE, @':default');
+      error_output = standard_output;
+    }
+#endif
   
   mkcl_core.standard_input = standard_input;
   MKCL_SET(@'*standard-input*', standard_input);
@@ -5678,23 +5753,28 @@ mkcl_init_file(MKCL)
     MKCL_SET(@'*debug-io*', aux);
   }
 
-  mkcl_def_c_function(env, @'si::stream-encoding-error', /*(mkcl_objectfn_fixed)*/ stream_encoding_error_boot_stub, 3);
-  mkcl_def_c_function(env, @'si::stream-decoding-error', /*(mkcl_objectfn_fixed)*/ stream_decoding_error_boot_stub, 3);
+  mkcl_def_c_function(env, @'si::stream-encoding-error', stream_encoding_error_boot_stub, 3);
+  mkcl_def_c_function(env, @'si::stream-decoding-error', stream_decoding_error_boot_stub, 3);
 }
 
 void
 mkcl_init_late_file(MKCL)
 {
 #ifdef MKCL_WINDOWS
-  if (mk_cl_fboundp(env, @'si::make-encoding'))
+  if (mkcl_has_console() && mk_cl_fboundp(env, @'si::make-encoding'))
     {
       mkcl_object external_format = mkcl_external_format_from_codepage(env, GetACP());
       mkcl_object stdin_external_format = mkcl_external_format_from_codepage(env, GetConsoleCP());
       mkcl_object stdout_external_format = mkcl_external_format_from_codepage(env, GetConsoleOutputCP());
 
-      mkcl_core.default_default_external_format = external_format;
-      MKCL_SET(@'si::*default-external-format*', external_format);
-      MKCL_SETQ(env, @'si::*default-external-format*', external_format);
+      mkcl_object default_format_table = mkcl_funcall1(env, @+'si::make-encoding', external_format);
+
+      if (!mkcl_Null(default_format_table))
+	{
+	  mkcl_core.default_default_external_format = external_format;
+	  MKCL_SET(@'si::*default-external-format*', external_format);
+	  MKCL_SETQ(env, @'si::*default-external-format*', external_format);
+	}
 
       mk_si_stream_external_format_set(env, mkcl_core.standard_input, stdin_external_format);
       mk_si_stream_external_format_set(env, mkcl_core.standard_output, stdout_external_format);

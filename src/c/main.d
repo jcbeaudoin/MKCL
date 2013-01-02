@@ -929,7 +929,6 @@ int mkcl_shutdown_watchdog(MKCL) /* We expect to run this function with interrup
 	    if (mkcl_type_of(obj) == mkcl_t_thread)
 	      {
 		fprintf(stderr, ";; MKCL: thread = %s\n", obj->thread.name->base_string.self);
-		mkcl_println(env, obj, mkcl_core.error_output);
 	      }
 	    else
 	      fprintf(stderr, ";; MKCL: non-thread object: %p, type = %d\n", obj, mkcl_type_of(obj));
@@ -1032,6 +1031,13 @@ void mkcl_get_commandline_args_from_Windows(int * argc_ref, char *** argv_ref)
       *argv_ref = new_argv;
       *argc_ref = nArgs;
     }
+}
+
+bool mkcl_has_console()
+{
+  HWND console_window = GetConsoleWindow();
+
+  return (console_window != NULL);
 }
 #endif /* MKCL_WINDOWS */
 

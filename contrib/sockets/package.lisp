@@ -11,7 +11,7 @@
 ;; in the public domain.
 
 (defpackage "SB-BSD-SOCKETS"
-  (:use "CL" "FFI" "SI")
+  (:use "CL" "FFI")
   (:export "GET-HOST-BY-NAME" "GET-HOST-BY-ADDRESS"
 	   "SOCKET-BIND" "SOCKET-ACCEPT" "SOCKET-CONNECT"
 	   "SOCKET-PEERNAME" "SOCKET-NAME" "SOCKET-LISTEN"

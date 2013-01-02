@@ -51,7 +51,11 @@
 (unless (compiler::build-program
 	 "bin/mkcl"
 	 :extra-ld-flags "-Wl,--stack,0x800000" ;; Stack of 8MB.
-	 :epilogue-code '(PROGN (REQUIRE "CMP") (SI::TOP-LEVEL))
+	 :epilogue-code '(PROGN (UNLESS (IGNORE-ERRORS (REQUIRE "CMP"))
+					(TERPRI)
+					(PRINC ";;; Failed to load compiler module!")
+					(TERPRI))
+				(SI::TOP-LEVEL))
 	 )
   (mkcl:quit :exit-code 1))
 

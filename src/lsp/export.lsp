@@ -264,11 +264,13 @@
 	 (not (eval-feature (second x))))
 	(t (error "~S is not a valid feature expression." x))))
 
+(sys:*make-constant 'keyword-package (find-package "KEYWORD"))
+
 (defun do-read-feature (stream subchar arg test)
   (when arg
     (error "Reading from ~S: no number should appear between # and ~A"
 	   stream subchar))
-  (let ((feature (let ((*package* (find-package "KEYWORD")))
+  (let ((feature (let ((*package* keyword-package #|(find-package "KEYWORD")|#))
 		   (read stream t nil t))))
     (if (and (not *read-suppress*) (eq (eval-feature feature) test))
 	(read stream t nil t)

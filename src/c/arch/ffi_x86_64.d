@@ -1,6 +1,6 @@
 /* -*- mode: c -*- */
 /*
-    ffi_x86.c -- Nonportable component of the FFI
+    ffi_x86_64.c -- Nonportable component of the FFI, for 64-bit (AMD x86_64) Linux/Unix.
 */
 /*
     Copyright (c) 2005, Juan Jose Garcia Ripoll.
@@ -16,6 +16,7 @@
 
 #include <mkcl/mkcl.h>
 #include <string.h>
+#include <sys/mman.h>
 #include <mkcl/internal.h>
 
 #define MAX_INT_REGISTERS 6
@@ -118,9 +119,6 @@ mkcl_fficall_execute(MKCL, void *_f_ptr, struct mkcl_fficall *fficall, enum mkcl
 
   mkcl_fficall_align16(env); /* Size of a cache line. */
   bufsize = fficall->buffer_sp - fficall->buffer;
-#if 0
-  printf("\nIn mkcl_fficall_execute(), stack arguments size = %lu.\n", bufsize); fflush(NULL);
-#endif
 
   /* Save current stack pointer and then push stack based arguments. */
   asm volatile ("mov	%%rsp, %0\n\t"
@@ -231,7 +229,7 @@ static const mkcl_base_string_object(mkcl_dynamic_callback_import_thread_name__o
 static const mkcl_object mkcl_dynamic_callback_import_thread_name = (mkcl_object) &mkcl_dynamic_callback_import_thread_name__obj_;
 
 
-static void
+static unsigned long
 mkcl_dynamic_callback_execute(long i1, long i2, long i3, long i4, long i5, long i6,
 			      double f1, double f2, double f3, double f4,
 			      double f5, double f6, double f7, double f8,
@@ -240,7 +238,7 @@ mkcl_dynamic_callback_execute(long i1, long i2, long i3, long i4, long i5, long 
   char stack_mark = 0;
   mkcl_object fun, rtype, argtypes;
   mkcl_object result;
-  mkcl_index /* i, */ size, i_reg_index, f_reg_index;
+  mkcl_index size, i_reg_index, f_reg_index;
   union mkcl_ffi_values output;
   enum mkcl_ffi_tag tag;
   long i_reg[MAX_INT_REGISTERS];
@@ -314,11 +312,7 @@ mkcl_dynamic_callback_execute(long i1, long i2, long i3, long i4, long i5, long 
 
 	result = mkcl_apply_from_temp_stack_frame(env, frame, fun);
 	mkcl_disable_interrupts(env);
-#if 1
 	mkcl_cleanup_thread_lisp_context(env);
-#else
-	mkcl_bds_unwind1(env);
-#endif
       } MKCL_CATCH_ALL_END;
       thread->thread.status = mkcl_thread_done;
     }
@@ -334,69 +328,78 @@ mkcl_dynamic_callback_execute(long i1, long i2, long i3, long i4, long i5, long 
     mkcl_release_current_thread(imported_env);
 
   errno = 0;
-  switch (tag) {
-    register unsigned long rax asm("rax");
-  case MKCL_FFI_CHAR: rax = output.c; return;
-  case MKCL_FFI_UNSIGNED_CHAR: rax = output.uc; return;
-  case MKCL_FFI_BYTE: rax = output.b; return;
-  case MKCL_FFI_UNSIGNED_BYTE: rax = output.ub; return;
-  case MKCL_FFI_INT16_T: rax = output.i16; return;
-  case MKCL_FFI_UINT16_T: rax = output.u16; return;
-  case MKCL_FFI_SHORT: rax = output.s; return;
-  case MKCL_FFI_UNSIGNED_SHORT: rax = output.us; return;
-  case MKCL_FFI_INT32_T: rax = output.i32; return;
-  case MKCL_FFI_UINT32_T: rax = output.u32; return;
-  case MKCL_FFI_INT:
-  case MKCL_FFI_UNSIGNED_INT:
-  case MKCL_FFI_LONG:
-  case MKCL_FFI_UNSIGNED_LONG:
-  case MKCL_FFI_INT64_T:
-  case MKCL_FFI_UINT64_T:
-  case MKCL_FFI_LONG_LONG:
-  case MKCL_FFI_UNSIGNED_LONG_LONG:
-  case MKCL_FFI_POINTER_VOID:
-  case MKCL_FFI_CSTRING:
-  case MKCL_FFI_OBJECT: rax = output.ul; return;
-  case MKCL_FFI_DOUBLE: asm("movsd (%0),%%xmm0" :: "a" (&output.d)); return;
-  case MKCL_FFI_FLOAT: asm("movss (%0),%%xmm0" :: "a" (&output.f)); return;
-  case MKCL_FFI_VOID: return;
-  /* default: mkcl_FEerror(env, "Invalid return type for a C function callback", 0); */
+  {
+    unsigned long val = 0;
+
+    switch (tag) {
+    case MKCL_FFI_CHAR: val = output.c; break;
+    case MKCL_FFI_UNSIGNED_CHAR: val = output.uc; break;
+    case MKCL_FFI_BYTE: val = output.b; break;
+    case MKCL_FFI_UNSIGNED_BYTE: val = output.ub; break;
+    case MKCL_FFI_INT16_T: val = output.i16; break;
+    case MKCL_FFI_UINT16_T: val = output.u16; break;
+    case MKCL_FFI_SHORT: val = output.s; break;
+    case MKCL_FFI_UNSIGNED_SHORT: val = output.us; break;
+    case MKCL_FFI_INT32_T: val = output.i32; break;
+    case MKCL_FFI_UINT32_T: val = output.u32; break;
+    case MKCL_FFI_INT:
+    case MKCL_FFI_UNSIGNED_INT:
+    case MKCL_FFI_LONG:
+    case MKCL_FFI_UNSIGNED_LONG:
+    case MKCL_FFI_INT64_T:
+    case MKCL_FFI_UINT64_T:
+    case MKCL_FFI_LONG_LONG:
+    case MKCL_FFI_UNSIGNED_LONG_LONG:
+    case MKCL_FFI_POINTER_VOID:
+    case MKCL_FFI_CSTRING:
+    case MKCL_FFI_OBJECT: val = output.ul; break;
+    case MKCL_FFI_DOUBLE: asm("movsd (%0),%%xmm0" :: "a" (&output.d)); break;
+    case MKCL_FFI_FLOAT: asm("movss (%0),%%xmm0" :: "a" (&output.f)); break;
+    case MKCL_FFI_VOID: break;
+    default: mkcl_FEerror(env, "Invalid C callback function return type", 0); break;
+    }
+    return val;
   }
 }
 
 
 
-void*
+void *
 mkcl_dynamic_callback_make(MKCL, mkcl_object data, enum mkcl_ffi_calling_convention cc_type)
 {
-  /*
-   *	push    %rbp                    55
-   *	push    %rsp                    54
-   *	mov     <addr64>,%rax           48 b8 <addr64>
-   *	push    %rax                    50
-   *	mov     <addr64>,%rax           48 b8 <addr64>
-   *	callq   *%rax                   48 ff d0
-   *	pop     %rcx                    59
-   *	pop     %rcx                    59
-   *	pop     %rbp                    5d
-   *	ret                             c3
-   *	nop				90
-   *	nop				90
-   */
-  char *buf = (char*)mkcl_alloc_atomic_align(env, 32, 8);
-  *(char*) (buf+0)  = 0x55;
-  *(char*) (buf+1)  = 0x54;
-  *(short*)(buf+2)  = 0xb848;
-  *(intptr_t*) (buf+4)  = (intptr_t)data;
-  *(char*) (buf+12) = 0x50;
-  *(short*)(buf+13) = 0xb848;
-  *(intptr_t*) (buf+15) = (intptr_t)mkcl_dynamic_callback_execute;
-  *(int*)  (buf+23) = (int)0x00d0ff48;	/* leading null byte is overwritten */
-  *(char*) (buf+26) = 0x59;
-  *(char*) (buf+27) = 0x59;
-  *(char*) (buf+28) = 0x5d;
-  *(char*) (buf+29) = 0xc3;
-  *(short*)(buf+30) = 0x9090;
+  char *buf = mkcl_alloc_pages(env, 1); /* An entire page (usually 4096 bytes) for a single callback!
+                                         * That is quite some waste. FIXME. JCB */
+
+  unsigned char * ip = buf; /* the instruction pointer (ip) */
+  union { unsigned char b[8]; void * p; long long ll; long l; } imm; /* a staging buffer for immediate data */
+
+#define i(byte) *(ip++) = (byte)
+#define immed_ptr(val_ptr) imm.p = (val_ptr);	\
+  i(imm.b[0]); i(imm.b[1]); i(imm.b[2]); i(imm.b[3]); i(imm.b[4]); i(imm.b[5]); i(imm.b[6]); i(imm.b[7]);
+    
+
+  /* pushq   %rbp           */  i(0x55);                             /* build stack frame, step 1 of 2 */
+  /* movq    %rsp, %rbp     */  i(0x48); i(0x89); i(0xe5);           /* build stack frame, step 2 of 2 */
+  /* pushq   %rsp           */  i(0x54);                             /* push mem_arg_list pointer */
+  /* movq    <addr64>, %rax */  i(0x48); i(0xb8); immed_ptr(data);
+  /* pushq   %rax           */  i(0x50);                             /* push data */   
+  /* movq    <addr64>, %rax */  i(0x48); i(0xb8); immed_ptr(mkcl_dynamic_callback_execute);
+  /* callq   *%rax          */  i(0x48); i(0xff); i(0xd0);           /* call mkcl_dynamic_callback_execute() */
+  /* addq    $16, %rsp      */  i(0x48); i(0x83); i(0xc4); i(0x10);  /* cleanup mem_arg list of previous call, 16 bytes. */
+  /* leave                  */  i(0xc9);                             /* undo stack frame */
+  /* ret                    */  i(0xc3);                             /* return */
+  /* nop                    */  i(0x90);  /* Fill with nop until end of I-cache line (multiple of 16 bytes). */
+  /* nop                    */  i(0x90);
+  /* nop                    */  i(0x90);
+  /* nop                    */  i(0x90);
+  /* nop                    */  i(0x90);
+  /* nop                    */  i(0x90);
+
+  {
+    int rc = mprotect(buf, mkcl_core.pagesize, PROT_READ | /* PROT_WRITE | */ PROT_EXEC);
+    if (rc)
+      mkcl_FElibc_error(env, "mkcl_dynamic_callback_make() failed on mprotect()", 0);
+  }
 
   return buf;
 }
