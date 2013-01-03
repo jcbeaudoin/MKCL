@@ -394,7 +394,7 @@ main(int argc, char **argv)
 #+windows
 (defconstant +lisp-program-winmain+ "
 #include <windows.h>
-int
+int WINAPI
 WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 { 
   char **argv;
