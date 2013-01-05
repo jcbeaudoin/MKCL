@@ -2397,7 +2397,7 @@ enable_smallcons=no
 
 enable_gengc=no
 
-mkcldir="${prefix}/lib/mkcl-${PACKAGE_VERSION}"
+mkcldir="\${libdir}/mkcl-${PACKAGE_VERSION}"
 
 test -z "${docdir}" && docdir="${datadir}/doc/mkcl-${PACKAGE_VERSION}"
 

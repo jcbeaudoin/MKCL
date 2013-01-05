@@ -265,8 +265,8 @@ enable_gengc=no
 
 dnl -----------------------------------------------------------------------
 dnl Installation directories
-dnl mkcldir="${libdir}/mkcl-${PACKAGE_VERSION}"
-mkcldir="${prefix}/lib/mkcl-${PACKAGE_VERSION}"
+mkcldir="\${libdir}/mkcl-${PACKAGE_VERSION}"
+dnl mkcldir='${prefix}/lib/mkcl-${PACKAGE_VERSION}'
 AC_SUBST([mkcldir])
 test -z "${docdir}" && docdir="${datadir}/doc/mkcl-${PACKAGE_VERSION}"
 AC_SUBST([docdir])
