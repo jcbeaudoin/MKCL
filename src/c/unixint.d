@@ -15,6 +15,9 @@
 
     See file '../../Copyright' for full details.
 */
+#ifdef MKCL_WINDOWS
+# include <malloc.h> /* for _resetstkoflw(). */
+#endif
 
 #include <mkcl/mkcl.h>
 #include <mkcl/mkcl-gc.h>
@@ -997,35 +1000,16 @@ static void handle_console_ctrl_event(mkcl_object lisp_handler, int signo)
       MKCL_CATCH_ALL_BEGIN(env) {
 	MKCL_SETUP_CALL_STACK_ROOT_GUARD(env);
 
-#if 1
-    mkcl_setup_thread_lisp_context(env, &stack_mark);
-#else
-	mkcl_bds_bind(env, @'mt::*thread*', thread);
-	mkcl_bds_bind(env, @'mkcl::*current-working-directory*', mk_cl_Cnil);
-	mkcl_bds_bind(env, @'mkcl::*all-current-working-directories*', mk_cl_Cnil);
-	mkcl_bds_bind(env, @'si::*dynamic-cons-stack*', mk_cl_Cnil);
-	mk_si_trim_dynamic_cons_stack(env);
-#endif
+	mkcl_setup_thread_lisp_context(env, &stack_mark);
 
 	mkcl_register_thread_as_active(env, thread);
 
 	mkcl_enable_interrupts(env);
 	mkcl_funcall1(env, lisp_handler, MKCL_MAKE_FIXNUM(signo));
 	mkcl_disable_interrupts(env);
-#if 1
-    mkcl_cleanup_thread_lisp_context(env);
-#else
-	/* mkcl_bds_unwind1(env); */
-	/* mkcl_bds_unwind1(env); */
-	/* mkcl_bds_unwind1(env); */
-	/* mkcl_bds_unwind1(env); */
-#endif
+	mkcl_cleanup_thread_lisp_context(env);
 #if 0
       } MKCL_CATCH_ALL_IF_CAUGHT {
-	/* mkcl_bds_unwind1(env); */
-	/* mkcl_bds_unwind1(env); */
-	/* mkcl_bds_unwind1(env); */
-	/* mkcl_bds_unwind1(env); */
 #endif
       } MKCL_CATCH_ALL_END;
       thread->thread.status = mkcl_thread_done;
@@ -1099,6 +1083,54 @@ static LONG handle_access_violation(EXCEPTION_POINTERS* ep)
   return EXCEPTION_CONTINUE_SEARCH;
 }
 
+static LONG handle_stack_overflow(EXCEPTION_POINTERS* ep)
+{
+  const mkcl_env env = MKCL_ENV();
+  int ok = _resetstkoflw();
+
+#if 0
+  printf("\nMKCL: Received EXCEPTION_STACK_OVERFLOW!\n");
+  printf("env->disable_interrupts = %d\n", (env)->disable_interrupts);
+  if (env->disable_interrupts)
+    {
+      printf("env->interrupt_disabler_file = %s\n", (env)->interrupt_disabler_file);
+      printf("env->interrupt_disabler_lineno = %llu\n", (env)->interrupt_disabler_lineno);
+    }
+  printf("ExceptionRecord: %p\n", ep->ExceptionRecord->ExceptionRecord);
+  printf("ExceptionAddress: %p\n", ep->ExceptionRecord->ExceptionAddress);
+  printf("NumberParameters: %lu\n", ep->ExceptionRecord->NumberParameters);
+  printf("ExceptionInformation[0]: %p\n", ep->ExceptionRecord->ExceptionInformation[0]);
+  printf("ExceptionInformation[1]: %p\n", ep->ExceptionRecord->ExceptionInformation[1]);
+  printf("thread name: %s\n", env->own_thread->thread.name->base_string.self);
+  printf("tid = %d, Stack size = %lu, stack base = %p, stack top = %p.\n",
+	 (env->own_thread ? env->own_thread->thread.tid : 0),
+	 env->cs_size, env->cs_org, env->cs_org + env->cs_size);
+  fflush(NULL);
+#endif
+
+  if (ok)
+    {
+#if 0
+      printf("_resetstkoflw() said OK! Try to call the debugger...");
+      fflush(NULL);
+#endif
+      env->cs_overflowing = TRUE;
+      mk_cl_error(env, 5, @'mkcl::stack-overflow',
+		  @':size', mkcl_make_unsigned_integer(env, env->cs_size),
+		  @':type', @'si::call-stack');
+    }
+  else
+    {
+#if 0
+      printf("_resetstkoflw() failed! All that is left to do is to sleep until we die...");
+      fflush(NULL);
+      Sleep(1000000);
+#endif
+    }
+  return EXCEPTION_CONTINUE_SEARCH;
+}
+
+
 static LONG unhandled_exception(EXCEPTION_POINTERS* ep)
 {
   printf("\nMKCL: Received an exception we cannot handle!\n");
@@ -1141,25 +1173,43 @@ static LONG WINAPI W32_exception_filter(EXCEPTION_POINTERS* ep)
       excpt_result = handle_illegal_instruction(ep);
       break;
     case EXCEPTION_PRIV_INSTRUCTION:
+#if 0
+      printf("\nMKCL: Received EXCEPTION_PRIV_INSTRUCTION!\n");
+      fflush(NULL);
+#endif
       excpt_result = unhandled_exception(ep);
       break;
 
       /* These are equivalent to a SIGBUS */
     case EXCEPTION_DATATYPE_MISALIGNMENT:
+#if 0
+      printf("\nMKCL: Received EXCEPTION_DATATYPE_MISALIGNMENT!\n");
+      fflush(NULL);
+#endif
       excpt_result = unhandled_exception(ep);
       break;
     case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
+#if 0
+      printf("\nMKCL: Received EXCEPTION_ARRAY_BOUNDS_EXCEEDED!\n");
+      fflush(NULL);
+#endif
       excpt_result = unhandled_exception(ep);
       break;
     case EXCEPTION_IN_PAGE_ERROR:
+#if 0
+      printf("\nMKCL: Received EXCEPTION_IN_PAGE_ERROR!\n");
+      fflush(NULL);
+#endif
       excpt_result = unhandled_exception(ep);
       break;
     case EXCEPTION_STACK_OVERFLOW:
-      excpt_result = unhandled_exception(ep);
+      excpt_result = handle_stack_overflow(ep);
       break;
 
       /* Do not catch anything else */
     default:
+      printf("\nMKCL: Received an unknown exception, (ExceptionCode = %lu)!\n", ep->ExceptionRecord->ExceptionCode);
+      fflush(NULL);
       excpt_result = EXCEPTION_CONTINUE_SEARCH;
       break;
     }
@@ -1206,7 +1256,7 @@ static BOOL WINAPI W32_console_ctrl_handler(DWORD type)
     case CTRL_C_EVENT:
       handle_console_ctrl_event(@'si::sigint-handler', SIGINT);
       return TRUE;
-    case CTRL_BREAK_EVENT: /* equivalent to SIGTERM or SIGHUP. */
+    case CTRL_BREAK_EVENT: /* equivalent to SIGTERM or SIGHUP? */
       handle_console_ctrl_event(@'si::sigint-handler', SIGBREAK);
       return TRUE;
     case CTRL_CLOSE_EVENT:
