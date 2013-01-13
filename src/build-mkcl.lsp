@@ -50,7 +50,7 @@
 #+windows
 (unless (compiler::build-program
 	 "bin/mkcl"
-	 :extra-ld-flags "-Wl,--stack,0x800000" ;; Stack of 8MB.
+;;	 :extra-ld-flags "-Wl,--stack,0x800000" ;; Stack of 8MB. ;; behaves badly on MinGW64. 
 	 :epilogue-code '(PROGN (UNLESS (IGNORE-ERRORS (REQUIRE "CMP"))
 					(TERPRI)
 					(PRINC ";;; Failed to load compiler module!")
