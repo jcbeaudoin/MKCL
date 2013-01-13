@@ -1344,7 +1344,7 @@ mkcl_import_current_thread(mkcl_object name, mkcl_object bindings, mkcl_thread_i
     mkcl_object thread = assign_imported_thread(name, bindings, handler, handler_data);
     const mkcl_env env = (thread ? thread->thread.env : NULL);
 
-    if (env)
+    if (env == NULL)
       { errno = ENOMEM; return NULL; }
     else
       {
@@ -1898,7 +1898,6 @@ static mkcl_object
 interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_index os_call_stack_size, mkcl_object force)
 {
   if (mk_mt_thread_active_p(env, thread) == mk_cl_Cnil)
-    /* mkcl_FEerror(env, "Cannot interrupt an inactive thread ~A", 1, thread); */
     mk_cl_error(env, 5, @'mt::invalid-thread', @':thread', thread, @':reason', @':dead');
 
   if ( thread == mkcl_current_thread(env) )
@@ -1940,11 +1939,7 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
 
 	const int early_disable_interrupts = thread->thread.env->disable_interrupts;
       
-	if (early_disable_interrupts && ((early_disable_interrupts > 1) || (force == mk_cl_Cnil)))
-	  {	/* The interruption is refused early. */
-	    retry_count++;
-	  }
-	else if ( !mkcl_Null(thread->thread.env->sleeping_on) )
+	if ( !mkcl_Null(thread->thread.env->sleeping_on) )
 	  {
 	    if (!ResetEvent(mkcl_sleeping_thread_interrupted))
 	      mkcl_FEwin32_error(env, "interrupt-thread failed on ResetEvent", 0);
@@ -1961,24 +1956,13 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
 		    success = TRUE;
 		    break;
 		  case WAIT_TIMEOUT:
-		    mkcl_FEwin32_error(env, "interrupt-thread: interrupt event timeout", 0);
 		    if (mk_mt_thread_active_p(env, thread) == mk_cl_Cnil)
 		      {
-#if 0
-			fprintf(stderr, "\n;; MKCL: Timed out while waiting for DEAD thread [%s].\n",
-				thread->thread.name->base_string.self);
-			fflush(stderr);
-#endif
 			reason = @':dead';
 			failure = TRUE;
 		      }
 		    else if ( !mkcl_Null(thread->thread.env->sleeping_on) )
 		      {
-#if 0
-			fprintf(stderr, "\n;; MKCL: Timed out while waiting for sleeping thread [%s].\n",
-				thread->thread.name->base_string.self);
-			fflush(stderr);
-#endif
 			reason = @'mt::thread-sleeping'; /* It's sleeping too hard, wouldn't wake up. */
 			failure = TRUE;
 		      }
@@ -1988,13 +1972,13 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
 		  case WAIT_ABANDONED:
 		  case WAIT_FAILED:
 		  default:
-		    mkcl_FEwin32_error(env, "interrupt-thread failed while waiting for thread interrupted event", 0);
+		    mkcl_FEwin32_error(env, "interrupt-thread failed while waiting for sleeping thread interrupted event", 0);
 		  }
 	      }
-#if 0
-	    reason = @'mt::thread-sleeping';
-	    failure = TRUE;
-#endif
+	  }
+	else if (early_disable_interrupts && ((early_disable_interrupts > 1) || (force == mk_cl_Cnil)))
+	  {	/* The interruption is refused early. */
+	    retry_count++;
 	  }
 	else if ( (thread->thread.status == mkcl_thread_active) && (thread->thread.interrupt_count < MKCL_MAX_INTERRUPTS) )
 	  {
@@ -2023,11 +2007,6 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
 		     || (target_env->own_thread->thread.status == mkcl_thread_done) )
 	      { /* The thread is dying on us! */
 		DWORD count;
-#if 1
-		fprintf(stderr, "\n;; MKCL: Suspended a thread and found it DEAD [%s].\n",
-			thread->thread.name->base_string.self);
-		fflush(stderr);
-#endif
 		reason = @':dead';
 		failure = TRUE;
 		/* "resume" to let thread complete its clean-up. */
@@ -2243,21 +2222,11 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
 			{
 			  if (mk_mt_thread_active_p(env, thread) == mk_cl_Cnil)
 			    {
-#if 0
-			      fprintf(stderr, "\n;; MKCL: Timed out while waiting for DEAD thread [%s].\n",
-				      thread->thread.name->base_string.self);
-			      fflush(stderr);
-#endif
 			      reason = @':dead';
 			      failure = TRUE;
 			    }
 			  else if ( !mkcl_Null(tenv->sleeping_on) )
 			    {
-#if 0
-			      fprintf(stderr, "\n;; MKCL: Timed out while waiting for sleeping thread [%s].\n",
-				      thread->thread.name->base_string.self);
-			      fflush(stderr);
-#endif
 			      reason = @'mt::thread-sleeping'; /* It's sleeping too hard, wouldn't wake up. */
 			      failure = TRUE;
 			    }
@@ -2268,11 +2237,6 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
 			}
 		      else
 			{
-#if 0
-			  fprintf(stderr, "\n;; MKCL: Unexpedted error while waiting for sleeping thread [%s].\n",
-				  thread->thread.name->base_string.self);
-			  fflush(stderr);
-#endif
 			  mkcl_C_lose(env, "mk_mt_interrupt_thread failed on sem_wait");
 			}
 		  }
