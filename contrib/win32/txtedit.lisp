@@ -1,4 +1,5 @@
 ;;; Copyright (c) 2005, Michael Goffioul (michael dot goffioul at swing dot be)
+;;; Copyright (c) 2012, Jean-Claude Beaudoin
 ;;;
 ;;;   This program is free software; you can redistribute it and/or
 ;;;   modify it under the terms of the GNU Library General Public
@@ -30,7 +31,7 @@
 (defvar *txtedit-findreplace-msg* (registerwindowmessage *FINDMSGSTRING*))
 (defstruct txtedit (handle *NULL*) title dirty)
 
-(defvar *txtedit-default-title* "ECL Text Editor")
+(defvar *txtedit-default-title* "MKCL Text Editor")
 
 (defparameter +IDM_OPEN+ 100)
 (defparameter +IDM_QUIT+ 101)
@@ -55,12 +56,13 @@
 (defparameter +TABCTL_ID+ 1001)
 
 (defparameter *txtedit-about-text*
-"Text Editor for ECL.
+"Text Editor for MKCL.
 
 This application serves as a demonstrator
-for the WIN32 FFI interface of ECL.
+for a WIN32 UFFI interface of MKCL.
 
-Copyright (c) 2005, Michael Goffioul.")
+Copyright (c) 2005, Michael Goffioul.
+Copyright (c) 2012, Jean-Claude Beaudoin, MKCL port.")
 
 (defun create-menus ()
   ;(return *NULL*)
@@ -125,15 +127,15 @@ Copyright (c) 2005, Michael Goffioul.")
 
 (defun update-caption (hwnd)
   (let ((str (tab-name (current-editor) #'identity nil)))
-    (setwindowtext hwnd (format nil "~@[~A - ~]~A~C" str *txtedit-default-title* #\Null))))
+    (setwindowtext hwnd (cstring (format nil "~@[~A - ~]~A~C" str *txtedit-default-title* #\Null)))))
 
 (defun current-editor ()
   (nth *txtedit-current* *txtedit-edit*))
 
 (defun tab-name (editor &optional (fun #'file-namestring) (final-char #\Null))
-  (format nil "~:[New~;~:*~A~]~@[*~*~]~@[~C~]"
-	      (and (txtedit-title editor) (funcall fun (txtedit-title editor)))
-	      (txtedit-dirty editor) final-char))
+  (cstring (format nil "~:[New~;~:*~A~]~@[*~*~]~@[~C~]"
+		   (and (txtedit-title editor) (funcall fun (txtedit-title editor)))
+		   (txtedit-dirty editor) final-char)))
 
 (defun update-tab (idx)
   (let ((editor (nth idx *txtedit-edit*)))
@@ -161,8 +163,8 @@ Copyright (c) 2005, Michael Goffioul.")
   (let ((editor (nth idx *txtedit-edit*)))
     (if (or (null (txtedit-dirty editor))
 	    (and (set-current-editor idx hwnd) nil)
-	    (let ((m-result (messagebox hwnd (format nil "Do you want to save changes?~@[~2%~A~%~]~C"
-						     (txtedit-title editor) #\Null)
+	    (let ((m-result (messagebox hwnd (cstring (format nil "Do you want to save changes?~@[~2%~A~%~]~C"
+							      (txtedit-title editor) #\Null))
 					"Confirmation" (logior *MB_YESNOCANCEL* *MB_ICONQUESTION*))))
 	      (cond ((= m-result *IDNO*) t)
 		    ((= m-result *IDCANCEL*) nil)
@@ -180,6 +182,10 @@ Copyright (c) 2005, Michael Goffioul.")
       nil)))
 
 (ffi:def-struct SCNotification (NotifyHeader NMHDR) (position :int) (ch :int))
+
+(defvar *txtedit-lisp-kw* nil)
+(defvar *txtedit-lisp-kw2* nil)
+(defvar *txtedit-decl-forms* nil)
 
 (defun init-scintilla-component (hnd)
   ;; Set LISP lexer
@@ -345,7 +351,7 @@ Copyright (c) 2005, Michael Goffioul.")
       new-editor)))
 
 (defun unix2dos (str)
-  (let ((new-str (make-array (length str) :element-type 'character :adjustable t :fill-pointer 0))
+  (let ((new-str (make-array (length str) :element-type 'base-char :adjustable t :fill-pointer 0))
 	(return-p nil)
 	c)
     (with-output-to-string (out new-str)
@@ -363,7 +369,7 @@ Copyright (c) 2005, Michael Goffioul.")
   (if pn
     (with-open-file (f pn)
       (let* ((len (file-length f))
-	     (buf (make-string len)))
+	     (buf (make-string len :element-type 'base-char)))
 	(read-sequence buf f)
 	(setwindowtext (txtedit-handle (current-editor)) (unix2dos buf))
 	(setf (txtedit-dirty (current-editor)) nil)
@@ -483,6 +489,7 @@ Copyright (c) 2005, Michael Goffioul.")
 	   (2 (let* ((wMenu (make-handle wparam))
 		     (nPos (loword lparam))
 		     (nItems (getmenuitemcount wMenu)))
+		(declare (ignore nPos))
 		(dotimes (j (- nItems 2))
 		  (deletemenu wMenu 2 *MF_BYPOSITION*))
 		(when *txtedit-edit*
@@ -502,6 +509,7 @@ Copyright (c) 2005, Michael Goffioul.")
 	 (let ((ctrl-ID (loword wparam))
 	       (nmsg (hiword wparam))
 	       (hnd (make-pointer lparam 'HANDLE)))
+	   (declare (ignorable hnd))
 	   (cond ((= ctrl-ID +EDITCTL_ID+)		  
 		  (cond ((= nmsg *EN_CHANGE*)
 			 (unless (txtedit-dirty (current-editor))

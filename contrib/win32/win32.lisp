@@ -1,4 +1,5 @@
 ;;; Copyright (c) 2005, Michael Goffioul (michael dot goffioul at swing dot be)
+;;; Copyright (c) 2012, Jean-Claude Beaudoin
 ;;;
 ;;;   This program is free software; you can redistribute it and/or
 ;;;   modify it under the terms of the GNU Library General Public
@@ -9,6 +10,9 @@
 ;;;
 ;;; FOREIGN FUNCTION INTERFACE TO MICROSOFT WINDOWS API
 ;;;
+;;; This code as it currently stands is adequate for Win32
+;;; but needs to be re-examined for Win64. 2012/12/24 JCB
+;;;
 
 (defpackage "WIN32"
   (:use "COMMON-LISP" "FFI")
@@ -18,6 +22,7 @@
 
 (clines
   "#include <windows.h>"
+  "#include <commdlg.h>"  ;; because MKCL asks for WIN32_LEAN_AND_MEAN
   "#include <commctrl.h>"
   )
 
@@ -26,12 +31,14 @@
 (def-foreign-type HANDLE :pointer-void)
 (def-foreign-type LPCSTR :cstring)
 (def-foreign-type WNDPROC :pointer-void)
-(def-foreign-type DWORD :unsigned-int)
+(def-foreign-type DWORD :unsigned-long)
 (def-foreign-type WORD :unsigned-short)
+
+(defmacro cstring (arg) `(convert-to-cstring ,arg)) ;; JCB
 
 ;; Windows constants
 
-(defmacro define-win-constant (name value &optional (c-type :int))
+(defmacro define-win-constant (name value #|&optional (c-type :int)|#)
   `(defconstant ,name ,value))
 
 (define-win-constant *TRUE* 1)
@@ -77,9 +84,9 @@
 (define-win-constant *WC_TABCONTROL*	"SysTabControl32")
 
 (define-win-constant *HWND_BOTTOM*	(make-pointer  1 'HANDLE))
-(define-win-constant *HWND_NOTOPMOST*	(make-pointer -2 'HANDLE))
+(define-win-constant *HWND_NOTOPMOST*	(make-pointer  (- #-mingw64 #x100000000 #+mingw64 #x10000000000000000 2) 'HANDLE)) ;; JCB
 (define-win-constant *HWND_TOP*		(make-pointer  0 'HANDLE))
-(define-win-constant *HWND_TOPMOST*	(make-pointer -1 'HANDLE))
+(define-win-constant *HWND_TOPMOST*	(make-pointer  (- #-mingw64 #x100000000 #+mingw64 #x10000000000000000 1) 'HANDLE)) ;; JCB
 
 (define-win-constant *SWP_DRAWFRAME*		#x0020)
 (define-win-constant *SWP_HIDEWINDOW*		#x0080)
@@ -151,10 +158,10 @@
 (define-win-constant *RDW_ALLCHILDREN*		#x0080)
 (define-win-constant *RDW_NOCHILDREN*		#x0040)
 
-(define-win-constant *CW_USEDEFAULT*	(- #x80000000))
+(define-win-constant *CW_USEDEFAULT*	        #x-80000000)
 
-(define-win-constant *IDC_ARROW*	32512)
-(define-win-constant *IDI_APPLICATION*	32512)
+(define-win-constant *IDC_ARROW*	(make-pointer 32512 :pointer-void))
+(define-win-constant *IDI_APPLICATION*	(make-pointer 32512 :pointer-void))
 
 (define-win-constant *COLOR_BACKGROUND*		1)
 (define-win-constant *DEFAULT_GUI_FONT*		17)
@@ -272,6 +279,7 @@
 	  (get-slot-value cls 'WNDCLASS 'lpszClassName) (string name))
     (register-wndproc (string name) lpfnWndProc)
     (registerclass cls)))
+
 (def-struct POINT
 	    (x :int)
 	    (y :int))
@@ -308,18 +316,23 @@
 (def-struct SIZE (cx :long) (cy :long))
 (def-struct RECT (left :long) (top :long) (right :long) (bottom :long))
 (def-struct TITLEBARINFO (cbSize :unsigned-int) (rcTitlebar RECT) (rgstate (:array :unsigned-int 6)))
-(def-struct OPENFILENAME (lStructSize :unsigned-int) (hwndOwner HANDLE) (hInstance HANDLE) (lpstrFilter LPCSTR) (lpstrCustomFilter LPCSTR)
-	                 (nMaxFilter :unsigned-int) (nFilterIndex :unsigned-int) (lpstrFile LPCSTR) (nMaxFile :unsigned-int) (lpstrFileTitle LPCSTR)
-			 (nMaxFileTitle :unsigned-int) (lpstrInitialDir LPCSTR) (lpstrTitle LPCSTR) (Flags :unsigned-int) (nFileOffset :unsigned-short)
-			 (nFileExtension :unsigned-short) (lpstrDefExt LPCSTR) (lCustData :int) (lpfnHook HANDLE) (lpTemplateName LPCSTR)
-			 #|(pvReserved :pointer-void) (dwReserved :unsigned-int) (FlagsEx :unsigned-int)|#)
+(def-struct OPENFILENAME
+  (lStructSize :unsigned-int) (hwndOwner HANDLE)
+  (hInstance HANDLE) (lpstrFilter LPCSTR) (lpstrCustomFilter LPCSTR)
+  (nMaxFilter :unsigned-int) (nFilterIndex :unsigned-int)
+  (lpstrFile LPCSTR) (nMaxFile :unsigned-int) (lpstrFileTitle LPCSTR)
+  (nMaxFileTitle :unsigned-int) (lpstrInitialDir LPCSTR) (lpstrTitle LPCSTR)
+  (Flags :unsigned-int) (nFileOffset :unsigned-short)
+  (nFileExtension :unsigned-short) (lpstrDefExt LPCSTR) (lCustData :int)
+  (lpfnHook HANDLE) (lpTemplateName LPCSTR)
+  #|(pvReserved :pointer-void) (dwReserved :unsigned-int) (FlagsEx :unsigned-int)|#)
 (def-struct ACCEL (fVirt :byte) (key :unsigned-short) (cmd :unsigned-short))
 (def-struct TCITEM (mask :unsigned-int) (dwState :unsigned-int) (dwStateMask :unsigned-int)
 	           (pszText :cstring) (cchTextMax :int) (iImage :int) (lParam :long))
 (def-struct NMHDR (hwndFrom HANDLE) (idFrom :unsigned-int) (code :unsigned-int))
 (def-struct TCHITTESTINFO (pt POINT) (flag :unsigned-int))
 (def-struct TPMPARAMS (cbSize :unsigned-int) (rcExclude RECT))
-(def-struct FINDREPLACE (lStructSize :unsigned-int) (hwndOwner HANDLE) (hInstance HANDLE) (Flags DWORD)
+(def-struct FINDREPLACE (lStructSize DWORD) (hwndOwner HANDLE) (hInstance HANDLE) (Flags DWORD)
 	    		(lpstrFindWhat LPCSTR) (lpstrReplaceWith LPCSTR) (wFindWhatLen WORD) (wReplaceWithLen WORD)
 			(lpCustData :int) (lpfnHook HANDLE) (lpTemplateName LPCSTR))
 
@@ -332,8 +345,13 @@
       (rplacd entry wndproc)
       (push (cons class-or-obj wndproc) *wndproc-db*)))
   (unless (stringp class-or-obj)
+#|
     (let ((old-proc (make-pointer (getwindowlong class-or-obj *GWL_WNDPROC*) 'HANDLE)))
       (setwindowlong class-or-obj *GWL_WNDPROC* (make-lparam (callback 'wndproc-proxy)))
+      old-proc)
+|#
+    (let ((old-proc (make-pointer (pointer-address (getwindowlongptr class-or-obj *GWL_WNDPROC*)) 'HANDLE))) ;; JCB
+      (setwindowlongptr class-or-obj *GWL_WNDPROC* (callback 'wndproc-proxy))
       old-proc)))
 (defun get-wndproc (obj)
   (let ((entry (or (assoc obj *wndproc-db* :test #'equal)
@@ -342,6 +360,7 @@
 	 (cdr entry))))
 (defcallback (wndproc-proxy :stdcall) :int ((hnd :pointer-void) (umsg :unsigned-int) (wparam :unsigned-int) (lparam :int))
   (let* ((wndproc (get-wndproc hnd)))
+    ;;(format t "~&In wndproc-proxy: umsg = ~S.~%" umsg) (finish-output)
     (unless wndproc
       (error "Cannot find a registered Windows prodecure for object ~S" hnd))
     (funcall wndproc hnd umsg wparam lparam)))
@@ -375,17 +394,17 @@
 (def-win32-function ("SelectObject" selectobject) ((hdc HANDLE) (hgdiobj HANDLE)) :returning HANDLE :module "gdi32")
 (def-win32-function ("GetTextExtentPoint32A" gettextextentpoint32) ((hdc HANDLE) (lpString :cstring) (cbString :int) (lpSize (* SIZE))) :returning :int :module "gdi32")
 (def-win32-function ("LoadCursorA" loadcursor-string) ((hnd HANDLE) (lpCursorName LPCSTR)) :returning HANDLE :module "user32")
-(def-win32-function ("LoadCursorA" loadcursor-int) ((hnd HANDLE) (lpCursorName :unsigned-int)) :returning HANDLE :module "user32")
+(def-win32-function ("LoadCursorA" loadcursor-raw) ((hnd HANDLE) (lpCursorName :pointer-void)) :returning HANDLE :module "user32")
 (defun loadcursor (hnd cur-name)
   (etypecase cur-name
-    (fixnum (loadcursor-int hnd cur-name))
+    (foreign (loadcursor-raw hnd cur-name))
     (string (loadcursor-string hnd cur-name))))
 (defun default-cursor () (loadcursor *NULL* *IDC_ARROW*))
-(def-win32-function ("LoadIconA" loadicon-int) ((hnd HANDLE) (lpIconName :unsigned-int)) :returning HANDLE :module "user32")
+(def-win32-function ("LoadIconA" loadicon-raw) ((hnd HANDLE) (lpIconName :pointer-void)) :returning HANDLE :module "user32")
 (def-win32-function ("LoadIconA" loadicon-string) ((hnd HANDLE) (lpIconName LPCSTR)) :returning HANDLE :module "user32")
 (defun loadicon (hnd cur-name)
   (etypecase cur-name
-    (fixnum (loadicon-int hnd cur-name))
+    (foreign (loadicon-raw hnd cur-name))
     (string (loadicon-string hnd cur-name))))
 (defun default-icon () (loadicon *NULL* *IDI_APPLICATION*))
 (defun default-background () (getstockobject *COLOR_BACKGROUND*))
@@ -399,11 +418,26 @@
       (convert-from-foreign-string s :length n))))
 (def-win32-function ("RegisterClassA" registerclass) ((lpWndClass (* WNDCLASS))) :returning :int :module "user32")
 (def-win32-function ("UnregisterClassA" unregisterclass) ((lpClassName :cstring) (hInstance HANDLE)) :returning :int :module "user32")
+
 (def-win32-function ("GetWindowLongA" getwindowlong) ((hWnd HANDLE) (nIndex :int)) :returning :long :module "user32")
 (def-win32-function ("SetWindowLongA" setwindowlong) ((hWnd HANDLE) (nIndex :int) (dwNewLong :long)) :returning :long :module "user32")
-(def-win32-function ("CreateWindowExA" createwindowex) ((dwExStyle :unsigned-int) (lpClassName :cstring) (lpWindowName :cstring) (dwStyle :unsigned-int)
-						 (x :int) (y :int) (nWidth :int) (nHeight :int) (hWndParent HANDLE) (hMenu HANDLE) (hInstance HANDLE)
-					         (lpParam :pointer-void))
+#-mingw64 ;; JCB
+;;(def-win32-function ("GetWindowLongA" getwindowlongptr) ((hWnd HANDLE) (nIndex :int)) :returning :pointer-void :module "user32")
+(defun getwindowlongptr (hWnd nIndex) (make-pointer (ldb (byte 32 0) (getwindowlong hWnd nIndex)) :pointer-void))
+#-mingw64 ;; JCB
+;;(def-win32-function ("SetWindowLongA" setwindowlongptr) ((hWnd HANDLE) (nIndex :int) (dwNewLong :pointer-void)) :returning :pointer-void :module "user32")
+(defun setwindowlongptr (hWnd nIndex dwNewLong)
+  (make-pointer (ldb (byte 32 0) (setwindowlong hWnd nIndex (ldb (byte 32 0) (- (pointer-address dwNewLong) #x100000000)))) :pointer-void))
+
+#+mingw64 ;; JCB
+(def-win32-function ("GetWindowLongPtrA" getwindowlongptr) ((hWnd HANDLE) (nIndex :int)) :returning :pointer-void :module "user32")
+#+mingw64 ;; JCB
+(def-win32-function ("SetWindowLongPtrA" setwindowlongptr) ((hWnd HANDLE) (nIndex :int) (dwNewLong :pointer-void)) :returning :pointer-void :module "user32")
+(def-win32-function ("CreateWindowExA" createwindowex) ((dwExStyle :unsigned-int) (lpClassName :cstring)
+							(lpWindowName :cstring) (dwStyle :unsigned-int)
+							(x :int) (y :int) (nWidth :int) (nHeight :int)
+							(hWndParent HANDLE) (hMenu HANDLE) (hInstance HANDLE)
+							(lpParam :pointer-void))
 	      				        :returning HANDLE :module "user32")
 (defun createwindow (&rest args)
   (apply #'createwindowex 0 args))
@@ -487,12 +521,13 @@
 		     (dispatchmessage msg))))))
 
 (defun y-or-no-p (&optional control &rest args)
-  (let ((s (coerce (apply #'format nil control args) 'simple-string)))
-    (= (messagebox *NULL* s "ECL Dialog" (logior *MB_YESNO* *MB_ICONQUESTION*))
+  (let ((s (coerce (apply #'format nil control args) 'simple-base-string))) ;; JCB 
+    (= (messagebox *NULL* s "MKCL Dialog" (logior *MB_YESNO* *MB_ICONQUESTION*))
        *IDYES*)))
 
 (defun get-open-filename (&key (owner *NULL*) initial-dir filter (dlgfn #'getopenfilename) 
 			       (flags 0) &aux (max-fn-size 1024))
+  (declare (ignore initial-dir))
   (flet ((null-concat (x &optional y &aux (xx (if y x (car x))) (yy (if y y (cdr x))))
 	   (concatenate 'string xx (string #\Null) yy)))
     (when filter
@@ -582,7 +617,7 @@
 	 (let* ((new-w (loword lparam))
 		(new-h (hiword lparam))
 		(wb (- new-w 20))
-		(hb (/ (- new-h 30) 2)))
+		(hb (floor (/ (- new-h 30) 2))))
 	   (movewindow hBtn 10 10 wb hb *TRUE*)
 	   (movewindow hOk 10 (+ 20 hb) wb hb *TRUE*))
 	 0)
@@ -619,7 +654,7 @@
   (let* ((hwnd (createwindowex
 		0
 	        "MyClass"
-	        "ECL/Win32 test"
+	        "MKCL/Win32 test"
 	        *WS_OVERLAPPEDWINDOW*
 	        *CW_USEDEFAULT*
 	        *CW_USEDEFAULT*

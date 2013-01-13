@@ -1,6 +1,6 @@
 (in-package "WIN32")
 
-(defparameter *txtedit-lisp-kw*
+(setq *txtedit-lisp-kw*
 "*				  find-method			   pprint-indent
  **				  find-package			   pprint-linear
  ***				  find-restart			   pprint-logical-block
@@ -339,7 +339,7 @@
  *features*			  *print-miser-width*		   *terminal-io*
  *gensym-counter*		  *print-miser-width*		   *trace-output*")
  
-(defparameter *txtedit-lisp-kw2*
+(setq *txtedit-lisp-kw2*
 ":abort				  :from-end			   :overwrite
  :adjustable			  :gensym			   :predicate
  :append			  :host				   :preserve-whitespace
@@ -367,7 +367,7 @@
  :escape			  :output-file			   :version
  :external			  :fill-pointer")
 
-(defparameter *txtedit-decl-forms*
+(setq *txtedit-decl-forms*
   '(defmacro defsetf deftype defun defmethod defgeneric lambda
     do do* do-all-symbols do-external-symbols do-symbols dotimes
     let let* flet macrolet labels multiple-value-bind
