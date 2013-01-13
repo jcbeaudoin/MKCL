@@ -1033,9 +1033,17 @@ void mkcl_get_commandline_args_from_Windows(int * argc_ref, char *** argv_ref)
     }
 }
 
-bool mkcl_has_console()
+bool mkcl_has_console(void)
 {
   HWND console_window = GetConsoleWindow();
+
+#if 0 /* debug JCB */
+  if (console_window != NULL)
+    /* printf("\nIn mkcl_has_console(void), found console.\n") */;
+  else
+    printf("\nIn mkcl_has_console(void), NO console!\n");
+  fflush(NULL);
+#endif
 
   return (console_window != NULL);
 }
