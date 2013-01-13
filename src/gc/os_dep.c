@@ -735,7 +735,7 @@ MK_GC_INNER word MK_GC_page_size = 0;
                             || (prot) == PAGE_EXECUTE_READWRITE \
                             || (prot) == PAGE_EXECUTE_WRITECOPY)
 
-#  if 1  /* "#if 0" for MKCL 1.2.0 and later, "#if 1" before. */
+#  if 0  /* "#if 0" for MKCL 1.1.3 and later, "#if 1" before. */
     /* Return the number of bytes that are writable starting at p.      */
     /* The pointer p is assumed to be page aligned.                     */
     /* If base is not 0, *base becomes the beginning of the             */
