@@ -8,7 +8,7 @@
 ;;; are disclaimed.
 ;;;
 
-(declaim (optimize (debug 3) (safety 3) (speed 2)))
+;;(declaim (optimize (debug 3) (safety 3) (speed 2)))
 
 (defpackage #:swank-rpc
   (:use :cl)

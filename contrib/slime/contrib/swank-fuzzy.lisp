@@ -621,8 +621,7 @@ capitalized, while the rest of the string will be lower-case."
   "Given a list of completion objects such as on returned by
 FUZZY-COMPLETION-SET, format the list into user-readable output
 for interactive debugging purpose."
-  (let ((max-len 
-         (loop for winner in winners maximizing (length (first winner)))))
+  (let ((max-len (loop for winner in winners maximizing (length (first winner)))))
     (loop for (sym score result) in winners do
           (format t "~&~VA  score ~8,2F  ~A"
                   max-len (highlight-completion result sym) score result))))

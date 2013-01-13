@@ -178,8 +178,14 @@ If LOAD is true, load the fasl file."
               ;; everything after this too.
               (setq needs-recompile t)
               (setq state :compile)
-              ;;(proclaim '(optimize (debug 3) (safety 3) (speed 2))) ;; debug
-              (let (;;(compiler::*c-file* t) (compiler::*h-file* t) (compiler::*data-file* t) ;; help debug MKCL.
+              ;; (format t "~&About to call compile-file with these settings: ~
+              ;;              speed = ~S, safety = ~S, space = ~S, debug = ~S.~%"
+              ;;         compiler::*speed* compiler::*safety* compiler::*space* compiler::*debug*)
+              ;;(proclaim '(optimize (debug 3) (safety 3) (speed 2))) ;; debug JCB
+              (let (;;(compiler::*c-file* t) (compiler::*h-file* t) (compiler::*data-file* t) ;; help debug MKCL. JCB
+                    ;;(compiler::*trace-cc* t) ;; show gcc activity
+                    ;;(*compile-verbose* t)
+                    ;;(*compile-print* t)
                     )
                 (or (compile-file src :output-file dest :print nil :verbose t)
                     ;; An implementation may not necessarily signal a

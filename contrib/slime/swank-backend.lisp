@@ -10,7 +10,7 @@
 ;;; separately for each Lisp. Each is declared as a generic function
 ;;; for which swank-<implementation>.lisp provides methods.
 
-(declaim (optimize (debug 3) (safety 3) (speed 2)))
+;;(declaim (optimize (debug 3) (safety 3) (speed 2)))
 
 (defpackage :swank-backend
   (:use :common-lisp)

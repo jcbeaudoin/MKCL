@@ -10,7 +10,7 @@
 ;;; them separately for each Lisp implementation. These extensions are
 ;;; available to us here via the `SWANK-BACKEND' package.
 
-(declaim (optimize (debug 3) (safety 3) (speed 2)))
+;;(declaim (optimize (debug 3) (safety 3) (speed 2)))
 
 (defpackage :swank
   (:use :cl :swank-backend :swank-match :swank-rpc)
@@ -2440,13 +2440,19 @@ Record compiler notes signalled as `compiler-condition's."
      (lambda ()
        (let ((pathname (filename-to-pathname filename))
              (*compile-print* nil) (*compile-verbose* t))
+         ;;(proclaim '(optimize (debug 3) (safety 3) (speed 2))) ;; debug JCB
          (multiple-value-bind (output-pathname warnings? failure?)
-             (swank-compile-file pathname
-                                 (fasl-pathname pathname options)
-                                 nil
-                                 (or (guess-external-format pathname)
-                                     :default)
-                                 :policy policy)
+             (let (;;(compiler::*c-file* t) (compiler::*h-file* t) (compiler::*data-file* t) ;; help debug MKCL. JCB
+                   ;;(compiler::*trace-cc* t) ;; show gcc activity
+                   ;;(*compile-verbose* t)
+                   ;;(*compile-print* t)
+                   )
+               (swank-compile-file pathname
+                                   (fasl-pathname pathname options)
+                                   nil
+                                   (or (guess-external-format pathname)
+                                       :default)
+                                   :policy policy))
            (declare (ignore warnings?))
            (values (not failure?) load-p output-pathname)))))))
 

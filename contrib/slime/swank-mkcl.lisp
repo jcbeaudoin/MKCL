@@ -10,11 +10,11 @@
 
 (in-package :swank-backend)
 
-(declaim (optimize (debug 3)))
+;;(declaim (optimize (debug 3)))
 
 (defvar *tmp*)
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
+(eval-when (:compile-toplevel :load-toplevel)
   (if (find-package :gray)
       (import-from :gray *gray-stream-symbols* :swank-backend)
     (import-from :ext *gray-stream-symbols* :swank-backend))
@@ -29,23 +29,22 @@
     )
   ) ;; eval-when
 
-
+
 ;;; UTF8
 
 (defimplementation string-to-utf8 (string)
-  ;;(sb-ext:string-to-octets string :external-format :utf8)
-  (mkcl:octets (si:utf-8 string))
-  )
+  (mkcl:octets (si:utf-8 string)))
 
 (defimplementation utf8-to-string (octets)
-  ;;(sb-ext:octets-to-string octets :external-format :utf8)
-  (string (si:utf-8 octets))
-  )
+  (string (si:utf-8 octets)))
 
 
 ;;;; TCP Server
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
+(eval-when (:compile-toplevel :load-toplevel)
+  ;; At compile-time we need access to the sb-bsd-sockets package for the
+  ;; the following code to be read properly.
+  ;; It is a bit a shame we have to load the entire module to get that.
   (require 'sockets))
 
 
@@ -341,7 +340,10 @@
   (si:compiled-function-name f)
   )
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
+(eval-when (:compile-toplevel :load-toplevel)
+  ;; At compile-time we need access to the walker package for the
+  ;; the following code to be read properly.
+  ;; It is a bit a shame we have to load the entire module to get that.
   (require 'walker))
 
 (defimplementation macroexpand-all (form)
@@ -364,7 +366,7 @@
 
 ;;; Debugging
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
+(eval-when (:compile-toplevel :load-toplevel)
   (import
    '(si::*break-env*
      si::*ihs-top*
@@ -640,7 +642,10 @@
 ;;;; Profiling
 
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
+(eval-when (:compile-toplevel :load-toplevel)
+  ;; At compile-time we need access to the profile package for the
+  ;; the following code to be read properly.
+  ;; It is a bit a shame we have to load the entire module to get that.
   (require 'profile))
 
 
@@ -875,11 +880,9 @@
        ;;(format t "~&: ~S~%" mt:*thread*) (finish-output)
        (handler-case
         (setq got-one (mt:semaphore-wait (mailbox.semaphore mbox) 2))
-        ;;(sleep 0.2)
         (condition (condition)
-           (format t "~&Something went bad with semaphore-wait ~A~%" condition)
+           (format t "~&In (swank-mkcl) receive-if: Something went bad with semaphore-wait ~A~%" condition)
            (finish-output)
-           ;;(break)
            nil
            )
         )
@@ -897,22 +900,12 @@
 
        ;;(format t "/ ~S~%" mt:*thread*) (finish-output)
        (when (eq timeout t) (return (values nil t)))
-       ;; (handler-case
-;;            (setq got-one (mt:semaphore-wait (mailbox.semaphore mbox) 2))
-;;            ;;(sleep 0.2)
-;;          (condition (condition)
-;;            (format t "~&Something went bad with semaphore-wait ~A~%" condition) (finish-output)
-;;            ;;(break)
-;;            nil
-;;            )
-;;          )
 ;;        (unless got-one
-;;          (format t "~&semaphore-wait timed out!~%"))
-       ;;(format t "~&= ~S~%" mt:*thread*) (finish-output)
+;;          (format t "~&In (swank-mkcl) receive-if: semaphore-wait timed out!~%"))
        )
     )
     (condition (condition)
-      (format t "~&Error in receive-if: ~S~%" condition) (finish-output)
+      (format t "~&Error in (swank-mkcl) receive-if: ~S, ~A~%" condition condition) (finish-output)
       nil
       )
     )
