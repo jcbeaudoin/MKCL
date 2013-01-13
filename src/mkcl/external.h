@@ -1230,7 +1230,7 @@ extern "C" {
   extern MKCL_API mkcl_object mk_si_argv(MKCL, mkcl_object index);
 #ifdef MKCL_WINDOWS
   extern MKCL_API void mkcl_get_commandline_args_from_Windows(int * argc_ref, char *** argv_ref);
-  extern MKCL_API bool mkcl_has_console();
+  extern MKCL_API bool mkcl_has_console(void);
 #endif
   extern MKCL_API mkcl_object mk_mkcl_getenv(MKCL, mkcl_object var);
   extern MKCL_API mkcl_object mkcl_getenv(MKCL, mkcl_object var);
