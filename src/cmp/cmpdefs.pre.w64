@@ -519,8 +519,10 @@ coprocessor).")
 (defvar +executable-file-extension+ ".exe")
 (defvar +executable-file-format+ "~a.exe")
 
-(defvar *mkcl-include-directory* (pathname @includedir\@))
-(defvar *mkcl-library-directory* (pathname @libdir\@))
+(defconstant *mkcl-default-include-directory* (pathname @includedir\@))
+(defconstant *mkcl-default-library-directory* (pathname @libdir\@))
+(defvar *mkcl-include-directory* nil)
+(defvar *mkcl-library-directory* nil)
 
 (defvar *disassemble-bindings* nil)
 
