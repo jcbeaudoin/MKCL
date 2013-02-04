@@ -5,7 +5,7 @@
 /*
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
-    Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2013, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or modify it under
     the terms of the GNU General Lesser Public License as published by
@@ -22,9 +22,7 @@
 
 #include <math.h> /* for inline mathematics */
 
-#if 1
 #include <mkcl/internal.h>
-#endif
 
 
 #define MKCL_TRAMPOLINK(narg, vv, lk, cblock)				\
