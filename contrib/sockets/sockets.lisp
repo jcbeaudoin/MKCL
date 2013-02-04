@@ -471,9 +471,17 @@ raw_buffer_pointer(MKCL, mkcl_object x, mkcl_index size)
 #+:windows
 (Clines
 " /* This callback is used as IO Completion routine by WSARecvFrom and WSASend and WSASendTo here below. */
-static void CALLBACK _socket_io_done(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags)
+static void CALLBACK _socket_recv_io_done(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags)
 {
+#if 0
   lpOverlapped->hEvent = (HANDLE) (uintptr_t) cbTransferred;
+#endif
+}
+static void CALLBACK _socket_send_io_done(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags)
+{
+#if 0
+  lpOverlapped->hEvent = (HANDLE) (uintptr_t) cbTransferred;
+#endif
 }
 "
 )
@@ -508,9 +516,20 @@ static void CALLBACK _socket_io_done(DWORD dwError, DWORD cbTransferred, LPWSAOV
       int FromLen = sizeof(From);
       WSAOVERLAPPED RecvOverlapped = { 0 };
 
-      MKCL_LIBC_NO_INTR(env, rc = WSARecvFrom(s, &DataBuf, 1, &BytesRecv, &Flags, (SOCKADDR *) &From, &FromLen, &RecvOverlapped, _socket_io_done));
+      MKCL_LIBC_NO_INTR(env, rc = WSARecvFrom(s, &DataBuf, 1, &BytesRecv, &Flags, (SOCKADDR *) &From, &FromLen, &RecvOverlapped, _socket_recv_io_done));
       if (rc == 0)
-	{ len = BytesRecv; }
+	{
+	  DWORD wait_val;
+
+          MKCL_LIBC_Zzz(env, #5, wait_val = SleepEx(0, TRUE));
+
+	  if (wait_val != WAIT_IO_COMPLETION)
+	    mkcl_FEwin32_error(env, \"WSARecvFrom() (sockets.lisp) failed to complete properly on socket\", 0);
+
+	  mk_mt_test_for_thread_shutdown(env);
+
+          len = BytesRecv;
+        }
       else if (rc == SOCKET_ERROR)
 	{
 	  DWORD wait_val;
@@ -520,13 +539,18 @@ static void CALLBACK _socket_io_done(DWORD dwError, DWORD cbTransferred, LPWSAOV
 
 	  do {
 	    MKCL_LIBC_Zzz(env, #5, wait_val = SleepEx(INFINITE, TRUE));
-	  } while ((wait_val == WAIT_IO_COMPLETION) && (RecvOverlapped.hEvent == NULL));
+	  } while ((wait_val == WAIT_IO_COMPLETION)
+		   && (WSAGetOverlappedResult(s, &RecvOverlapped, &BytesRecv, FALSE, &Flags)
+		       ? FALSE
+		       : ((WSAGetLastError() == WSA_IO_INCOMPLETE)
+			  ? TRUE
+			  : (mkcl_FEwin32_error(env, \"WSAGetOverlappedResult() (sockets.lisp) failed unexpectedtly after WSARecv() on socket\", 0), FALSE))));
 	  if (wait_val != WAIT_IO_COMPLETION)
-	    mkcl_FEwin32_error(env, \"WSARecvFrom() (sockets.lisp) failed to complete properly on socket\", 0);
+	    mkcl_FEwin32_error(env, \"WSARecvFrom() (sockets.lisp) failed to properly complete deferred IO on socket\", 0);
 
 	  mk_mt_test_for_thread_shutdown(env);
 
-	  len = (DWORD) (uintptr_t) RecvOverlapped.hEvent;
+          len = BytesRecv;
 	}
       else
         { @(return 0) = -1; goto _MKCL_RECEIVE_ERROR; }
@@ -890,10 +914,21 @@ static void fill_inet_sockaddr(struct sockaddr_in *sockaddr, int port,
       DWORD Flags = 0;
       WSAOVERLAPPED SendOverlapped = { 0 };
 
-      MKCL_LIBC_NO_INTR(env, rc = WSASendTo(s, &DataBuf, 1, &BytesSent, Flags, (SOCKADDR *) &sockaddr, sockaddr_len,  &SendOverlapped, _socket_io_done));
+      MKCL_LIBC_NO_INTR(env, rc = WSASendTo(s, &DataBuf, 1, &BytesSent, Flags, (SOCKADDR *) &sockaddr, sockaddr_len,  &SendOverlapped, _socket_send_io_done));
 
       if (rc == 0)
-	{ len = BytesSent; }
+	{
+	  DWORD wait_val;
+
+	  MKCL_LIBC_Zzz(env, #a, wait_val = SleepEx(0, TRUE));
+
+	  if (wait_val != WAIT_IO_COMPLETION)
+	    mkcl_FEwin32_error(env, \"WSASendTo() (sockets.lisp) failed to complete properly on socket ~S\", 0);
+
+	  mk_mt_test_for_thread_shutdown(env);
+
+          len = BytesSent;
+        }
       else if (rc == SOCKET_ERROR)
 	{
 	  DWORD wait_val;
@@ -903,13 +938,18 @@ static void fill_inet_sockaddr(struct sockaddr_in *sockaddr, int port,
 
 	  do {
 	    MKCL_LIBC_Zzz(env, #a, wait_val = SleepEx(INFINITE, TRUE));
-	  } while ((wait_val == WAIT_IO_COMPLETION) && (SendOverlapped.hEvent == NULL));
+	  } while ((wait_val == WAIT_IO_COMPLETION)
+		   && (WSAGetOverlappedResult(s, &SendOverlapped, &BytesSent, FALSE, &Flags)
+		       ? FALSE
+		       : ((WSAGetLastError() == WSA_IO_INCOMPLETE)
+			  ? TRUE
+			  : (mkcl_FEwin32_error(env, \"WSAGetOverlappedResult() (sockets.lisp) failed unexpectedtly after WSASendTo() on socket\", 0), FALSE))));
 	  if (wait_val != WAIT_IO_COMPLETION)
-	    mkcl_FEwin32_error(env, \"WSASendTo() (sockets.lisp) failed to complete properly on socket ~S\", 0);
+	    mkcl_FEwin32_error(env, \"WSASendTo() (sockets.lisp) failed to properly complete deferred IO on socket ~S\", 0);
 
 	  mk_mt_test_for_thread_shutdown(env);
 
-	  len = (DWORD) (uintptr_t) SendOverlapped.hEvent;
+          len = BytesSent;
 	}
       else
         { @(return) = -1; goto _MKCL_SENDTO_ERROR; }
@@ -937,10 +977,21 @@ _MKCL_SENDTO_ERROR:;
       DWORD Flags = flags;
       WSAOVERLAPPED SendOverlapped = { 0 };
 
-      MKCL_LIBC_NO_INTR(env, rc = WSASend(s, &DataBuf, 1, &BytesSent, Flags, &SendOverlapped, _socket_io_done));
+      MKCL_LIBC_NO_INTR(env, rc = WSASend(s, &DataBuf, 1, &BytesSent, Flags, &SendOverlapped, _socket_send_io_done));
 
       if (rc == 0)
-	{ len = BytesSent; }
+	{
+	  DWORD wait_val;
+
+	  MKCL_LIBC_Zzz(env, #5, wait_val = SleepEx(0, TRUE));
+
+	  if (wait_val != WAIT_IO_COMPLETION)
+	    mkcl_FEwin32_error(env, \"WSASend() (sockets.lisp) failed to complete properly on socket ~S\", 0);
+
+	  mk_mt_test_for_thread_shutdown(env);
+
+          len = BytesSent;
+        }
       else if (rc == SOCKET_ERROR)
 	{
 	  DWORD wait_val;
@@ -950,13 +1001,18 @@ _MKCL_SENDTO_ERROR:;
 
 	  do {
 	    MKCL_LIBC_Zzz(env, #5, wait_val = SleepEx(INFINITE, TRUE));
-	  } while ((wait_val == WAIT_IO_COMPLETION) && (SendOverlapped.hEvent == NULL));
+	  } while ((wait_val == WAIT_IO_COMPLETION)
+		   && (WSAGetOverlappedResult(s, &SendOverlapped, &BytesSent, FALSE, &Flags)
+		       ? FALSE
+		       : ((WSAGetLastError() == WSA_IO_INCOMPLETE)
+			  ? TRUE
+			  : (mkcl_FEwin32_error(env, \"WSAGetOverlappedResult() (sockets.lisp) failed unexpectedtly after WSASend() on socket\", 0), FALSE))));
 	  if (wait_val != WAIT_IO_COMPLETION)
-	    mkcl_FEwin32_error(env, \"WSASend() (sockets.lisp) failed to complete properly on socket ~S\", 0);
+	    mkcl_FEwin32_error(env, \"WSASend() (sockets.lisp) failed to properly complete deferred IO on socket ~S\", 0);
 
 	  mk_mt_test_for_thread_shutdown(env);
 
-	  len = (DWORD) (uintptr_t) SendOverlapped.hEvent;
+          len = BytesSent;
 	}
       else
         { @(return) = -1; goto _MKCL_SEND_ERROR; }

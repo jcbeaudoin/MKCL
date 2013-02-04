@@ -3926,10 +3926,19 @@ static const struct mkcl_file_ops input_stream_ops = {
 
 
 #if defined(MKCL_WINDOWS)
-/* This callback is used as IO completion routine by WSARecv() and WSASend() here below. */
-static void CALLBACK _mkcl_socket_io_done(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags)
+/* These callbacks are used as IO completion routine by WSARecv() and WSASend() here below. */
+static void CALLBACK _mkcl_socket_recv_io_done(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags)
 {
+#if 0
   lpOverlapped->hEvent = (HANDLE) (mkcl_index) cbTransferred;
+#endif
+}
+
+static void CALLBACK _mkcl_socket_send_io_done(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags)
+{
+#if 0
+  lpOverlapped->hEvent = (HANDLE) (mkcl_index) cbTransferred;
+#endif
 }
 #endif
 
@@ -3956,10 +3965,6 @@ socket_stream_read_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n)
       MKCL_LIBC_Zzz(env, @':io', len = recv(s, (char *) c, n, MSG_WAITALL));
       if ((len == SOCKET_ERROR) && (errno != EINTR))
 	{
-#if 0
-	  fprintf(stderr, "\n;; MKCL: recv() on (%d) failed, errno = %d!\n", env->own_thread->thread.tid, errno);
-	  fflush(stderr);
-#endif	  
 	  len = 0; 
 	  socket_error(env, "Cannot read bytes from socket", strm);
 	}
@@ -3970,15 +3975,26 @@ socket_stream_read_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n)
       int rc;
       BOOL ok;
       mkcl_index len = 0;
-      WSABUF DataBuf = { n, c };
+      WSABUF DataBuf = { n, c }; /* the buffer size is an unsigned long. Not big enough on Win64. FIXME. JCB */
       DWORD BytesRecv = 0;
       DWORD Flags = 0;
       WSAOVERLAPPED RecvOverlapped = { 0 };
 
-      MKCL_LIBC_NO_INTR(env, rc = WSARecv(s, &DataBuf, 1, &BytesRecv, &Flags, &RecvOverlapped, _mkcl_socket_io_done));
+      MKCL_LIBC_NO_INTR(env, rc = WSARecv(s, &DataBuf, 1, &BytesRecv, &Flags, &RecvOverlapped, _mkcl_socket_recv_io_done));
 
       if (rc == 0)
-	{ len = BytesRecv; }
+	{
+	  DWORD wait_val;
+
+	  MKCL_LIBC_Zzz(env, @':io', wait_val = SleepEx(0, TRUE));
+
+	  if (wait_val != WAIT_IO_COMPLETION)
+	    mkcl_FEwin32_error(env, "WSARecv() failed to complete properly on socket ~S", 1, strm);
+
+	  mk_mt_test_for_thread_shutdown(env);
+
+	  len = BytesRecv;
+	}
       else if (rc == SOCKET_ERROR)
 	{
 	  DWORD wait_val;
@@ -3988,21 +4004,26 @@ socket_stream_read_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n)
 
 	  do {
 	    MKCL_LIBC_Zzz(env, @':io', wait_val = SleepEx(INFINITE, TRUE));
-	  } while ((wait_val == WAIT_IO_COMPLETION) && (RecvOverlapped.hEvent == NULL));
+	  } while ((wait_val == WAIT_IO_COMPLETION)
+		   && (WSAGetOverlappedResult(s, &RecvOverlapped, &BytesRecv, FALSE, &Flags)
+		       ? FALSE
+		       : ((WSAGetLastError() == WSA_IO_INCOMPLETE)
+			  ? TRUE
+			  : (socket_error(env, "WSAGetOverlappedResult() failed unexpectedtly after WSARecv() on socket", strm), FALSE))));
 	  if (wait_val != WAIT_IO_COMPLETION)
-	    mkcl_FEwin32_error(env, "WSARecv() failed to complete properly on socket ~S", 1, strm);
+	    mkcl_FEwin32_error(env, "WSARecv() failed to properly complete deferred IO on socket ~S", 1, strm);
 
 	  mk_mt_test_for_thread_shutdown(env);
 
-	  len = (mkcl_index) RecvOverlapped.hEvent;
+	  len = BytesRecv;
 	}
       else
 	socket_error(env, "WSARecv() failed unexpectedly on socket", strm); /* Something went really wrong with WSARecv(). */
       out +=len;
 
 #if 0
-      fprintf(stderr, "\n;; MKCL: WSARecv() on (%d) is done, len = %d, BytesRecv = %d, InternalHigh = %d, rc = %d!",
-	      env->own_thread->thread.tid, len, BytesRecv, RecvOverlapped.InternalHigh, rc);
+      fprintf(stderr, "\n;; MKCL: WSARecv() on (%d) is done, out = %d, len = %d, BytesRecv = %d, InternalHigh = %d, rc = %d!",
+	      env->own_thread->thread.tid, out, len, BytesRecv, RecvOverlapped.InternalHigh, rc);
       fflush(stderr);
 #endif
 #else
@@ -4046,10 +4067,21 @@ socket_stream_write_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n
       DWORD Flags = 0;
       WSAOVERLAPPED SendOverlapped = { 0 };
 
-      MKCL_LIBC_NO_INTR(env, rc = WSASend(s, &DataBuf, 1, &BytesSent, Flags, &SendOverlapped, _mkcl_socket_io_done));
+      MKCL_LIBC_NO_INTR(env, rc = WSASend(s, &DataBuf, 1, &BytesSent, Flags, &SendOverlapped, _mkcl_socket_send_io_done));
 
       if (rc == 0)
-	{ out = BytesSent; }
+	{
+	  DWORD wait_val;
+
+	  MKCL_LIBC_Zzz(env, @':io', wait_val = SleepEx(0, TRUE));
+
+	  if (wait_val != WAIT_IO_COMPLETION)
+	    mkcl_FEwin32_error(env, "WSASend() failed to complete properly on socket ~S", 1, strm);
+
+	  mk_mt_test_for_thread_shutdown(env);
+
+	  out = BytesSent;
+	}
       else if (rc == SOCKET_ERROR)
 	{
 	  DWORD wait_val;
@@ -4059,13 +4091,18 @@ socket_stream_write_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n
 
 	  do {
 	    MKCL_LIBC_Zzz(env, @':io', wait_val = SleepEx(INFINITE, TRUE));
-	  } while ((wait_val == WAIT_IO_COMPLETION) && (SendOverlapped.hEvent == NULL));
+	  } while ((wait_val == WAIT_IO_COMPLETION)
+		   && (WSAGetOverlappedResult(s, &SendOverlapped, &BytesSent, FALSE, &Flags)
+		       ? FALSE
+		       : ((WSAGetLastError() == WSA_IO_INCOMPLETE)
+			  ? TRUE
+			  : (socket_error(env, "WSAGetOverlappedResult() failed unexpectedtly after WSASend() on socket", strm), FALSE))));
 	  if (wait_val != WAIT_IO_COMPLETION)
-	    mkcl_FEwin32_error(env, "WSASend() failed to complete properly on socket ~S", 1, strm);
+	    mkcl_FEwin32_error(env, "WSASend() failed to properly complete deferred IO on socket ~S", 1, strm);
 
 	  mk_mt_test_for_thread_shutdown(env);
 
-	  out = (mkcl_index) SendOverlapped.hEvent;
+	  out = BytesSent;
 	}
       else
 	socket_error(env, "WSASend() failed unexpectedly on socket", strm); /* Something went really wrong with WSASend(). */
