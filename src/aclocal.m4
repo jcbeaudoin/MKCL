@@ -585,20 +585,26 @@ if test -z "${MKCL_STACK_DIR}" ; then
   AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <stdio.h>
 
+#if __GNUC__ >= 4
+int f2(char * mark) __attribute__((noinline));
+#else
+int f2(char * mark);
+#endif
+
+int f1() {
+  char d = 0;
+  return f2(&d);
+}
+
 int f2(char * mark) {
   char c = 0;
   /* The purpose of this printf call is to prevent the compiler
      from inlining this function (like gcc 4.7.0 does).
      This is hoped to be portable, otherwise compiler specific
-     pragmas or attributes would be needed. (like gcc __attribute__((noinline))
+     pragmas or attributes would be needed. (like gcc __attribute__((noinline)))
    */
   printf("callee frame = %p, caller frame = %p, ", &c, mark);
   return &c - mark;
-}
-
-int f1() {
-  char d = 0;
-  return f2(&d);
 }
 
 int main() {
