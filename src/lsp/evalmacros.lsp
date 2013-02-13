@@ -370,7 +370,7 @@ values of the last FORM.  If no FORM is given, returns NIL."
   (if (cdr decl-specs)
     `(eval-when (:compile-toplevel :execute)
        (mapcar #'proclaim ',decl-specs))
-    `(eval-when (:compile-toplevel :execute)
+    `(eval-when (:load-toplevel :execute)
        (proclaim ',(car decl-specs)))))
 
 
