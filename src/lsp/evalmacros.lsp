@@ -368,9 +368,9 @@ values of the last FORM.  If no FORM is given, returns NIL."
 ;; Declarations
 (defmacro declaim (&rest decl-specs)
   (if (cdr decl-specs)
-    `(eval-when (:compile-toplevel :execute)
+    `(eval-when (:compile-toplevel :load-toplevel :execute)
        (mapcar #'proclaim ',decl-specs))
-    `(eval-when (:load-toplevel :execute)
+    `(eval-when (:compile-toplevel :load-toplevel :execute)
        (proclaim ',(car decl-specs)))))
 
 
