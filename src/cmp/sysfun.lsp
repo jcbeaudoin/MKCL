@@ -1845,7 +1845,7 @@
     (def-inline finish-output :always (stream) NULL "(mkcl_finish_output(env, #0),mk_cl_Cnil)")
 
     (proclaim-function force-output (*) NULL)
-    (def-inline finish-output :always (stream) NULL "(mkcl_force_output(env, #0),mk_cl_Cnil)")
+    (def-inline force-output :always (stream) NULL "(mkcl_force_output(env, #0),mk_cl_Cnil)")
 
     (proclaim-function fresh-line (*) t)
     (proclaim-function listen (*) t)
@@ -2106,7 +2106,7 @@
     (proclaim-function string (t) string :predicate t)
     (proclaim-function si:concatenate-strings (*) string)
     #+unicode
-    (def-inline si:concatenate-base-strings :always (string) t "mkcl_copy_string(env, #0)")
+    (def-inline si:concatenate-strings :always (string) t "mkcl_copy_string(env, #0)")
     #+unicode
     (def-inline si:concatenate-strings :always (string string) t "mkcl_concatenate_2_strings(env, #0, #1)")
     #+unicode
