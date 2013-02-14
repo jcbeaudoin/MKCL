@@ -694,10 +694,7 @@ Returns T if X belongs to TYPE; NIL otherwise."
 (defun subclassp (low high)
   (or (eq low high)
       (dolist (class (sys:instance-ref low 1)) ; (class-superiors low)
-	;;(when (si::subclassp class high) (return t))
-	(when (subclassp class high) (return t))
-	))
-  )
+	(when (subclassp class high) (return t)))))
 
 (defun of-class-p (object class)
   (declare (optimize (speed 3)))
