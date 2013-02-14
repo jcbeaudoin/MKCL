@@ -1267,7 +1267,7 @@
     (def-inline rplaca :always (t t) t
       "@0;(MKCL_ATOM(#0) ? (mkcl_FEtype_error_cons(env, #0), (#0)) : (MKCL_RPLACA((#0), (#1)), (#0)))")
     (proclaim-function rplacd (cons t) cons)
-    (def-inline rplaca :always (t t) t
+    (def-inline rplacd :always (t t) t
       "@0;(MKCL_ATOM(#0) ? (mkcl_FEtype_error_cons(env, #0), (#0)) : (MKCL_RPLACD((#0), (#1)), (#0)))")
     (proclaim-function subst (t t t *) t)
     (proclaim-function subst-if (t t t *) t)
