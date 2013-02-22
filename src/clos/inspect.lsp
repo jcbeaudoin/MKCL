@@ -521,13 +521,13 @@ q (or Q):             quits the inspection.~%~
 
 (defmethod documentation ((object function) doc-type)
   (when (member doc-type '(t function))
-    (let ((fun-name (compiled-function-name object)))
+    (let ((fun-name (si::compiled-function-name object)))
       (when (and fun-name (symbolp fun-name))
 	(si::get-documentation object doc-type)))))
 
 (defmethod (setf documentation) (new-value (object function) doc-type)
   (when (member doc-type '(t function))
-    (let ((fun-name (compiled-function-name object)))
+    (let ((fun-name (si::compiled-function-name object)))
       (when (and fun-name (symbolp fun-name))
 	(si::set-documentation object doc-type new-value)))))
 
