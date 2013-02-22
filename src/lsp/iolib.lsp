@@ -361,6 +361,7 @@ the one defined in the ANSI standard. *print-base* is 10, *print-array* is t,
 	 (*print-level* nil)
 	 (*print-lines* nil)
 	 (*print-miser-width* nil)
+         (*print-pprint-dispatch* (copy-pprint-dispatch nil))
 	 (*print-pretty* nil)
 	 (*print-radix* nil)
 	 (*print-readably* t)
