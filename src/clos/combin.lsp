@@ -87,14 +87,11 @@
 ;;; is the equivalent of (CALL-METHOD method rest-methods)
 ;;;
 (defun combine-method-functions (method rest-methods)
-  (if rest-methods ;; JCB
-      #'(lambda (args no-next-methods)
-	  (declare (ignorable no-next-methods))
-	  (let ((.combined-method-args. args))
-	    (declare (special .combined-method-args.)) ;; JCB
-	    (funcall method args rest-methods)))
-    method ;; since there is nothing to combine. JCB
-    )
+  #'(lambda (args no-next-methods)
+      (declare (ignorable no-next-methods))
+      (let ((.combined-method-args. args))
+        (declare (special .combined-method-args.)) ;; JCB
+        (funcall method args rest-methods)))
   )
 
 (defmacro call-method (method &optional rest-methods)
