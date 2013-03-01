@@ -951,7 +951,7 @@ c_funcall(MKCL, mkcl_object args, int flags) {
 						1, name);
 		  return c_call(env, MKCL_CONS(env, MKCL_CADR(name), args), flags);
 		}
-		if (kind == @'quote') {
+		if (kind == @'quote' && /* JCB */ MKCL_SYMBOLP(MKCL_CADR(name))) {
 		  if (mk_cl_list_length(env, name) != MKCL_MAKE_FIXNUM(2))
 		    mkcl_FEprogram_error(env, "FUNCALL: Invalid function name ~S",
 						1, name);
