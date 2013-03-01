@@ -1040,7 +1040,7 @@ int mkcl_fun_refs_trap(MKCL, mkcl_object fun, const mkcl_object * const fun_refs
 
 mkcl_object mkcl_fun_ref_fdefinition(MKCL, const mkcl_object * const fun_refs, mkcl_index i)
 {
-  mkcl_object fun_ref = fun_refs[i];
+  const mkcl_object fun_ref = fun_refs[i];
 
   if (mkcl_type_of(fun_ref) == mkcl_t_cclosure
       && !mkcl_Null(fun_ref->cclosure.producer) 
@@ -1051,27 +1051,30 @@ mkcl_object mkcl_fun_ref_fdefinition(MKCL, const mkcl_object * const fun_refs, m
       volatile mkcl_object * closure_aux_var = fun_ref->cclosure.cenv->display.level[1]->lblock.var;
       mkcl_object cached_fun_ref = closure_aux_var[0];
 
-      if (mkcl_Null(cached_fun_ref))
+      if (mkcl_likely(!mkcl_Null(cached_fun_ref)))
+	return cached_fun_ref;
+      else
 	{
 	  /* Here we need to grab the mt::+forward-reference-lock+ */
 	  mkcl_object f_r_lock = mkcl_symbol_value(env, @'mt::+forward-reference-lock+');
 	  volatile mkcl_object locked = mk_cl_Cnil;
+          mkcl_object fname;
 
 	  MKCL_UNWIND_PROTECT_BEGIN(env) {
-	    mkcl_object fname;
 	    mkcl_interrupt_status old_intr;
 
 	    mkcl_get_interrupt_status(env, &old_intr);
 	    mkcl_disable_interrupts(env);
 	    locked = mk_mt_get_lock(env, 1, f_r_lock);
+	    fname = closure_aux_var[1];
 	    mkcl_set_interrupt_status(env, &old_intr);
 
-	    fname = closure_aux_var[1];
 
 	    if (mkcl_Null(cached_fun_ref = closure_aux_var[0]))
 	      if (mkcl_Null(mk_cl_fboundp(env, fname))) /* fname is not fboundp. */
 		{
-		  mkcl_FEundefined_function(env, fname);
+		  /* mkcl_FEundefined_function(env, fname); */
+                  cached_fun_ref = mk_cl_Cnil;
 		}
 	      else
 		{
@@ -1081,10 +1084,11 @@ mkcl_object mkcl_fun_ref_fdefinition(MKCL, const mkcl_object * const fun_refs, m
 	  } MKCL_UNWIND_PROTECT_EXIT {
 	    if (!mkcl_Null(locked)) mk_mt_giveup_lock(env, f_r_lock);
 	  } MKCL_UNWIND_PROTECT_END;
-	  return cached_fun_ref;
+          if (mkcl_likely(!mkcl_Null(cached_fun_ref)))
+            return cached_fun_ref;
+          else
+            mkcl_FEundefined_function(env, fname);
 	}
-      else
-	return cached_fun_ref;
     }
 
   return fun_ref;
