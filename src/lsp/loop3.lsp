@@ -1786,6 +1786,8 @@ collected result will be returned as the value of the LOOP."
 			      `(,first-endtest ,step () ,pseudo)))))))))))
 
 
+(defparameter *loop-for-in-bug-do-step-before-body* nil) ;; set this true if you need to revive this long standing (tenured?) bug.
+
 (defun loop-for-in (var val data-type)
   (multiple-value-bind (list constantp list-value) (loop-constant-fold-if-possible val)
     (let ((listvar (loop-gentemp 'loop-list-)))
@@ -1802,15 +1804,16 @@ collected result will be returned as the value of the LOOP."
 	    (setq first-endtest (null list-value)))
 	  #+LOOP-Prefer-POP (when (eq step-function 'cdr)
 			      (setq step `(,var (pop ,listvar)) pseudo-step nil))
-#| ;; This return value executes the code of list-step before the loop body in contradiction of the ANSI spec.
-   ;; The discovery of this bug was announced on comp.lang.lisp by Steve Haflich on 2013/03/18.
-	  `(,other-endtest ,step () ,pseudo-step
-	    ,@(and (not (eq first-endtest other-endtest))
-		   `(,first-endtest ,step () ,pseudo-step)))
-|#
+          (if *loop-for-in-bug-do-step-before-body*
+              ;; This return value executes the code of list-step before the loop body in contradiction of the ANSI spec.
+              ;; The discovery of this bug was announced on comp.lang.lisp by Steve Haflich on 2013/03/18.
+              ;; As of this writing, this bug can be found in SBCL, CCL, CMUCL, ECL, Allegro but not in clisp.
+              `(,other-endtest ,step () ,pseudo-step
+                               ,@(and (not (eq first-endtest other-endtest))
+                                      `(,first-endtest ,step () ,pseudo-step)))
+            ;; This is the version conformant to the ANSI spec.
           `(nil ,pseudo-step ,other-endtest ,step
-                ,first-endtest ,step nil nil)
-          )))))
+                ,first-endtest ,step nil nil)))))))
 
 
 ;;;; Iteration Paths
