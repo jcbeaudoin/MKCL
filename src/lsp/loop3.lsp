@@ -1790,7 +1790,8 @@ collected result will be returned as the value of the LOOP."
   (multiple-value-bind (list constantp list-value) (loop-constant-fold-if-possible val)
     (let ((listvar (loop-gentemp 'loop-list-)))
       (loop-make-iteration-variable var nil data-type)
-      (loop-make-variable listvar list 'list)
+      ;;(loop-make-variable listvar list 'list) ;; this type declaration is excessively optimistic! JCB
+      (loop-make-variable listvar list t) ;; we need outside information to have a type more precise than this. JCB
       (multiple-value-bind (list-step step-function) (loop-list-step listvar)
 	#-LOOP-Prefer-POP (declare (ignore step-function))
 	(let* ((first-endtest `(endp ,listvar))
@@ -1801,9 +1802,15 @@ collected result will be returned as the value of the LOOP."
 	    (setq first-endtest (null list-value)))
 	  #+LOOP-Prefer-POP (when (eq step-function 'cdr)
 			      (setq step `(,var (pop ,listvar)) pseudo-step nil))
+#| ;; This return value executes the code of list-step before the loop body in contradiction of the ANSI spec.
+   ;; The discovery of this bug was announced on comp.lang.lisp by Steve Haflich on 2013/03/18.
 	  `(,other-endtest ,step () ,pseudo-step
 	    ,@(and (not (eq first-endtest other-endtest))
-		   `(,first-endtest ,step () ,pseudo-step))))))))
+		   `(,first-endtest ,step () ,pseudo-step)))
+|#
+          `(nil ,pseudo-step ,other-endtest ,step
+                ,first-endtest ,step nil nil)
+          )))))
 
 
 ;;;; Iteration Paths
