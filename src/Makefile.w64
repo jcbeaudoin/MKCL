@@ -13,8 +13,8 @@
 #  See file '../Copyright' for full details.
 #
 #
-top_srcdir= /usr/home/Jean-Claude/mkcl-1.1.3/src
-srcdir	= /usr/home/Jean-Claude/mkcl-1.1.3/src
+top_srcdir= /usr/home/Jean-Claude/mkcl-1.1.4/src
+srcdir	= /usr/home/Jean-Claude/mkcl-1.1.4/src
 
 # Programs used by "make":
 #
@@ -38,8 +38,8 @@ exec_prefix=${prefix}
 bindir=${exec_prefix}/bin/
 libdir=${exec_prefix}/lib/
 includedir=${prefix}/include/
-mkcldir=${exec_prefix}/lib/mkcl-1.1.3/
-localmkcldir=./lib/mkcl-1.1.3/
+mkcldir=${exec_prefix}/lib/mkcl-1.1.4/
+localmkcldir=./lib/mkcl-1.1.4/
 
 # Programs used by "make install":
 #
@@ -55,7 +55,7 @@ mkinstalldirs = $(SHELL) ./gc/mkinstalldirs
 
 SUBDIRS = c gc
 LIBRARIES = libmkclgc.a
-LSP_LIBRARIES = mkcl_1.1.3.dll
+LSP_LIBRARIES = mkcl_1.1.4.dll
 TARGETS = bin/mkcl$(EXE)
 
 MKCL_HFILES = mkcl/config.h \
