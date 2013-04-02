@@ -416,7 +416,11 @@ parse_word(MKCL, mkcl_object s, delim_fn delim, int flags, mkcl_index start, mkc
     } else {
       if (flags & WORD_LOGICAL)
 	{
-	  if ((mkcl_alphanumericp(c) && mkcl_upper_case_p(c)) || c == '-')
+          if (c == '-')
+            valid_char = TRUE;
+          else if (mkcl_alpha_char_p(c))
+            valid_char = mkcl_upper_case_p(c);
+	  else if (mkcl_alphanumericp(c))
 	    valid_char = TRUE;
 	  else
 	    valid_char = FALSE;
