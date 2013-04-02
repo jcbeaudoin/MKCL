@@ -94,7 +94,7 @@
 	    do (with-open-file (out filename :direction :output :if-exists :supersede
 				    :if-does-not-exist :create :external-format '(:ascii :lf))
 			       (when *generate-verbose* (format t "~%;;; Creating alias ~A -> ~A, ~A" alias name filename))
-			       (format out "(defparameter mk-ext::~A (si::make-encoding 'mk-ext::~A))~%" alias name))))
+			       (format out "(defparameter mk-ext::~A (si::make-encoding :~A))~%" alias name))))
 
 ;;(copy-file "../contrib/encodings/tools.lisp" "./ENCODINGS/tools.lisp" :verbose *generate-verbose*)
 (copy-file "../contrib/encodings/ISO-2022-JP" "./ENCODINGS/ISO-2022-JP" :verbose *generate-verbose*)

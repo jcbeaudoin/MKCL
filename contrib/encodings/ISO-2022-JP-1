@@ -40,13 +40,13 @@
 		   finally (setf (gethash (compose seq) other-table) table-cons)))))
   (nconc tables tables))
 
-(defparameter ext::iso-2022-jp-1
+(defparameter mkcl::iso-2022-jp-1
   (let* ((ascii-no-esc (mapping-hash-table (loop for i from 0 to 127
 					      unless (= i (char-code #\esc))
 					      nconc (list i i))))
-	 (jis212 (mapping-hash-table (ext::load-encoding :jisx0212) #x8080))
-	 (jis208 (mapping-hash-table (ext::load-encoding :jisx0208) #x8080))
-	 (jis201 (mapping-hash-table (ext::load-encoding :jisx0201) #x80)))
+	 (jis212 (mapping-hash-table (si::load-encoding :jisx0212) #x8080))
+	 (jis208 (mapping-hash-table (si::load-encoding :jisx0208) #x8080))
+	 (jis201 (mapping-hash-table (si::load-encoding :jisx0201) #x80)))
     (multimap '((#\Esc #\( #\B)
 		(#\Esc #\( #\J)
 		(#\Esc #\$ #\@)

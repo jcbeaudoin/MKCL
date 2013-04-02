@@ -38,14 +38,15 @@
 		   while precedings
 		   do (setf (gethash (compose precedings) other-table) t)
 		   finally (setf (gethash (compose seq) other-table) table-cons)))))
-  (nconc tables tables))
+  (nconc tables tables) ;; This builds a circular list! JCB
+  )
 
-(defparameter ext::iso-2022-jp
+(defparameter mkcl::iso-2022-jp
   (let* ((ascii-no-esc (mapping-hash-table (loop for i from 0 to 127
 					      unless (= i (char-code #\esc))
 					      nconc (list i i))))
-	 (jis208 (mapping-hash-table (ext::load-encoding :jisx0208) #x8080))
-	 (jis201 (mapping-hash-table (ext::load-encoding :jisx0201) #x80)))
+	 (jis208 (mapping-hash-table (si::load-encoding :jisx0208) #x8080))
+	 (jis201 (mapping-hash-table (si::load-encoding :jisx0201) #x80)))
     (multimap '((#\Esc #\( #\B)
 		(#\Esc #\( #\J)
 		(#\Esc #\$ #\@)
