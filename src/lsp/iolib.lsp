@@ -460,9 +460,11 @@ the one defined in the ANSI standard. *print-base* is 10, *print-array* is t,
 		   (setq var (intern (symbol-name mapping) mk-ext-pkg))
 		   (multiple-value-bind (array-map failure-reason)
 		       (load-encoding mapping)
-		     (if array-map
-			 (setq encoding (make-encoding array-map))
-		       (values nil failure-reason)))
+		     (when array-map
+			 (multiple-value-setq (encoding failure-reason) (make-encoding array-map)))
+                     (unless encoding
+                       (unintern var mk-ext-pkg)
+		       (return-from make-encoding (values nil failure-reason))))
 		   (set var encoding)
 		   )
 	       (when mk-ext-was-closed (close-package mk-ext-pkg)))))
