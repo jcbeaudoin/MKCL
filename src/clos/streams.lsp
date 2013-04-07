@@ -454,7 +454,7 @@
 ;; UNREAD-CHAR
 
 (defmethod stream-unread-char ((stream ansi-stream) character)
-  (cl:unread-char stream character))
+  (cl:unread-char character stream))
 
 (defmethod stream-unread-char ((stream ansi-stream) character)
   (declare (ignore character))
@@ -546,7 +546,7 @@
 ;; WRITE-BYTE
 
 (defmethod stream-write-byte ((stream ansi-stream) integer)
-  (cl:write-byte stream integer))
+  (cl:write-byte integer stream))
 
 (defmethod stream-write-byte ((stream t) integer)
   (declare (ignore integer))
@@ -556,7 +556,7 @@
 ;; WRITE-CHAR
 
 (defmethod stream-write-char ((stream ansi-stream) character)
-  (cl:write-char stream character))
+  (cl:write-char character stream))
 
 (defmethod stream-write-char ((stream t) character)
   (declare (ignore character))
@@ -591,7 +591,7 @@
     (declare (fixnum end))
     (do ((pos start (1+ pos)))
 	((>= pos end))
-      (declare (type index pos))
+      (declare (type si::index pos))
       (stream-write-char stream (aref string pos))))
   string)
 
