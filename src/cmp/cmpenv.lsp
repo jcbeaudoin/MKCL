@@ -104,7 +104,7 @@
                ((or (endp (cdar return-types))
                     (member (cadar return-types) '(&optional &rest &key)))
                 t)
-               (t (type-filter (cadar return-types)))))
+               (t (type-filter (car return-types) t))))
         (t (type-filter (car return-types)))))
 
 (defun add-function-proclamation (fname decl)
