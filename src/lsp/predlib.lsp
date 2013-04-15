@@ -749,7 +749,7 @@ Returns T if X belongs to TYPE; NIL otherwise."
 	      (symbolp type))
 	 (let ((fd (get-sysprop (first type) 'DEFTYPE-DEFINITION)))
 	   (if fd
-	       (expand-deftype (funcall fd (rest type)))
+	       (expand-deftype (apply fd (rest type)))
 	       type)))
 	(t
 	 type)))
