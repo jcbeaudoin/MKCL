@@ -761,12 +761,12 @@ dnl    if mkdir gc; then
       CC="${CC} ${PICFLAG}" CFLAGS="-DMK_GC_BUILD ${CFLAGS}" LDFLAGS="${LDFLAGS}" \
         $srcdir/gc/configure --disable-shared --prefix=${destdir} \
 	--includedir=${destdir}/mkcl/ --libdir=${destdir} --build=${build_alias} \
-	--host=${host_alias} --enable-large-config ${boehm_configure_flags})"
+	--host=${host_alias} --enable-large-config --with-libatomic-ops=no ${boehm_configure_flags})"
      (destdir=`${PWDCMD}`; cd gc; \
       CC="${CC} ${PICFLAG}" CFLAGS="-DMK_GC_BUILD ${CFLAGS}" LDFLAGS="${LDFLAGS}" \
         $srcdir/gc/configure --disable-shared --prefix=${destdir} \
 	--includedir=${destdir}/mkcl/ --libdir=${destdir} --build=${build_alias} \
-	--host=${host_alias} --enable-large-config ${boehm_configure_flags})
+	--host=${host_alias} --enable-large-config --with-libatomic-ops=no ${boehm_configure_flags})
       MKCL_BOEHM_GC_HEADER='mkcl/gc/gc.h'
 dnl     else
 dnl       AC_MSG_ERROR([Unable to create 'gc' directory])
