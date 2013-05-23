@@ -555,7 +555,7 @@ The top-level loop of MKCL. It is called by default when MKCL is invoked."
 
 		 (tpl-prompt)
 		 (setq - (tpl-read))
-		 (setq values (multiple-value-list (eval-in-env - *break-env*)))
+		 (setq values (multiple-value-list (eval-in-env - (decode-ihs-env *break-env*))))
 		 (setq /// // // / / values *** ** ** * * (car /))
 		 (tpl-print values))))
 	  (loop
