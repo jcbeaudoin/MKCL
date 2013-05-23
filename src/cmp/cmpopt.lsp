@@ -109,7 +109,7 @@
 	  ((and (atom type)
 		;;(get-sysprop type 'SI::DEFTYPE-DEFINITION) ;; studder? JCB
 		(setq function (get-sysprop type 'SI::DEFTYPE-DEFINITION)))
-	   (expand-typep form object `',(funcall function) e env)
+	   (expand-typep form object `',(funcall function type env) e env)
 	   ;;(expand-typep form object (funcall function) e env)
 	   )
 	  ;;
@@ -169,7 +169,7 @@
 	  ((setf ;;rest (rest type)
 		 ;;first (first type)
 		 function (get-sysprop first 'SI::DEFTYPE-DEFINITION))
-	   (expand-typep form object `',(apply function rest) e env)
+	   (expand-typep form object `',(funcall function type env) e env)
 	   ;;(expand-typep form object (apply function rest) e env)
 	   )
 	  (t
@@ -255,7 +255,7 @@
 	  ((and (atom type)
 		(get-sysprop type 'SI::DEFTYPE-DEFINITION))
 	   (let	((function (get-sysprop type 'SI::DEFTYPE-DEFINITION)))
-	     (expand-coerce form value `',(funcall function) env)))
+	     (expand-coerce form value `',(funcall function type env) env)))
 	  ;;
 	  ;; CONS types are not coercible.
 	  ((and (consp type)

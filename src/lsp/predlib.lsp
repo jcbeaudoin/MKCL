@@ -60,10 +60,14 @@ by (documentation 'NAME 'type)."
 	  (when (and (symbolp variable)
 		     (not (member variable lambda-list-keywords)))
 	    (setf (first l) `(,variable '*))))))
-    `(define-when (:compile-toplevel :load-toplevel :execute)
-       ,@(si::expand-set-documentation name 'type doc)
-       (do-deftype ',name '(DEFTYPE ,name ,lambda-list ,@body)
-		   #'(si::LAMBDA-BLOCK ,name ,lambda-list ,@body)))))
+    (let ((whole-var (gensym)) (env-var (gensym)))
+      `(define-when (:compile-toplevel :load-toplevel :execute)
+         ,@(si::expand-set-documentation name 'type doc)
+         (do-deftype ',name '(DEFTYPE ,name ,lambda-list ,@body)
+                     #'(si::LAMBDA-BLOCK ,name (,whole-var ,env-var)
+                         (declare (ignorable ,env-var))
+                         (destructuring-bind ,lambda-list (if (consp ,whole-var) (cdr ,whole-var) nil)
+                           ,@body)))))))
 
 
 ;;; Some DEFTYPE definitions.
@@ -536,7 +540,7 @@ Returns T if X belongs to TYPE; NIL otherwise."
     (t
      (cond
            ((get-sysprop tp 'DEFTYPE-DEFINITION)
-            (typep object (apply (get-sysprop tp 'DEFTYPE-DEFINITION) i)))
+            (typep object (funcall (get-sysprop tp 'DEFTYPE-DEFINITION) type nil)))
 	   ((consp i)
 	    (error-type-specifier type))
 	   ((setq c (find-class type nil))
@@ -666,7 +670,7 @@ Returns T if X belongs to TYPE; NIL otherwise."
     (t
      (let ((deftype-def (get-sysprop tp 'DEFTYPE-DEFINITION)))
        (cond (deftype-def
-	       (typep-in-env object (apply deftype-def i) env))
+	       (typep-in-env object (funcall deftype-def type env) env))
 	     ((consp i)
 	      (error-type-specifier type))
 	     ((setq c (find-class type nil))
@@ -726,7 +730,7 @@ Returns T if X belongs to TYPE; NIL otherwise."
   ;; Loops until the car of type has no DEFTYPE definition.
   (cond ((symbolp type)
 	 (if (setq fd (get-sysprop type 'DEFTYPE-DEFINITION))
-	   (normalize-type (funcall fd))
+	   (normalize-type (funcall fd type nil))
 	   (values type nil)))
 	((clos::classp type) (values type nil))
 	((atom type)
@@ -734,7 +738,7 @@ Returns T if X belongs to TYPE; NIL otherwise."
 	((progn
 	   (setq tp (car type) i (cdr type))
 	   (setq fd (get-sysprop tp 'DEFTYPE-DEFINITION)))
-	 (normalize-type (apply fd i)))
+	 (normalize-type (funcall fd type nil)))
 	((and (eq tp 'INTEGER) (consp (cadr i)))
 	 (values tp (list (car i) (1- (caadr i)))))
 	(t (values tp i))))
@@ -743,13 +747,13 @@ Returns T if X belongs to TYPE; NIL otherwise."
   (cond ((symbolp type)
 	 (let ((fd (get-sysprop type 'DEFTYPE-DEFINITION)))
 	   (if fd
-	       (expand-deftype (funcall fd))
+	       (expand-deftype (funcall fd type nil))
 	       type)))
 	((and (consp type)
-	      (symbolp type))
+	      (symbolp (first type)))
 	 (let ((fd (get-sysprop (first type) 'DEFTYPE-DEFINITION)))
 	   (if fd
-	       (expand-deftype (apply fd (rest type)))
+	       (expand-deftype (funcall fd type nil))
 	       type)))
 	(t
 	 type)))
@@ -1393,7 +1397,7 @@ if not possible."
         ((symbolp type)
 	 (let ((expander (get-sysprop type 'DEFTYPE-DEFINITION)))
 	   (cond (expander
-		  (canonical-type (funcall expander)))
+		  (canonical-type (funcall expander type nil)))
 		 ((find-built-in-tag type))
 		 (t (let ((class (find-class type nil)))
 		      (if class
@@ -1429,7 +1433,7 @@ if not possible."
 	   (FUNCTION (canonical-type 'FUNCTION))
 	   (t (let ((expander (get-sysprop (first type) 'DEFTYPE-DEFINITION)))
 		(if expander
-		    (canonical-type (apply expander (rest type)))
+		    (canonical-type (funcall expander type nil))
 		    (unless (assoc (first type) *elementary-types*)
 		      (throw '+canonical-type-failure+ nil)))))))
 	((clos::classp type)
