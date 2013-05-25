@@ -13,9 +13,9 @@
 #  See file '../../Copyright' for full details.
 #
 #
-top_srcdir= /usr/home/Jean-Claude/mkcl-1.1.4/src
-srcdir	= /usr/home/Jean-Claude/mkcl-1.1.4/src/c
-VPATH	= /usr/home/Jean-Claude/mkcl-1.1.4/src/c
+top_srcdir= /usr/home/Jean-Claude/mkcl-1.1.5/src
+srcdir	= /usr/home/Jean-Claude/mkcl-1.1.5/src/c
+VPATH	= /usr/home/Jean-Claude/mkcl-1.1.5/src/c
 
 # Programs used by "make":
 #
