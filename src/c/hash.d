@@ -828,24 +828,23 @@ mk_cl__make_hash_table(MKCL, mkcl_object test, mkcl_object size,
     hsize = 16;
   }
  AGAIN:
-  if (mkcl_minusp(env, rehash_size)) {
+  if (!mkcl_plusp(env, rehash_size)) {
   ERROR1:
     rehash_size =
       mkcl_type_error(env, @'make-hash-table',"rehash-size",
 		      rehash_size,
-		      mkcl_fast_read_from_cstring(env, "(OR (INTEGER 1 *) (FLOAT 0 (1)))"));
+		      mkcl_fast_read_from_cstring(env, "(OR (INTEGER 1 *) (FLOAT (1.0) *))"));
     goto AGAIN;
   }
   if (mkcl_floatp(env, rehash_size)) {
-    if (mkcl_number_compare(env, rehash_size, MKCL_MAKE_FIXNUM(1)) < 0 ||
-	mkcl_minusp(env, rehash_size)) {
+    if (mkcl_number_compare(env, rehash_size, MKCL_MAKE_FIXNUM(1)) <= 0) {
       goto ERROR1;
     }
     rehash_size = mkcl_make_doublefloat(env, mkcl_to_double(env, rehash_size));
   } else if (!MKCL_FIXNUMP(rehash_size)) {
     goto ERROR1;
   }
-  while (!mkcl_numberp(env, rehash_threshold) ||
+  while (!mkcl_realp(env, rehash_threshold) ||
 	 mkcl_minusp(env, rehash_threshold) ||
 	 mkcl_number_compare(env, rehash_threshold, MKCL_MAKE_FIXNUM(1)) > 0)
     {
