@@ -80,7 +80,7 @@ all: ../libmkclmin.a ../libmkcltop.a all_symbols.o all_symbols2.o cinit.o
 .c.o:
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-.d.c:
+.d.c: $(DPP)
 	$(DPP) $< $@
 
 

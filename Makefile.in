@@ -82,8 +82,8 @@ INSTALL_DATA = @INSTALL_DATA@
 
 # ============================= Build ==============================
 
-all: 
-	cd src; $(MAKE) depend all
+all: depend
+	cd src; $(MAKE) all
 .PHONY:	all
 
 Makefile: Makefile.in src/config.status

@@ -219,11 +219,11 @@ mkcl_min$(EXE): $(LIBRARIES) @LIBPREFIX@mkclgc.@LIBEXT@ @LIBPREFIX@mkclmin.@LIBE
 .gdbinit: util/gdbinit
 	cp util/gdbinit $@
 
-c/cinit.o:
-	cd c; $(MAKE) depend; $(MAKE) cinit.o
+c/cinit.o: depend
+	cd c; $(MAKE) cinit.o
 
-c/all_symbols.o:
-	cd c; $(MAKE) depend; $(MAKE) all_symbols.o
+c/all_symbols.o: depend
+	cd c; $(MAKE) all_symbols.o
 
 lsp/config.lsp: lsp/config.pre
 	sed -e 's,@mkcldir\\@,$(mkcldir),g' < lsp/config.pre > lsp/config.lsp
@@ -266,19 +266,24 @@ bin/mkcl-config.pre: util/mkcl-config
 	./config.status
 
 
-@LIBPREFIX@mkclmin.@LIBEXT@: c/*.d mkcl/*.h c/arch/*.d
-	cd c; $(MAKE) depend; $(MAKE)
+@LIBPREFIX@mkclmin.@LIBEXT@: depend c/*.d mkcl/*.h c/arch/*.d
+	cd c; $(MAKE)
 
-@LIBPREFIX@mkcltop.@LIBEXT@: c/main.d c/all_symbols.d c/symbols_list.h
-	cd c; $(MAKE) depend; $(MAKE)
+@LIBPREFIX@mkcltop.@LIBEXT@: depend c/main.d c/all_symbols.d c/symbols_list.h
+	cd c; $(MAKE)
 
 gc/.libs/@LIBPREFIX@gc.@LIBEXT@:
 	cd gc; $(MAKE)
 
 @LIBPREFIX@mkclgc.@LIBEXT@: gc/.libs/@LIBPREFIX@gc.@LIBEXT@
 	cp -p gc/.libs/@LIBPREFIX@gc.@LIBEXT@ ./@LIBPREFIX@mkclgc.@LIBEXT@
+
+mkcl/gc/gc.h: gc/include/gc.h
 	mkdir -p mkcl/gc
 	cp -p gc/include/*.h mkcl/gc
+
+mkcl/mkcl-gc.h: mkcl/gc/gc.h
+	touch $@
 
 
 mkcl/mkcl-cmp.h: mkcl/mkcl.h c/symbols_list.h
@@ -498,7 +503,9 @@ TAGS: lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre c/*.d c/*.h 
 
 
 
-depend:
+depend: c/GNUmakefile
+
+c/GNUmakefile:
 	cd c; $(MAKE) depend
 
 
