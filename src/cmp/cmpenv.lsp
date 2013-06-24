@@ -191,7 +191,7 @@
 (defun declared-notinline-p (fname)
   (let ((local-decl (assoc fname *notinline* :test #'same-fname-p)))
     (if local-decl
-	(cdr local-decl)
+	(eq (cdr local-decl) 'NOTINLINE)
       (get-sysprop fname 'CMP-NOTINLINE)
       )
     )
@@ -445,17 +445,13 @@
        (push decl dl)
        (dolist (fname (cdr decl))
 	 (if (si::valid-function-name-p fname)
-	     (let ((ref (assoc fname *notinline*)))
-	       (if ref
-		   (rplacd ref nil)
-		 (push (cons fname nil) *notinline*))
-	       )
+             (push (cons fname 'INLINE) *notinline*)
 	   (cmperr "Not a valid function name ~s in declaration ~s" fname decl))))
       (NOTINLINE
        (push decl dl)
        (dolist (fname (cdr decl))
 	 (if (si::valid-function-name-p fname)
-	     (push (cons fname t) *notinline*)
+	     (push (cons fname 'NOTINLINE) *notinline*)
 	   (cmperr "Not a valid function name ~s in declaration ~s" fname decl))))
       (DECLARATION
        (do-declaration (rest decl) #'cmperr))
