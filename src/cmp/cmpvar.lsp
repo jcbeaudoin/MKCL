@@ -124,6 +124,8 @@
     (cond ((or (member name specials)
 	       (sys:specialp name)
                (check-global name))
+           (when (member name ignores)
+             (cmpwarn-style "Variable ~s declared special while explicitly ignored." name))
            (unless type
 	     (setf type (or (get-sysprop name 'CMP-TYPE) 'T)))
 	   (c1make-global-variable name :kind 'SPECIAL :type type))

@@ -15,7 +15,7 @@
 (in-package "COMPILER")
 
 (defun c1let (args &aux	(setjmps *setjmps*)
-                        (forms nil) (vars nil) (vnames nil)
+                        (forms nil) (vars nil)
                         ss is ts body other-decls aa1 aa2 doc all-decls iables dyns
 			(*cmp-env* (cmp-env-copy)))
   (check-args-number 'LET args 1)
@@ -26,9 +26,8 @@
   (dolist (x (car args))
     (cond ((symbolp x)
            (let ((v (c1make-var x ss is ts iables dyns)))
-                (push x vnames)
-                (push v vars)
-                (push (default-init v) forms)))
+             (push v vars)
+             (push (default-init v) forms)))
           (t (cmpck (not (and (consp x) (or (endp (cdr x)) (endp (cddr x)))))
                     "The variable binding ~s is illegal." x)
              (let* ((vname (car x))
@@ -43,7 +42,6 @@
 	       ;; :read-only variable handling. Beppe
 	       (when (read-only-variable-p vname other-decls)
 	         (setf (var-type v) (c1form-primary-type form)))
-	       (push vname vnames)
 	       (push v vars)
 	       (push form forms)))))
 
@@ -51,7 +49,7 @@
 
   (mapc #'push-vars vars)
 
-  (check-vdecl vnames ts is)
+  (check-vdecl ss is)
 
   (c1declare-specials ss)
   (setq body (c1decl-body other-decls body))
@@ -277,7 +275,7 @@
 		   (BDS-BIND)
 		   (t (return T)))))))
 
-(defun c1let* (args &aux (forms nil) (vars nil) (vnames nil)
+(defun c1let* (args &aux (forms nil) (vars nil)
                     (setjmps *setjmps*)
                     ss is ts body other-decls doc all-decls iables dyns
                     (*cmp-env* (cmp-env-copy)))
@@ -289,7 +287,6 @@
   (dolist (x (car args))
     (cond ((symbolp x)
            (let ((v (c1make-var x ss is ts iables dyns)))
-	     (push x vnames)
 	     (push (default-init v) forms)
 	     (push v vars)
 	     (push-vars v)))
@@ -306,13 +303,12 @@
 	       ;; :read-only variable handling.
 	       (when (read-only-variable-p (car x) other-decls)
 		 (setf (var-type v) (c1form-primary-type form)))
-	       (push (car x) vnames)
 	       (push form forms)
 	       (push v vars)
 	       (push-vars v)))))
 
   (c1declare-specials ss)
-  (check-vdecl vnames ts is)
+  (check-vdecl ss is)
   (setq body (c1decl-body other-decls body))
 
   ;; since the body may produce type constraints on variables,

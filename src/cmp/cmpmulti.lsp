@@ -255,7 +255,7 @@
 	   (c2expr* form)
 	   (do-m-v-setq-any min-values max-values vars nil))))))
 
-(defun c1multiple-value-bind (args &aux (vars nil) (vnames nil) init-form
+(defun c1multiple-value-bind (args &aux (vars nil) init-form
                                    ss is ts body other-decls doc all-decls iables dyns
                                    (*cmp-env* (cmp-env-copy)))
   (check-args-number 'MULTIPLE-VALUE-BIND args 2)
@@ -266,12 +266,11 @@
   (c1declare-specials ss)
 
   (dolist (s (first args))
-    (push s vnames)
     (push (c1make-var s ss is ts iables dyns) vars))
   (setq init-form (c1expr (second args)))
   (dolist (v (setq vars (nreverse vars)))
     (push-vars v))
-  (check-vdecl vnames ts is)
+  (check-vdecl ss is)
   (setq body (c1decl-body other-decls body))
   (dolist (var vars) (check-vref var))
   (make-c1form* 'MULTIPLE-VALUE-BIND :type (c1form-type body)

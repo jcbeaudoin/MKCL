@@ -348,24 +348,32 @@
 			  "Syntax error in declaration ~s" decl)
 	       (setf ss (append decl-args ss)))
 	      (IGNORE
-	       (cmpassert (proper-list-p decl-args #'symbolp)
+	       (cmpassert (proper-list-p decl-args
+                                         #'(lambda (x) 
+                                             (or (symbolp x)
+                                                 (and (consp x) (eq (car x) 'function) 
+                                                      (si::valid-function-name-p (cadr x)))))
+                                         )
 			  "Syntax error in declaration ~s" decl)
 	       (setf is (append decl-args is)))
 	      (IGNORABLE
-	       (cmpassert (proper-list-p decl-args #'symbolp)
+	       (cmpassert (proper-list-p decl-args
+                                         #'(lambda (x) 
+                                             (or (symbolp x)
+                                                 (and (consp x) (eq (car x) 'function) 
+                                                      (si::valid-function-name-p (cadr x)))))
+                                         )
 			  "Syntax error in declaration ~s" decl)
 	       (setf iables (append decl-args iables)))
 	      (TYPE
 	       (cmpassert decl-args "Syntax error in declaration ~s" decl)
 	       (declare-variables (first decl-args) (rest decl-args)))
 	      (DYNAMIC-EXTENT
-	       (cmpassert (proper-list-p
-			   decl-args
-			   #'(lambda (x) 
-			       (if (consp x)
-				   (and (eq (car x) 'function) 
-					(si::valid-function-name-p (cadr x)))
-				 (symbolp x))))
+	       (cmpassert (proper-list-p decl-args
+                                         #'(lambda (x)
+                                             (or (symbolp x)
+                                                 (and (consp x) (eq (car x) 'function)
+                                                      (si::valid-function-name-p (cadr x))))))
 			  "Syntax error in declaration" decl)
 	       (setf dyns (append decl-args dyns))
 	       )
@@ -489,14 +497,11 @@
     (c1add-declarations decls)
     (c2expr body)))
 
-(defun check-vdecl (vnames ts is)
-  (dolist (x ts)
-    (unless (member (car x) vnames)
-      (cmpwarn-style "Type declaration was found for not bound variable ~s." (car x))))
-  (dolist (x is)
-    (unless (member x vnames)
-      (cmpwarn-style "Ignore declaration was found for not bound variable ~s." x)))
-  )
+(defun check-vdecl (specials ignored-vars)
+  (dolist (svar specials)
+    (when (member svar ignored-vars)
+      (cmpwarn-style "Variable ~s declared special while explicitly ignored." svar))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;

@@ -65,9 +65,9 @@
     (let ((*cmp-env* new-env))
       (multiple-value-bind (body ss ts is other-decl doc all-decls iables dyns)
 	  (c1body (rest args) t)
-	(declare (ignore doc all-decls iables dyns))
+	(declare (ignore ts doc all-decls iables dyns))
 	(c1declare-specials ss)
-	(check-vdecl nil ts is)
+	(check-vdecl ss is)
 	(setq body-c1form (c1decl-body other-decl body))))
 
     ;; Keep on inspecting the functions until the closure type does not
@@ -235,8 +235,9 @@
 (defun c1locally (args)
   (multiple-value-bind (body ss ts is other-decl)
       (c1body args t)
+    (declare (ignore ts))
     (c1declare-specials ss)
-    (check-vdecl nil ts is)
+    (check-vdecl ss is)
     (c1decl-body other-decl body)))
 
 (defun c1macrolet (args)
