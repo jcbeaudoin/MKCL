@@ -3831,7 +3831,7 @@ used with caution.")
 					 '(:system :defsystem :subsystem)))
                             name
                             (find-system name :load))))
-	    #-(or CMU CLISP :sbcl :lispworks :cormanlisp scl)
+	    #-(or CMU CLISP :sbcl :lispworks :cormanlisp scl MKCL)
 	    (declare (special *compile-verbose* 
 			      #-(or MCL CMU CLISP MKCL ECL :sbcl lispworks scl)
 			      *compile-file-verbose*)
