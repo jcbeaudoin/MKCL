@@ -119,7 +119,7 @@ rebinds this variable to NIL when control enters a break loop.")
 	If a non NIL package is specified, only symbols in that package are considered.~@
 	~%")
       ((:doc document) tpl-document-command nil
-       ":doc(ument)	Document"
+       ":doc(ument) symbol	Documentation"
        ":document symbol				[Top level command]~@
 	~@
 	Displays documentation about function, print names contain string.~%")
@@ -356,6 +356,12 @@ rebinds this variable to NIL when control enters a break loop.")
         then be used regardless of of the symbol's package.~@
         ~@
         See also: :variables.~%")
+      ((:r :restarts) tpl-help-restarts-command nil
+       ":r(estarts)     Display available restarts"
+       ":restarts                                       [Break command]~@
+        :r                                              [Abbreviation]~@
+        ~@
+        Display available restarts.~%")
       ((:s :switch) tpl-switch-command nil
        ":s(witch)       Switch to next thread to debug"
        ":switch debuggee                                [Break command]~@
@@ -405,7 +411,6 @@ The top-level loop of MKCL. It is called by default when MKCL is invoked."
 	(when *display-banner*
 	  (format t "~&~%This is ManKai Common Lisp ~A~%" (mkcl-version))
 	  (print-copyright)
-	  (format t "~%Type :h for Help.")
 	  )
 	(setq *lisp-initialized* t))
 
@@ -530,6 +535,7 @@ The top-level loop of MKCL. It is called by default when MKCL is invoked."
     (set-break-env)
     (set-current-ihs)
     (unless quiet
+      (format t "~%Type :h for Help.")
       (break-where))
     (flet ((read-eval-print ()
 		(handler-bind 
@@ -1184,8 +1190,8 @@ The top-level loop of MKCL. It is called by default when MKCL is invoked."
 (defun tpl-apropos-command (&optional string pkg)
   (when string (apropos string pkg)))
 
-(defun tpl-document-command (&optional symbol)
-  (when symbol (help symbol)))
+(defun tpl-document-command (&optional (symbol nil supplied-p))
+  (when supplied-p (help symbol)))
 
 (defun tpl-step-command (&optional form)
   (when form (step* form)))
@@ -1235,6 +1241,11 @@ The top-level loop of MKCL. It is called by default when MKCL is invoked."
 	 (format t "Not a valid help topic: ~s~%" topic)))
   (values))
 
+(defun tpl-help-restarts-command ()
+  (let ((si::*tpl-commands* (list (assoc "Restart commands" si::*tpl-commands* :test #'equal))))
+    (si::tpl-help-command))
+  )
+
 (defun tpl-help-stack-command ()
   (format t "
 Use the following functions to directly access MKCL stacks.
@@ -1266,21 +1277,22 @@ package."
 	(restart-commands (list "Restart commands")))
     (when display
       (format display (if restarts
-			  "~&Available restarts:~2%" 
+			  "~&Available restarts:~2%Command~10TRestart Name~30TDescription~%"
 			"~&No restarts available.~%")))
     (loop for restart in restarts
        and i from 1
        do (let ((user-command (format nil "r~D" i))
-		(name (format nil "~@[(~A)~]" (restart-name restart)))
+		(name (format nil "~@[~A~]" (restart-name restart)))
 		(helpstring (princ-to-string restart)))
 	    (push (list
 		   (list (intern (string-upcase user-command) :keyword))
 		   restart :restart
 		   (format nil ":~A~16T~A~24T~A" user-command helpstring name)
-		   (format nil ":~A~48T~A~& ~&~A~A" (string-downcase user-command) "[Restart command]" name helpstring))
+		   (format nil ":~A~48T~A~& ~&Restart name: ~A, ~A"
+                           (string-downcase user-command) "[Restart command]" name helpstring))
 		  restart-commands)
 	    (when display
-	      (format display "~D. ~A ~A~%" i name restart))))
+	      (format display ":~A~10T~A~30T~A~%" user-command name restart))))
     (when display (terpri display))
     (nreverse restart-commands)))
 
@@ -1516,7 +1528,9 @@ package."
 	     (special *tpl-level* *break-level*))
     (restart-case (apply fun args)
       (abort ()
-	:report "Abort this computation (top-apply).")
+	:report (lambda (s) (format s "Abort this computation (SI:TOP-APPLY ~S~{ ~S~})." fun args))
+        ;;"Abort this computation (top-apply)."
+        )
       (terminate-thread ()
 	:report (lambda (s) (format s "Terminate this thread: ~S." mt:*thread*))
 	(mt:exit-thread :killed-by-debugger)))))
