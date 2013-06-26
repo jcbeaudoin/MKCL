@@ -452,7 +452,7 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdS
                                    mk_cl_list(env, 3,
                                               mk_si_fast_read_from_base_string(env, (mkcl_object) &lisp_code_bstr_obj),
                                               mk_cl_Cnil,
-                                              MKCL_OBJNULL));
+                                              MKCL_MAKE_FIXNUM(MKCL_THREAD_UNKNOWN_ERROR)));
 "
 			 stream)
 		  (when program-p
