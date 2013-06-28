@@ -256,6 +256,7 @@
 	   (do-m-v-setq-any min-values max-values vars nil))))))
 
 (defun c1multiple-value-bind (args &aux (vars nil) init-form
+                                   (setjmps *setjmps*)
                                    ss is ts body other-decls doc all-decls iables dyns
                                    (*cmp-env* (cmp-env-copy)))
   (check-args-number 'MULTIPLE-VALUE-BIND args 2)
@@ -274,6 +275,7 @@
   (setq body (c1decl-body other-decls body))
   (dolist (var vars) (check-vref var))
   (make-c1form* 'MULTIPLE-VALUE-BIND :type (c1form-type body)
+		:volatile (not (eql setjmps *setjmps*))
 		:local-vars vars
 		:args vars init-form body)
   )
