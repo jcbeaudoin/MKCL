@@ -67,8 +67,8 @@ rebinds this variable to NIL when control enters a break loop.")
 	Compile files.  With no arguments, uses values from latest :cf~@
 	command.  File extensions are optional.~%")
       ((:exit :eof) mkcl:quit :eval
-       ":exit or ^D	Exit Lisp"
-       ":exit &eval &optional (status 0)		[Top level command]~@
+       ":exit   	Exit Lisp"
+       ":exit &eval &key (exit-code 0) (verbose nil)	[Top level command]~@
 	~@
 	Exit Lisp without further confirmation.~%")
       ((:ld :load) tpl-load-command :string
@@ -78,6 +78,7 @@ rebinds this variable to NIL when control enters a break loop.")
 	~@
 	Load files.  With no arguments, uses values from latest :ld~@
 	or :cf command. File extensions are optional.~%")
+#|  ;; There is hardly any chance these are still working as documented, or at all in any way. JCB
       ((:step) tpl-step-command nil
        ":step		Single step form"
        ":step form					[Top level command]~@
@@ -103,6 +104,7 @@ rebinds this variable to NIL when control enters a break loop.")
 	all functions.~@
 	~@
 	See also: :trace.~%")
+|#
       ((:wb :who-binds) tpl-who-binds-command nil
        ":w(ho-)b(inds)  Show function invocations currently binding variable"
        ":who-binds variable                             [Break command]~@
@@ -111,20 +113,22 @@ rebinds this variable to NIL when control enters a break loop.")
         Show function invocations currently binding variable.~%")
       )
      ("Help commands"
-      ((:apropos) tpl-apropos-command nil
-       ":apropos	Apropos"
+      ((:ap :apropos) tpl-apropos-command nil
+       ":ap(ropos) string		Apropos"
        ":apropos string &optional package		[Top level command]~@
+	:ap string &optional package			[Abbrevation]~@
 	~@
 	Finds all available symbols whose print names contain string.~@
-	If a non NIL package is specified, only symbols in that package are considered.~@
-	~%")
-      ((:doc document) tpl-document-command nil
-       ":doc(ument) symbol	Documentation"
+	If a non NIL package is specified, only symbols in that package are~@
+	considered.~%")
+      ((:doc :documentation) tpl-documentation-command nil
+       ":doc(umentation) symbol 	Documentation"
        ":document symbol				[Top level command]~@
+	:doc symbol					[Abbrevation]~@
 	~@
-	Displays documentation about function, print names contain string.~%")
+	Displays documentation associated with symbol.~%")
       ((? :h :help) tpl-help-command nil
-       ":h(elp) or ?	Help.  Type \":help help\" for more information"
+       ":h(elp) or ?			Help.  Type \":help help\" for details"
        ":help &optional topic				[Top level command]~@
 	:h &optional topic				[Abbrevation]~@
       	~@
@@ -140,13 +144,13 @@ rebinds this variable to NIL when control enters a break loop.")
 	treat their arguments as whitespace-separated, case-sensitive~@
 	strings, requiring double quotes only when necessary.  This style~@
 	of argument processing is indicated by the keyword &string.~@
-	For example, the :load command accepts a list of file names:
+	For example, the :load command accepts a list of file names:~@
 	~@
 	:load &string &rest files			[Top level Command]~@
 	~@
-	whereas :exit, which requires an optional evaluated argument, is~@
+	whereas :exit, which accepts an optional evaluated key argument, is~@
 	~@
-	:exit &eval &optional status			[Top level Command]~%")
+	:exit &eval &key (exit-code 0) (verbose nil)	[Top level Command]~%")
       )))
 
 (defvar *tpl-commands* tpl-commands)
@@ -625,8 +629,9 @@ The top-level loop of MKCL. It is called by default when MKCL is invoked."
        ;; since it could be generated on Ctrl+C and Ctrl+Break!
        ;; We are forced to simply ignore it! JCB
        )
-      ;;#+windows
-      (#\Eot ;; Ctrl+D
+      #+windows
+      (#\Sub ;; Ctrl+Z.
+       ;; On Unix it used to be #\Eot (aka Ctrl+D) but that interferred with a bug workaround. JCB
        ;; This is as a substitute for the problem mentionned just above. JCB
        (return (tpl-make-command :EOF ""))
        )
@@ -657,14 +662,8 @@ The top-level loop of MKCL. It is called by default when MKCL is invoked."
 	       (unless *debug-tpl-commands*
 		 (format t "~&Command aborted.~%Received condition: ~A" condition)
 		 (clear-input)
-		 (return-from tpl-command nil)
-		 )
-	       )
-	     ))
-     ,cmd-form
-     )
-    )
-  )
+		 (return-from tpl-command nil)))))
+     ,cmd-form)))
 
 (defun tpl-make-command (name line &aux (c nil))
   (dolist (commands *tpl-commands*)
@@ -1190,8 +1189,8 @@ The top-level loop of MKCL. It is called by default when MKCL is invoked."
 (defun tpl-apropos-command (&optional string pkg)
   (when string (apropos string pkg)))
 
-(defun tpl-document-command (&optional (symbol nil supplied-p))
-  (when supplied-p (help symbol)))
+(defun tpl-documentation-command (&optional (symbol nil supplied-p))
+  (when supplied-p (mkcl::help symbol)))
 
 (defun tpl-step-command (&optional form)
   (when form (step* form)))
