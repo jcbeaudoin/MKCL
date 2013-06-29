@@ -666,8 +666,8 @@ Prints information about OBJECT to STREAM."
                  (format t "~&No documentation for ~:@(~S~)." symbol))
              (values))))
 
-(defun help* (string &optional (package "CL"))
-  "Args: (string &optional (package-spec 'lisp))
+(defun mkcl::help* (string &optional (package "COMMON-LISP"))
+  "Args: (string &optional (package-spec \"COMMON-LISP\"))
 MKCL specific.
 Prints the documentation associated with those symbols in the specified
 package whose print names contain STRING as substring.  STRING may be a
@@ -683,5 +683,8 @@ NIL, then all packages are searched."
     (when (print-doc (first l) t)
       (setf f t)))
   (values))
+
+(export 'mkcl::help* :mkcl)
+
 
 

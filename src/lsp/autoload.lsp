@@ -98,34 +98,35 @@ Displays information about storage allocation.  The optional X is simply ignored
 
 ;;; Help.
 
-(defun help (&optional (symbol 'help))
+(defun mkcl::help (&optional (symbol 'mkcl::help))
   "Args: (&optional symbol)
 MKCL specific.
-Prints the documentation associated with SYMBOL.  With no args, prints the
-greeting message to MKCL beginners.
+Prints the documentation associated with SYMBOL.  With no args, it prints this
+greeting message to MKCL beginners:
 
 Welcome to MKCL. Here are the few functions you should learn first.
 
-	(HELP symbol) prints the online documentation associated with the
+	(MKCL:HELP symbol) prints the online documentation associated with the
 	symbol.  For example, (HELP 'CONS) will print the useful information
 	about the CONS function, the CONS data type, and so on.
 
-	(HELP* string) prints the online documentation associated with those
+	(MKCL:HELP* string) prints the online documentation associated with those
 	symbols whose print-names have the string as substring.  For example,
 	(HELP* \"PROG\") will print the documentation of the symbols such as
 	PROG, PROGN, and MULTIPLE-VALUE-PROG1.
 
-	(QUIT) ends the current MKCL session.
+	(MKCL:QUIT) ends the current MKCL session.
 
-For the precise language specification, refer to Guy Steele's \"Common Lisp,
-the Language\" and our \"MKCL Manual\".  \"MKCL Dictionary\", the hard-copied
-version of MKCL online documentation, will be useful as a handbook.
+For the precise language specification, refer to the ANSI standard document
+ANSI INCITS 226-1994 (R2004) or to its hypertext version known as
+the Common Lisp HyperSpec (CLHS), accessible at this URL:
+http://www.lispworks.com/documentation/HyperSpec/Front/index.htm
 
-Good luck!
 "
   (print-doc symbol))
 
+(export 'mkcl::help :mkcl)
 
 ;;; Import functions which are useful for user interaction
 
-(import '(sys::help sys::help* mkcl::quit) (find-package "CL-USER"))
+;;(import '(sys::help sys::help* mkcl::quit) (find-package "CL-USER"))
