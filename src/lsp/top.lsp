@@ -534,40 +534,39 @@ The top-level loop of MKCL. It is called by default when MKCL is invoked."
 	 (*quit-tags* (cons *quit-tag* *quit-tags*))
 	 (*quit-tag* *quit-tags*)	; any unique new value
 	 (*tpl-level* (1+ *tpl-level*))
-	 (break-level *break-level*)
-	 values)
-    (set-break-env)
+	 (break-level *break-level*))
     (set-current-ihs)
     (unless quiet
       (format t "~%Type :h for Help.")
       (break-where))
-    (flet ((read-eval-print ()
-		(handler-bind 
-		 ((condition
-		   (lambda (condition)
-		     (cond ((subtypep (type-of condition) 'warning)
-			    ;; We let warnings pass by, this way "warn" does the work.
-			    )
-			   ((< break-level 1)
-			    ;; Toplevel should enter the debugger on any condition.
-			    )
-			   (*allow-recursive-debug*
-			    ;; We are told to let the debugger handle this.
-			    )
-			   (t
-			    (format t "~&Debugger received error: ~A~%~
+    (macrolet ((read-eval-print (break-level)
+		`(block read-eval-print
+                   (handler-bind 
+                    ((condition
+                      (lambda (condition)
+                        (cond ((subtypep (type-of condition) 'warning)
+                               ;; We let warnings pass by, this way "warn" does the work.
+                               )
+                              ((< ,break-level 1)
+                               ;; Toplevel should enter the debugger on any condition.
+                               )
+                              (*allow-recursive-debug*
+                               ;; We are told to let the debugger handle this.
+                               )
+                              (t
+                               (format t "~&Debugger received error: ~A~%~
                                          Error flushed.~%" condition)
-			    (clear-input)
-			    (return-from read-eval-print t) ;; go back into the debugger loop.
-			    )
-			   )
-		     )))
-
-		 (tpl-prompt)
-		 (setq - (tpl-read))
-		 (setq values (multiple-value-list (eval-in-env - (decode-ihs-env *break-env*))))
-		 (setq /// // // / / values *** ** ** * * (car /))
-		 (tpl-print values))))
+                               (clear-input)
+                               (return-from read-eval-print t) ;; go back into the debugger loop.
+                               )
+                              )
+                        )))
+                    
+                    (tpl-prompt)
+                    (setq - (tpl-read))
+                    (let ((values (multiple-value-list (eval-in-env - (decode-ihs-env *break-env*)))))
+                      (setq /// // // / / values *** ** ** * * (car /))
+                      (tpl-print values))))))
 	  (loop
 	   (setq +++ ++ ++ + + -)
 	   (when
@@ -576,16 +575,16 @@ The top-level loop of MKCL. It is called by default when MKCL is invoked."
 		     #+(or)
 		     (with-simple-restart 
 		      (restart-toplevel "Go back to Top-Level REPL.")
-		      (read-eval-print))
-		     (restart-case (read-eval-print)
+		      (read-eval-print break-level))
+		     (restart-case (read-eval-print break-level)
 		       (restart-toplevel ()
 			 :report (lambda (stream) (princ "Go back to Top-Level REPL." stream))
 			 (values nil t)))
 		   #+(or)
 		   (with-simple-restart
 		    (restart-debugger "Go back to debugger level ~D." break-level)
-		    (read-eval-print))
-		   (restart-case (read-eval-print)
+		    (read-eval-print break-level))
+		   (restart-case (read-eval-print break-level)
 		     (restart-debugger ()
 		       :report (lambda (stream)
 				 (princ "Go back to debugger level " stream)
@@ -1148,7 +1147,8 @@ The top-level loop of MKCL. It is called by default when MKCL is invoked."
   (set-break-env))
 
 (defun set-break-env ()
-  (setq *break-env* (ihs-env *ihs-current*)))
+  (when (plusp *break-level*) ;; This is true only the context of an active debugger invocation.
+    (setq *break-env* (ihs-env *ihs-current*))))
 
 (defun ihs-search (string unrestricted &optional (start (si::ihs-top)))
   (do* ((ihs start (si::ihs-prev ihs))
