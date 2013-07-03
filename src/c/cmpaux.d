@@ -286,8 +286,10 @@ static mkcl_object convert_cmp_lexical_info(MKCL, mkcl_object cmp_env)
 mkcl_object mk_si_convert_cmp_lexical_info(MKCL, mkcl_object cmp_env)
 {
   mkcl_call_stack_check(env);
-  if ( mkcl_type_of(cmp_env) != mkcl_t_cmp_dbg_lex_level )
-    { mkcl_lose(env, "Invalid compiler debug information"); }
+  if (mkcl_Null(cmp_env))
+    { @(return mk_cl_Cnil); }
+  else if ( mkcl_type_of(cmp_env) != mkcl_t_cmp_dbg_lex_level )
+    { mkcl_FEwrong_type_argument(env, @'si::compiled-debug-information', cmp_env); }
   else
     {
       mkcl_object lex_env = convert_cmp_lexical_info(env, cmp_env);
