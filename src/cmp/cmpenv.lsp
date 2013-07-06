@@ -198,7 +198,9 @@
   )
 
 (defun inline-possible (fname)
-  (not (or (declared-notinline-p fname))))
+  (not (or (declared-notinline-p fname)
+           (<= 3 (cmp-env-optimization 'debug))
+           )))
 
 (si::reopen-package :cl)
 (defun cl:proclaim (decl &aux decl-name)
