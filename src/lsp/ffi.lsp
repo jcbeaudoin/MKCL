@@ -730,7 +730,7 @@ C code of the string BODY. In the BODY one can reference the arguments of the
 function as \"#0\", \"#1\", etc.
 The interpreter ignores this form.  ARG-TYPEs are argument types of the
 defined Lisp function and VALUE-TYPE is its the return type."
-  (let ((args (mapcar #'(lambda (x) (gensym)) arg-types)))
+  (let ((args (mapcar #'(lambda (x) (declare (ignore x)) (gensym)) arg-types)))
   `(defun ,name ,args
      (c-inline ,args ,arg-types ,result-type
 	       ,C-expr :one-liner t))))
@@ -744,7 +744,7 @@ interpreter ignores this form.  ARG-TYPEs are argument types of the C function
 and VALUE-TYPE is the return type of the C function.  Symbols OBJECT, INT,
 CHAR, CHAR*, FLOAT, DOUBLE are allowed for these types."
   (let ((output-type :object)
-	(args (mapcar #'(lambda (x) (gensym)) arg-types)))
+	(args (mapcar #'(lambda (x) (declare (ignore x)) (gensym)) arg-types)))
     (if (consp c-name)
 	(setf output-type (first c-name)
 	      c-name (second c-name)))
