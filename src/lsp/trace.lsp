@@ -235,10 +235,10 @@ all functions."
 	it is printed by the top level in the usual way and saved in~@
 	the variable *.  The main purpose of this command is to allow~@
 	the current form to be examined further by accessing *.~%")
-     ((:x :exit) (step-quit) :constant
-      ":x or :exit	Finish evaluation and exit stepper"
-      ":exit						[Stepper command]~@
-       :x						[Abbreviation]~@
+     ((:fin :finish) (step-quit) :constant
+      ":fin(ish)	Finish evaluation and exit stepper"
+      ":finish						[Stepper command]~@
+       :fin						[Abbreviation]~@
        ~@
        Finish evaluation without stepping.~%")
      ))
@@ -260,11 +260,11 @@ for Stepper mode commands."
 (defun steppable-function (form)
   (let ((*step-action* nil))
     (or (gethash form *step-functions*)
-	(multiple-value-bind (f env name)
+	(multiple-value-bind (lambda-expr closure-p name)
 	    (function-lambda-expression form)
-	  (if (and (not (get-sysprop name 'TRACED)) f)
+	  (if (and (not (get-sysprop name 'TRACED)) lambda-expr)
 	      (setf (gethash form *step-functions*)
-		    (eval-in-env `(function ,f) env t))
+		    (eval-in-env `(function ,lambda-expr) (when closure-p (si::closure-env form)) t))
 	      form)))))
 
 (defun stepper (form)
@@ -272,21 +272,20 @@ for Stepper mode commands."
     (return-from stepper (steppable-function (coerce form 'function))))
   (let* ((*step-form* form)
 	 (*step-action* nil)
-	 (indent (min (* *tpl-level* 2) 20))
 	 prompt)
     (setq prompt
 	  #'(lambda ()
-	      (format *debug-io* "~VT" indent)
+	      (format *debug-io* "~&~VT" *step-level*)
 	      (write form :stream *debug-io* :pretty nil
-		     :level 2 :length 2)
+		     :level 2 :length 3)
 	      (princ #\space *debug-io*)
-	      (princ #\- *debug-io*)))
+	      (princ #\- *debug-io*)
+              (princ #\space *debug-io*)))
     (when (catch *step-tag*
-	    (tpl :quiet t
-		 :commands (adjoin step-commands
-				   (adjoin break-commands *tpl-commands*))
-		 :broken-at 'stepper
-		 :prompt-hook prompt))
+	    (interactive-loop :quiet t
+                              :commands (append *tpl-commands* (list break-commands step-commands))
+                              :broken-at 'stepper
+                              :prompt-hook prompt))
       (throw *step-tag* t))))
 
 (defun step-next ()
