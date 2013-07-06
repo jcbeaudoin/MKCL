@@ -286,7 +286,16 @@ FORM returns no value, NIL."
 Evaluates INIT and binds the N-th VAR to the N-th value of INIT or, if INIT
 returns less than N values, to NIL.  Then evaluates FORMs, and returns all
 values of the last FORM.  If no FORM is given, returns NIL."
-  `(multiple-value-call #'(lambda (&optional ,@(mapcar #'list vars)) ,@body) ,form))
+  ;;`(multiple-value-call #'(lambda (&optional ,@(mapcar #'list vars)) ,@body) ,form) ;; buggy and inefficient! JCB
+  (do ((vl vars (cdr vl))
+       (sym (gensym))
+       (bind nil)
+       (n 0 (1+ n)))
+      ((endp vl) `(LET* ((,sym (MULTIPLE-VALUE-LIST ,form)) ,@(nreverse bind))
+		   ,@body))
+    (declare (fixnum n))
+    (push `(,(car vl) (NTH ,n ,sym)) bind))
+  )
 
 (defun while-until (test body jmp-op)
   (let ((label (gensym))
