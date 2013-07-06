@@ -915,7 +915,7 @@
 (put-sysprop 'MACROLET 'T1 #'c1macrolet)
 (put-sysprop 'LOCALLY 'T1 #'c1locally)
 (put-sysprop 'SYMBOL-MACROLET 'T1 #'c1symbol-macrolet)
-(put-sysprop 'LOAD-TIME-VALUE 'C1 'c1load-time-value)
+(put-sysprop 'LOAD-TIME-VALUE 'C1SPECIAL 'c1load-time-value)
 (put-sysprop 'SI:FSET 'C1 'c1fset)
 
 ;;; Pass 2 initializers.
