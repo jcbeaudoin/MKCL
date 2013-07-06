@@ -78,7 +78,6 @@ rebinds this variable to NIL when control enters a break loop.")
 	~@
 	Load files.  With no arguments, uses values from latest :ld~@
 	or :cf command. File extensions are optional.~%")
-#|  ;; There is hardly any chance these are still working as documented, or at all in any way. JCB
       ((:step) tpl-step-command nil
        ":step		Single step form"
        ":step form					[Top level command]~@
@@ -104,7 +103,6 @@ rebinds this variable to NIL when control enters a break loop.")
 	all functions.~@
 	~@
 	See also: :trace.~%")
-|#
       ((:wb :who-binds) tpl-who-binds-command nil
        ":w(ho-)b(inds)  Show function invocations currently binding variable"
        ":who-binds variable                             [Break command]~@
@@ -1147,7 +1145,8 @@ The top-level loop of MKCL. It is called by default when MKCL is invoked."
   (set-break-env))
 
 (defun set-break-env ()
-  (when (plusp *break-level*) ;; This is true only the context of an active debugger invocation.
+  (when (or (plusp *break-level*) ;; This is true only the context of an active debugger invocation.
+            (plusp *step-level*)) ;; This is true only the context of an active stepper invocation.
     (setq *break-env* (ihs-env *ihs-current*))))
 
 (defun ihs-search (string unrestricted &optional (start (si::ihs-top)))
