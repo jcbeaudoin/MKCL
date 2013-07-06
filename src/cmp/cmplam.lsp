@@ -465,7 +465,7 @@ The function thus belongs to the type of functions that mkcl_make_cfun accepts."
     (let ((rest-is-dynamic nil))
       (when (and rest (eq 'DYNAMIC (var-extent rest)))
 	(if (eq 'CLOSURE (var-kind rest))
-	    (cmpwarn "Declaration DYNAMIC-EXTENT cannot be applied to closure variable ~S." (var-name rest))
+	    (cmpwarn-style "Declaration DYNAMIC-EXTENT cannot be applied to closure variable ~S. Declaration ignored" (var-name rest))
 	  (let ((marker (c1make-global-variable 'si::*dynamic-cons-stack* :kind 'SPECIAL :type T)))
 	    (bds-bind marker marker) ;; Mark the stack here before adding to it. JCB
 	    (setq rest-is-dynamic T)
