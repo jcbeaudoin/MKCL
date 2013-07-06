@@ -1,6 +1,7 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: C -*-
 ;;;;
-;;;;  Copyright (c) 2006, Juan Jose Garcia-Ripoll
+;;;;  Copyright (c) 2006, Juan Jose Garcia-Ripoll.
+;;;;  Copyright (c) 2013, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -81,11 +82,18 @@
 		     "env->values[0]=mkcl_apply_from_temp_stack_frame(env, #0,#1); /* JCB value -2 */" ;; this one is incorrect.
 		     :one-liner nil :side-effects t)))
 
-(put-sysprop 'with-temp-stack 'C1 #'c1with-temp-stack)
+;; These hacks, used by the compilation of multiple-value-XXX forms,
+;; are made into special operators since there is no implementation
+;; of them outside this compiler and fboundp on any of them returns NIL.
+;; So, if you were ever to declare them NOTINLINE and that they weren't
+;; special operators then your compiled program would simply crash. JCB
+(put-sysprop 'with-temp-stack 'C1SPECIAL #'c1with-temp-stack)
 (put-sysprop 'with-temp-stack 'c2 #'c2with-temp-stack)
-(put-sysprop 'innermost-temp-stack-frame 'C1 #'c1innermost-temp-stack-frame)
-(put-sysprop 'temp-stack-push 'C1 #'c1temp-stack-push)
-(put-sysprop 'temp-stack-push-values 'C1 #'c1temp-stack-push-values)
+(put-sysprop 'innermost-temp-stack-frame 'C1SPECIAL #'c1innermost-temp-stack-frame)
+(put-sysprop 'temp-stack-push 'C1SPECIAL #'c1temp-stack-push)
+(put-sysprop 'temp-stack-push-values 'C1SPECIAL #'c1temp-stack-push-values)
 (put-sysprop 'temp-stack-push-values 'C2 #'c2temp-stack-push-values)
-(put-sysprop 'temp-stack-pop 'C1 #'c1temp-stack-pop)
-(put-sysprop 'si::apply-from-temp-stack-frame 'c1 #'c1apply-from-temp-stack-frame)
+(put-sysprop 'temp-stack-pop 'C1SPECIAL #'c1temp-stack-pop)
+(put-sysprop 'si::apply-from-temp-stack-frame 'c1 #'c1apply-from-temp-stack-frame) ;; this one is a function in the C runtime.
+
+
