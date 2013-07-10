@@ -1051,7 +1051,7 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
   if (x == MKCL_OBJNULL) {
     if (mkcl_print_readably(env)) mkcl_FEprint_not_readable(env, x);
     write_str(env, "#<OBJNULL>", stream);
-    goto OUTPUT;
+    @(return x);
   }
   switch (mkcl_type_of(x)) {
 
@@ -1689,7 +1689,6 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
     mkcl_write_char(env, '>', stream);
     break;
   }
- OUTPUT:
   @(return x);
 }
 
@@ -1699,6 +1698,12 @@ mk_si_write_object(MKCL, mkcl_object x, mkcl_object stream)
   bool circle;
 
   mkcl_call_stack_check(env);
+  if (x == MKCL_OBJNULL) {
+    if (mkcl_print_readably(env)) mkcl_FEprint_not_readable(env, x);
+    write_str(env, "#<OBJNULL>", stream);
+    @(return x);
+  }
+
   if (mkcl_symbol_value(env, @'*print-pretty*') != mk_cl_Cnil) {
     mkcl_object f = mkcl_funcall1(env, @+'pprint-dispatch', x);
     if (MKCL_VALUES(1) != mk_cl_Cnil) {
