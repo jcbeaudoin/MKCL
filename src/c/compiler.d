@@ -1977,7 +1977,7 @@ c_tagbody(MKCL, mkcl_object args, int flags)
 		compile_body(env, args, 0);
 		return compile_form(env, mk_cl_Cnil, flags);
 	}
-	asm_op2c(env, OP_BLOCK, MKCL_MAKE_FIXNUM(0));
+	asm_op2c(env, OP_BLOCK, labels); /* This passes the list of labels to the runtime lex-env. JCB */
 	c_register_tags(env, labels);
 	asm_op2(env, OP_TAGBODY, nt);
 	tag_base = current_pc(env);
