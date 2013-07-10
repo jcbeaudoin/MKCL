@@ -404,22 +404,6 @@ extern "C" {
 #define mkcl_returnn(x) return x
 
 
-/*****************************
- * LEXICAL ENVIRONMENT STACK
- *****************************/
-/*
- * A lexical environment is a list of pairs, each one containing either
- * a variable definition, a tagbody or block tag, or a local function
- * definition.
- *
- *	lex_env ---> ( { record }* )
- *	record = variable | function | block_tag | tagbody_tag
- *
- *	variable = ( var_name[symbol] . value )
- *	function = ( function[bytecode] . fun_name[symbol] )
- *	block_tag = ( tag[fixnum] . block_name[symbol] )
- *	tagbody_tag = ( tag[fixnum] . 0 )
- */
 
 /*************
  * LISP TEMPORARIES STACK

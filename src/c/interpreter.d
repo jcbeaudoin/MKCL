@@ -130,6 +130,24 @@ mkcl_temp_stack_frame_close(MKCL, mkcl_object f)
 
 /* ------------------------------ LEXICAL ENV. ------------------------------ */
 
+/*****************************
+ * LEXICAL ENVIRONMENT STACK
+ *****************************/
+/*
+ * A lexical environment is a list of pairs, each one containing either
+ * a variable definition, a tagbody or block tag, or a local function
+ * definition.
+ *
+ *	lex_env ---> ( { record }* )
+ *	record = variable | function | block_tag | tagbody_tag
+ *
+ *	variable = ( var_name[symbol] . value )
+ *	function = function[bytecode]
+ *	block_tag = ( frame-tag[cons] . block_name[symbol] )
+ *	tagbody_tag = ( frame-tag[cons] . labels )  
+ *      labels = ( label[symbol] . index[fixnum] )
+ */
+
 #define bind_var(env, lenv, var, val)	MKCL_CONS(env, MKCL_CONS(env, var, val), (lenv))
 #define bind_function(env, lenv, name, fun) 	MKCL_CONS(env, fun, (lenv))
 #define bind_frame(env, lenv, id, name)	MKCL_CONS(env, MKCL_CONS(env, id, name), (lenv))
