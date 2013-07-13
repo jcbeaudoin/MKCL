@@ -43,20 +43,22 @@ by (documentation 'SYMBOL 'setf)."
 	(t
 	 (let* ((store (second rest))
 		(args (first rest))
-		(body (cddr rest))
-		(doc (find-documentation body)))
+		(body+ (cddr rest))
+                )
+           (multiple-value-bind (decls body doc)
+               (process-declarations body+ t)
 	   (check-stores-number 'DEFSETF store 1)
 	   `(define-when (compile load eval)
-	      (put-sysprop ',access-fn 'SETF-LAMBDA #'(si::lambda-block ,access-fn (,@store ,@args) ,@body))
+	      (put-sysprop ',access-fn 'SETF-LAMBDA #'(lambda (,@store ,@args) (declare ,@decls) (block ,access-fn ,@body)))
 	      (rem-sysprop ',access-fn 'SETF-UPDATE-FN)
 	      (rem-sysprop ',access-fn 'SETF-METHOD)
 	      (rem-sysprop ',access-fn 'SETF-SYMBOL)
 	      ,@(si::expand-set-documentation access-fn 'setf doc)
-	      ',access-fn)))))
+	      ',access-fn))))))
 
 
 ;;; DEFINE-SETF-METHOD macro.
-(defmacro define-setf-expander (access-fn args &rest body)
+(defmacro define-setf-expander (access-fn args &rest body+)
   "Syntax: (define-setf-expander symbol defmacro-lambda-list {decl | doc}*
           {form}*)
 Defines the SETF-method for generalized-variables (SYMBOL ...).
@@ -84,15 +86,16 @@ by (DOCUMENTATION 'SYMBOL 'SETF)."
 	(progn
 	  (setq env (gensym))
 	  (setq args (cons env args))
-	  (push `(declare (ignore ,env)) body))))
+	  (push `(declare (ignore ,env)) body+))))
+  (multiple-value-bind (decls body doc)
+      (process-declarations body+ t)
   `(define-when (compile load eval)
-     (put-sysprop ',access-fn 'SETF-METHOD #'(si::lambda-block ,access-fn ,args ,@body))
+     (put-sysprop ',access-fn 'SETF-METHOD #'(lambda ,args (declare ,@decls) (block ,access-fn ,@body)))
      (rem-sysprop ',access-fn 'SETF-LAMBDA)
      (rem-sysprop ',access-fn 'SETF-UPDATE-FN)
      (rem-sysprop ',access-fn 'SETF-SYMBOL)
-     ,@(si::expand-set-documentation access-fn 'setf
-				     (find-documentation body))
-     ',access-fn))
+     ,@(si::expand-set-documentation access-fn 'setf doc)
+     ',access-fn)))
 
 
 ;;;; get-setf-expansion.

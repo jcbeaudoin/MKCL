@@ -64,10 +64,11 @@ by (documentation 'NAME 'type)."
       `(define-when (:compile-toplevel :load-toplevel :execute)
          ,@(si::expand-set-documentation name 'type doc)
          (do-deftype ',name '(DEFTYPE ,name ,lambda-list ,@body)
-                     #'(si::LAMBDA-BLOCK ,name (,whole-var ,env-var)
+                     #'(si::LAMBDA (,whole-var ,env-var)
                          (declare (ignorable ,env-var))
                          (destructuring-bind ,lambda-list (if (consp ,whole-var) (cdr ,whole-var) nil)
-                           ,@body)))))))
+                           (block ,name
+                             ,@body))))))))
 
 
 ;;; Some DEFTYPE definitions.
@@ -794,7 +795,7 @@ if not possible."
 	     BIT-VECTOR SIMPLE-BIT-VECTOR)
 	    (concatenate type object))
 	   (t
-	    (if (or (listp object) (vector object))
+	    (if (or (listp object) (vectorp object))
 		(concatenate type object)
 		(error-coerce object type)))))
 	((eq (setq aux (first type)) 'COMPLEX)
@@ -813,7 +814,7 @@ if not possible."
 	 (unless (typep-in-env aux type nil)
 	   (error-coerce object type))
 	 aux)
-	((or (listp object) (vector object))
+	((or (listp object) (vectorp object))
 	 (concatenate type object))
 	(t
 	 (error-coerce object type))))
