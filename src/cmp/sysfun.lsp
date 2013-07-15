@@ -1753,11 +1753,11 @@
 
     (proclaim-function mkcl:base-char-p (t) t :predicate t :no-side-effects t)
     (def-inline mkcl:base-char-p :always (t) :bool "@0;(MKCL_CHARACTERP(#0) && MKCL_BASE_CHAR_P(#0))")
-    (def-inline mkcl:base-char-p :always (character) :bool "MKCL_BASE_CHAR_P(#0)")
+    (def-inline mkcl:base-char-p :always (character) :bool "MKCL_BASE_CHAR_CODE_P(#0)")
 
     (proclaim-function si:base-char-p (t) t :predicate t :no-side-effects t)
     (def-inline si:base-char-p :always (t) :bool "@0;(MKCL_CHARACTERP(#0) && MKCL_BASE_CHAR_P(#0))")
-    (def-inline si:base-char-p :always (character) :bool "MKCL_BASE_CHAR_P(#0)")
+    (def-inline si:base-char-p :always (character) :bool "MKCL_BASE_CHAR_CODE_P(#0)")
 
     (proclaim-function stringp (t) t :predicate t :no-side-effects t)
     (def-inline stringp :always (t) :bool "mkcl_stringp(env, #0)")
@@ -2305,7 +2305,7 @@
    si::pprint-logical-block-helper si::pprint-pop-helper
    si::make-seq-iterator si::seq-iterator-ref si::seq-iterator-set si::seq-iterator-next
    si::structure-type-error si::define-structure
-   si::coerce-to-list si::coerce-to-vector
+   ;;si::coerce-to-list si::coerce-to-vector
    si::fill-array-with-seq
    si::format-princ
    si::format-prin1
