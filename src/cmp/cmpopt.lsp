@@ -39,8 +39,8 @@
     forms))
 
 (defun expand-typep (form object type e env)
-  ;; This function is reponsible for expanding (TYPEP object type)
-  ;; forms into a reasonable set of system calls. When it fails to
+  ;; This function is reponsible for expanding (SI::TYPEP-IN-ENV object type environment)
+  ;; forms into a reasonable set of more basic calls. When it fails to
   ;; match the compiler constraints on speed and space, it simply
   ;; returns the original form. Note that for successful recursion we
   ;; have to output indeed the ORIGINAL FORM, not some intermediate
@@ -191,6 +191,12 @@
   `(si::subtypep-in-env ,t1 ,t2 ,e))
 
 
+#|
+;; FIXME: This "optimizer" is wrong at almost all times.
+;; It is seriously non-conformant to the specification in that it
+;; sometimes produces explicitly prohibited results and does
+;; none of the mandated checks. JCB
+
 ;;;
 ;;; COERCE
 ;;;
@@ -211,9 +217,10 @@
     (function . (si::coerce-to-function x))
     ))
 
+;; FIXME: This "optimizer" is most probably wrong, it is non-conformant to the specification at the very least. JCB
 (defun expand-coerce (form value type env)
-  ;; This function is reponsible for expanding (TYPEP object type)
-  ;; forms into a reasonable set of system calls. When it fails to
+  ;; This function is reponsible for expanding (COERCE object type)
+  ;; forms into a reasonable set of more basic calls. When it fails to
   ;; match the compiler constraints on speed and space, it simply
   ;; returns the original form. Note that for successful recursion we
   ;; have to output indeed the ORIGINAL FORM, not some intermediate
@@ -290,8 +297,8 @@
 	      x))
 	  ;;
 	  ;; (COMPLEX whatever) types
-	  ((and (eq first 'complex)
-		(= (length rest) 1))
+	  ((and (eq (first type) 'complex)
+		(= (length (rest type)) 1))
 	   `(let ((y ,value))
 	      (declare (:read-only y))
 	      (complex (coerce (realpart y) ',(first rest))
@@ -319,3 +326,4 @@
 (define-compiler-macro coerce (&whole form value type &environment env)
   (expand-coerce form value type env))
 
+|#
