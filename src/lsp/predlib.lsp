@@ -763,8 +763,17 @@ Returns T if X belongs to TYPE; NIL otherwise."
 ;;			COERCE
 ;;************************************************************
 
+#|
 (defun error-coerce (object type)
   (error "Cannot coerce ~S to type ~S." object type))
+|#
+
+(defun error-coerce (object type)
+  (error 'simple-type-error
+	 :datum object
+	 :expected-type type
+	 :format-control "Cannot coerce ~S to type ~S."
+	 :format-arguments (list object type)))
 
 (defun coerce (object type &aux aux)
   "Args: (x type)
@@ -773,7 +782,6 @@ if not possible."
   (when (typep-in-env object type nil)
     ;; Just return as it is.
     (return-from coerce object))
-  (setq type (expand-deftype type))
   (cond ((atom type)
 	 (case type
 	   ((T) object)
@@ -781,7 +789,8 @@ if not possible."
 	    (do ((io (make-seq-iterator object) (seq-iterator-next object io))
 	         (l nil (cons (seq-iterator-ref object io) l)))
 	        ((null io) l)))
-	   ((CHARACTER BASE-CHAR) (character object))
+           (BASE-CHAR (let ((new (character object))) (if (mkcl:base-char-p new) new (error-coerce object type))))
+	   (CHARACTER(character object))
 	   (FLOAT (float object))
 	   (SINGLE-FLOAT (float object 0.0F0))
 	   (SHORT-FLOAT (float object 0.0S0))
@@ -795,11 +804,15 @@ if not possible."
 	     BIT-VECTOR SIMPLE-BIT-VECTOR)
 	    (concatenate type object))
 	   (t
-	    (if (or (listp object) (vectorp object))
+	    (if (and (or (subtypep type 'list) (subtypep type 'vector))
+                     (or (listp object) (vectorp object)))
 		(concatenate type object)
-		(error-coerce object type)))))
+              (let ((expanded-type (expand-deftype type)))
+                (if (not (eq type expanded-type))
+                    (coerce object expanded-type)
+                  (error-coerce object type)))))))
 	((eq (setq aux (first type)) 'COMPLEX)
-	 (if type
+	 (if (second type)
 	     (complex (coerce (realpart object) (second type))
 		      (coerce (imagpart object) (second type)))
 	     (complex (realpart object) (imagpart object))))
@@ -808,16 +821,21 @@ if not possible."
 	 (unless (typep-in-env aux type nil)
 	   (error-coerce object type))
 	 aux)
+        #-(and) ;; not in the spec.
 	((eq aux 'AND)
 	 (dolist (type (rest type))
 	   (setq aux (coerce aux type)))
 	 (unless (typep-in-env aux type nil)
 	   (error-coerce object type))
 	 aux)
-	((or (listp object) (vectorp object))
+	((and (or (subtypep type 'list) (subtypep type 'vector))
+              (or (listp object) (vectorp object)))
 	 (concatenate type object))
 	(t
-	 (error-coerce object type))))
+         (let ((expanded-type (expand-deftype type)))
+           (if (not (eq type expanded-type))
+               (coerce object expanded-type)
+             (error-coerce object type))))))
 
 ;;************************************************************
 ;;			SUBTYPEP
