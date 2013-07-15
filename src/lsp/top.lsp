@@ -1394,7 +1394,9 @@ package."
 	 (*print-circle* t)
 	 (*readtable* (or *break-readtable* *readtable*))
 	 (*break-message* ;;(format nil "~&~A~%" condition)
-	                  (concatenate 'string (princ-to-string condition) (string #\newline))
+	                  (concatenate 'string
+                                       (prin1-to-string condition) ":" (string #\newline)
+                                       "    " (princ-to-string condition) (string #\newline))
 			  )
 	 (*break-level* (1+ *break-level*))
 	 (break-level *break-level*)
