@@ -763,11 +763,6 @@ Returns T if X belongs to TYPE; NIL otherwise."
 ;;			COERCE
 ;;************************************************************
 
-#|
-(defun error-coerce (object type)
-  (error "Cannot coerce ~S to type ~S." object type))
-|#
-
 (defun error-coerce (object type)
   (error 'simple-type-error
 	 :datum object
@@ -789,8 +784,9 @@ if not possible."
 	    (do ((io (make-seq-iterator object) (seq-iterator-next object io))
 	         (l nil (cons (seq-iterator-ref object io) l)))
 	        ((null io) l)))
-           (BASE-CHAR (let ((new (character object))) (if (mkcl:base-char-p new) new (error-coerce object type))))
-	   (CHARACTER(character object))
+           (BASE-CHAR (let ((new (character object)))
+                        (if (mkcl:base-char-p new) new (error-coerce object type))))
+	   (CHARACTER (character object))
 	   (FLOAT (float object))
 	   (SINGLE-FLOAT (float object 0.0F0))
 	   (SHORT-FLOAT (float object 0.0S0))
