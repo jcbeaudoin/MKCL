@@ -114,6 +114,10 @@
 	    (return)))))
     (values elt-type length)))
 
+;; This implementation of make-sequence is severely non-conformant with the specification.
+;; It fails miserably at its analysis of the result-type and will produce
+;; results that are explicitly prohibited by the specification.
+;; FIXME ASAP. JCB
 (defun make-sequence (type size	&key (initial-element nil iesp) &aux sequence)
   "Args: (type length &key initial-element)
 Creates and returns a sequence of the given TYPE and LENGTH.  If INITIAL-
@@ -169,6 +173,10 @@ default value of INITIAL-ELEMENT depends on TYPE."
 	   iterator)
       (rest iterator)))
 
+#|
+;; The only purpose in life of coerce-to-list and coerce-to-vector is
+;; to support the expand-coerce mis-optimization in cmpopt.lsp. JCB
+
 (defun coerce-to-list (object)
   (if (listp object)
       object
@@ -199,13 +207,17 @@ default value of INITIAL-ELEMENT depends on TYPE."
 	    (setf output (si::do-check-type output type '"coerced object" 'output)))
 	  )))
     output))
+|#
 
-(defvar *trace-concatenate* nil)
+#-(and) (defvar *trace-concatenate* nil)
 
+;; This implementation of concatenate relies heavily on make-sequence.
+;; Please read comment just above make-sequence.
 (defun concatenate (result-type &rest sequences)
   "Args: (type &rest sequences)
 Returns a new sequence of the specified type, consisting of all elements of
 SEQUENCEs."
+  #-(and)
   (when *trace-concatenate*
     (format t "~&In concatenate for: ~S ~S." result-type sequences))
   (do* ((length-list (mapcar #'length sequences) (rest length-list))
