@@ -159,7 +159,7 @@
 	   (setq value (c1expr value)
 		 vars (mapcar #'c1vref vars))
 	   (add-to-set-nodes-of-var-list
-	    vars (make-c1form* 'MULTIPLE-VALUE-SETQ :args vars value))))))
+	    vars (make-c1form* 'MULTIPLE-VALUE-SETQ :type (c1form-primary-type value) :args vars value))))))
 
 (defun c1form-values-number (form)
   (let ((type (c1form-type form)))
