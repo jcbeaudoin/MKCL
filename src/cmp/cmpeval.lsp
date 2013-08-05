@@ -133,7 +133,7 @@
 	((endp (cdr forms)) (t1/c1expr (car forms)))
 	(t (let* ((fl (mapcar #'t1/c1expr forms))
 		  (output-form (first (last fl)))
-		  (output-type (and output-form (c1form-type output-form))))
+		  (output-type (if output-form (c1form-type output-form) 'NULL)))
 	     (make-c1form* 'PROGN :type output-type :args fl)))))
 
 (defun c2progn (forms)
