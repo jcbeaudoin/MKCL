@@ -818,7 +818,9 @@
 		       (consp fname)
 		       (eq (first fname) 'quote))
 	      (return-from c1fset
-		(make-c1form* 'SI:FSET :args
+		(make-c1form* 'SI:FSET
+                              :type 'FUNCTION
+                              :args
 			      fun-object ;; Function object
 			      macro
 			      pprint
