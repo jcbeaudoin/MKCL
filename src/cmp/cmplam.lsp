@@ -149,7 +149,7 @@ The function thus belongs to the type of functions that mkcl_make_cfun accepts."
                       &aux doc body ss is iables ts dyns
                            other-decls
 			   all-declarations
-		           new-variables
+		           ;;new-variables
 		           (type-checks '())
 			   (*permanent-data* t)
 			   (old-env *cmp-env*)
@@ -349,12 +349,15 @@ The function thus belongs to the type of functions that mkcl_make_cfun accepts."
   (unless (or local-entry-p (not (compiler-check-args)))
     (incf *inline-blocks*)
     (if (and use-narg (not varargs))
-	(wt-nl "if(narg!=" nreq ") mkcl_FEwrong_num_arguments_anonym(env);")
+	(wt-nl "if(narg!=" nreq ") "
+               (if fname "mkcl_FEwrong_num_arguments(env, this_func);" "mkcl_FEwrong_num_arguments_anonym(env);"))
 	(when varargs
 	  (when requireds
-	    (wt-nl "if(narg<" nreq ") mkcl_FEwrong_num_arguments_anonym(env);"))
+	    (wt-nl "if(narg<" nreq ") "
+                   (if fname "mkcl_FEwrong_num_arguments(env, this_func);" "mkcl_FEwrong_num_arguments_anonym(env);")))
 	  (unless (or rest keywords allow-other-keys)
-	    (wt-nl "if(narg>" (+ nreq nopt) ") mkcl_FEwrong_num_arguments_anonym(env);"))))
+	    (wt-nl "if(narg>" (+ nreq nopt) ") "
+                   (if fname "mkcl_FEwrong_num_arguments(env, this_func);" "mkcl_FEwrong_num_arguments_anonym(env);")))))
     (wt-nl "{"))
 
   ;; If the number of required arguments exceeds the number of variables we
