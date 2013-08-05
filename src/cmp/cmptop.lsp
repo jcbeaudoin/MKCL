@@ -527,6 +527,7 @@
 		     (:double . "_mkcl_double_loc")
 		     (:long-float . "_mkcl_long_double_loc")
 		     (closure . "_mkcl_closure_var_loc")
+		     (lexical . "_mkcl_closure_var_loc")
 		     ((special global closure replaced lexical) . NIL)))))
 
 (defvar *show-var-loc* nil)
@@ -552,11 +553,11 @@
 	  for kind = (var-kind var)
           for locative-type = (locative-type-from-var-kind kind)
           for loc = (var-loc var)
-          when (and locative-type (or (and (consp loc) (eq (first loc) 'LCL)) (eq kind 'closure)))
+          when (and locative-type (or (and (consp loc) (eq (first loc) 'LCL)) (eq kind 'closure) (eq kind 'lexical)))
           do (progn
 	       (when *show-var-loc* (format t "~&Var ~S locative-type: ~S loc: ~S~%" name locative-type loc))
                (push (cons name locative-type) info-local-vars)
-	       (if (eq kind 'closure)
+	       (if (or (eq kind 'closure) (eq kind 'lexical))
 		   (push (closure-lcl-name var) var-locations)
 		 (push (lcl-name (second loc)) var-locations))
                ))
