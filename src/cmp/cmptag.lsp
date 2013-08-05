@@ -123,8 +123,7 @@
   (when (var-ref-ccb tag-var)
     (incf *setjmps*))
   (add-loop-registers body)
-  (make-c1form* 'TAGBODY :local-vars (list tag-var)
-		:args tag-var body))
+  (make-c1form* 'TAGBODY :local-vars (list tag-var) :type 'NULL :args tag-var body))
 
 (defun c2tagbody (tag-loc body)
   (declare (type var tag-loc))
