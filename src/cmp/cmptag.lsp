@@ -118,8 +118,7 @@
 
   ;;; Only produce a tagbody if it was needed.
   (when (zerop (var-ref tag-var))
-    (return-from c1tagbody (make-c1form* 'PROGN :args
-					 (delete-if #'tag-p body))))
+    (return-from c1tagbody (make-c1form* 'PROGN :type 'NULL :args (delete-if #'tag-p body))))
   (when (var-ref-ccb tag-var)
     (incf *setjmps*))
   (add-loop-registers body)
