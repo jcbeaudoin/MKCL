@@ -266,7 +266,7 @@
 	     ((consp x)
 	      (destructuring-bind (c-name lisp-name) x
 		(if (si::mangle-function-name lisp-name)
-		    (warn "The funciton ~s is already in the runtime. C-EXPORT-FNAME declaration ignored." lisp-name)
+		    (warn "The function ~s is already in the runtime. C-EXPORT-FNAME declaration ignored." lisp-name)
 		    (put-sysprop lisp-name 'Lfun c-name))))
 	     (t
 	      (error "Syntax error in proclamation ~s" decl)))))
@@ -376,7 +376,7 @@
                                              (or (symbolp x)
                                                  (and (consp x) (eq (car x) 'function)
                                                       (si::valid-function-name-p (cadr x))))))
-			  "Syntax error in declaration" decl)
+			  "Syntax error in declaration ~s" decl)
 	       (setf dyns (append decl-args dyns))
 	       )
 	      (OBJECT
