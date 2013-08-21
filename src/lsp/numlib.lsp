@@ -246,15 +246,28 @@ Returns the arc cosine of NUMBER."
 
 #+(and (not mkcl-min) windows)
 (progn
-  (ffi:clines "double asinh(double x) { return log(x+sqrt(1.0+x*x)); }")
-  (ffi:clines "double acosh(double x) { return log(x+sqrt((x-1)*(x+1))); }")
-  (ffi:clines "double atanh(double x) { return log((1+x)/(1-x))/2; }"))
+  (ffi:clines "double mkcl_asinh(double x) { return log(x+sqrt(1.0+x*x)); }")
+  (ffi:clines "double mkcl_acosh(double x) { return log(x+sqrt((x-1)*(x+1))); }")
+  (ffi:clines "double mkcl_atanh(double x) { return log((1+x)/(1-x))/2; }")
+  (ffi:clines "
+#define asinh(x) mkcl_asinh(x)
+#define acosh(x) mkcl_acosh(x)
+#define atanh(x) mkcl_atanh(x)
+")
+  )
 
 #+(and long-float (not mkcl-min) windows)
 (progn
-  (ffi:clines "double asinhl(long double x) { return logl(x+sqrtl(1.0+x*x)); }")
-  (ffi:clines "double acoshl(long double x) { return logl(x+sqrtl((x-1)*(x+1))); }")
-  (ffi:clines "double atanhl(long double x) { return logl((1+x)/(1-x))/2; }"))
+  (ffi:clines "double mkcl_asinhl(long double x) { return logl(x+sqrtl(1.0+x*x)); }")
+  (ffi:clines "double mkcl_acoshl(long double x) { return logl(x+sqrtl((x-1)*(x+1))); }")
+  (ffi:clines "double mkcl_atanhl(long double x) { return logl((1+x)/(1-x))/2; }")
+  (ffi:clines "
+#define asinhl(x) mkcl_asinhl(x)
+#define acoshl(x) mkcl_acoshl(x)
+#define atanhl(x) mkcl_atanhl(x)
+")
+  )
+
 
 ;; Ported from CMUCL
 (defun asinh (x)
