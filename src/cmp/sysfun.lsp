@@ -102,7 +102,7 @@
   nil)
 
 (defconstant +rep-type-canonical-map+
-  #+x86-64
+  #+(and x86-64 (not windows))
   '((:int8-t . :byte) (:uint8-t . :unsigned-byte)
     (:int16-t . :short) (:uint16-t . :unsigned-short)
     (:int32-t . :int) (:uint32-t . :unsigned-int)
@@ -112,7 +112,7 @@
     (:long-double . :double)
     (t . :object)
     )
-  #+x86
+  #+(or x86 windows)
   '((:int8-t . :byte) (:uint8-t . :unsigned-byte)
     (:int16-t . :short) (:uint16-t . :unsigned-short)
     (:int32-t . :int) (:uint32-t . :unsigned-int)
