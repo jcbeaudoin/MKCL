@@ -39,7 +39,7 @@ vector), or an integer.  See VECTOR-PUSH and VECTOR-POP.  DISPLACED-TO, if
 non-NIL, must be an array and specifies that the new array is displaced to the
 given array.  DISPLACED-INDEX-OFFSET is meaningful only when DISPLACED-TO is
 non-NIL and specifies that the reference to the I-th element of the new array
-in raw-major indexing is actually the reference to the (I + DISPLACED-INDEX-
+in row-major indexing is actually the reference to the (I + DISPLACED-INDEX-
 OFFSET)th element of the given array.If the STATIC argument is supplied
 with a non-nil value, then the body of the array is allocated as a
 contiguous block."
