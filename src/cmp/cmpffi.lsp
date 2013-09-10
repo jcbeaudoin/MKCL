@@ -99,12 +99,17 @@
 
 (defun loc-movable-p (loc)
   (if (atom loc)
-      t
-      (case (first loc)
-	((CALL CALL-LOCAL) NIL)
-	((C-INLINE) (not (fifth loc))) ; side effects?
-	(otherwise t)
-	)))
+      (if (var-p loc)
+          (case (var-kind loc) ((CLOSURE SPECIAL GLOBAL) nil) (otherwise t)) ;; for efficiency reason.
+        t)
+    (case (first loc)
+      ((CALL CALL-LOCAL CALL-NORMAL CALL-INDIRECT) NIL) ;; Is CALL-LOCAL still used?
+      ((FDEFINITION MAKE-CCLOSURE SI::STRUCTURE-REF) NIL)  ;; for efficiency reason.
+      ((C-INLINE) NIL) ;; the safe choice, otherwise we need to prove it both side-effect free and context insensitive.
+      ((COERCE-LOC) (loc-movable-p (third loc)))
+      ((CAR CDR CADR) NIL) ;; not moveable in a multi-thread context.
+      (otherwise t)
+      )))
 
 (defun loc-type (loc)
   (cond ((eq loc NIL) 'NULL)
@@ -567,7 +572,7 @@
 	       (unless block-opened
 		 (incf *inline-blocks*)
 		 (wt-nl "{"))
-	       (wt (rep-type-name rep-type) " " lcl "= ")
+	       (wt " const " (rep-type-name rep-type) " " lcl "= ")
 	       (wt-coerce-loc rep-type loc)
 	       (wt ";")
 	       (setq loc lcl)))

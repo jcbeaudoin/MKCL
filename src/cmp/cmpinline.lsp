@@ -86,7 +86,7 @@
 	       (let* ((and-type (type-and return-type (loc-type loc)))
 		      (out-rep-type (loc-representation-type loc))
 		      (var (make-lcl-var :rep-type out-rep-type :type and-type)))
-		 (wt-nl "{" (rep-type-name out-rep-type) " " var "= " loc ";")
+		 (wt-nl "{" " const " (rep-type-name out-rep-type) " " var "= " loc ";")
 		 (incf *inline-blocks*)
 		 (setq loc var)
 		 (push (list (loc-type loc) loc) locs))
