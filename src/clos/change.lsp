@@ -58,6 +58,7 @@
   (let* ((old-instance (si::copy-instance instance))
 	 (new-size (class-size new-class))
 	 (instance (si::allocate-raw-instance instance new-class new-size)))
+    (declare (type standard-object instance))
     (si::instance-sig-set instance)
     ;; "The values of local slots specified by both the class Cto and
     ;; Cfrom are retained.  If such a local slot was unbound, it remains
@@ -130,6 +131,7 @@
   (apply #'shared-initialize instance added-slots initargs))
 
 (defun update-instance (instance)
+  (declare (type standard-object instance))
   (let* ((class (class-of instance))
 	 (old-slotds (si::instance-sig instance))
 	 (new-slotds (class-slots class))

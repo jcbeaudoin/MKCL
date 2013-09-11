@@ -35,9 +35,17 @@ mk_si_allocate_raw_instance(MKCL, mkcl_object orig, mkcl_object clas, mkcl_objec
 {
   mkcl_call_stack_check(env);
   mkcl_object output = mkcl_allocate_instance(env, clas, mkcl_integer_to_index(env, size));
+
+  if (mkcl_unlikely(!mkcl_Null(clas) && !(MKCL_SYMBOLP(clas) || MKCL_INSTANCEP(clas))))
+    /* We have to accept symbols and NIL as valid values of clas because of
+       some dubious hacks used during the CLOS bootstrap process. JCB */
+    /* Should we check further that the instance is really a class? JCB */
+    mkcl_FEtype_error_instance(env, clas);
   if (orig == mk_cl_Cnil) {
     orig = output;
   } else {
+    if (mkcl_unlikely(!MKCL_INSTANCEP(orig)))
+      mkcl_FEtype_error_instance(env, orig);
     orig->instance.clas = clas;
     orig->instance.length = output->instance.length;
     orig->instance.slots = output->instance.slots;
@@ -48,18 +56,27 @@ mk_si_allocate_raw_instance(MKCL, mkcl_object orig, mkcl_object clas, mkcl_objec
 mkcl_object
 mk_si_instance_sig(MKCL, mkcl_object x)
 {
+  mkcl_call_stack_check(env);
+  if (mkcl_unlikely(!MKCL_INSTANCEP(x)))
+    mkcl_FEtype_error_instance(env, x);
   @(return x->instance.sig);
 }
 
 mkcl_object
 mk_si_instance_sig_set(MKCL, mkcl_object x)
 {
+  mkcl_call_stack_check(env);
+  if (mkcl_unlikely(!MKCL_INSTANCEP(x)))
+    mkcl_FEtype_error_instance(env, x);
   @(return (x->instance.sig = MKCL_CLASS_SLOTS(MKCL_CLASS_OF(x))));
 }
 
 mkcl_object
 mk_si_instance_sig_set2(MKCL, mkcl_object x, mkcl_object sig)
 {
+  mkcl_call_stack_check(env);
+  if (mkcl_unlikely(!MKCL_INSTANCEP(x)))
+    mkcl_FEtype_error_instance(env, x);
   @(return (x->instance.sig = sig));
 }
 

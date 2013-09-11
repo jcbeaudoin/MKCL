@@ -376,6 +376,7 @@ mkcl_object mkcl_alloc_raw_structure(MKCL, mkcl_object type, mkcl_index nb_slots
 #if (MKCL_T_STRUCTURE == mkcl_t_instance)
   COLLECT_STATS(env, instance);
   s = MKCL_GC_MALLOC(env, sizeof(struct mkcl_instance));
+  s->instance.sig = MKCL_UNBOUND; /* This special value prevent structure from being seen as updatable objects. */
 #else
   COLLECT_STATS(env, structure);
   s = MKCL_GC_MALLOC(env, sizeof(struct mkcl_structure));
@@ -383,10 +384,10 @@ mkcl_object mkcl_alloc_raw_structure(MKCL, mkcl_object type, mkcl_index nb_slots
 
   s->d.t = MKCL_T_STRUCTURE;
   MKCL_STYPE(s) = type;
-  MKCL_SLENGTH(s) = nb_slots;
   if (nb_slots >= MKCL_SLOTS_LIMIT)
     mkcl_FEerror(env, "Limit on structure size exceeded: ~S slots requested.", 1, MKCL_MAKE_FIXNUM(nb_slots));
   MKCL_SLOTS(s) = MKCL_GC_MALLOC_IGNORE_OFF_PAGE(env, sizeof(mkcl_object) * nb_slots);
+  MKCL_SLENGTH(s) = nb_slots;
   return s;
 }
 
@@ -398,10 +399,12 @@ mkcl_alloc_raw_instance(MKCL, mkcl_index nb_slots)
   COLLECT_STATS(env, instance);
   i = MKCL_GC_MALLOC(env, sizeof(struct mkcl_instance));
   i->instance.t = mkcl_t_instance;
+  i->instance.isgf = MKCL_NOT_FUNCALLABLE;
 
   i->instance.slots = MKCL_GC_MALLOC_IGNORE_OFF_PAGE(env, sizeof(mkcl_object) * nb_slots);
-
   i->instance.length = nb_slots;
+  i->instance.sig = mk_cl_Ct; /* sure to never be a valid signature since it cannot be a list. */
+
   i->instance.f.entry = mkcl_FEnot_funcallable_vararg;
   i->instance.f._[0] = mkcl_FEnot_funcallable_fixed;
   i->instance.f._[1] = mkcl_FEnot_funcallable_fixed;

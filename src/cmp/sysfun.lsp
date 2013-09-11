@@ -2232,6 +2232,13 @@
     ;; Functions only available with CLOS
 
     (proclaim-function si:allocate-raw-instance (t t fixnum) t)
+    (proclaim-function si::instance-sig (t) t)
+    (def-inline si::instance-sig :always (standard-object) t "(#0)->instance.sig")
+    (proclaim-function si::instance-sig-set (t) t)
+    (def-inline si::instance-sig-set :always (standard-object) t "@0;((#0)->instance.sig = MKCL_CLASS_SLOTS(MKCL_CLASS_OF(#0)))")
+    (proclaim-function si::instance-sig-set2 (t t) t)
+    (def-inline si::instance-sig-set :always (standard-object t) t "((#0)->instance.sig = (#1))")
+
     (proclaim-function si:instance-ref-safe (t fixnum) t)
     (proclaim-function si:instance-ref (t fixnum) t :no-side-effects t)
     (def-inline si:instance-ref :always (t fixnum) t "mkcl_instance_ref(env, (#0),(#1))")

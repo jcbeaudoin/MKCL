@@ -63,9 +63,6 @@ mk_si_structure_subtype_p(MKCL, mkcl_object x, mkcl_object y)
 @
   x = mkcl_alloc_raw_structure(env, type, --narg);
 
-#if MKCL_T_STRUCTURE == mkcl_t_instance
-  x->instance.sig = MKCL_UNBOUND;
-#endif
   for (i = 0;  i < narg;  i++)
     MKCL_SLOT(x, i) = mkcl_va_arg(args);
   @(return x);
