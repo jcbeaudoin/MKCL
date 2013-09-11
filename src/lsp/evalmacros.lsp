@@ -354,6 +354,7 @@ values of the last FORM.  If no FORM is given, returns NIL."
 	   )
     (dolist (clause reverse-clauses
 		    `(LET ((,test-key ,keyform))
+                          (declare (ignorable ,test-key))
 			  ,form))
       (let ((keys (car clause)))
 	(if (or (eq keys 'T) (eq keys 'OTHERWISE))

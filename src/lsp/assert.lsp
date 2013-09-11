@@ -193,7 +193,7 @@ the last FORM.  If not, simply returns NIL.  The symbols T and OTHERWISE may
 be used as a TYPE to specify the default case."
   (do ((l reverse-clauses (cdr l))
        (form nil) (key (gensym)))
-      ((endp l) `(let ((,key ,keyform)) ,form))
+      ((endp l) `(let ((,key ,keyform)) (declare (ignorable ,key)) ,form))
       (if (or (eq (caar l) 't) (eq (caar l) 'otherwise))
 	  (progn
 	    (unless (eq l reverse-clauses)
@@ -221,7 +221,7 @@ the last FORM.  If not, signals an error."
    (do ((l (reverse clauses) (cdr l))	; Beppe
         (form `(etypecase-error ',keyform ,key
 				',(accumulate-cases 'ETYPECASE clauses t))))
-       ((endp l) `(let ((,key ,keyform)) ,form))
+       ((endp l) `(let ((,key ,keyform)) (declare (ignorable ,key)) ,form))
        (setq form `(if (typep ,key ',(caar l))
                        (progn ,@(cdar l))
                        ,form))
@@ -251,6 +251,7 @@ Repeats this process until the value of PLACE becomes of one of the TYPEs."
   ;;(setq clauses (remove-otherwise-from-clauses clauses)) ;; what is the relevance of this? '(OTHERWISE) is not a valid type. JCB
   `(loop
     (let ((,key ,keyplace))
+      (declare (ignorable ,key))
       ,@(mapcar #'(lambda (l)
 		    `(if (typep ,key ',(car l))
 		      (return (progn ,@(cdr l)))))
