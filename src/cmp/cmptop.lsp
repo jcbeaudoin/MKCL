@@ -137,7 +137,6 @@
       (pathname-name pathname))))
 
 (defun ctop-write (name h-pathname data-pathname
-		        &key shared-data ;; deprecated! JCB
 			&aux
 			def
 			top-output-string
@@ -161,8 +160,7 @@
   (wt-nl-h "#ifdef __cplusplus")
   (wt-nl-h "extern \"C\" {")
   (wt-nl-h "#endif")
-  (when si:*compiler-constants*
-    (wt-nl-h "#include <string.h>"))
+
   ;;; Initialization function.
   (let* ((*lcl* 0) (*lex* 0) (*max-lex* 0) (*max-env* 0) (*max-temp* 0)
 	 (*closure-block-id* 0)
@@ -172,9 +170,7 @@
 	 (*compiler-output1* (make-string-output-stream :element-type 'base-char :encoding :UTF-8))
 	 (*emitted-local-funs* nil)
 	 (*compiler-declared-globals* (make-hash-table)))
-    (unless shared-data
-      (wt-nl1 "#include \"") (wt (file-basename data-pathname)) (wt "\"")
-      )
+    (wt-nl1 "#include \"") (wt (file-basename data-pathname)) (wt "\"")
     (wt-nl1 "#ifdef __cplusplus")
     (wt-nl1 "extern \"C\"")
     (wt-nl1 "#endif")
@@ -196,31 +192,33 @@
 	   " = mkcl_alloc_clevel_block(env, mk_cl_Cnil, mk_cl_Cnil, 0);")
     (wt-nl "mkcl_object value0;")
     (wt-nl "mkcl_object *VVtemp;")
-    (when shared-data
-      (wt-nl "if (mkcl_type_of(flag) != mkcl_t_codeblock) mkcl_FEnot_codeblock_type(env, flag);")
-      (wt-nl "Cblock=flag;")
-      (wt-nl "VV = flag->cblock.data;"))
-    (unless shared-data
-      (wt-nl "if (mkcl_type_of(flag) == mkcl_t_codeblock){")
-      (wt-nl "Cblock=flag;")
-      (when *self-destructing-fasl*
-	(wt-nl "flag->cblock.self_destruct=TRUE;"))
-      (wt-nl "flag->cblock.data_size = VM;")
-      (wt-nl "flag->cblock.temp_data_size = VMtemp;")
-      (wt-nl "flag->cblock.data_text = compiler_data_text;")
-      (wt-nl "flag->cblock.data_text_size = compiler_data_text_size;")
-      (wt-nl "flag->cblock.cfuns_size = compiler_cfuns_size;")
-      (wt-nl "flag->cblock.cfuns = compiler_cfuns;")
-      (when *compile-file-truename*
-        (wt-nl "flag->cblock.source = mkcl_make_simple_base_string(env, \""
-               (preserve-escapes (namestring *compile-file-truename*)) "\");"))
-      (wt-nl "return;}")
-      (wt-nl "else if (flag != mk_cl_Cnil) mkcl_FEnot_codeblock_type(env, flag);")
-      (wt-nl "VV = Cblock->cblock.data;")
-      ;; With this we ensure creating a constant with the tag
-      ;; and the initialization file
-      (wt-nl "Cblock->cblock.data_text = \"" (init-name-tag name) "\";")
-      )
+
+    (wt-nl "if (mkcl_type_of(flag) == mkcl_t_codeblock){")
+    (wt-nl "Cblock=flag;")
+    (when *self-destructing-fasl*
+      (wt-nl "flag->cblock.self_destruct=TRUE;"))
+    (wt-nl "flag->cblock.data_size = VM;")
+    (wt-nl "flag->cblock.temp_data_size = VMtemp;")
+    (wt-nl "flag->cblock.data_text = compiler_data_text;")
+    (wt-nl "flag->cblock.data_text_size = compiler_data_text_size;")
+    (wt-nl "flag->cblock.cfuns_size = compiler_cfuns_size;")
+    (wt-nl "flag->cblock.cfuns = compiler_cfuns;")
+    (when *compile-file-truename*
+      (wt-nl "flag->cblock.source = mkcl_make_simple_base_string(env, \""
+             (preserve-escapes (namestring *compile-file-truename*)) "\");"))
+    (wt-nl "return;}")
+    (wt-nl "else if (flag != mk_cl_Cnil) mkcl_FEnot_codeblock_type(env, flag);")
+    (wt-nl "VV = Cblock->cblock.data;")
+    ;; With this we ensure creating a constant with the tag
+    ;; and the initialization file
+    (wt-nl "Cblock->cblock.data_text = \"" (init-name-tag name) "\";")
+    
+    (when si::*compiler-constants*
+      (wt-nl "{ int i; mkcl_object data = mkcl_symbol_value(env, "
+	     (nth-value 1 (si::mangle-name 'si::*compiler-constants*))
+	     ");")
+      (wt-nl "for (i = 0; i < VM; i++) VV[i] = data->vector.self.t[i]; }")
+      ) 
 
     ;; build top-level fun-refs here! JCB
     (wt-nl "Cblock->cblock.nb_fun_refs = MKCL_NB_ELEMS(_mkcl_toplevel_fun_ref_sym_locs);")
@@ -232,11 +230,6 @@
       (wt-nl "mkcl_object _mkcl_debug_env = mk_cl_Cnil;")
       (wt-nl "struct mkcl_ihs_frame ihs;"))
 
-    (when si:*compiler-constants*
-      (wt-nl "{mkcl_object data = mkcl_symbol_value(env, "
-	     (nth-value 1 (si::mangle-name 'si:*compiler-constants*))
-	     ");")
-      (wt-nl "memcpy(VV, data->vector.self.t, VM*sizeof(mkcl_object));}"))
     (wt-nl "VVtemp = Cblock->cblock.temp_data;")
 
     ;; Fix fun-refs of top-level lex-local function objects here. JCB
