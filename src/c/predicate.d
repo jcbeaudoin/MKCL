@@ -429,9 +429,14 @@ mkcl_equalp(MKCL, mkcl_object x, mkcl_object y)
     return FALSE; /* since they were not eq! */
   case mkcl_t_instance: {
     mkcl_index i;
-    if ((ty != tx) || (MKCL_CLASS_OF(x) != MKCL_CLASS_OF(y))
+    if ((ty != tx)
+        || (MKCL_CLASS_OF(x) != MKCL_CLASS_OF(y))
+        || (x->instance.sig != MKCL_UNBOUND) /* A hack meant to be equivalent to !structurep but faster. JCB */
+        /* otherwise we'd have to use the slower: _mkcl_structure_subtypep(MKCL_CLASS_OF(x), @'structure-object') */
+        || (y->instance.sig != MKCL_UNBOUND) /* A hack meant to be equivalent to !structurep but faster. JCB */
+        /* otherwise we'd have to use the slower: _mkcl_structure_subtypep(MKCL_CLASS_OF(y), @'structure-object') */
 	|| (x->instance.length != y->instance.length) /* should we force an instance update? JCB */
-	)                                             /* most probably yes... FIXME! */
+	)                                             /* No since only structures can be compared slot-wise. */
       return(FALSE);
     for (i = 0;  i < x->instance.length;  i++)
       if (!mkcl_equalp(env, x->instance.slots[i], y->instance.slots[i]))
