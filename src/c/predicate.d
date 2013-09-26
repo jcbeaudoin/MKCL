@@ -278,7 +278,7 @@ mkcl_equal(MKCL, register mkcl_object x, mkcl_object y)
 {
   mkcl_type tx, ty;
  BEGIN:
-  if (x==y)
+  if (x==y) /* This handles the positive EQ case. */
     return(TRUE);
   tx = mkcl_type_of(x);
   ty = mkcl_type_of(y);
@@ -349,9 +349,13 @@ mkcl_equal(MKCL, register mkcl_object x, mkcl_object y)
       mkcl_equal(env, x->pathname.type, y->pathname.type) &&
       mkcl_equal(env, x->pathname.version, y->pathname.version);
   case mkcl_t_foreign:
-    return (tx == ty) && (x->foreign.data == y->foreign.data);
+    /* Since foreign objects are in fact a kind of proxy view this implements a kind of delegated EQ. */
+    return ((tx == ty)
+            && (x->foreign.data == y->foreign.data)
+            && (x->foreign.size == y->foreign.size)
+            && mkcl_equal(env, x->foreign.tag, y->foreign.tag));
   default:
-    return FALSE;
+    return FALSE; /* We handled the positive EQ case at the very beginning so this must be false now. */
   }
 }
 
@@ -368,7 +372,7 @@ mkcl_equalp(MKCL, mkcl_object x, mkcl_object y)
   mkcl_type tx, ty;
   mkcl_index j;
  BEGIN:
-  if (x == y)
+  if (x == y) /* This handles the positive EQ case. */
     return TRUE;
   tx = mkcl_type_of(x);
   ty = mkcl_type_of(y);
@@ -477,10 +481,14 @@ mkcl_equalp(MKCL, mkcl_object x, mkcl_object y)
 	}
       return(TRUE);
     }
-  case mkcl_t_random:
-    return (tx == ty) && mkcl_equalp(env, x->random.value, y->random.value);
+  case mkcl_t_foreign:
+    /* Since foreign objects are in fact a kind of proxy view this implements a kind of delegated EQ. */
+    return ((tx == ty)
+            && (x->foreign.data == y->foreign.data)
+            && (x->foreign.size == y->foreign.size)
+            && mkcl_equal(env, x->foreign.tag, y->foreign.tag));
   default:
-    return mkcl_eql(env, x,y);
+    return FALSE; /* We handled the positive EQ case at the very beginning so this must be false now. */
   }
 }
 
