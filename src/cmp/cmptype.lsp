@@ -174,13 +174,13 @@
 	   (cmpwarn-style "Unsupported CONS type ~S. Replacing it with T." t2)
 	   t1)
 	  ((null tag1)
-	   (unless (eq 'values (first t1))
+	   (unless (and (consp t1) (eq 'values (first t1)))
 	     ;; handling of (values ...) is just broken right now.
 	     ;; So there is no point complaining about it. JCB
 	     (cmpwarn-style "Unknown type ~S. Assuming it is T." t1))
 	   t2)
 	  (t
-	   (unless (eq 'values (first t2))
+	   (unless (and (consp t2) (eq 'values (first t2)))
 	     ;; handling of (values ...) is just broken right now.
 	     ;; So there is no point complaining about it. JCB
 	     (cmpwarn-style "Unknown type ~S. Assuming it is T." t2))
@@ -214,13 +214,13 @@
 	   (cmpwarn-style "Unsupported CONS type ~S. Replacing it with T." t2)
 	   T)
 	  ((null tag1)
-	   (unless (eq 'values (first t1))
+	   (unless (and (consp t1) (eq 'values (first t1)))
 	     ;; handling of (values ...) is just broken right now.
 	     ;; So there is no point complaining about it. JCB
 	     (cmpwarn "Unknown type ~S" t1))
 	   T)
 	  (t
-	   (unless (eq 'values (first t2))
+	   (unless (and (consp t2) (eq 'values (first t2)))
 	     ;; handling of (values ...) is just broken right now.
 	     ;; So there is no point complaining about it. JCB
 	     (cmpwarn "Unknown type ~S" t2))
