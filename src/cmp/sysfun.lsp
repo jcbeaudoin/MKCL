@@ -1398,7 +1398,7 @@
 
     (proclaim-function 1+ (t) t :no-side-effects t)
     (def-inline 1+ :always (t) t "mkcl_one_plus(env, #0)")
-    (def-inline 1+ :always (double-loat) :double "((double)(#0)+1)")
+    (def-inline 1+ :always (double-float) :double "((double)(#0)+1)")
     (def-inline 1+ :always (single-float) :float "((float)(#0)+1)")
     (def-inline 1+ :always (fixnum) t
       "@0;(((#0) != MKCL_MOST_POSITIVE_FIXNUM) ? MKCL_MAKE_FIXNUM((#0)+1): mkcl_make_integer(env, (#0)+1))")
