@@ -560,7 +560,7 @@ The function thus belongs to the type of functions that mkcl_make_cfun accepts."
   (multiple-value-bind (requireds nb_reqs optionals nb_opts rest key-flag keywords nb_keys
 				  allow-other-keys aux-vars)
       (si::process-lambda-list (car lambda-form) 'function)
-    (declare (ignore nb_reqs nb_opts nb_keys aux-vars))
+    (declare (ignore nb_reqs nb_opts nb_keys))
     (when apply-p
       (setf apply-list (first (last arguments))
 	    apply-var (gensym)
@@ -637,7 +637,10 @@ The function thus belongs to the type of functions that mkcl_make_cfun accepts."
 		extra-stmts))))
     (when (and key-flag (not allow-other-keys))
       (push `(si::check-keyword ,rest ',all-keys) extra-stmts))
+    (loop while aux-vars
+       do (push (list (pop aux-vars) (pop aux-vars)) let-vars))
     `(let* ,(nreverse (delete-if-not #'first let-vars))
-      ,@(multiple-value-bind (decl body)
-	   (si::find-declarations (rest lambda-form))
-	 (append decl extra-stmts body)))))
+       ,@(and apply-var `((declare (ignorable ,apply-var))))
+       ,@(multiple-value-bind (decl body)
+	     (si::find-declarations (rest lambda-form))
+	   (append decl extra-stmts body)))))
