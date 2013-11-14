@@ -234,13 +234,13 @@
     (FTYPE
      (if (atom (rest decl))
 	 (error "Syntax error in proclamation ~a" decl)
-	 (multiple-value-bind (type-name args)
-	     (si::normalize-type (second decl))
-	   (if (eq type-name 'FUNCTION)
-	       (dolist (v (cddr decl))
-		 (add-function-proclamation v args))
-	       (error "In an FTYPE proclamation, found ~A which is not a function type."
-		      (second decl))))))
+       (multiple-value-bind (type-name args)
+           (si::normalize-type (second decl))
+         (if (eq type-name 'FUNCTION)
+             (dolist (v (cddr decl))
+               (add-function-proclamation v args))
+           (error "In an FTYPE proclamation, found ~A which is not a function type."
+                  (second decl))))))
     (INLINE
      (dolist (fun (cdr decl))
        (if (si::valid-function-name-p fun)
@@ -307,6 +307,8 @@
     (pushnew new-declaration si:*alien-declarations*)))
 
 (defun proclaim-var (type vl)
+  (unless (si::typespecp type)
+    (simple-program-error "While in TYPE PROCLAIM on variables ~S. Not a valid typespec: ~S" vl type))
   (setq type (type-filter type))
   (dolist (var vl)
     (if (symbolp var)
@@ -334,7 +336,7 @@
      ((and (consp form) (eq (car form) 'DECLARE))
       (push form all-declarations)
       (dolist (decl (cdr form))
-        (cmpassert (and (proper-list-p decl) (symbolp (first decl)))
+        (cmpassert (and (proper-list-p decl) (si::typespecp (first decl)))
 		   "Syntax error in declaration ~s" form)
 	(let* ((decl-name (first decl))
 	       (decl-args (rest decl)))
