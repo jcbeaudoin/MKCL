@@ -701,7 +701,7 @@ Returns T if X belongs to TYPE; NIL otherwise."
 
 (declaim (ftype (function (T T) boolean) subclassp))
 (defun subclassp (low high)
-  (and (clos::classp low)
+  (and (instancep low) ;; should be (clos::classp low) but we'll have to wait for MKCL 1.2.0 for this.
        (or (eq low high)
            (dolist (class (sys:instance-ref low 1)) ; (class-superiors low)
              (when (subclassp class high) (return t))))))
