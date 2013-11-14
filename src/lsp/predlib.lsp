@@ -575,7 +575,7 @@ Returns T if X belongs to TYPE; NIL otherwise."
 		 (t (setq tp type i nil)))))
 	((consp type)
 	 (setq tp (car type) i (cdr type)))
-	((sys:instancep type)
+	((clos::classp type)
 	 (return-from typep-in-env (si::subclassp (class-of object) type)))
 	(t
 	 (error-type-specifier type)))
@@ -694,12 +694,17 @@ Returns T if X belongs to TYPE; NIL otherwise."
 (defun typep (object type &optional env)
   (typep-in-env object type env))
 
+(defun typespecp (form)
+  ;; We cannot be any more strict than this and yet allow late type expansion... JCB
+  (or (symbolp form) (and (consp form) (symbolp (car form))) (clos::classp form)))
 
-(declaim (ftype (function (class class) boolean) subclassp))
+
+(declaim (ftype (function (T T) boolean) subclassp))
 (defun subclassp (low high)
-  (or (eq low high)
-      (dolist (class (sys:instance-ref low 1)) ; (class-superiors low)
-	(when (subclassp class high) (return t)))))
+  (and (clos::classp low)
+       (or (eq low high)
+           (dolist (class (sys:instance-ref low 1)) ; (class-superiors low)
+             (when (subclassp class high) (return t))))))
 
 (defun of-class-p (object class)
   (declare (optimize (speed 3)))
