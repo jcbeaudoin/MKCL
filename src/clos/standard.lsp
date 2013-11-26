@@ -942,8 +942,7 @@
   (let* ((class (si:instance-class obj))
 	 (slotds (class-slots class))
 	 slotname has-shared-slots)
-    (format stream "~%~S is an instance of class ~A"
-	    obj (class-name class))
+    (format stream "~%~S is an instance of class ~S" obj class)
     (when slotds
       ;; print instance slots
       (format stream "~%it has the following instance slots")
@@ -972,6 +971,7 @@
 ;;; ----------------------------------------------------------------------
 ;;; Methods
 
+#-(and) ;; This buys us next to nothing over the standard-object method and is more fragile. JCB
 (defmethod describe-object ((obj standard-class) (stream t))
   (let ((slotds (class-slots (si:instance-class obj))))
     (format t "~%~A is an instance of class ~A"
