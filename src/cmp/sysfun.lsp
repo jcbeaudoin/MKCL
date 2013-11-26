@@ -424,7 +424,7 @@
     (def-inline si:aset :unsafe (fixnum (array bit) fixnum fixnum) :fixnum
       "@01;mkcl_bvset_index_raw(env, #1,(#2)*(#1)->array.dims[1]+(#3), #0)")
     #+unicode
-    (def-inline si:aset :unsafe (character (array chararacter) fixnum fixnum) :wchar
+    (def-inline si:aset :unsafe (character (array character) fixnum fixnum) :wchar
       "@01;((#1)->array.self.ch[(#2)*(#1)->array.dims[1]+(#3)] = (#0))")
     (def-inline si:aset :unsafe (base-char (array base-char) fixnum fixnum) :char
       "@01;((#1)->array.self.bc[(#2)*(#1)->array.dims[1]+(#3)] = (#0))")
