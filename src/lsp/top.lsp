@@ -1465,7 +1465,7 @@ package."
     )
   )
 
-(defmacro with-io-syntax-sane-debugging (&body body)
+(defmacro with-io-syntax-sane-for-debugging (&body body)
   `(with-standard-io-syntax
     (let* ((*print-array* nil)
            (*print-circle* t)
@@ -1477,7 +1477,7 @@ package."
   )
 
 (defun invoke-debugger (condition)
-  (with-io-syntax-sane-debugging
+  (with-io-syntax-sane-for-debugging
    (when *debugger-hook*
      (let* ((old-hook *debugger-hook*)
             (*debugger-hook* nil))
