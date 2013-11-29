@@ -48,7 +48,9 @@ static void mkcl_FEprint_not_readable(MKCL, mkcl_object x) /*__attribute__((nore
 static void
 mkcl_FEprint_not_readable(MKCL, mkcl_object x)
 {
+  mkcl_bds_bind(env, @'*print-readably*', mk_cl_Cnil);
   mk_cl_error(env, 3, @'print-not-readable', @':object', x);
+  mkcl_bds_unwind1(env);
 }
 
 static mkcl_object

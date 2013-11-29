@@ -1465,38 +1465,50 @@ package."
     )
   )
 
+(defmacro with-io-syntax-sane-debugging (&body body)
+  `(with-standard-io-syntax
+    (let* ((*print-array* nil)
+           (*print-circle* t)
+           (*print-length* 30)
+           (*print-level* 20)
+           (*print-lines* 50)
+           (*print-readably* nil))
+      ,@body))
+  )
+
 (defun invoke-debugger (condition)
-  (when *debugger-hook*
-    (let* ((old-hook *debugger-hook*)
-	   (*debugger-hook* nil))
-      (funcall old-hook condition old-hook)))
-  (if (<= 0 *tpl-level*) ;; Do we have a top-level REPL above us?
-      (progn
-	(default-debugger condition)
-	)
-    (let* (;; We do not have a si::top-level invocation above us
-	   ;; so we have to provide the environment for interactive use.
-	   (*break-enable* *break-enable*)
-	   (*debugger-hook* *debugger-hook*)
-	   (*quit-tags* (cons *quit-tag* *quit-tags*))
-	   (*quit-tag* *quit-tags*)	; any unique new value
-	   (*ihs-top* 0) ;; Or should it be 1?
-	   (*tpl-level* (1+ *tpl-level*))
-	   (*tpl-commands* *tpl-commands*)
-	   + ++ +++ - * ** *** / // ///)
-      (catch *quit-tag*
-	(default-debugger condition))
-      ;;(format t "~&Returned from toplevel default debugger.~%")
-      ;;(break "~&Returned from toplevel default debugger.~%")
-      ;; Returning from the debugger through here is a really high
-      ;; risk proposition. It is basically the equivalent
-      ;; a of "continue" restart in a situation where no
-      ;; provision for a continue has been made. Most
-      ;; likely we will quickly get thrown back into the
-      ;; debugger with an even more serious error or we'll get a crash!
-      )
-    )
-  (finish-output))
+  (with-io-syntax-sane-debugging
+   (when *debugger-hook*
+     (let* ((old-hook *debugger-hook*)
+            (*debugger-hook* nil))
+       (funcall old-hook condition old-hook)))
+   (if (<= 0 *tpl-level*) ;; Do we have a top-level REPL above us?
+       (progn
+         (default-debugger condition)
+         )
+     (let* (;; We do not have a si::top-level invocation above us
+            ;; so we have to provide the environment for interactive use.
+            (*break-enable* *break-enable*)
+            (*debugger-hook* *debugger-hook*)
+            (*quit-tags* (cons *quit-tag* *quit-tags*))
+            (*quit-tag* *quit-tags*)	; any unique new value
+            (*ihs-top* 0) ;; Or should it be 1?
+            (*tpl-level* (1+ *tpl-level*))
+            (*tpl-commands* *tpl-commands*)
+            + ++ +++ - * ** *** / // ///)
+       (catch *quit-tag*
+         (default-debugger condition))
+       ;;(format t "~&Returned from toplevel default debugger.~%")
+       ;;(break "~&Returned from toplevel default debugger.~%")
+       ;; Returning from the debugger through here is a really high
+       ;; risk proposition. It is basically the equivalent
+       ;; a of "continue" restart in a situation where no
+       ;; provision for a continue has been made. Most
+       ;; likely we will quickly get thrown back into the
+       ;; debugger with an even more serious error or we'll get a crash!
+       )
+     )
+   (finish-output)))
 
 
 (defun safe-eval (form env err-value)
