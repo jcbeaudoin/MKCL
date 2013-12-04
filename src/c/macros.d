@@ -45,14 +45,16 @@
 static mkcl_object
 search_symbol_macro(MKCL, mkcl_object name, mkcl_object lex_env)
 {
-  for (lex_env = MKCL_CAR(lex_env); lex_env != mk_cl_Cnil; lex_env = MKCL_CDR(lex_env)) {
-    mkcl_object record = MKCL_CAR(lex_env);
-    if (MKCL_CONSP(record) && MKCL_CAR(record) == name) {
-      if (MKCL_CADR(record) == @'si::symbol-macro')
-	return MKCL_CADDR(record);
-      return mk_cl_Cnil;
-    }
-  }
+  if (MKCL_CONSP(lex_env)) /* currently the environment object is a cons. */
+    for (lex_env = MKCL_CAR(lex_env); MKCL_CONSP(lex_env); lex_env = MKCL_CDR(lex_env))
+      {
+        mkcl_object record = MKCL_CAR(lex_env);
+        if (MKCL_CONSP(record) && MKCL_CAR(record) == name) {
+          if (mk_cl_cadr(env, record) == @'si::symbol-macro')
+            return mk_cl_caddr(env, record);
+          return mk_cl_Cnil;
+        }
+      }
   return mk_si_get_sysprop(env, name, @'si::symbol-macro');
 }
 
@@ -60,27 +62,27 @@ static mkcl_object
 search_macro_function(MKCL, mkcl_object name, mkcl_object lex_env)
 {
   int type = mkcl_symbol_type(env, name);
-  if (lex_env != mk_cl_Cnil) {
-    /* When the environment has been produced by the
-       compiler, there might be atoms/symbols signalling
-       closure and block boundaries. */
-    while (!mkcl_Null(lex_env = MKCL_CDR(lex_env))) {
-      mkcl_object record = MKCL_CAR(lex_env);
-      if (MKCL_CONSP(record) && MKCL_CAR(record) == name) {
-	mkcl_object tag = MKCL_CADR(record);
-	if (tag == @'si::macro')
-	  return MKCL_CADDR(record);
-	if (tag == @'function')
-	  return mk_cl_Cnil;
-	break;
+  if (MKCL_CONSP(lex_env)) {  /* currently the environment object is a cons. */
+    for (lex_env = MKCL_CDR(lex_env); MKCL_CONSP(lex_env); lex_env = MKCL_CDR(lex_env))
+      {
+        mkcl_object record = MKCL_CAR(lex_env);
+        /* When the environment has been produced by the
+           compiler, there might be atoms/symbols signalling
+           closure and block boundaries. */
+        if (MKCL_CONSP(record) && MKCL_CAR(record) == name)
+          {
+            const mkcl_object tag = mk_cl_cadr(env, record);
+            if (tag == @'si::macro')
+              return mk_cl_caddr(env, record);
+            else
+              return mk_cl_Cnil;
+          }
       }
-    }
   }
-  if (type & mkcl_stp_macro) {
+  if (type & mkcl_stp_macro)
     return MKCL_SYM_FUN(name);
-  } else {
+  else
     return mk_cl_Cnil;
-  }
 }
 
 @(defun macro_function (sym &optional lex_env)
