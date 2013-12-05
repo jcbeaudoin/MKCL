@@ -288,12 +288,6 @@ q (or Q):             quits the inspection.~%~
 	  ))
 
 (defmethod inspect-obj ((instance standard-object))
-  (unless (eq (si:instance-class (si:instance-class instance))
-              (find-class 'STANDARD-CLASS))
-          (terpri)
-          (format t "No applicable method CLOS::INSPECT-OBJ for an instance~%")
-          (format t "of class ~S" (si:instance-class instance))
-          (throw 'SI::ABORT-INSPECT nil))
   (decf si::*inspect-level*)
   (let* ((class (si:instance-class instance))
 	 (local-slotds (class-local-slots class))
