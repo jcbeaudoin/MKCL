@@ -1530,9 +1530,22 @@ c_leta(MKCL, mkcl_object args, int flags) {
 static int
 c_load_time_value(MKCL, mkcl_object args, int flags)
 {
-  if (mk_cl_rest(env, args) != mk_cl_Cnil)
-    mkcl_FEprogram_error(env, "LOAD-TIME-VALUE: Too many arguments.", 0);
-	return c_values(env, args, flags);
+  if (mkcl_Null(args))
+    mkcl_FEprogram_error(env, "LOAD-TIME-VALUE: Too few arguments.", 0);
+
+  {
+    mkcl_object form = pop(env, &args);
+    mkcl_object read_only_p = pop_maybe_nil(env, &args); /* future use maybe? */
+
+    if (!mkcl_Null(args))
+      mkcl_FEprogram_error(env, "LOAD-TIME-VALUE: Too many arguments.", 0);
+    
+    { /* Assure that this is the NULL environment, both dynamically and lexically. */
+      mkcl_object val = mk_si_eval_in_env(env, 1, form);
+      mkcl_object quoted_val = mkcl_list1(env, mkcl_cons(env, @'quote', mkcl_list1(env, val)));
+      return c_values(env, quoted_val, flags);
+    }
+  }
 }
 
 static int
