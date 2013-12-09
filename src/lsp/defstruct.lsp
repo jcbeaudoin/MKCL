@@ -509,8 +509,9 @@ as a STRUCTURE doc and can be retrieved by (documentation 'NAME 'structure)."
 				    (make-constructor name constructor type named
 						      slot-descriptions))
 				constructors)))
-      `(define-when (:compile-toplevel :load-toplevel :execute)
-	 ,core
+      `(progn
+         (define-when (:compile-toplevel :load-toplevel :execute)
+           ,core)
 	 ,(si::register-with-pde whole)
 	 ,@(subst `(load-time-value (find-class ',name))
 		  '.structure-constructor-class.
