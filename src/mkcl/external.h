@@ -157,9 +157,6 @@ extern "C" {
     mkcl_index cs_size_request;
   };
 
-#if 0
-  typedef struct mkcl_env_struct *mkcl_env_ptr; /* Should disappear soon! use mkcl_env */
-#endif
 
   typedef struct mkcl_env_struct * mkcl_env;
 
@@ -271,15 +268,6 @@ extern "C" {
     volatile mkcl_object children;
     volatile mkcl_object detached_children;
 
-#if 0
-    mkcl_object unicode_database;
-    uint8_t *ucd_misc;
-    uint8_t *ucd_pages;
-    uint8_t *ucd_data;
-
-    mkcl_object clear_compiler_properties;
-#endif
-
 #ifdef HASHTABLE_STATS /* JCB */
     mkcl_object hashtables[mkcl_htt_package + 1];
 #endif
@@ -348,9 +336,6 @@ extern "C" {
   extern MKCL_API void mkcl_dealloc(MKCL, void *);
 #define mkcl_alloc_align(e,s,d) mkcl_alloc(e,s)
 #define mkcl_alloc_atomic_align(e,s,d) mkcl_alloc_atomic(e,s)
-#if 0
-#define mkcl_register_static_root(e,x) mkcl_register_root(e,x)
-#endif
 
   extern MKCL_API void * mkcl_foreign_malloc(MKCL, size_t size);
   extern MKCL_API void mkcl_foreign_free(MKCL, void *);
@@ -422,13 +407,9 @@ extern "C" {
   extern MKCL_API mkcl_object mk_si_fill_array_with_elt(MKCL, mkcl_object array, mkcl_object elt, mkcl_object start, mkcl_object end);
 
   extern MKCL_API mkcl_index mkcl_to_array_index(MKCL, mkcl_object n);
-  /* extern MKCL_API mkcl_object mkcl_aref_index(MKCL, mkcl_object x, mkcl_index index); */
   extern MKCL_API mkcl_object mkcl_aref(MKCL, mkcl_object x, mkcl_object index);
-  /* extern MKCL_API mkcl_object mkcl_vref_index(MKCL, mkcl_object v, mkcl_index index); */
   extern MKCL_API mkcl_object mkcl_vref(MKCL, mkcl_object v, mkcl_object index);
-  /* extern MKCL_API mkcl_object mkcl_aset_index(MKCL, mkcl_object x, mkcl_index index, mkcl_object value); */
   extern MKCL_API mkcl_object mkcl_aset(MKCL, mkcl_object x, mkcl_object index, mkcl_object value);
-  /* extern MKCL_API mkcl_object mkcl_vset_index(MKCL, mkcl_object v, mkcl_index index, mkcl_object val); */
   extern MKCL_API mkcl_object mkcl_vset(MKCL, mkcl_object v, mkcl_object index, mkcl_object val);
   extern MKCL_API mkcl_object mkcl_bvref_index(MKCL, mkcl_object x, mkcl_index index);
   extern MKCL_API mkcl_object mkcl_bvref(MKCL, mkcl_object x, mkcl_object index);
@@ -555,7 +536,6 @@ extern "C" {
   static inline bool mkcl_graphic_char_p(mkcl_character code) { return code > 159 || ((31 < code) && (code < 127)); } /* SBCL compatible */
 
 
-#if 1
 #include <mkcl/mkcl-unicode.h>
 
   static inline const struct mkcl_unichar_info * mkcl_unicode_character_information(mkcl_character code)
@@ -634,55 +614,6 @@ extern "C" {
       return code;
   }
 
-#else
-  static inline uint8_t * mkcl_ucd_char_data(mkcl_character code)
-  {
-    unsigned char page = mkcl_core.ucd_pages[code >> 8];
-    return mkcl_core.ucd_data + ((mkcl_index)page << 10) + 4 * (code & 0xFF);
-  }
-
-  static inline mkcl_index mkcl_ucd_value_0(mkcl_character code) { return mkcl_ucd_char_data(code)[0]; }
-
-  static inline mkcl_character mkcl_ucd_value_1(mkcl_character code)
-  {
-    uint8_t *c = mkcl_ucd_char_data(code);
-    return(c[0] + (c[1] << 8) + (c[2] << 16));
-  }
-
-  static inline int mkcl_ucd_general_category(mkcl_character code) {return mkcl_core.ucd_misc[8 * mkcl_ucd_value_0(code)];}
-  static inline int mkcl_ucd_decimal_digit(mkcl_character code) {return mkcl_core.ucd_misc[3 + 8 * mkcl_ucd_value_0(code)];}
-
-  static inline bool mkcl_alpha_char_p(mkcl_character code) { return mkcl_ucd_general_category(code) < 5; }
-  static inline bool mkcl_upper_case_p(mkcl_character code) { return mkcl_ucd_value_0(code) == 0; }
-  static inline bool mkcl_lower_case_p(mkcl_character code) { return mkcl_ucd_value_0(code) == 1; }
-  static inline bool mkcl_both_case_p(mkcl_character code) { return mkcl_ucd_value_0(code) < 2; }
-  
-  static inline bool mkcl_alphanumericp(mkcl_character i)
-  {
-    int gc = mkcl_ucd_general_category(i);
-    return (gc < 5) || (gc == 12);
-  }
-
-  static inline mkcl_character mkcl_char_upcase(mkcl_character code)
-  {
-    uint8_t *c = mkcl_ucd_char_data(code);
-    if (c[0] == 1) {
-      c++;
-      return(c[0] + (c[1] << 8) + (c[2] << 16));
-    } else 
-      return code;
-  }
-
-  static inline mkcl_character mkcl_char_downcase(mkcl_character code)
-  {
-    uint8_t *c = mkcl_ucd_char_data(code);
-    if (c[0] == 0) {
-      c++;
-      return(c[0] + (c[1] << 8) + (c[2] << 16));
-    } else 
-      return code;
-  }
-#endif
 
   extern MKCL_API void mkcl_FEtype_error_character(MKCL, mkcl_object x) mkcl_noreturn;
   extern MKCL_API void mkcl_FEtype_error_base_char(MKCL, mkcl_object x) mkcl_noreturn;
@@ -1004,9 +935,6 @@ extern "C" {
 
 #define MK_GC_enabled() (!MK_GC_dont_gc)
 
-#if 0
-  extern MKCL_API void mkcl_register_root(MKCL, mkcl_object *p);
-#endif
 
 
   /* gfun.c */
@@ -1264,11 +1192,7 @@ extern "C" {
     MKCL_OPT_LISP_TEMP_STACK_INITIAL_SIZE,
     MKCL_OPT_LISP_TEMP_STACK_OVERFLOW_SIZE,
     MKCL_OPT_INTERRUPT_THREAD_CALL_STACK_SIZE,
-#if 0 /* Incompatible with Boehm's GC */
-    MKCL_OPT_SIGALTSTACK_SIZE,
-#else
     MKCL_OPT_CALL_STACK_OVERFLOW_SIZE,
-#endif
     MKCL_OPT_HEAP_SIZE,
     MKCL_OPT_HEAP_SAFETY_AREA,
     MKCL_OPT_MAXIMUM /* Not a real option, just an end of enum sequence marker. */
@@ -1993,7 +1917,6 @@ extern "C" {
   extern MKCL_API mkcl_object mkcl_cstring_to_base_string(MKCL, const char *s);
   extern MKCL_API bool mkcl_string_E(MKCL, mkcl_object x, mkcl_object y);
   extern MKCL_API bool mkcl_member_char(MKCL, mkcl_character c, mkcl_object char_bag);
-  /* extern MKCL_API mkcl_index mkcl_string_push_extend(MKCL, mkcl_object s, mkcl_character c); */
   extern MKCL_API void mkcl_get_string_start_end(MKCL, mkcl_object s, mkcl_object start, mkcl_object end, mkcl_index *ps, mkcl_index *pe);
   extern MKCL_API bool mkcl_fits_in_base_string(MKCL, mkcl_object s);
   extern MKCL_API mkcl_character mkcl_char(MKCL, mkcl_object s, mkcl_index i);
@@ -2174,9 +2097,6 @@ extern "C" {
   extern MKCL_API mkcl_object mk_mt_terminate_thread(MKCL) mkcl_noreturn;
   extern MKCL_API mkcl_object mk_mt_cancel_thread(MKCL) mkcl_noreturn;
   extern MKCL_API mkcl_object mk_mt_abort_thread(MKCL) mkcl_noreturn;
-#if 0
-  extern MKCL_API mkcl_object mk_mt_scuttle_thread(MKCL) mkcl_noreturn;
-#endif
   extern MKCL_API mkcl_object mk_mt_interrupt_thread(MKCL, mkcl_narg narg, mkcl_object thread, mkcl_object function, ...);
   extern MKCL_API mkcl_object mk_mt_make_thread(MKCL, mkcl_narg narg, ...);
   extern MKCL_API mkcl_object mk_mt_thread_active_p(MKCL, mkcl_object thread);
@@ -2193,9 +2113,6 @@ extern "C" {
   extern MKCL_API mkcl_object mk_mt_unblock_signals(MKCL);
   extern MKCL_API mkcl_object mk_mt_thread_preset(MKCL, mkcl_narg narg, mkcl_object thread, mkcl_object function, ...);
   extern MKCL_API mkcl_object mk_mt_thread_run_function(MKCL, mkcl_narg narg, mkcl_object name, mkcl_object function, ...);
-#if 0
-  extern MKCL_API mkcl_object mk_mt_thread_whostate(MKCL, mkcl_object thread);
-#endif
   extern MKCL_API mkcl_object mk_mt_thread_status(MKCL, mkcl_object thread);
   extern MKCL_API mkcl_object mk_mt_make_lock(MKCL, mkcl_narg narg, ...);
   extern MKCL_API mkcl_object mk_mt_recursive_lock_p(MKCL, mkcl_object lock);
@@ -2306,11 +2223,7 @@ extern "C" {
   extern MKCL_API mkcl_object mk_cl_probe_file(MKCL, mkcl_object file);
   extern MKCL_API mkcl_object mk_cl_file_write_date(MKCL, mkcl_object file);
   extern MKCL_API mkcl_object mk_cl_file_author(MKCL, mkcl_object file);
-#if 0
-  extern MKCL_API mkcl_object mk_si_file_kind(MKCL, mkcl_object pathname, mkcl_object follow_links);
-#else
   extern MKCL_API mkcl_object mk_si_file_kind(MKCL, mkcl_narg narg, mkcl_object filespec, ...);
-#endif
   extern MKCL_API mkcl_object mk_mkcl_getcwd(MKCL, mkcl_narg narg, ...);
   extern MKCL_API mkcl_object mk_si_getpid(MKCL);
   extern MKCL_API mkcl_object mk_si_gettid(MKCL);
@@ -2452,10 +2365,6 @@ extern "C" {
   extern MKCL_API mkcl_object mk_si_list_all_children(MKCL); /* debug JCB */
   extern MKCL_API mkcl_object mk_si_trace_specials(MKCL); /* debug JCB */
   extern MKCL_API mkcl_object mk_si_untrace_specials(MKCL); /* debug JCB */
-#if 0
-  extern MKCL_API mkcl_object mk_si_trace_closure_creation(MKCL); /* debug JCB */
-  extern MKCL_API mkcl_object mk_si_untrace_closure_creation(MKCL); /* debug JCB */
-#endif
 
 
   /* unicode -- no particular file, but we group these changes here */
@@ -2549,7 +2458,7 @@ extern "C" {
   extern MKCL_API mkcl_object mk_cl_load_logical_pathname_translations(MKCL, mkcl_narg, mkcl_object V1, ...);
   extern MKCL_API mkcl_object mk_cl_decode_universal_time(MKCL, mkcl_narg narg, mkcl_object V1, ...);
   extern MKCL_API mkcl_object mk_cl_encode_universal_time(MKCL, mkcl_narg narg, mkcl_object V1, mkcl_object V2, mkcl_object V3, mkcl_object V4, mkcl_object V5, mkcl_object V6, ...);
-  extern MKCL_API mkcl_object mk_cl_get_decoded_time(MKCL, mkcl_narg narg, ...);
+  extern MKCL_API mkcl_object mk_cl_get_decoded_time(MKCL);
   extern MKCL_API mkcl_object mk_cl_ensure_directories_exist(MKCL, mkcl_narg narg, mkcl_object V1, ...);
 
   /* module.lsp */
@@ -2687,8 +2596,6 @@ extern "C" {
       mkcl_FEnot_fixnum_type(env, obj);
   }
 
-  /* extern MKCL_API mkcl_object mkcl_make_big_integer(MKCL, mkcl_word l); */
-
   static inline mkcl_object mkcl_make_integer(MKCL, mkcl_word l)
   {
     if (mkcl_likely(MKCL_MOST_NEGATIVE_FIXNUM <= l && l <= MKCL_MOST_POSITIVE_FIXNUM))
@@ -2696,8 +2603,6 @@ extern "C" {
     else
       return mkcl_make_big_integer(env, l);
   }
-
-  /* extern MKCL_API mkcl_object mkcl_make_big_unsigned_integer(MKCL, mkcl_index l); */
 
   static inline mkcl_object mkcl_make_unsigned_integer(MKCL, mkcl_index l)
   {
@@ -3115,7 +3020,6 @@ extern "C" {
 
     if (!((v == MKCL_MAKE_FIXNUM(0)) || (v == MKCL_MAKE_FIXNUM(1))))
       {
-	/* extern const mkcl_object mk_si_aset_symbol; */
 	v = mkcl_ensure_bit_type_for_aset(env, v);
       }
     b = mkcl_fixnum_to_word(v);
@@ -3690,7 +3594,6 @@ extern "C" {
 
     if (mkcl_unlikely(fillp >= vec->vector.dim)) return mk_cl_Cnil;
 
-    /* mkcl_vset_index(env, vec, fillp, new_element); */
     vec->vector.set(env, vec, fillp, new_element);
     vec->vector.fillp = fillp + 1;
     return MKCL_MAKE_FIXNUM(fillp);
@@ -3769,7 +3672,6 @@ extern "C" {
 
     if (mkcl_unlikely(fillp >= vec->vector.dim)) mkcl_extend_vector(env, vec);
 
-    /* mkcl_vset_index(env, vec, fillp, new_element); */
     vec->vector.set(env, vec, fillp, new_element);
     vec->vector.fillp = fillp + 1;
     return fillp;
