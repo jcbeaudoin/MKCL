@@ -79,8 +79,7 @@
 
 (defmacro proclaim-function (name arg-types return-type
 			     &key no-sp-change predicate no-side-effects)
-  (unless (or ;;(null arg-types)
-	      (equal arg-types '(*)))
+  (unless (equal arg-types '(*))
     (put-sysprop name 'proclaimed-arg-types
 		 (mapcar #'(lambda (x) 
 			     (if (member x '(* &optional &rest &key &allow-other-keys))
@@ -1068,11 +1067,9 @@
 
     (proclaim-function car (list) t :no-side-effects t)
     (def-inline car :always (list) t "@0;MKCL_CAR(#0)") ;; Is this really safe? JCB
-    ;;(def-inline car :unsafe (list) t "@0;MKCL_CAR(#0)")
 
     (proclaim-function cdr (list) t :no-side-effects t)
     (def-inline cdr :always (list) t "@0;MKCL_CDR(#0)") ;; Is this really safe? JCB
-    ;;(def-inline cdr :unsafe (list) t "@0;MKCL_CDR(#0)")
 
     (proclaim-function caar (list) t :no-side-effects t)
     (def-inline caar :always (list) t "mk_cl_car(env, mk_cl_car(env, #0))")
@@ -1193,7 +1190,6 @@
     (proclaim-function endp (list) t :predicate t :no-side-effects t)
     (def-inline endp :always (t) :bool "mkcl_endp(env, #0)")
     (def-inline endp :always (list) :bool "mkcl_Null(#0)")
-    ;;(def-inline endp :unsafe (t) :bool "((#0)==mk_cl_Cnil)") ;; inexact. JCB
 
     (proclaim-function list-length (list) (or nil (integer 0 *)))
     (proclaim-function nth (integer list) t :no-side-effects t)
@@ -1204,19 +1200,15 @@
 
     (proclaim-function first (list) t :no-side-effects t)
     (def-inline first :always (list) t "@0;MKCL_CAR(#0)")
-    ;;(def-inline first :unsafe (list) t "@0;MKCL_CAR(#0)")
 
     (proclaim-function second (list) t :no-side-effects t)
     (def-inline second :always (list) t "mk_cl_car(env, mk_cl_cdr(env, #0))")
-    ;;(def-inline second :unsafe (list) t "@0;MKCL_CADR(#0)")
 
     (proclaim-function third (list) t :no-side-effects t)
     (def-inline third :always (list) t "mk_cl_car(env, mk_cl_cdr(env, mk_cl_cdr(env, #0)))")
-    ;;(def-inline third :unsafe (list) t "@0;MKCL_CADDR(#0)")
 
     (proclaim-function fourth (list) t :no-side-effects t)
     (def-inline fourth :always (list) t "mk_cl_car(env, mk_cl_cdr(env, mk_cl_cdr(env, mk_cl_cdr(env, #0))))")
-    ;;(def-inline fourth :unsafe (list) t "@0;MKCL_CADDDR(#0)")
 
     (proclaim-function fifth (list) t)
     (proclaim-function sixth (list) t)
@@ -1226,7 +1218,6 @@
     (proclaim-function tenth (list) t)
     (proclaim-function rest (list) t :no-side-effects t)
     (def-inline rest :always (list) t "@0;MKCL_CDR(#0)")
-    ;;(def-inline rest :unsafe (list) t "@0;MKCL_CDR(#0)")
 
     (proclaim-function nthcdr (fixnum list) t :no-side-effects t)
     (def-inline nthcdr :always (t t) t "mkcl_nthcdr(env, mkcl_safe_fixnum_to_word(env, #0),#1)")
@@ -1296,7 +1287,6 @@
 
     ;; file macros.d
 
-    ;;(proclaim-function si::define-macro (*) t)
     (proclaim-function macroexpand (t *) (values t t))
     (proclaim-function macroexpand-1 (t *) (values t t))
 
@@ -1685,7 +1675,6 @@
     (proclaim-function list-all-packages () t)
     (proclaim-function intern (string *) (values t t))
     (proclaim-function find-symbol (string *) (values t t))
-    ;;(proclaim-function unintern (symbol t) t) ;; bad signature
     (proclaim-function unintern (t *) t)
     (proclaim-function export (t *) t)
     (proclaim-function unexport (t *) t)
@@ -1864,7 +1853,6 @@
     (def-inline print :always (t t) t "mkcl_print(env, #0,#1)")
     (def-inline print :always (t) t "mkcl_print(env, #0,mk_cl_Cnil)")
 
-    ;;(proclaim-function probe-file (t) t :predicate t) ;; should it be replaced by mkcl:probe-file-p?
     (proclaim-function unread-char (t *) t)
     (proclaim-function read (*) t)
     (proclaim-function read-char (*) t)
@@ -1941,14 +1929,6 @@
     (proclaim-function subseq (sequence fixnum *) sequence)
     (proclaim-function copy-seq (sequence) sequence)
     (proclaim-function length (sequence) fixnum :no-side-effects t)
-    ;;(def-inline length :always (t) t "MKCL_MAKE_FIXNUM(mkcl_length(env, #0))")
-    ;;(def-inline length :always (t) :fixnum "mkcl_length(env, #0)")
-    ;; #+unicode
-    ;; (def-inline length :always (string) t "MKCL_MAKE_FIXNUM(mkcl_string_length(env, #0))")
-    ;; #+unicode
-    ;; (def-inline length :always (string) :fixnum "mkcl_string_length(env, #0)")
-    ;; (def-inline length :always (base-string) t "MKCL_MAKE_FIXNUM(mkcl_base_string_length(env, #0))")
-    ;; (def-inline length :always (base-string) :fixnum "mkcl_base_string_length(env, #0)")
     (def-inline length :always (t) t "mkcl_make_unsigned_integer(env, mkcl_length(env, #0))")
     #+unicode
     (def-inline length :always (string) t "mkcl_make_unsigned_integer(env, mkcl_string_length(env, #0))")
@@ -2298,7 +2278,6 @@
 ;;; SI::ECASE-ERROR will be compiled to a function called mk_si_8_ECASE__ERROR, etc.
 ;;;
 
-;;(in-package "SI")
 
 
 (proclaim
