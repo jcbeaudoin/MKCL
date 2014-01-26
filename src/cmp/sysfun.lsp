@@ -79,7 +79,7 @@
 
 (defmacro proclaim-function (name arg-types return-type
 			     &key no-sp-change predicate no-side-effects)
-  (unless (or (null arg-types)
+  (unless (or ;;(null arg-types)
 	      (equal arg-types '(*)))
     (put-sysprop name 'proclaimed-arg-types
 		 (mapcar #'(lambda (x) 
@@ -1304,10 +1304,10 @@
 
     (proclaim-function mkcl:quit (*) t)
     (proclaim-function identity (t) t)
-    (proclaim-function si:argc (*) t)
-    (proclaim-function si:argv (*) t)
-    (proclaim-function mkcl:getenv (*) t)
-    (proclaim-function si:pointer (*) t)
+    (proclaim-function si:argc () t)
+    (proclaim-function si:argv (t) t)
+    (proclaim-function mkcl:getenv (t) t)
+    (proclaim-function si:pointer (t) t)
 
     ;; file mapfun.d
 
@@ -1682,10 +1682,11 @@
     (proclaim-function package-use-list (t) t)
     (proclaim-function package-used-by-list (t) t)
     (proclaim-function package-shadowing-symbols (t) t)
-    (proclaim-function list-all-packages (*) t)
+    (proclaim-function list-all-packages () t)
     (proclaim-function intern (string *) (values t t))
     (proclaim-function find-symbol (string *) (values t t))
-    (proclaim-function unintern (symbol t) t)
+    ;;(proclaim-function unintern (symbol t) t) ;; bad signature
+    (proclaim-function unintern (t *) t)
     (proclaim-function export (t *) t)
     (proclaim-function unexport (t *) t)
     (proclaim-function import (t *) t)
