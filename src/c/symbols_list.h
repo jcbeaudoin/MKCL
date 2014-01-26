@@ -453,7 +453,7 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
   {{"GENSYM", CL_ORDINARY, mk_cl_gensym, -1, MKCL_OBJNULL}},
   {{"GENTEMP", CL_ORDINARY, mk_cl_gentemp, -1, MKCL_OBJNULL}},
   {{"GET", CL_ORDINARY, mk_cl_get, -1, MKCL_OBJNULL}},
-  {{"GET-DECODED-TIME", CL_ORDINARY, MKCL_IN_LISP(mk_cl_get_decoded_time), -1, MKCL_OBJNULL}},
+  {{"GET-DECODED-TIME", CL_ORDINARY, MKCL_IN_LISP(mk_cl_get_decoded_time), 0, MKCL_OBJNULL}},
   {{"GET-DISPATCH-MACRO-CHARACTER", CL_ORDINARY, mk_cl_get_dispatch_macro_character, -1, MKCL_OBJNULL}},
   {{"GET-INTERNAL-REAL-TIME", CL_ORDINARY, mk_cl_get_internal_real_time, 0, MKCL_OBJNULL}},
   {{"GET-INTERNAL-RUN-TIME", CL_ORDINARY, mk_cl_get_internal_run_time, 0, MKCL_OBJNULL}},
