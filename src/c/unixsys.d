@@ -147,7 +147,7 @@ static mkcl_object read_command_output(MKCL, HANDLE child_stdout_read)
   return output;
 }
 
-@(defun si::run-command (command directory &key real_name)
+@(defun mkcl::run-command (command directory &key real_name)
 @
   mkcl_dynamic_extent_OSstring(env, os_command, command);
   mkcl_dynamic_extent_OSstring(env, os_new_directory, (mkcl_Null(directory) ? mkcl_core.empty_string : directory));
@@ -169,26 +169,26 @@ static mkcl_object read_command_output(MKCL, HANDLE child_stdout_read)
 
   /* create stdout */
   if (!CreatePipe(&child_stdout_read_tmp, &child_stdout_write, &sec_attr, 0))
-    mkcl_FEwin32_error(env, "si::run-command failed on CreatePipe", 0);
+    mkcl_FEwin32_error(env, "mkcl::run-command failed on CreatePipe", 0);
 
   /* create stderr, handle has bInheritHandle to TRUE. */
   if (!DuplicateHandle(current, child_stdout_write, current, &child_stderr,
 		       0, TRUE, DUPLICATE_SAME_ACCESS))
-    mkcl_FEwin32_error(env, "si::run-command failed on DuplicateHandle", 0);
+    mkcl_FEwin32_error(env, "mkcl::run-command failed on DuplicateHandle", 0);
 
   /* create stdin */
   child_stdin = CreateFileW(L"NUL", GENERIC_READ,
 			    FILE_SHARE_READ | FILE_SHARE_WRITE,
 			    &sec_attr, OPEN_EXISTING, 0, NULL);
   if (child_stdin == INVALID_HANDLE_VALUE)
-    mkcl_FEwin32_error(env, "si::run-command failed to open NUL device", 0);
+    mkcl_FEwin32_error(env, "mkcl::run-command failed to open NUL device", 0);
 
   /* create stderr, handle has bInheritHandle to FALSE. */
   if (!DuplicateHandle(current, child_stdout_read_tmp, current, &child_stdout_read,
 		       0, FALSE, DUPLICATE_SAME_ACCESS))
-    mkcl_FEwin32_error(env, "si::run-command failed on DuplicateHandle", 0);
+    mkcl_FEwin32_error(env, "mkcl::run-command failed on DuplicateHandle", 0);
   if (!CloseHandle(child_stdout_read_tmp))
-    mkcl_FEwin32_error(env, "si::run-command failed on CloseHandle", 0);
+    mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
 
 
   ZeroMemory(&StartUp, sizeof(STARTUPINFO));
@@ -241,14 +241,14 @@ static mkcl_object read_command_output(MKCL, HANDLE child_stdout_read)
 		       1, command);
 
   if (!CloseHandle(ProcInfo.hThread))
-    mkcl_FEwin32_error(env, "si::run-command failed on CloseHandle", 0);
+    mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
 
   if (!CloseHandle(child_stdin))
-    mkcl_FEwin32_error(env, "si::run-command failed on CloseHandle", 0);
+    mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
   if (!CloseHandle(child_stdout_write))
-    mkcl_FEwin32_error(env, "si::run-command failed on CloseHandle", 0);
+    mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
   if (!CloseHandle(child_stderr))
-    mkcl_FEwin32_error(env, "si::run-command failed on CloseHandle", 0);
+    mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
 
   /* Recover child output. */
   output = read_command_output(env, child_stdout_read);
@@ -267,19 +267,19 @@ static mkcl_object read_command_output(MKCL, HANDLE child_stdout_read)
       {
       case WAIT_OBJECT_0: break;
       default:
-	mkcl_FEwin32_error(env, "si::run-command failed on WaitForSingleObject", 0);
+	mkcl_FEwin32_error(env, "mkcl::run-command failed on WaitForSingleObject", 0);
       }
     mk_mt_test_for_thread_shutdown(env);
   }
 
   if (!GetExitCodeProcess(ProcInfo.hProcess, &ExitCode))
-    mkcl_FEwin32_error(env, "si::run-command failed on GetExitCodeProcess", 0);
+    mkcl_FEwin32_error(env, "mkcl::run-command failed on GetExitCodeProcess", 0);
 
   if (!CloseHandle(child_stdout_read))
-    mkcl_FEwin32_error(env, "si::run-command failed on CloseHandle", 0);
+    mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
 
   if (!CloseHandle(ProcInfo.hProcess))
-    mkcl_FEwin32_error(env, "si::run-command failed on CloseHandle", 0);
+    mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
 
 #ifdef WIN64
   { @(return MKCL_MAKE_FIXNUM(ExitCode) output); }
@@ -452,7 +452,7 @@ static int my_exec_command(mkcl_char8 * cmd_real_name, mkcl_char8 * cmd_line)
   }
 }
 
-@(defun si::run-command (cmd_string directory &key real_name)
+@(defun mkcl::run-command (cmd_string directory &key real_name)
 @
   static const mkcl_base_string_object(dummy_real_name, "");
   mkcl_object real_name_proxy = (mkcl_Null(real_name) ? (mkcl_object)&dummy_real_name : real_name);
@@ -531,7 +531,7 @@ static int my_exec_command(mkcl_char8 * cmd_real_name, mkcl_char8 * cmd_line)
 
     if (chdir(os_raw_new_directory))
       {
-	fprintf(stderr, "\nMKCL: si::run-command: chdir(%s): ", os_raw_new_directory);
+	fprintf(stderr, "\nMKCL: mkcl::run-command: chdir(%s): ", os_raw_new_directory);
       }
     else 
       {
@@ -543,7 +543,7 @@ static int my_exec_command(mkcl_char8 * cmd_real_name, mkcl_char8 * cmd_line)
 	else
 	  my_exec_command(mkcl_OSstring_self(os_cmd_real_name), mkcl_OSstring_self(os_cmd));
 #endif
-	fprintf(stderr, "\nMKCL: si::run-command: %s: ", mkcl_OSstring_self(os_cmd));
+	fprintf(stderr, "\nMKCL: mkcl::run-command: %s: ", mkcl_OSstring_self(os_cmd));
       }
     perror(NULL);
     fflush(stderr);
@@ -650,7 +650,7 @@ mkcl_object mk_mkcl_system (MKCL, mkcl_object cmd_string)
 
 
 mkcl_object
-mk_si_getpid(MKCL)
+mk_mkcl_getpid(MKCL)
 {
   mkcl_call_stack_check(env);
   @(return MKCL_MAKE_FIXNUM(getpid()));
@@ -668,7 +668,7 @@ pid_t mkcl_gettid(void)
 }
 
 mkcl_object
-mk_si_gettid(MKCL)
+mk_mkcl_gettid(MKCL)
 {
   mkcl_call_stack_check(env);
   @(return MKCL_MAKE_FIXNUM(mkcl_gettid()));
@@ -1181,7 +1181,7 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
 	      execv(mkcl_OSstring_self(os_command), exec_argv);
 	    else
 	      execvp(mkcl_OSstring_self(os_command), exec_argv);
-	    fprintf(stderr, "\nMKCL: si::run-command: %s: ", mkcl_OSstring_self(os_command));
+	    fprintf(stderr, "\nMKCL: mkcl::run-command: %s: ", mkcl_OSstring_self(os_command));
 	  }
 	/* at this point exec has failed */
 	perror(NULL);
@@ -1353,7 +1353,7 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
 
 void mkcl_finalize_process(MKCL, mkcl_object proc)
 {
-  mk_si_process_status(env, proc);
+  mk_mkcl_process_status(env, proc);
 #if __unix
   delete_pid_from_children(env, proc->process.ident);
 #elif defined(MKCL_WINDOWS)
@@ -1371,27 +1371,27 @@ void mkcl_finalize_process(MKCL, mkcl_object proc)
 }
 
 
-mkcl_object mk_si_process_command(MKCL, mkcl_object proc)
+mkcl_object mk_mkcl_process_command(MKCL, mkcl_object proc)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
-    mkcl_FEwrong_type_argument(env, @'si::process', proc);
+    mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
   @(return proc->process.command);
 }
 
-mkcl_object mk_si_process_argv(MKCL, mkcl_object proc)
+mkcl_object mk_mkcl_process_argv(MKCL, mkcl_object proc)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
-    mkcl_FEwrong_type_argument(env, @'si::process', proc);
+    mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
   @(return proc->process.argv);
 }
 
-mkcl_object mk_si_process_id(MKCL, mkcl_object proc)
+mkcl_object mk_mkcl_process_id(MKCL, mkcl_object proc)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
-    mkcl_FEwrong_type_argument(env, @'si::process', proc);
+    mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
   else if (proc->process.detached)
     { @(return @':detached'); }
 
@@ -1407,37 +1407,37 @@ mkcl_object mk_si_process_id(MKCL, mkcl_object proc)
 }
 
 
-mkcl_object mk_si_process_input(MKCL, mkcl_object proc)
+mkcl_object mk_mkcl_process_input(MKCL, mkcl_object proc)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
-    mkcl_FEwrong_type_argument(env, @'si::process', proc);
+    mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
   @(return proc->process.input);
 }
 
-mkcl_object mk_si_process_output(MKCL, mkcl_object proc)
+mkcl_object mk_mkcl_process_output(MKCL, mkcl_object proc)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
-    mkcl_FEwrong_type_argument(env, @'si::process', proc);
+    mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
   @(return proc->process.output);
 }
 
-mkcl_object mk_si_process_error(MKCL, mkcl_object proc)
+mkcl_object mk_mkcl_process_error(MKCL, mkcl_object proc)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
-    mkcl_FEwrong_type_argument(env, @'si::process', proc);
+    mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
   @(return proc->process.error);
 }
 
-mkcl_object mk_si_process_status(MKCL, mkcl_object proc)
+mkcl_object mk_mkcl_process_status(MKCL, mkcl_object proc)
 {
   mkcl_os_process_t child_pid;
 
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
-    mkcl_FEwrong_type_argument(env, @'si::process', proc);
+    mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
   else if (proc->process.detached)
     { @(return @':detached'); }
 
@@ -1479,15 +1479,15 @@ mkcl_object mk_si_process_status(MKCL, mkcl_object proc)
   @(return proc->process.status);
 }
 
-mkcl_object mk_si_process_exit_code(MKCL, mkcl_object proc)
+mkcl_object mk_mkcl_process_exit_code(MKCL, mkcl_object proc)
 {
   mkcl_exit_code_t exit_code;
 
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
-    mkcl_FEwrong_type_argument(env, @'si::process', proc);
+    mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
   if (proc->process.status != @':exited')
-    mk_si_process_status(env, proc);
+    mk_mkcl_process_status(env, proc);
   else if (proc->process.detached)
     { @(return @':detached'); }
 
@@ -1505,37 +1505,37 @@ mkcl_object mk_si_process_exit_code(MKCL, mkcl_object proc)
 #endif
 }
 
-mkcl_object mk_si_process_p(MKCL, mkcl_object proc)
+mkcl_object mk_mkcl_process_p(MKCL, mkcl_object proc)
 {
   @(return ((mkcl_type_of(proc) != mkcl_t_process) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-mkcl_object mk_si_process_plist(MKCL, mkcl_object proc)
+mkcl_object mk_mkcl_process_plist(MKCL, mkcl_object proc)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
-    mkcl_FEwrong_type_argument(env, @'si::process', proc);
+    mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
   @(return proc->process.plist);
 }
 
-mkcl_object mk_si_set_process_plist(MKCL, mkcl_object proc, mkcl_object plist)
+mkcl_object mk_mkcl_set_process_plist(MKCL, mkcl_object proc, mkcl_object plist)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
-    mkcl_FEwrong_type_argument(env, @'si::process', proc);
+    mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
   @(return (proc->process.plist = plist));
 }
 
 
 
-mkcl_object mk_si_join_process(MKCL, mkcl_object proc)
+mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
-    mkcl_FEwrong_type_argument(env, @'si::process', proc);
+    mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
 
   if (proc->process.status == @':exited')
-    return mk_si_process_exit_code(env, proc);
+    return mk_mkcl_process_exit_code(env, proc);
   else if (proc->process.detached)
     { @(return @':detached'); }
 
@@ -1604,10 +1604,10 @@ mkcl_object mk_si_join_process(MKCL, mkcl_object proc)
 }
 
 
-@(defun si::terminate-process (proc &key force)
+@(defun mkcl::terminate-process (proc &key force)
 @
   if (mkcl_type_of(proc) != mkcl_t_process)
-    mkcl_FEwrong_type_argument(env, @'si::process', proc);
+    mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
 
   if (proc->process.status == @':exited' /* || proc->process.detached */)
     { @(return mk_cl_Cnil); }
@@ -1616,25 +1616,25 @@ mkcl_object mk_si_join_process(MKCL, mkcl_object proc)
   if (mkcl_Null(force))
     {
       if (kill(proc->process.ident, SIGTERM))
-	mkcl_FElibc_error(env, "si::terminate-process failed on kill().", 0);
+	mkcl_FElibc_error(env, "mkcl:terminate-process failed on kill().", 0);
     }
   else
     if (kill(proc->process.ident, SIGKILL))
-      mkcl_FElibc_error(env, "si::terminate-process failed on kill().", 0);
+      mkcl_FElibc_error(env, "mkcl:terminate-process failed on kill().", 0);
 
 #elif defined(MKCL_WINDOWS)
   if (!TerminateProcess(proc->process.ident, -1))
-    mkcl_FEwin32_error(env, "si:terminate-process failed on TerminateProcess()", 0);
+    mkcl_FEwin32_error(env, "mkcl:terminate-process failed on TerminateProcess()", 0);
 #endif
 
   @(return mk_cl_Cnil);  
 @)
 
-mkcl_object mk_si_detach_process(MKCL, mkcl_object proc)
+mkcl_object mk_mkcl_detach_process(MKCL, mkcl_object proc)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
-    mkcl_FEwrong_type_argument(env, @'si::process', proc);
+    mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
 #if __unix
   mkcl_os_process_t id = proc->process.ident;
 
@@ -1648,7 +1648,7 @@ mkcl_object mk_si_detach_process(MKCL, mkcl_object proc)
       if (locked) CHILDREN_LIST_UNLOCK(env);
     } MKCL_UNWIND_PROTECT_END;
   }
-  if (mk_si_process_status(env, proc) == @':exited') /* proc may have exited before detached_children was updated. */
+  if (mk_mkcl_process_status(env, proc) == @':exited') /* proc may have exited before detached_children was updated. */
     delete_pid_from_detached_children(id);
 
   delete_pid_from_children(env, id);
@@ -1658,11 +1658,11 @@ mkcl_object mk_si_detach_process(MKCL, mkcl_object proc)
   @(return proc);
 }
 
-mkcl_object mk_si_process_detached_p(MKCL, mkcl_object proc)
+mkcl_object mk_mkcl_process_detached_p(MKCL, mkcl_object proc)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
-    mkcl_FEwrong_type_argument(env, @'si::process', proc);
+    mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
 
   @(return (proc->process.detached ? mk_cl_Ct : mk_cl_Cnil));
 }

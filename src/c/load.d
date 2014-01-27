@@ -49,7 +49,7 @@ copy_object_file(MKCL, mkcl_object original)
 {
   mkcl_base_string_object(copy_string_obj, "TMP:MKCL");
   mkcl_object copy_template = mk_cl_translate_logical_pathname(env, 1, (mkcl_object) &copy_string_obj);
-  mkcl_object copy_stream = mk_si_mkstemp(env, 3, copy_template, @':element-type', @'unsigned-byte');
+  mkcl_object copy_stream = mk_mkcl_mkstemp(env, 3, copy_template, @':element-type', @'unsigned-byte');
   mkcl_object copy_filename;
 
   if (mkcl_Null(copy_stream))
@@ -84,7 +84,7 @@ copy_object_file(MKCL, mkcl_object original)
     }
   }
 #else
-  mk_si_copy_file(env, original, copy_stream);
+  mk_mkcl_copy_file(env, original, copy_stream);
 #endif
   mk_cl_close(env, 1, copy_stream);
 

@@ -85,8 +85,8 @@ static mkcl_object mk_si_simple_toplevel(MKCL)
   /* Simple minded top level loop */
   mkcl_write_cstr(env, "\n;*** MKCL core booted ****\n", output);
   mkcl_force_output(env, output);
-  for (i = 1; i<mkcl_fixnum_to_word(mk_si_argc(env)); i++) {
-    mkcl_object arg = mk_si_argv(env, MKCL_MAKE_FIXNUM(i));
+  for (i = 1; i<mkcl_fixnum_to_word(mk_mkcl_argc(env)); i++) {
+    mkcl_object arg = mk_mkcl_argv(env, MKCL_MAKE_FIXNUM(i));
 #if 0
     mk_cl_load(env, 1, arg);
 #else

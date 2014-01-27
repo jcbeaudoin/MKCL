@@ -1042,7 +1042,7 @@
     (proclaim-function directory (t *) t)
     (proclaim-function mkcl:chdir (t *) pathname)
     (proclaim-function mkcl:getcwd (*) pathname)
-    (proclaim-function si:mkdir (t fixnum) string)
+    (proclaim-function mkcl:mkdir (t fixnum) string)
 
     ;; file unixint.d
 
@@ -1294,8 +1294,8 @@
 
     (proclaim-function mkcl:quit (*) t)
     (proclaim-function identity (t) t)
-    (proclaim-function si:argc () t)
-    (proclaim-function si:argv (t) t)
+    (proclaim-function mkcl:argc () t)
+    (proclaim-function mkcl:argv (t) t)
     (proclaim-function mkcl:getenv (t) t)
     (proclaim-function si:pointer (t) t)
 

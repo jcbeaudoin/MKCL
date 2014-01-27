@@ -1153,9 +1153,9 @@ extern "C" {
   /* main.c */
 
   extern MKCL_API mkcl_index mkcl_argc(void);
-  extern MKCL_API mkcl_object mk_si_argc(MKCL);
+  extern MKCL_API mkcl_object mk_mkcl_argc(MKCL);
   extern MKCL_API mkcl_object mkcl_argv(MKCL, mkcl_index index);
-  extern MKCL_API mkcl_object mk_si_argv(MKCL, mkcl_object index);
+  extern MKCL_API mkcl_object mk_mkcl_argv(MKCL, mkcl_object index);
 #ifdef MKCL_WINDOWS
   extern MKCL_API void mkcl_get_commandline_args_from_Windows(int * argc_ref, char *** argv_ref);
   extern MKCL_API bool mkcl_has_console(void);
@@ -1165,7 +1165,6 @@ extern "C" {
   extern MKCL_API mkcl_object mk_mkcl_setenv(MKCL, mkcl_object var, mkcl_object value);
   extern MKCL_API mkcl_object mkcl_setenv(MKCL, mkcl_object var, mkcl_object value);
   extern MKCL_API mkcl_object mk_si_shutdown_mkcl(MKCL, mkcl_object code, mkcl_object watchdog_thread, mkcl_object verbose, mkcl_object clean);
-  extern MKCL_API mkcl_object mk_si_quit(MKCL, mkcl_narg narg, ...) mkcl_noreturn;
   extern MKCL_API mkcl_object mk_si_gdb(MKCL);
 
   typedef enum mkcl_option {
@@ -2225,21 +2224,21 @@ extern "C" {
   extern MKCL_API mkcl_object mk_cl_file_author(MKCL, mkcl_object file);
   extern MKCL_API mkcl_object mk_si_file_kind(MKCL, mkcl_narg narg, mkcl_object filespec, ...);
   extern MKCL_API mkcl_object mk_mkcl_getcwd(MKCL, mkcl_narg narg, ...);
-  extern MKCL_API mkcl_object mk_si_getpid(MKCL);
-  extern MKCL_API mkcl_object mk_si_gettid(MKCL);
+  extern MKCL_API mkcl_object mk_mkcl_getpid(MKCL);
+  extern MKCL_API mkcl_object mk_mkcl_gettid(MKCL);
   extern MKCL_API mkcl_object mk_mkcl_getuid(MKCL);
   extern MKCL_API mkcl_object mk_mkcl_chdir(MKCL, mkcl_narg narg, mkcl_object directory, ...);
-  extern MKCL_API mkcl_object mk_si_mkdir(MKCL, mkcl_object directory, mkcl_object mode);
+  extern MKCL_API mkcl_object mk_mkcl_mkdir(MKCL, mkcl_object directory, mkcl_object mode);
   extern MKCL_API mkcl_object mk_cl_directory(MKCL, mkcl_narg narg, mkcl_object directory, ...);
   extern MKCL_API mkcl_object mk_cl_user_homedir_pathname(MKCL, mkcl_narg narg, ...);
-  extern MKCL_API mkcl_object mk_si_mkstemp(MKCL, mkcl_narg narg, mkcl_object template, ...);
-  extern MKCL_API mkcl_object mk_si_rmdir(MKCL, mkcl_object directory);
+  extern MKCL_API mkcl_object mk_mkcl_mkstemp(MKCL, mkcl_narg narg, mkcl_object template, ...);
+  extern MKCL_API mkcl_object mk_mkcl_rmdir(MKCL, mkcl_object directory);
 
   extern MKCL_API int mkcl_backup_open(MKCL, mkcl_object filename, int option, int mode);
   extern MKCL_API mkcl_object mkcl_file_len(MKCL, int f);
   extern MKCL_API mkcl_object mkcl_homedir_pathname(MKCL, mkcl_object user);
   extern MKCL_API mkcl_object mk_si_get_SYS_library_pathname(MKCL);
-  extern MKCL_API mkcl_object mk_si_copy_file(MKCL, mkcl_object orig, mkcl_object end);
+  extern MKCL_API mkcl_object mk_mkcl_copy_file(MKCL, mkcl_object orig, mkcl_object end);
 
   extern MKCL_API pid_t mkcl_gettid(void);
 
@@ -2341,22 +2340,22 @@ extern "C" {
   extern MKCL_API mkcl_object mk_mkcl_system(MKCL, mkcl_object command);
   extern MKCL_API mkcl_object mk_mkcl_make_pipe(MKCL);
   extern MKCL_API mkcl_object mk_mkcl_run_program(MKCL, mkcl_narg narg, mkcl_object command, mkcl_object args, ...);
-  extern MKCL_API mkcl_object mk_si_run_command(MKCL, mkcl_narg narg, mkcl_object cmd_string, mkcl_object directory, ...);
-  extern MKCL_API mkcl_object mk_si_process_p(MKCL, mkcl_object proc);
-  extern MKCL_API mkcl_object mk_si_process_id(MKCL, mkcl_object proc);
-  extern MKCL_API mkcl_object mk_si_process_command(MKCL, mkcl_object proc);
-  extern MKCL_API mkcl_object mk_si_process_argv(MKCL, mkcl_object proc);
-  extern MKCL_API mkcl_object mk_si_process_input(MKCL, mkcl_object proc);
-  extern MKCL_API mkcl_object mk_si_process_output(MKCL, mkcl_object proc);
-  extern MKCL_API mkcl_object mk_si_process_error(MKCL, mkcl_object proc);
-  extern MKCL_API mkcl_object mk_si_process_status(MKCL, mkcl_object proc);
-  extern MKCL_API mkcl_object mk_si_process_exit_code(MKCL, mkcl_object proc);
-  extern MKCL_API mkcl_object mk_si_join_process(MKCL, mkcl_object proc);
-  extern MKCL_API mkcl_object mk_si_terminate_process(MKCL, mkcl_narg narg, mkcl_object proc, ...);
-  extern MKCL_API mkcl_object mk_si_process_plist(MKCL, mkcl_object proc);
-  extern MKCL_API mkcl_object mk_si_set_process_plist(MKCL, mkcl_object proc, mkcl_object plist);
-  extern MKCL_API mkcl_object mk_si_detach_process(MKCL, mkcl_object proc);
-  extern MKCL_API mkcl_object mk_si_process_detached_p(MKCL, mkcl_object proc);
+  extern MKCL_API mkcl_object mk_mkcl_run_command(MKCL, mkcl_narg narg, mkcl_object cmd_string, mkcl_object directory, ...);
+  extern MKCL_API mkcl_object mk_mkcl_process_p(MKCL, mkcl_object proc);
+  extern MKCL_API mkcl_object mk_mkcl_process_id(MKCL, mkcl_object proc);
+  extern MKCL_API mkcl_object mk_mkcl_process_command(MKCL, mkcl_object proc);
+  extern MKCL_API mkcl_object mk_mkcl_process_argv(MKCL, mkcl_object proc);
+  extern MKCL_API mkcl_object mk_mkcl_process_input(MKCL, mkcl_object proc);
+  extern MKCL_API mkcl_object mk_mkcl_process_output(MKCL, mkcl_object proc);
+  extern MKCL_API mkcl_object mk_mkcl_process_error(MKCL, mkcl_object proc);
+  extern MKCL_API mkcl_object mk_mkcl_process_status(MKCL, mkcl_object proc);
+  extern MKCL_API mkcl_object mk_mkcl_process_exit_code(MKCL, mkcl_object proc);
+  extern MKCL_API mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc);
+  extern MKCL_API mkcl_object mk_mkcl_terminate_process(MKCL, mkcl_narg narg, mkcl_object proc, ...);
+  extern MKCL_API mkcl_object mk_mkcl_process_plist(MKCL, mkcl_object proc);
+  extern MKCL_API mkcl_object mk_mkcl_set_process_plist(MKCL, mkcl_object proc, mkcl_object plist);
+  extern MKCL_API mkcl_object mk_mkcl_detach_process(MKCL, mkcl_object proc);
+  extern MKCL_API mkcl_object mk_mkcl_process_detached_p(MKCL, mkcl_object proc);
   extern MKCL_API void mkcl_finalize_process(MKCL, mkcl_object proc);
   extern MKCL_API mkcl_object mk_si_uname(MKCL);
 

@@ -43,11 +43,11 @@
 
 ;;(format t "~&Done with asdf setup.")(finish-output)
 
-(defparameter sys-name (si:argv (incf arg-base)))
+(defparameter sys-name (mkcl:argv (incf arg-base)))
 
 ;;(format t "~&sys-name = ~S~%" sys-name)
 
-(defparameter sys-dir (pathname (si:argv (incf arg-base))))
+(defparameter sys-dir (pathname (mkcl:argv (incf arg-base))))
 
 ;;(format t "sys-dir = ~S~%" sys-dir)
 

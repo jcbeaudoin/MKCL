@@ -24,8 +24,8 @@
      (max (si:argc))
      )
     ((>= i max) (setq *modules* (nreverse *modules*)))
-    (push (si:argv i) *modules*)
-    ;;(format t "~&i = ~D, arg = ~S~%" i (si:argv i))
+    (push (mkcl:argv i) *modules*)
+    ;;(format t "~&i = ~D, arg = ~S~%" i (mkcl:argv i))
     )
 
 (unless (compiler::build-program

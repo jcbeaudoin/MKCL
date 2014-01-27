@@ -1556,7 +1556,7 @@ mkcl_object mk_si_sample_allocation_statistics(MKCL)
     struct mkcl_alloc_stats alloc = *(env->alloc); /* snapshot */
 
     if (alloc.process)
-      stats = mkcl_cons(env, mkcl_cons(env, @'si::process', mkcl_make_unsigned_integer(env, alloc.process)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, @'mkcl::process', mkcl_make_unsigned_integer(env, alloc.process)), stats);
     if (alloc.UTF_16)
       stats = mkcl_cons(env, mkcl_cons(env, @'si::UTF-16', mkcl_make_unsigned_integer(env, alloc.UTF_16)), stats);
     if (alloc.UTF_8)

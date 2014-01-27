@@ -96,7 +96,7 @@
 	    (mt::rwlock)
 	    (mt::semaphore)
 	    (mt::condition-variable)
-	    (si::process)
+	    (mkcl:process)
 	    (si::encoded-string)
 	      (si::utf-8 si::encoded-string)
 	      (si::utf-16 si::encoded-string))))

@@ -957,7 +957,7 @@ mkcl_index mkcl_argc(void)
 }
 
 mkcl_object
-mk_si_argc(MKCL)
+mk_mkcl_argc(MKCL)
 {
   @(return MKCL_MAKE_FIXNUM(ARGC));
 }
@@ -983,7 +983,7 @@ mkcl_argv(MKCL, mkcl_index index)
 }
 
 mkcl_object
-mk_si_argv(MKCL, mkcl_object index)
+mk_mkcl_argv(MKCL, mkcl_object index)
 {
   mkcl_call_stack_check(env);
   if (MKCL_FIXNUMP(index)) {

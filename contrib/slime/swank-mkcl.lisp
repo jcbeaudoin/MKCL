@@ -130,7 +130,7 @@
 
 
 (defimplementation getpid ()
-  (si:getpid))
+  (mkcl:getpid))
 
 (defimplementation set-default-directory (directory)
   (mk-ext::chdir (namestring directory))
@@ -274,7 +274,7 @@
         (compile-from-stream s)))))
 
 (defun compile-from-stream (stream)
-  (let ((file (si::mkstemp "TMP:MKCL-SWANK-TMPXXXXXX"))
+  (let ((file (mkcl:mkstemp "TMP:MKCL-SWANK-TMPXXXXXX"))
         output-truename
         warnings-p
         failure-p
@@ -438,7 +438,7 @@
                (when (plusp i)
                  (let* ((x (elt *backtrace* i))
                         (name (si::frs-tag f)))
-                   (unless (si::fixnump name)
+                   (unless (mkcl:fixnump name)
                      (push name (third x)))))))
     (setf *backtrace* (remove-if #'is-ignorable-fun-p (nreverse *backtrace*)))
     (setf *tmp* *backtrace*)
@@ -498,7 +498,7 @@
 	     (record1 (cdr record)))
 	(cond ((or (symbolp record0) (stringp record0))
 	       (setq variables (acons record0 record1 variables)))
-	      ((not (si::fixnump record0))
+	      ((not (mkcl:fixnump record0))
 	       (push record1 functions))
 	      ((symbolp record1)
 	       (push record1 blocks))

@@ -1374,6 +1374,13 @@ if not possible."
 	       (MT::LOCK)
 	       (FOREIGN)
                (CODE-BLOCK)
+               ;;(MT::RWLOCK)
+               ;;(MT::SEMAPHORE)
+               ;;(MT::CONDITION-VARIABLE)
+               ;;(MKCL::PROCESS)
+               ;;(SI::UTF-8)
+               ;;(SI::UTF-16)
+               ;;(SI::ENCODED-STRING)
 	       ))
 
 (defun find-built-in-tag (name)

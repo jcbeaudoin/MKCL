@@ -1696,7 +1696,7 @@ mk_si_get_SYS_library_pathname(MKCL)
 @)
 
 mkcl_object
-mk_si_mkdir(MKCL, mkcl_object directory, mkcl_object mode)
+mk_mkcl_mkdir(MKCL, mkcl_object directory, mkcl_object mode)
 {
   int ok;
   mkcl_call_stack_check(env);
@@ -1707,7 +1707,7 @@ mk_si_mkdir(MKCL, mkcl_object directory, mkcl_object mode)
   mkcl_dynamic_extent_OSstring(env, os_filename, filename);
 #endif
 #ifdef __unix
-  mkcl_index modeint = mkcl_fixnum_in_range(env, @'si::mkdir', "mode", mode, 0, 0777);
+  mkcl_index modeint = mkcl_fixnum_in_range(env, @'mkcl::mkdir', "mode", mode, 0, 0777);
 #endif
 
 #ifdef MKCL_WINDOWS
@@ -1722,7 +1722,7 @@ mk_si_mkdir(MKCL, mkcl_object directory, mkcl_object mode)
 }
 
 /* For #'si:mkstemp we follow the same keyword argument defaults as #'cl:open. */
-@(defun si::mkstemp (template &key (element_type @'base-char') (external_format @':default'))
+@(defun mkcl::mkstemp (template &key (element_type @'base-char') (external_format @':default'))
 @
   {
     mkcl_object tmp_stream;
@@ -1814,7 +1814,7 @@ mk_si_mkdir(MKCL, mkcl_object directory, mkcl_object mode)
 @)
 
 mkcl_object
-mk_si_rmdir(MKCL, mkcl_object directory)
+mk_mkcl_rmdir(MKCL, mkcl_object directory)
 {
   int code;
 
@@ -1837,7 +1837,7 @@ mk_si_rmdir(MKCL, mkcl_object directory)
 }
 
 mkcl_object
-mk_si_copy_file(MKCL, mkcl_object orig, mkcl_object dest)
+mk_mkcl_copy_file(MKCL, mkcl_object orig, mkcl_object dest)
 {
   mkcl_interrupt_status old_intr;
   bool must_close_in = FALSE;

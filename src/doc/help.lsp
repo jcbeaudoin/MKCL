@@ -367,11 +367,11 @@ as the arguments to FUNCTION.  Returns all values that FUNCTION returns.")
 (docfun aref function (array &rest indexes) "
 Returns the element of ARRAY specified by INDEXES.")
 
-(docfun si::argc function () "
+(docfun mkcl:argc function () "
 MKCL specific.
 Returns the number of arguments given in the command line that invoked MKCL.")
 
-(docfun si::argv function (n) "
+(docfun mkcl:argv function (n) "
 MKCL specific.
 Returns the N-th argument given in the command line that invoked MKCL.")
 

@@ -257,7 +257,7 @@ mkcl_type_to_symbol(MKCL, mkcl_type t)
   case mkcl_t_cmp_dbg_lex_level:
     return @'si::compiled-debug-information';
   case mkcl_t_process:
-    return @'si::process';
+    return @'mkcl::process';
   case mkcl_t_UTF_8:
     return @'si::UTF-8';
   case mkcl_t_UTF_16:

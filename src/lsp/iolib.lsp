@@ -551,7 +551,7 @@ where CREATED is true only if we succeeded on creating all directories."
 	    (progn
 	      (when verbose
 		(format t "~%;;; Making directory ~A" p))
-	      (si::mkdir p #o777)
+	      (mkcl:mkdir p #o777)
 	      (setf created t))))
 	))
     (values pathname created)))
