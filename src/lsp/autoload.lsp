@@ -70,9 +70,12 @@ Gives a global declaration.  See DECLARE for possible DECL-SPECs."
 
 (defun ed (&optional filename)
   "Args: (&optional filename)
-Invokes the editor.  The action depends on the version of MKCL.  See the MKCL
-Report for details."
-  (mkcl::system (format nil "~S ~A" (or (mkcl::getenv "EDITOR") #+unix "vi" #+windows "notepad") filename)))
+Invokes the editor.  The exact action depends on the version of MKCL."
+  (let ((command (or (mkcl::getenv "EDITOR") #+unix "vi" #+windows "notepad")))
+    (unless command (error "Function cl:ed does not know which editor to invoke."))
+    (when filename
+      (setq command (format nil "~S \"~A\"" command filename)))
+    (mkcl::system command)))
 
 
 ;;; Allocator.
