@@ -141,7 +141,7 @@ INDEXes must be equal to the rank of ARRAY."
       ((>= i r) t)
     (declare (type fixnum i))
     (let ((j (car s)))
-      (unless (and (si:fixnump j) 
+      (unless (and (mkcl:fixnump j) 
 		   (<= 0 (the fixnum j))
 		   (< (the fixnum j) (the fixnum (array-dimension array i))))
 	(return nil)))

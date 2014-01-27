@@ -157,12 +157,12 @@ default value of INITIAL-ELEMENT depends on TYPE."
 	 start)))
 
 (defun seq-iterator-ref (sequence iterator)
-  (if (si::fixnump iterator)
+  (if (mkcl:fixnump iterator)
       (elt sequence iterator)
       (first iterator)))
 
 (defun seq-iterator-set (sequence iterator value)
-  (if (si::fixnump iterator)
+  (if (mkcl:fixnump iterator)
       (setf (elt sequence iterator) value)
       (setf (first iterator) value)))
 

@@ -333,7 +333,7 @@ values of the last FORM.  If no FORM is given, returns NIL."
 
 #|
 (defun choose-test (key)
-  (if (and (numberp key) (not (si:fixnump key)))
+  (if (and (numberp key) (not (mkcl:fixnump key)))
       'EQL
     'EQ)
   )
@@ -347,7 +347,7 @@ values of the last FORM.  If no FORM is given, returns NIL."
 
 (defmacro case (keyform &rest clauses &aux (reverse-clauses (reverse clauses)) (form nil) (test-key (gensym)))
   (labels ((choose-test (key)
-	     (if (and (numberp key) (not (si:fixnump key))) 'EQL 'EQ))
+	     (if (and (numberp key) (not (mkcl:fixnump key))) 'EQL 'EQ))
 	   (build-case-member (test-key keys &aux (form nil))
 	     (dolist (key keys `(not (and ,@(nreverse form))))
 	       (push `(not (,(choose-test key) ,test-key ',key)) form)))

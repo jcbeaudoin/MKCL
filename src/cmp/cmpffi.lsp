@@ -114,7 +114,7 @@
 (defun loc-type (loc)
   (cond ((eq loc NIL) 'NULL)
 	((var-p loc) (var-type loc))
-	((si::fixnump loc) 'fixnum)
+	((mkcl:fixnump loc) 'fixnum)
 	((atom loc) 'T)
 	(t
 	 (case (first loc)
@@ -133,7 +133,7 @@
 (defun loc-representation-type (loc)
   (cond ((member loc '(NIL T)) :object)
 	((var-p loc) (var-rep-type loc))
-	((si::fixnump loc) :fixnum)
+	((mkcl:fixnump loc) :fixnum)
         ((eq loc 'TRASH) :void)
 	((atom loc) :object)
 	(t

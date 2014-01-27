@@ -1116,7 +1116,7 @@ until the buffer becomes empty and then returns NIL.")
 (docfun first function (x) "
 Equivalent to CAR.")
 
-(docfun si::fixnump function (x) "
+(docfun mkcl:fixnump function (x) "
 MKCL specific.
 Returns T if the X is a fixnum; NIL otherwise.")
 

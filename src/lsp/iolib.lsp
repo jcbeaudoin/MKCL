@@ -2,7 +2,7 @@
 ;;;;
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
-;;;;  Copyright (c) 2011-2012, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2011-2014, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -561,9 +561,6 @@ where CREATED is true only if we succeeded on creating all directories."
 
 (in-package "MKCL")
 
-(defun logical-pathname-p (obj)
-  (si:logical-pathname-p obj))
-
 (defun directory-p (pathspec)
   (setq pathspec (pathname pathspec))
   (let ((name (pathname-name pathspec))
@@ -889,20 +886,5 @@ where CREATED is true only if we succeeded on creating all directories."
   (let ((rel-pathspec (relative-pathname pathspec root-dirspec)))
     (when rel-pathspec (namestring rel-pathspec))))
 
-(export '(relative-pathname
-	  relative-namestring
-	  absolute-logical-pathname
-	  absolute-pathname
-	  absolute-pathname-p
-	  relative-pathname-p
-	  logical-pathname-p
-	  directory-p
-	  complete-pathname
-	  physically-complete-pathname
-	  file-pathname
-	  full-directory-pathname
-	  full-directory-namestring
-	  pathname+
-	  copy-pathname))
 
 ;;;;;;;;;;;;;;;;

@@ -101,7 +101,7 @@
 	   (symbolp (cadadr args))
 	   (endp (cddadr args))
 	   (not (endp (cddr args)))
-	   (sys::fixnump (third args))
+	   (mkcl:fixnump (third args))
 	   (not (endp (cdddr args)))
 	   (endp (cddddr args)))
       (let ((x (c1expr (car args)))

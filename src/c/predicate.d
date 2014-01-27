@@ -500,7 +500,7 @@ mk_cl_equalp(MKCL, mkcl_object x, mkcl_object y)
 }
 
 mkcl_object
-mk_si_fixnump(MKCL, mkcl_object x)
+mk_mkcl_fixnump(MKCL, mkcl_object x)
 {
   @(return (MKCL_FIXNUMP(x) ? mk_cl_Ct : mk_cl_Cnil));
 }

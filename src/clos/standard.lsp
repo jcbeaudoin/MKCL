@@ -860,7 +860,7 @@
 		       (table (slot-table class))
 		       (slotd (gethash slot-name table))
 		       (index (slot-definition-location slotd))
-		       (value (if (si::fixnump index)
+		       (value (if (mkcl:fixnump index)
 				  (si:instance-ref self (the fixnum index))
 				  (car (the cons index))))) ;; the assumption that index is a cons is not very safe. JCB
 		  (if (si:sl-boundp value)
@@ -871,7 +871,7 @@
 		       (table (slot-table class))
 		       (slotd (gethash slot-name table))
 		       (index (slot-definition-location slotd)))
-		  (if (si::fixnump index)
+		  (if (mkcl:fixnump index)
 		      (si:instance-set self (the fixnum index) value)
 		      (rplaca (the cons index) value))))))) ;; the assumption that index is a cons is not very safe. JCB
 

@@ -5493,7 +5493,7 @@ static mkcl_index
 encoding_error(MKCL, mkcl_object stream, unsigned char *buffer, mkcl_character ch)
 {
   mkcl_object replacement_ch = mkcl_funcall3(env,
-					     @'si::stream-encoding-error',
+					     @'mkcl::stream-encoding-error',
 					     stream,
 					     mk_cl_stream_external_format(env, stream),
 					     MKCL_MAKE_FIXNUM(ch));
@@ -5511,7 +5511,7 @@ decoding_error(MKCL, mkcl_object stream, unsigned char *buffer, int length)
     octets = mkcl_cons(env, MKCL_MAKE_FIXNUM(buffer[--length]), octets);
   }
   replacement_ch = mkcl_funcall3(env,
-				 @'si::stream-decoding-error',
+				 @'mkcl::stream-decoding-error',
 				 stream,
 				 mk_cl_stream_external_format(env, stream),
 				 octets);
@@ -5790,8 +5790,8 @@ mkcl_init_file(MKCL)
     MKCL_SET(@'*debug-io*', aux);
   }
 
-  mkcl_def_c_function(env, @'si::stream-encoding-error', stream_encoding_error_boot_stub, 3);
-  mkcl_def_c_function(env, @'si::stream-decoding-error', stream_decoding_error_boot_stub, 3);
+  mkcl_def_c_function(env, @'mkcl::stream-encoding-error', stream_encoding_error_boot_stub, 3);
+  mkcl_def_c_function(env, @'mkcl::stream-decoding-error', stream_decoding_error_boot_stub, 3);
 }
 
 void

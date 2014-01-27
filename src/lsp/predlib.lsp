@@ -311,7 +311,7 @@ and is not adjustable."
   (defconstant +known-typep-predicates+
     '((ARRAY . ARRAYP)
       (ATOM . ATOM)
-      (BASE-CHAR . BASE-CHAR-P)
+      (BASE-CHAR . MKCL:BASE-CHAR-P)
       (BASE-STRING . BASE-STRING-P)
       ;(BIGNUM . SI::BIGNUMP)
       (BIT-VECTOR . BIT-VECTOR-P)
@@ -326,7 +326,7 @@ and is not adjustable."
       (FUNCTION . FUNCTIONP)
       (HASH-TABLE . HASH-TABLE-P)
       (INTEGER . INTEGERP)
-      (FIXNUM . SI::FIXNUMP)
+      (FIXNUM . MKCL:FIXNUMP)
       (KEYWORD . KEYWORDP)
       (LIST . LISTP)
       (LOGICAL-PATHNAME . LOGICAL-PATHNAME-P)
@@ -462,7 +462,7 @@ Returns T if X belongs to TYPE; NIL otherwise."
     (SATISFIES (funcall (car i) object))
     ((T) t)
     ((NIL) nil)
-    (BIGNUM (and (integerp object) (not (si::fixnump object))))
+    (BIGNUM (and (integerp object) (not (mkcl:fixnump object))))
     (RATIO (eq (type-of object) 'RATIO))
     (STANDARD-CHAR
      (and (characterp object) (standard-char-p object)))
@@ -590,7 +590,7 @@ Returns T if X belongs to TYPE; NIL otherwise."
     (SATISFIES (if (funcall (car i) object) t nil))
     ((T) t)
     ((NIL) nil)
-    (BIGNUM (and (integerp object) (not (si::fixnump object))))
+    (BIGNUM (and (integerp object) (not (mkcl:fixnump object))))
     (RATIO (eq (type-of object) 'RATIO))
     (STANDARD-CHAR
      (and (characterp object) (standard-char-p object)))

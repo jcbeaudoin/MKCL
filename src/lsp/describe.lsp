@@ -498,7 +498,7 @@ q (or Q):             quits the inspection.~%~
 	  )))))
 
 (defun inspect-pathname (it)
-  (if (si:logical-pathname-p it)
+  (if (mkcl:logical-pathname-p it)
       (format t "~S - LOGICAL PATHNAME" it)
     (format t "~S - PATHNAME" it))
   (if *inspect-mode*

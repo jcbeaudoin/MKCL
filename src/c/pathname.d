@@ -1559,7 +1559,7 @@ mk_cl_pathnamep(MKCL, mkcl_object pname)
 }
 
 mkcl_object
-mk_si_logical_pathname_p(MKCL, mkcl_object pname)
+mk_mkcl_logical_pathname_p(MKCL, mkcl_object pname)
 {
   @(return ((mkcl_type_of(pname) == mkcl_t_pathname && pname->pathname.logical) ? mk_cl_Ct : mk_cl_Cnil));
 }

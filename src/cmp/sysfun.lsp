@@ -1745,10 +1745,6 @@
     (def-inline mkcl:base-char-p :always (t) :bool "@0;(MKCL_CHARACTERP(#0) && MKCL_BASE_CHAR_P(#0))")
     (def-inline mkcl:base-char-p :always (character) :bool "MKCL_BASE_CHAR_CODE_P(#0)")
 
-    (proclaim-function si:base-char-p (t) t :predicate t :no-side-effects t)
-    (def-inline si:base-char-p :always (t) :bool "@0;(MKCL_CHARACTERP(#0) && MKCL_BASE_CHAR_P(#0))")
-    (def-inline si:base-char-p :always (character) :bool "MKCL_BASE_CHAR_CODE_P(#0)")
-
     (proclaim-function stringp (t) t :predicate t :no-side-effects t)
     (def-inline stringp :always (t) :bool "mkcl_stringp(env, #0)")
 
@@ -2196,9 +2192,9 @@
     #+long-float
     (def-inline long-float-p :always (t) :bool "mkcl_type_of(#0)==mkcl_t_longfloat")
 
-    (proclaim-function si:fixnump (*) nil :predicate t :no-side-effects t)
-    (def-inline si:fixnump :always (t) :bool "MKCL_FIXNUMP(#0)")
-    (def-inline si:fixnump :always (fixnum) :bool "TRUE")
+    (proclaim-function mkcl:fixnump (*) nil :predicate t :no-side-effects t)
+    (def-inline mkcl:fixnump :always (t) :bool "MKCL_FIXNUMP(#0)")
+    (def-inline mkcl:fixnump :always (fixnum) :bool "TRUE")
 
     (proclaim-function si:put-properties (*) nil :no-sp-change t)
 

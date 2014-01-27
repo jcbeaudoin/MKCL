@@ -311,12 +311,6 @@ static void _mkcl_boot_inner(MKCL)
 		     mkcl_list1(env, mkcl_core.lisp_package));
   mkcl_core.keyword_package =
     mkcl_make_package(env, mkcl_make_simple_base_string(env, "KEYWORD"), mk_cl_Cnil, mk_cl_Cnil);
-  mkcl_core.system_package =
-    mkcl_make_package(env, mkcl_make_simple_base_string(env, "SI"),
-		      mk_cl_list(env, 2,
-				 mkcl_make_simple_base_string(env, "SYSTEM"),
-				 mkcl_make_simple_base_string(env, "SYS")),
-		      mkcl_list1(env, mkcl_core.lisp_package));
   mkcl_core.mkcl_ext_package =
     mkcl_make_package(env, mkcl_make_simple_base_string(env, "MKCL"),
 		      mk_cl_list(env, 2,
@@ -324,6 +318,12 @@ static void _mkcl_boot_inner(MKCL)
 				 /* mkcl_make_simple_base_string(env, "EXT"), */ /* temporary, for the transition period. */
 				 mkcl_make_simple_base_string(env, "MK-EXT")),
 		      mkcl_list1(env, mkcl_core.lisp_package));
+  mkcl_core.system_package =
+    mkcl_make_package(env, mkcl_make_simple_base_string(env, "SI"),
+		      mk_cl_list(env, 2,
+				 mkcl_make_simple_base_string(env, "SYSTEM"),
+				 mkcl_make_simple_base_string(env, "SYS")),
+		      mk_cl_list(env, 2, mkcl_core.lisp_package, mkcl_core.mkcl_ext_package));
   mkcl_core.clos_package =
     mkcl_make_package(env, mkcl_make_simple_base_string(env, "CLOS"),
 		      mk_cl_Cnil, mkcl_list1(env, mkcl_core.lisp_package));

@@ -1582,7 +1582,7 @@ extern "C" {
   extern MKCL_API mkcl_object mk_cl_file_namestring(MKCL, mkcl_object pname);
   extern MKCL_API mkcl_object mk_cl_directory_namestring(MKCL, mkcl_object pname);
   extern MKCL_API mkcl_object mk_cl_host_namestring(MKCL, mkcl_object pname);
-  extern MKCL_API mkcl_object mk_si_logical_pathname_p(MKCL, mkcl_object pname);
+  extern MKCL_API mkcl_object mk_mkcl_logical_pathname_p(MKCL, mkcl_object pname);
   extern MKCL_API mkcl_object mk_cl_pathname_match_p(MKCL, mkcl_object path, mkcl_object mask);
   extern MKCL_API mkcl_object mk_cl_translate_pathname(MKCL, mkcl_narg narg, mkcl_object source, mkcl_object from, mkcl_object to, ...);
   extern MKCL_API mkcl_object mk_cl_translate_logical_pathname(MKCL, mkcl_narg narg, mkcl_object source, ...);
@@ -1641,7 +1641,7 @@ extern "C" {
   extern MKCL_API mkcl_object mk_cl_eql(MKCL, mkcl_object x, mkcl_object y);
   extern MKCL_API mkcl_object mk_cl_equal(MKCL, mkcl_object x, mkcl_object y);
   extern MKCL_API mkcl_object mk_cl_equalp(MKCL, mkcl_object x, mkcl_object y);
-  extern MKCL_API mkcl_object mk_si_fixnump(MKCL, mkcl_object x);
+  extern MKCL_API mkcl_object mk_mkcl_fixnump(MKCL, mkcl_object x);
   extern MKCL_API mkcl_object mk_si_simple_base_string_p(MKCL, mkcl_object x);
 
   extern MKCL_API mkcl_object mk_si_unbound_value_p(MKCL, mkcl_object arg);
