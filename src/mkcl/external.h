@@ -2338,7 +2338,7 @@ extern "C" {
 
   extern MKCL_API void mkcl_safe_close(MKCL, int fd, mkcl_object stream);
   extern MKCL_API void mkcl_safe_fclose(MKCL, void *, mkcl_object stream);
-  extern MKCL_API mkcl_object mk_si_system(MKCL, mkcl_narg narg, mkcl_object command, ...);
+  extern MKCL_API mkcl_object mk_mkcl_system(MKCL, mkcl_object command);
   extern MKCL_API mkcl_object mk_mkcl_make_pipe(MKCL);
   extern MKCL_API mkcl_object mk_mkcl_run_program(MKCL, mkcl_narg narg, mkcl_object command, mkcl_object args, ...);
   extern MKCL_API mkcl_object mk_si_run_command(MKCL, mkcl_narg narg, mkcl_object cmd_string, mkcl_object directory, ...);

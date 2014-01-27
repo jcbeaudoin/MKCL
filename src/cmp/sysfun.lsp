@@ -1900,8 +1900,6 @@
 
     ;; file unixsys.d
 
-    (proclaim-function si:system (*) t)
-
     ;; file sequence.d
 
     (proclaim-function elt (sequence fixnum) t :no-side-effects t)

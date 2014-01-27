@@ -2299,7 +2299,7 @@ Replaces the car of CONS with X, and returns the modified CONS.")
 (docfun rplacd function (cons x) "
 Replaces the cdr of CONS with X, and returns the modified CONS.")
 
-(docfun si:system function (command) "
+(docfun mkcl:system function (command) "
 MKCL specific.
 Executes a Shell command as if the string COMMAND is an input to the Shell.  
 On return from the Shell command, it returns the exit code

@@ -149,13 +149,8 @@ static mkcl_object read_command_output(MKCL, HANDLE child_stdout_read)
 
 @(defun si::run-command (command directory &key real_name)
 @
-#if 0
-  mkcl_object os_command = mkcl_string_to_OSstring(env, command);
-  mkcl_object os_new_directory;
-#else
   mkcl_dynamic_extent_OSstring(env, os_command, command);
-  mkcl_dynamic_extent_OSstring(env, os_new_directory, directory);
-#endif
+  mkcl_dynamic_extent_OSstring(env, os_new_directory, (mkcl_Null(directory) ? mkcl_core.empty_string : directory));
   wchar_t * os_raw_new_directory = NULL;
   mkcl_object output;
   STARTUPINFOW StartUp;
@@ -293,10 +288,6 @@ static mkcl_object read_command_output(MKCL, HANDLE child_stdout_read)
 #endif
 @)
 
-@(defun si::system (cmd_string &key directory)
-@
-  @(return mk_si_run_command(env, 3, cmd_string, @':directory', directory));
-@)
 
 #elif defined(__unix)  /* MKCL_WINDOWS */
 
@@ -400,39 +391,6 @@ static mkcl_object read_command_output(MKCL, int parent_read)
   return output;
 }
 
-@(defun si::system (cmd_string &key directory)
-@
-  /* On unix we ignore 'directory' since it plays
-     no role in the executable search sequence.
-     Everything depends on the PATH environment variable.
-   */
-#if 0
-  mkcl_object os_cmd = mkcl_string_to_OSstring(env, cmd_string);
-#else
-  mkcl_dynamic_extent_OSstring(env, os_cmd, cmd_string);
-#endif
-
-  if (mkcl_OSstring_size(os_cmd) >= mkcl_core.arg_max)
-    mkcl_FEerror(env, "Too long command line: ~S.", 1, cmd_string);
-
-  /* This call to 'system' has the side-effect, for its duration, of
-     blocking SIGCHLD and ignoring both SIGINT and SIGQUIT! JCB */
-  /* It also shares, between parent and child, all file descriptors
-     (among others: stdin, stdout, stderr). JCB */
-  {
-    int code = system(mkcl_OSstring_self(os_cmd));
-
-    if (code == -1)
-      mkcl_FElibc_error(env, "si::system unable to fork subprocess to execute command: ~A", 1, cmd_string);
-
-    if (WIFEXITED(code))
-      { @(return MKCL_MAKE_FIXNUM(WEXITSTATUS(code))); }
-    else if (WIFSIGNALED(code))
-      { @(return mkcl_unix_signal_name(env, WTERMSIG(code))); }
-    else
-      { @(return mk_cl_Cnil); }
-  }
-@)
 
 
 static int my_exec_command(mkcl_char8 * cmd_real_name, mkcl_char8 * cmd_line)
@@ -650,6 +608,45 @@ static int my_exec_command(mkcl_char8 * cmd_real_name, mkcl_char8 * cmd_line)
 
 #endif /* defined(__unix) */
 
+mkcl_object mk_mkcl_system (MKCL, mkcl_object cmd_string)
+{
+  /* On unix we ignore 'directory' since it plays
+     no role in the executable search sequence.
+     Everything depends on the PATH environment variable.
+   */
+  mkcl_dynamic_extent_OSstring(env, os_cmd, cmd_string);
+
+#ifdef __unix
+  if (mkcl_OSstring_size(os_cmd) >= mkcl_core.arg_max)
+    mkcl_FEerror(env, "Too long command line: ~S.", 1, cmd_string);
+#endif
+
+  {
+#ifdef MKCL_WINDOWS
+    int code = _wsystem(mkcl_OSstring_self(os_cmd));
+#else
+    /* This call to 'system' has the side-effect, for its duration, of
+       blocking SIGCHLD and ignoring both SIGINT and SIGQUIT! JCB */
+    /* It also shares, between parent and child, all file descriptors
+       (among others: stdin, stdout, stderr). JCB */
+    int code = system(mkcl_OSstring_self(os_cmd));
+#endif
+
+    if (code == -1)
+      mkcl_FElibc_error(env, "si::system unable to fork subprocess to execute command: ~A", 1, cmd_string);
+
+#ifdef MKCL_WINDOWS
+    { @(return MKCL_MAKE_FIXNUM(code)); }
+#else
+    if (WIFEXITED(code))
+      { @(return MKCL_MAKE_FIXNUM(WEXITSTATUS(code))); }
+    else if (WIFSIGNALED(code))
+      { @(return mkcl_unix_signal_name(env, WTERMSIG(code))); }
+    else
+      { @(return mk_cl_Cnil); }
+#endif
+  }
+}
 
 
 mkcl_object

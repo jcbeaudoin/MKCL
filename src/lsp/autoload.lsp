@@ -72,7 +72,7 @@ Gives a global declaration.  See DECLARE for possible DECL-SPECs."
   "Args: (&optional filename)
 Invokes the editor.  The action depends on the version of MKCL.  See the MKCL
 Report for details."
-  (si:system (format nil "~S ~A" (or (mkcl::getenv "EDITOR") "vi") filename)))
+  (mkcl::system (format nil "~S ~A" (or (mkcl::getenv "EDITOR") #+unix "vi" #+windows "notepad") filename)))
 
 
 ;;; Allocator.
