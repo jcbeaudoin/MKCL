@@ -582,6 +582,7 @@
     default))
 
 (defmethod compute-effective-slot-definition ((class class) name direct-slots)
+  (declare (ignorable name))
   (flet ((direct-to-effective (old-slot)
 	   (if (consp old-slot)
 	       (copy-list old-slot)
@@ -592,8 +593,12 @@
 	 (combine-slotds (new-slotd old-slotd)
 	   (let* ((new-type (slot-definition-type new-slotd))
 		  (old-type (slot-definition-type old-slotd))
-		  (loc1 (safe-slot-definition-location new-slotd))
-		  (loc2 (safe-slot-definition-location old-slotd)))
+		  ;;(loc1 (safe-slot-definition-location new-slotd))
+		  ;;(loc2 (safe-slot-definition-location old-slotd))
+                  )
+             ;; The most specific :allocation and :location always mask anything else period.
+             ;; There is no further "inheritance" of any kind on this, so no need to mess with it! JCB
+#|
 	     (when loc2
 	       (if loc1
 		   (unless (eql loc1 loc2)
@@ -606,6 +611,7 @@
 		     (format t "~%Assigning a default location ~D for ~A in ~A."
 			     loc2 name (class-name class))
 		     (setf (slot-definition-location new-slotd) loc2))))
+|#
 	     (setf (slot-definition-initargs new-slotd)
 		   (union (slot-definition-initargs new-slotd)
 			  (slot-definition-initargs old-slotd)))
@@ -621,10 +627,12 @@
 		   (union (slot-definition-writers new-slotd)
 			  (slot-definition-writers old-slotd))
 		   (slot-definition-type new-slotd)
-		   ;; FIXME! we should be more smart then this:
-		   (cond ((subtypep new-type old-type) new-type)
-			 ((subtypep old-type new-type) old-type)
-			 (T `(and ,new-type ,old-type))))
+		   ;; FIXME! we should be more smart than this:
+		   (cond ;; Wrong anyway! ((subtypep new-type old-type) new-type)
+			 ;; Wrong anyway! ((subtypep old-type new-type) old-type)
+                         ((eq new-type t) old-type)
+                         ((eq old-type t) new-type)
+			 (T `(and ,new-type ,old-type)))) ;; This one is the only one that is by the spec. JCB
 	     new-slotd)))
     (reduce #'combine-slotds (rest direct-slots)
 	    :initial-value (direct-to-effective (first direct-slots)))))
