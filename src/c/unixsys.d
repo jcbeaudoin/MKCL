@@ -1551,7 +1551,7 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
       if ((rc == pid) && (WIFEXITED(exit_code) || WIFSIGNALED(exit_code)))
 	break;
       else if ((rc == -1) && (errno != EINTR))
-	mkcl_FElibc_error(env, "si:join-process failed on waitpid(), pid = ~S", 1, mkcl_make_integer(env, pid));
+	mkcl_FElibc_error(env, "mkcl:join-process failed on waitpid(), pid = ~S", 1, mkcl_make_integer(env, pid));
     }
 
   delete_pid_from_children(env, pid);
@@ -1583,7 +1583,7 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
       {
       case WAIT_OBJECT_0: break;
       default:
-	mkcl_FEwin32_error(env, "si:join-process failed on WaitForSingleObject()", 0);
+	mkcl_FEwin32_error(env, "mkcl:join-process failed on WaitForSingleObject()", 0);
       }
     mk_mt_test_for_thread_shutdown(env);
   }
@@ -1596,7 +1596,7 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
       }
     else
       goto WAIT_AGAIN;
-  } else mkcl_FEwin32_error(env, "si:join-process failed on GetExitCodeProcess()", 0);
+  } else mkcl_FEwin32_error(env, "mkcl:join-process failed on GetExitCodeProcess()", 0);
 
   @(return mkcl_make_integer(env, proc->process.exit_code));
 #endif
