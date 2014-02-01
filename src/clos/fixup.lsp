@@ -141,12 +141,7 @@
 	 :allow-other-keys t
 	 options))
 
-(defun all-keywords (l)
-  (let ((all-keys '()))
-    (do ((l (rest l) (cddddr l)))
-	((null l)
-	 all-keys)
-      (push (first l) all-keys))))
+
 
 (defun congruent-lambda-p (l1 l2)
   (multiple-value-bind (r1 nb_r1 opts1 nb_opts1 rest1 key-flag1 keywords1 nb_keys1 a-o-k1)
@@ -164,8 +159,12 @@
 	   (or (null key-flag1)
 	       (null key-flag2)
 	       a-o-k2
-	       (null (set-difference (all-keywords keywords1)
-				     (all-keywords keywords2))))
+               (flet ((all-keywords (keyword-specs)
+                        (do ((l keyword-specs (cddddr l))
+                             (all-keys '()))
+                            ((null l) all-keys)
+                          (push (first l) all-keys))))
+                 (null (set-difference (all-keywords keywords1) (all-keywords keywords2)))))
 	   t))))
 
 (defun add-method (gf method)
