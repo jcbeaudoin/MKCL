@@ -143,12 +143,12 @@
 
 
 
-(defun congruent-lambda-p (l1 l2)
+(defun congruent-lambda-p (gf-ll method-ll)
   (multiple-value-bind (r1 nb_r1 opts1 nb_opts1 rest1 key-flag1 keywords1 nb_keys1 a-o-k1)
-      (si::process-lambda-list l1 'FUNCTION)
+      (si::process-lambda-list gf-ll 'FUNCTION)
     (declare (ignore r1 opts1 nb_keys1 a-o-k1))
     (multiple-value-bind (r2 nb_r2 opts2 nb_opts2 rest2 key-flag2 keywords2 nb_keys2 a-o-k2)
-	(si::process-lambda-list l2 'FUNCTION)
+	(si::process-lambda-list method-ll 'FUNCTION)
       (declare (ignore r2 opts2 nb_keys2))
       (and (eql nb_r2 nb_r1) ;;(= (length r2) (length r1))	     
 	   (eql nb_opts1 nb_opts2) ;;(= (length opts1) (length opts2))
@@ -183,14 +183,14 @@
   ;;    optional arguments, and only accept keyword arguments when the generic
   ;;    function does.
   ;;
-  (let ((new-lambda-list (method-lambda-list method)))
+  (let ((method-lambda-list (method-lambda-list method)))
     (if (slot-boundp gf 'lambda-list)
-	(let ((old-lambda-list (generic-function-lambda-list gf)))
-	  (unless (congruent-lambda-p old-lambda-list new-lambda-list)
+	(let ((gf-lambda-list (generic-function-lambda-list gf)))
+	  (unless (congruent-lambda-p gf-lambda-list method-lambda-list)
 	    (error "Cannot add the method ~A to the generic function ~A because ~
                      their lambda lists ~A and ~A are not congruent."
-		   method gf old-lambda-list new-lambda-list)))
-      (reinitialize-instance gf :lambda-list new-lambda-list)))
+		   method gf gf-lambda-list method-lambda-list)))
+      (reinitialize-instance gf :lambda-list method-lambda-list)))
   ;;
   ;; 3) Finally, it is inserted in the list of methods, and the method is
   ;;    marked as belonging to a generic function.
