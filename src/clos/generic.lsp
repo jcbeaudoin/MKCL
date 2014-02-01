@@ -164,11 +164,11 @@
   ;; the old list of methods.
   ;;
   (when (and l-l-p (slot-boundp gfun 'methods))
-    (unless (every #'(lambda (x)
-		       (congruent-lambda-p lambda-list x))
+    (unless (every #'(lambda (method-ll)
+		       (congruent-lambda-lists-p lambda-list method-ll))
 		   (mapcar #'method-lambda-list (generic-function-methods gfun)))
       (simple-program-error "Cannot replace the lambda list of ~A with ~A ~
-                             because it is incongruent with some of the methods"
+                             because it is not congruent with some of the methods"
 			    gfun lambda-list)))
 
   (when (generic-function-source gfun)

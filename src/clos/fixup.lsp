@@ -143,29 +143,36 @@
 
 
 
-(defun congruent-lambda-p (gf-ll method-ll)
+(defun congruent-lambda-lists-p (gf-ll method-ll)
   (multiple-value-bind (r1 nb_r1 opts1 nb_opts1 rest1 key-flag1 keywords1 nb_keys1 a-o-k1)
       (si::process-lambda-list gf-ll 'FUNCTION)
-    (declare (ignore r1 opts1 nb_keys1 a-o-k1))
+    (declare (ignore r1 opts1 nb_keys1))
     (multiple-value-bind (r2 nb_r2 opts2 nb_opts2 rest2 key-flag2 keywords2 nb_keys2 a-o-k2)
 	(si::process-lambda-list method-ll 'FUNCTION)
       (declare (ignore r2 opts2 nb_keys2))
-      (and (eql nb_r2 nb_r1) ;;(= (length r2) (length r1))	     
-	   (eql nb_opts1 nb_opts2) ;;(= (length opts1) (length opts2))
-	   (eq (and (null rest1) (null key-flag1))
-	       (and (null rest2) (null key-flag2)))
-	   ;; All keywords mentioned in the genericf function
-	   ;; must be accepted by the method.
-	   (or (null key-flag1)
-	       (null key-flag2)
-	       a-o-k2
-               (flet ((all-keywords (keyword-specs)
-                        (do ((l keyword-specs (cddddr l))
-                             (all-keys '()))
-                            ((null l) all-keys)
-                          (push (first l) all-keys))))
-                 (null (set-difference (all-keywords keywords1) (all-keywords keywords2)))))
+      (and (eql nb_r2 nb_r1)
+	   (eql nb_opts1 nb_opts2)
+           (flet ((gf-keys-are-subset-of-method-keys-p (gf-key-specs m-key-specs)
+                    (flet ((all-keywords (keyword-specs)
+                             (do ((l keyword-specs (cddddr l))
+                                  (all-keys '()))
+                                 ((null l) all-keys)
+                                 (push (first l) all-keys))))
+                      (null (set-difference (all-keywords gf-key-specs) (all-keywords m-key-specs))))))
+             (if key-flag1
+                 (if a-o-k1
+                     (or rest2 a-o-k2) ;; since gf can receive any key then so must method.
+                   (if key-flag2
+                       (or a-o-k2 (gf-keys-are-subset-of-method-keys-p keywords1 keywords2)) ;; as per CLHS 7.6.4, item 4.
+                     rest2 ;; &rest of method swallows gf keyword args
+                     ))
+               (if (or rest1 rest2 key-flag2)
+                   (and rest1 (or rest2 key-flag2)) ;; as per CLHS 7.6.4, item 3.
+                 t) ;; there is no &rest nor &key anywhere in the lambda-lists, therefore that part is congruent.
+               ))
 	   t))))
+
+
 
 (defun add-method (gf method)
   (when (generic-function-closed-p gf)
@@ -186,10 +193,10 @@
   (let ((method-lambda-list (method-lambda-list method)))
     (if (slot-boundp gf 'lambda-list)
 	(let ((gf-lambda-list (generic-function-lambda-list gf)))
-	  (unless (congruent-lambda-p gf-lambda-list method-lambda-list)
-	    (error "Cannot add the method ~A to the generic function ~A because ~
-                     their lambda lists ~A and ~A are not congruent."
-		   method gf gf-lambda-list method-lambda-list)))
+	  (unless (congruent-lambda-lists-p gf-lambda-list method-lambda-list)
+	    (error "Cannot add a method to generic function ~A because~%~
+                     their respective lambda lists ~A and ~A are not congruent."
+		   method (generic-function-name gf) method-lambda-list gf-lambda-list)))
       (reinitialize-instance gf :lambda-list method-lambda-list)))
   ;;
   ;; 3) Finally, it is inserted in the list of methods, and the method is
