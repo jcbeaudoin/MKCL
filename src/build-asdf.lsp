@@ -1,6 +1,6 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
 ;;;;
-;;;;  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2014, Jean-Claude Beaudoin.
 ;;;;
 ;;;;  This program is free software; you can redistribute it and/or
 ;;;;  modify it under the terms of the GNU Lesser General Public
@@ -23,16 +23,8 @@
 ;;;
 ;;; * ASDF
 ;;;
-#|
 (build-module "asdf"
-              '("../contrib/asdf/asdf.lisp"
-		"../contrib/asdf/asdf-mkcl.lisp")
-              :dir "./ext/" #|:prefix "EXT"|#
-	      )
-|#
-
-(build-module "asdf"
-              '("../contrib/asdf/asdf.lisp")
+              '("../contrib/asdf/build/asdf.lisp")
               :dir "./ext/"
 	      )
 

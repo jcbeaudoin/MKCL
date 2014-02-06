@@ -14,9 +14,9 @@
 ;;; Allegro, Clozure CL, CMUCL, ECL, GNU CLISP, LispWorks, MKCL, SBCL, SCL.
 ;;; For ABCL, see the abcl-jar contrib instead.
 
-(defsystem :asdf-bundle
+(defsystem :asdf2-bundle
   :licence "MIT"
-  :description "Bundle operations for ASDF"
+  :description "Bundle operations for ASDF2"
   :long-description "Can bundle one or many asdf systems into one .fasl and/or one .so"
-  :depends-on (:asdf)
-  :components ((:file "asdf-bundle")))
+  :depends-on (:asdf2)
+  :components ((:file "asdf2-bundle")))

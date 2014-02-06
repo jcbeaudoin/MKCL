@@ -1699,17 +1699,27 @@ Going forward, we recommend new users should be using the source-registry.
 (defun* probe-asd (name defaults)
   (block nil
     (when (directory-pathname-p defaults)
+      (let* ((file (probe-file* (subpathname defaults (strcat name ".as2")))))
+        (when file
+          (return file)))
       (let* ((file (probe-file* (subpathname defaults (strcat name ".asd")))))
         (when file
           (return file)))
       #-(or clisp genera) ; clisp doesn't need it, plain genera doesn't have read-sequence(!)
       (when (os-windows-p)
-        (let ((shortcut
+        (let ((shortcut1
+               (make-pathname
+                :defaults defaults :version :newest :case :local
+                :name (strcat name ".as2")
+                :type "lnk"))
+              (shortcut2
                (make-pathname
                 :defaults defaults :version :newest :case :local
                 :name (strcat name ".asd")
-                :type "lnk")))
-          (when (probe-file* shortcut)
+                :type "lnk"))
+              shortcut)
+          (when (or (probe-file* (setq shortcut shortcut1))
+                    (probe-file* (setq shortcut shortcut2)))
             (let ((target (parse-windows-shortcut shortcut)))
               (when target
                 (return (pathname target))))))))))
@@ -1901,7 +1911,7 @@ PREVIOUS-TIME when not null is the time at which the PREVIOUS system was loaded.
 
 (defun* sysdef-find-asdf (name)
   ;; Bug: :version *asdf-version* won't be updated when ASDF is updated.
-  (find-system-fallback name "asdf" :version *asdf-version*))
+  (find-system-fallback name "asdf2" :version *asdf-version*))
 
 
 ;;;; -------------------------------------------------------------------------
@@ -2669,7 +2679,7 @@ recursive calls to traverse.")
         (t
          (asdf-message (compatfmt "~&~@<; ~@;Changed ASDF from version ~A to incompatible version ~A~@:>~%")
                        old-version new-version)))
-      (let ((asdf (funcall (find-symbol* 'find-system :asdf) :asdf)))
+      (let ((asdf (funcall (find-symbol* 'find-system :asdf) :asdf2)))
         ;; Invalidate all systems but ASDF itself.
         (setf *defined-systems* (make-defined-systems-table))
         (register-system asdf)
@@ -2685,7 +2695,7 @@ recursive calls to traverse.")
 (defun* upgrade-asdf ()
   (let ((version (asdf-version)))
     (handler-bind (((or style-warning warning) #'muffle-warning))
-      (operate 'load-op :asdf :verbose nil))
+      (operate 'load-op :asdf2 :verbose nil))
     (cleanup-upgraded-asdf version)))
 
 (defmethod plan-operates-on-p ((plan list) (component-path list))
@@ -2721,7 +2731,7 @@ recursive calls to traverse.")
                ;; afterwards, retry the whole thing with the new OPERATE function,
                ;; which on some implementations
                ;; has a new symbol shadowing the current one.
-               (unless (gethash "asdf" *systems-being-operated*)
+               (unless (gethash "asdf2" *systems-being-operated*)
                  (upgrade-asdf)
                  (return-from operate
                    (apply (find-symbol* 'operate :asdf) operation-class system args)))))
@@ -2730,7 +2740,7 @@ recursive calls to traverse.")
         (unless (version-satisfies system version)
           (error 'missing-component-of-version :requires system :version version))
         (let ((plan (traverse op system)))
-          (when (plan-operates-on-p plan '("asdf"))
+          (when (plan-operates-on-p plan '("asdf2"))
             (upgrade)) ;; Upgrade early if the plan involves upgrading asdf at any time.
           (perform-plan plan)
           (values op plan))))))
@@ -4064,6 +4074,9 @@ with a different configuration, so the configuration would be re-read then."
 (defparameter *wild-asd*
   (make-pathname :directory nil :name *wild* :type "asd" :version :newest))
 
+(defparameter *wild-as2*
+  (make-pathname :directory nil :name *wild* :type "as2" :version :newest))
+
 (defun* filter-logical-directory-results (directory entries merger)
   (if (typep directory 'logical-pathname)
       ;; Try hard to not resolve logical-pathname into physical pathnames;
@@ -4103,7 +4116,7 @@ with a different configuration, so the configuration would be re-read then."
                           :version (make-pathname-component-logical (pathname-version f))))))))
 
 (defun* directory-asd-files (directory)
-  (directory-files directory *wild-asd*))
+  (append (directory-files directory *wild-as2*) (directory-files directory *wild-asd*)))
 
 (defun* subdirectories (directory)
   (let* ((directory (ensure-directory-pathname directory))
@@ -4429,6 +4442,9 @@ with a different configuration, so the configuration would be re-read then."
   (defun register-pre-built-system (name)
     (register-system (make-instance 'system :name (coerce-name name) :source-file nil)))
 
+  #+(and mkcl windows)
+  (unless (assoc "as2" si::*load-hooks* :test 'equal)
+    (appendf si::*load-hooks* '(("as2" . si::load-source))))
   #+(or (and ecl win32) (and mkcl windows))
   (unless (assoc "asd" #+ecl ext:*load-hooks* #+mkcl si::*load-hooks* :test 'equal)
     (appendf #+ecl ext:*load-hooks* #+mkcl si::*load-hooks* '(("asd" . si::load-source))))
@@ -4507,13 +4523,13 @@ with a different configuration, so the configuration would be re-read then."
 #+mkcl
 (handler-case
     (progn
-      (load-sysdef "asdf-bundle"
+      (load-sysdef "asdf2-bundle"
                    (subpathname (translate-logical-pathname #P"CONTRIB:")
-                                "asdf-bundle/asdf-bundle.asd"))
-      (load-system "asdf-bundle"))
+                                "asdf2-bundle/asdf2-bundle.asd"))
+      (load-system "asdf2-bundle"))
   (error (e)
     (format *error-output*
-            "~&;;; ASDF: Failed to load package 'asdf-bundle'!~%;;; ~A~%"
+            "~&;;; ASDF: Failed to load package 'asdf2-bundle'!~%;;; ~A~%"
             e)))
 
 #+allegro
@@ -4524,7 +4540,7 @@ with a different configuration, so the configuration would be re-read then."
 (pushnew :asdf *features*)
 (pushnew :asdf2 *features*)
 
-(provide :asdf)
+(provide :asdf2)
 
 ;;; Local Variables:
 ;;; mode: lisp

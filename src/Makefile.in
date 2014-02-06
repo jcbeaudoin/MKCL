@@ -1,7 +1,7 @@
 #
 #  Makefile for MKCL
 #
-#  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+#  Copyright (c) 2010-2014, Jean-Claude Beaudoin.
 #  Copyright by a number of previous anonymous authors
 #            presumed to be the same as for the rest of MKCL.
 #
@@ -72,7 +72,8 @@ MKCL_HFILES = mkcl/config.h \
               mkcl/stacks.h
 
 
-ASDF_FASLS = asdf.fasb ../contrib/asdf-bundle/asdf-bundle.fas
+ASDF2_FASLS = asdf2.fasb ../contrib/asdf2-bundle/asdf2-bundle.fas
+ASDF_FASLS = asdf.fasb
 
 CONTRIB_FASLS = \
                 bytecmp.fasb \
@@ -90,14 +91,14 @@ CONTRIB_FASLS = \
                 fiveam.fasb \
                 bordeaux-threads.fasb
 
-CONTRIB_STATIC_LIBS = $(CONTRIB_FASLS:%.fasb=lib%.a)
+CONTRIB_STATIC_LIBS = $(CONTRIB_FASLS:%.fasb=%.a)
 
 BUILTINS = asdf profile rt serve-event sockets
 
 MKCL_STATIC_PARTS = @LIBPREFIX@mkcltop.@LIBEXT@ liblsp.a @LIBPREFIX@mkclmin.@LIBEXT@
 
 
-all: bin/mkcl-config $(TARGETS) $(ASDF_FASLS) $(CONTRIB_FASLS) HELP.DOC
+all: bin/mkcl-config $(TARGETS) $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) HELP.DOC
 .PHONY:	all
 
 Makefile: Makefile.in config.status
@@ -120,7 +121,11 @@ bin/mkcl-small$(EXE) liblsp.a $(LSP_LIBRARIES) ENCODINGS: compile.lsp lsp/config
 	done
 
 
-asdf.fasb libasdf.a: bin/mkcl-small$(EXE) build-asdf.lsp cmp.fasb compile-utils.lsp ../contrib/asdf/*.lisp
+asdf2.fasb libasdf2.a: bin/mkcl-small$(EXE) build-asdf2.lsp cmp.fasb compile-utils.lsp ../contrib/asdf2/*.lisp
+	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf2.lsp
+
+asdf.fasb libasdf.a: bin/mkcl-small$(EXE) build-asdf.lsp cmp.fasb compile-utils.lsp ../contrib/asdf/*.lisp ../contrib/asdf/uiop/*.lisp
+	(cd ../contrib/asdf/; make build/asdf.lisp)
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf.lsp
 
 bytecmp.fasb libbytecmp.a: bin/mkcl-small$(EXE) build-bytecmp.lsp cmp.fasb compile-utils.lsp ../contrib/bytecmp/bytecmp.lsp
@@ -145,51 +150,73 @@ walker.fasb walker.a: bin/mkcl-small$(EXE) build-walker.lsp cmp.fasb compile-uti
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-walker.lsp
 
 
-../contrib/asdf-bundle/asdf-bundle.fas: bin/mkcl-small$(EXE) build-asdf-bundle.lsp cmp.fasb compile-utils.lsp asdf.fasb ../contrib/asdf-bundle/*.lisp
-	if [ "$${LOCALAPPDATA}" ]; then (cd "$${LOCALAPPDATA}"; rm -rf ./common-lisp/cache/mkcl-*); elif [ "$${APPDATA}" ]; then (cd "$${APPDATA}"; rm -rf ./common-lisp/cache/mkcl-*); else rm -rf $$HOME/.cache/common-lisp/mkcl-*/$$(cd ..;pwd -P)/contrib/asdf-bundle; fi
-	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-bundle.lsp
+../contrib/asdf2-bundle/asdf2-bundle.fas: bin/mkcl-small$(EXE) build-asdf2-bundle.lsp cmp.fasb compile-utils.lsp asdf2.fasb ../contrib/asdf2-bundle/*.lisp
+	if [ "$${LOCALAPPDATA}" ]; then (cd "$${LOCALAPPDATA}"; rm -rf ./common-lisp/cache/mkcl-*); elif [ "$${APPDATA}" ]; then (cd "$${APPDATA}"; rm -rf ./common-lisp/cache/mkcl-*); else rm -rf $$HOME/.cache/common-lisp/mkcl-*/$$(cd ..;pwd -P)/contrib/asdf2-bundle; fi
+	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf2-bundle.lsp
 
-trivial-features.fasb libtrivial-features.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp ../contrib/asdf-bundle/asdf-bundle.fas ../contrib/trivial-features*/src/*.lisp
+trivial-features.fasb trivial-features.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp $(ASDF_FASLS) $(ASDF2_FASLS) ../contrib/trivial-features*/src/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- trivial-features ../contrib/trivial-features*/
-	cp -p ../contrib/trivial-features*/trivial-features.fasb .
-	cp -p ../contrib/trivial-features*/libtrivial-features.a .
+	cp -p ./asdf-stage/trivial-features*/trivial-features.fasb .
+	cp -p ./asdf-stage/trivial-features*/trivial-features.a .
+	cp -p ./asdf-stage/trivial-features*/trivial-features.asd .
+	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- trivial-features ../contrib/trivial-features*/
 
 
-trivial-garbage.fasb libtrivial-garbage.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp ../contrib/asdf-bundle/asdf-bundle.fas ../contrib/trivial-garbage*/*.lisp
+trivial-garbage.fasb trivial-garbage.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp $(ASDF_FASLS) $(ASDF2_FASLS) ../contrib/trivial-garbage*/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- trivial-garbage ../contrib/trivial-garbage*/
-	cp -p ../contrib/trivial-garbage*/trivial-garbage.fasb .
-	cp -p ../contrib/trivial-garbage*/libtrivial-garbage.a .
+	cp -p ./asdf-stage/trivial-garbage*/trivial-garbage.fasb .
+	cp -p ./asdf-stage/trivial-garbage*/trivial-garbage.a .
+	cp -p ./asdf-stage/trivial-garbage*/trivial-garbage.asd .
+	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- trivial-garbage ../contrib/trivial-garbage*/
 
 
-alexandria.fasb libalexandria.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp ../contrib/asdf-bundle/asdf-bundle.fas ../contrib/alexandria*/*.lisp
+alexandria.fasb alexandria.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp $(ASDF_FASLS) $(ASDF2_FASLS) ../contrib/alexandria*/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- alexandria ../contrib/alexandria*/
-	cp -p ../contrib/alexandria*/alexandria.fasb .
-	cp -p ../contrib/alexandria*/libalexandria.a .
+	cp -p ./asdf-stage/alexandria*/alexandria.fasb .
+	cp -p ./asdf-stage/alexandria*/alexandria.a .
+	cp -p ./asdf-stage/alexandria*/alexandria.asd .
+	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- alexandria ../contrib/alexandria*/
 
-babel.fasb libbabel.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp ../contrib/asdf-bundle/asdf-bundle.fas trivial-features.fasb alexandria.fasb ../contrib/babel*/src/*.lisp
+
+babel.fasb babel.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp $(ASDF_FASLS) $(ASDF2_FASLS) trivial-features.fasb alexandria.fasb ../contrib/babel*/src/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- babel ../contrib/babel*/
-	cp -p ../contrib/babel*/babel.fasb .
-	cp -p ../contrib/babel*/libbabel.a .
+	cp -p ./asdf-stage/babel*/babel.fasb .
+	cp -p ./asdf-stage/babel*/babel.a .
+	cp -p ./asdf-stage/babel*/babel.asd .
+	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- babel ../contrib/babel*/
 
-cffi.fasb libcffi.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp ../contrib/asdf-bundle/asdf-bundle.fas babel.fasb ../contrib/cffi*/src/*.lisp
+
+cffi.fasb cffi.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp $(ASDF_FASLS) $(ASDF2_FASLS) babel.fasb ../contrib/cffi*/src/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- cffi ../contrib/cffi*/
-	cp -p ../contrib/cffi*/cffi.fasb .
-	cp -p ../contrib/cffi*/libcffi.a .
+	cp -p ./asdf-stage/cffi*/cffi.fasb .
+	cp -p ./asdf-stage/cffi*/cffi.a .
+	cp -p ./asdf-stage/cffi*/cffi.asd .
+	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- cffi ../contrib/cffi*/
 
-bordeaux-threads.fasb libbordeaux-threads.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp ../contrib/asdf-bundle/asdf-bundle.fas alexandria.fasb ../contrib/bordeaux-threads-*/src/*.lisp
+
+bordeaux-threads.fasb bordeaux-threads.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp $(ASDF_FASLS) $(ASDF2_FASLS) alexandria.fasb ../contrib/bordeaux-threads-*/src/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- bordeaux-threads ../contrib/bordeaux-threads-*/
-	cp -p ../contrib/bordeaux-threads*/bordeaux-threads.fasb .
-	cp -p ../contrib/bordeaux-threads*/libbordeaux-threads.a .
+	cp -p ./asdf-stage/bordeaux-threads*/bordeaux-threads.fasb .
+	cp -p ./asdf-stage/bordeaux-threads*/bordeaux-threads.a .
+	cp -p ./asdf-stage/bordeaux-threads*/bordeaux-threads.asd .
+	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- bordeaux-threads ../contrib/bordeaux-threads-*/
 
-fiveam.fasb libfiveam.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp ../contrib/asdf-bundle/asdf-bundle.fas alexandria.fasb ../contrib/fiveam-*/src/*.lisp
+
+fiveam.fasb fiveam.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp $(ASDF_FASLS) $(ASDF2_FASLS) alexandria.fasb ../contrib/fiveam-*/src/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- fiveam ../contrib/fiveam-*/
-	cp -p ../contrib/fiveam*/src/fiveam.fasb .
-	cp -p ../contrib/fiveam*/src/libfiveam.a .
+	cp -p ./asdf-stage/fiveam*/src/fiveam.fasb .
+	cp -p ./asdf-stage/fiveam*/src/fiveam.a .
+	cp -p ./asdf-stage/fiveam*/src/fiveam.asd .
+	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- fiveam ../contrib/fiveam-*/
 
-rt.fasb librt.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp ../contrib/asdf-bundle/asdf-bundle.fas babel.fasb ../contrib/rt*/*.lisp
+
+rt.fasb rt.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp $(ASDF_FASLS) $(ASDF2_FASLS) babel.fasb ../contrib/rt*/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- rt ../contrib/rt*/
-	cp -p ../contrib/rt*/rt.fasb .
-	cp -p ../contrib/rt*/librt.a .
+	cp -p ./asdf-stage/rt*/rt.fasb .
+	cp -p ./asdf-stage/rt*/rt.a .
+	cp -p ./asdf-stage/rt*/rt.asd .
+	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- rt ../contrib/rt*/
+
 
 cmp.fasb: bin/mkcl-small$(EXE) cmp/*.lsp build-cmp.lsp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-cmp.lsp
@@ -355,10 +382,10 @@ install-base: all mkcl/config-install.h
 	if [ -f libcmp.a ] ; then $(INSTALL_DATA) libcmp.a $(mkcldir); fi
 	$(INSTALL_PROGRAM) cmp.fasb $(mkcldir)
 
-install-contribs: $(ASDF_FASLS) $(CONTRIB_FASLS)
+install-contribs: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS)
 	$(mkinstalldirs) $(mkcldir)/contrib/
-	for i in *.asd; do $(INSTALL_DATA) $${i} $(mkcldir)/contrib/; done
-	for i in asdf.fasb $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
+	for i in *.as2 *.asd; do $(INSTALL_DATA) $${i} $(mkcldir)/contrib/; done
+	for i in asdf.fasb asdf2.fasb $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
 	  if test -s $$i; then \
 	    case $$i in \
 	      *.fasb) $(INSTALL_PROGRAM) $$i $(mkcldir)/contrib/;; \
@@ -366,8 +393,8 @@ install-contribs: $(ASDF_FASLS) $(CONTRIB_FASLS)
 	    esac; \
 	  fi \
 	done
-	if [ -d ../contrib/asdf-bundle ]; then \
-	  (cd ../contrib/; tar cf - asdf-bundle) | (cd $(mkcldir)/contrib/; tar xof -); \
+	if [ -d ../contrib/asdf2-bundle ]; then \
+	  (cd ../contrib/; tar cf - asdf2-bundle) | (cd $(mkcldir)/contrib/; tar xof -); \
 	fi
 	if [ -d ../contrib/slime ]; then \
 	  (cd ../contrib/; tar cf - slime) | (cd $(mkcldir)/contrib/; tar xof -); \
@@ -423,10 +450,10 @@ install-base-local: all mkcl/config-install.h
 	if [ -f libcmp.a ] ; then $(INSTALL_DATA) libcmp.a $(localmkcldir); fi
 	$(INSTALL_PROGRAM) cmp.fasb $(localmkcldir)
 
-install-contribs-local: $(ASDF_FASLS) $(CONTRIB_FASLS)
+install-contribs-local: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS)
 	$(mkinstalldirs) $(localmkcldir)/contrib/
-	for i in *.asd; do $(INSTALL_DATA) $${i} $(localmkcldir)/contrib/; done
-	for i in asdf.fasb $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
+	for i in *.as2 *.asd; do $(INSTALL_DATA) $${i} $(localmkcldir)/contrib/; done
+	for i in asdf.fasb asdf2.fasb $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
 	  if test -s $$i; then \
 	    case $$i in \
 	      *.fasb) $(INSTALL_PROGRAM) $$i $(localmkcldir)/contrib/;; \
@@ -434,7 +461,7 @@ install-contribs-local: $(ASDF_FASLS) $(CONTRIB_FASLS)
 	    esac; \
 	  fi \
 	done
-	cp -pR ../contrib/asdf-bundle $(localmkcldir)/contrib/
+	cp -pR ../contrib/asdf2-bundle $(localmkcldir)/contrib/
 
 
 uninstall:
@@ -458,7 +485,7 @@ clean: clean_lisp clean_contribs
 	$(RM) MKCLINIT* bin/MKCLINIT*
 	$(RM) MKC*.c MKC*.tmp bin/MKC*.c bin/MKC*.tmp
 	$(RM) -r ENCODINGS
-	$(RM) MODULES HELP.DOC TAGS *.asd
+	$(RM) MODULES HELP.DOC TAGS *.as2 *.asd
 	$(RM) mkcl/gc/*.h ./@LIBPREFIX@mkclgc.@LIBEXT@
 	$(RM) mkcl/gmp.h ./@LIBPREFIX@mkclgmp.@LIBEXT@
 	$(RM) *.dll bin/*.dll
@@ -467,9 +494,9 @@ clean: clean_lisp clean_contribs
 	$(RM) -r lib include
 
 clean_contribs:
-	$(RM) -r ext
+	$(RM) -r ext asdf-stage
 	cd ../contrib; sh ./clean_up.sh
-	$(RM) asdf.fasb $(CONTRIB_FASLS) $(CONTRIB_FASLS:%.fasb=%.asd)
+	$(RM) asdf.fasb asdf2.fasb $(CONTRIB_FASLS) $(CONTRIB_FASLS:%.fasb=%.asd)
 
 clean_lisp:
 	for i in lsp cmp clos; \

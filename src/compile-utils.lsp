@@ -104,16 +104,24 @@
 	    sources)))
 
 
-(defun build-substitute-asd-file (name system-attribs #|depends-on|#)
-  (with-open-file (*standard-output* (make-pathname :name name :type "asd")
+(defun build-substitute-as2-file (name system-attribs) ;; This is for ASDF 2
+  (with-open-file (*standard-output* (make-pathname :name name :type "as2")
                    :direction :output :if-exists :supersede :if-does-not-exist :create)
     (pprint `(defsystem ,name
                :components ((:bundle ,(string name)))
-	       ;; ,@(when depends-on
-	       ;; 	   `(:depends-on ,depends-on)
-	       ;; 	  )
 	       ,@system-attribs
 	       ))
+    (terpri)))
+
+(defun build-substitute-asd-file (name system-attribs) ;; This is for ASDF 3 (and later hopefully)
+  (with-open-file (*standard-output* (make-pathname :name name :type "asd")
+                   :direction :output :if-exists :supersede :if-does-not-exist :create)
+    (format *standard-output* "(defsystem ~S~:*~%~
+                                 ~12T:class ASDF/BUNDLE::PREBUILT-SYSTEM~%~
+                                 ~12T:depends-on nil~%~
+                                 ~12T:components ((:compiled-file ~S~:*))~%~
+                                 ~12T:lib \"~A.a\"~%~
+                                 ~12T~{ ~S~})~%" (string name) system-attribs)
     (terpri)))
 
 (defun build-module (name sources &key
@@ -132,7 +140,8 @@
 		       (format t "~&Bailing out from build-module condition handler!~%") (finish-output)
 		       (mkcl:quit :exit-code 1)))))
    (let* ((name (string-downcase name)))
-     (unless (equalp name "asdf")
+     (unless (or (equalp name "asdf") (equalp name "asdf2"))
+       (build-substitute-as2-file name nil)
        (build-substitute-asd-file name nil))
      (if builtin
 	 (let* ((objects (compile-if-old dir sources)))

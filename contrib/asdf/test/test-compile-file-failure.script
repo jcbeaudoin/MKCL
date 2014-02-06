@@ -1,0 +1,17 @@
+;;; -*- Lisp -*-
+
+(in-package :asdf)
+
+#+gcl2.6 (leave-test "GCL 2.6 sucks. Skipping test." 0)
+
+(assert (handler-case
+            (let ((*compile-file-failure-behaviour* :warn))
+              (load-system 'test-compile-file-failure :force t)
+              t)
+          (compile-file-error () nil)))
+
+(assert (handler-case
+            (let ((*compile-file-failure-behaviour* :error))
+              (load-system 'test-compile-file-failure :force t)
+              nil)
+          (compile-file-error () t)))

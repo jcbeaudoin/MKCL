@@ -1,4 +1,5 @@
 *.asd
+*.as2
 mkcl_min
 ucd.dat
 help.doc
@@ -18,4 +19,4 @@ include/
 lib/
 test/
 autom4te.cache/
-
+asdf-stage/

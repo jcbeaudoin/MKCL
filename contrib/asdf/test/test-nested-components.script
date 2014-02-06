@@ -1,0 +1,25 @@
+;;; -*- Lisp -*-
+
+;;; check that added nesting via modules doesn't confuse ASDF
+
+(setf *central-registry* nil)
+(load "test-nested-components-1.asd")
+
+(print
+ (list
+  :a
+  (traverse 'compile-op 'test-nested-components-a)
+  (traverse 'compile-op 'test-nested-components-b)
+  :x
+  (traverse 'compile-op 'db-agraph-preflight)
+  (traverse 'compile-op 'db-agraph-preflight-2)))
+
+#|
+(oos 'compile-op 'test-nested-components-a)
+(oos 'compile-op 'test-nested-components-b)
+
+(print
+ (list
+  (traverse 'load-op 'test-nested-components-a)
+  (traverse 'load-op 'test-nested-components-b)))
+|#
