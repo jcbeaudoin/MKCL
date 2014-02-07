@@ -1,6 +1,6 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
 ;;;;
-;;;;  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2014, Jean-Claude Beaudoin.
 ;;;;
 ;;;;  This program is free software; you can redistribute it and/or
 ;;;;  modify it under the terms of the GNU Lesser General Public
@@ -40,19 +40,23 @@
 ;;(push sys-dir asdf:*central-registry*) ;; ASDF 1 old style
 
 #+asdf2
-(progn
+(let* ((current-dir (mkcl:getcwd))
+       (src-dir (truename (merge-pathnames "../contrib/" current-dir)))
+       (target-dir (merge-pathnames "./asdf-stage/" current-dir))
+       )
+  (ensure-directories-exist target-dir)
   ;; If you want to watch ASDF activity uncomment this.
   ;;(setq asdf::*verbose-out* t) ;; needed to trace ASDF activity outside asdf:operate.
   (setq asdf::*asdf-verbose* nil)
 
   (asdf::clear-source-registry)
-  (asdf::initialize-source-registry `(:source-registry (:directory ,sys-dir)
-                                                       (:tree "/home/jean-claude/CL/MKCL/dev/releases/mkcl-1.1/git/mkcl.git/src/")
+  (asdf::initialize-source-registry `(:source-registry (:directory ,(namestring sys-dir))
+                                                       (:tree ,(namestring current-dir))
                                                        :ignore-inherited-configuration))
   (asdf::clear-output-translations)
-  (asdf::initialize-output-translations '(:output-translations
-                                          ("/home/jean-claude/CL/MKCL/dev/releases/mkcl-1.1/git/mkcl.git/contrib/"
-                                           "/home/jean-claude/CL/MKCL/dev/releases/mkcl-1.1/git/mkcl.git/src/asdf-stage/")
+  (asdf::initialize-output-translations `(:output-translations
+                                          (,(namestring src-dir)
+                                           ,(namestring target-dir))
                                           :ignore-inherited-configuration))
   );;#+asdf2
 
