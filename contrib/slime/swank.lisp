@@ -1360,7 +1360,7 @@ event was found."
    (thread :initarg :thread :initform (current-thread) :reader channel-thread)
    (name :initarg :name :initform nil)))
 
-(defmethod initialize-instance :after ((ch channel) &key)
+(defmethod initialize-instance :after ((ch channel) &key &allow-other-keys)
   (with-slots (id) ch
     (setf id (incf *channel-counter*))
     (push (cons id ch) *channels*)))

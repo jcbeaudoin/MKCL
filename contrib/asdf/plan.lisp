@@ -411,7 +411,7 @@ the action of OPERATION on COMPONENT in the PLAN"))
 
   (defmethod initialize-instance :after ((plan filtered-sequential-plan)
                                          &key (force () fp) (force-not () fnp)
-                                           other-systems)
+                                         other-systems &allow-other-keys)
     (declare (ignore force force-not))
     (with-slots (forced forced-not action-filter system) plan
       (unless fp (setf forced (normalize-forced-systems (if other-systems :all t) system)))

@@ -11,7 +11,9 @@
     (sysdef-error "Cannot explicitly set wild-module ~A's children components. Please ~
 use a wild pathname instead." module)))
 
-(defmethod reinitialize-instance :after ((self wild-module) &key)
+;; Without &allow-other-keys the test is not really conformant with
+;; the ANSI-CL specification of congruent lambda-lists. JCB
+(defmethod reinitialize-instance :after ((self wild-module) &key #+mkcl &allow-other-keys)
   (let ((pathname (component-pathname self)))
     (unless (and pathname (wild-pathname-p pathname))
       (sysdef-error "Wild-module ~A specified with non-wild pathname ~A."

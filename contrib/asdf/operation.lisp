@@ -14,7 +14,7 @@
 ;;; Operation Classes
 
 (when-upgrading (:when (find-class 'operation nil))
-  (defmethod shared-initialize :after ((o operation) slot-names &rest initargs &key)
+  (defmethod shared-initialize :after ((o operation) slot-names &rest initargs &key &allow-other-keys)
     (declare (ignorable o slot-names initargs)) (values)))
 
 (with-upgradability ()

@@ -74,7 +74,7 @@
 
 ;;; I'm too lazy to write all the identical limits twice.
 (defmethod initialize-instance :after ((enc character-encoding)
-                                       &key literal-char-code-limit)
+                                       &key literal-char-code-limit &allow-other-keys)
   (when literal-char-code-limit
     (setf (slot-value enc 'encode-literal-code-unit-limit)
           literal-char-code-limit)

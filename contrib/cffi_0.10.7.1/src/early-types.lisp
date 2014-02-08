@@ -290,7 +290,7 @@ Signals an error if FOREIGN-TYPE is undefined."))
 ;;; If actual-type isn't parsed already, let's parse it.  This way we
 ;;; don't have to export PARSE-TYPE and users don't have to worry
 ;;; about this in DEFINE-FOREIGN-TYPE or DEFINE-PARSE-METHOD.
-(defmethod initialize-instance :after ((type enhanced-foreign-type) &key)
+(defmethod initialize-instance :after ((type enhanced-foreign-type) &key &allow-other-keys)
   (unless (typep (actual-type type) 'foreign-type)
     (setf (actual-type type) (parse-type (actual-type type)))))
 

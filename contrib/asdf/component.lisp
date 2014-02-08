@@ -85,7 +85,7 @@ another pathname in a degenerate way."))
 
 
 (when-upgrading (:when (find-class 'component nil))
-  (defmethod reinitialize-instance :after ((c component) &rest initargs &key)
+  (defmethod reinitialize-instance :after ((c component) &rest initargs &key &allow-other-keys)
     (declare (ignorable c initargs)) (values)))
 
 (with-upgradability ()
@@ -204,10 +204,10 @@ another pathname in a degenerate way."))
         hash))))
 
 (when-upgrading (:when (find-class 'module nil))
-  (defmethod reinitialize-instance :after ((m module) &rest initargs &key)
+  (defmethod reinitialize-instance :after ((m module) &rest initargs &key &allow-other-keys)
     (declare (ignorable m initargs)) (values))
   (defmethod update-instance-for-redefined-class :after
-      ((m module) added deleted plist &key)
+      ((m module) added deleted plist &key &allow-other-keys)
     (declare (ignorable m added deleted plist))
     (when (and (member 'children added) (member 'components deleted))
       (setf (slot-value m 'children)

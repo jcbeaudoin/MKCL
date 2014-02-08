@@ -204,7 +204,7 @@ all libraries are returned."
     ((lib foreign-library) &key search-path
      (cconv :cdecl cconv-p)
      (calling-convention cconv calling-convention-p)
-     (convention calling-convention))
+     (convention calling-convention) &allow-other-keys)
   (with-slots (type options spec) lib
     (check-type type (member :system :test :grovel-wrapper))
     (setf spec (clean-spec-up spec))
