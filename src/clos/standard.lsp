@@ -689,7 +689,7 @@
 (defvar *migrate-subclasses-on-class-redefinition* nil)
 
 (defmethod ensure-class-using-class ((class forward-referenced-class) name &rest rest
-				     &key direct-slots direct-default-initargs)
+				     &key direct-slots direct-default-initargs &allow-other-keys)
   (declare (ignore direct-slots direct-default-initargs))
   ;;(declare (dynamic-extent rest))
   (multiple-value-bind (metaclass direct-superclasses options)
@@ -699,7 +699,7 @@
     (apply #'reinitialize-instance class :name name options)))
 
 (defmethod ensure-class-using-class ((class class) name &rest rest
-				     &key direct-slots direct-default-initargs)
+				     &key direct-slots direct-default-initargs &allow-other-keys)
   (declare (ignore direct-slots direct-default-initargs))
   ;;(declare (dynamic-extent rest))
   (clear-cached-make-instance class)

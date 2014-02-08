@@ -115,7 +115,7 @@
 	      index (1+ index))))
 
 ;;; Now that class NULL exists we can define this:
-(defmethod ensure-class-using-class ((class null) name &rest rest)
+(defmethod ensure-class-using-class ((class null) name &rest rest &key &allow-other-keys)
   (multiple-value-bind (metaclass direct-superclasses options)
       (apply #'help-ensure-class rest)
     (declare (ignore direct-superclasses))
