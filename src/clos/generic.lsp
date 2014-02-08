@@ -125,6 +125,7 @@
 			      (declarations nil)
 			      method-combination
 			      (method-class (find-class 'method))
+                              &allow-other-keys
 			      )
   ;;
   ;; Check the validity of several fields.

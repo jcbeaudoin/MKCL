@@ -177,10 +177,11 @@
     (unfinalize-class subclass)))
 
 (ensure-generic-function 'reinitialize-instance
-			 :lambda-list '(class &rest initargs))
+			 :lambda-list '(class &rest initargs &key &allow-other-keys))
 
 (defmethod reinitialize-instance ((class class) &rest initargs
-				  &key direct-superclasses (direct-slots nil direct-slots-p))
+				  &key direct-superclasses (direct-slots nil direct-slots-p)
+                                  &allow-other-keys)
   (declare (ignore initargs))
   (let ((name (class-name class)))
     (when (member name '(CLASS BUILT-IN-CLASS) :test #'eq)
