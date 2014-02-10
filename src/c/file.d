@@ -641,15 +641,17 @@ generic_read_vector(MKCL, mkcl_object strm, mkcl_object data, mkcl_index start, 
   if (expected_type == @'base-char' || expected_type == @'character') {
     mkcl_character (*read_char)(MKCL, mkcl_object) = ops->read_char;
     for (; start < end; start++) {
-      mkcl_word c = read_char(env, strm);
-      if (c == EOF) break;
+      mkcl_character c = read_char(env, strm);
+      if (c == EOF)
+        break;
       mkcl_elt_set(env, data, start, MKCL_CODE_CHAR(c));
     }
   } else {
     mkcl_object (*read_byte)(MKCL, mkcl_object) = ops->read_byte;
     for (; start < end; start++) {
       mkcl_object x = read_byte(env, strm);
-      if (mkcl_Null(x)) break;
+      if (mkcl_Null(x))
+        break;
       mkcl_elt_set(env, data, start, x);
     }
   }
@@ -670,7 +672,7 @@ eformat_unread_char(MKCL, mkcl_object strm, mkcl_character c)
     mkcl_object l = mk_cl_Cnil;
     unsigned char buffer[2*ENCODING_BUFFER_MAX_SIZE];
     mkcl_index ndx = 0;
-    mkcl_word i = strm->stream.last_code[0];
+    mkcl_character i = strm->stream.last_code[0];
     if (i != EOF) {
       ndx += strm->stream.encoder(env, strm, buffer, i);
     }
@@ -899,7 +901,7 @@ utf_32le_encoder(MKCL, mkcl_object stream, unsigned char *buffer, mkcl_character
 static mkcl_character
 utf_32_decoder(MKCL, mkcl_object stream, mkcl_eformat_read_octet read_octet, mkcl_object source)
 {
-  mkcl_word c = utf_32be_decoder(env, stream, read_octet, source); /* What about EOF? JCB */
+  mkcl_character c = utf_32be_decoder(env, stream, read_octet, source); /* What about EOF? JCB */
   if (c == 0x0000FEFF) {
     stream->stream.decoder = utf_32be_decoder;
     stream->stream.encoder = utf_32be_encoder;
@@ -4771,7 +4773,8 @@ mk_si_do_read_sequence(MKCL, mkcl_object seq, mkcl_object stream, mkcl_object s,
     end = mkcl_fixnum_in_range(env, @'read-sequence',"end",e,0,limit); /* probably wrong on large seq. JCB */
   }
   if (end <= start) {
-    goto OUTPUT;
+    goto OUTPUT; /* FIXME: This is wrong! An error needs to signaled here as in any other sequence function. JCB */
+                 /* the end == start case is not an error, just a noop! */
   }
   ops = stream_dispatch_table(env, stream);
   if (MKCL_LISTP(seq)) {

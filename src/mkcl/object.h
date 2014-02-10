@@ -668,8 +668,8 @@ extern "C" {
     mkcl_object object0;	/*  some object  */
     mkcl_object object1;	/*  some object */
     mkcl_object byte_stack;	/*  buffer for unread bytes  */
-    mkcl_word last_char;	/*  last character read  */
-    mkcl_word last_code[2];	/*  actual composition of last character  */
+    mkcl_character last_char;	/*  last character read  */
+    mkcl_character last_code[2];/*  actual composition of last character  */
     mkcl_word int0;		/*  some int  */
     mkcl_word int1;		/*  some int  */
     mkcl_index byte_size;	/*  size of byte in binary streams  */

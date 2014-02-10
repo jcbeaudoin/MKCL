@@ -147,10 +147,11 @@ invert_buffer_case(mkcl_object x, mkcl_object escape_list, int sign)
 }
 
 static mkcl_object
-mkcl_read_object_with_delimiter(MKCL, mkcl_object in, int delimiter, int flags, enum mkcl_chattrib a)
+mkcl_read_object_with_delimiter(MKCL, mkcl_object in, mkcl_character delimiter, int flags, enum mkcl_chattrib a)
 {
   mkcl_object x, token;
-  int c, base;
+  mkcl_character c;
+  unsigned int base;
   mkcl_object p;
   mkcl_index length;
   int colon, intern_flag;
@@ -771,7 +772,7 @@ read_constituent(MKCL, mkcl_object in)
   bool not_first = 0;
   mkcl_object token = mk_si_get_buffer_string(env);
   do {
-    int c = mkcl_read_char(env, in);
+    mkcl_character c = mkcl_read_char(env, in);
     enum mkcl_chattrib c_cat;
     if (c == EOF) {
       break;
@@ -875,7 +876,7 @@ void_reader(MKCL, mkcl_object in, mkcl_object c)
 static mkcl_object
 semicolon_reader(MKCL, mkcl_object in, mkcl_object c)
 {
-  int auxc;
+  mkcl_character auxc;
 
   do
     auxc = mkcl_read_char(env, in);
@@ -1052,7 +1053,7 @@ sharp_asterisk_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
     @(return mk_cl_Cnil);
   }
   for (dimcount = 0 ;; dimcount++) {
-    int x = mkcl_read_char(env, in);
+    mkcl_character x = mkcl_read_char(env, in);
     if (x == EOF)
       break;
     a = mkcl_readtable_get(env, rtbl, x, NULL);
@@ -1096,7 +1097,7 @@ sharp_colon_reader(MKCL, mkcl_object in, mkcl_object ch, mkcl_object d)
   mkcl_object rtbl = mkcl_current_readtable(env);
   enum mkcl_chattrib a;
   bool escape_flag;
-  int c;
+  mkcl_character c;
   mkcl_object output, token;
 
   if (d != mk_cl_Cnil && !read_suppress(env))
@@ -1592,7 +1593,7 @@ stream_or_default_input(MKCL, mkcl_object stream)
   /* Skip whitespace characters, but stop at beginning of new line or token */
   if (mkcl_Null(recursivep)) {
     mkcl_object rtbl = mkcl_current_readtable(env);
-    int c = mkcl_read_char(env, strm);
+    mkcl_character c = mkcl_read_char(env, strm);
     if (c != EOF && (mkcl_readtable_get(env, rtbl, c, NULL) != mkcl_cat_whitespace)) {
       mkcl_unread_char(env, c, strm);
     }
@@ -1683,7 +1684,7 @@ do_read_delimited_list(MKCL, int d, mkcl_object in, bool proper_list)
 @)
 
 @(defun read_line (&optional (strm mk_cl_Cnil) (eof_errorp mk_cl_Ct) eof_value recursivep)
-	int c;
+	mkcl_character c;
 	mkcl_object token, value0, value1;
 @
   strm = stream_or_default_input(env, strm);
@@ -1725,7 +1726,7 @@ do_read_delimited_list(MKCL, int d, mkcl_object in, bool proper_list)
 @)
 
 @(defun read-char (&optional (strm mk_cl_Cnil) (eof_errorp mk_cl_Ct) eof_value recursivep)
-	int c;
+	mkcl_character c;
 	mkcl_object output;
 @
   strm = stream_or_default_input(env, strm);
@@ -1803,7 +1804,7 @@ do_read_delimited_list(MKCL, int d, mkcl_object in, bool proper_list)
   }
   f = mkcl_listen_stream(env, strm);
   if (f == MKCL_LISTEN_AVAILABLE) {
-    int c = mkcl_read_char(env, strm);
+    mkcl_character c = mkcl_read_char(env, strm);
     if (c != EOF) {
       @(return MKCL_CODE_CHAR(c));
     }
