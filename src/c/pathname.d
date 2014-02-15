@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2012, Jean-Claude Beaudoin
+    Copyright (c) 2010-2014, Jean-Claude Beaudoin
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -84,7 +84,10 @@ canonicalize_directory_destructively(MKCL, mkcl_object directory, bool logical)
     } else if (mkcl_stringp(env, item)) {
       mkcl_word l = mkcl_string_length(env, item);
       if (logical)
-	continue; /* In logical pathnames, "." and ".." have no special meaning and are valid directory names. */
+        {
+          MKCL_RPLACA(ptr, mk_cl_string_upcase(env, 1, item)); /* logical pathnames are uppercase only. */
+          continue; /* In logical pathnames, "." and ".." have no special meaning and are valid directory names. */
+        }
       if (l && mkcl_char(env, item, 0) == '.') {
 	if (l == 1) {
 	  /* Single dot */
@@ -146,6 +149,18 @@ mkcl_make_pathname(MKCL, mkcl_object host, mkcl_object device, mkcl_object direc
   if (device == MKCL_OBJNULL)
     device = (logical ? @':unspecific' : mk_cl_Cnil);
 
+#if 1
+  if (logical)
+    device = @':unspecific';
+  else if (mkcl_Null(device))
+    a_component_is_nil = TRUE;
+  else if (!(mkcl_stringp(env, device) || (device == @':unspecific') || (device == @':wild')))
+    {
+      bad_value = device;
+      bad_component = @':device';
+      goto _MKCL_ERROR;
+    }
+#else
   if (!logical && mkcl_Null(device))
     a_component_is_nil = TRUE;
   else if (!((logical && (device == @':unspecific'))
@@ -156,6 +171,7 @@ mkcl_make_pathname(MKCL, mkcl_object host, mkcl_object device, mkcl_object direc
       bad_component = @':device';
       goto _MKCL_ERROR;
     }
+#endif
 
   if (mkcl_Null(name))
     a_component_is_nil = TRUE;
@@ -165,6 +181,8 @@ mkcl_make_pathname(MKCL, mkcl_object host, mkcl_object device, mkcl_object direc
     bad_component = @':name';
     goto _MKCL_ERROR;
   }
+  if (logical && mkcl_stringp(env, name)) name = mk_cl_string_upcase(env, 1, name);
+
   if (mkcl_Null(type))
     a_component_is_nil = TRUE;
   else if ((logical && type == @':unspecific')
@@ -173,6 +191,8 @@ mkcl_make_pathname(MKCL, mkcl_object host, mkcl_object device, mkcl_object direc
     bad_component = @':type';
     goto _MKCL_ERROR;
   }
+  if (logical && mkcl_stringp(env, type)) type = mk_cl_string_upcase(env, 1, type);
+
   if (mkcl_Null(version))
     a_component_is_nil = TRUE;
   else if ((logical && version == @':unspecific')
@@ -418,8 +438,10 @@ parse_word(MKCL, mkcl_object s, delim_fn delim, int flags, mkcl_index start, mkc
 	{
           if (c == '-')
             valid_char = TRUE;
+#if 0 /* lowercases are mapped to their uppercase instead. JCB */
           else if (mkcl_alpha_char_p(c))
             valid_char = mkcl_upper_case_p(c);
+#endif
 	  else if (mkcl_alphanumericp(c))
 	    valid_char = TRUE;
 	  else
@@ -448,29 +470,42 @@ parse_word(MKCL, mkcl_object s, delim_fn delim, int flags, mkcl_index start, mkc
       return mk_cl_Cnil;
     }
   }
-  switch(i-j) {
-  case 0:
-    if (flags & WORD_EMPTY_IS_NIL)
-      return mk_cl_Cnil;
-    return mkcl_core.empty_string;
-  case 1:
-    if (mkcl_char(env, s,j) == '*')
-      return @':wild';
-    break;
-  case 2: {
-    mkcl_character c0 = mkcl_char(env, s,j);
-    mkcl_character c1 = mkcl_char(env, s,j+1);
-    if (c0 == '*' && c1 == '*')
-      return @':wild-inferiors';
-    if (!(flags & (WORD_LOGICAL | WORD_ALLOW_LEADING_DOT)) && c0 == '.' && c1 == '.')
-      return @':up';
-    break;
-  }
-  default:
-    if (wild_inferiors)	/* '**' surrounded by other characters */
-      return @':error';
-  }
+  switch(i-j)
+    {
+    case 0:
+      if (flags & WORD_EMPTY_IS_NIL)
+        return mk_cl_Cnil;
+      return mkcl_core.empty_string;
+    case 1:
+      if (mkcl_char(env, s,j) == '*')
+        return @':wild';
+      break;
+    case 2:
+      {
+        mkcl_character c0 = mkcl_char(env, s,j);
+        mkcl_character c1 = mkcl_char(env, s,j+1);
+        if (c0 == '*' && c1 == '*')
+          return @':wild-inferiors';
+        if (!(flags & (WORD_LOGICAL | WORD_ALLOW_LEADING_DOT)) && c0 == '.' && c1 == '.')
+          return @':up';
+        break;
+      }
+    default:
+      if (wild_inferiors)	/* '**' surrounded by other characters */
+        return @':error';
+    }
+#if 0
   return make_one(env, s, j, i);
+#else
+  {
+    mkcl_object word = make_one(env, s, j, i);
+
+    if (flags & WORD_LOGICAL)
+      return mk_cl_nstring_upcase(env, 1, word);
+    else
+      return word;
+  }
+#endif
 }
 
 /*
@@ -625,7 +660,7 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
 		       *ep, end, ep);
       if (aux == @':error') {
 	return mk_cl_Cnil;
-      } else if (MKCL_SYMBOLP(aux)) {
+      } else if (mkcl_Null(aux) || aux == @':wild') {
 	version = aux;
       } else {
 	version = mk_cl_parse_integer(env, 3, aux, @':junk-allowed', mk_cl_Ct);
@@ -1676,7 +1711,7 @@ mk_cl_host_namestring(MKCL, mkcl_object pname)
   newpath = _make_pathname(env,
 			   path->pathname.logical,
 			   EN_MATCH(env, path, defaults, host),
-			   EN_MATCH(env, path, defaults, device),
+			   path->pathname.logical ? @':unspecific' : EN_MATCH(env, path, defaults, device),
 			   pathdir,
 			   fname,
 			   EN_MATCH(env, path, defaults, type),
@@ -1726,31 +1761,31 @@ do_path_item_match(MKCL, mkcl_object s, mkcl_index j, mkcl_object p, mkcl_index 
 }
 
 static bool
-path_item_match(MKCL, mkcl_object a, mkcl_object mask)
+path_item_match(MKCL, mkcl_object a, mkcl_object wildcard)
 {
-  if (mask == @':wild')
+  if (wildcard == @':wild')
     return TRUE;
   /* If a component in the tested path is a wildcard field, this
-     can only be matched by the same wildcard field in the mask */
-  if (!mkcl_stringp(env, a) || mask == mk_cl_Cnil)
-    return (a == mask);
-  if (!mkcl_stringp(env, mask))
-    mkcl_FEerror(env, "~S is not supported as mask for pathname-match-p", 1, mask);
-  return do_path_item_match(env, a, 0, mask, 0);
+     can only be matched by the same wildcard field in the wildcard */
+  if (!mkcl_stringp(env, a) || wildcard == mk_cl_Cnil)
+    return (a == wildcard);
+  if (!mkcl_stringp(env, wildcard))
+    mkcl_FEerror(env, "~S is not supported as wildcard for pathname-match-p", 1, wildcard);
+  return do_path_item_match(env, a, 0, wildcard, 0);
 }
 
 static bool
-path_list_match(MKCL, mkcl_object a, mkcl_object mask)
+path_list_match(MKCL, mkcl_object a, mkcl_object wildcard)
 {
-  mkcl_object item_mask;
-  while (!mkcl_endp(env, mask)) {
-    item_mask = MKCL_CAR(mask);
-    mask = MKCL_CDR(mask);
-    if (item_mask == @':wild-inferiors') {
-      if (mkcl_endp(env, mask))
+  mkcl_object sub_wildcard;
+  while (!mkcl_endp(env, wildcard)) {
+    sub_wildcard = MKCL_CAR(wildcard);
+    wildcard = MKCL_CDR(wildcard);
+    if (sub_wildcard == @':wild-inferiors') {
+      if (mkcl_endp(env, wildcard))
 	return TRUE;
       while (!mkcl_endp(env, a)) {
-	if (path_list_match(env, a, mask))
+	if (path_list_match(env, a, wildcard))
 	  return TRUE;
 	a = MKCL_CDR(a);
       }
@@ -1758,9 +1793,9 @@ path_list_match(MKCL, mkcl_object a, mkcl_object mask)
     } else if (mkcl_endp(env, a)) {
       /* A NIL directory should match against :absolute
 	 or :relative, in order to perform suitable translations. */
-      if (item_mask != @':absolute' && item_mask != @':relative')
+      if (sub_wildcard != @':absolute' && sub_wildcard != @':relative')
 	return FALSE;
-    } else if (!path_item_match(env, MKCL_CAR(a), item_mask)) {
+    } else if (!path_item_match(env, MKCL_CAR(a), sub_wildcard)) {
       return FALSE;
     } else {
       a = MKCL_CDR(a);
@@ -1772,41 +1807,41 @@ path_list_match(MKCL, mkcl_object a, mkcl_object mask)
 }
 
 mkcl_object
-mk_cl_pathname_match_p(MKCL, mkcl_object path, mkcl_object mask)
+mk_cl_pathname_match_p(MKCL, mkcl_object path, mkcl_object wildcard)
 {
   mkcl_call_stack_check(env);
   path = mk_cl_pathname(env, path);
-  mask = mk_cl_pathname(env, mask);
-  if (path->pathname.logical != mask->pathname.logical)
+  wildcard = mk_cl_pathname(env, wildcard);
+  if (path->pathname.logical != wildcard->pathname.logical)
     { @(return mk_cl_Cnil); }
 
   /* Missing components default to :WILD */
 #if 1
-  if (!mkcl_Null(mask->pathname.host)
-      && ((mask->pathname.logical && (mk_cl_string_equal(env, 2, path->pathname.host, mask->pathname.host) == mk_cl_Cnil))
-	  || (!mask->pathname.logical && !mkcl_string_E(env, path->pathname.host, mask->pathname.host)))
+  if (!mkcl_Null(wildcard->pathname.host)
+      && ((wildcard->pathname.logical && (mk_cl_string_equal(env, 2, path->pathname.host, wildcard->pathname.host) == mk_cl_Cnil))
+	  || (!wildcard->pathname.logical && !mkcl_string_E(env, path->pathname.host, wildcard->pathname.host)))
       )
     { @(return mk_cl_Cnil); }
-  if (!mask->pathname.logical
-      && !(mkcl_Null(mask->pathname.device) || (mask->pathname.device == @':unspecific'))
-      && (mk_cl_string_equal(env, 2, path->pathname.device, mask->pathname.device) == mk_cl_Cnil))
+  if (!wildcard->pathname.logical
+      && !(mkcl_Null(wildcard->pathname.device) || (wildcard->pathname.device == @':unspecific'))
+      && (mk_cl_string_equal(env, 2, path->pathname.device, wildcard->pathname.device) == mk_cl_Cnil))
     { @(return mk_cl_Cnil); }
 #endif
-  if (!mkcl_Null(mask->pathname.directory)
-      && !path_list_match(env, path->pathname.directory, mask->pathname.directory))
+  if (!mkcl_Null(wildcard->pathname.directory)
+      && !path_list_match(env, path->pathname.directory, wildcard->pathname.directory))
     { @(return mk_cl_Cnil); }
-  if (!mkcl_Null(mask->pathname.name)
-      && !path_item_match(env, path->pathname.name, mask->pathname.name))
+  if (!mkcl_Null(wildcard->pathname.name)
+      && !path_item_match(env, path->pathname.name, wildcard->pathname.name))
     { @(return mk_cl_Cnil); }
-  if (!mkcl_Null(mask->pathname.type)
-      && !path_item_match(env, path->pathname.type, mask->pathname.type))
+  if (!mkcl_Null(wildcard->pathname.type)
+      && !path_item_match(env, path->pathname.type, wildcard->pathname.type))
     { @(return mk_cl_Cnil); }
 #if (defined(__unix) || defined(MKCL_WINDOWS)) /* physical pathname version is meaningless on Unix or MS-Windows */
-  if (mask->pathname.logical)
+  if (wildcard->pathname.logical)
 #endif
-    if (!(mkcl_Null(mask->pathname.version)
-	  || mask->pathname.version == @':unspecific'
-	  || path_item_match(env, path->pathname.version, mask->pathname.version)))
+    if (!(mkcl_Null(wildcard->pathname.version)
+	  || wildcard->pathname.version == @':unspecific'
+	  || path_item_match(env, path->pathname.version, wildcard->pathname.version)))
     { @(return mk_cl_Cnil); }
 
   @(return mk_cl_Ct);
@@ -1869,28 +1904,48 @@ mkcl_object mk_si_all_logical_pathname_translations(MKCL)
   @(return x);
 }
 
-static mkcl_object
-find_wilds(MKCL, mkcl_object l, mkcl_object source, mkcl_object match)
-{
-  mkcl_index i, j, k, ls, lm;
+enum case_map { preserve_case, to_lowercase, to_uppercase };
 
-  if (match == @':wild')
-    return mkcl_list1(env, source);
-  if (!mkcl_stringp(env, match) || !mkcl_stringp(env, source)) {
-    if (match != source)
+static mkcl_object
+find_wilds(MKCL, mkcl_object match_list, mkcl_object source, mkcl_object wildcard, enum case_map cmap)
+{
+  mkcl_index i, j, k, ls, lw;
+
+  if (wildcard == @':wild')
+    {
+#if 1
+      mkcl_object it = source;
+      if (MKCL_STRINGP(it))
+        {
+          if (cmap == to_lowercase) it = mk_cl_string_downcase(env, 1, it);
+          else if (cmap == to_uppercase) it = mk_cl_string_upcase(env, 1, it);
+          else it = mk_cl_copy_seq(env, it);
+        }
+      return mkcl_list1(env, it);
+#else
+      return mkcl_list1(env, source);
+#endif
+    }
+  if (!mkcl_stringp(env, wildcard) || !mkcl_stringp(env, source)) {
+    if (wildcard != source)
       return @':error';
-    return l;
+    return match_list;
   }
   ls = mkcl_length(env, source);
-  lm = mkcl_length(env, match);
-  for(i = j = 0; i < ls && j < lm; ) {
-    mkcl_character pattern_char = mkcl_char(env, match,j);
+  lw = mkcl_length(env, wildcard);
+  for(i = j = 0; i < ls && j < lw; ) {
+    mkcl_character pattern_char = mkcl_char(env, wildcard,j);
     if (pattern_char == '*') {
       for (j++, k = i;
 	   k < ls && mkcl_char(env, source,k) != pattern_char;
 	   k++)
 	;
-      l = MKCL_CONS(env, make_one(env, source, i, k), l);
+      {
+        mkcl_object it = make_one(env, source, i, k);
+        if (cmap == to_lowercase) it = mk_cl_nstring_downcase(env, 1, it);
+        if (cmap == to_uppercase) it = mk_cl_nstring_upcase(env, 1, it);
+        match_list = MKCL_CONS(env, it, match_list);
+      }
       i = k;
       continue;
     }
@@ -1898,43 +1953,53 @@ find_wilds(MKCL, mkcl_object l, mkcl_object source, mkcl_object match)
       return @':error';
     i++, j++;
   }
-  if (i < ls || j < lm)
+  if (i < ls || j < lw)
     return @':error';
-  return l;
+  return match_list;
 }
 
 static mkcl_object
-find_list_wilds(MKCL, mkcl_object a, mkcl_object mask)
+find_list_wilds(MKCL, mkcl_object list_source, mkcl_object wildcard, enum case_map cmap)
 {
-  mkcl_object l = mk_cl_Cnil, l2;
+  mkcl_object match_list = mk_cl_Cnil;
 
-  while (!mkcl_endp(env, mask)) {
-    mkcl_object item_mask = MKCL_CAR(mask);
-    mask = MKCL_CDR(mask);
-    if (item_mask == @':wild-inferiors') {
-      l2 = mk_cl_Cnil;
-      while (!path_list_match(env, a, mask)) {
-	if (mkcl_endp(env, a))
+  while (!mkcl_endp(env, wildcard)) {
+    mkcl_object sub_wildcard = MKCL_CAR(wildcard);
+    wildcard = MKCL_CDR(wildcard);
+    if (sub_wildcard == @':wild-inferiors') {
+      mkcl_object l2 = mk_cl_Cnil;
+      while (!path_list_match(env, list_source, wildcard)) {
+	if (mkcl_endp(env, list_source))
 	  return @':error';
-	l2 = MKCL_CONS(env, MKCL_CAR(a),l2);
-	a = MKCL_CDR(a);
+        {
+          mkcl_object it = MKCL_CAR(list_source);
+
+          if (MKCL_STRINGP(it))
+            {
+              if (cmap == to_lowercase) it = mk_cl_string_downcase(env, 1, it);
+              else if (cmap == to_uppercase) it = mk_cl_string_upcase(env, 1, it);
+              else it = mk_cl_copy_seq(env, it);
+            }
+          l2 = MKCL_CONS(env, it, l2);
+        }
+	list_source = MKCL_CDR(list_source);
       }
-      l = MKCL_CONS(env, l2, l);
-    } else if (mkcl_endp(env, a)) {
+      match_list = MKCL_CONS(env, l2, match_list);
+    } else if (mkcl_endp(env, list_source)) {
       /* A NIL directory should match against :absolute
 	 or :relative, in order to perform suitable translations. */
-      if (item_mask != @':absolute' && item_mask != @':relative')
+      if (sub_wildcard != @':absolute' && sub_wildcard != @':relative')
 	return @':error';
     } else {
-      l2 = find_wilds(env, l, MKCL_CAR(a), item_mask);
-      if (l == @':error')
+      mkcl_object l2 = find_wilds(env, match_list, MKCL_CAR(list_source), sub_wildcard, cmap);
+      if (match_list == @':error')
 	return @':error';
       if (!mkcl_Null(l2))
-	l = MKCL_CONS(env, l2, l);
-      a = MKCL_CDR(a);
+	match_list = MKCL_CONS(env, l2, match_list);
+      list_source = MKCL_CDR(list_source);
     }
   }
-  return @nreverse(env, l);
+  return @nreverse(env, match_list);
 }
 
 static mkcl_object
@@ -1995,8 +2060,8 @@ copy_list_wildcards(MKCL, mkcl_object *wilds, mkcl_object to)
   mkcl_object l = mk_cl_Cnil;
 
   while (!mkcl_endp(env, to)) {
-    mkcl_object d, mask = MKCL_CAR(to);
-    if (mask == @':wild-inferiors') {
+    mkcl_object d, wildcard = MKCL_CAR(to);
+    if (wildcard == @':wild-inferiors') {
       mkcl_object list = *wilds;
       if (mkcl_endp(env, list))
 	return @':error';
@@ -2024,10 +2089,11 @@ copy_list_wildcards(MKCL, mkcl_object *wilds, mkcl_object to)
 @(defun translate-pathname (source from to &key)
 	mkcl_object wilds, out, d;
 @
+  enum case_map case_mapping = preserve_case;
   mkcl_object host, device, dir, name, type, version;
   /* The pathname from which we get the data */
   source = mk_cl_pathname(env, source);
-  /* The mask applied to the source pathname */
+  /* The wildcard applied to the source pathname */
   from = mk_cl_pathname(env, from);
   /* The pattern which says what the output should look like */
   to = mk_cl_pathname(env, to);
@@ -2037,26 +2103,31 @@ copy_list_wildcards(MKCL, mkcl_object *wilds, mkcl_object to)
   out = mkcl_alloc_raw_pathname(env);
   out->pathname.namestring = mk_cl_Cnil;
   out->pathname.logical = to->pathname.logical;
+#if __unix || defined(MKCL_WINDOWS)
+ /* The customary case of filenames on Unix is usually lowercase so we force it.
+    MS-Windows is usually case indifferent so we do the same in case it may matter. */
+  if (from->pathname.logical && !(to->pathname.logical)) case_mapping = to_lowercase;
+  else if (!(from->pathname.logical) && to->pathname.logical) case_mapping = to_uppercase;
+#endif
   
   /* Match host names */
   if (mk_cl_string_equal(env, 2, source->pathname.host, from->pathname.host) == mk_cl_Cnil)
     goto error;
   host = out->pathname.host = to->pathname.host;
   
-  /* Logical pathnames do not have devices. We just overwrite it. */
+  /* Logical pathnames do not have devices. We just overwrite it. */ /* FIXME: What about normal pathnames? JCB */
   device = out->pathname.device = to->pathname.device;
   
   /* Match directories */
-  wilds = find_list_wilds(env, source->pathname.directory,
-			  from->pathname.directory);
-  if (wilds == @':error')	goto error;
+  wilds = find_list_wilds(env, source->pathname.directory, from->pathname.directory, case_mapping);
+  if (wilds == @':error')  goto error;
   d = copy_list_wildcards(env, &wilds, to->pathname.directory);
   if (d == @':error') goto error;
   if (wilds != mk_cl_Cnil) goto error2;
   dir = out->pathname.directory = d;
   
   /* Match name */
-  wilds = find_wilds(env, mk_cl_Cnil, source->pathname.name, from->pathname.name);
+  wilds = find_wilds(env, mk_cl_Cnil, source->pathname.name, from->pathname.name, case_mapping);
   if (wilds == @':error') goto error2;
   d = copy_wildcards(env, &wilds, to->pathname.name);
   if (d == @':error') goto error;
@@ -2064,7 +2135,7 @@ copy_list_wildcards(MKCL, mkcl_object *wilds, mkcl_object to)
   name = out->pathname.name = d;
   
   /* Match type */
-  wilds = find_wilds(env, mk_cl_Cnil, source->pathname.type, from->pathname.type);
+  wilds = find_wilds(env, mk_cl_Cnil, source->pathname.type, from->pathname.type, case_mapping);
   if (wilds == @':error') goto error2;
   d = copy_wildcards(env, &wilds, to->pathname.type);
   if (d == @':error') goto error;
