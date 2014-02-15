@@ -672,7 +672,7 @@ It returns a process-info plist with possible keys:
   (defun %use-run-program (command &rest keys
                            &key input output error-output ignore-error-status &allow-other-keys)
     ;; helper for RUN-PROGRAM when using %run-program
-    #+(or abcl cormanlisp gcl (and lispworks os-windows) mcl mkcl xcl)
+    #+(or abcl cormanlisp gcl (and lispworks os-windows) mcl xcl)
     (error "Not implemented on this platform")
     (assert (not (member :stream (list input output error-output))))
     (let* ((active-input-p (%active-io-specifier-p input))
@@ -778,13 +778,7 @@ It returns a process-info plist with possible keys:
                 (ext:system %command))
         #+gcl (lisp:system %command)
         #+mcl (ccl::with-cstrs ((%%command %command)) (_system %%command))
-        #+mkcl ;; PROBABLY BOGUS -- ask jcb
-#|
-        (multiple-value-bind (io process exit-code)
-            (mkcl:run-program #+windows %command #+windows ()
-                              #-windows "/bin/sh" #-windows (list "-c" %command)
-                              :input t :output t))
-|#
+        #+mkcl
         (mkcl:system %command)
         )))
 

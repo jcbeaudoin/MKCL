@@ -105,8 +105,8 @@
       ((member :binary :dll :lib :shared-library :static-library :program :object :program)
        (compile-file-type :type bundle-type))
       ((eql :binary) "image")
-      ((eql :dll) (cond ((os-macosx-p) "dylib") ((os-unix-p) "so") ((os-windows-p) "dll")))
-      ((member :lib :static-library) (cond ((os-unix-p) "a") ((os-windows-p) "lib")))
+      ((member :dll :shared-library) (cond ((os-macosx-p) "dylib") ((os-unix-p) "so") ((os-windows-p) "dll")))
+      ((member :lib :static-library) (cond ((os-unix-p) "a") ((os-windows-p) #+mingw32 "a" #-mingw32 "lib")))
       ((eql :program) (cond ((os-unix-p) nil) ((os-windows-p) "exe")))))
 
   (defun bundle-output-files (o c)
@@ -155,11 +155,10 @@
                                          &key (name-suffix nil name-suffix-p)
                                          &allow-other-keys)
     (declare (ignorable initargs name-suffix #+mkcl name-suffix-p))
-    #-mkcl
     (unless name-suffix-p
       (setf (slot-value instance 'name-suffix)
             (unless (typep instance 'program-op)
-              (if (operation-monolithic-p instance) "--all-systems" #-ecl "--system")))) ; . no good for Logical Pathnames
+              (if (operation-monolithic-p instance) "--all-systems" #-(or ecl mkcl) "--system")))) ; . no good for Logical Pathnames
     (when (typep instance 'monolithic-bundle-op)
       (destructuring-bind (&rest original-initargs
                            &key lisp-files prologue-code epilogue-code
@@ -186,7 +185,10 @@
       (declare (ignorable type))
       (or #+ecl (or (equalp type (compile-file-type :type :object))
                     (equalp type (compile-file-type :type :static-library)))
-          #+mkcl (equalp type (compile-file-type :fasl-p nil))
+          #+mkcl (or (equalp type (compile-file-type :fasl-p nil))
+                     #+(or unix mingw32) (equalp type "a") ;; valid on Unix and MinGW
+                     #+(and windows (not mingw32)) (equalp type "lib")
+                     )
           #+(or abcl allegro clisp clozure cmu lispworks sbcl scl xcl) (equalp type (compile-file-type)))))
 
   (defgeneric* (trivial-system-p) (component))
