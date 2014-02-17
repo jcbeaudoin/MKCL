@@ -289,8 +289,7 @@
 	    (setq i next)))))
 
 (defun inspect-string (string)
-  (format t (if (simple-string-p string) "~S - simple string" "~S - string")
-          string)
+  (ignore-errors (format t (if (simple-string-p string) "~S - simple string" "~S - string") string))
   (inspect-print  "dimension:  ~D"(array-dimension string 0))
   (when (array-has-fill-pointer-p string)
         (inspect-print "fill pointer:  ~D"
@@ -303,8 +302,7 @@
                                       (char string i)))))
 
 (defun inspect-vector (vector)
-  (format t (if (simple-vector-p vector) "~S - simple vector" "~S - vector")
-          vector)
+  (ignore-errors (format t (if (simple-vector-p vector) "~S - simple vector" "~S - vector") vector))
   (inspect-print  "dimension:  ~D" (array-dimension vector 0))
   (when (array-has-fill-pointer-p vector)
         (inspect-print "fill pointer:  ~D"
