@@ -467,7 +467,7 @@ It returns a process-info plist with possible keys:
                  :wait wait
                  :allow-other-keys t
                  (append
-                  #+(or clozure cmu sbcl scl)
+                  #+(or clozure cmu mkcl sbcl scl)
                   `(:if-input-does-not-exist ,if-input-does-not-exist
                     :if-output-exists ,if-output-exists
                     :if-error-exists ,if-error-output-exists)
