@@ -1540,7 +1540,7 @@ package."
 	     (special *tpl-level* *break-level*))
     (restart-case (apply fun args)
       (abort ()
-	:report (lambda (s) (format s "Abort this computation (SI:TOP-APPLY ~S~{ ~S~})." fun args))
+	:report (lambda (s) (format s "Abort this computation: (SI:TOP-APPLY ~S~{ ~S~})." fun args))
         ;;"Abort this computation (top-apply)."
         )
       (terminate-thread ()
