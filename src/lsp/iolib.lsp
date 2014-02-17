@@ -888,3 +888,146 @@ where CREATED is true only if we succeeded on creating all directories."
 
 
 ;;;;;;;;;;;;;;;;
+
+(defsetf process-plist set-process-plist)
+
+;; to-subprocess-worker
+
+(defun launch-to-subprocess-worker (input subprocess)
+  (let ((worker
+         (mt:thread-run-function
+          (format nil "to-subprocess-worker (pid: ~S)" (process-id subprocess))
+          #'(lambda ()
+              (mt:thread-detach nil)
+              (unwind-protect
+                  (loop (let ((byte (read-byte input nil :eof)))
+                          (when (eq byte :eof) (return))
+                          (write-byte byte (process-input subprocess))
+                          )
+                        )
+                (ignore-errors (close input))
+                (ingore-errors (close (process-input subprocess))))))))
+    (setf (getf (process-plist subprocess) :to-subprocess-worker) worker)
+    )
+  )
+
+;; from-subprocess-worker
+
+(defun launch-from-subprocess-worker (output subprocess)
+  (let ((worker
+         (mt:thread-run-function
+          (format nil "from-subprocess-worker (pid: ~S)" (process-id subprocess))
+          #'(lambda ()
+              (mt:thread-detach nil)
+              (unwind-protect
+                  (loop (let ((byte (read-byte (process-output subprocess) nil :eof)))
+                          (when (eq byte :eof) (return))
+                          (write-byte byte output)
+                          )
+                        )
+                (ignore-errors (close (process-output subprocess)))
+                (ingore-errors (close output)))))))
+    (setf (getf (process-plist subprocess) :from-subprocess-worker) worker)
+    )
+  )
+
+(defun launch-error-from-subprocess-worker (err-output subprocess)
+  (let ((worker
+         (mt:thread-run-function
+          (format nil "error-from-subprocess-worker (pid: ~S)" (process-id subprocess))
+          #'(lambda ()
+              (mt:thread-detach nil)
+              (unwind-protect
+                  (loop (let ((byte (read-byte (process-error subprocess) nil :eof)))
+                          (when (eq byte :eof) (return))
+                          (write-byte byte err-output)
+                          )
+                        )
+                (ignore-errors (close (process-error subprocess)))
+                (ingore-errors (close err-output)))))))
+    (setf (getf (process-plist subprocess) :error-from-subprocess-worker) worker)
+    )
+  )
+
+
+(defun run-program (command args
+                    &rest keys
+                    &key
+                    (input :stream) (if-input-does-not-exist nil)
+                    (output :stream) (if-output-exists :error)
+                    (error t) (if-error-exists :error)
+                    directory search (wait t) detached
+                    external-format element-type ;; not really used yet.
+                    ;; environment
+                    )
+  (declare (ignorable if-input-does-not-exist if-output-exists if-error-exists
+                      directory search detached external-format element-type)) ;; each may be handled through 'keys'.
+
+  (remf keys :wait)
+  (remf keys :input)
+  (remf keys :if-input-does-not-exist)
+  (remf keys :output)
+  (remf keys :if-output-exists)
+  (remf keys :error)
+  (remf keys :if-error-exists)
+  (let ((sub-wait wait)
+        (sub-input input)
+        (sub-output output)
+        (sub-error error)
+        to-worker
+        from-worker
+        error-from-worker
+        )
+    (typecase input
+      (string (setq input (open (parse-namestring input) :direction :input :if-does-not-exist if-input-does-not-exist))
+              (setq sub-input :stream to-worker t)
+              )
+      (pathname (setq input (open input :direction :input :if-does-not-exist if-input-does-not-exist))
+                (setq sub-input :stream to-worker t)
+                )
+      (stream (setq sub-input :stream to-worker t))
+      ((or null (member t :stream))) ;; pass on.
+      (t (error "mkcl:run-program: Not a valid value for :input, ~S~%~
+                 must be of type (or null (member t :stream) pathname-designator)." input))
+      )
+    (typecase output
+      (string (setq output (open (parse-namestring output) :direction :output :if-exists if-output-exists))
+              (setq sub-output :stream from-worker t)
+              )
+      (pathname (setq output (open output :direction :output :if-exists if-output-exists))
+                (setq sub-output :stream from-worker t)
+                )
+      (stream (setq sub-output :stream from-worker t))
+      ((or null (member t :stream))) ;; pass on.
+      (t (error "mkcl:run-program: Not a valid value for :output, ~S~%~
+                 must be of type (or null (member t :stream) pathname-designator)." output))
+      )
+    (typecase error
+      (string (setq error (open (parse-namestring error) :direction :output :if-exists if-error-exists))
+              (setq sub-error :stream error-from-worker t)
+              )
+      (pathname (setq error (open error :direction :output :if-exists if-error-exists))
+                (setq sub-error :stream error-from-worker t)
+                )
+      (stream (setq sub-error :stream error-from-worker t))
+      ((or null (member t :stream :output))) ;; pass on.
+      (t (error "mkcl:run-program: Not a valid value for :error, ~S~%~
+                 must be of type (or null (member t :stream :output) pathname-designator)." error))
+      )
+
+    (multiple-value-bind (io subprocess status) 
+        (apply #'run-program-1 command args :wait sub-wait :input sub-input :output sub-output :error sub-error keys)
+
+      (when to-worker (setq to-worker (launch-to-subprocess-worker input subprocess)))
+      (when from-worker (setq from-worker (launch-from-subprocess-worker output subprocess)))
+      (when error-from-worker (setq error-from-worker (launch-error-from-subprocess-worker error subprocess)))
+
+      (when (and wait (not sub-wait))
+        (setq status (join-process subprocess)))
+      (values io subprocess status)
+      )
+    )
+  )
+
+
+;;;

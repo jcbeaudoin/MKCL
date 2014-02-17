@@ -738,10 +738,11 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
   return mkcl_funcall2(env, @+'coerce', os_argv_list, @'vector');
 }
 
-@(defun mkcl::run-program (command argv
-			   &key
-			   (input @':stream') (output @':stream') (error @'t')
-			   (directory @'nil') (search @'t') (wait @'t') (detached @'nil'))
+@(defun mkcl::run-program-1 (command argv
+                             &key
+                             (input @':stream') (output @':stream') (error @'t')
+                             (external_format @':default') (element_type @'character') (environment @'nil')
+                             (directory @'nil') (search @'t') (wait @'t') (detached @'nil'))
   int parent_write = 0, parent_read = 0, parent_error = 0;
   mkcl_object stream_write;
   mkcl_object stream_read;
@@ -749,6 +750,8 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
   mkcl_object subprocess = mkcl_alloc_raw_process(env);
   mkcl_object exit_status = mk_cl_Cnil;
 @
+  /* 'environment' is the last keyword argument that we need to add. FIXME soon. */
+  /* keyword arguments 'external-format' and 'element-type' are not used yet. FIXME soon. */
   subprocess->process.detached = mkcl_Null(detached) ? FALSE : TRUE;
   subprocess->process.command = command;
   subprocess->process.argv = argv;

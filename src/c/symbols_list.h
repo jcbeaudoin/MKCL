@@ -1166,7 +1166,7 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
   {{SYS_ "REPLACE-ARRAY", SI_ORDINARY, mk_si_replace_array, 2, MKCL_OBJNULL}},
   {{SYS_ "ROW-MAJOR-ASET", SI_ORDINARY, mk_si_row_major_aset, 3, MKCL_OBJNULL}},
   {{MKCL_EXT_ "RUN-COMMAND", MKCL_EXT_ORDINARY, mk_mkcl_run_command, -1, MKCL_OBJNULL}},
-  {{MKCL_EXT_ "RUN-PROGRAM", MKCL_EXT_ORDINARY, mk_mkcl_run_program, -1, MKCL_OBJNULL}},
+  {{MKCL_EXT_ "RUN-PROGRAM-1", MKCL_EXT_ORDINARY, mk_mkcl_run_program_1, -1, MKCL_OBJNULL}},
   {{SYS_ "SAFE-EVAL", SI_ORDINARY, mk_si_safe_eval, -1, MKCL_OBJNULL}},
   {{SYS_ "SCH-FRS-BASE", SI_ORDINARY, mk_si_sch_frs_base, 2, MKCL_OBJNULL}},
   {{SYS_ "SCHAR-SET", SI_ORDINARY, mk_si_char_set, 3, MKCL_OBJNULL}},
@@ -2094,6 +2094,8 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
   {{MKCL_EXT_ "PATHNAME+", MKCL_EXT_ORDINARY, NULL, -1, MKCL_OBJNULL}},
   {{MKCL_EXT_ "COPY-PATHNAME", MKCL_EXT_ORDINARY, NULL, -1, MKCL_OBJNULL}},
 
+  {{MKCL_EXT_ "RUN-PROGRAM", MKCL_EXT_ORDINARY, MKCL_IN_LISP(mk_mkcl_run_program), -1, MKCL_OBJNULL}},
+  {{KEY_ "ENVIRONMENT", KEYWORD, NULL, -1, MKCL_OBJNULL}},
 
   /* Tag for end of list!
      This entry, with a first field of NULL value,

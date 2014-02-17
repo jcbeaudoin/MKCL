@@ -2339,7 +2339,7 @@ extern "C" {
   extern MKCL_API void mkcl_safe_fclose(MKCL, void *, mkcl_object stream);
   extern MKCL_API mkcl_object mk_mkcl_system(MKCL, mkcl_object command);
   extern MKCL_API mkcl_object mk_mkcl_make_pipe(MKCL);
-  extern MKCL_API mkcl_object mk_mkcl_run_program(MKCL, mkcl_narg narg, mkcl_object command, mkcl_object args, ...);
+  extern MKCL_API mkcl_object mk_mkcl_run_program_1(MKCL, mkcl_narg narg, mkcl_object command, mkcl_object args, ...);
   extern MKCL_API mkcl_object mk_mkcl_run_command(MKCL, mkcl_narg narg, mkcl_object cmd_string, mkcl_object directory, ...);
   extern MKCL_API mkcl_object mk_mkcl_process_p(MKCL, mkcl_object proc);
   extern MKCL_API mkcl_object mk_mkcl_process_id(MKCL, mkcl_object proc);
@@ -2428,6 +2428,7 @@ extern "C" {
   extern MKCL_API mkcl_object mk_mkcl_princ_to_base_string(MKCL, mkcl_narg narg, mkcl_object V1, ...);
   extern MKCL_API mkcl_object mk_cl_y_or_n_p(MKCL, mkcl_narg narg, ...);
   extern MKCL_API mkcl_object mk_cl_yes_or_no_p(MKCL, mkcl_narg narg, ...);
+  extern MKCL_API mkcl_object mk_mkcl_run_program(MKCL, mkcl_narg narg, mkcl_object command, mkcl_object args, ...);
 
   /* listlib.lsp */
 
