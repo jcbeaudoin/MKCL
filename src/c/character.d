@@ -67,24 +67,53 @@ mk_cl_both_case_p(MKCL, mkcl_object c)
   @(return (mkcl_both_case_p(mkcl_char_code(env, c))? mk_cl_Ct : mk_cl_Cnil));
 }
 
-int
-mkcl_string_case(mkcl_object s)
+enum mkcl_string_case
+mkcl_string_case(const mkcl_object str)
 {
-  int upcase;
+  enum mkcl_string_case str_case = mkcl_mixedcase_string;
   mkcl_index i;
-  const char *text = (char*)s->base_string.self;
-  for (i = 0, upcase = 0; i <= s->base_string.dim; i++) {
-    if (mkcl_upper_case_p(text[i])) {
-      if (upcase < 0)
-	return 0;
-      upcase = +1;
-    } else if (mkcl_lower_case_p(text[i])) {
-      if (upcase > 0)
-	return 0;
-      upcase = -1;
+
+  if (MKCL_BASE_STRING_P(str))
+    {
+      const mkcl_base_char *text = str->base_string.self;
+      const mkcl_index dim = str->base_string.dim;
+      for (i = 0; i < dim; i++) {
+        const mkcl_base_char ch = text[i];
+        if (mkcl_upper_case_p(ch)) {
+          if (str_case == mkcl_lowercase_string) 
+            return mkcl_mixedcase_string;
+          else
+            str_case = mkcl_uppercase_string;
+        } else if (mkcl_lower_case_p(ch)) {
+          if (str_case == mkcl_uppercase_string)
+            return mkcl_mixedcase_string;
+          else
+            str_case = mkcl_lowercase_string;
+        }
+      }
+      return str_case;
     }
-  }
-  return upcase;
+  else if (MKCL_EXTENDED_STRING_P(str))
+    {
+      const mkcl_character *text = str->string.self;
+      const mkcl_index dim = str->string.dim;
+      for (i = 0; i < dim; i++) {
+        const mkcl_character ch = text[i];
+        if (mkcl_upper_case_p(ch)) {
+          if (str_case == mkcl_lowercase_string) 
+            return mkcl_mixedcase_string;
+          else
+            str_case = mkcl_uppercase_string;
+        } else if (mkcl_lower_case_p(ch)) {
+          if (str_case == mkcl_uppercase_string)
+            return mkcl_mixedcase_string;
+          else
+            str_case = mkcl_lowercase_string;
+        }
+      }
+      return str_case;
+    }
+  else return str_case;
 }
 
 @(defun digit_char_p (c &optional (radix MKCL_MAKE_FIXNUM(10)))

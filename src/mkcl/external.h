@@ -531,7 +531,9 @@ extern "C" {
   extern MKCL_API mkcl_object mk_cl_name_char(MKCL, mkcl_object s);
   extern MKCL_API mkcl_object mk_cl_standard_char_p(MKCL, mkcl_object c);
   extern MKCL_API mkcl_object mk_cl_upper_case_p(MKCL, mkcl_object c);
-  extern MKCL_API int mkcl_string_case(mkcl_object s);
+
+  enum mkcl_string_case { mkcl_lowercase_string = -1, mkcl_mixedcase_string = 0, mkcl_uppercase_string = 1 };
+  extern MKCL_API enum mkcl_string_case mkcl_string_case(const mkcl_object s);
 
   static inline bool mkcl_graphic_char_p(mkcl_character code) { return code > 159 || ((31 < code) && (code < 127)); } /* SBCL compatible */
 

@@ -762,10 +762,10 @@ needs_to_be_escaped(MKCL, mkcl_object s, mkcl_object readtable, mkcl_object prin
   return 0;
 }
 
-#define needs_to_be_inverted(s) (mkcl_string_case(s) != 0)
+#define needs_to_be_inverted(s) (mkcl_string_case(s) != mkcl_mixedcase_string)
 
 static void
-write_symbol_string(MKCL, mkcl_object s, int action, mkcl_object print_case,
+write_symbol_string(MKCL, mkcl_object s, enum mkcl_readtable_case action, mkcl_object print_case,
 		    mkcl_object stream, bool escape)
 {
   mkcl_index i;
