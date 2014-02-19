@@ -206,7 +206,7 @@
   (remf args :environment) ;; dropped
   (remf args :delete-methods) ;; handled
   ;; FIXME! We should check that the class GENERIC-FUNCTION-CLASS is compatible
-  ;; with the old one. In what sense "compatible" is ment, I do not know!
+  ;; with the old one. In what sense "compatible" is meant, I do not know!
   ;; (See ANSI DEFGENERIC entry)
   (when (symbolp generic-function-class)
     (setf generic-function-class (find-class generic-function-class)))
@@ -232,8 +232,8 @@
     )
   (if (eq (class-of gfun) generic-function-class)
       (progn
-	(apply #'reinitialize-instance gfun :name name args))
-      (apply #'change-class gfun generic-function-class :name name args)))
+	(apply #'reinitialize-instance gfun args))
+      (apply #'change-class gfun generic-function-class args)))
 
 (defmethod ensure-generic-function-using-class
     ((gfun null) name &rest args &key (method-class 'STANDARD-METHOD)
@@ -249,9 +249,10 @@
   (remf args :delete-methods)
   (unless (classp method-class)
     (setf args (list* :method-class (find-class method-class) args)))
-  (set-funcallable-instance-function
-   (apply #'make-instance generic-function-class :name name args)
-   t))
+  (setf (fdefinition name)
+        (set-funcallable-instance-function
+         (apply #'make-instance generic-function-class :name name args)
+         t)))
 
 (defun ensure-generic-function (name &rest args &key &allow-other-keys)
   ;;(declare (dynamic-extent args))
