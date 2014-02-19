@@ -2123,23 +2123,24 @@ copy_list_wildcards(MKCL, mkcl_object *wilds, mkcl_object to)
 @)
 
 @(defun translate-logical-pathname (source &key)
-	mkcl_object l, pair;
-	mkcl_object pathname;
 @
-  pathname = mk_cl_pathname(env, source);
+  mkcl_object pathname = mk_cl_pathname(env, source);
+
  begin:
-  if (!pathname->pathname.logical) {
-    @(return pathname);
-  }
-  l = @si::pathname-translations(env, 1, pathname->pathname.host);
-  for(; !mkcl_endp(env, l); l = MKCL_CDR(l)) {
-    pair = MKCL_CAR(l);
-    if (!mkcl_Null(mk_cl_pathname_match_p(env, pathname, MKCL_CAR(pair)))) {
-      pathname = mk_cl_translate_pathname(env, 3, pathname, MKCL_CAR(pair), MKCL_CADR(pair));
-      goto begin;
+  if (!pathname->pathname.logical)
+    { @(return pathname); }
+  else
+    {
+      mkcl_object l = @si::pathname-translations(env, 1, pathname->pathname.host);
+      for(; MKCL_CONSP(l); l = MKCL_CONS_CDR(l)) {
+        mkcl_object pair = MKCL_CONS_CAR(l);
+        if (!mkcl_Null(mk_cl_pathname_match_p(env, pathname, mk_cl_car(env, pair)))) {
+          pathname = mk_cl_translate_pathname(env, 3, pathname, mk_cl_car(env, pair), mk_cl_cadr(env, pair));
+          goto begin;
+        }
+      }
     }
-  }
-  mkcl_FEerror(env, "~S admits no logical pathname translations", 1, pathname);
+  mkcl_FEerror(env, "~S admits no logical pathname translations", 1, source);
 @)
 
 ;;;;;;
