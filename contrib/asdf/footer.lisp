@@ -25,7 +25,7 @@
 
   #+(or ecl mkcl)
   (progn
-    (pushnew '("fasb" . si::load-binary) si:*load-hooks* :test 'equal :key 'car)
+    (pushnew '("fasb" . si::load-binary) si::*load-hooks* :test 'equal :key 'car)
 
     #+(or (and ecl win32) (and mkcl windows))
     (unless (assoc "asd" #+ecl ext:*load-hooks* #+mkcl si::*load-hooks* :test 'equal)
