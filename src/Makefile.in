@@ -154,7 +154,7 @@ walker.fasb walker.a: bin/mkcl-small$(EXE) build-walker.lsp cmp.fasb compile-uti
 	if [ "$${LOCALAPPDATA}" ]; then (cd "$${LOCALAPPDATA}"; rm -rf ./common-lisp/cache/mkcl-*); elif [ "$${APPDATA}" ]; then (cd "$${APPDATA}"; rm -rf ./common-lisp/cache/mkcl-*); else rm -rf $$HOME/.cache/common-lisp/mkcl-*/$$(cd ..;pwd -P)/contrib/asdf2-bundle; fi
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf2-bundle.lsp
 
-trivial-features.fasb trivial-features.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp $(ASDF_FASLS) $(ASDF2_FASLS) ../contrib/trivial-features*/src/*.lisp
+trivial-features.fasb trivial-features.a: bin/mkcl-small$(EXE) build-asdf-contrib*.lsp $(ASDF_FASLS) $(ASDF2_FASLS) ../contrib/trivial-features*/src/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- trivial-features ../contrib/trivial-features*/
 	cp -p ./asdf-stage/trivial-features*/trivial-features.fasb .
 	cp -p ./asdf-stage/trivial-features*/trivial-features.a .
@@ -162,7 +162,7 @@ trivial-features.fasb trivial-features.a: bin/mkcl-small$(EXE) build-asdf-contri
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- trivial-features ../contrib/trivial-features*/
 
 
-trivial-garbage.fasb trivial-garbage.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp $(ASDF_FASLS) $(ASDF2_FASLS) ../contrib/trivial-garbage*/*.lisp
+trivial-garbage.fasb trivial-garbage.a: bin/mkcl-small$(EXE) build-asdf-contrib*.lsp $(ASDF_FASLS) $(ASDF2_FASLS) ../contrib/trivial-garbage*/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- trivial-garbage ../contrib/trivial-garbage*/
 	cp -p ./asdf-stage/trivial-garbage*/trivial-garbage.fasb .
 	cp -p ./asdf-stage/trivial-garbage*/trivial-garbage.a .
@@ -170,7 +170,7 @@ trivial-garbage.fasb trivial-garbage.a: bin/mkcl-small$(EXE) build-asdf-contrib.
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- trivial-garbage ../contrib/trivial-garbage*/
 
 
-alexandria.fasb alexandria.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp $(ASDF_FASLS) $(ASDF2_FASLS) ../contrib/alexandria*/*.lisp
+alexandria.fasb alexandria.a: bin/mkcl-small$(EXE) build-asdf-contrib*.lsp $(ASDF_FASLS) $(ASDF2_FASLS) ../contrib/alexandria*/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- alexandria ../contrib/alexandria*/
 	cp -p ./asdf-stage/alexandria*/alexandria.fasb .
 	cp -p ./asdf-stage/alexandria*/alexandria.a .
@@ -178,7 +178,7 @@ alexandria.fasb alexandria.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp $(ASDF
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- alexandria ../contrib/alexandria*/
 
 
-babel.fasb babel.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp $(ASDF_FASLS) $(ASDF2_FASLS) trivial-features.fasb alexandria.fasb ../contrib/babel*/src/*.lisp
+babel.fasb babel.a: bin/mkcl-small$(EXE) build-asdf-contrib*.lsp $(ASDF_FASLS) $(ASDF2_FASLS) trivial-features.fasb alexandria.fasb ../contrib/babel*/src/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- babel ../contrib/babel*/
 	cp -p ./asdf-stage/babel*/babel.fasb .
 	cp -p ./asdf-stage/babel*/babel.a .
@@ -194,7 +194,7 @@ cffi.fasb cffi.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp $(ASDF_FASLS) $(AS
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- cffi ../contrib/cffi*/
 
 
-bordeaux-threads.fasb bordeaux-threads.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp $(ASDF_FASLS) $(ASDF2_FASLS) alexandria.fasb ../contrib/bordeaux-threads-*/src/*.lisp
+bordeaux-threads.fasb bordeaux-threads.a: bin/mkcl-small$(EXE) build-asdf-contrib*.lsp $(ASDF_FASLS) $(ASDF2_FASLS) alexandria.fasb ../contrib/bordeaux-threads-*/src/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- bordeaux-threads ../contrib/bordeaux-threads-*/
 	cp -p ./asdf-stage/bordeaux-threads*/bordeaux-threads.fasb .
 	cp -p ./asdf-stage/bordeaux-threads*/bordeaux-threads.a .
@@ -202,7 +202,7 @@ bordeaux-threads.fasb bordeaux-threads.a: bin/mkcl-small$(EXE) build-asdf-contri
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- bordeaux-threads ../contrib/bordeaux-threads-*/
 
 
-fiveam.fasb fiveam.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp $(ASDF_FASLS) $(ASDF2_FASLS) alexandria.fasb ../contrib/fiveam-*/src/*.lisp
+fiveam.fasb fiveam.a: bin/mkcl-small$(EXE) build-asdf-contrib*.lsp $(ASDF_FASLS) $(ASDF2_FASLS) alexandria.fasb ../contrib/fiveam-*/src/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- fiveam ../contrib/fiveam-*/
 	cp -p ./asdf-stage/fiveam*/src/fiveam.fasb .
 	cp -p ./asdf-stage/fiveam*/src/fiveam.a .
@@ -210,7 +210,7 @@ fiveam.fasb fiveam.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp $(ASDF_FASLS) 
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- fiveam ../contrib/fiveam-*/
 
 
-rt.fasb rt.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp $(ASDF_FASLS) $(ASDF2_FASLS) babel.fasb ../contrib/rt*/*.lisp
+rt.fasb rt.a: bin/mkcl-small$(EXE) build-asdf-contrib*.lsp $(ASDF_FASLS) $(ASDF2_FASLS) babel.fasb ../contrib/rt*/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- rt ../contrib/rt*/
 	cp -p ./asdf-stage/rt*/rt.fasb .
 	cp -p ./asdf-stage/rt*/rt.a .
