@@ -59,7 +59,7 @@
 
 ;;(format t "~&About to call asdf:find-system.")(finish-output)
 
-(setq si:*default-external-format* '(:utf-8 :lf))
+(setq si::*default-external-format* '(:utf-8 :lf))
 
 ;; This stuff was needed by ASDF 2.
 ;; handler-bind could be better than ignore-errors here. JCB

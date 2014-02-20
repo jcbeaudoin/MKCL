@@ -69,7 +69,7 @@
 
 ;;(format t "~&About to call asdf:find-system.")(finish-output)
 
-(setq si:*default-external-format* '(:utf-8 :lf))
+(setq si::*default-external-format* '(:utf-8 :lf))
 
 (unless (ignore-errors (asdf:bundle-system sys-name))
   (format t "~%asdf:bundle-system failed.~%")
