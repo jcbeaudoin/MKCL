@@ -1,4 +1,4 @@
-#+ecl
+#+(or ecl mkcl)
 (ffi:clines "
 extern int sample_function();
 

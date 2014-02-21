@@ -2,7 +2,7 @@
 
 (DBG :foo (current-lisp-file-pathname))
 
-(unless (or #+(or clisp clozure (and ecl (not ecl-bytecmp)) lispworks sbcl) t
+(unless (or #+(or clisp clozure (and ecl (not ecl-bytecmp)) lispworks mkcl sbcl) t
             #+cmu nil ;; uncomment if you have 32-bit gcc support - or can autodetect
             #+clisp (version-satisfies
                      (first (split-string (lisp-implementation-version) :separator " "))

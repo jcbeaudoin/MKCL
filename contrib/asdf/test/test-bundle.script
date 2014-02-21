@@ -44,8 +44,8 @@
 (operate 'monolithic-fasl-op :test-asdf/bundle-2)
 (assert (probe-file *mono-bundle-2*))
 
-;;; Test DLL-op on ECL.
-#+ecl
+;;; Test DLL-op on ECL and MKCL.
+#+(or ecl mkcl)
 (progn
   (operate 'dll-op :test-asdf/dll-test)
   (si:load-foreign-module (first (output-files 'dll-op :test-asdf/dll-test)))
