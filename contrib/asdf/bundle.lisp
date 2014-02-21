@@ -486,6 +486,10 @@
 
 #+mkcl
 (with-upgradability ()
+  (defmethod perform ((o dll-op) (s system))
+    (apply #'compiler::build-shared-library (output-file o s)
+           :lisp-object-files (input-files o s) (bundle-op-build-args o)))
+
   (defmethod perform ((o lib-op) (s system))
     (apply #'compiler::build-static-library (output-file o s)
            :lisp-object-files (input-files o s) (bundle-op-build-args o)))
