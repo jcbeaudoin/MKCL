@@ -371,6 +371,7 @@
            (library (second inputs))
            (asd (first (output-files o s)))
            (name (if (and fasl asd) (pathname-name asd) (return-from perform)))
+           (version (component-version s))
            (dependencies
              (if (operation-monolithic-p o)
                  (remove-if-not 'builtin-system-p
@@ -400,6 +401,7 @@
         (let ((*package* (find-package :asdf-user)))
           (pprint `(asdf/defsystem:defsystem ,name
                      :class prebuilt-system
+                     :version ,version
                      :depends-on ,depends-on
                      :components ((:compiled-file ,(pathname-name fasl)))
                      ,@(when library `(:lib ,(file-namestring library))))
@@ -441,7 +443,7 @@
 (asdf:load-system :precompiled-asdf-utils)
 |#
 
-#+(or ecl mkcl)
+#+ecl
 (with-upgradability ()
   (defun uiop-library-file ()
     (or (and (find-system :uiop nil)
@@ -459,8 +461,10 @@
                   (and (system-source-directory :asdf)
                        (plan-operates-on-p plan '("asdf"))))
         (pushnew (uiop-library-file) files :test 'pathname-equal))
-      files))
+      files)))
 
+#+(or ecl mkcl)
+(with-upgradability ()
   (defun register-pre-built-system (name)
     (register-system (make-instance 'system :name (coerce-name name) :source-file nil))))
 

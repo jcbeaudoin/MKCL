@@ -75,7 +75,7 @@
   (format t "~%asdf:bundle-system failed.~%")
   (finish-output)
   (mkcl:quit :exit-code 1)
-)
+  )
 
 (mkcl:quit :exit-code 0)
 

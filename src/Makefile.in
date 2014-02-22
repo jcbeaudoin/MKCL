@@ -73,7 +73,7 @@ MKCL_HFILES = mkcl/config.h \
 
 
 ASDF2_FASLS = asdf2.fasb ../contrib/asdf2-bundle/asdf2-bundle.fas
-ASDF_FASLS = asdf.fasb
+ASDF_FASLS = asdf.fasb uiop.fasb
 
 CONTRIB_FASLS = \
                 bytecmp.fasb \
@@ -91,7 +91,7 @@ CONTRIB_FASLS = \
                 fiveam.fasb \
                 bordeaux-threads.fasb
 
-CONTRIB_STATIC_LIBS = $(CONTRIB_FASLS:%.fasb=%.a)
+CONTRIB_STATIC_LIBS = $(ASDF_FASLS:%.fasb=%.a) libasdf2.a $(CONTRIB_FASLS:%.fasb=%.a)
 
 BUILTINS = asdf profile rt serve-event sockets
 
@@ -124,9 +124,15 @@ bin/mkcl-small$(EXE) liblsp.a $(LSP_LIBRARIES) ENCODINGS: compile.lsp lsp/config
 asdf2.fasb libasdf2.a: bin/mkcl-small$(EXE) build-asdf2.lsp cmp.fasb compile-utils.lsp ../contrib/asdf2/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf2.lsp
 
-asdf.fasb libasdf.a: bin/mkcl-small$(EXE) build-asdf.lsp cmp.fasb compile-utils.lsp ../contrib/asdf/*.lisp ../contrib/asdf/uiop/*.lisp
+asdf.fasb asdf.a uiop.fasb uiop.a: bin/mkcl-small$(EXE) build-asdf.lsp cmp.fasb compile-utils.lsp ../contrib/asdf/*.lisp ../contrib/asdf/uiop/*.lisp
 	(cd ../contrib/asdf/; make build/asdf.lisp)
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf.lsp
+	cp -p ./asdf-stage/asdf/asdf.fasb .
+	cp -p ./asdf-stage/asdf/asdf.a .
+	rm -f ./asdf-stage/asdf/asdf.asd # This one would confuse future ASDF instances if they ever were to find it.
+	cp -p ./asdf-stage/asdf/uiop/uiop.fasb .
+	cp -p ./asdf-stage/asdf/uiop/uiop.a .
+	cp -p ./asdf-stage/asdf/uiop/uiop.asd .
 
 bytecmp.fasb libbytecmp.a: bin/mkcl-small$(EXE) build-bytecmp.lsp cmp.fasb compile-utils.lsp ../contrib/bytecmp/bytecmp.lsp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-bytecmp.lsp
@@ -385,7 +391,7 @@ install-base: all mkcl/config-install.h
 install-contribs: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS)
 	$(mkinstalldirs) $(mkcldir)/contrib/
 	for i in *.as2 *.asd; do $(INSTALL_DATA) $${i} $(mkcldir)/contrib/; done
-	for i in asdf.fasb asdf2.fasb $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
+	for i in asdf.fasb uiop.fasb asdf2.fasb $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
 	  if test -s $$i; then \
 	    case $$i in \
 	      *.fasb) $(INSTALL_PROGRAM) $$i $(mkcldir)/contrib/;; \
@@ -453,7 +459,7 @@ install-base-local: all mkcl/config-install.h
 install-contribs-local: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS)
 	$(mkinstalldirs) $(localmkcldir)/contrib/
 	for i in *.as2 *.asd; do $(INSTALL_DATA) $${i} $(localmkcldir)/contrib/; done
-	for i in asdf.fasb asdf2.fasb $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
+	for i in asdf.fasb uiop.fasb asdf2.fasb $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
 	  if test -s $$i; then \
 	    case $$i in \
 	      *.fasb) $(INSTALL_PROGRAM) $$i $(localmkcldir)/contrib/;; \
@@ -496,7 +502,7 @@ clean: clean_lisp clean_contribs
 clean_contribs:
 	$(RM) -r ext asdf-stage
 	cd ../contrib; sh ./clean_up.sh
-	$(RM) asdf.fasb asdf2.fasb $(CONTRIB_FASLS) $(CONTRIB_FASLS:%.fasb=%.asd)
+	$(RM) asdf.fasb uiop.fasb asdf2.fasb $(CONTRIB_FASLS) $(CONTRIB_FASLS:%.fasb=%.asd)
 
 clean_lisp:
 	for i in lsp cmp clos; \
