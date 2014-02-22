@@ -16,3 +16,5 @@
    :uiop/os :uiop/pathname :uiop/stream :uiop/filesystem :uiop/image
    :uiop/run-program :uiop/lisp-build
    :uiop/configuration :uiop/backward-driver))
+
+#+mkcl (provide :uiop)
