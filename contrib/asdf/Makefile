@@ -52,6 +52,7 @@ all_lisp := $(header_lisp) $(driver_lisp) $(defsystem_lisp)
 build/asdf.lisp: $(all_lisp)
 	mkdir -p build
 	cat $(all_lisp) > $@
+	chmod -w $@ # try to prevent accidental editing.
 
 # This quickly locates such mistakes as unbalanced parentheses:
 load: build/asdf.lisp
