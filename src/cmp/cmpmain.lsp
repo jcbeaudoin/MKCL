@@ -613,6 +613,9 @@ filesystem or in the database of ASDF modules."
   ;; to avoid using the compiler.
   ;;
   (multiple-value-setq (epilogue-code epilogue-p) (build-full-epilogue epilogue-code (eq target :program)))
+  (when (null prologue-code) (setq prologue-code "" prologue-p nil))
+  (unless (stringp prologue-code)
+    (error ";;; MKCL In compiler::builder, Keyword argument :prologue-code is not a string, invalid value is: ~S" prologue-code))
 
   ;;
   ;; When a module is built out of several object files, we have to
