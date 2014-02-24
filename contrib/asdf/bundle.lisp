@@ -161,14 +161,14 @@
               (if (operation-monolithic-p instance) "--all-systems" #-(or ecl mkcl) "--system")))) ; . no good for Logical Pathnames
     (when (typep instance 'monolithic-bundle-op)
       (destructuring-bind (&rest original-initargs
-                           &key lisp-files prologue-code epilogue-code
+                           &key #-mkcl lisp-files prologue-code epilogue-code
                            &allow-other-keys)
           (operation-original-initargs instance)
         (setf (operation-original-initargs instance)
               (remove-plist-keys '(:lisp-files :epilogue-code :prologue-code) original-initargs)
               (monolithic-op-prologue-code instance) prologue-code
               (monolithic-op-epilogue-code instance) epilogue-code)
-        #-ecl (assert (null (or lisp-files epilogue-code prologue-code)))
+        #-(or ecl mkcl) (assert (null (or lisp-files epilogue-code prologue-code)))
         #+ecl (setf (bundle-op-lisp-files instance) lisp-files)))
     (setf (bundle-op-build-args instance)
           (remove-plist-keys '(:type :monolithic :name-suffix)
@@ -357,6 +357,12 @@
     (declare (ignorable o c))
     nil))
 
+  #+mkcl
+  (defmethod output-files ((o lib-op) (c prebuilt-system))
+    (declare (ignorable o c))
+    (list (prebuilt-system-static-library c)))
+
+
 ;;;
 ;;; PREBUILT SYSTEM CREATOR
 ;;;
@@ -499,11 +505,18 @@
            :lisp-object-files (input-files o s) (bundle-op-build-args o)))
 
   (defmethod perform ((o basic-fasl-op) (s system))
-    (apply #'compiler::build-bundle (output-file o s) ;; second???
+    (apply #'compiler::build-bundle (output-file o s)
            :lisp-object-files (input-files o s) (bundle-op-build-args o)))
+
+  (defmethod perform ((o program-op) (s system))
+    (apply #'compiler::build-program (output-file o s)
+           :lisp-object-files (input-files o s)
+           :prologue-code (monolithic-op-prologue-code o)
+           :epilogue-code (monolithic-op-epilogue-code o)
+           (bundle-op-build-args o)))
 
   (defun bundle-system (system &rest args &key force (verbose t) version &allow-other-keys)
     (declare (ignore force verbose version))
     (apply #'operate 'binary-op system args))
 
-);;#+mkcl
+  );;#+mkcl
