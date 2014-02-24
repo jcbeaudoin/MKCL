@@ -127,9 +127,6 @@ asdf2.fasb libasdf2.a: bin/mkcl-small$(EXE) build-asdf2.lsp cmp.fasb compile-uti
 asdf.fasb asdf.a uiop.fasb uiop.a: bin/mkcl-small$(EXE) build-asdf.lsp cmp.fasb compile-utils.lsp ../contrib/asdf/*.lisp ../contrib/asdf/uiop/*.lisp
 	(cd ../contrib/asdf/; make build/asdf.lisp)
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf.lsp
-	cp -p ./asdf-stage/asdf/asdf.fasb .
-	cp -p ./asdf-stage/asdf/asdf.a .
-	rm -f ./asdf-stage/asdf/asdf.asd # This one would confuse future ASDF instances if they ever were to find it.
 	cp -p ./asdf-stage/asdf/uiop/uiop.fasb .
 	cp -p ./asdf-stage/asdf/uiop/uiop.a .
 	cp -p ./asdf-stage/asdf/uiop/uiop.asd .

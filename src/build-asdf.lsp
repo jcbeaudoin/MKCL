@@ -23,24 +23,17 @@
 ;;;
 ;;; * ASDF
 ;;;
-#-(and)
 (build-module "asdf"
               '("../contrib/asdf/build/asdf.lisp")
               :dir "./ext/"
 	      )
 
-(load "../contrib/asdf/build/asdf.lisp") ;; run in bytecode-compiled form.
-
-(asdf:oos 'asdf:load-op :asdf) ;; For some strange reason this is needed by ASDF 3 to force it to register itself.
-
-;;(push '(mkcl:getcwd) asdf:*central-registry*) ;; ASDF 1 old style
-
-;;(push sys-dir asdf:*central-registry*) ;; ASDF 1 old style
+(load "asdf")
 
 #+asdf2
 (let* ((current-dir (mkcl:getcwd))
        (src-dir (truename (merge-pathnames "../contrib/" current-dir)))
-       (asdf-src-dir (truename (merge-pathnames "../contrib/asdf/" current-dir)))
+       (uiop-src-dir (truename (merge-pathnames "../contrib/asdf/uiop/" current-dir)))
        (target-dir (merge-pathnames "./asdf-stage/" current-dir))
        )
   (ensure-directories-exist target-dir)
@@ -49,7 +42,7 @@
   (setq asdf::*asdf-verbose* nil)
 
   (asdf::clear-source-registry)
-  (asdf::initialize-source-registry `(:source-registry (:tree ,(namestring asdf-src-dir))
+  (asdf::initialize-source-registry `(:source-registry (:tree ,(namestring uiop-src-dir))
                                                        ;;(:directory ,(namestring sys-dir))
                                                        ;;(:tree ,(namestring current-dir))
                                                        :ignore-inherited-configuration))
@@ -70,15 +63,6 @@
   (finish-output)
   (mkcl:quit :exit-code 1)
   )
-
-(format t "~&About to compile ASDF proper.~%")(finish-output)
-(unless (ignore-errors (asdf:bundle-system "asdf"))
-  (format t "~%asdf:bundle-system failed.~%")
-  (finish-output)
-  (mkcl:quit :exit-code 1)
-  )
-
-
 
 (mkcl:quit :exit-code 0) ;; signal to "make" that all is well.
 
