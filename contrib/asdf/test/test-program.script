@@ -10,9 +10,23 @@
   (DBG "Creating standalone programs is not supported on your CL implementation")
   (leave-test "Skipping test" 0))
 
+#-(and) ;; debug stuff for MKCL
+(progn
+(trace ASDF/BUNDLE:BUNDLABLE-FILE-P)
+(trace ASDF/BUNDLE:DIRECT-DEPENDENCY-FILES)
+(setq compiler::*delete-compiler-internal-files* nil)
+(setq *compile-extra-options* '(:c-file t :data-file t :h-file t))
+(proclaim '(optimize (debug 3))) ;; full debug info
+(setq compiler::*trace-cc* t)
+(si::reopen-package :compiler)
+(trace compiler::builder)
+)
+
 (defparameter exe (output-file (make-operation 'program-op) (find-system :hello-world-example)))
 (assert (absolute-pathname-p exe))
 
+#-mkcl
+(progn
 ;; Try to load lisp-invocation from xcvb
 (setf *central-registry*
       (list *asdf-directory* ;; be sure that *OUR* asdf is first of any possible ASDF
@@ -34,7 +48,17 @@
   (run-program
    (symbol-call :lisp-invocation :lisp-invocation-arglist
                 :load (native-namestring (subpathname *test-directory* "make-hello-world.lisp")))))
- '(nil nil 0))
+ '(nil nil 0)))
+
+#+mkcl
+(progn
+  (operate 'program-op :hello-world-example
+           :epilogue-code '(progn
+                             (setq uiop/image:*image-dumped-p* :executable)
+                             (uiop/image:restore-image :entry-point (read-from-string "hello:entry-point"))))
+  )
+
+
 (assert (probe-file* exe))
 
 (assert-equal (run-program `(,(native-namestring exe)) :output :lines)
@@ -46,3 +70,4 @@
                 "  \"a\""
                 "  \"b c\""
                 "  \"d\""))
+
