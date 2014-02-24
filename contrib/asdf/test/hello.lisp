@@ -10,4 +10,6 @@
     (format t "You passed ~D arguments:~%~{  ~S~%~}" (length arguments) arguments)))
 
 (defun entry-point ()
-  (apply 'main *command-line-arguments*))
+  (apply 'main *command-line-arguments*)
+  #+mkcl (quit)
+  )
