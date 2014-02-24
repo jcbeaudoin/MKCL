@@ -64,14 +64,14 @@
 
 (setq si::*default-external-format* '(:utf-8 :lf))
 
-(format t "~&About to build UIOP.")(finish-output)
+(format t "~&About to build UIOP.~%")(finish-output)
 (unless (ignore-errors (asdf:bundle-system "uiop"))
   (format t "~%asdf:bundle-system failed.~%")
   (finish-output)
   (mkcl:quit :exit-code 1)
   )
 
-(format t "~&About to compile ASDF proper.")(finish-output)
+(format t "~&About to compile ASDF proper.~%")(finish-output)
 (unless (ignore-errors (asdf:bundle-system "asdf"))
   (format t "~%asdf:bundle-system failed.~%")
   (finish-output)
