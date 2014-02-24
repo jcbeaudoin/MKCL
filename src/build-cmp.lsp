@@ -12,8 +12,6 @@
 ;;;
 ;;;
 
-(push :mkcl-bootstrap *features*)
-
 ;;(setq compiler::*trace-cc* t)
 
 (load "cmp/load.lsp" :external-format '(:ascii :lf))
