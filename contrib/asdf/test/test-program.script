@@ -53,6 +53,7 @@
 #+mkcl
 (progn
   (operate 'program-op :hello-world-example
+           :use-mkcl-shared-libraries nil ;; force static linking
            :epilogue-code '(progn
                              (setq uiop/image:*image-dumped-p* :executable)
                              (uiop/image:restore-image :entry-point (read-from-string "hello:entry-point"))))
