@@ -27,8 +27,7 @@
      (name-suffix :initarg :name-suffix :initform nil)
      (bundle-type :initform :no-output-file :reader bundle-type)
      #+ecl (lisp-files :initform nil :accessor bundle-op-lisp-files)
-     #+mkcl (do-fasb :initarg :do-fasb :initform t :reader bundle-op-do-fasb-p)
-     #+mkcl (do-static-library :initarg :do-static-library :initform t :reader bundle-op-do-static-library-p)))
+     ))
 
   (defclass bundle-compile-op (bundle-op basic-compile-op)
     ()
@@ -93,7 +92,15 @@
   (defclass program-op #+(or mkcl ecl) (monolithic-bundle-compile-op)
             #-(or mkcl ecl) (monolithic-bundle-op selfward-operation)
     ((bundle-type :initform :program)
-     #-(or mkcl ecl) (selfward-operation :initform #-(or mkcl ecl) 'load-op))
+     #-(or mkcl ecl) (selfward-operation :initform #-(or mkcl ecl) 'load-op)
+     #+mkcl (prefix-lisp-object-files :initarg :prefix-lisp-object-files
+                                      :initform nil :accessor program-op-prefix-lisp-object-files)
+     #+mkcl (prefix-object-files :initarg :prefix-object-files
+                                 :initform nil :accessor program-op-prefix-object-files)
+     #+mkcl (postfix-lisp-object-files :initarg :postfix-lisp-object-files
+                                       :initform nil :accessor program-op-postfix-lisp-object-files)
+     #+mkcl (postfix-object-files :initarg :postfix-object-files
+                                  :initform nil :accessor program-op-postfix-object-files))
     (:documentation "create an executable file from the system and its dependencies"))
 
   (defun bundle-pathname-type (bundle-type)
@@ -171,7 +178,10 @@
         #-(or ecl mkcl) (assert (null (or lisp-files epilogue-code prologue-code)))
         #+ecl (setf (bundle-op-lisp-files instance) lisp-files)))
     (setf (bundle-op-build-args instance)
-          (remove-plist-keys '(:type :monolithic :name-suffix)
+          (remove-plist-keys #-mkcl '(:type :monolithic :name-suffix) ;; This list is obviously wrong!
+                             #+mkcl '(:args :orignal-initargs :name-suffix
+                                            :prefix-lisp-object-files :prefix-object-files
+                                            :postfix-lisp-object-files :postfix-object-files)
                              (operation-original-initargs instance))))
 
   (defmethod bundle-op-build-args :around ((o no-ld-flags-op))
@@ -355,12 +365,12 @@
   #+mkcl
   (defmethod perform ((o fasl-op) (c prebuilt-system))
     (declare (ignorable o c))
-    nil))
+    nil)
 
   #+mkcl
   (defmethod output-files ((o lib-op) (c prebuilt-system))
     (declare (ignorable o c))
-    (list (prebuilt-system-static-library c)))
+    (list (prebuilt-system-static-library c))))
 
 
 ;;;
@@ -509,11 +519,18 @@
            :lisp-object-files (input-files o s) (bundle-op-build-args o)))
 
   (defmethod perform ((o program-op) (s system))
-    (apply #'compiler::build-program (output-file o s)
-           :lisp-object-files (input-files o s)
-           :prologue-code (monolithic-op-prologue-code o)
-           :epilogue-code (monolithic-op-epilogue-code o)
-           (bundle-op-build-args o)))
+    (let* ((build-args (bundle-op-build-args o))
+           (object-files (getf build-args :object-files)))
+      (apply #'compiler::build-program (output-file o s)
+             :lisp-object-files (append (program-op-prefix-lisp-object-files o)
+                                        (input-files o s)
+                                        (program-op-postfix-lisp-object-files o))
+             :object-files (append (program-op-prefix-object-files o)
+                                   object-files
+                                   (program-op-postfix-object-files o))
+             :prologue-code (monolithic-op-prologue-code o)
+             :epilogue-code (monolithic-op-epilogue-code o)
+             (remove-plist-keys '(:object-files) build-args))))
 
   (defun bundle-system (system &rest args &key force (verbose t) version &allow-other-keys)
     (declare (ignore force verbose version))

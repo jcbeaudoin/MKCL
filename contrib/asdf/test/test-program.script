@@ -53,6 +53,7 @@
 #+mkcl
 (progn
   (operate 'program-op :hello-world-example
+           :prefix-lisp-object-files (list (namestring (truename (translate-logical-pathname #P"SYS:libcmp.a"))))
            :use-mkcl-shared-libraries nil ;; force static linking
            :epilogue-code '(progn
                              (setq uiop/image:*image-dumped-p* :executable)
