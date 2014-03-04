@@ -242,7 +242,7 @@ bin/mkcl-full$(EXE): bin/mkcl-small$(EXE) build-full-mkcl.lsp $(BUILTINS)
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-full-mkcl.lsp -- $(BUILTINS)
 endif
 
-HELP.DOC: dump-doc.lsp bin/mkcl$(EXE) doc/help.lsp
+HELP.DOC: dump-doc.lsp bin/mkcl-small$(EXE) doc/help.lsp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load dump-doc.lsp
 
 
