@@ -59,10 +59,10 @@
        )
   (setq lsp-objects (append lsp-objects (compile-if-old "./clos/" +clos-module-files+ :fasl-p nil)))
 
-  (format t "~&;;About to build static library liblsp.a~%")
+  (format t "~&;;About to build static library lsp.a~%")
   (unless (compiler:build-static-library "lsp" :lisp-object-files lsp-objects)
     (mkcl:quit :exit-code 1))
-  (format t "~&;;Done building liblsp.a!~%"))
+  (format t "~&;;Done building lsp.a!~%"))
 
 ;;;
 ;;;
@@ -71,8 +71,8 @@
   (unless (compiler:build-shared-library (mkcl:bstr+ "@SHAREDPREFIX@mkcl_" (si:mkcl-version) ".@SHAREDEXT@")
 					 :extra-ld-flags extra-ld-flags
 					 :object-files (list "c/all_symbols2.@OBJEXT@"
-							     "@LIBPREFIX@lsp.@LIBEXT@"
-							     "@LIBPREFIX@mkclmin.@LIBEXT@"
+							     "lsp.@LIBEXT@"
+							     "mkclmin.@LIBEXT@"
 							     "@LIBRARIES@"
 							     #+mingw64
 							     "c:/Users/Jean-Claude/GNU2/mingw64/lib/libgmp.a"

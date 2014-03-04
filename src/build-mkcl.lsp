@@ -40,7 +40,7 @@
 #+unix
 (unless (compiler::build-program
 	 "bin/mkcl"
-	 :lisp-object-files '( "libcmp.a" ) ;; list of pre-loads.
+	 :lisp-object-files '( "cmp.a" ) ;; list of pre-loads.
 	 :use-mkcl-shared-libraries nil ;; force static linking
 	 ;;:extra-ld-flags "-pg"  ;; for profiling
 	 )

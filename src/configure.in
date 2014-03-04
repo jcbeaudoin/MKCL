@@ -403,12 +403,12 @@ dnl      [FASL_LIBS="${FASL_LIBS} -lgc"],
   else
     enable_boehm="included"
     SUBDIRS="${SUBDIRS} gc"
-    CORE_LIBS="libmkclgc.a ${CORE_LIBS}"
+    CORE_LIBS="mkclgc.a ${CORE_LIBS}"
 dnl    if test "${enable_shared}" = "no"; then
     if test -n "${LIBRARIES}"; then
-      LIBRARIES="${LIBRARIES} ${LIBPREFIX}mkclgc.${LIBEXT}"
+      LIBRARIES="${LIBRARIES} mkclgc.${LIBEXT}"
     else
-      LIBRARIES="${LIBPREFIX}mkclgc.${LIBEXT}"
+      LIBRARIES="mkclgc.${LIBEXT}"
     fi
 dnl    fi
     AC_DEFINE(GBC_BOEHM, [0], [Use Boehm's garbage collector])

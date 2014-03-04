@@ -499,7 +499,7 @@ coprocessor).")
 
 (defvar *support-libraries* (mkcl:split-string "@LIBRARIES@" #\space))
 (defvar *mkcl-shared-libs* (list (mkcl:bstr+ "@SHAREDPREFIX@mkcl_" (si:mkcl-version) ".@SHAREDEXT@")))
-(defvar *mkcl-static-libs* (list* "libmkcltop.a" "liblsp.a" "libmkclmin.a" *support-libraries*))
+(defvar *mkcl-static-libs* (list* "mkcltop.a" "lsp.a" "mkclmin.a" *support-libraries*))
 
 (defvar *external-ld-flags* "@LDFLAGS@ @TCP_LIBS@ @LIBS@ ")
 
@@ -511,10 +511,12 @@ coprocessor).")
 
 (defvar +shared-library-prefix+ "@SHAREDPREFIX@")
 (defvar +shared-library-extension+ "@SHAREDEXT@")
-(defvar +shared-library-format+ "@SHAREDPREFIX@~a.@SHAREDEXT@")
+(defvar +native-shared-library-format+ "@SHAREDPREFIX@~a.@SHAREDEXT@")
+(defvar +shared-library-format+ "~a.@SHAREDEXT@")
 (defvar +static-library-prefix+ "@LIBPREFIX@")
 (defvar +static-library-extension+ "@LIBEXT@")
-(defvar +static-library-format+ "@LIBPREFIX@~a.@LIBEXT@")
+(defvar +native-static-library-format+ "@LIBPREFIX@~a.@LIBEXT@")
+(defvar +static-library-format+ "~a.@LIBEXT@")
 (defvar +object-file-extension+ "@OBJEXT@")
 (defvar +executable-file-extension+ "@EXEEXT@")
 (defvar +executable-file-format+ "~a@EXEEXT@")
