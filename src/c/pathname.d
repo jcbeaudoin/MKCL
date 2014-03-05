@@ -1018,6 +1018,8 @@ mkcl_meld_pathnames(MKCL, mkcl_object path, mkcl_object defaults, mkcl_object de
   mkcl_object new_path = path;
   bool a_component_is_nil = FALSE;
 
+  new_path->pathname.namestring = mk_cl_Cnil; /* Let's be conservative on the namestring cache. */
+
   if (mkcl_Null(new_path->pathname.host = old_path->pathname.host))
     {
       new_path->pathname.host = defaults->pathname.host;
