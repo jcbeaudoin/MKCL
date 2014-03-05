@@ -92,7 +92,7 @@ CONTRIB_FASLS = \
                 bordeaux-threads.fasb \
 		uiop.fasb
 
-CONTRIB_STATIC_LIBS = asdf.fasb asdf2.a $(CONTRIB_FASLS:%.fasb=%.a)
+CONTRIB_STATIC_LIBS = asdf.a asdf2.a $(CONTRIB_FASLS:%.fasb=%.a)
 
 BUILTINS = asdf profile rt serve-event sockets
 
@@ -193,7 +193,7 @@ babel.fasb babel.a: bin/mkcl-small$(EXE) build-asdf-contrib*.lsp $(ASDF_FASLS) $
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- babel ../contrib/babel*/
 
 
-cffi.fasb cffi.a: bin/mkcl-small$(EXE) build-asdf-contrib.lsp $(ASDF_FASLS) $(ASDF2_FASLS) babel.fasb ../contrib/cffi*/src/*.lisp
+cffi.fasb cffi.a: bin/mkcl-small$(EXE) build-asdf-contrib*.lsp $(ASDF_FASLS) $(ASDF2_FASLS) babel.fasb ../contrib/cffi*/src/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- cffi ../contrib/cffi*/
 	cp ./asdf-stage/cffi*/cffi.fasb .
 	cp ./asdf-stage/cffi*/cffi.a .
@@ -492,9 +492,8 @@ clean: clean_lisp clean_contribs
 	$(RM) MKCLINIT* bin/MKCLINIT*
 	$(RM) MKC*.c MKC*.tmp bin/MKC*.c bin/MKC*.tmp
 	$(RM) -r ENCODINGS
-	$(RM) MODULES HELP.DOC TAGS *.as2 *.asd
+	$(RM) MODULES HELP.DOC TAGS
 	$(RM) mkcl/gc/*.h ./mkclgc.@LIBEXT@
-	#$(RM) mkcl/gmp.h ./@LIBPREFIX@mkclgmp.@LIBEXT@
 	$(RM) *.dll bin/*.dll
 	$(RM) *.o *.a *.la *.so *.data *.fasb *.fas core core.* a.out
 	cd bin; $(RM) *.o *.a *.la *.so *.data *.fasb *.fas core core.* a.out
@@ -503,11 +502,11 @@ clean: clean_lisp clean_contribs
 clean_contribs:
 	$(RM) -r ext asdf-stage
 	cd ../contrib; sh ./clean_up.sh
-	$(RM) asdf.fasb asdf2.fasb $(CONTRIB_FASLS) $(CONTRIB_FASLS:%.fasb=%.asd)
+	$(RM) asdf.fasb asdf2.fasb $(CONTRIB_FASLS) $(CONTRIB_FASLS:%.fasb=%.asd) $(CONTRIB_FASLS:%.fasb=%.as2)
 
 clean_lisp:
 	for i in lsp cmp clos; \
-	do $(RM) lib$$i.a $$i/?*.{o,data,c,sdat,h,fasb,fas}; done
+	do $(RM) $$i.{a,fasb,asd,as2} $$i/?*.{o,data,c,sdat,h,fasb,fas}; done
 	$(RM) lsp/config.lsp cmp/cmpdefs.lsp
 	$(RM) HELP.DOC
 
