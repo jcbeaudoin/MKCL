@@ -576,13 +576,15 @@ filesystem or in the database of ASDF modules."
                     #define VM 0~%"
 		   c-file)))
 
+(defvar *builder-default-libraries* nil)
+
 (defun builder (target output-name
 		       &key
 		       lisp-object-files
 		       object-files
 		       extra-ld-flags
 		       (init-name nil)
-		       (libraries nil) ;; a list of strings, each naming a library
+		       (libraries *builder-default-libraries*) ;; a list of strings, each naming a library
 		       (use-mkcl-shared-libraries t)
 		       (use-external-shared-libraries t)
 		       #+windows (subsystem :console) ;; only for :program target on :windows
@@ -869,6 +871,7 @@ filesystem or in the database of ASDF modules."
   )
 
 ;;(defvar *trace-compiler-memory* nil)
+(defvar *compile-default-libraries* nil)
   
 (defun cl:compile-file (input-pathname 
 			&key
@@ -882,7 +885,7 @@ filesystem or in the database of ASDF modules."
 			(h-file *h-file*)
 			(data-file *data-file*)
 			(fasl-p t)
-			(libraries nil) ;; a list of strings, each naming a foreign library
+			(libraries *compile-default-libraries*) ;; a list of strings, each naming a foreign library
 			&aux
 			(*standard-output* *standard-output*)
 			(*error-output* *error-output*)
@@ -1026,7 +1029,7 @@ compiled successfully, returns the pathname of the compiled file."
   )
 
 (defun cl:compile (name &optional (definition nil definition-supplied-p)
-			&key (libraries nil) ;; a list of strings, each naming a foreign library
+			&key (libraries *compile-default-libraries*) ;; a list of strings, each naming a foreign library
 			&aux 
 			form
 			data-pathname
@@ -1225,6 +1228,8 @@ from the C language code.  NIL means \"do not create the file\"."
 		      clos::setf-find-class
 		      cl::warn
 		      si::universal-error-handler))
+
+(proclaim '(notinline builder)) ;; for debugging
 
 ;;; Since CMP is an autoloaded optional module these cannot be load-time evaluated
 (proclaim '(notinline cl::proclaim 

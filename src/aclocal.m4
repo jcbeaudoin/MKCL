@@ -218,7 +218,7 @@ case "${host_os}" in
 		LDRPATH='-Wl,--rpath,~A'
 		clibs="-ldl"
 		CFLAGS="-D_GNU_SOURCE -fno-strict-aliasing ${CFLAGS}"
-		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
+		SONAME="mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
 	gnu*)
@@ -230,7 +230,7 @@ case "${host_os}" in
 		LDRPATH='-Wl,--rpath,~A'
 		clibs="-ldl"
 		CFLAGS="-D_GNU_SOURCE ${CFLAGS}"
-		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
+		SONAME="mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
 	kfreebsd*-gnu)
@@ -242,7 +242,7 @@ case "${host_os}" in
 		LDRPATH='-Wl,--rpath,~A'
 		clibs="-ldl"
 		CFLAGS="-D_GNU_SOURCE ${CFLAGS}"
-		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
+		SONAME="mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
 	freebsd*)
@@ -252,7 +252,7 @@ case "${host_os}" in
 		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
 		LDRPATH="-Wl,--rpath,~A"
 		clibs=""
-		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
+		SONAME="mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
 	netbsd*)
@@ -262,7 +262,7 @@ case "${host_os}" in
 		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
 		LDRPATH="-Wl,--rpath,~A"
 		clibs=""
-		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
+		SONAME="mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
 	openbsd*)
@@ -273,7 +273,7 @@ case "${host_os}" in
 		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
 		LDRPATH="-Wl,--rpath,~A"
 		clibs=""
-		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
+		SONAME="mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
 	solaris*)
@@ -339,7 +339,7 @@ case "${host_os}" in
                 enable_boehm=included
 		# MKCL, due to some of the libraries, does not build on
 		# 64 bit mode on OSX. We prevent GMP using that mode.
-		SONAME="${SHAREDPREFIX}mkcl.SOVERSION.${SHAREDEXT}"
+		SONAME="mkcl.SOVERSION.${SHAREDEXT}"
 		SONAME_LDFLAGS="-Wl,-install_name,SONAME -Wl,-compatibility_version,${PACKAGE_VERSION}"
 		;;
 	nsk*)

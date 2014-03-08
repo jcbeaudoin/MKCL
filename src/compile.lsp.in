@@ -66,9 +66,9 @@
 
 ;;;
 ;;;
-(let* ((extra-ld-flags #+unix (mkcl:bstr+ "-Wl,-soname,@SHAREDPREFIX@mkcl_" (si:mkcl-version) ".@SHAREDEXT@")))
-  (format t "~&;;About to build shared library @SHAREDPREFIX@mkcl_~A.@SHAREDEXT@~%" (si:mkcl-version))
-  (unless (compiler:build-shared-library (mkcl:bstr+ "@SHAREDPREFIX@mkcl_" (si:mkcl-version) ".@SHAREDEXT@")
+(let* ((extra-ld-flags #+unix (mkcl:bstr+ "-Wl,-soname,mkcl_" (si:mkcl-version) ".@SHAREDEXT@")))
+  (format t "~&;;About to build shared library mkcl_~A.@SHAREDEXT@~%" (si:mkcl-version))
+  (unless (compiler:build-shared-library (mkcl:bstr+ "mkcl_" (si:mkcl-version) ".@SHAREDEXT@")
 					 :extra-ld-flags extra-ld-flags
 					 :object-files (list "c/all_symbols2.@OBJEXT@"
 							     "lsp.@LIBEXT@"
@@ -79,7 +79,7 @@
 							     )
 					 )
     (mkcl:quit :exit-code 1))
-  (format t "~&;;Done building shared library @SHAREDPREFIX@mkcl_~A.@SHAREDEXT@!~%" (si:mkcl-version))
+  (format t "~&;;Done building shared library mkcl_~A.@SHAREDEXT@!~%" (si:mkcl-version))
   )
 
 

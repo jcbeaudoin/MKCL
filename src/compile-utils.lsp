@@ -23,7 +23,7 @@
   ;;(setq compiler::*compiler-break-enable* t) ;; enter debugger on compiler internal error
   (setq compiler::*delete-compiler-internal-files* nil)
   (setq *compile-extra-options* '(:c-file t :data-file t :h-file t))
-  (proclaim '(optimize (debug 3))) ;; full debug info
+  (proclaim '(optimize (debug 3) (speed 1))) ;; full debug info
   ;;(proclaim '(optimize (safety 3))) ;; full safety checks
   (setq compiler::*trace-cc* t)
   )
@@ -159,7 +159,6 @@
 	     (format t "~&Bailing out from build-module fasl step!~%") (finish-output)
 	     (mkcl:quit :exit-code 1)) ;; exit if fasl build failed.
 	   )
-	 #+unix
 	 (progn
 	   (format t "~&(compiler::build-static-library ~S :lisp-object-files ~S)" name objects)
 	   (unless (compiler::build-static-library name :lisp-object-files objects)

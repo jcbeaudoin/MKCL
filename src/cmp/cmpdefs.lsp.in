@@ -498,7 +498,7 @@ coprocessor).")
 
 
 (defvar *support-libraries* (mkcl:split-string "@LIBRARIES@" #\space))
-(defvar *mkcl-shared-libs* (list (mkcl:bstr+ "@SHAREDPREFIX@mkcl_" (si:mkcl-version) ".@SHAREDEXT@")))
+(defvar *mkcl-shared-libs* (list (mkcl:bstr+ "mkcl_" (si:mkcl-version) ".@SHAREDEXT@")))
 (defvar *mkcl-static-libs* (list* "mkcltop.a" "lsp.a" "mkclmin.a" *support-libraries*))
 
 (defvar *external-ld-flags* "@LDFLAGS@ @TCP_LIBS@ @LIBS@ ")

@@ -638,11 +638,11 @@ dnl ----------------------------------------------------------------------
 dnl Lisp library and libmkcl features
 if test ${enable_shared} = "yes"; then
   AC_DEFINE(ENABLE_DLOPEN, [1], [Allow loading dynamically linked code])
-  LSP_LIBRARIES="${SHAREDPREFIX}mkcl_${PACKAGE_VERSION}.${SHAREDEXT}"
+  LSP_LIBRARIES="mkcl_${PACKAGE_VERSION}.${SHAREDEXT}"
   MKCL_ADD_FEATURE([wants-dlopen])
 else
   enable_soname=no
-  LSP_LIBRARIES="${LIBPREFIX}mkcl_${PACKAGE_VERSION}.${LIBEXT}"
+  LSP_LIBRARIES="mkcl_${PACKAGE_VERSION}.${LIBEXT}"
   LDRPATH='~*'
 fi
 

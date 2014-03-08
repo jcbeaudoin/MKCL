@@ -23,7 +23,7 @@
   (setq compiler::*compiler-break-enable* t) ;; enter debugger on compiler internal error
   (setq compiler::*delete-compiler-internal-files* nil)
   (setq *compile-extra-options* '(:c-file t :data-file t :h-file t))
-  (proclaim '(optimize (debug 3))) ;; full debug info
+  (proclaim '(optimize (debug 3) (speed 1))) ;; full debug info
   ;;(proclaim '(optimize (safety 3))) ;; full safety checks
   (setq compiler::*trace-cc* t)
   )
@@ -50,12 +50,15 @@
 #+windows
 (unless (compiler::build-program
 	 "bin/mkcl"
+	 :lisp-object-files '( "cmp.a" ) ;; list of pre-loads.
 ;;	 :extra-ld-flags "-Wl,--stack,0x800000" ;; Stack of 8MB. ;; behaves badly on MinGW64. 
+#|
 	 :epilogue-code '(PROGN (UNLESS (IGNORE-ERRORS (REQUIRE "CMP"))
 					(TERPRI)
 					(PRINC ";;; Failed to load compiler module!")
 					(TERPRI))
 				(SI::TOP-LEVEL))
+|#
 	 )
   (mkcl:quit :exit-code 1))
 
