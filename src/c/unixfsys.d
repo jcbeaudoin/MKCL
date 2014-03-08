@@ -182,23 +182,17 @@ typedef struct __stat64 os_file_stat;
 typedef struct stat os_file_stat;
 #endif
 
+#ifdef __unix
 static int
 safe_stat(MKCL, mkcl_object path, os_file_stat *sb)
 {
-#if 0
-  mkcl_object os_path = mkcl_string_to_OSstring(env, path);
-#else
   mkcl_dynamic_extent_OSstring(env, os_path, path);
-#endif
   int output;
 
-#ifdef MKCL_WINDOWS
-  MKCL_LIBC_NO_INTR(env, output = _wstat64(mkcl_OSstring_self(os_path), sb));
-#else
   MKCL_LIBC_NO_INTR(env, output = stat(mkcl_OSstring_self(os_path), sb));
-#endif
   return output;
 }
+#endif /* def __unix */
 
 #ifdef HAVE_LSTAT
 static int
@@ -839,17 +833,69 @@ mk_mkcl_probe_file_p(MKCL, mkcl_object filename)
   }
 }
 
+#ifdef MKCL_WINDOWS
+static mkcl_object mkcl_FILETIME_to_universal_time(MKCL, FILETIME file_time)
+{
+  ULARGE_INTEGER large_file_time;
+  static ULARGE_INTEGER large_jan1st1900_ft = { 0, 0 };
+  const static SYSTEMTIME jan1st1900_st = { 1900, 1, 1, 1, 0, 0, 0, 0};
+  static FILETIME jan1st1900_ft = { 0, 0 };
+
+  large_file_time.LowPart = file_time.dwLowDateTime;
+  large_file_time.HighPart = file_time.dwHighDateTime;
+
+  if (large_jan1st1900_ft.QuadPart == 0)
+    {
+      BOOL ok;
+      MKCL_LIBC_NO_INTR(env, ok = SystemTimeToFileTime(&jan1st1900_st, &jan1st1900_ft));
+      if (!ok)
+	mkcl_FEwin32_error(env, "SystemTimetoFileTime failed to convert 1900/01/01 00:00:00 properly", 0);
+      large_jan1st1900_ft.LowPart = jan1st1900_ft.dwLowDateTime;
+      large_jan1st1900_ft.HighPart = jan1st1900_ft.dwHighDateTime;
+    }
+  
+  /* FILETIME count is in 100 nanoseconds, so we divide it by 10000000 to get seconds. */
+  __time64_t universal_time = (large_file_time.QuadPart - large_jan1st1900_ft.QuadPart) / (10 * 1000 * 1000);
+  return mkcl_make_int64_t(env, universal_time);
+}
+#endif /* def MKCL_WINDOWS */
+
 mkcl_object
 mk_cl_file_write_date(MKCL, mkcl_object file)
 {
   mkcl_call_stack_check(env);
   mkcl_object time, filename = mk_si_coerce_to_filename(env, file);
+
+#ifdef __unix
   os_file_stat filestatus;
 
   if (safe_stat(env, filename, &filestatus) < 0)
     mk_cl_error(env, 3, @'file-error', @':pathname', file);
   else
     time = MKCL_UTC_time_to_universal_time(env, filestatus.st_mtime);
+#elif defined(MKCL_WINDOWS)
+  FILETIME ftWrite;
+  HANDLE file_handle;
+  BOOL ok;
+  mkcl_dynamic_extent_OSstring(env, os_filename, filename);
+  
+  /* FILE_FLAG_BACKUP_SEMANTICS is required to obtain a handle on directories (see MicroSoft documentation on CreateFile).
+     Hope it does not have extra unexpected consequences for regular files... */
+  MKCL_LIBC_NO_INTR(env, file_handle = CreateFileW(mkcl_OSstring_self(os_filename),
+						   GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+						   NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL));
+  if (file_handle == INVALID_HANDLE_VALUE)
+    mkcl_FEwin32_file_error(env, file, "file-write-date failed to find file", 0);
+  
+  MKCL_LIBC_NO_INTR(env, ok = GetFileTime(file_handle, NULL, NULL, &ftWrite));
+  CloseHandle(file_handle);
+  if (!ok)
+    mkcl_FEwin32_file_error(env, file, "file-write-date failed to retreive file write date", 0);
+  
+  time = mkcl_FILETIME_to_universal_time(env, ftWrite);
+#else
+#error mk_cl_file_write_date() not implemented on this platform.
+#endif /* elif defined(MKCL_WINDOWS) */
   @(return time);
 }
 
@@ -1156,14 +1202,21 @@ list_directory(MKCL, struct OSpath * wd_path, mkcl_object mask, bool only_dir)
   do
     {
       wchar_t * entry_text = fd.cFileName;
+#if 0
       wchar_t * entry_alt_text = fd.cAlternateFileName;
+#endif
 
       if (entry_text[0] == L'.' &&
 	  (entry_text[1] == L'\0' ||
 	   (entry_text[1] == L'.' && entry_text[2] == L'\0')))
 	goto CONTINUE_WITH_NEXT_ENTRY;
+#if 0 /* It seems that giving the cAlternateFilename field a role equal to cFileName produces surprising and unexpected results! */
       if (!mkcl_Null(mask) && !(string_match(env, entry_text, mask) || string_match(env, entry_alt_text, mask)))
 	goto CONTINUE_WITH_NEXT_ENTRY;
+#else
+      if (!mkcl_Null(mask) && !string_match(env, entry_text, mask))
+	goto CONTINUE_WITH_NEXT_ENTRY;
+#endif
       if (only_dir && !(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
 	goto CONTINUE_WITH_NEXT_ENTRY;
       out = mkcl_cons(env, mkcl_cstring16_copy_to_OSstring(env, entry_text), out);

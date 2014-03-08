@@ -727,7 +727,7 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
   if (!MKCL_LISTP(argv)) mkcl_FEtype_error_list(env, argv);
 
   for (; MKCL_CONSP(argv); argv = MKCL_CONS_CDR(argv))
-    {
+    { /* Here we should accept things other than strings, like we do under Windows. JCB */
       mkcl_object cons = mkcl_list1(env, mkcl_string_to_OSstring(env, MKCL_CONS_CAR(argv)));
 
       MKCL_RPLACD(tail, cons);
@@ -765,6 +765,7 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
   mk_si_set_finalizer(env, subprocess, mk_cl_Ct);
 #if defined(MKCL_WINDOWS)
   {
+    mkcl_object command_line;
     BOOL ok;
     STARTUPINFOW st_info;
     PROCESS_INFORMATION pr_info;
@@ -774,11 +775,17 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
     mkcl_dynamic_extent_OSstring(env, os_command, command);
     
 
-    /* Enclose each argument, as well as the file name
-       in double quotes, to avoid problems when these
-       arguments or file names have spaces */
-    static const mkcl_base_string_object(format_control_string_obj, "~S~{ ~S~}");
-    mkcl_object command_line = mk_cl_format(env, 4, mk_cl_Cnil, (mkcl_object) &format_control_string_obj, command, argv);
+    { /* Enclose each argument, as well as the file name
+	 in double quotes, to avoid problems when these
+	 arguments or file names have spaces */
+      mkcl_bds_bind(env, @'*print-escape*', mk_cl_Cnil);
+      mkcl_bds_bind(env, @'*print-gensym*', mk_cl_Cnil);
+      mkcl_bds_bind(env, @'*print-readably*', mk_cl_Cnil); /* Among others we want #:foo to be printed without package prefix. */
+      
+      static const mkcl_base_string_object(format_control_string_obj, "~S~{ ~S~}");
+      command_line = mk_cl_format(env, 4, mk_cl_Cnil, (mkcl_object) &format_control_string_obj, command, argv);
+      mkcl_bds_unwind_n(env, 3);
+    }
 
     attr.nLength = sizeof(SECURITY_ATTRIBUTES);
     attr.lpSecurityDescriptor = NULL;
@@ -992,6 +999,9 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
     if (ok) {
       DWORD exitcode;
       CloseHandle(pr_info.hThread);
+      subprocess->process.ident = pr_info.hProcess;
+      subprocess->process.status = @':running';
+
       if (wait != mk_cl_Cnil) {
 	DWORD wait_val;
 
@@ -1015,8 +1025,11 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
 	    exit_status = MKCL_MAKE_FIXNUM(exitcode);
 	  /* else should we go back and wait again for process completion? Is this case really possible? JCB */
 	} else mkcl_FEwin32_error(env, "mkcl::run-program failed on GetExitCodeProcess", 0);
+	subprocess->process.status = @':exited';
+	subprocess->process.exit_code = exitcode;
+	subprocess->process.ident = NULL;
+	CloseHandle(pr_info.hProcess);
       }
-      CloseHandle(pr_info.hProcess);
     } else {
       if (parent_write) 
 	if (_close(parent_write))
@@ -1366,11 +1379,6 @@ void mkcl_finalize_process(MKCL, mkcl_object proc)
       proc->process.ident = NULL;
     }
 #endif
-#if 0 /* We cannot know if the user sampled these stream therefore we cannot close them. */ /* stream finalizer closes anyway! */
-  if (!mkcl_Null(proc->process.input)) mk_cl_close(env, 1, proc->process.input);
-  if (!mkcl_Null(proc->process.output)) mk_cl_close(env, 1, proc->process.output);
-  if (!mkcl_Null(proc->process.error)) mk_cl_close(env, 1, proc->process.error);
-#endif
 }
 
 
@@ -1436,8 +1444,6 @@ mkcl_object mk_mkcl_process_error(MKCL, mkcl_object proc)
 
 mkcl_object mk_mkcl_process_status(MKCL, mkcl_object proc)
 {
-  mkcl_os_process_t child_pid;
-
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
     mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
@@ -1448,8 +1454,8 @@ mkcl_object mk_mkcl_process_status(MKCL, mkcl_object proc)
   if (proc->process.status != @':exited')
     {
       int status, rc;
+      mkcl_os_process_t child_pid = proc->process.ident;
 
-      child_pid = proc->process.ident;
       do
 	{ MKCL_LIBC_Zzz(env, @':io', rc = waitpid(child_pid, &status, WNOHANG|WUNTRACED)); }
       while ((rc == -1) && (errno == EINTR));
@@ -1467,13 +1473,15 @@ mkcl_object mk_mkcl_process_status(MKCL, mkcl_object proc)
   if (proc->process.status != @':exited')
     {
       DWORD exitcode;
+      mkcl_os_process_t child_pid = proc->process.ident;
 
-      child_pid = proc->process.ident;
       if (GetExitCodeProcess(child_pid, &exitcode)) {
 	if (STILL_ACTIVE != exitcode)
 	  {
 	    proc->process.status = @':exited';
 	    proc->process.exit_code = exitcode;
+	    CloseHandle(proc->process.ident);
+	    proc->process.ident = NULL;
 	  }
       } else mkcl_FEwin32_error(env, "mkcl::run-program failed on GetExitCodeProcess", 0);
     }
