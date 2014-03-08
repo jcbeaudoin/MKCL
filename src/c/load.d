@@ -131,7 +131,7 @@ mkcl_library_open(MKCL, mkcl_object filename, bool force_reload)
   if (!force_reload) {
     /* When loading a foreign library, such as a dll or a
      * so, it cannot contain any executable top level
-     * code. In that case force_reload=0 and there is no
+     * code. In that case force_reload == FALSE and there is no
      * need to reload it if it has already been loaded. */
     block = mkcl_library_find_by_name(env, filename);
     if (!mkcl_Null(block)) {
@@ -139,7 +139,7 @@ mkcl_library_open(MKCL, mkcl_object filename, bool force_reload)
     }
   } else {
     /* We are using shared libraries as modules and
-     * force_reload=1.  Here we have to face the problem
+     * force_reload == TRUE.  Here we have to face the problem
      * that many operating systems do not allow to load a
      * shared library twice, even if it has changed. Hence
      * we have to make a unique copy to be able to load

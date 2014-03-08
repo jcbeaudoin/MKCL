@@ -575,7 +575,7 @@ mk_si_load_foreign_module(MKCL, mkcl_object filename)
     locked = mk_mt_get_lock(env, 1, l_c_lock);
     mkcl_set_interrupt_status(env, &old_intr);
 
-    output = mkcl_library_open(env, filename, 0);
+    output = mkcl_library_open(env, filename, FALSE);
     if (output->cblock.handle == NULL) {
       mkcl_object msg = mkcl_library_error(env, output);
       mkcl_library_close(env, output);
