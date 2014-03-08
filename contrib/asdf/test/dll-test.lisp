@@ -1,8 +1,8 @@
 #+(or ecl mkcl)
 (ffi:clines "
-extern int sample_function();
+extern MKCL_DLLEXPORT int sample_function(void);
 
-int sample_function()
+int sample_function(void)
 {
 	return 42;
 }

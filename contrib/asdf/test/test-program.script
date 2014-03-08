@@ -51,13 +51,21 @@
  '(nil nil 0)))
 
 #+mkcl
-(progn
+(let* #+windows
+      ((dll-orig (merge-pathnames (make-pathname :name (mkcl:str+ "mkcl_" (lisp-implementation-version)) :type "dll")
+				  (si::self-truename)))
+       (exe (car (asdf::output-files 'program-op :hello-world-example)))
+       (exe-dir (make-pathname :name nil :type nil :defaults exe))
+       (dll-dest (merge-pathnames exe-dir dll-orig))
+       )
+      #-windows ()
   (operate 'program-op :hello-world-example
-           :prefix-lisp-object-files (list (namestring (truename (translate-logical-pathname #P"SYS:libcmp.a"))))
-           :use-mkcl-shared-libraries nil ;; force static linking
-           :epilogue-code '(progn
-                             (setq uiop/image:*image-dumped-p* :executable)
-                             (uiop/image:restore-image :entry-point (read-from-string "hello:entry-point"))))
+	   :prefix-lisp-object-files (list (namestring (truename (translate-logical-pathname #P"SYS:cmp.a"))))
+	   #-windows :use-mkcl-shared-libraries #-windows nil ;; force static linking on unix
+	   :epilogue-code '(progn
+			     (setq uiop/image:*image-dumped-p* :executable)
+			     (uiop/image:restore-image :entry-point (read-from-string "hello:entry-point"))))
+  #+windows (copy-file dll-orig dll-dest) ;; make sure mkcl-X.X.X.dll is the same directory as the executable
   )
 
 

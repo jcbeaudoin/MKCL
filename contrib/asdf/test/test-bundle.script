@@ -24,6 +24,23 @@
     (leave-test "Your old ABCL is known to fail this test script, so skipping it." 0)))
 
 
+#-(and) ;; debug stuff for MKCL
+(progn
+;;(trace ASDF/BUNDLE:BUNDLABLE-FILE-P)
+;;(trace ASDF/BUNDLE:DIRECT-DEPENDENCY-FILES)
+(setq compiler::*delete-compiler-internal-files* nil)
+(setq *compile-extra-options* '(:c-file t :data-file t :h-file t))
+(declaim (optimize (debug 3) (speed 1))) ;; full debug info
+(setq compiler::*trace-cc* t)
+(si::reopen-package :compiler)
+(trace compiler::builder)
+(trace compiler::build-fasl)
+(si::reopen-package :cl)
+(trace cl::compile-file)
+(setq cl:*load-verbose* t cl:*compile-verbose* t)
+)
+
+
 (defparameter *bundle-1* (output-file 'fasl-op :test-asdf/bundle-1))
 (defparameter *bundle-2* (output-file 'fasl-op :test-asdf/bundle-2))
 (defparameter *mono-bundle-2* (output-file 'monolithic-fasl-op :test-asdf/bundle-2))
@@ -48,6 +65,9 @@
 #+(or ecl mkcl)
 (progn
   (operate 'dll-op :test-asdf/dll-test)
-  (si:load-foreign-module (first (output-files 'dll-op :test-asdf/dll-test)))
-  (operate 'load-op :test-asdf/dll-user)
+  (let ((dll (first (output-files 'dll-op :test-asdf/dll-test))))
+    (si:load-foreign-module dll)
+    (let* ( #+windows (compiler::*builder-default-libraries* (list (namestring dll))))
+      (operate 'load-op :test-asdf/dll-user))
+    )
   (assert (= (test-package::sample-function) 42)))

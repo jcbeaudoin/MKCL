@@ -350,6 +350,7 @@ for the implementation's underlying run-program function"
       #+os-unix (list command)
       #+os-windows
       (string
+       #+mkcl (list "cmd" '#:/c command)
        ;; NB: We do NOT add cmd /c here. You might want to.
        #+(or allegro clisp) command
        ;; On ClozureCL for Windows, we assume you are using
@@ -359,7 +360,7 @@ for the implementation's underlying run-program function"
        ;; NB: On other Windows implementations, this is utterly bogus
        ;; except in the most trivial cases where no quoting is needed.
        ;; Use at your own risk.
-       #-(or allegro clisp clozure) (list "cmd" "/c" command))
+       #-(or allegro clisp clozure mkcl) (list "cmd" "/c" command))
       #+os-windows
       (list
        #+allegro (escape-windows-command command)

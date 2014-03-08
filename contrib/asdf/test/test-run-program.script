@@ -53,7 +53,9 @@
                  :output :lines :error-output :output))))
 
 #-(and sbcl os-windows)
-(let ((ok1 (format nil "; $ echo ok 1~%ok 1")))
+(let ((ok1 #-windows (format nil "; $ echo ok 1~%ok 1")
+	   #+windows (format nil "; $ echo ok 1~%ok 1 ") ;; on any system that uses CMD.EXE and %redirected-system-command 
+	   ))
   (DBG "Testing awkward legacy output capture via run-shell-command")
   (assert-equal
    (dewindowize
