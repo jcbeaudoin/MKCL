@@ -224,7 +224,11 @@ mk_cl_sleep(MKCL, mkcl_object z)
       uli_system_time.HighPart = system_time.dwHighDateTime;
 
       now_ms = uli_system_time.QuadPart / 10000;
+#if 0
       target_ms = now_ms + llround(r);
+#else
+      target_ms = now_ms + ((long long) round(r)); /* used to be llround() but mingw with gcc 4.8.1 foobared on it. */
+#endif
 
       if (fe_inexact_on)
 	{

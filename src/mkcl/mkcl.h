@@ -21,8 +21,9 @@
 #ifdef __MINGW32__
 /* These defines have to be done before any system include. */
 # define __USE_MINGW_ANSI_STDIO 1
-# include <w32api.h>
-# define WINVER WindowsXP /* Don't want to support below that. JCB */
+/* For WINVER, Windows XP is 0x0501, Windows XP_SP2 is 0x502,
+               Windows Vista is 0x0600, Windows 7 is 0x0601, Windows 8 is 0x0602. */
+# define WINVER 0x0502 /* Don't want to support below that. JCB */
 # ifndef __MSVCRT_VERSION__
 /*  High byte is the major version, low byte is the minor. */
 #  if 0
@@ -53,7 +54,7 @@
 #ifdef MKCL_WINDOWS
 # define WIN32_LEAN_AND_MEAN 1 /* Do not include winsock.h */
 #ifndef WINVER
-# define WINVER 0x0501 /* We require at least Windows XP or later. */
+# define WINVER 0x0502 /* We require at least Windows XP_SP2 or later. */
 # define _WIN32_WINNT WINVER
 #endif
 # include <winsock2.h>
