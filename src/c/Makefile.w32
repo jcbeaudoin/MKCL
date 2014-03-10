@@ -1,7 +1,7 @@
 #
 #  Makefile for MKCL core library
 #
-#  Copyright (c) 2010, Jean-Claude Beaudoin.
+#  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
 #  Copyright by a number of previous anonymous authors
 #            presumed to be the same as for the rest of MKCL.
 #
@@ -13,18 +13,18 @@
 #  See file '../../Copyright' for full details.
 #
 #
-top_srcdir= /home/Jean-Claude/mkcl/src
-srcdir	= /home/Jean-Claude/mkcl/src/c
-VPATH	= /home/Jean-Claude/mkcl/src/c
+top_srcdir= /usr/home/Jean-Claude/mkcl/src
+srcdir	= /usr/home/Jean-Claude/mkcl/src/c
+VPATH	= /usr/home/Jean-Claude/mkcl/src/c
 
 # Programs used by "make":
 #
 TRUE_CC = gcc
 CC	= gcc
 ifeq (mingw32,mingw32)
-CFLAGS	= -I./ -I../ -DMKCL_API  -fno-strict-aliasing -g -O2  -D_MT   -DWinXP
+CFLAGS	= -I../ -DMKCL_API  -fno-strict-aliasing -g -O2  -mthreads -D_MT   -DWinXP
 else
-CFLAGS	= -I./ -I../  -fno-strict-aliasing -g -O2  -D_MT   -DWinXP
+CFLAGS	= -I../  -fno-strict-aliasing -g -O2  -mthreads -D_MT   -DWinXP
 endif
 
 SHELL	= /bin/sh
@@ -35,9 +35,9 @@ RANLIB	= ranlib
 
 # Data for installation
 #
-INSTALL = /bin/install -c
+INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
-prefix=z:/GNU/mingw
+prefix=C:/GNU/MinGW
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include
@@ -48,7 +48,7 @@ HDIR	= ../mkcl
 HFILES	= $(HDIR)/config.h $(HDIR)/mkcl.h $(HDIR)/mkcl-cmp.h\
 	$(HDIR)/object.h $(HDIR)/stacks.h\
 	$(HDIR)/external.h $(HDIR)/eval.h\
-	$(HDIR)/number.h $(HDIR)/mkcl-inl.h # $(HDIR)/page.h 
+	$(HDIR)/number.h $(HDIR)/mkcl-inl.h
 
 
 OBJS	= main.o symbol.o package.o list.o \
@@ -63,6 +63,7 @@ OBJS	= main.o symbol.o package.o list.o \
 	time.o unixint.o \
 	mapfun.o multival.o hash.o format.o pathname.o \
 	structure.o load.o unixfsys.o unixsys.o \
+	unicode.o \
 	ffi.o  threads.o alloc_2.o ffi_x86.o big.o
 
 DCFILES = $(OBJS:%.o=%.c)
@@ -71,7 +72,7 @@ DHFILES = $(OBJS:%.o=%.h)
 .SUFFIXES: .c .o .d
 .PHONY: all
 
-all: ../libmkclmin.a ../libmkcltop.a all_symbols.o all_symbols2.o cinit.o
+all: ../mkclmin.a ../mkcltop.a all_symbols.o all_symbols2.o cinit.o
 
 .c.s:
 	$(CC) $(CFLAGS) -S -o $@ -c $<
@@ -79,11 +80,9 @@ all: ../libmkclmin.a ../libmkcltop.a all_symbols.o all_symbols2.o cinit.o
 .c.o:
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-.d.c:
+.d.c: $(DPP)
 	$(DPP) $< $@
 
-unixfsys.o: unixfsys.c
-	$(CC) -DMKCL_LIBDIR="\"${exec_prefix}/lib/mkcl-1.0.0\"" -DMKCL_VERSION="\"1.0.0\"" $(CFLAGS) -o $@ -c $<
 
 $(DCFILES) all_symbols.c cinit.c: $(DPP)
 
@@ -96,15 +95,13 @@ ffi_x86.c: arch/ffi_x86.d $(DPP)
 ffi_x86_64.c: arch/ffi_x86_64.d $(DPP)
 	$(DPP) $< $@
 
-../libmkclmin.a: $(OBJS)
+../mkclmin.a: $(OBJS)
 	$(RM) $@
 	$(AR) cr $@ $(OBJS)
 	$(RANLIB) $@
 
-#../libmkcltop.a: main2.o all_symbols2.o
-../libmkcltop.a: main.o all_symbols2.o
+../mkcltop.a: main.o all_symbols2.o
 	$(RM) $@
-#	$(AR) cr $@ main2.o all_symbols2.o
 	$(AR) cr $@ main.o all_symbols2.o
 	$(RANLIB) $@
 
@@ -121,13 +118,13 @@ realclean: distclean
 # Build rules
 
 $(DPP): dpp.c symbols_list2.h
-	$(TRUE_CC) -O2 -I./ -I../ dpp.c  -o $@
+	$(TRUE_CC) -O2 -I../ dpp.c  -o $@
 
 symbols_list2.h: symbols_list.h
-	cat symbols_list.h | \
-	sed -e 's%{\([A-Z ]*.*".*"\),[^,]*,[ ]*NULL,.*}%{\1,NULL}%g' \
-	    -e 's%{\([A-Z ]*.*".*"\),[^,]*,[ ]*\([^,]*\),.*}%{\1,"\2"}%g' \
-	    -e 's%{NULL.*%{NULL,NULL}};%' > $@
+	cpp -DDPP -DMKCL_FINAL symbols_list.h | \
+	sed -e 's%{{\([A-Z ]*.*".*"\),[^,]*,[ ]*NULL,.*}}%{\1,NULL,-1}%g' \
+	    -e 's%{{\([A-Z ]*.*".*"\),[^,]*,[ ]*\([^,]*\),[ ]*\([^,]*\),.*}}%{\1,"\2",\3}%g' \
+	    -e 's%{{NULL.*%{NULL,NULL,-1}};%' > $@
 
 $(OBJS): $(DPP)
 
@@ -135,8 +132,6 @@ $(OBJS): $(DPP)
 #
 # GCC might break this code
 #
-# gbc.o: gbc.c
-# 	$(CC) $(CFLAGS) -O0 -c gbc.c -o $@
 
 ffi_x86.o: ffi_x86.c
 	$(CC) $(CFLAGS) -O0 -c ffi_x86.c -o $@
@@ -145,17 +140,14 @@ ffi_x86.o: ffi_x86.c
 # These files are interrelated
 #
 all_symbols.o: all_symbols.c
-	$(CC) $(CFLAGS) -I./ -c all_symbols.c -o $@
+	$(CC) $(CFLAGS) -c all_symbols.c -o $@
 
 all_symbols2.o: all_symbols.o
-	$(CC) $(CFLAGS) -DMKCL_FINAL -I./ -c all_symbols.c -o $@
+	$(CC) $(CFLAGS) -DMKCL_FINAL -c all_symbols.c -o $@
 
 main2.o: main.o
 	$(CC) $(CFLAGS) -DSTATIC -c main.c -o $@
 
-#
-# This is in another directory
-#
 cinit.o: cinit.c
 	$(CC) $(CFLAGS) -c cinit.c -o $@
 
@@ -163,8 +155,8 @@ cinit.o: cinit.c
 Makefile: Makefile.in ../config.status
 	cd ..; ./config.status
 
-# depend:
-# 	makedepend -- $(CFLAGS) -- *.d
+#
+#
 
 depend:
 	$(MAKE) GNUmakefile

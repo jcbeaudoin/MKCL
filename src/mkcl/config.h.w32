@@ -5,7 +5,7 @@
 /*
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2011, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2013, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -18,12 +18,14 @@
 #ifndef MKCL_CONFIG_H
 #define MKCL_CONFIG_H
 
+#define MKCL_DEBUG_INTERRUPT_MASK 1
+
 /*
  * If MKCL_API has been predefined, that means we are building the core
  * library and, under windows, we must tell the compiler to export
  * extern functions from the shared library.
  * If MKCL_API is not defined, we are simply building an application that
- * uses MKCL and, under windows, we must tell the compiler that certain
+ * uses MKCL and, under windows, we must tell the compiler that certain elements
  * will be imported from a DLL.
  */
 #if defined(__MINGW32__) || defined(_MSC_VER) || defined(cygwin)
@@ -46,38 +48,31 @@
 #endif
 
 /* Decimal number made with the formula: MAJOR * 1000000 + MINOR * 10000 + PATCH */
-#define MKCL_VERSION_NUMBER 1000000
+#define MKCL_VERSION_NUMBER 1010006
+#define MKCL_MAJOR_VERSION 1
+#define MKCL_MINOR_VERSION 1
+#define MKCL_PATCH_LEVEL 6
+#define MKCL_VERSION_STRING "1.1.6"
+#define MKCL_MAJOR_MINOR_VERSION_STRING "1.1"
+#define MKCL_MAJOR_VERSION_STRING "1"
+#define MKCL_MINOR_VERSION_STRING "1"
+#define MKCL_PATCH_LEVEL_STRING "6"
+
+#define MKCL_SYS_LIBDIR_DEFAULT "C:/GNU/MinGW/lib/mkcl-1.1.6"
 
 /*
  * FEATURES LINKED IN
  */
-#define MKCL_DYNAMIC_VV
-
-#if 0
-/* Use Boehm's garbage collector					*/
-#include "mkcl/gc/gc.h"
-#endif
 
 /* Use GNU Multiple Precision library for bignums                       */
-#include "mkcl/gmp.h"
+#include <gmp.h>
 
-#if 0
-/* Network streams							*/
-#define TCP 1
-#if defined(TCP) && (defined(_MSC_VER) || defined(__MINGW32__))
-# define MKCL_WSOCK
-#endif
-#else
 #if defined(_MSC_VER) || defined(__MINGW32__)
 # define MKCL_WSOCK
-#endif
 #endif
 
 /* Foreign functions interface						*/
 /* #undef MKCL_FFI */
-
-/* Support for Unicode strings */
-/* #undef MKCL_UNICODE */
 
 /* Allow STREAM operations to work on arbitrary objects			*/
 /* #undef MKCL_CLOS_STREAMS */
@@ -120,9 +115,11 @@
  */
 #define MKCL_INT_BITS           32
 #define MKCL_LONG_BITS          32
-#define MKCL_WORD_BITS        32
+#define MKCL_WORD_BITS          32
 #define MKCL_MOST_POSITIVE_FIXNUM	((mkcl_word)536870911)
 #define MKCL_MOST_NEGATIVE_FIXNUM	((mkcl_word)-536870912)
+#define MKCL_MOST_POSITIVE_FIXNUM_RAW	(536870911)
+#define MKCL_MOST_NEGATIVE_FIXNUM_RAW	(-536870912)
 
 typedef int mkcl_word;
 typedef unsigned int mkcl_index;
@@ -131,11 +128,8 @@ typedef unsigned int mkcl_hashkey;
 /*
  * The character type
  */
-#ifdef MKCL_UNICODE
-#define	MKCL_CHAR_CODE_LIMIT	1114112	/*  unicode character code limit  */
-#else
-#define	MKCL_CHAR_CODE_LIMIT	256	/*  ISO8859 character code limit  */
-#endif
+#define	MKCL_CHAR_CODE_LIMIT	1114112	/*  unicode character code limit (0x110000) */
+#define	MKCL_BASE_CHAR_CODE_LIMIT 256	/*  unicode character code limit (0x100) */
 
 /*
  * Array limits
@@ -147,10 +141,10 @@ typedef unsigned int mkcl_hashkey;
 /*
  * Function limits.
  *
- * In general, any of these limits must fit in a "signed int".
+ * In general, any of these limits must fit in a "mkcl_word".
  */
 /*	Maximum number of function arguments (arbitrary)		*/
-#define MKCL_CALL_ARGUMENTS_LIMIT 65536
+#define MKCL_CALL_ARGUMENTS_LIMIT MKCL_MOST_POSITIVE_FIXNUM  /* Used to be 65536. JCB */
 
 /*	Maximum number of required arguments				*/
 #define MKCL_LAMBDA_PARAMETERS_LIMIT MKCL_CALL_ARGUMENTS_LIMIT
@@ -163,8 +157,18 @@ typedef unsigned int mkcl_hashkey;
 #define MKCL_MULTIPLE_VALUES_LIMIT 64
 
 /* A setjmp that does not save signals					*/
-#define mkcl_setjmp	setjmp
-#define mkcl_longjmp	longjmp
+#if __unix__
+/* Setting the second argument of sigsetjmp to TRUE causes a severe 
+   speed performance degradation of the catch/throw facility.
+   Can it be justified? JCB */
+# define mkcl_setjmp(buf) sigsetjmp(buf, FALSE)
+# define mkcl_longjmp(buf, val)	siglongjmp(buf, val)
+# define mkcl_jmp_buf sigjmp_buf
+#else
+# define mkcl_setjmp	setjmp
+# define mkcl_longjmp	longjmp
+# define mkcl_jmp_buf jmp_buf
+#endif
 
 /*
  * Structure/Instance limits. The index to a slot must fit in the
@@ -176,11 +180,11 @@ typedef unsigned int mkcl_hashkey;
 
 /* compiler understands long double                                     */
 /* #undef HAVE_LONG_DOUBLE */
-#if 1 /* def HAVE_LONG_DOUBLE */
+#if 0 /* defined(unix) */ /* def HAVE_LONG_DOUBLE */
+/* This is commented out because printing of long double based long-float
+   is still unstable. 2011/02/07 JCB
+*/
 # define MKCL_LONG_FLOAT
-# define MKCL_LARGE_FLOAT long double
-#else
-# define MKCL_LARGE_FLOAT double
 #endif
 /* compiler understands complex                                         */
 /* #undef HAVE_DOUBLE_COMPLEX */
@@ -199,17 +203,6 @@ typedef unsigned int mkcl_hashkey;
 
 #ifndef MKCL_CONFIG_H_2
 #define MKCL_CONFIG_H_2
-
-#if 0 /* Deprecated */
-/* Use CMU Common-Lisp's FORMAT routine					*/
-#define MKCL_CMU_FORMAT 1
-
-/* Bytecode and arguments are 8 and 16 bits large, respectively	*/
-/* #undef MKCL_SMALL_BYTECODE */
-
-/* Assembler implementation of APPLY and friends			*/
-/* #undef MKCL_ASM_APPLY */
-#endif /* Deprecated */
 
 /*
  * SYSTEM FEATURES:
@@ -274,7 +267,6 @@ typedef unsigned int mkcl_hashkey;
 /* the tzset() function gets the current time zone			*/
 #define HAVE_TZSET 1
 /* several floating point functions (ISO C99)				*/
-#if 0
 #define HAVE_EXPF 1
 #define HAVE_LOGF 1
 #define HAVE_SQRTF 1
@@ -284,7 +276,6 @@ typedef unsigned int mkcl_hashkey;
 #define HAVE_SINHF 1
 #define HAVE_COSHF 1
 #define HAVE_TANHF 1
-#endif
 #define HAVE_FLOORF 1
 #define HAVE_CEILF 1
 #define HAVE_FABSF 1
@@ -317,15 +308,6 @@ typedef unsigned int mkcl_hashkey;
 #define MKCL_MAX_STRING_POOL_SIZE	10
 #define MKCL_BUFFER_STRING_SIZE		128
 
-/*
- * Macros that depend on these system features.
- */
-#if defined(sparc) || defined(i386) || defined(mips)
-#  define	stack_align(n)	(((n) + 0x7) & ~0x7)
-#else
-#  define	stack_align(n)	(((n) + 03) & ~03)
-#endif
-
 /* #undef FILE_CNT */
 #if 3 == 1
 #  define FILE_CNT(fp)	((fp)->_IO_read_end - (fp)->_IO_read_ptr)
@@ -338,16 +320,20 @@ typedef unsigned int mkcl_hashkey;
 #endif
 
 #if defined(cygwin) || defined(__MINGW32__) || defined(_MSC_VER)
-#  define MKCL_IS_DIR_SEPARATOR(x) ((x=='/')||(x=='\\'))
-#  define MKCL_DIR_SEPARATOR		'/'
+#  define MKCL_IS_DIR_SEPARATOR(x) (((x)=='/')||((x)=='\\'))
+# if 0
+#  define MKCL_DIR_SEPARATOR	'/'
+# else
+#  define MKCL_DIR_SEPARATOR	'\\'
+# endif
 #  define MKCL_PATH_SEPARATOR	';'
 #else
-#  define MKCL_IS_DIR_SEPARATOR(x) (x=='/')
+#  define MKCL_IS_DIR_SEPARATOR(x) ((x)=='/')
 #  define MKCL_DIR_SEPARATOR	'/'
 #  define MKCL_PATH_SEPARATOR	':'
 #endif
 
-#define MKCL_ARCHITECTURE "PENTIUM3"
+#define MKCL_ARCHITECTURE "I686"
 
 #if defined(__i386) || defined(__x86_64)
 # define MKCL_LSB_FIRST 1 /* On Intel and compatibles, the Least Significant Bit comes first (bit 0). */
@@ -356,7 +342,7 @@ typedef unsigned int mkcl_hashkey;
 
 #ifdef MKCL_AVOID_FPE_H
 # define mkcl_detect_fpe()
-#elif defined(__i386) || defined(_x86_64)
+#elif defined(__i386) || defined(__x86_64)
 # ifdef _MSC_VER
 #  define mkcl_detect_fpe() __asm fwait
 # elif defined(__GNUC__)

@@ -13,9 +13,9 @@
 #  See file '../../Copyright' for full details.
 #
 #
-top_srcdir= /usr/home/Jean-Claude/mkcl-1.1.6/src
-srcdir	= /usr/home/Jean-Claude/mkcl-1.1.6/src/c
-VPATH	= /usr/home/Jean-Claude/mkcl-1.1.6/src/c
+top_srcdir= /usr/home/Jean-Claude/mkcl/src
+srcdir	= /usr/home/Jean-Claude/mkcl/src/c
+VPATH	= /usr/home/Jean-Claude/mkcl/src/c
 
 # Programs used by "make":
 #
@@ -72,7 +72,7 @@ DHFILES = $(OBJS:%.o=%.h)
 .SUFFIXES: .c .o .d
 .PHONY: all
 
-all: ../libmkclmin.a ../libmkcltop.a all_symbols.o all_symbols2.o cinit.o
+all: ../mkclmin.a ../mkcltop.a all_symbols.o all_symbols2.o cinit.o
 
 .c.s:
 	$(CC) $(CFLAGS) -S -o $@ -c $<
@@ -80,8 +80,9 @@ all: ../libmkclmin.a ../libmkcltop.a all_symbols.o all_symbols2.o cinit.o
 .c.o:
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-.d.c:
+.d.c: $(DPP)
 	$(DPP) $< $@
+
 
 $(DCFILES) all_symbols.c cinit.c: $(DPP)
 
@@ -97,12 +98,12 @@ ffi_x86_64.c: arch/ffi_x86_64.d $(DPP)
 ffi_x86_64_w64.c: arch/ffi_x86_64_w64.d $(DPP)
 	$(DPP) $< $@
 
-../libmkclmin.a: $(OBJS)
+../mkclmin.a: $(OBJS)
 	$(RM) $@
 	$(AR) cr $@ $(OBJS)
 	$(RANLIB) $@
 
-../libmkcltop.a: main.o all_symbols2.o
+../mkcltop.a: main.o all_symbols2.o
 	$(RM) $@
 	$(AR) cr $@ main.o all_symbols2.o
 	$(RANLIB) $@

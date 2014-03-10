@@ -497,9 +497,9 @@ coprocessor).")
                     #+msvc "\"~A\" ~A ~:[~*~;~A~] -I\"~A\" -w -c \"~A\" -Fo\"~A\"")
 
 
-(defvar *support-libraries* (mkcl:split-string "libmkclgc.a" #\space))
+(defvar *support-libraries* (mkcl:split-string "mkclgc.a" #\space))
 (defvar *mkcl-shared-libs* (list (mkcl:bstr+ "mkcl_" (si:mkcl-version) ".dll")))
-(defvar *mkcl-static-libs* (list* "libmkcltop.a" "liblsp.a" "libmkclmin.a" *support-libraries*))
+(defvar *mkcl-static-libs* (list* "mkcltop.a" "lsp.a" "mkclmin.a" *support-libraries*))
 
 (defvar *external-ld-flags* "  -lws2_32    -lm ")
 
@@ -511,10 +511,12 @@ coprocessor).")
 
 (defvar +shared-library-prefix+ "")
 (defvar +shared-library-extension+ "dll")
+(defvar +native-shared-library-format+ "~a.dll")
 (defvar +shared-library-format+ "~a.dll")
 (defvar +static-library-prefix+ "lib")
 (defvar +static-library-extension+ "a")
-(defvar +static-library-format+ "lib~a.a")
+(defvar +native-static-library-format+ "lib~a.a")
+(defvar +static-library-format+ "~a.a")
 (defvar +object-file-extension+ "o")
 (defvar +executable-file-extension+ ".exe")
 (defvar +executable-file-format+ "~a.exe")
