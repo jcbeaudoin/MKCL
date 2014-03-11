@@ -1,6 +1,6 @@
 ---- BEGINNING OF COPYRIGHT FOR THE MKCL CORE ENVIRONMENT ------------
 
-  Copyright (c) 2010-2012, Jean-Claude Beaudoin
+  Copyright (c) 2010-2014, Jean-Claude Beaudoin
   Copyright (c) 2000, Juan Jose Garcia Ripoll
   Copyright (c) 1990, 1991, 1993 Giuseppe Attardi
   Copyright (c) 1984 Taiichi Yuasa and Masami Hagiya
@@ -23,7 +23,7 @@
   PLEASE NOTE THAT:
 
   This license covers all of the MKCL program except for the files
-	src/lsp/loop2.lsp	; Symbolic's LOOP macro
+	src/lsp/loop3.lsp	; Symbolic's LOOP macro
 	src/lsp/pprint.lsp	; CMUCL's pretty printer
 	src/lsp/format.lsp	; CMUCL's format
   and the directories

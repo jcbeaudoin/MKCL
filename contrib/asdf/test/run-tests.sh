@@ -217,7 +217,7 @@ case "$lisp" in
     flags="-siteinit - -init -"
     eval="-eval" ;;
   mkcl)
-    command="${MKCL:-mkcl}"
+    command="${MKCL:-../../../src/bin/mkcl}"
     flags="-norc"
     eval="-eval" ;;
   sbcl)
