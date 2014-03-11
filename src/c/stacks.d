@@ -91,6 +91,7 @@ mkcl_call_stack_overflow(MKCL, char * const stack_mark_address)
 static void _resize_temp_stack(MKCL, mkcl_index new_size)
 {
   mkcl_index size_limit = env->temp_stack_size_limit;
+  mkcl_index old_size = env->temp_stack_size;
   mkcl_object * old_stack = env->temp_stack;
   mkcl_index top_index = env->temp_stack_top - old_stack;
   mkcl_object * new_stack;
@@ -109,7 +110,7 @@ static void _resize_temp_stack(MKCL, mkcl_index new_size)
   mkcl_disable_interrupts(env);
 
   if (old_stack != NULL)
-    memcpy(new_stack, old_stack, top_index * sizeof(mkcl_object));
+    memcpy(new_stack, old_stack, old_size * sizeof(mkcl_object));
   env->temp_stack_size = new_size;
   env->temp_stack = new_stack;
   env->temp_stack_top = env->temp_stack + top_index;
@@ -289,6 +290,7 @@ mkcl_set_symbol_value(MKCL, mkcl_object s, mkcl_object value)
 static void _resize_bds_stack(MKCL, mkcl_index new_size)
 {
   mkcl_index size_limit = env->bds_size_limit;
+  mkcl_index old_size = env->bds_size;
   struct mkcl_bds_bd * old_org = env->bds_org;
   mkcl_index top_index = env->bds_top - old_org;
   mkcl_bds_ptr org;
@@ -306,7 +308,7 @@ static void _resize_bds_stack(MKCL, mkcl_index new_size)
   mkcl_get_interrupt_status(env, &old_intr);
   mkcl_disable_interrupts(env);
 
-  memcpy(org, old_org, (top_index + 1) * sizeof(*org)); /* This stack is a pre-increment one. JCB */
+  memcpy(org, old_org, old_size * sizeof(*org));
   env->bds_size = new_size;
   env->bds_org = org;
   env->bds_top = org + top_index;
@@ -509,6 +511,7 @@ mk_si_ihs_bds_marker(MKCL, mkcl_object arg)
 static void _resize_frs_stack(MKCL, mkcl_index new_size)
 {
   mkcl_index size_limit = env->frs_size_limit;
+  mkcl_index old_size = env->frs_size;
   mkcl_frame_ptr old_org = env->frs_org;
   mkcl_index top_index = env->frs_top - old_org;
   mkcl_frame_ptr org;
@@ -526,7 +529,7 @@ static void _resize_frs_stack(MKCL, mkcl_index new_size)
   mkcl_get_interrupt_status(env, &old_intr);
   mkcl_disable_interrupts(env);
 
-  memcpy(org, old_org, (top_index + 1) * sizeof(*org)); /* This stack is a pre-increment one. JCB */
+  memcpy(org, old_org, old_size * sizeof(*org));
   env->frs_size = new_size;
   env->frs_org = org;
   env->frs_top = org + top_index;
