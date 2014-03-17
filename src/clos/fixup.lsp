@@ -160,12 +160,10 @@
                                  (push (first l) all-keys))))
                       (null (set-difference (all-keywords gf-key-specs) (all-keywords m-key-specs))))))
              (if key-flag1
-                 (if a-o-k1
-                     (if key-flag2 a-o-k2 rest2) ;; since gf can receive any key then so must method.
-                   (if key-flag2
-                       (or a-o-k2 (gf-keys-are-subset-of-method-keys-p keywords1 keywords2)) ;; as per CLHS 7.6.4, item 4.
-                     rest2 ;; &rest of method swallows gf keyword args
-                     ))
+                 (if key-flag2
+                     (or a-o-k2 (gf-keys-are-subset-of-method-keys-p keywords1 keywords2)) ;; as per CLHS 7.6.4, item 4.
+                   rest2 ;; &rest of method swallows gf keyword args
+                   )
                (if (or rest1 rest2 key-flag2)
                    (and rest1 (or rest2 key-flag2)) ;; as per CLHS 7.6.4, item 3.
                  t) ;; there is no &rest nor &key anywhere in the lambda-lists, therefore that part is congruent.
