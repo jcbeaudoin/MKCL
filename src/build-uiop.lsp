@@ -24,9 +24,9 @@
 
 #+asdf2
 (let* ((current-dir (mkcl:getcwd))
-       (src-dir (truename (merge-pathnames "../contrib/" current-dir)))
+       ;;(src-dir (truename (merge-pathnames "../contrib/" current-dir)))
        (uiop-src-dir (truename (merge-pathnames "../contrib/asdf/uiop/" current-dir)))
-       (target-dir (merge-pathnames "./asdf-stage/" current-dir))
+       (target-dir (merge-pathnames "./asdf-stage/asdf/uiop/" current-dir))
        )
   (ensure-directories-exist target-dir)
   ;; If you want to watch ASDF activity uncomment this.
@@ -40,7 +40,7 @@
                                                        :ignore-inherited-configuration))
   (asdf::clear-output-translations)
   (asdf::initialize-output-translations `(:output-translations
-                                          (,(namestring src-dir)
+                                          (,(namestring uiop-src-dir)
                                            ,(namestring target-dir))
                                           :ignore-inherited-configuration))
   );;#+asdf2
