@@ -146,7 +146,7 @@
 (defun congruent-lambda-lists-p (gf-ll method-ll)
   (multiple-value-bind (r1 nb_r1 opts1 nb_opts1 rest1 key-flag1 keywords1 nb_keys1 a-o-k1)
       (si::process-lambda-list gf-ll 'FUNCTION)
-    (declare (ignore r1 opts1 nb_keys1))
+    (declare (ignore r1 opts1 nb_keys1 a-o-k1))
     (multiple-value-bind (r2 nb_r2 opts2 nb_opts2 rest2 key-flag2 keywords2 nb_keys2 a-o-k2)
 	(si::process-lambda-list method-ll 'FUNCTION)
       (declare (ignore r2 opts2 nb_keys2))
