@@ -636,7 +636,7 @@ mkcl_object mk_cl_rename_file(MKCL, mkcl_object old_filespec, mkcl_object new_na
       }
     /* fall through */
 #else /* def MKCL_WINDOWS */
-    if (rename(mkcl_OSstring_self(old_os_filename),
+    if (rename(mkcl_OSstring_self(old_os_filename), /* FIXME, This will not work across filesystems. JCB */
 	       mkcl_OSstring_self(new_os_filename)) == 0) {
       goto SUCCESS;
     }
