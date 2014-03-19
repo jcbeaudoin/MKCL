@@ -1469,7 +1469,15 @@ dir_files(MKCL, bool follow_symlinks, struct OSpath * wd_path, mkcl_object paths
   mkcl_loop_for_in(env, all_files) {
     mkcl_object new_os_filename = MKCL_CAR(all_files);
     mkcl_object new_filename = mkcl_OSstring_to_string(env, new_os_filename);
+#if 0 /* ifndef __unix ??? */
     mkcl_object new_pathname = mk_cl_pathname(env, new_filename);
+#else
+    mkcl_object new_pathname;
+    {
+      mkcl_index s = 0, e = mkcl_string_length(env, new_filename), ep;
+      new_pathname = mkcl_parse_namestring(env, new_filename, s, e, &ep, mkcl_core.localhost_string, mkcl_specific_namestring);
+    }
+#endif
 
     new_pathname->pathname.host = basedir->pathname.host;
     new_pathname->pathname.device = basedir->pathname.device;

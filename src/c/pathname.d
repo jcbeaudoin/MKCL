@@ -367,7 +367,9 @@ static bool is_null(mkcl_character c) { return c == '\0'; }
  *	5) A non empty string
  */
 static mkcl_object
-parse_word(MKCL, mkcl_object s, delim_fn delim, int flags, mkcl_index start, mkcl_index end, mkcl_index *end_of_word)
+parse_word(MKCL, mkcl_object s, delim_fn delim, int flags,
+           mkcl_index start, mkcl_index end, mkcl_index *end_of_word,
+           enum mkcl_namestring_specificity specificity)
 {
   mkcl_index i, j, last_delim = end;
   bool wild_inferiors = FALSE;
@@ -387,7 +389,7 @@ parse_word(MKCL, mkcl_object s, delim_fn delim, int flags, mkcl_index start, mkc
       }
     }
     if (c == '*') {
-      if (!(flags & WORD_ALLOW_ASTERISK))
+      if (!(flags & WORD_ALLOW_ASTERISK) && (specificity == mkcl_may_be_wild_namestring))
 	valid_char = FALSE; /* Asterisks not allowed in this word */
       else {
 	wild_inferiors = (i > start && mkcl_char(env, s, i-1) == '*');
@@ -437,21 +439,22 @@ parse_word(MKCL, mkcl_object s, delim_fn delim, int flags, mkcl_index start, mkc
         return mk_cl_Cnil;
       return mkcl_core.empty_string;
     case 1:
-      if (mkcl_char(env, s,j) == '*')
+      if ((mkcl_char(env, s,j) == '*') && (specificity == mkcl_may_be_wild_namestring))
         return @':wild';
       break;
     case 2:
       {
         mkcl_character c0 = mkcl_char(env, s,j);
         mkcl_character c1 = mkcl_char(env, s,j+1);
-        if (c0 == '*' && c1 == '*')
+
+        if ((c0 == '*' && c1 == '*') && (specificity == mkcl_may_be_wild_namestring))
           return @':wild-inferiors';
         if (!(flags & (WORD_LOGICAL | WORD_ALLOW_LEADING_DOT)) && c0 == '.' && c1 == '.')
           return @':up';
-        break;
       }
+      break;
     default:
-      if (wild_inferiors)	/* '**' surrounded by other characters */
+      if (wild_inferiors && (specificity == mkcl_may_be_wild_namestring)) /* '**' surrounded by other characters */
         return @':error';
     }
   {
@@ -474,7 +477,9 @@ parse_word(MKCL, mkcl_object s, delim_fn delim, int flags, mkcl_index start, mkc
  */
 
 static mkcl_object
-parse_directories(MKCL, mkcl_object s, int flags, mkcl_index start, mkcl_index end, mkcl_index *end_of_dir)
+parse_directories(MKCL, mkcl_object s, int flags,
+                  mkcl_index start, mkcl_index end, mkcl_index *end_of_dir,
+                  enum mkcl_namestring_specificity specificity)
 {
   mkcl_index i, j;
   mkcl_object path = mk_cl_Cnil;
@@ -483,7 +488,7 @@ parse_directories(MKCL, mkcl_object s, int flags, mkcl_index start, mkcl_index e
   flags |= WORD_INCLUDE_DELIM | WORD_ALLOW_ASTERISK;
   *end_of_dir = start;
   for (i = j = start; i < end; j = i) {
-    mkcl_object part = parse_word(env, s, delim, flags, j, end, &i);
+    mkcl_object part = parse_word(env, s, delim, flags, j, end, &i, specificity);
     if (part == @':error' || part == mk_cl_Cnil)
       break;
     if (part == mkcl_core.empty_string) {  /* "/", ";" */
@@ -504,7 +509,7 @@ parse_directories(MKCL, mkcl_object s, int flags, mkcl_index start, mkcl_index e
 bool
 mkcl_logical_hostname_p(MKCL, mkcl_object host)
 {
-  if (!mkcl_stringp(env, host) || mkcl_string_E(env, host, mkcl_core.localhost_string))
+  if ((host == mkcl_core.localhost_string) || !mkcl_stringp(env, host) || mkcl_string_E(env, host, mkcl_core.localhost_string))
     return FALSE;
   return !mkcl_Null(@assoc(env, 4, host, mkcl_core.pathname_translations, @':test', @'string-equal'));
 }
@@ -544,7 +549,8 @@ mkcl_logical_hostname_p(MKCL, mkcl_object host)
  *
  */
 mkcl_object
-mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkcl_index *ep, mkcl_object default_host)
+mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkcl_index *ep,
+                      mkcl_object default_host, enum mkcl_namestring_specificity specificity)
 {
   mkcl_object host = @'nil';
   mkcl_object device = @'nil';
@@ -565,7 +571,7 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
    */
   host = parse_word(env, s, is_colon,
 		    WORD_LOGICAL | WORD_INCLUDE_DELIM | WORD_DISALLOW_SEMICOLON,
-		    start, end, ep);
+		    start, end, ep, specificity);
   if (default_host != mk_cl_Cnil) {
     if (host == mk_cl_Cnil || host == @':error')
       host = default_host;
@@ -579,7 +585,7 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
        */
       logical = TRUE;
       device = @':unspecific';
-      dir = parse_directories(env, s, WORD_LOGICAL, *ep, end, ep);
+      dir = parse_directories(env, s, WORD_LOGICAL, *ep, end, ep, specificity);
       if (dir == @':error')
 	return mk_cl_Cnil;
       if (MKCL_CONSP(dir)) {
@@ -594,7 +600,7 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
 	return mk_cl_Cnil;
       name = parse_word(env, s, is_dot,
 			WORD_LOGICAL | WORD_ALLOW_ASTERISK | WORD_EMPTY_IS_NIL,
-			*ep, end, ep);
+			*ep, end, ep, specificity);
       if (name == @':error')
 	return mk_cl_Cnil;
       type = mk_cl_Cnil;
@@ -603,7 +609,7 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
 	goto make_it;
       type = parse_word(env, s, is_dot,
 			WORD_LOGICAL | WORD_ALLOW_ASTERISK | WORD_EMPTY_IS_NIL,
-			*ep, end, ep);
+			*ep, end, ep, specificity);
       if (type == @':error')
 	return mk_cl_Cnil;
       if (*ep == start || mkcl_char(env, s, *ep-1) != '.')
@@ -613,7 +619,7 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
 
       aux = parse_word(env, s, is_null,
 		       WORD_LOGICAL | WORD_ALLOW_ASTERISK | WORD_EMPTY_IS_NIL,
-		       *ep, end, ep);
+		       *ep, end, ep, specificity);
       if (aux == @':error') {
 	return mk_cl_Cnil;
       } else if (mkcl_Null(aux) || aux == @':wild') {
@@ -657,7 +663,7 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
       }
       device = parse_word(env, s, is_colon,
 			  WORD_INCLUDE_DELIM | WORD_EMPTY_IS_NIL | WORD_DISALLOW_SLASH,
-			  start, end, ep);
+			  start, end, ep, specificity);
       if (device == @':error')
 	{
 	  device = mk_cl_Cnil;
@@ -715,14 +721,14 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
 		  goto done_device_and_host;
 		}
 	    }
-	  host = parse_word(env, s, is_slash, WORD_EMPTY_IS_NIL, head, end, ep);
+	  host = parse_word(env, s, is_slash, WORD_EMPTY_IS_NIL, head, end, ep, specificity);
 	  if (host == @':error') {
 	    host = mk_cl_Cnil;
 	  } else if (host != mk_cl_Cnil) {
 	    if (!mkcl_stringp(env, host))
 	      return mk_cl_Cnil;
 	    /* parse share name */
-	    device = parse_word(env, s, is_slash, WORD_EMPTY_IS_NIL, *ep, end, ep);
+	    device = parse_word(env, s, is_slash, WORD_EMPTY_IS_NIL, *ep, end, ep, specificity);
 	    start = *ep - 1;
 	    if (is_slash(mkcl_char(env, s, start)))
 	      *ep = start;
@@ -737,7 +743,7 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
       {
 	mkcl_object maybe_host = parse_word(env, s, is_colon,
 					    WORD_INCLUDE_DELIM | WORD_EMPTY_IS_NIL | WORD_DISALLOW_SLASH,
-					    start, end, ep);
+					    start, end, ep, specificity);
 	if (maybe_host == mk_cl_Cnil)
 	  start = *ep;
 	else if (maybe_host != @':error')
@@ -747,7 +753,7 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
 
       
     done_device_and_host:
-      dir = parse_directories(env, s, 0, *ep, end, ep);
+      dir = parse_directories(env, s, 0, *ep, end, ep, specificity);
       if (MKCL_CONSP(dir)) {
 	if (!(MKCL_CONS_CAR(dir) == @':relative'
 	      || MKCL_CONS_CAR(dir) == @':absolute'))
@@ -760,7 +766,7 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
       name = parse_word(env, s, is_dot,
 			WORD_ALLOW_LEADING_DOT | WORD_SEARCH_LAST_DOT |
 			WORD_ALLOW_ASTERISK | WORD_EMPTY_IS_NIL,
-			start, end, ep);
+			start, end, ep, specificity);
       if (name == @':error')
 	return mk_cl_Cnil;
       if ((*ep - start) <= 1 || mkcl_char(env, s, *ep-1) != '.') {
@@ -771,7 +777,7 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
 	    name = mk_cl_Cnil;
 	  }
       } else {
-	type = parse_word(env, s, is_null, WORD_ALLOW_ASTERISK, *ep, end, ep);
+	type = parse_word(env, s, is_null, WORD_ALLOW_ASTERISK, *ep, end, ep, specificity);
 	if (type == @':error')
 	  return mk_cl_Cnil;
 	if (!mkcl_Null(mk_cl_stringE(env, 2, type, mkcl_core.empty_string))
@@ -1412,7 +1418,7 @@ mk_cl_namestring(MKCL, mkcl_object x)
       default_host = defaults->pathname.host;
     }
     mkcl_get_string_start_end(env, thing, start, end, &s, &e);
-    output = mkcl_parse_namestring(env, thing, s, e, &ee, default_host);
+    output = mkcl_parse_namestring(env, thing, s, e, &ee, default_host, mkcl_may_be_wild_namestring);
     start = MKCL_MAKE_FIXNUM(ee);
     if (output == mk_cl_Cnil || ee != e) {
       if (mkcl_Null(junk_allowed)) {
@@ -1448,7 +1454,7 @@ mk_cl_namestring(MKCL, mkcl_object x)
   if (mkcl_stringp(env, path) && defaults->pathname.logical)
     {
       mkcl_index s = 0, e = mkcl_string_length(env, path), ep;
-      mkcl_object new_path = mkcl_parse_namestring(env, path, s, e, &ep, defaults->pathname.host);
+      mkcl_object new_path = mkcl_parse_namestring(env, path, s, e, &ep, defaults->pathname.host, mkcl_may_be_wild_namestring);
       
       if (mkcl_Null(new_path) || ep != e)
 	mkcl_FEparse_error(env, "Cannot parse the namestring ~S~%from ~S to ~S.",
@@ -1480,7 +1486,7 @@ mk_cl_namestring(MKCL, mkcl_object x)
   if (mkcl_stringp(env, path) && defaults->pathname.logical)
     {
       mkcl_index s = 0, e = mkcl_string_length(env, path), ep;
-      mkcl_object new_path = mkcl_parse_namestring(env, path, s, e, &ep, defaults->pathname.host);
+      mkcl_object new_path = mkcl_parse_namestring(env, path, s, e, &ep, defaults->pathname.host, mkcl_may_be_wild_namestring);
       
       if (mkcl_Null(new_path) || ep != e)
 	mkcl_FEparse_error(env, "Cannot parse the namestring ~S~%from ~S to ~S.",
@@ -1828,7 +1834,7 @@ coerce_to_from_pathname(MKCL, mkcl_object x, mkcl_object host)
   /* Check that host is a valid host name */
   host = mkcl_check_type_string(env, @'si::pathname-translations', host);
   len = mkcl_length(env, host);
-  parse_word(env, host, is_null, WORD_LOGICAL, 0, len, &parsed_len);
+  parse_word(env, host, is_null, WORD_LOGICAL, 0, len, &parsed_len, mkcl_may_be_wild_namestring);
   if (parsed_len < len) {
     mkcl_FEerror(env, "Wrong host syntax ~S", 1, host);
   }

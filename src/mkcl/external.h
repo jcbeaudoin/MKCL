@@ -1598,7 +1598,8 @@ extern "C" {
   extern MKCL_API mkcl_object mk_cl_wild_pathname_p(MKCL, mkcl_narg narg, mkcl_object pathname, ...);
 
   extern MKCL_API mkcl_object mkcl_make_pathname(MKCL, mkcl_object host, mkcl_object device, mkcl_object directory, mkcl_object name, mkcl_object type, mkcl_object version);
-  extern MKCL_API mkcl_object mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkcl_index *ep, mkcl_object default_host);
+  enum mkcl_namestring_specificity { mkcl_may_be_wild_namestring, mkcl_specific_namestring };
+  extern MKCL_API mkcl_object mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkcl_index *ep, mkcl_object default_host, enum mkcl_namestring_specificity specificity);
   extern MKCL_API mkcl_object mkcl_coerce_to_physical_pathname(MKCL, mkcl_object x);
   extern MKCL_API mkcl_object mkcl_coerce_to_file_pathname(MKCL, mkcl_object pathname);
   extern MKCL_API mkcl_object mkcl_namestring(MKCL, mkcl_object pname, int truncate_if_impossible);
