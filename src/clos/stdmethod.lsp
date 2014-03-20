@@ -51,7 +51,7 @@
   )
 
 
-(defun function-keywords (method)
+(defmethod function-keywords ((method standard-method))
   (multiple-value-bind (reqs nb_reqs opts nb_opts rest-var key-flag keywords nb_keys allow-other-keys)
       (si::process-lambda-list (method-lambda-list method) 'function)
     (declare (ignore reqs nb_reqs opts nb_opts rest-var nb_keys))
