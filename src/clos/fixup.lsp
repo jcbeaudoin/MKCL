@@ -195,7 +195,7 @@
 	    (error "Cannot add a method to generic function ~A because~%~
                      their respective lambda lists ~A and ~A are not congruent."
                    (generic-function-name gf) method-lambda-list gf-lambda-list)))
-      (reinitialize-instance gf :lambda-list method-lambda-list)))
+      (reinitialize-instance gf :lambda-list (convert-to-implicit-generic-function-lambda-list method-lambda-list))))
   ;;
   ;; 3) Finally, it is inserted in the list of methods, and the method is
   ;;    marked as belonging to a generic function.
