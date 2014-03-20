@@ -52,14 +52,14 @@
 
 
 (defun function-keywords (method)
-  (multiple-value-bind (reqs nb_reqs opts nb_opts rest-var key-flag keywords nb_keys)
+  (multiple-value-bind (reqs nb_reqs opts nb_opts rest-var key-flag keywords nb_keys allow-other-keys)
       (si::process-lambda-list (method-lambda-list method) 'function)
     (declare (ignore reqs nb_reqs opts nb_opts rest-var nb_keys))
     (when key-flag
       (do* ((output '())
 	    (l keywords (cddddr l)))
 	   ((endp l)
-	    output)
+	    (values output allow-other-keys))
 	(push (first l) output)))))
 
 
