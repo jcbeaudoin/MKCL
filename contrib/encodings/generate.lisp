@@ -14,10 +14,9 @@
 
 (loop for entry in +all-mappings+
    for name = (first entry)
-   ;;for orig = (make-pathname :name name :type "BIN" :defaults "ext:encodings;")
-   ;;for copy = (ensure-directories-exist (merge-pathnames "build:encodings;" orig))
    for orig = (make-pathname :name name :type "BIN" :defaults "../contrib/encodings/")
-   for copy = (ensure-directories-exist (make-pathname :directory '(:relative "ENCODINGS") :defaults orig))
+   ;; Here we use a logical pathname for target since at runtime #'load-encoding will use one. BUILD: is set in bare.lsp. JCB
+   for copy = (ensure-directories-exist (make-pathname :name name :defaults #P"BUILD:ENCODINGS;FOO.BIN"))
    do (progn
 	(unless (probe-file orig)
 	  (format t "~&Mapping file ~A is missing. Update needed.~%" orig)
@@ -88,8 +87,7 @@
 
 (loop for (name . aliases) in +aliases+
    do (loop for alias in aliases
-	    ;;for filename0 = (make-pathname :name (symbol-name alias) :defaults "build:ENCODINGS;")
-	    for filename0 = (make-pathname :name (symbol-name alias) :defaults "./ENCODINGS/")
+	    for filename0 = (make-pathname :name (symbol-name alias) :defaults #P"BUILD:ENCODINGS;")
 	    for filename = (ensure-directories-exist filename0)
 	    do (with-open-file (out filename :direction :output :if-exists :supersede
 				    :if-does-not-exist :create :external-format '(:ascii :lf))
@@ -97,6 +95,6 @@
 			       (format out "(defparameter mk-ext::~A (si::make-encoding :~A))~%" alias name))))
 
 ;;(copy-file "../contrib/encodings/tools.lisp" "./ENCODINGS/tools.lisp" :verbose *generate-verbose*)
-(copy-file "../contrib/encodings/ISO-2022-JP" "./ENCODINGS/ISO-2022-JP" :verbose *generate-verbose*)
-(copy-file "../contrib/encodings/ISO-2022-JP-1" "./ENCODINGS/ISO-2022-JP-1" :verbose *generate-verbose*)
+(copy-file "../contrib/encodings/ISO-2022-JP" #P"BUILD:ENCODINGS;ISO-2022-JP" :verbose *generate-verbose*)
+(copy-file "../contrib/encodings/ISO-2022-JP-1" #P"BUILD:ENCODINGS;ISO-2022-JP-1" :verbose *generate-verbose*)
 (when *generate-verbose* (terpri) (terpri))

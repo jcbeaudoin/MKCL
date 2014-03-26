@@ -110,7 +110,7 @@ mkcl/config.h: mkcl/config.h.in config.status
 	touch mkcl/config.h
 
 
-bin/mkcl-small$(EXE) lsp.a $(LSP_LIBRARIES) ENCODINGS: compile.lsp lsp/config.lsp cmp/cmpdefs.lsp lsp/*.lsp clos/*.lsp cmp/*.lsp mkcl/mkcl-cmp.h mkcl/config.h BUILD-STAMP mkcl_min$(EXE) mkcltop.@LIBEXT@
+bin/mkcl-small$(EXE) lsp.a $(LSP_LIBRARIES) encodings: compile.lsp lsp/config.lsp cmp/cmpdefs.lsp lsp/*.lsp clos/*.lsp cmp/*.lsp mkcl/mkcl-cmp.h mkcl/config.h BUILD-STAMP mkcl_min$(EXE) mkcltop.@LIBEXT@
 	./mkcl_min$(EXE) compile
 	for i in $(LSP_LIBRARIES) ; do \
 	  if test -s $$i ; then \
@@ -353,10 +353,10 @@ install-base: all mkcl/config-install.h
 	for i in $(TARGETS); do \
 	  $(INSTALL_PROGRAM) $$i $(bindir); \
 	done
-	if [ -d ENCODINGS ]; then \
-	  $(mkinstalldirs) $(mkcldir)/ENCODINGS; \
-	  for i in ./ENCODINGS/*; do \
-	    $(INSTALL_DATA) $$i $(mkcldir)/ENCODINGS; \
+	if [ -d encodings ]; then \
+	  $(mkinstalldirs) $(mkcldir)/encodings; \
+	  for i in ./encodings/*; do \
+	    $(INSTALL_DATA) $$i $(mkcldir)/encodings; \
 	  done \
 	fi
 	$(INSTALL_DATA) ./mkcl/*.h $(includedir)/mkcl
@@ -422,10 +422,10 @@ install-base-local: all mkcl/config-install.h
 	  $(localmkcldir) ./include/ ./include//mkcl
 	$(INSTALL_DATA) ../Copyright ../LGPL $(localmkcldir)
 	$(INSTALL_DATA) ../Copyright ../LGPL ./include/mkcl
-	if [ -d ENCODINGS ]; then \
-	  $(mkinstalldirs) $(localmkcldir)/ENCODINGS; \
-	  for i in ./ENCODINGS/*; do \
-	    $(INSTALL_DATA) $$i $(localmkcldir)/ENCODINGS; \
+	if [ -d encodings ]; then \
+	  $(mkinstalldirs) $(localmkcldir)/encodings; \
+	  for i in ./encodings/*; do \
+	    $(INSTALL_DATA) $$i $(localmkcldir)/encodings; \
 	  done \
 	fi
 	$(INSTALL_DATA) ./mkcl/*.h ./include//mkcl
@@ -499,7 +499,7 @@ clean: clean_lisp clean_contribs
 	$(RM) mkcl_min$(EXE) bin/mkcl$(EXE) bin/mkcl-dyn bin/mkcl-small$(EXE) bin/mkcl-full$(EXE)
 	$(RM) MKCLINIT* bin/MKCLINIT*
 	$(RM) MKC*.c MKC*.tmp bin/MKC*.c bin/MKC*.tmp
-	$(RM) -r ENCODINGS
+	$(RM) -r encodings
 	$(RM) MODULES HELP.DOC TAGS
 	$(RM) mkcl/gc/*.h ./mkclgc.@LIBEXT@
 	$(RM) *.dll bin/*.dll

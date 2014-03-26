@@ -16,6 +16,7 @@
 ;;; Welcome to bare.lsp. Let's bring this instance up!
 ;;;")
 
+(si::pathname-translations "BUILD" `(("**;*.*.*" "./**/*.*")))
 ;;(si::pathname-translations "SRC" `(("**;*.*.*" "./**/*.*")))
 ;;(si::pathname-translations "EXT" `(("**;*.*.*" "./../contrib/**/*.*")))
 ;;;

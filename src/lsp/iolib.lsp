@@ -408,23 +408,24 @@ the one defined in the ANSI standard. *print-base* is 10, *print-array* is t,
          #-unicode
          '(:DEFAULT))
        (all-encodings nil))
-  (defun all-encodings ()
-    (or all-encodings
+  (defun all-encodings (&key refresh)
+    (or (and (not refresh) all-encodings)
         (progn
           (setf all-encodings basic-encodings)
           #+unicode
 	  (progn
-	    (dolist (i (directory "SYS:ENCODINGS;*"))
-	      (push (intern (pathname-name i) "KEYWORD") all-encodings))
-	    (dolist (i (directory "SYS:ENCODINGS;*.BIN"))
-	      (push (intern (pathname-name i) "KEYWORD") all-encodings)))
+	    (dolist (i (directory #P"SYS:ENCODINGS;*"))
+              ;; we apply string-upcase to the file name since we will use a logical pathname to retrieve it.
+	      (push (intern (string-upcase (pathname-name i)) "KEYWORD") all-encodings))
+	    (dolist (i (directory #P"SYS:ENCODINGS;*.BIN"))
+	      (push (intern (string-upcase (pathname-name i)) "KEYWORD") all-encodings)))
           all-encodings))))
 
 (defun load-encoding (name)
   #-unicode
   (values nil (format nil "Cannot load encoding ~A because this MKCL instance does not have Unicode support" name))
   #+unicode
-  (let ((filename (make-pathname :name (symbol-name name) :defaults "SYS:ENCODINGS;")))
+  (let ((filename (make-pathname :name (symbol-name name) :defaults #P"SYS:ENCODINGS;")))
     (cond ((mkcl:probe-file-p filename)
 	   (load filename :verbose nil)
 	   name)
@@ -436,7 +437,7 @@ the one defined in the ANSI standard. *print-base* is 10, *print-array* is t,
 	       (read-sequence s in)
 	       s)))
 	  (t
-	   (values nil (format nil "Unable to find mapping file ~A for encoding ~A" filename name))))))
+	   (values nil (format nil "Unable to find mapping file ~A for encoding ~A" (translate-logical-pathname filename) name))))))
 
 (defun make-encoding (mapping)
   #-unicode
