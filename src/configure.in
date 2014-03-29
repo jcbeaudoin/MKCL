@@ -9,7 +9,7 @@ dnl  Giuseppe Attardi 25.1.1994
 dnl  Jean-Claude Beaudoin 2012.04.28
 dnl
 
-AC_INIT([mkcl],[1.1.8],[])
+AC_INIT([mkcl],[1.1.9],[])
 AC_REVISION([$Revision$])
 AC_CONFIG_SRCDIR([bare.lsp.in])
 AC_CONFIG_AUX_DIR([${srcdir}/gc])
@@ -454,9 +454,10 @@ dnl ----------------------------------------------------------------------
 dnl SONAME is only active when SONAME_LDFLAGS and SONAME are non nil
 dnl
 AC_MSG_CHECKING(for soname flags)
-PACKAGE_MAJOR=`echo ${PACKAGE_VERSION} | sed -e 's,\(.*\)\..*\..*,\1,g'`
-PACKAGE_MINOR=`echo ${PACKAGE_VERSION} | sed -e 's,.*\.\(.*\)\..*,\1,g'`
-PACKAGE_LEAST=`echo ${PACKAGE_VERSION} | sed -e 's,.*\..*\.\(.*\),\1,g'`
+PACKAGE_MAJOR=`echo ${PACKAGE_VERSION} | sed -e 's,\([[0-9]]*\)\..*\..*,\1,g'`
+PACKAGE_MINOR=`echo ${PACKAGE_VERSION} | sed -e 's,[[0-9]]*\.\([[0-9]]*\)\..*,\1,g'`
+PACKAGE_PATCH=`echo ${PACKAGE_VERSION} | sed -e 's,[[0-9]]*\.[[0-9]]*\.\([[0-9]]*\).*,\1,g'`
+#PACKAGE_LEAST=`echo ${PACKAGE_VERSION} | sed -e 's,[[0-9]]*\.[[0-9]]*\.[[0-9]]*\.\(.*\),\1,g'`
 if test "${enable_soname}" != yes; then
    SONAME=''
    SONAME1=''
@@ -466,7 +467,7 @@ if test "${enable_soname}" != yes; then
    SONAME_LDFLAGS=''
    AC_MSG_RESULT([none])
 else
-   i="${PACKAGE_MAJOR}.${PACKAGE_MINOR}.${PACKAGE_LEAST}"
+   i="${PACKAGE_MAJOR}.${PACKAGE_MINOR}.${PACKAGE_PATCH}"
    SONAME3=`echo $SONAME | sed "s,.SOVERSION,.$i,g"`
    i="${PACKAGE_MAJOR}.${PACKAGE_MINOR}"
    SONAME2=`echo $SONAME | sed "s,.SOVERSION,.$i,g"`
@@ -483,12 +484,12 @@ AC_SUBST(SONAME)
 AC_SUBST(SONAME_LDFLAGS)
 
 dnl Related to that, the package version number
-MKCL_VERSION_NUMBER=$(($PACKAGE_MAJOR * 1000000 + $PACKAGE_MINOR * 10000 + $PACKAGE_LEAST))
+MKCL_VERSION_NUMBER=$(($PACKAGE_MAJOR * 1000000 + $PACKAGE_MINOR * 10000 + $PACKAGE_PATCH ))
 AC_SUBST(MKCL_VERSION_NUMBER)
 
 MKCL_MAJOR_VERSION=$PACKAGE_MAJOR
 MKCL_MINOR_VERSION=$PACKAGE_MINOR
-MKCL_PATCH_LEVEL=$PACKAGE_LEAST
+MKCL_PATCH_LEVEL=$PACKAGE_PATCH
 AC_SUBST(MKCL_MAJOR_VERSION)
 AC_SUBST(MKCL_MINOR_VERSION)
 AC_SUBST(MKCL_PATCH_LEVEL)
