@@ -382,11 +382,13 @@ extern "C" {
 #define mkcl_va_arg(a)							\
   (a[0].narg--, (a[0].sp ? *(a[0].sp++) : va_arg(a[0].args,mkcl_object)))
 
+#if 0
 #define mkcl_va_copy(dest,orig) {	    \
     dest[0].narg = orig[0].narg;	    \
     dest[0].sp = orig[0].sp;		    \
     va_copy(dest[0].args, orig[0].args);    \
   }
+#endif
 
 #define mkcl_va_end(a) va_end(a[0].args)
 #define	mkcl_check_arg(e,n) do { if (narg != (n)) mkcl_FEwrong_num_arguments_anonym(e);} while(0)
