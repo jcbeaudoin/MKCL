@@ -5,7 +5,7 @@
 /*
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
-    Copyright (c) 2010-2013, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2014, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -26,11 +26,7 @@
 # define WINVER 0x0502 /* Don't want to support below that. JCB */
 # ifndef __MSVCRT_VERSION__
 /*  High byte is the major version, low byte is the minor. */
-#  if 0
-#  define __MSVCRT_VERSION__ 0x0601 /* Don't want to support below that. JCB */
-#  else
 #  define __MSVCRT_VERSION__ 0x0700 /* Matches Windows XP */ /* Don't want to support below that. JCB */
-#  endif
 # endif
 #endif
 
@@ -43,20 +39,16 @@
 #include <stdlib.h>
 
 
-/* Microsoft VC++ does not have va_copy() */
-#if defined(_MSC_VER) || !defined(va_copy)
-# define va_copy(dst, src) \
-   ((void) memcpy(&(dst), &(src), sizeof(va_list)))
-#endif
-
 #include <mkcl/config.h>
 
 #ifdef MKCL_WINDOWS
 # define WIN32_LEAN_AND_MEAN 1 /* Do not include winsock.h */
-#ifndef WINVER
-# define WINVER 0x0502 /* We require at least Windows XP_SP2 or later. */
-# define _WIN32_WINNT WINVER
-#endif
+# ifndef WINVER
+#  define WINVER 0x0502 /* We require at least Windows XP_SP2 or later. */
+# endif
+# ifndef _WIN32_WINNT
+#  define _WIN32_WINNT WINVER
+# endif
 # include <winsock2.h>
 # include <windows.h>
 # include <malloc.h> /* for alloca() */
