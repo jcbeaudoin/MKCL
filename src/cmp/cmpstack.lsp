@@ -1,7 +1,7 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: C -*-
 ;;;;
 ;;;;  Copyright (c) 2006, Juan Jose Garcia-Ripoll.
-;;;;  Copyright (c) 2013, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2013-2014, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -14,11 +14,11 @@
 ;;;;
 ;;;; Following special forms are provided:
 ;;;;
-;;;;	(WITH-TEMP-STACK {form}*)
+;;;;	(WITH-TEMP-STACK frame-var {form}*)
 ;;;;		Executes given forms, restoring the lisp stack on output.
-;;;;	(TEMP-STACK-PUSH form)
-;;;;	(TEMP-STACK-PUSH-VALUES form)
-;;;;	(TEMP-STACK-POP nvalues)
+;;;;	(TEMP-STACK-PUSH frame form)
+;;;;	(TEMP-STACK-PUSH-VALUES frame form)
+;;;;	(TEMP-STACK-POP-VALUES frame)
 ;;;;
 
 (in-package "COMPILER")
@@ -72,7 +72,7 @@
     (c2expr* form))
   (c2expr push-statement))
 
-(defun c1temp-stack-pop (args)
+(defun c1temp-stack-pop-values (args)
   (c1expr `(c-inline ,args (t) (values &rest t)
 		     "env->values[0]=mkcl_temp_stack_frame_pop_values(env, #0);" ;; mkcl_temp_stack_frame_pop_values sets env->nvalues properly
 		     :one-liner nil :side-effects t)))
@@ -93,7 +93,7 @@
 (put-sysprop 'temp-stack-push 'C1SPECIAL #'c1temp-stack-push)
 (put-sysprop 'temp-stack-push-values 'C1SPECIAL #'c1temp-stack-push-values)
 (put-sysprop 'temp-stack-push-values 'C2 #'c2temp-stack-push-values)
-(put-sysprop 'temp-stack-pop 'C1SPECIAL #'c1temp-stack-pop)
+(put-sysprop 'temp-stack-pop-values 'C1SPECIAL #'c1temp-stack-pop-values)
 (put-sysprop 'si::apply-from-temp-stack-frame 'c1 #'c1apply-from-temp-stack-frame) ;; this one is a function in the C runtime.
 
 

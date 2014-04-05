@@ -44,7 +44,7 @@
 	      `(with-temp-stack ,frame
 			   (temp-stack-push-values ,frame ,(first args))
 			   ,@(rest args)
-			   (temp-stack-pop ,frame)))))
+			   (temp-stack-pop-values ,frame)))))
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
