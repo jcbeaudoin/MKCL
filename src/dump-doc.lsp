@@ -11,6 +11,6 @@
 
 (let ((*features* (cons :clos *features*)))
   (load "./doc/help.lsp" :external-format '(:ascii :lf))
-  (si::dump-documentation "./HELP.DOC"))
+  (si::dump-documentation "./help.doc"))
 
 (mkcl:quit :exit-code 0)

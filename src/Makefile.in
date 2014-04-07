@@ -99,7 +99,7 @@ BUILTINS = asdf profile rt serve-event sockets
 MKCL_STATIC_PARTS = mkcltop.@LIBEXT@ lsp.a mkclmin.@LIBEXT@
 
 
-all: bin/mkcl-config $(TARGETS) $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) HELP.DOC
+all: bin/mkcl-config $(TARGETS) $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) help.doc
 .PHONY:	all
 
 Makefile: Makefile.in config.status
@@ -250,7 +250,7 @@ bin/mkcl-full$(EXE): bin/mkcl-small$(EXE) build-full-mkcl.lsp $(BUILTINS)
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-full-mkcl.lsp -- $(BUILTINS)
 endif
 
-HELP.DOC: dump-doc.lsp bin/mkcl-small$(EXE) doc/help.lsp
+help.doc: dump-doc.lsp bin/mkcl-small$(EXE) doc/help.lsp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load dump-doc.lsp
 
 
@@ -367,7 +367,7 @@ install-base: all mkcl/config-install.h
 	rm $(includedir)/mkcl/config.h
 	mv $(includedir)/mkcl/config-install.h $(includedir)/mkcl/config.h
 	$(INSTALL_SCRIPT) bin/mkcl-config $(bindir)
-	for i in BUILD-STAMP HELP.DOC ; do \
+	for i in BUILD-STAMP help.doc ; do \
 	  $(INSTALL_DATA) $$i $(mkcldir); \
 	done
 	for i in $(LSP_LIBRARIES); do \
@@ -435,7 +435,7 @@ install-base-local: all mkcl/config-install.h
 	fi
 	rm ./include//mkcl/config.h
 	mv ./include//mkcl/config-install.h ./include//mkcl/config.h
-	for i in BUILD-STAMP HELP.DOC ; do \
+	for i in BUILD-STAMP help.doc ; do \
 	  $(INSTALL_DATA) $$i $(localmkcldir); \
 	done
 	for i in $(LSP_LIBRARIES); do \
@@ -500,7 +500,7 @@ clean: clean_lisp clean_contribs
 	$(RM) MKCLINIT* bin/MKCLINIT*
 	$(RM) MKC*.c MKC*.tmp bin/MKC*.c bin/MKC*.tmp
 	$(RM) -r encodings
-	$(RM) MODULES HELP.DOC TAGS
+	$(RM) MODULES help.doc TAGS
 	$(RM) mkcl/gc/*.h ./mkclgc.@LIBEXT@
 	$(RM) *.dll bin/*.dll
 	$(RM) *.o *.a *.la *.so *.data *.fasb *.fas core core.* a.out
@@ -516,7 +516,7 @@ clean_lisp:
 	for i in lsp cmp clos; \
 	do $(RM) $$i.{a,fasb,asd,as2} $$i/?*.{o,data,c,sdat,h,fasb,fas}; done
 	$(RM) lsp/config.lsp cmp/cmpdefs.lsp
-	$(RM) HELP.DOC
+	$(RM) help.doc
 
 distclean: clean
 	cd c; $(MAKE) distclean
