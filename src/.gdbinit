@@ -8,6 +8,7 @@ break mk_cl_cerror
 break mkcl_CEerror
 break mkcl_FEerror
 break mkcl_internal_C_error
+break universal_error_handler
 #break mkcl_FEunbound_variable
 #break mkcl_FEundefined_function
 #break mkcl_FEwrong_type_argument
@@ -25,6 +26,6 @@ handle SIG36 nostop pass
 # our wake up signal
 handle SIG37 nostop pass
 # our GC thread restart signal
-handle SIG38 nostop pass
+handle SIG38 nostop pass noprint
 # our GC thread suspend signal
-handle SIG39 nostop pass
+handle SIG39 nostop pass noprint
