@@ -322,15 +322,8 @@ progress. The default value is T.")
 
 ;;; --cmpenv.lsp--
 ;;;
-;;; These default settings are equivalent to (optimize (speed 2) (space 0) (safety 3))
-;;;
-(defvar *safety* 2)
-(defvar *speed* 3)
-(defvar *space* 0)
-(defvar *debug* 2)
-
 (defconstant *default-optimize-settings*
-  `(optimize (safety ,*safety*) (speed ,*speed*) (space ,*space*) (debug ,*debug*)))
+  `(optimize (safety ,si::*safety*) (speed ,si::*speed*) (space ,si::*space*) (debug ,si::*debug*)))
 
 ;;; Emit automatic CHECK-TYPE forms for function arguments in lambda forms.
 (defvar *automatic-check-type-in-lambda* t)

@@ -119,7 +119,7 @@
   (cmpck (constantp name) "The constant ~s is being bound." name)
   (let (type)
     (if (setq type (assoc name types))
-	(setq type (type-filter (cdr type)))
+	(setq type (si::type-filter (cdr type)))
 	(setq type 'T))
     (cond ((or (member name specials)
 	       (sys:specialp name)
@@ -127,7 +127,7 @@
            (when (member name ignores)
              (cmpwarn-style "Variable ~s declared special while explicitly ignored." name))
            (unless type
-	     (setf type (or (get-sysprop name 'CMP-TYPE) 'T)))
+	     (setf type (or (get-sysprop name 'TYPE) 'T)))
 	   (c1make-global-variable name :kind 'SPECIAL :type type))
           (t
 	   (make-var :name name :type type :loc 'OBJECT
@@ -180,7 +180,7 @@
     (declare (ignore unw))
     (cond ((null var)
 	   (c1make-global-variable name :warn t
-				   :type (or (get-sysprop name 'CMP-TYPE) t)))
+				   :type (or (get-sysprop name 'TYPE) t)))
 	  ((not (var-p var))
 	   ;; symbol-macrolet
 	   (baboon))
@@ -308,7 +308,7 @@
 (defun register-global (name)
   (unless (check-global name)
     (push (c1make-global-variable name :kind 'GLOBAL
-				  :type (or (get-sysprop name 'CMP-TYPE) 'T))
+				  :type (or (get-sysprop name 'TYPE) 'T))
 	  *global-vars*))
   (values))
 

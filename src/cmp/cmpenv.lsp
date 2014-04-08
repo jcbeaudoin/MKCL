@@ -54,10 +54,11 @@
 			#'(lambda (condition hook)
 			  (compiler-debugger outer-hook condition hook))))
     (*readtable* (copy-readtable))   ;; for thread safety. JCB
-    (*debug* *debug*)   ;; JCB
-    (*safety* *safety*) ;; JCB
-    (*space* *space*)   ;; JCB
-    (*speed* *speed*)   ;; JCB
+    (si::*debug* si::*debug*)   ;; JCB
+    (si::*safety* si::*safety*) ;; JCB
+    (si::*space* si::*space*)   ;; JCB
+    (si::*speed* si::*speed*)   ;; JCB
+    (si::*compilation-speed* si::*compilation-speed*) ;; JCB
     (*compiler-floating-point-exclusion-set* *compiler-floating-point-exclusion-set*) ;; JCB
     (ffi::*referenced-libraries* ffi::*referenced-libraries*) ;; JCB
     ))
@@ -83,50 +84,14 @@
 		     (incf (car *closure-levels*))
 		     (setq *max-env* (max *env* *max-env*))))
 
+
 (defun function-arg-types (arg-types &aux (types nil))
   (do ((al arg-types (cdr al)))
       ((or (endp al)
            (member (car al) '(&optional &rest &key)))
        (nreverse types))
-      (declare (object al))
+      ;;(declare (object al))
       (push (type-filter (car al)) types)))
-
-;;; The valid return type declaration is:
-;;;	(( VALUES {type}* )) or ( {type}* ).
-
-(defun function-return-type (return-types)
-  (cond ((endp return-types) t)
-        ((and (consp (car return-types))
-              (eq (caar return-types) 'VALUES))
-         (cond ((not (endp (cdr return-types)))
-                (warn "The function return types ~s is illegal." return-types)
-                t)
-               ((or (endp (cdar return-types))
-                    (member (cadar return-types) '(&optional &rest &key)))
-                t)
-               (t (type-filter (car return-types) t))))
-        (t (type-filter (car return-types)))))
-
-(defun add-function-proclamation (fname decl)
-  (if (si::valid-function-name-p fname)
-      (let* ((arg-types '*)
-	     (return-types '*)
-	     (l decl))
-	(cond ((null l))
-	      ((consp l)
-	       (setf arg-types (pop l)))
-	      (t (warn "The function proclamation ~s ~s is not valid." fname decl)))
-	(cond ((null l))
-	      ((and (consp l) (null (rest l)))
-	       (setf return-types (function-return-type l)))
-	      (t (warn "The function proclamation ~s ~s is not valid." fname decl)))
-	(if (eq arg-types '*)
-	    (rem-sysprop fname 'PROCLAIMED-ARG-TYPES)
-	    (put-sysprop fname 'PROCLAIMED-ARG-TYPES arg-types))
-	(if (eq return-types '*)
-	    (rem-sysprop fname 'PROCLAIMED-RETURN-TYPE)
-	    (put-sysprop fname 'PROCLAIMED-RETURN-TYPE return-types)))
-      (warn "The function proclamation ~s ~s is not valid." fname decl)))
 
 (defun add-function-declaration (fname arg-types return-types)
   (if (si::valid-function-name-p fname)
@@ -135,7 +100,7 @@
 	    (warn "Found function declaration for local macro ~A" fname)
 	    (push (list fun
 			(function-arg-types arg-types)
-			(function-return-type return-types))
+			(si::function-return-type return-types))
 		  *function-declarations*)))
       (warn "In (DECLARE (FTYPE ...)): ~s is not a valid function name" fname)))
 
@@ -192,7 +157,7 @@
   (let ((local-decl (assoc fname *notinline* :test #'same-fname-p)))
     (if local-decl
 	(eq (cdr local-decl) 'NOTINLINE)
-      (get-sysprop fname 'CMP-NOTINLINE)
+      (get-sysprop fname 'NOTINLINE)
       )
     )
   )
@@ -202,120 +167,6 @@
            (<= 3 (cmp-env-optimization 'debug))
            )))
 
-(si::reopen-package :cl)
-(defun cl:proclaim (decl &aux decl-name)
-  (unless (listp decl)
-	  (error "The proclamation specification ~s is not a list" decl))
-  (case (setf decl-name (car decl))
-    (SPECIAL
-     (dolist (var (cdr decl))
-       (if (symbolp var)
-           (sys:*make-special var)
-           (error "Syntax error in proclamation ~s" decl))))
-    (OPTIMIZE
-     (dolist (x (cdr decl))
-       (when (symbolp x) (setq x (list x 3)))
-       (if (or (not (consp x))
-               (not (consp (cdr x)))
-               (not (numberp (second x)))
-               (not (<= 0 (second x) 3)))
-           (warn "The OPTIMIZE proclamation ~s is illegal." x)
-           (case (car x)
-		 (DEBUG (setq *debug* (second x)))
-                 (SAFETY (setq *safety* (second x)))
-                 (SPACE (setq *space* (second x)))
-                 (SPEED (setq *speed* (second x)))
-		 (COMPILATION-SPEED)
-                 (t (warn "The OPTIMIZE quality ~s is unknown." (car x)))))))
-    (TYPE
-     (if (consp (cdr decl))
-         (proclaim-var (second decl) (cddr decl))
-         (error "Syntax error in proclamation ~s" decl)))
-    (FTYPE
-     (if (atom (rest decl))
-	 (error "Syntax error in proclamation ~a" decl)
-       (multiple-value-bind (type-name args)
-           (si::normalize-type (second decl))
-         (if (eq type-name 'FUNCTION)
-             (dolist (v (cddr decl))
-               (add-function-proclamation v args))
-           (error "In an FTYPE proclamation, found ~A which is not a function type."
-                  (second decl))))))
-    (INLINE
-     (dolist (fun (cdr decl))
-       (if (si::valid-function-name-p fun)
-	   (rem-sysprop fun 'CMP-NOTINLINE)
-	   (error "Not a valid function name ~s in proclamation ~s" fun decl))))
-    (NOTINLINE
-     (dolist (fun (cdr decl))
-       (if (si::valid-function-name-p fun)
-	   (put-sysprop fun 'CMP-NOTINLINE t)
-	   (error "Not a valid function name ~s in proclamation ~s" fun decl))))
-    ((OBJECT IGNORE DYNAMIC-EXTENT IGNORABLE)
-     (warn "The ~A proclamation is not supported at this moment." decl-name))
-    (DECLARATION
-     (do-declaration (rest decl) #'error))
-    (SI::C-EXPORT-FNAME ;; This declaration cannot be used on globally named closures (ie: produced by a "defun"). JCB
-     (dolist (x (cdr decl))
-       (cond ((symbolp x)
-	      (multiple-value-bind (found c-name)
-		  (si::mangle-function-name x)
-		(if found
-		    (warn "The function ~s is already in the runtime. C-EXPORT-FNAME declaration ignored." x)
-		    (put-sysprop x 'Lfun c-name))))
-	     ((consp x)
-	      (destructuring-bind (c-name lisp-name) x
-		(if (si::mangle-function-name lisp-name)
-		    (warn "The function ~s is already in the runtime. C-EXPORT-FNAME declaration ignored." lisp-name)
-		    (put-sysprop lisp-name 'Lfun c-name))))
-	     (t
-	      (error "Syntax error in proclamation ~s" decl)))))
-    ((ARRAY ATOM BASE-CHAR BIGNUM BIT BIT-VECTOR CHARACTER COMPILED-FUNCTION
-      COMPLEX CONS DOUBLE-FLOAT EXTENDED-CHAR FIXNUM FLOAT HASH-TABLE INTEGER KEYWORD LIST
-      LONG-FLOAT NIL NULL NUMBER PACKAGE PATHNAME RANDOM-STATE RATIO RATIONAL
-      READTABLE SEQUENCE SHORT-FLOAT SIMPLE-ARRAY SIMPLE-BIT-VECTOR
-      SIMPLE-STRING SIMPLE-VECTOR SINGLE-FLOAT STANDARD-CHAR STREAM STRING
-      SYMBOL T VECTOR SIGNED-BYTE UNSIGNED-BYTE FUNCTION)
-     (proclaim-var decl-name (cdr decl)))
-    (otherwise
-     (cond ((member (car decl) si:*alien-declarations*))
-	   ((multiple-value-bind (ok type)
-		(valid-type-specifier decl-name)
-	      (when ok
-		(proclaim-var type (rest decl))
-		t)))
-	   ((let ((proclaimer (get-sysprop (car decl) :proclaim)))
-	      (when (functionp proclaimer)
-		(mapc proclaimer (rest decl))
-		t)))
-	   (t
-	    (warn "The declaration specifier ~s is unknown." decl-name))))))
-(si::close-package :cl)
-
-(defun type-name-p (name)
-  (or (get-sysprop name 'SI::DEFTYPE-DEFINITION)
-      (find-class name nil)
-      (get-sysprop name 'SI::STRUCTURE-TYPE)))
-
-(defun do-declaration (names-list error)
-  (dolist (new-declaration names-list)
-    (unless (symbolp new-declaration)
-      (funcall error "The declaration ~s is not a symbol" new-declaration))
-    (when (type-name-p new-declaration)
-      (funcall error "Symbol name ~S cannot be both the name of a type and of a declaration"
-	       new-declaration))
-    (pushnew new-declaration si:*alien-declarations*)))
-
-(defun proclaim-var (type vl)
-  (unless (si::typespecp type)
-    (simple-program-error "While in TYPE PROCLAIM on variables ~S. Not a valid typespec: ~S" vl type))
-  (setq type (type-filter type))
-  (dolist (var vl)
-    (if (symbolp var)
-        (let ((v (sch-global var)))
-          (put-sysprop var 'CMP-TYPE type)
-	  (when v (setf (var-type v) type)))
-      (warn "The variable name ~s is not a symbol." var))))
 
 (defun c1body (body doc-p &aux
 	            (all-declarations nil)
@@ -393,7 +244,7 @@
 	       (if (member decl-name si::*alien-declarations*)
 		   (push decl others)
 		 (multiple-value-bind (ok type)
-		     (valid-type-specifier decl-name)
+		     (si::valid-type-specifier decl-name)
 		   (if ok  
 		       (declare-variables type decl-args)
 		     (cmpwarn "The declaration specifier ~s is unknown." decl-name)) ;; JCB
@@ -407,10 +258,11 @@
 
 (defun default-optimization (optimization)
   (ecase optimization
-    (speed *speed*)
-    (safety *safety*)
-    (space *space*)
-    (debug *debug*)))
+    (speed si::*speed*)
+    (safety si::*safety*)
+    (space si::*space*)
+    (debug si::*debug*)
+    (compilaton-speed si::*compilation-speed*)))
 
 (defun search-optimization-quality (declarations what)
   (dolist (i (reverse declarations) (cmp-env-optimization what))
@@ -647,7 +499,7 @@
 	       (eq (first i) :declare)
 	       (eq (second i) 'optimize))
      do (return (cddr i))
-     finally (return (list *debug* *safety* *space* *speed*))))
+     finally (return (list si::*debug* si::*safety* si::*space* si::*speed*))))
 
 (defun cmp-env-optimization (property &optional (env *cmp-env*))
   (let ((x (cmp-env-all-optimizations env)))

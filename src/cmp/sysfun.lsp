@@ -84,11 +84,11 @@
 		 (mapcar #'(lambda (x) 
 			     (if (member x '(* &optional &rest &key &allow-other-keys))
 				 x 
-			       (type-filter x)))
+			       (si::type-filter x)))
 			 arg-types)))
   (when (and return-type (not (eq 'T return-type)))
     (put-sysprop name 'proclaimed-return-type
-		 (if (eql return-type '*) '* (type-filter return-type t))))
+		 (if (eql return-type '*) '* (si::type-filter return-type t))))
   (when no-sp-change
     (put-sysprop name 'no-sp-change t))
   (when predicate

@@ -699,7 +699,6 @@ Returns T if X belongs to TYPE; NIL otherwise."
   (or (symbolp form) (and (consp form) (symbolp (car form))) (clos::classp form)))
 
 
-(declaim (ftype (function (T T) boolean) subclassp))
 (defun subclassp (low high)
   (and (instancep low) ;; should be (clos::classp low) but we'll have to wait for MKCL 1.2.0 for this.
        (or (eq low high)
@@ -738,7 +737,7 @@ Returns T if X belongs to TYPE; NIL otherwise."
 	 (if (setq fd (get-sysprop type 'DEFTYPE-DEFINITION))
 	   (normalize-type (funcall fd type nil))
 	   (values type nil)))
-	((clos::classp type) (values type nil))
+	((and (instancep type) (clos::classp type)) (values type nil))
 	((atom type)
 	 (error-type-specifier type))
 	((progn
@@ -1463,7 +1462,7 @@ if not possible."
 		    (canonical-type (funcall expander type nil))
 		    (unless (assoc (first type) *elementary-types*)
 		      (throw '+canonical-type-failure+ nil)))))))
-	((clos::classp type)
+	((and (instancep type) (clos::classp type))
 	 (register-class type))
 	((and (fboundp 'function-type-p) (function-type-p type))
 	 (register-function-type type))
@@ -1554,6 +1553,216 @@ if not possible."
 ;;;
 ;;; 
 
+(defun type-filter (type &optional values-allowed)
+  (multiple-value-bind (type-name type-args) (sys::normalize-type type)
+    (case type-name
+        ((FIXNUM BASE-CHAR CHARACTER SINGLE-FLOAT DOUBLE-FLOAT SYMBOL) type-name)
+        (SHORT-FLOAT 'SINGLE-FLOAT)
+        (LONG-FLOAT #-long-float 'DOUBLE-FLOAT #+long-float 'LONG-FLOAT)
+        ((SIMPLE-STRING STRING) 'STRING)
+        ((SIMPLE-BIT-VECTOR BIT-VECTOR) 'BIT-VECTOR)
+	((NIL T) t)
+	((SIMPLE-ARRAY ARRAY)
+	 (cond ((endp type-args) '(ARRAY *))		; Beppe
+	       (t (let ((element-type (if (eq '* (car type-args)) '* (upgraded-array-element-type (car type-args)))) ;; added '*. JCB
+			(dimensions (if (cdr type-args) (second type-args) '*)))
+		    (if (and (not (eq dimensions '*))
+			     (and (listp dimensions) ;; JCB
+			      (= (length dimensions) 1)))
+			(case element-type
+			      (BASE-CHAR 'BASE-STRING) ;; JCB
+			      (CHARACTER 'STRING)
+			      (BIT 'BIT-VECTOR)
+			      (t (list 'VECTOR element-type)))
+		      (list 'ARRAY element-type))))))
+	(INTEGER (if (subtypep type 'FIXNUM) 'FIXNUM (if (subtypep type 'BIGNUM) 'BIGNUM t)))
+	((STREAM CONS) type-name) ; Juanjo
+        (FUNCTION type-name)
+	(t (cond ((eq type-name 'VALUES)
+		  (unless values-allowed
+		    (error "VALUES type found in a place where it is not allowed."))
+		  `(VALUES ,@(mapcar #'(lambda (x)
+					(if (or (eq x '&optional)
+						(eq x '&rest))
+					    x
+					    (type-filter x)))
+				    type-args)))
+		 ((subtypep type 'STANDARD-OBJECT) type) ;;; beware that any type expression equivalent to "nil"
+		                                         ;;; will come out through this case! Is this a bug? JCB 
+		 ((subtypep type 'STRUCTURE-OBJECT) type)
+		 ((dolist (v '(FIXNUM BIGNUM BASE-CHAR 
+			       #+unicode EXTENDED-CHAR
+			       #-unicode CHARACTER
+			       SINGLE-FLOAT DOUBLE-FLOAT
+                               #+long-float LONG-FLOAT
+			       (VECTOR T) STRING BIT-VECTOR
+			       (VECTOR FIXNUM) (VECTOR SINGLE-FLOAT)
+			       (VECTOR DOUBLE-FLOAT) (ARRAY BASE-CHAR)
+			       (ARRAY BIT) (ARRAY FIXNUM)
+			       (ARRAY SINGLE-FLOAT) (ARRAY DOUBLE-FLOAT)
+			       (ARRAY T))) ; Beppe
+		    (when (subtypep type v) (return v))))
+		 ((and (eq type-name 'SATISFIES) ; Beppe
+		       (symbolp (car type-args))
+		       (get-sysprop (car type-args) 'TYPE-FILTER)))
+		 ((eq type 'LIST) type) ;; a kludge not to see LIST mapped to T. JCB
+		 ((eq type 'RATIO) type) ;; a kludge not to see RATIO mapped to T. JCB
+		 (t t))))))
+
+(defun valid-type-specifier (type)
+  (ignore-errors
+     (if (subtypep type 'T)
+	 (values t (type-filter type))
+         (values nil nil))))
 
 
+;;; The valid return type declaration is:
+;;;	(( VALUES {type}* )) or ( {type}* ).
 
+(defun function-return-type (return-types)
+  (cond ((endp return-types) t)
+        ((and (consp (car return-types))
+              (eq (caar return-types) 'VALUES))
+         (cond ((not (endp (cdr return-types)))
+                (warn "The function return types ~s is illegal." return-types)
+                t)
+               ((or (endp (cdar return-types))
+                    (member (cadar return-types) '(&optional &rest &key)))
+                t)
+               (t (type-filter (car return-types) t))))
+        (t (type-filter (car return-types)))))
+
+(defun add-function-proclamation (fname decl)
+  (if (si::valid-function-name-p fname)
+      (let* ((arg-types '*)
+	     (return-types '*)
+	     (l decl))
+	(cond ((null l))
+	      ((consp l)
+	       (setf arg-types (pop l)))
+	      (t (warn "The function proclamation ~s ~s is not valid." fname decl)))
+	(cond ((null l))
+	      ((and (consp l) (null (rest l)))
+	       (setf return-types (function-return-type l)))
+	      (t (warn "The function proclamation ~s ~s is not valid." fname decl)))
+	(if (eq arg-types '*)
+	    (rem-sysprop fname 'PROCLAIMED-ARG-TYPES)
+	    (put-sysprop fname 'PROCLAIMED-ARG-TYPES arg-types))
+	(if (eq return-types '*)
+	    (rem-sysprop fname 'PROCLAIMED-RETURN-TYPE)
+	    (put-sysprop fname 'PROCLAIMED-RETURN-TYPE return-types)))
+      (warn "The function proclamation ~s ~s is not valid." fname decl)))
+
+(defun type-name-p (name)
+  (or (get-sysprop name 'SI::DEFTYPE-DEFINITION)
+      (find-class name nil)
+      (get-sysprop name 'SI::STRUCTURE-TYPE)))
+
+(defun do-declaration (names-list error)
+  (dolist (new-declaration names-list)
+    (unless (symbolp new-declaration)
+      (funcall error "The declaration ~s is not a symbol" new-declaration))
+    (when (type-name-p new-declaration)
+      (funcall error "Symbol name ~S cannot be both the name of a type and of a declaration"
+	       new-declaration))
+    (pushnew new-declaration si:*alien-declarations*)))
+
+(defun proclaim-var (type vl)
+  (unless (si::typespecp type)
+    (simple-program-error "While in TYPE PROCLAIM on variables ~S. Not a valid typespec: ~S" vl type))
+  (setq type (type-filter type))
+  (dolist (var vl)
+    (if (symbolp var)
+        (put-sysprop var 'TYPE type)
+      (warn "The variable name ~s is not a symbol." var))))
+
+(defun proclaim (decl &aux decl-name)
+  (unless (listp decl)
+	  (error "The proclamation specification ~s is not a list" decl))
+  (case (setf decl-name (car decl))
+    (SPECIAL
+     (dolist (var (cdr decl))
+       (if (symbolp var)
+           (sys:*make-special var)
+           (error "Syntax error in proclamation ~s" decl))))
+    (OPTIMIZE
+     (dolist (x (cdr decl))
+       (when (symbolp x) (setq x (list x 3)))
+       (if (or (not (consp x))
+               (not (consp (cdr x)))
+               (not (numberp (second x)))
+               (not (<= 0 (second x) 3)))
+           (warn "The OPTIMIZE proclamation ~s is illegal." x)
+           (case (car x)
+		 (DEBUG (setq si::*debug* (second x)))
+                 (SAFETY (setq si::*safety* (second x)))
+                 (SPACE (setq si::*space* (second x)))
+                 (SPEED (setq si::*speed* (second x)))
+		 (COMPILATION-SPEED (setq si::*compilation-speed* (second x)))
+                 (t (warn "The OPTIMIZE quality ~s is unknown." (car x)))))))
+    (TYPE
+     (if (consp (cdr decl))
+         (proclaim-var (second decl) (cddr decl))
+         (error "Syntax error in proclamation ~s" decl)))
+    (FTYPE
+     (if (atom (rest decl))
+	 (error "Syntax error in proclamation ~a" decl)
+       (multiple-value-bind (type-name args)
+           (si::normalize-type (second decl))
+         (if (eq type-name 'FUNCTION)
+             (dolist (v (cddr decl))
+               (add-function-proclamation v args))
+           (error "In an FTYPE proclamation, found ~A which is not a function type."
+                  (second decl))))))
+    (INLINE
+     (dolist (fun (cdr decl))
+       (if (si::valid-function-name-p fun)
+	   (rem-sysprop fun 'NOTINLINE)
+	   (error "Not a valid function name ~s in proclamation ~s" fun decl))))
+    (NOTINLINE
+     (dolist (fun (cdr decl))
+       (if (si::valid-function-name-p fun)
+	   (put-sysprop fun 'NOTINLINE t)
+	   (error "Not a valid function name ~s in proclamation ~s" fun decl))))
+    ((OBJECT IGNORE DYNAMIC-EXTENT IGNORABLE)
+     (warn "The ~A proclamation is not supported at this moment." decl-name))
+    (DECLARATION
+     (do-declaration (rest decl) #'error))
+    (SI::C-EXPORT-FNAME ;; This declaration cannot be used on globally named closures (ie: produced by a "defun"). JCB
+     (dolist (x (cdr decl))
+       (cond ((symbolp x)
+	      (multiple-value-bind (found c-name)
+		  (si::mangle-function-name x)
+		(if found
+		    (warn "The function ~s is already in the runtime. C-EXPORT-FNAME declaration ignored." x)
+		    (put-sysprop x 'Lfun c-name))))
+	     ((consp x)
+	      (destructuring-bind (c-name lisp-name) x
+		(if (si::mangle-function-name lisp-name)
+		    (warn "The function ~s is already in the runtime. C-EXPORT-FNAME declaration ignored." lisp-name)
+		    (put-sysprop lisp-name 'Lfun c-name))))
+	     (t
+	      (error "Syntax error in proclamation ~s" decl)))))
+    ((ARRAY ATOM BASE-CHAR BIGNUM BIT BIT-VECTOR CHARACTER COMPILED-FUNCTION
+      COMPLEX CONS DOUBLE-FLOAT EXTENDED-CHAR FIXNUM FLOAT HASH-TABLE INTEGER KEYWORD LIST
+      LONG-FLOAT NIL NULL NUMBER PACKAGE PATHNAME RANDOM-STATE RATIO RATIONAL
+      READTABLE SEQUENCE SHORT-FLOAT SIMPLE-ARRAY SIMPLE-BIT-VECTOR
+      SIMPLE-STRING SIMPLE-VECTOR SINGLE-FLOAT STANDARD-CHAR STREAM STRING
+      SYMBOL T VECTOR SIGNED-BYTE UNSIGNED-BYTE FUNCTION)
+     (proclaim-var decl-name (cdr decl)))
+    (otherwise
+     (cond ((member (car decl) si:*alien-declarations*))
+	   ((multiple-value-bind (ok type)
+		(valid-type-specifier decl-name)
+	      (when ok
+		(proclaim-var type (rest decl))
+		t)))
+	   ((let ((proclaimer (get-sysprop (car decl) :proclaim)))
+	      (when (functionp proclaimer)
+		(mapc proclaimer (rest decl))
+		t)))
+	   (t
+	    (warn "The declaration specifier ~s is unknown." decl-name))))))
+
+
+(declaim (ftype (function (T T) boolean) subclassp))

@@ -1213,22 +1213,6 @@ from the C language code.  NIL means \"do not create the file\"."
 (si::close-package :cl)
 
 
-;;; During bootstrap these need to be redefined at some point
-;;; and thus cannot be load-time evaluated.
-#+mkcl-bootstrap
-(proclaim '(notinline clos::find-slot-definition
-		      cl::ensure-generic-function
-		      clos::method-p
-		      cl::make-method
-		      cl::add-method
-		      cl::find-method
-		      cl::remove-method
-		      clos::register-method-as-spec-user
-		      clos::compute-effective-method
-		      clos::setf-find-class
-		      cl::warn
-		      si::universal-error-handler))
-
 (proclaim '(notinline builder)) ;; for debugging
 
 ;;; Since CMP is an autoloaded optional module these cannot be load-time evaluated

@@ -26,7 +26,7 @@
 (defun c1the (args)
   (check-args-number 'THE args 2 2)
   (let* ((form (c1expr (second args)))
-	 (the-type (type-filter (first args) t))
+	 (the-type (si::type-filter (first args) t))
 	 type)
     (cond ((and (consp the-type) (eq (first the-type) 'VALUES))
 	   (cmpwarn-style "Ignoring THE form with type ~A" the-type))

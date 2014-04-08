@@ -78,68 +78,6 @@
 
 
 
-(defun type-filter (type &optional values-allowed)
-  (multiple-value-bind (type-name type-args) (sys::normalize-type type)
-    (case type-name
-        ((FIXNUM BASE-CHAR CHARACTER SINGLE-FLOAT DOUBLE-FLOAT SYMBOL) type-name)
-        (SHORT-FLOAT 'SINGLE-FLOAT)
-        (LONG-FLOAT #-long-float 'DOUBLE-FLOAT #+long-float 'LONG-FLOAT)
-        ((SIMPLE-STRING STRING) 'STRING)
-        ((SIMPLE-BIT-VECTOR BIT-VECTOR) 'BIT-VECTOR)
-	((NIL T) t)
-	((SIMPLE-ARRAY ARRAY)
-	 (cond ((endp type-args) '(ARRAY *))		; Beppe
-	       (t (let ((element-type (if (eq '* (car type-args)) '* (upgraded-array-element-type (car type-args)))) ;; added '*. JCB
-			(dimensions (if (cdr type-args) (second type-args) '*)))
-		    (if (and (not (eq dimensions '*))
-			     (and (listp dimensions) ;; JCB
-			      (= (length dimensions) 1)))
-			(case element-type
-			      (BASE-CHAR 'BASE-STRING) ;; JCB
-			      (CHARACTER 'STRING)
-			      (BIT 'BIT-VECTOR)
-			      (t (list 'VECTOR element-type)))
-		      (list 'ARRAY element-type))))))
-	(INTEGER (if (subtypep type 'FIXNUM) 'FIXNUM (if (subtypep type 'BIGNUM) 'BIGNUM t)))
-	((STREAM CONS) type-name) ; Juanjo
-        (FUNCTION type-name)
-	(t (cond ((eq type-name 'VALUES)
-		  (unless values-allowed
-		    (error "VALUES type found in a place where it is not allowed."))
-		  `(VALUES ,@(mapcar #'(lambda (x)
-					(if (or (eq x '&optional)
-						(eq x '&rest))
-					    x
-					    (type-filter x)))
-				    type-args)))
-		 ((subtypep type 'STANDARD-OBJECT) type) ;;; beware that any type expression equivalent to "nil"
-		                                         ;;; will come out through this case! Is this a bug? JCB 
-		 ((subtypep type 'STRUCTURE-OBJECT) type)
-		 ((dolist (v '(FIXNUM BIGNUM BASE-CHAR 
-			       #+unicode EXTENDED-CHAR
-			       #-unicode CHARACTER
-			       SINGLE-FLOAT DOUBLE-FLOAT
-                               #+long-float LONG-FLOAT
-			       (VECTOR T) STRING BIT-VECTOR
-			       (VECTOR FIXNUM) (VECTOR SINGLE-FLOAT)
-			       (VECTOR DOUBLE-FLOAT) (ARRAY BASE-CHAR)
-			       (ARRAY BIT) (ARRAY FIXNUM)
-			       (ARRAY SINGLE-FLOAT) (ARRAY DOUBLE-FLOAT)
-			       (ARRAY T))) ; Beppe
-		    (when (subtypep type v) (return v))))
-		 ((and (eq type-name 'SATISFIES) ; Beppe
-		       (symbolp (car type-args))
-		       (get-sysprop (car type-args) 'TYPE-FILTER)))
-		 ((eq type 'LIST) type) ;; a kludge not to see LIST mapped to T. JCB
-		 ((eq type 'RATIO) type) ;; a kludge not to see RATIO mapped to T. JCB
-		 (t t))))))
-
-(defun valid-type-specifier (type)
-  (handler-case
-     (if (subtypep type 'T)
-	 (values t (type-filter type))
-         (values nil nil))
-    (error (c) (values nil nil))))
 
 (defun known-type-p (type)
   (subtypep type 'T))

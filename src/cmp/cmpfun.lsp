@@ -278,9 +278,9 @@
   (cond ((symbolp x)
 	 (c1form-primary-type (c1expr x)))
 	((constantp x)
-	 (type-filter (type-of x)))
+	 (si::type-filter (type-of x)))
 	((and (consp x) (eq (car x) 'the))
-	 (type-filter (second x)))
+	 (si::type-filter (second x)))
 	(t t)))
 
 ;----------------------------------------------------------------------

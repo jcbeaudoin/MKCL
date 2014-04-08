@@ -109,6 +109,7 @@
 					 (fun-ref nil)
 					 (fname (get-fun-ref-sym fun-or-cblock index)))
   (declare (optimize (debug 0))) ;; hide it from stack trace. JCB
+  (declare (notinline warn))
 
   (if (and *warn-on-forward-reference* (not (eq 'si::code-block (type-of fun-or-cblock))))
       (warn "Forward reference to function named ~A from function ~S" fname fun-or-cblock))
