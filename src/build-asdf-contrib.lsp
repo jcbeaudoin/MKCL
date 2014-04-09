@@ -31,6 +31,10 @@
 
 ;;(format t "sys-dir = ~S~%" sys-dir)
 
+;; Guard against environment interference.
+(mkcl:setenv "ASDF_OUTPUT_TRANSLATIONS" nil)
+(mkcl:setenv "CL_SOURCE_REGISTRY" nil)
+
 (load "asdf.fasb") ;; load the local one.
 
 (asdf:oos 'asdf:load-op :asdf) ;; For some strange reason this is needed by ASDF 3 to force it to register itself.
