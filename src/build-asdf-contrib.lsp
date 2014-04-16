@@ -37,8 +37,6 @@
 
 (load "asdf.fasb") ;; load the local one.
 
-(asdf:oos 'asdf:load-op :asdf) ;; For some strange reason this is needed by ASDF 3 to force it to register itself.
-
 ;;(push '(mkcl:getcwd) asdf:*central-registry*) ;; ASDF 1 old style
 
 ;;(push sys-dir asdf:*central-registry*) ;; ASDF 1 old style
