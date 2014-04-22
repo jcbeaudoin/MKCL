@@ -2471,36 +2471,6 @@ mkcl_read_VV(MKCL,
     env->function = mk_cl_Cnil; /* signal that we are at toplevel. */
     (*entry_point)(env, mk_cl_Cnil, filename);
 
-    {
-      mkcl_object missing_packages = mk_cl_Cnil;
-      volatile bool locked = false;
-
-      MKCL_UNWIND_PROTECT_BEGIN(env) {
-	MKCL_LIBC_NO_INTR(env, (MKCL_PACKAGE_LIST_LOCK(), locked = true));
-	x = mkcl_core.packages_to_be_created;
-	mkcl_loop_for_on(env, x) {
-	  mkcl_object pkg_name = MKCL_CAR(MKCL_CAR(x));
-	  if ( mk_cl_Cnil == mk_cl_assoc(env, 2, pkg_name, old_ptbc) )
-	    { /* we get here if pkg_name is not in the old a-list. */
-	      /* it means that the package named by pkg_name
-		 was referenced between the beginning of this mkcl_read_VV
-		 and now without ever being properly created.
-	      */
-	      missing_packages = MKCL_CONS(env, pkg_name, missing_packages);
-	    }
-	} mkcl_end_loop_for_on;
-      } MKCL_UNWIND_PROTECT_EXIT {
-	if (locked) MKCL_PACKAGE_LIST_UNLOCK();
-      } MKCL_UNWIND_PROTECT_END;
-      if (!mkcl_Null(missing_packages))
-	{
-	  static const mkcl_base_string_object(warning_obj, ("The following packages were "
-							     "referenced in compiled file (~A) "
-							     "but do not exist yet: ~A."));
-	  mk_cl_funcall(env, 4 , @+'warn', (mkcl_object) &warning_obj, block->cblock.source, missing_packages);
-	}
-    }
-
     if (VVtemp) {
       block->cblock.temp_data = NULL;
       block->cblock.temp_data_size = 0;
@@ -2512,6 +2482,32 @@ mkcl_read_VV(MKCL,
       mk_cl_close(env, 1,in);
 
   } MKCL_UNWIND_PROTECT_END;
+
+  {
+    mkcl_object missing_packages = mk_cl_Cnil;
+    volatile bool locked = false;
+
+    MKCL_UNWIND_PROTECT_BEGIN(env) {
+      MKCL_LIBC_NO_INTR(env, (MKCL_PACKAGE_LIST_LOCK(), locked = true));
+      x = mkcl_core.packages_to_be_created;
+      mkcl_loop_for_on(env, x) {
+        mkcl_object pkg_name = MKCL_CAR(MKCL_CAR(x));
+        if ( mk_cl_Cnil == mk_cl_assoc(env, 2, pkg_name, old_ptbc) )
+          { /* we get here if pkg_name is not in the old a-list. */
+            /* it means that the package named by pkg_name
+               was referenced between the beginning of this mkcl_read_VV
+               and now without ever being properly created.
+            */
+            missing_packages = MKCL_CONS(env, pkg_name, missing_packages);
+          }
+      } mkcl_end_loop_for_on;
+    } MKCL_UNWIND_PROTECT_EXIT {
+      if (locked) MKCL_PACKAGE_LIST_UNLOCK();
+    } MKCL_UNWIND_PROTECT_END;
+    if (!mkcl_Null(missing_packages))
+      mkcl_FEerror(env, "While loading (~A) compiled from (~A),~%The following packages were referenced but do not exist yet: ~A.",
+                   3, filename, block->cblock.source, missing_packages);
+  }
 
   return block;
 }
