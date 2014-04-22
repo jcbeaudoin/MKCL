@@ -53,7 +53,7 @@
 
   (asdf::clear-source-registry)
   (asdf::initialize-source-registry `(:source-registry (:directory ,(namestring sys-dir))
-                                                       (:tree ,(namestring current-dir))
+                                                       (:directory ,(namestring current-dir))
                                                        :ignore-inherited-configuration))
   (asdf::clear-output-translations)
   (asdf::initialize-output-translations `(:output-translations
