@@ -24,6 +24,6 @@ handle SIG36 nostop pass
 # out wake up signal
 handle SIG37 nostop pass
 # our GC thread restart signal
-handle SIG38 nostop pass
+handle SIG38 nostop pass noprint
 # our GC thread suspend signal
-handle SIG39 nostop pass
+handle SIG39 nostop pass noprint
