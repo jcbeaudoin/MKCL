@@ -1,1 +1,35 @@
+# -*- mode: org; coding: utf-8-unix -*-
 
+MKCL
+
+* Building
+
+  On a relatively fresh Linux this should do:
+
+  cd mkcl
+  ./configure
+  make
+
+** Dependencies
+
+  MKCL requires the platform supplied GMP library (>= 4.3.2), and GMP
+  development files when compiling MKCL from its sources.
+
+  On Debian based systems you can install it using:
+
+  sudo apt-get install libgmp-dev
+
+* Installing
+
+  You can "install" MKCL locally into the source directory by:
+
+  cd mkcl/src
+  make install-local
+
+  Once it's done you can use the ./mkcl/src/bin/mkcl executable to
+  start MKCL, either directly or through a symlink. You may want to
+  use 'rlwrap mkcl' to enable line editing.
+
+  If you so prefer then you can install MKCL using 'make install'
+  under the filesystem prefix given to the configure script (it
+  defaults to '/usr/local').
