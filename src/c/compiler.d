@@ -4,7 +4,7 @@
 */
 /*
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2012, Jean-Claude Beaudoin.
+    Copyright (c) 2012-2014, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -2418,7 +2418,7 @@ c_listA(MKCL, mkcl_object args, int flags)
   for (; !mkcl_endp(env, body); body = MKCL_CONS_CDR(body)) {
 	  mkcl_object form = MKCL_CONS_CAR(body);
 
-	  if (!mkcl_Null(doc) && mkcl_type_of(form) == mkcl_t_base_string && !mkcl_endp(env, MKCL_CDR(body))) {
+	  if (!mkcl_Null(doc) && MKCL_STRINGP(form) && !mkcl_endp(env, MKCL_CDR(body))) {
 	    if (documentation == mk_cl_Cnil)
 	      documentation = form;
 	    else
