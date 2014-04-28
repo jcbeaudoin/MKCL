@@ -343,5 +343,5 @@ WITH-POINTER-TO-VECTOR-DATA."
 (defun %foreign-symbol-pointer (name library)
   "Returns a pointer to a foreign symbol NAME."
   (declare (ignore library))
-  (values (ignore-errors (si:find-foreign-symbol name :default :pointer-void 0))))
+  (values (ignore-errors (si:find-foreign-symbol (si::coerce-to-base-string name) :default :pointer-void 0))))
 
