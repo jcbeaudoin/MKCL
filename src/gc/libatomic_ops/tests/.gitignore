@@ -1,0 +1,7 @@
+*.lo
+*.la
+*.pc
+configure.lineno
+.deps/
+.libs/
+list_atomic.i
