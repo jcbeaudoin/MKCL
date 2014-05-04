@@ -21,8 +21,8 @@
  */
 
 /*
- * This file adds definitions appropriate for environments in which an AO_t
- * volatile load has acquire semantics, and an AO_t volatile store has release
+ * This file adds definitions appropriate for environments in which an MK_AO_t
+ * volatile load has acquire semantics, and an MK_AO_t volatile store has release
  * semantics.  This is arguably supposed to be true with the standard Itanium
  * software conventions.
  */
@@ -34,29 +34,29 @@
  * common subexpressions across a volatile load.
  * Hence we now add compiler barriers for gcc.
  */
-#if !defined(AO_GCC_BARRIER)
+#if !defined(MK_AO_GCC_BARRIER)
 #  if defined(__GNUC__)
-#    define AO_GCC_BARRIER() AO_compiler_barrier()
+#    define MK_AO_GCC_BARRIER() MK_AO_compiler_barrier()
 #  else
-#    define AO_GCC_BARRIER()
+#    define MK_AO_GCC_BARRIER()
 #  endif
 #endif
 
-AO_INLINE AO_t
-AO_load_acquire(const volatile AO_t *p)
+MK_AO_INLINE MK_AO_t
+MK_AO_load_acquire(const volatile MK_AO_t *p)
 {
-  AO_t result = *p;
+  MK_AO_t result = *p;
   /* A normal volatile load generates an ld.acq         */
-  AO_GCC_BARRIER();
+  MK_AO_GCC_BARRIER();
   return result;
 }
-#define AO_HAVE_load_acquire
+#define MK_AO_HAVE_load_acquire
 
-AO_INLINE void
-AO_store_release(volatile AO_t *p, AO_t val)
+MK_AO_INLINE void
+MK_AO_store_release(volatile MK_AO_t *p, MK_AO_t val)
 {
-  AO_GCC_BARRIER();
+  MK_AO_GCC_BARRIER();
   /* A normal volatile store generates an st.rel        */
   *p = val;
 }
-#define AO_HAVE_store_release
+#define MK_AO_HAVE_store_release

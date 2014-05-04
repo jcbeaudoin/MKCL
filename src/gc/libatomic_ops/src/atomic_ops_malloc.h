@@ -23,22 +23,22 @@
 /* Almost lock-free malloc implementation based on stack implementation. */
 /* See README.malloc file for detailed usage rules.                      */
 
-#ifndef AO_ATOMIC_H
-#define AO_ATOMIC_H
+#ifndef MK_AO_ATOMIC_H
+#define MK_AO_ATOMIC_H
 
 #include <stdlib.h>     /* For size_t */
 
 #include "atomic_ops_stack.h"
 
-#ifdef AO_STACK_IS_LOCK_FREE
-# define AO_MALLOC_IS_LOCK_FREE
+#ifdef MK_AO_STACK_IS_LOCK_FREE
+# define MK_AO_MALLOC_IS_LOCK_FREE
 #endif
 
-void AO_free(void *);
+void MK_AO_free(void *);
 
-void * AO_malloc(size_t);
+void * MK_AO_malloc(size_t);
 
 /* Allow use of mmap to grow the heap.  No-op on some platforms.        */
-void AO_malloc_enable_mmap(void);
+void MK_AO_malloc_enable_mmap(void);
 
-#endif /* !AO_ATOMIC_H */
+#endif /* !MK_AO_ATOMIC_H */

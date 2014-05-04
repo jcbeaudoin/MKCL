@@ -16,11 +16,11 @@
 # include "config.h"
 #endif
 
-#define AO_REQUIRE_CAS
+#define MK_AO_REQUIRE_CAS
 #include "atomic_ops_stack.h"
 #include <string.h>     /* for ffs, which is assumed reentrant. */
 #include <stdlib.h>
-#ifdef AO_TRACE_MALLOC
+#ifdef MK_AO_TRACE_MALLOC
 # include <stdio.h>
 # include <pthread.h>
 #endif
@@ -29,7 +29,7 @@
  * We round up each allocation request to the next power of two
  * minus one word.
  * We keep one stack of free objects for each size.  Each object
- * has an initial word (offset -sizeof(AO_t) from the visible pointer)
+ * has an initial word (offset -sizeof(MK_AO_t) from the visible pointer)
  * which contains either
  *      The binary log of the object size in bytes (small objects)
  *      The object size (a multiple of CHUNK_SIZE) for large objects.
@@ -46,19 +46,19 @@
 
 #ifndef ALIGNMENT
 # define ALIGNMENT 16
-        /* Assumed to be at least sizeof(AO_t).         */
+        /* Assumed to be at least sizeof(MK_AO_t).         */
 #endif
 
 #define CHUNK_SIZE (1 << LOG_MAX_SIZE)
 
-#ifndef AO_INITIAL_HEAP_SIZE
-#  define AO_INITIAL_HEAP_SIZE (2*(LOG_MAX_SIZE+1)*CHUNK_SIZE)
+#ifndef MK_AO_INITIAL_HEAP_SIZE
+#  define MK_AO_INITIAL_HEAP_SIZE (2*(LOG_MAX_SIZE+1)*CHUNK_SIZE)
 #endif
 
-char AO_initial_heap[AO_INITIAL_HEAP_SIZE];
+char MK_AO_initial_heap[MK_AO_INITIAL_HEAP_SIZE];
 
-static volatile AO_t initial_heap_ptr = (AO_t)AO_initial_heap;
-static volatile char *initial_heap_lim = AO_initial_heap + AO_INITIAL_HEAP_SIZE;
+static volatile MK_AO_t initial_heap_ptr = (MK_AO_t)MK_AO_initial_heap;
+static volatile char *initial_heap_lim = MK_AO_initial_heap + MK_AO_INITIAL_HEAP_SIZE;
 
 #if defined(HAVE_MMAP)
 
@@ -89,16 +89,16 @@ static volatile char *initial_heap_lim = AO_initial_heap + AO_INITIAL_HEAP_SIZE;
 # define OPT_MAP_ANON 0
 #endif
 
-static volatile AO_t mmap_enabled = 0;
+static volatile MK_AO_t mmap_enabled = 0;
 
 void
-AO_malloc_enable_mmap(void)
+MK_AO_malloc_enable_mmap(void)
 {
 # if defined(__sun)
-    AO_store_release(&mmap_enabled, 1);
+    MK_AO_store_release(&mmap_enabled, 1);
             /* Workaround for Sun CC */
 # else
-    AO_store(&mmap_enabled, 1);
+    MK_AO_store(&mmap_enabled, 1);
 # endif
 }
 
@@ -131,9 +131,9 @@ static char *get_mmaped(size_t sz)
 }
 
 /* Allocate an object of size (incl. header) of size > CHUNK_SIZE.      */
-/* sz includes space for an AO_t-sized header.                          */
+/* sz includes space for an MK_AO_t-sized header.                          */
 static char *
-AO_malloc_large(size_t sz)
+MK_AO_malloc_large(size_t sz)
 {
  char * result;
  /* The header will force us to waste ALIGNMENT bytes, incl. header.    */
@@ -143,14 +143,14 @@ AO_malloc_large(size_t sz)
  result = get_mmaped(sz);
  if (result == 0) return 0;
  result += ALIGNMENT;
- ((AO_t *)result)[-1] = (AO_t)sz;
+ ((MK_AO_t *)result)[-1] = (MK_AO_t)sz;
  return result;
 }
 
 static void
-AO_free_large(char * p)
+MK_AO_free_large(char * p)
 {
-  AO_t sz = ((AO_t *)p)[-1];
+  MK_AO_t sz = ((MK_AO_t *)p)[-1];
   if (munmap(p - ALIGNMENT, (size_t)sz) != 0)
     abort();  /* Programmer error.  Not really async-signal-safe, but ... */
 }
@@ -159,7 +159,7 @@ AO_free_large(char * p)
 #else /*  No MMAP */
 
 void
-AO_malloc_enable_mmap(void)
+MK_AO_malloc_enable_mmap(void)
 {
 }
 
@@ -169,13 +169,13 @@ static char *get_mmaped(size_t sz)
 }
 
 static char *
-AO_malloc_large(size_t sz)
+MK_AO_malloc_large(size_t sz)
 {
   return 0;
 }
 
 static void
-AO_free_large(char * p)
+MK_AO_free_large(char * p)
 {
   abort();  /* Programmer error.  Not really async-signal-safe, but ... */
 }
@@ -190,36 +190,36 @@ get_chunk(void)
   char * my_lim;
 
 retry:
-  initial_ptr = (char *)AO_load(&initial_heap_ptr);
-  my_chunk_ptr = (char *)(((AO_t)initial_ptr + (ALIGNMENT - 1))
+  initial_ptr = (char *)MK_AO_load(&initial_heap_ptr);
+  my_chunk_ptr = (char *)(((MK_AO_t)initial_ptr + (ALIGNMENT - 1))
                           & ~(ALIGNMENT - 1));
   if (initial_ptr != my_chunk_ptr)
     {
       /* Align correctly.  If this fails, someone else did it for us.   */
-      AO_compare_and_swap_acquire(&initial_heap_ptr, (AO_t)initial_ptr,
-                                  (AO_t)my_chunk_ptr);
+      MK_AO_compare_and_swap_acquire(&initial_heap_ptr, (MK_AO_t)initial_ptr,
+                                  (MK_AO_t)my_chunk_ptr);
     }
   my_lim = my_chunk_ptr + CHUNK_SIZE;
   if (my_lim <= initial_heap_lim)
     {
-      if (!AO_compare_and_swap(&initial_heap_ptr, (AO_t)my_chunk_ptr,
-                                                  (AO_t)my_lim))
+      if (!MK_AO_compare_and_swap(&initial_heap_ptr, (MK_AO_t)my_chunk_ptr,
+                                                  (MK_AO_t)my_lim))
         goto retry;
       return my_chunk_ptr;
     }
   /* We failed.  The initial heap is used up.   */
   my_chunk_ptr = get_mmaped(CHUNK_SIZE);
-  assert (!((AO_t)my_chunk_ptr & (ALIGNMENT-1)));
+  assert (!((MK_AO_t)my_chunk_ptr & (ALIGNMENT-1)));
   return my_chunk_ptr;
 }
 
 /* Object free lists.  Ith entry corresponds to objects */
 /* of total size 2**i bytes.                                    */
-AO_stack_t AO_free_list[LOG_MAX_SIZE+1];
+MK_AO_stack_t MK_AO_free_list[LOG_MAX_SIZE+1];
 
 /* Chunk free list, linked through first word in chunks.        */
 /* All entries of size CHUNK_SIZE.                              */
-AO_stack_t AO_chunk_free_list;
+MK_AO_stack_t MK_AO_chunk_free_list;
 
 /* Break up the chunk, and add it to the object free list for   */
 /* the given size.  Sz must be a power of two.                  */
@@ -227,13 +227,13 @@ AO_stack_t AO_chunk_free_list;
 static void
 add_chunk_as(void * chunk, size_t sz, unsigned log_sz)
 {
-  char *first = (char *)chunk + ALIGNMENT - sizeof(AO_t);
+  char *first = (char *)chunk + ALIGNMENT - sizeof(MK_AO_t);
   char *limit = (char *)chunk + CHUNK_SIZE - sz;
   char *next, *p;
 
   for (p = first; p <= limit; p = next) {
     next = p + sz;
-    AO_stack_push(AO_free_list+log_sz, (AO_t *)p);
+    MK_AO_stack_push(MK_AO_free_list+log_sz, (MK_AO_t *)p);
   }
 }
 
@@ -278,44 +278,44 @@ int msb(size_t s)
 }
 
 void *
-AO_malloc(size_t sz)
+MK_AO_malloc(size_t sz)
 {
-  AO_t *result;
-  size_t adj_sz = sz + sizeof(AO_t);
+  MK_AO_t *result;
+  size_t adj_sz = sz + sizeof(MK_AO_t);
   int log_sz;
   if (sz > CHUNK_SIZE)
-    return AO_malloc_large(sz);
+    return MK_AO_malloc_large(sz);
   log_sz = msb(adj_sz-1);
-  result = AO_stack_pop(AO_free_list+log_sz);
+  result = MK_AO_stack_pop(MK_AO_free_list+log_sz);
   while (0 == result) {
     void * chunk = get_chunk();
     if (0 == chunk) return 0;
     adj_sz = 1 << log_sz;
     add_chunk_as(chunk, adj_sz, log_sz);
-    result = AO_stack_pop(AO_free_list+log_sz);
+    result = MK_AO_stack_pop(MK_AO_free_list+log_sz);
   }
   *result = log_sz;
-# ifdef AO_TRACE_MALLOC
-    fprintf(stderr, "%x: AO_malloc(%lu) = %p\n",
+# ifdef MK_AO_TRACE_MALLOC
+    fprintf(stderr, "%x: MK_AO_malloc(%lu) = %p\n",
                     (int)pthread_self(), (unsigned long)sz, result+1);
 # endif
   return result + 1;
 }
 
 void
-AO_free(void *p)
+MK_AO_free(void *p)
 {
-  char *base = (char *)p - sizeof(AO_t);
+  char *base = (char *)p - sizeof(MK_AO_t);
   int log_sz;
 
   if (0 == p) return;
-  log_sz = *(AO_t *)base;
-# ifdef AO_TRACE_MALLOC
-    fprintf(stderr, "%x: AO_free(%p sz:%lu)\n", (int)pthread_self(), p,
+  log_sz = *(MK_AO_t *)base;
+# ifdef MK_AO_TRACE_MALLOC
+    fprintf(stderr, "%x: MK_AO_free(%p sz:%lu)\n", (int)pthread_self(), p,
             (unsigned long)(log_sz > LOG_MAX_SIZE? log_sz : (1 << log_sz)));
 # endif
   if (log_sz > LOG_MAX_SIZE)
-    AO_free_large(p);
+    MK_AO_free_large(p);
   else
-    AO_stack_push(AO_free_list+log_sz, (AO_t *)base);
+    MK_AO_stack_push(MK_AO_free_list+log_sz, (MK_AO_t *)base);
 }

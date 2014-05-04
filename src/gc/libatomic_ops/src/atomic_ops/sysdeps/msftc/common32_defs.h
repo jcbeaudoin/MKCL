@@ -24,16 +24,16 @@
 /* functions commonly available across 32-bit architectures.            */
 
 /* This file should be included from arch-specific header files.        */
-/* Define AO_USE_INTERLOCKED_INTRINSICS if _Interlocked primitives      */
+/* Define MK_AO_USE_INTERLOCKED_INTRINSICS if _Interlocked primitives      */
 /* (used below) are available as intrinsic ones for a target arch       */
 /* (otherwise "Interlocked" functions family is used instead).          */
-/* Define AO_ASSUME_WINDOWS98 if CAS is available.                      */
+/* Define MK_AO_ASSUME_WINDOWS98 if CAS is available.                      */
 
 #include <windows.h>
         /* Seems like over-kill, but that's what MSDN recommends.       */
         /* And apparently winbase.h is not always self-contained.       */
 
-#if _MSC_VER < 1310 || !defined(AO_USE_INTERLOCKED_INTRINSICS)
+#if _MSC_VER < 1310 || !defined(MK_AO_USE_INTERLOCKED_INTRINSICS)
 
 # define _InterlockedIncrement       InterlockedIncrement
 # define _InterlockedDecrement       InterlockedDecrement
@@ -41,7 +41,7 @@
 # define _InterlockedExchangeAdd     InterlockedExchangeAdd
 # define _InterlockedCompareExchange InterlockedCompareExchange
 
-# define AO_INTERLOCKED_VOLATILE /**/
+# define MK_AO_INTERLOCKED_VOLATILE /**/
 
 #else /* elif _MSC_VER >= 1310 */
 
@@ -73,46 +73,46 @@
 # pragma intrinsic (_InterlockedExchangeAdd)
 # pragma intrinsic (_InterlockedCompareExchange)
 
-# define AO_INTERLOCKED_VOLATILE volatile
+# define MK_AO_INTERLOCKED_VOLATILE volatile
 
 #endif /* _MSC_VER >= 1310 */
 
-AO_INLINE AO_t
-AO_fetch_and_add_full(volatile AO_t *p, AO_t incr)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_add_full(volatile MK_AO_t *p, MK_AO_t incr)
 {
-  return _InterlockedExchangeAdd((LONG AO_INTERLOCKED_VOLATILE *)p,
+  return _InterlockedExchangeAdd((LONG MK_AO_INTERLOCKED_VOLATILE *)p,
                                  (LONG)incr);
 }
-#define AO_HAVE_fetch_and_add_full
+#define MK_AO_HAVE_fetch_and_add_full
 
-AO_INLINE AO_t
-AO_fetch_and_add1_full(volatile AO_t *p)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_add1_full(volatile MK_AO_t *p)
 {
-  return _InterlockedIncrement((LONG AO_INTERLOCKED_VOLATILE *)p) - 1;
+  return _InterlockedIncrement((LONG MK_AO_INTERLOCKED_VOLATILE *)p) - 1;
 }
-#define AO_HAVE_fetch_and_add1_full
+#define MK_AO_HAVE_fetch_and_add1_full
 
-AO_INLINE AO_t
-AO_fetch_and_sub1_full(volatile AO_t *p)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_sub1_full(volatile MK_AO_t *p)
 {
-  return _InterlockedDecrement((LONG AO_INTERLOCKED_VOLATILE *)p) + 1;
+  return _InterlockedDecrement((LONG MK_AO_INTERLOCKED_VOLATILE *)p) + 1;
 }
-#define AO_HAVE_fetch_and_sub1_full
+#define MK_AO_HAVE_fetch_and_sub1_full
 
-#ifdef AO_ASSUME_WINDOWS98
+#ifdef MK_AO_ASSUME_WINDOWS98
 /* Returns nonzero if the comparison succeeded. */
-AO_INLINE int
-AO_compare_and_swap_full(volatile AO_t *addr, AO_t old, AO_t new_val)
+MK_AO_INLINE int
+MK_AO_compare_and_swap_full(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val)
 {
-# ifdef AO_OLD_STYLE_INTERLOCKED_COMPARE_EXCHANGE
-    return _InterlockedCompareExchange((PVOID AO_INTERLOCKED_VOLATILE *)addr,
+# ifdef MK_AO_OLD_STYLE_INTERLOCKED_COMPARE_EXCHANGE
+    return _InterlockedCompareExchange((PVOID MK_AO_INTERLOCKED_VOLATILE *)addr,
                                        (PVOID)new_val, (PVOID)old)
            == (PVOID)old;
 # else
-    return _InterlockedCompareExchange((LONG AO_INTERLOCKED_VOLATILE *)addr,
+    return _InterlockedCompareExchange((LONG MK_AO_INTERLOCKED_VOLATILE *)addr,
                                        (LONG)new_val, (LONG)old)
            == (LONG)old;
 # endif
 }
-# define AO_HAVE_compare_and_swap_full
-#endif /* AO_ASSUME_WINDOWS98 */
+# define MK_AO_HAVE_compare_and_swap_full
+#endif /* MK_AO_ASSUME_WINDOWS98 */

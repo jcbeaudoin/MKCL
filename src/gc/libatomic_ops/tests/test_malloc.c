@@ -55,9 +55,9 @@
 #endif
 
 #ifdef USE_STANDARD_MALLOC
-# define AO_malloc(n) malloc(n)
-# define AO_free(p) free(p)
-# define AO_malloc_enable_mmap()
+# define MK_AO_malloc(n) malloc(n)
+# define MK_AO_free(p) free(p)
+# define MK_AO_malloc_enable_mmap()
 #endif
 
 typedef struct list_node {
@@ -77,7 +77,7 @@ ln *cons(int d, ln *tail)
     extra = my_extra = 0;
   else
     ++extra;
-  result = AO_malloc(sizeof(ln) + sizeof(int)*my_extra);
+  result = MK_AO_malloc(sizeof(ln) + sizeof(int)*my_extra);
   if (result == 0)
     {
       fprintf(stderr, "Out of memory\n");
@@ -136,7 +136,7 @@ reverse(ln *x, ln *y)
 
   if (x == 0) return y;
   result = reverse(x -> next, cons(x -> data, y));
-  AO_free(x);
+  MK_AO_free(x);
   return result;
 }
 
@@ -145,19 +145,19 @@ int dummy_test(void) { return 1; }
 void * run_one_test(void * arg) {
   ln * x = make_list(1, LIST_LENGTH);
   int i;
-  char *p = AO_malloc(LARGE_OBJ_SIZE);
+  char *p = MK_AO_malloc(LARGE_OBJ_SIZE);
   char *q;
 
   if (0 == p) {
 #   ifdef HAVE_MMAP
-      fprintf(stderr, "AO_malloc(%d) failed\n", LARGE_OBJ_SIZE);
+      fprintf(stderr, "MK_AO_malloc(%d) failed\n", LARGE_OBJ_SIZE);
 #   else
-      fprintf(stderr, "AO_malloc(%d) failed: This is normal without mmap\n",
+      fprintf(stderr, "MK_AO_malloc(%d) failed: This is normal without mmap\n",
               LARGE_OBJ_SIZE);
 #   endif
   } else {
     p[0] = p[LARGE_OBJ_SIZE/2] = p[LARGE_OBJ_SIZE-1] = 'a';
-    q = AO_malloc(LARGE_OBJ_SIZE);
+    q = MK_AO_malloc(LARGE_OBJ_SIZE);
     if (q == 0)
       {
         fprintf(stderr, "Out of memory\n");
@@ -170,13 +170,13 @@ void * run_one_test(void * arg) {
       fprintf(stderr, "First large allocation smashed\n");
       abort();
     }
-    AO_free(p);
+    MK_AO_free(p);
     if (q[0] != 'b' || q[LARGE_OBJ_SIZE/2] != 'b'
         || q[LARGE_OBJ_SIZE-1] != 'b') {
       fprintf(stderr, "Second large allocation smashed\n");
       abort();
     }
-    AO_free(q);
+    MK_AO_free(q);
   }
 # ifdef DEBUG_RUN_ONE_TEST
     x = reverse(x, 0);
@@ -208,7 +208,7 @@ int main(int argc, char **argv) {
     }
     printf("Performing %d reversals of %d element lists in %d threads\n",
            N_REVERSALS, LIST_LENGTH, nthreads);
-    AO_malloc_enable_mmap();
-    run_parallel(nthreads, run_one_test, dummy_test, "AO_malloc/AO_free");
+    MK_AO_malloc_enable_mmap();
+    run_parallel(nthreads, run_one_test, dummy_test, "MK_AO_malloc/MK_AO_free");
     return 0;
 }

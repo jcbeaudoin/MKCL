@@ -21,17 +21,17 @@
  */
 
 /*
- * Ensure, if at all possible, that AO_compare_and_swap_full() is
+ * Ensure, if at all possible, that MK_AO_compare_and_swap_full() is
  * available.  The emulation should be brute-force signal-safe, even
  * though it actually blocks.
- * Including this file will generate an error if AO_compare_and_swap_full()
+ * Including this file will generate an error if MK_AO_compare_and_swap_full()
  * cannot be made available.
  * This will be included from platform-specific atomic_ops files
- * if appropriate, and if AO_REQUIRE_CAS is defined.  It should not be
+ * if appropriate, and if MK_AO_REQUIRE_CAS is defined.  It should not be
  * included directly, especially since it affects the implementation
  * of other atomic update primitives.
- * The implementation assumes that only AO_store_XXX and AO_test_and_set_XXX
- * variants are defined, and that AO_test_and_set_XXX is not used to
+ * The implementation assumes that only MK_AO_store_XXX and MK_AO_test_and_set_XXX
+ * variants are defined, and that MK_AO_test_and_set_XXX is not used to
  * operate on compare_and_swap locations.
  */
 
@@ -39,38 +39,38 @@
 #  error This file should not be included directly.
 #endif
 
-#ifndef AO_HAVE_double_t
+#ifndef MK_AO_HAVE_double_t
 # include "standard_ao_double_t.h"
 #endif
 
-int AO_compare_and_swap_emulation(volatile AO_t *addr, AO_t old,
-                                  AO_t new_val);
+int MK_AO_compare_and_swap_emulation(volatile MK_AO_t *addr, MK_AO_t old,
+                                  MK_AO_t new_val);
 
-int AO_compare_double_and_swap_double_emulation(volatile AO_double_t *addr,
-                                                AO_t old_val1, AO_t old_val2,
-                                                AO_t new_val1, AO_t new_val2);
+int MK_AO_compare_double_and_swap_double_emulation(volatile MK_AO_double_t *addr,
+                                                MK_AO_t old_val1, MK_AO_t old_val2,
+                                                MK_AO_t new_val1, MK_AO_t new_val2);
 
-void AO_store_full_emulation(volatile AO_t *addr, AO_t val);
+void MK_AO_store_full_emulation(volatile MK_AO_t *addr, MK_AO_t val);
 
-#define AO_compare_and_swap_full(addr, old, newval) \
-       AO_compare_and_swap_emulation(addr, old, newval)
-#define AO_HAVE_compare_and_swap_full
+#define MK_AO_compare_and_swap_full(addr, old, newval) \
+       MK_AO_compare_and_swap_emulation(addr, old, newval)
+#define MK_AO_HAVE_compare_and_swap_full
 
-#ifndef AO_HAVE_compare_double_and_swap_double
-# define AO_compare_double_and_swap_double_full(addr, old1, old2, \
+#ifndef MK_AO_HAVE_compare_double_and_swap_double
+# define MK_AO_compare_double_and_swap_double_full(addr, old1, old2, \
                                                 newval1, newval2) \
-        AO_compare_double_and_swap_double_emulation(addr, old1, old2, \
+        MK_AO_compare_double_and_swap_double_emulation(addr, old1, old2, \
                                                     newval1, newval2)
-# define AO_HAVE_compare_double_and_swap_double_full
+# define MK_AO_HAVE_compare_double_and_swap_double_full
 #endif
 
-#undef AO_store
-#undef AO_HAVE_store
-#undef AO_store_write
-#undef AO_HAVE_store_write
-#undef AO_store_release
-#undef AO_HAVE_store_release
-#undef AO_store_full
-#undef AO_HAVE_store_full
-#define AO_store_full(addr, val) AO_store_full_emulation(addr, val)
-#define AO_HAVE_store_full
+#undef MK_AO_store
+#undef MK_AO_HAVE_store
+#undef MK_AO_store_write
+#undef MK_AO_HAVE_store_write
+#undef MK_AO_store_release
+#undef MK_AO_HAVE_store_release
+#undef MK_AO_store_full
+#undef MK_AO_HAVE_store_full
+#define MK_AO_store_full(addr, val) MK_AO_store_full_emulation(addr, val)
+#define MK_AO_HAVE_store_full

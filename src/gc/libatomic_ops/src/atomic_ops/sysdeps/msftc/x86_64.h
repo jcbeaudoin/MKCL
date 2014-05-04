@@ -31,7 +31,7 @@
 
 #include "../ordered_except_wr.h"
 
-#ifdef AO_ASM_X64_AVAILABLE
+#ifdef MK_AO_ASM_X64_AVAILABLE
 # include "../test_and_set_t_is_char.h"
 #else
 # include "../test_and_set_t_is_ao_t.h"
@@ -54,66 +54,66 @@
 #pragma intrinsic (_InterlockedExchangeAdd64)
 #pragma intrinsic (_InterlockedCompareExchange64)
 
-AO_INLINE AO_t
-AO_fetch_and_add_full (volatile AO_t *p, AO_t incr)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_add_full (volatile MK_AO_t *p, MK_AO_t incr)
 {
   return _InterlockedExchangeAdd64((LONGLONG volatile *)p, (LONGLONG)incr);
 }
-#define AO_HAVE_fetch_and_add_full
+#define MK_AO_HAVE_fetch_and_add_full
 
-AO_INLINE AO_t
-AO_fetch_and_add1_full (volatile AO_t *p)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_add1_full (volatile MK_AO_t *p)
 {
   return _InterlockedIncrement64((LONGLONG volatile *)p) - 1;
 }
-#define AO_HAVE_fetch_and_add1_full
+#define MK_AO_HAVE_fetch_and_add1_full
 
-AO_INLINE AO_t
-AO_fetch_and_sub1_full (volatile AO_t *p)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_sub1_full (volatile MK_AO_t *p)
 {
   return _InterlockedDecrement64((LONGLONG volatile *)p) + 1;
 }
-#define AO_HAVE_fetch_and_sub1_full
+#define MK_AO_HAVE_fetch_and_sub1_full
 
-AO_INLINE int
-AO_compare_and_swap_full(volatile AO_t *addr,
-                         AO_t old, AO_t new_val)
+MK_AO_INLINE int
+MK_AO_compare_and_swap_full(volatile MK_AO_t *addr,
+                         MK_AO_t old, MK_AO_t new_val)
 {
     return _InterlockedCompareExchange64((LONGLONG volatile *)addr,
                                          (LONGLONG)new_val, (LONGLONG)old)
            == (LONGLONG)old;
 }
-#define AO_HAVE_compare_and_swap_full
+#define MK_AO_HAVE_compare_and_swap_full
 
 /* As far as we can tell, the lfence and sfence instructions are not    */
 /* currently needed or useful for cached memory accesses.               */
 
-#ifdef AO_ASM_X64_AVAILABLE
+#ifdef MK_AO_ASM_X64_AVAILABLE
 
-AO_INLINE void
-AO_nop_full(void)
+MK_AO_INLINE void
+MK_AO_nop_full(void)
 {
   /* Note: "mfence" (SSE2) is supported on all x86_64/amd64 chips.      */
   __asm { mfence }
 }
-#define AO_HAVE_nop_full
+#define MK_AO_HAVE_nop_full
 
-AO_INLINE AO_TS_VAL_t
-AO_test_and_set_full(volatile AO_TS_t *addr)
+MK_AO_INLINE MK_AO_TS_VAL_t
+MK_AO_test_and_set_full(volatile MK_AO_TS_t *addr)
 {
     __asm
     {
-        mov     rax,AO_TS_SET           ;
+        mov     rax,MK_AO_TS_SET           ;
         mov     rbx,addr                ;
         xchg    byte ptr [rbx],al       ;
     }
 }
-#define AO_HAVE_test_and_set_full
+#define MK_AO_HAVE_test_and_set_full
 
-#endif /* AO_ASM_X64_AVAILABLE */
+#endif /* MK_AO_ASM_X64_AVAILABLE */
 
-#ifdef AO_CMPXCHG16B_AVAILABLE
-/* AO_compare_double_and_swap_double_full needs implementation for Win64.
+#ifdef MK_AO_CMPXCHG16B_AVAILABLE
+/* MK_AO_compare_double_and_swap_double_full needs implementation for Win64.
  * Also see ../gcc/x86_64.h for partial old Opteron workaround.
  */
 
@@ -121,10 +121,10 @@ AO_test_and_set_full(volatile AO_TS_t *addr)
 
 #pragma intrinsic (_InterlockedCompareExchange128)
 
-AO_INLINE int
-AO_compare_double_and_swap_double_full(volatile AO_double_t *addr,
-                                       AO_t old_val1, AO_t old_val2,
-                                       AO_t new_val1, AO_t new_val2)
+MK_AO_INLINE int
+MK_AO_compare_double_and_swap_double_full(volatile MK_AO_double_t *addr,
+                                       MK_AO_t old_val1, MK_AO_t old_val2,
+                                       MK_AO_t new_val1, MK_AO_t new_val2)
 {
    __int64 comparandResult[2];
    comparandResult[0] = old_val1; /* low */
@@ -132,15 +132,15 @@ AO_compare_double_and_swap_double_full(volatile AO_double_t *addr,
    return _InterlockedCompareExchange128((volatile __int64 *)addr,
                 new_val2 /* high */, new_val1 /* low */, comparandResult);
 }
-#   define AO_HAVE_compare_double_and_swap_double_full
+#   define MK_AO_HAVE_compare_double_and_swap_double_full
 
-# elif defined(AO_ASM_X64_AVAILABLE)
+# elif defined(MK_AO_ASM_X64_AVAILABLE)
     /* If there is no intrinsic _InterlockedCompareExchange128 then we  */
     /* need basically what's given below.                               */
-AO_INLINE int
-AO_compare_double_and_swap_double_full(volatile AO_double_t *addr,
-                                       AO_t old_val1, AO_t old_val2,
-                                       AO_t new_val1, AO_t new_val2)
+MK_AO_INLINE int
+MK_AO_compare_double_and_swap_double_full(volatile MK_AO_double_t *addr,
+                                       MK_AO_t old_val1, MK_AO_t old_val2,
+                                       MK_AO_t new_val1, MK_AO_t new_val2)
 {
         __asm
         {
@@ -152,7 +152,7 @@ AO_compare_double_and_swap_double_full(volatile AO_double_t *addr,
                 setz    rax                             ;
         }
 }
-#   define AO_HAVE_compare_double_and_swap_double_full
-# endif /* _MSC_VER >= 1500 || AO_ASM_X64_AVAILABLE */
+#   define MK_AO_HAVE_compare_double_and_swap_double_full
+# endif /* _MSC_VER >= 1500 || MK_AO_ASM_X64_AVAILABLE */
 
-#endif /* AO_CMPXCHG16B_AVAILABLE */
+#endif /* MK_AO_CMPXCHG16B_AVAILABLE */

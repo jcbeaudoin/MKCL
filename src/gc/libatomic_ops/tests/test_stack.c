@@ -53,11 +53,11 @@
 #endif
 
 typedef struct le {
-  AO_t next;
+  MK_AO_t next;
   int data;
 } list_element;
 
-AO_stack_t the_list = AO_STACK_INITIALIZER;
+MK_AO_stack_t the_list = MK_AO_STACK_INITIALIZER;
 
 void add_elements(int n)
 {
@@ -71,16 +71,16 @@ void add_elements(int n)
       exit(2);
     }
   le -> data = n;
-  AO_stack_push(&the_list, (AO_t *)le);
+  MK_AO_stack_push(&the_list, (MK_AO_t *)le);
 }
 
 void print_list(void)
 {
   list_element *p;
 
-  for (p = (list_element *)AO_REAL_HEAD_PTR(the_list);
+  for (p = (list_element *)MK_AO_REAL_HEAD_PTR(the_list);
        p != 0;
-       p = (list_element *)AO_REAL_NEXT_PTR(p -> next))
+       p = (list_element *)MK_AO_REAL_NEXT_PTR(p -> next))
     printf("%d\n", p -> data);
 }
 
@@ -92,9 +92,9 @@ void check_list(int n)
   int i;
 
   for (i = 1; i <= n; ++i) marks[i] = 0;
-  for (p = (list_element *)AO_REAL_HEAD_PTR(the_list);
+  for (p = (list_element *)MK_AO_REAL_HEAD_PTR(the_list);
        p != 0;
-       p = (list_element *)AO_REAL_NEXT_PTR(p -> next))
+       p = (list_element *)MK_AO_REAL_NEXT_PTR(p -> next))
     {
       if (p -> data > n || p -> data <= 0)
         fprintf(stderr, "Found erroneous list element %d\n", p -> data);
@@ -107,20 +107,20 @@ void check_list(int n)
       fprintf(stderr, "Missing list element %d\n", i);
 }
 
-volatile AO_t ops_performed = 0;
+volatile MK_AO_t ops_performed = 0;
 
 #define LIMIT 1000000
         /* Total number of push/pop ops in all threads per test.    */
 
-#ifdef AO_HAVE_fetch_and_add
-# define fetch_and_add(addr, val) AO_fetch_and_add(addr, val)
+#ifdef MK_AO_HAVE_fetch_and_add
+# define fetch_and_add(addr, val) MK_AO_fetch_and_add(addr, val)
 #else
   /* Fake it.  This is really quite unacceptable for timing */
   /* purposes.  But as a correctness test, it should be OK. */
-  AO_INLINE AO_t fetch_and_add(volatile AO_t * addr, AO_t val)
+  MK_AO_INLINE MK_AO_t fetch_and_add(volatile MK_AO_t * addr, MK_AO_t val)
   {
-    AO_t result = AO_load(addr);
-    AO_store(addr, result + val);
+    MK_AO_t result = MK_AO_load(addr);
+    MK_AO_store(addr, result + val);
     return result;
   }
 #endif
@@ -139,7 +139,7 @@ void * run_one_test(void * arg)
     {
       for (i = 0; i < index + 1; ++i)
         {
-          t[i] = (list_element *)AO_stack_pop(&the_list);
+          t[i] = (list_element *)MK_AO_stack_pop(&the_list);
           if (0 == t[i])
             {
               fprintf(stderr, "FAILED\n");
@@ -148,7 +148,7 @@ void * run_one_test(void * arg)
         }
       for (i = 0; i < index + 1; ++i)
         {
-          AO_stack_push(&the_list, (AO_t *)t[i]);
+          MK_AO_stack_push(&the_list, (MK_AO_t *)t[i]);
         }
       j += (index + 1);
     }
@@ -228,7 +228,7 @@ int main(int argc, char **argv)
           print_list();
   #     endif
         check_list(list_length);
-        while ((le = (list_element *)AO_stack_pop(&the_list)) != 0)
+        while ((le = (list_element *)MK_AO_stack_pop(&the_list)) != 0)
           free(le);
       }
 # ifndef NO_TIMES

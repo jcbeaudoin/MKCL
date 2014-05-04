@@ -47,8 +47,8 @@
  * around to it.
  */
 
-AO_INLINE AO_TS_VAL_t
-AO_test_and_set_full(volatile AO_TS_t *addr) {
+MK_AO_INLINE MK_AO_TS_VAL_t
+MK_AO_test_and_set_full(volatile MK_AO_TS_t *addr) {
     /* Ripped from linuxthreads/sysdeps/cris/pt-machine.h */
     register unsigned long int ret;
 
@@ -66,4 +66,4 @@ AO_test_and_set_full(volatile AO_TS_t *addr) {
                            : "memory");
     return ret;
 }
-#define AO_HAVE_test_and_set_full
+#define MK_AO_HAVE_test_and_set_full

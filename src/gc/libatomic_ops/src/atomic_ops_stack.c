@@ -19,35 +19,35 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
-#define AO_REQUIRE_CAS
+#define MK_AO_REQUIRE_CAS
 #include "atomic_ops_stack.h"
 
 #if defined(_MSC_VER) \
     || defined(_WIN32) && !defined(__CYGWIN32__) && !defined(__CYGWIN__)
-  /* AO_pause not defined elsewhere */
-  /* FIXME: At least AO_spin should be factored out.    */
+  /* MK_AO_pause not defined elsewhere */
+  /* FIXME: At least MK_AO_spin should be factored out.    */
 #include <windows.h>
 
-AO_t dummy;
+MK_AO_t dummy;
 
 /* Spin for 2**n units. */
-static void AO_spin(int n)
+static void MK_AO_spin(int n)
 {
   int i;
-  AO_T j = AO_load(&dummy);
+  MK_AO_T j = MK_AO_load(&dummy);
 
   for (i = 0; i < (2 << n); ++i)
     {
        j *= 5;
        j -= 4;
     }
-  AO_store(&dummy, j);
+  MK_AO_store(&dummy, j);
 }
 
-void AO_pause(int n)
+void MK_AO_pause(int n)
 {
     if (n < 12)
-      AO_spin(n);
+      MK_AO_spin(n);
     else
       {
         DWORD msecs;
@@ -60,13 +60,13 @@ void AO_pause(int n)
 
 #else
 
-/* AO_pause is available elsewhere */
+/* MK_AO_pause is available elsewhere */
 
-extern void AO_pause(int);
+extern void MK_AO_pause(int);
 
 #endif
 
-#ifdef AO_USE_ALMOST_LOCK_FREE
+#ifdef MK_AO_USE_ALMOST_LOCK_FREE
 
 /* LIFO linked lists based on compare-and-swap.  We need to avoid       */
 /* the case of a node deletion and reinsertion while I'm deleting       */
@@ -89,44 +89,44 @@ extern void AO_pause(int);
 /* Both list headers and link fields contain "perturbed" pointers, i.e. */
 /* pointers with extra bits "or"ed into the low order bits.             */
 void
-AO_stack_push_explicit_aux_release(volatile AO_t *list, AO_t *x,
-                                   AO_stack_aux *a)
+MK_AO_stack_push_explicit_aux_release(volatile MK_AO_t *list, MK_AO_t *x,
+                                   MK_AO_stack_aux *a)
 {
-  AO_t x_bits = (AO_t)x;
-  AO_t next;
+  MK_AO_t x_bits = (MK_AO_t)x;
+  MK_AO_t next;
 
   /* No deletions of x can start here, since x is not currently in the  */
   /* list.                                                              */
  retry:
-# if AO_BL_SIZE == 2
+# if MK_AO_BL_SIZE == 2
   {
     /* Start all loads as close to concurrently as possible. */
-    AO_t entry1 = AO_load(a -> AO_stack_bl);
-    AO_t entry2 = AO_load(a -> AO_stack_bl + 1);
+    MK_AO_t entry1 = MK_AO_load(a -> MK_AO_stack_bl);
+    MK_AO_t entry2 = MK_AO_load(a -> MK_AO_stack_bl + 1);
     if (entry1 == x_bits || entry2 == x_bits)
       {
         /* Entry is currently being removed.  Change it a little.       */
           ++x_bits;
-          if ((x_bits & AO_BIT_MASK) == 0)
+          if ((x_bits & MK_AO_BIT_MASK) == 0)
             /* Version count overflowed;         */
             /* EXTREMELY unlikely, but possible. */
-            x_bits = (AO_t)x;
+            x_bits = (MK_AO_t)x;
         goto retry;
       }
   }
 # else
   {
     int i;
-    for (i = 0; i < AO_BL_SIZE; ++i)
+    for (i = 0; i < MK_AO_BL_SIZE; ++i)
       {
-        if (AO_load(a -> AO_stack_bl + i) == x_bits)
+        if (MK_AO_load(a -> MK_AO_stack_bl + i) == x_bits)
           {
             /* Entry is currently being removed.  Change it a little.   */
               ++x_bits;
-              if ((x_bits & AO_BIT_MASK) == 0)
+              if ((x_bits & MK_AO_BIT_MASK) == 0)
                 /* Version count overflowed;         */
                 /* EXTREMELY unlikely, but possible. */
-                x_bits = (AO_t)x;
+                x_bits = (MK_AO_t)x;
             goto retry;
           }
       }
@@ -135,10 +135,10 @@ AO_stack_push_explicit_aux_release(volatile AO_t *list, AO_t *x,
   /* x_bits is not currently being deleted */
   do
     {
-      next = AO_load(list);
+      next = MK_AO_load(list);
       *x = next;
     }
-  while(!AO_compare_and_swap_release(list, next, x_bits));
+  while(!MK_AO_compare_and_swap_release(list, next, x_bits));
 }
 
 /*
@@ -157,35 +157,35 @@ AO_stack_push_explicit_aux_release(volatile AO_t *list, AO_t *x,
 # define PRECHECK(a)
 #endif
 
-AO_t *
-AO_stack_pop_explicit_aux_acquire(volatile AO_t *list, AO_stack_aux * a)
+MK_AO_t *
+MK_AO_stack_pop_explicit_aux_acquire(volatile MK_AO_t *list, MK_AO_stack_aux * a)
 {
   unsigned i;
   int j = 0;
-  AO_t first;
-  AO_t * first_ptr;
-  AO_t next;
+  MK_AO_t first;
+  MK_AO_t * first_ptr;
+  MK_AO_t next;
 
  retry:
-  first = AO_load(list);
+  first = MK_AO_load(list);
   if (0 == first) return 0;
   /* Insert first into aux black list.                                  */
-  /* This may spin if more than AO_BL_SIZE removals using auxiliary     */
+  /* This may spin if more than MK_AO_BL_SIZE removals using auxiliary     */
   /* structure a are currently in progress.                             */
   for (i = 0; ; )
     {
-      if (PRECHECK(a -> AO_stack_bl[i])
-          AO_compare_and_swap_acquire(a->AO_stack_bl+i, 0, first))
+      if (PRECHECK(a -> MK_AO_stack_bl[i])
+          MK_AO_compare_and_swap_acquire(a->MK_AO_stack_bl+i, 0, first))
         break;
       ++i;
-      if ( i >= AO_BL_SIZE )
+      if ( i >= MK_AO_BL_SIZE )
         {
           i = 0;
-          AO_pause(++j);
+          MK_AO_pause(++j);
         }
     }
-  assert(i >= 0 && i < AO_BL_SIZE);
-  assert(a -> AO_stack_bl[i] == first);
+  assert(i >= 0 && i < MK_AO_BL_SIZE);
+  assert(a -> MK_AO_stack_bl[i] == first);
   /* First is on the auxiliary black list.  It may be removed by        */
   /* another thread before we get to it, but a new insertion of x       */
   /* cannot be started here.                                            */
@@ -193,14 +193,14 @@ AO_stack_pop_explicit_aux_acquire(volatile AO_t *list, AO_stack_aux * a)
   /* We need to make sure that first is still the first entry on the    */
   /* list.  Otherwise it's possible that a reinsertion of it was        */
   /* already started before we added the black list entry.              */
-  if (first != AO_load(list)) {
-    AO_store_release(a->AO_stack_bl+i, 0);
+  if (first != MK_AO_load(list)) {
+    MK_AO_store_release(a->MK_AO_stack_bl+i, 0);
     goto retry;
   }
-  first_ptr = AO_REAL_NEXT_PTR(first);
-  next = AO_load(first_ptr);
-  if (!AO_compare_and_swap_release(list, first, next)) {
-    AO_store_release(a->AO_stack_bl+i, 0);
+  first_ptr = MK_AO_REAL_NEXT_PTR(first);
+  next = MK_AO_load(first_ptr);
+  if (!MK_AO_compare_and_swap_release(list, first, next)) {
+    MK_AO_store_release(a->MK_AO_stack_bl+i, 0);
     goto retry;
   }
   assert(*list != first);
@@ -213,98 +213,98 @@ AO_stack_pop_explicit_aux_acquire(volatile AO_t *list, AO_stack_aux * a)
   /* part of the list following first must have remained unchanged, and */
   /* first must again have been at the head of the list when the        */
   /* compare_and_swap succeeded.                                        */
-  AO_store_release(a->AO_stack_bl+i, 0);
+  MK_AO_store_release(a->MK_AO_stack_bl+i, 0);
   return first_ptr;
 }
 
 #else /* ! USE_ALMOST_LOCK_FREE */
 
-/* Better names for fields in AO_stack_t */
-#define ptr AO_val2
-#define version AO_val1
+/* Better names for fields in MK_AO_stack_t */
+#define ptr MK_AO_val2
+#define version MK_AO_val1
 
-#if defined(AO_HAVE_compare_double_and_swap_double)
+#if defined(MK_AO_HAVE_compare_double_and_swap_double)
 
-void AO_stack_push_release(AO_stack_t *list, AO_t *element)
+void MK_AO_stack_push_release(MK_AO_stack_t *list, MK_AO_t *element)
 {
-    AO_t next;
+    MK_AO_t next;
 
     do {
-      next = AO_load(&(list -> ptr));
+      next = MK_AO_load(&(list -> ptr));
       *element = next;
-    } while (!AO_compare_and_swap_release
-                    ( &(list -> ptr), next, (AO_t) element));
+    } while (!MK_AO_compare_and_swap_release
+                    ( &(list -> ptr), next, (MK_AO_t) element));
     /* This uses a narrow CAS here, an old optimization suggested       */
     /* by Treiber.  Pop is still safe, since we run into the ABA        */
     /* problem only if there were both intervening "pop"s and "push"es. */
     /* In that case we still see a change in the version number.        */
 }
 
-AO_t *AO_stack_pop_acquire(AO_stack_t *list)
+MK_AO_t *MK_AO_stack_pop_acquire(MK_AO_stack_t *list)
 {
 #   ifdef __clang__
-      AO_t *volatile cptr;
+      MK_AO_t *volatile cptr;
                         /* Use volatile to workaround a bug in          */
                         /* clang-1.1/x86 causing test_stack failure.    */
 #   else
-      AO_t *cptr;
+      MK_AO_t *cptr;
 #   endif
-    AO_t next;
-    AO_t cversion;
+    MK_AO_t next;
+    MK_AO_t cversion;
 
     do {
       /* Version must be loaded first.  */
-      cversion = AO_load_acquire(&(list -> version));
-      cptr = (AO_t *)AO_load(&(list -> ptr));
+      cversion = MK_AO_load_acquire(&(list -> version));
+      cptr = (MK_AO_t *)MK_AO_load(&(list -> ptr));
       if (cptr == 0) return 0;
       next = *cptr;
-    } while (!AO_compare_double_and_swap_double_release
-                    (list, cversion, (AO_t) cptr, cversion+1, (AO_t) next));
+    } while (!MK_AO_compare_double_and_swap_double_release
+                    (list, cversion, (MK_AO_t) cptr, cversion+1, (MK_AO_t) next));
     return cptr;
 }
 
 
-#elif defined(AO_HAVE_compare_and_swap_double)
+#elif defined(MK_AO_HAVE_compare_and_swap_double)
 
 /* Needed for future IA64 processors.  No current clients? */
 
 #error Untested!  Probably doesnt work.
 
-/* We have a wide CAS, but only does an AO_t-wide comparison.   */
+/* We have a wide CAS, but only does an MK_AO_t-wide comparison.   */
 /* We can't use the Treiber optimization, since we only check   */
 /* for an unchanged version number, not an unchanged pointer.   */
-void AO_stack_push_release(AO_stack_t *list, AO_t *element)
+void MK_AO_stack_push_release(MK_AO_stack_t *list, MK_AO_t *element)
 {
-    AO_t version;
-    AO_t next_ptr;
+    MK_AO_t version;
+    MK_AO_t next_ptr;
 
     do {
       /* Again version must be loaded first, for different reason.      */
-      version = AO_load_acquire(&(list -> version));
-      next_ptr = AO_load(&(list -> ptr));
+      version = MK_AO_load_acquire(&(list -> version));
+      next_ptr = MK_AO_load(&(list -> ptr));
       *element = next_ptr;
-    } while (!AO_compare_and_swap_double_release(
+    } while (!MK_AO_compare_and_swap_double_release(
                            list, version,
-                           version+1, (AO_t) element));
+                           version+1, (MK_AO_t) element));
 }
 
-AO_t *AO_stack_pop_acquire(AO_stack_t *list)
+MK_AO_t *MK_AO_stack_pop_acquire(MK_AO_stack_t *list)
 {
-    AO_t *cptr;
-    AO_t next;
-    AO_t cversion;
+    MK_AO_t *cptr;
+    MK_AO_t next;
+    MK_AO_t cversion;
 
     do {
-      cversion = AO_load_acquire(&(list -> version));
-      cptr = (AO_t *)AO_load(&(list -> ptr));
+      cversion = MK_AO_load_acquire(&(list -> version));
+      cptr = (MK_AO_t *)MK_AO_load(&(list -> ptr));
       if (cptr == 0) return 0;
       next = *cptr;
-    } while (!AO_compare_double_and_swap_double_release
-                    (list, cversion, (AO_t) cptr, cversion+1, next));
+    } while (!MK_AO_compare_double_and_swap_double_release
+                    (list, cversion, (MK_AO_t) cptr, cversion+1, next));
     return cptr;
 }
 
 
-#endif /* AO_HAVE_compare_and_swap_double */
+#endif /* MK_AO_HAVE_compare_and_swap_double */
 
 #endif /* ! USE_ALMOST_LOCK_FREE */

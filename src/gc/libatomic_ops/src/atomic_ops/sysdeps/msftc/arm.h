@@ -22,9 +22,9 @@
 
 #include "../read_ordered.h"
 
-#ifndef AO_ASSUME_WINDOWS98
+#ifndef MK_AO_ASSUME_WINDOWS98
   /* CAS is always available */
-# define AO_ASSUME_WINDOWS98
+# define MK_AO_ASSUME_WINDOWS98
 #endif
 #include "common32_defs.h"
 /* FIXME: Do _InterlockedOps really have a full memory barrier?         */
@@ -35,47 +35,47 @@
 
 #include "../standard_ao_double_t.h"
 
-/* If only a single processor is used, we can define AO_UNIPROCESSOR    */
+/* If only a single processor is used, we can define MK_AO_UNIPROCESSOR    */
 /* and do not need to access CP15 for ensuring a DMB at all.            */
-#ifdef AO_UNIPROCESSOR
-  AO_INLINE void AO_nop_full(void) {}
-# define AO_HAVE_nop_full
+#ifdef MK_AO_UNIPROCESSOR
+  MK_AO_INLINE void MK_AO_nop_full(void) {}
+# define MK_AO_HAVE_nop_full
 #else
-/* AO_nop_full() is emulated using AO_test_and_set_full().              */
+/* MK_AO_nop_full() is emulated using MK_AO_test_and_set_full().              */
 #endif
 
 #include "../test_and_set_t_is_ao_t.h"
-/* AO_test_and_set() is emulated using CAS.                             */
+/* MK_AO_test_and_set() is emulated using CAS.                             */
 
-AO_INLINE AO_t
-AO_load(const volatile AO_t *addr)
+MK_AO_INLINE MK_AO_t
+MK_AO_load(const volatile MK_AO_t *addr)
 {
   /* Cast away the volatile in case it adds fence semantics */
-  return (*(const AO_t *)addr);
+  return (*(const MK_AO_t *)addr);
 }
-#define AO_HAVE_load
+#define MK_AO_HAVE_load
 
-AO_INLINE void
-AO_store_full(volatile AO_t *addr, AO_t value)
+MK_AO_INLINE void
+MK_AO_store_full(volatile MK_AO_t *addr, MK_AO_t value)
 {
   /* Emulate atomic store using CAS.    */
-  AO_t old = AO_load(addr);
-  AO_t current;
-# ifdef AO_OLD_STYLE_INTERLOCKED_COMPARE_EXCHANGE
-    while ((current = (AO_t)_InterlockedCompareExchange(
-                                (PVOID AO_INTERLOCKED_VOLATILE *)addr,
+  MK_AO_t old = MK_AO_load(addr);
+  MK_AO_t current;
+# ifdef MK_AO_OLD_STYLE_INTERLOCKED_COMPARE_EXCHANGE
+    while ((current = (MK_AO_t)_InterlockedCompareExchange(
+                                (PVOID MK_AO_INTERLOCKED_VOLATILE *)addr,
                                 (PVOID)value, (PVOID)old)) != old)
       old = current;
 # else
-    while ((current = (AO_t)_InterlockedCompareExchange(
-                                (LONG AO_INTERLOCKED_VOLATILE *)addr,
+    while ((current = (MK_AO_t)_InterlockedCompareExchange(
+                                (LONG MK_AO_INTERLOCKED_VOLATILE *)addr,
                                 (LONG)value, (LONG)old)) != old)
       old = current;
 # endif
 }
-#define AO_HAVE_store_full
+#define MK_AO_HAVE_store_full
 
-/* FIXME: implement AO_compare_double_and_swap_double() */
+/* FIXME: implement MK_AO_compare_double_and_swap_double() */
 
 #else /* _M_ARM < 6 */
 
@@ -85,6 +85,6 @@ AO_store_full(volatile AO_t *addr, AO_t value)
 #include "../all_atomic_load_store.h"
 
 #include "../test_and_set_t_is_ao_t.h"
-/* AO_test_and_set_full() is emulated using CAS.                        */
+/* MK_AO_test_and_set_full() is emulated using CAS.                        */
 
 #endif /* _M_ARM < 6 */

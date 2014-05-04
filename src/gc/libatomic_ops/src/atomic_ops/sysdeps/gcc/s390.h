@@ -24,8 +24,8 @@
 /*   instructions also guarantee atomicity for aligned          */
 /*   operands of standard types.  WE FOOLISHLY ASSUME that      */
 /*   compilers only generate those.  If that turns out to be    */
-/*   wrong, we need inline assembly code for AO_load and        */
-/*   AO_store.                                                  */
+/*   wrong, we need inline assembly code for MK_AO_load and        */
+/*   MK_AO_store.                                                  */
 /* - A store followed by a load is unordered since the store    */
 /*   may be delayed.  Otherwise everything is ordered.          */
 /* - There is a hardware compare-and-swap (CS) instruction.     */
@@ -36,12 +36,12 @@
 #include "../test_and_set_t_is_ao_t.h"
 /* FIXME: Is there a way to do byte-sized test-and-set? */
 
-/* FIXME: AO_nop_full should probably be implemented directly.  */
+/* FIXME: MK_AO_nop_full should probably be implemented directly.  */
 /* It appears that certain BCR instructions have that effect.   */
 /* Presumably they're cheaper than CS?                          */
 
-AO_INLINE int AO_compare_and_swap_full(volatile AO_t *addr,
-                                       AO_t old, AO_t new_val)
+MK_AO_INLINE int MK_AO_compare_and_swap_full(volatile MK_AO_t *addr,
+                                       MK_AO_t old, MK_AO_t new_val)
 {
   int retval;
   __asm__ __volatile__ (
@@ -57,6 +57,6 @@ AO_INLINE int AO_compare_and_swap_full(volatile AO_t *addr,
   : "cc", "memory");
   return retval == 0;
 }
-#define AO_HAVE_compare_and_swap_full
+#define MK_AO_HAVE_compare_and_swap_full
 
 /* FIXME: Add double-wide compare-and-swap for 32-bit executables.      */

@@ -40,19 +40,19 @@
 /* GCC will not guarantee the alignment we need, use four lock words    */
 /* and select the correctly aligned datum. See the glibc 2.3.2          */
 /* linuxthread port for the original implementation.                    */
-struct AO_pa_clearable_loc {
+struct MK_AO_pa_clearable_loc {
   int data[4];
 };
 
-#undef AO_TS_INITIALIZER
-#define AO_TS_t struct AO_pa_clearable_loc
-#define AO_TS_INITIALIZER {1,1,1,1}
+#undef MK_AO_TS_INITIALIZER
+#define MK_AO_TS_t struct MK_AO_pa_clearable_loc
+#define MK_AO_TS_INITIALIZER {1,1,1,1}
 /* Switch meaning of set and clear, since we only have an atomic clear  */
 /* instruction.                                                         */
-typedef enum {AO_PA_TS_set = 0, AO_PA_TS_clear = 1} AO_PA_TS_val;
-#define AO_TS_VAL_t AO_PA_TS_val
-#define AO_TS_CLEAR AO_PA_TS_clear
-#define AO_TS_SET AO_PA_TS_set
+typedef enum {MK_AO_PA_TS_set = 0, MK_AO_PA_TS_clear = 1} MK_AO_PA_TS_val;
+#define MK_AO_TS_VAL_t MK_AO_PA_TS_val
+#define MK_AO_TS_CLEAR MK_AO_PA_TS_clear
+#define MK_AO_TS_SET MK_AO_PA_TS_set
 
 /* The hppa only has one atomic read and modify memory operation,       */
 /* load and clear, so hppa spinlocks must use zero to signify that      */
@@ -78,8 +78,8 @@ typedef enum {AO_PA_TS_set = 0, AO_PA_TS_clear = 1} AO_PA_TS_val;
 }
 
 /* Works on PA 1.1 and PA 2.0 systems */
-AO_INLINE AO_TS_VAL_t
-AO_test_and_set_full(volatile AO_TS_t * addr)
+MK_AO_INLINE MK_AO_TS_VAL_t
+MK_AO_test_and_set_full(volatile MK_AO_TS_t * addr)
 {
   register unsigned int ret;
   register unsigned long a;
@@ -87,14 +87,14 @@ AO_test_and_set_full(volatile AO_TS_t * addr)
   __ldcw (a, ret);
   return ret;
 }
-#define AO_HAVE_test_and_set_full
+#define MK_AO_HAVE_test_and_set_full
 
-AO_INLINE void
-AO_pa_clear(volatile AO_TS_t * addr)
+MK_AO_INLINE void
+MK_AO_pa_clear(volatile MK_AO_TS_t * addr)
 {
   unsigned long a;
   __ldcw_align (addr,a);
-  AO_compiler_barrier();
+  MK_AO_compiler_barrier();
   *(volatile unsigned int *)a = 1;
 }
-#define AO_CLEAR(addr) AO_pa_clear(addr)
+#define MK_AO_CLEAR(addr) MK_AO_pa_clear(addr)

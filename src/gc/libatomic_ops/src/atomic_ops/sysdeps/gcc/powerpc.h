@@ -36,16 +36,16 @@
         /* There seems to be no byte equivalent of lwarx, so this       */
         /* may really be what we want, at least in the 32-bit case.     */
 
-AO_INLINE void
-AO_nop_full(void)
+MK_AO_INLINE void
+MK_AO_nop_full(void)
 {
   __asm__ __volatile__("sync" : : : "memory");
 }
-#define AO_HAVE_nop_full
+#define MK_AO_HAVE_nop_full
 
 /* lwsync apparently works for everything but a StoreLoad barrier.      */
-AO_INLINE void
-AO_lwsync(void)
+MK_AO_INLINE void
+MK_AO_lwsync(void)
 {
 #ifdef __NO_LWSYNC__
   __asm__ __volatile__("sync" : : : "memory");
@@ -54,11 +54,11 @@ AO_lwsync(void)
 #endif
 }
 
-#define AO_nop_write() AO_lwsync()
-#define AO_HAVE_nop_write
+#define MK_AO_nop_write() MK_AO_lwsync()
+#define MK_AO_HAVE_nop_write
 
-#define AO_nop_read() AO_lwsync()
-#define AO_HAVE_nop_read
+#define MK_AO_nop_read() MK_AO_lwsync()
+#define MK_AO_HAVE_nop_read
 
 /* We explicitly specify load_acquire, since it is important, and can   */
 /* be implemented relatively cheaply.  It could be implemented          */
@@ -67,10 +67,10 @@ AO_lwsync(void)
 /* cheaper.  And the documentation is fairly explicit that this also    */
 /* has acquire semantics.                                               */
 /* ppc64 uses ld not lwz */
-AO_INLINE AO_t
-AO_load_acquire(const volatile AO_t *addr)
+MK_AO_INLINE MK_AO_t
+MK_AO_load_acquire(const volatile MK_AO_t *addr)
 {
-  AO_t result;
+  MK_AO_t result;
 #if defined(__powerpc64__) || defined(__ppc64__) || defined(__64BIT__)
    __asm__ __volatile__ (
     "ld%U1%X1 %0,%1\n"
@@ -93,23 +93,23 @@ AO_load_acquire(const volatile AO_t *addr)
 #endif
   return result;
 }
-#define AO_HAVE_load_acquire
+#define MK_AO_HAVE_load_acquire
 
 /* We explicitly specify store_release, since it relies         */
 /* on the fact that lwsync is also a LoadStore barrier.         */
-AO_INLINE void
-AO_store_release(volatile AO_t *addr, AO_t value)
+MK_AO_INLINE void
+MK_AO_store_release(volatile MK_AO_t *addr, MK_AO_t value)
 {
-  AO_lwsync();
+  MK_AO_lwsync();
   *addr = value;
 }
-#define AO_HAVE_store_release
+#define MK_AO_HAVE_store_release
 
 /* This is similar to the code in the garbage collector.  Deleting      */
 /* this and having it synthesized from compare_and_swap would probably  */
 /* only cost us a load immediate instruction.                           */
-AO_INLINE AO_TS_VAL_t
-AO_test_and_set(volatile AO_TS_t *addr) {
+MK_AO_INLINE MK_AO_TS_VAL_t
+MK_AO_test_and_set(volatile MK_AO_TS_t *addr) {
 #if defined(__powerpc64__) || defined(__ppc64__) || defined(__64BIT__)
 /* Completely untested.  And we should be using smaller objects anyway. */
   unsigned long oldval;
@@ -140,38 +140,38 @@ AO_test_and_set(volatile AO_TS_t *addr) {
               : "r"(addr), "r"(temp)
               : "memory", "cr0");
 #endif
-  return (AO_TS_VAL_t)oldval;
+  return (MK_AO_TS_VAL_t)oldval;
 }
-#define AO_HAVE_test_and_set
+#define MK_AO_HAVE_test_and_set
 
-AO_INLINE AO_TS_VAL_t
-AO_test_and_set_acquire(volatile AO_TS_t *addr) {
-  AO_TS_VAL_t result = AO_test_and_set(addr);
-  AO_lwsync();
+MK_AO_INLINE MK_AO_TS_VAL_t
+MK_AO_test_and_set_acquire(volatile MK_AO_TS_t *addr) {
+  MK_AO_TS_VAL_t result = MK_AO_test_and_set(addr);
+  MK_AO_lwsync();
   return result;
 }
-#define AO_HAVE_test_and_set_acquire
+#define MK_AO_HAVE_test_and_set_acquire
 
-AO_INLINE AO_TS_VAL_t
-AO_test_and_set_release(volatile AO_TS_t *addr) {
-  AO_lwsync();
-  return AO_test_and_set(addr);
+MK_AO_INLINE MK_AO_TS_VAL_t
+MK_AO_test_and_set_release(volatile MK_AO_TS_t *addr) {
+  MK_AO_lwsync();
+  return MK_AO_test_and_set(addr);
 }
-#define AO_HAVE_test_and_set_release
+#define MK_AO_HAVE_test_and_set_release
 
-AO_INLINE AO_TS_VAL_t
-AO_test_and_set_full(volatile AO_TS_t *addr) {
-  AO_TS_VAL_t result;
-  AO_lwsync();
-  result = AO_test_and_set(addr);
-  AO_lwsync();
+MK_AO_INLINE MK_AO_TS_VAL_t
+MK_AO_test_and_set_full(volatile MK_AO_TS_t *addr) {
+  MK_AO_TS_VAL_t result;
+  MK_AO_lwsync();
+  result = MK_AO_test_and_set(addr);
+  MK_AO_lwsync();
   return result;
 }
-#define AO_HAVE_test_and_set_full
+#define MK_AO_HAVE_test_and_set_full
 
-AO_INLINE int
-AO_compare_and_swap(volatile AO_t *addr, AO_t old, AO_t new_val) {
-  AO_t oldval;
+MK_AO_INLINE int
+MK_AO_compare_and_swap(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val) {
+  MK_AO_t oldval;
   int result = 0;
 #if defined(__powerpc64__) || defined(__ppc64__) || defined(__64BIT__)
 /* FIXME: Completely untested.  */
@@ -201,37 +201,37 @@ AO_compare_and_swap(volatile AO_t *addr, AO_t old, AO_t new_val) {
 #endif
   return result;
 }
-#define AO_HAVE_compare_and_swap
+#define MK_AO_HAVE_compare_and_swap
 
-AO_INLINE int
-AO_compare_and_swap_acquire(volatile AO_t *addr, AO_t old, AO_t new_val) {
-  int result = AO_compare_and_swap(addr, old, new_val);
-  AO_lwsync();
+MK_AO_INLINE int
+MK_AO_compare_and_swap_acquire(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val) {
+  int result = MK_AO_compare_and_swap(addr, old, new_val);
+  MK_AO_lwsync();
   return result;
 }
-#define AO_HAVE_compare_and_swap_acquire
+#define MK_AO_HAVE_compare_and_swap_acquire
 
-AO_INLINE int
-AO_compare_and_swap_release(volatile AO_t *addr, AO_t old, AO_t new_val) {
-  AO_lwsync();
-  return AO_compare_and_swap(addr, old, new_val);
+MK_AO_INLINE int
+MK_AO_compare_and_swap_release(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val) {
+  MK_AO_lwsync();
+  return MK_AO_compare_and_swap(addr, old, new_val);
 }
-#define AO_HAVE_compare_and_swap_release
+#define MK_AO_HAVE_compare_and_swap_release
 
-AO_INLINE int
-AO_compare_and_swap_full(volatile AO_t *addr, AO_t old, AO_t new_val) {
+MK_AO_INLINE int
+MK_AO_compare_and_swap_full(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val) {
   int result;
-  AO_lwsync();
-  result = AO_compare_and_swap(addr, old, new_val);
-  AO_lwsync();
+  MK_AO_lwsync();
+  result = MK_AO_compare_and_swap(addr, old, new_val);
+  MK_AO_lwsync();
   return result;
 }
-#define AO_HAVE_compare_and_swap_full
+#define MK_AO_HAVE_compare_and_swap_full
 
-AO_INLINE AO_t
-AO_fetch_and_add(volatile AO_t *addr, AO_t incr) {
-  AO_t oldval;
-  AO_t newval;
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_add(volatile MK_AO_t *addr, MK_AO_t incr) {
+  MK_AO_t oldval;
+  MK_AO_t newval;
 #if defined(__powerpc64__) || defined(__ppc64__) || defined(__64BIT__)
 /* FIXME: Completely untested.                                          */
   __asm__ __volatile__(
@@ -254,32 +254,32 @@ AO_fetch_and_add(volatile AO_t *addr, AO_t incr) {
 #endif
   return oldval;
 }
-#define AO_HAVE_fetch_and_add
+#define MK_AO_HAVE_fetch_and_add
 
-AO_INLINE AO_t
-AO_fetch_and_add_acquire(volatile AO_t *addr, AO_t incr) {
-  AO_t result = AO_fetch_and_add(addr, incr);
-  AO_lwsync();
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_add_acquire(volatile MK_AO_t *addr, MK_AO_t incr) {
+  MK_AO_t result = MK_AO_fetch_and_add(addr, incr);
+  MK_AO_lwsync();
   return result;
 }
-#define AO_HAVE_fetch_and_add_acquire
+#define MK_AO_HAVE_fetch_and_add_acquire
 
-AO_INLINE AO_t
-AO_fetch_and_add_release(volatile AO_t *addr, AO_t incr) {
-  AO_lwsync();
-  return AO_fetch_and_add(addr, incr);
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_add_release(volatile MK_AO_t *addr, MK_AO_t incr) {
+  MK_AO_lwsync();
+  return MK_AO_fetch_and_add(addr, incr);
 }
-#define AO_HAVE_fetch_and_add_release
+#define MK_AO_HAVE_fetch_and_add_release
 
-AO_INLINE AO_t
-AO_fetch_and_add_full(volatile AO_t *addr, AO_t incr) {
-  AO_t result;
-  AO_lwsync();
-  result = AO_fetch_and_add(addr, incr);
-  AO_lwsync();
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_add_full(volatile MK_AO_t *addr, MK_AO_t incr) {
+  MK_AO_t result;
+  MK_AO_lwsync();
+  result = MK_AO_fetch_and_add(addr, incr);
+  MK_AO_lwsync();
   return result;
 }
-#define AO_HAVE_fetch_and_add_full
+#define MK_AO_HAVE_fetch_and_add_full
 
 #if defined(__powerpc64__) || defined(__ppc64__) || defined(__64BIT__)
 #else

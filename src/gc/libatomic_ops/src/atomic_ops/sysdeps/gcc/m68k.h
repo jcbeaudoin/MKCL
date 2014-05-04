@@ -17,8 +17,8 @@
 
 /* The cas instruction causes an emulation trap for the */
 /* 060 with a misaligned pointer, so let's avoid this.  */
-#undef AO_t
-typedef unsigned long AO_t __attribute__ ((aligned (4)));
+#undef MK_AO_t
+typedef unsigned long MK_AO_t __attribute__ ((aligned (4)));
 
 /* FIXME.  Very incomplete.  */
 #include "../all_aligned_atomic_load_store.h"
@@ -30,28 +30,28 @@ typedef unsigned long AO_t __attribute__ ((aligned (4)));
 #include "../test_and_set_t_is_char.h"
 
 /* Contributed by Tony Mantler or new.  Should be changed to MIT license? */
-AO_INLINE AO_TS_VAL_t
-AO_test_and_set_full(volatile AO_TS_t *addr) {
-  AO_TS_t oldval;
+MK_AO_INLINE MK_AO_TS_VAL_t
+MK_AO_test_and_set_full(volatile MK_AO_TS_t *addr) {
+  MK_AO_TS_t oldval;
 
   /* The value at addr is semi-phony.   */
   /* 'tas' sets bit 7 while the return  */
   /* value pretends all bits were set,  */
-  /* which at least matches AO_TS_SET.  */
+  /* which at least matches MK_AO_TS_SET.  */
   __asm__ __volatile__(
                 "tas %1; sne %0"
                 : "=d" (oldval), "=m" (*addr)
                 : "m" (*addr)
                 : "memory");
   /* This cast works due to the above.  */
-  return (AO_TS_VAL_t)oldval;
+  return (MK_AO_TS_VAL_t)oldval;
 }
-#define AO_HAVE_test_and_set_full
+#define MK_AO_HAVE_test_and_set_full
 
 /* Returns nonzero if the comparison succeeded. */
-AO_INLINE int
-AO_compare_and_swap_full(volatile AO_t *addr,
-                         AO_t old, AO_t new_val)
+MK_AO_INLINE int
+MK_AO_compare_and_swap_full(volatile MK_AO_t *addr,
+                         MK_AO_t old, MK_AO_t new_val)
 {
   char result;
 
@@ -62,6 +62,6 @@ AO_compare_and_swap_full(volatile AO_t *addr,
                 : "memory");
   return -result;
 }
-#define AO_HAVE_compare_and_swap_full
+#define MK_AO_HAVE_compare_and_swap_full
 
 #include "../ao_t_is_int.h"

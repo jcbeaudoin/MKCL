@@ -21,106 +21,106 @@
  */
 
 /*
- * Inclusion of this file signifies that AO_t is in fact int.  Hence
- * any AO_... operations can also server as AO_int_... operations.
+ * Inclusion of this file signifies that MK_AO_t is in fact int.  Hence
+ * any MK_AO_... operations can also server as MK_AO_int_... operations.
  * We currently define only the more important ones here, and allow for
  * the normal generalization process to define the others.
  * We should probably add others in the future.
  */
 
-#if defined(AO_HAVE_compare_and_swap_full) && \
-    !defined(AO_HAVE_int_compare_and_swap_full)
-#  define AO_int_compare_and_swap_full(addr, old, new_val) \
-                AO_compare_and_swap_full((volatile AO_t *)(addr), \
-                                        (AO_t)(old), (AO_t)(new_val))
-#  define AO_HAVE_int_compare_and_swap_full
+#if defined(MK_AO_HAVE_compare_and_swap_full) && \
+    !defined(MK_AO_HAVE_int_compare_and_swap_full)
+#  define MK_AO_int_compare_and_swap_full(addr, old, new_val) \
+                MK_AO_compare_and_swap_full((volatile MK_AO_t *)(addr), \
+                                        (MK_AO_t)(old), (MK_AO_t)(new_val))
+#  define MK_AO_HAVE_int_compare_and_swap_full
 # endif
 
-#if defined(AO_HAVE_compare_and_swap_acquire) && \
-    !defined(AO_HAVE_int_compare_and_swap_acquire)
-#  define AO_int_compare_and_swap_acquire(addr, old, new_val) \
-                AO_compare_and_swap_acquire((volatile AO_t *)(addr), \
-                                            (AO_t)(old), (AO_t)(new_val))
-#  define AO_HAVE_int_compare_and_swap_acquire
+#if defined(MK_AO_HAVE_compare_and_swap_acquire) && \
+    !defined(MK_AO_HAVE_int_compare_and_swap_acquire)
+#  define MK_AO_int_compare_and_swap_acquire(addr, old, new_val) \
+                MK_AO_compare_and_swap_acquire((volatile MK_AO_t *)(addr), \
+                                            (MK_AO_t)(old), (MK_AO_t)(new_val))
+#  define MK_AO_HAVE_int_compare_and_swap_acquire
 # endif
 
-#if defined(AO_HAVE_compare_and_swap_release) && \
-    !defined(AO_HAVE_int_compare_and_swap_release)
-#  define AO_int_compare_and_swap_release(addr, old, new_val) \
-                AO_compare_and_swap_release((volatile AO_t *)(addr), \
-                                         (AO_t)(old), (AO_t)(new_val))
-#  define AO_HAVE_int_compare_and_swap_release
+#if defined(MK_AO_HAVE_compare_and_swap_release) && \
+    !defined(MK_AO_HAVE_int_compare_and_swap_release)
+#  define MK_AO_int_compare_and_swap_release(addr, old, new_val) \
+                MK_AO_compare_and_swap_release((volatile MK_AO_t *)(addr), \
+                                         (MK_AO_t)(old), (MK_AO_t)(new_val))
+#  define MK_AO_HAVE_int_compare_and_swap_release
 # endif
 
-#if defined(AO_HAVE_compare_and_swap_write) && \
-    !defined(AO_HAVE_int_compare_and_swap_write)
-#  define AO_int_compare_and_swap_write(addr, old, new_val) \
-                AO_compare_and_swap_write((volatile AO_t *)(addr), \
-                                          (AO_t)(old), (AO_t)(new_val))
-#  define AO_HAVE_int_compare_and_swap_write
+#if defined(MK_AO_HAVE_compare_and_swap_write) && \
+    !defined(MK_AO_HAVE_int_compare_and_swap_write)
+#  define MK_AO_int_compare_and_swap_write(addr, old, new_val) \
+                MK_AO_compare_and_swap_write((volatile MK_AO_t *)(addr), \
+                                          (MK_AO_t)(old), (MK_AO_t)(new_val))
+#  define MK_AO_HAVE_int_compare_and_swap_write
 # endif
 
-#if defined(AO_HAVE_compare_and_swap_read) && \
-    !defined(AO_HAVE_int_compare_and_swap_read)
-#  define AO_int_compare_and_swap_read(addr, old, new_val) \
-                AO_compare_and_swap_read((volatile AO_t *)(addr), \
-                                         (AO_t)(old), (AO_t)(new_val))
-#  define AO_HAVE_int_compare_and_swap_read
+#if defined(MK_AO_HAVE_compare_and_swap_read) && \
+    !defined(MK_AO_HAVE_int_compare_and_swap_read)
+#  define MK_AO_int_compare_and_swap_read(addr, old, new_val) \
+                MK_AO_compare_and_swap_read((volatile MK_AO_t *)(addr), \
+                                         (MK_AO_t)(old), (MK_AO_t)(new_val))
+#  define MK_AO_HAVE_int_compare_and_swap_read
 # endif
 
-#if defined(AO_HAVE_compare_and_swap) && \
-    !defined(AO_HAVE_int_compare_and_swap)
-#  define AO_int_compare_and_swap(addr, old, new_val) \
-                AO_compare_and_swap((volatile AO_t *)(addr), \
-                                    (AO_t)(old), (AO_t)(new_val))
-#  define AO_HAVE_int_compare_and_swap
+#if defined(MK_AO_HAVE_compare_and_swap) && \
+    !defined(MK_AO_HAVE_int_compare_and_swap)
+#  define MK_AO_int_compare_and_swap(addr, old, new_val) \
+                MK_AO_compare_and_swap((volatile MK_AO_t *)(addr), \
+                                    (MK_AO_t)(old), (MK_AO_t)(new_val))
+#  define MK_AO_HAVE_int_compare_and_swap
 # endif
 
-#if defined(AO_HAVE_load_acquire) && \
-    !defined(AO_HAVE_int_load_acquire)
-#  define AO_int_load_acquire(addr) \
-        (int)AO_load_acquire((const volatile AO_t *)(addr))
-#  define AO_HAVE_int_load_acquire
+#if defined(MK_AO_HAVE_load_acquire) && \
+    !defined(MK_AO_HAVE_int_load_acquire)
+#  define MK_AO_int_load_acquire(addr) \
+        (int)MK_AO_load_acquire((const volatile MK_AO_t *)(addr))
+#  define MK_AO_HAVE_int_load_acquire
 # endif
 
-#if defined(AO_HAVE_store_release) && \
-    !defined(AO_HAVE_int_store_release)
-#  define AO_int_store_release(addr, val) \
-        AO_store_release((volatile AO_t *)(addr), (AO_t)(val))
-#  define AO_HAVE_int_store_release
+#if defined(MK_AO_HAVE_store_release) && \
+    !defined(MK_AO_HAVE_int_store_release)
+#  define MK_AO_int_store_release(addr, val) \
+        MK_AO_store_release((volatile MK_AO_t *)(addr), (MK_AO_t)(val))
+#  define MK_AO_HAVE_int_store_release
 # endif
 
-#if defined(AO_HAVE_fetch_and_add_full) && \
-    !defined(AO_HAVE_int_fetch_and_add_full)
-#  define AO_int_fetch_and_add_full(addr, incr) \
-        (int)AO_fetch_and_add_full((volatile AO_t *)(addr), (AO_t)(incr))
-#  define AO_HAVE_int_fetch_and_add_full
+#if defined(MK_AO_HAVE_fetch_and_add_full) && \
+    !defined(MK_AO_HAVE_int_fetch_and_add_full)
+#  define MK_AO_int_fetch_and_add_full(addr, incr) \
+        (int)MK_AO_fetch_and_add_full((volatile MK_AO_t *)(addr), (MK_AO_t)(incr))
+#  define MK_AO_HAVE_int_fetch_and_add_full
 # endif
 
-#if defined(AO_HAVE_fetch_and_add1_acquire) && \
-    !defined(AO_HAVE_int_fetch_and_add1_acquire)
-#  define AO_int_fetch_and_add1_acquire(addr) \
-        (int)AO_fetch_and_add1_acquire((volatile AO_t *)(addr))
-#  define AO_HAVE_int_fetch_and_add1_acquire
+#if defined(MK_AO_HAVE_fetch_and_add1_acquire) && \
+    !defined(MK_AO_HAVE_int_fetch_and_add1_acquire)
+#  define MK_AO_int_fetch_and_add1_acquire(addr) \
+        (int)MK_AO_fetch_and_add1_acquire((volatile MK_AO_t *)(addr))
+#  define MK_AO_HAVE_int_fetch_and_add1_acquire
 # endif
 
-#if defined(AO_HAVE_fetch_and_add1_release) && \
-    !defined(AO_HAVE_int_fetch_and_add1_release)
-#  define AO_int_fetch_and_add1_release(addr) \
-        (int)AO_fetch_and_add1_release((volatile AO_t *)(addr))
-#  define AO_HAVE_int_fetch_and_add1_release
+#if defined(MK_AO_HAVE_fetch_and_add1_release) && \
+    !defined(MK_AO_HAVE_int_fetch_and_add1_release)
+#  define MK_AO_int_fetch_and_add1_release(addr) \
+        (int)MK_AO_fetch_and_add1_release((volatile MK_AO_t *)(addr))
+#  define MK_AO_HAVE_int_fetch_and_add1_release
 # endif
 
-#if defined(AO_HAVE_fetch_and_sub1_acquire) && \
-    !defined(AO_HAVE_int_fetch_and_sub1_acquire)
-#  define AO_int_fetch_and_sub1_acquire(addr) \
-        (int)AO_fetch_and_sub1_acquire((volatile AO_t *)(addr))
-#  define AO_HAVE_int_fetch_and_sub1_acquire
+#if defined(MK_AO_HAVE_fetch_and_sub1_acquire) && \
+    !defined(MK_AO_HAVE_int_fetch_and_sub1_acquire)
+#  define MK_AO_int_fetch_and_sub1_acquire(addr) \
+        (int)MK_AO_fetch_and_sub1_acquire((volatile MK_AO_t *)(addr))
+#  define MK_AO_HAVE_int_fetch_and_sub1_acquire
 # endif
 
-#if defined(AO_HAVE_fetch_and_sub1_release) && \
-    !defined(AO_HAVE_int_fetch_and_sub1_release)
-#  define AO_int_fetch_and_sub1_release(addr) \
-        (int)AO_fetch_and_sub1_release((volatile AO_t *)(addr))
-#  define AO_HAVE_int_fetch_and_sub1_release
+#if defined(MK_AO_HAVE_fetch_and_sub1_release) && \
+    !defined(MK_AO_HAVE_int_fetch_and_sub1_release)
+#  define MK_AO_int_fetch_and_sub1_release(addr) \
+        (int)MK_AO_fetch_and_sub1_release((volatile MK_AO_t *)(addr))
+#  define MK_AO_HAVE_int_fetch_and_sub1_release
 # endif

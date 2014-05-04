@@ -18,8 +18,8 @@
 /* sh has tas.b(byte) only */
 #include "../test_and_set_t_is_char.h"
 
-AO_INLINE AO_TS_VAL_t
-AO_test_and_set_full(volatile AO_TS_t *addr)
+MK_AO_INLINE MK_AO_TS_VAL_t
+MK_AO_test_and_set_full(volatile MK_AO_TS_t *addr)
 {
   int oldval;
   __asm__ __volatile__(
@@ -27,6 +27,6 @@ AO_test_and_set_full(volatile AO_TS_t *addr)
         : "=r" (oldval)
         : "r" (addr)
         : "t", "memory");
-  return oldval? AO_TS_CLEAR : AO_TS_SET;
+  return oldval? MK_AO_TS_CLEAR : MK_AO_TS_SET;
 }
-#define AO_HAVE_test_and_set_full
+#define MK_AO_HAVE_test_and_set_full

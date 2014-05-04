@@ -33,4 +33,4 @@ typedef enum {MK_AO_TS_clear = 0, MK_AO_TS_set = 1} MK_AO_TS_val;
 
 #define MK_AO_TS_t MK_AO_t
 
-#define MK_AO_AO_TS_T 1
+#define MK_AO_MK_AO_TS_T 1

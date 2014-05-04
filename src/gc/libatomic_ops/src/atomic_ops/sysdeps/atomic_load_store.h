@@ -20,21 +20,21 @@
  * SOFTWARE.
  */
 
-/* Definitions for architectures on which loads and stores of AO_t are  */
+/* Definitions for architectures on which loads and stores of MK_AO_t are  */
 /* atomic for all legal alignments.                                     */
 
-AO_INLINE AO_t
-AO_load(const volatile AO_t *addr)
+MK_AO_INLINE MK_AO_t
+MK_AO_load(const volatile MK_AO_t *addr)
 {
   /* Cast away the volatile for architectures like IA64 where   */
   /* volatile adds barrier semantics.                           */
-  return (*(const AO_t *)addr);
+  return (*(const MK_AO_t *)addr);
 }
-#define AO_HAVE_load
+#define MK_AO_HAVE_load
 
-AO_INLINE void
-AO_store(volatile AO_t *addr, AO_t new_val)
+MK_AO_INLINE void
+MK_AO_store(volatile MK_AO_t *addr, MK_AO_t new_val)
 {
-  (*(AO_t *)addr) = new_val;
+  (*(MK_AO_t *)addr) = new_val;
 }
-#define AO_HAVE_store
+#define MK_AO_HAVE_store

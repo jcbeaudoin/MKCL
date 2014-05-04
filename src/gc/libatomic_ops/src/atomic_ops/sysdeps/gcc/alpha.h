@@ -19,30 +19,30 @@
 
 #include "../test_and_set_t_is_ao_t.h"
 
-#define AO_NO_DD_ORDERING
+#define MK_AO_NO_DD_ORDERING
         /* Data dependence does not imply read ordering.        */
 
-AO_INLINE void
-AO_nop_full(void)
+MK_AO_INLINE void
+MK_AO_nop_full(void)
 {
   __asm__ __volatile__("mb" : : : "memory");
 }
-#define AO_HAVE_nop_full
+#define MK_AO_HAVE_nop_full
 
-AO_INLINE void
-AO_nop_write(void)
+MK_AO_INLINE void
+MK_AO_nop_write(void)
 {
   __asm__ __volatile__("wmb" : : : "memory");
 }
-#define AO_HAVE_nop_write
+#define MK_AO_HAVE_nop_write
 
-/* mb should be used for AO_nop_read().  That's the default.    */
+/* mb should be used for MK_AO_nop_read().  That's the default.    */
 
 /* We believe that ldq_l ... stq_c does not imply any memory barrier.   */
 /* We should add an explicit fetch_and_add definition.                  */
-AO_INLINE int
-AO_compare_and_swap(volatile AO_t *addr,
-                    AO_t old, AO_t new_val)
+MK_AO_INLINE int
+MK_AO_compare_and_swap(volatile MK_AO_t *addr,
+                    MK_AO_t old, MK_AO_t new_val)
 {
   unsigned long was_equal;
   unsigned long temp;
@@ -60,4 +60,4 @@ AO_compare_and_swap(volatile AO_t *addr,
                      :"memory");
   return (int)was_equal;
 }
-#define AO_HAVE_compare_and_swap
+#define MK_AO_HAVE_compare_and_swap

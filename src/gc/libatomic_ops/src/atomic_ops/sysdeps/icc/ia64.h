@@ -36,129 +36,129 @@
 /* operations in icc9 don't imply ordering with respect to other nonvolatile    */
 /* operations.                                                                  */
 
-#define AO_INTEL_PTR_t void *
+#define MK_AO_INTEL_PTR_t void *
 
-AO_INLINE AO_t
-AO_load_acquire(const volatile AO_t *p)
+MK_AO_INLINE MK_AO_t
+MK_AO_load_acquire(const volatile MK_AO_t *p)
 {
-  return (AO_t)(__ld8_acq((AO_INTEL_PTR_t)p));
+  return (MK_AO_t)(__ld8_acq((MK_AO_INTEL_PTR_t)p));
 }
-#define AO_HAVE_load_acquire
+#define MK_AO_HAVE_load_acquire
 
-AO_INLINE void
-AO_store_release(volatile AO_t *p, AO_t val)
+MK_AO_INLINE void
+MK_AO_store_release(volatile MK_AO_t *p, MK_AO_t val)
 {
-  __st8_rel((AO_INTEL_PTR_t)p, (__int64)val);
+  __st8_rel((MK_AO_INTEL_PTR_t)p, (__int64)val);
 }
-#define AO_HAVE_store_release
+#define MK_AO_HAVE_store_release
 
-AO_INLINE unsigned char
-AO_char_load_acquire(const volatile unsigned char *p)
-{
-  /* A normal volatile load generates an ld.acq         */
-  return (__ld1_acq((AO_INTEL_PTR_t)p));
-}
-#define AO_HAVE_char_load_acquire
-
-AO_INLINE void
-AO_char_store_release(volatile unsigned char *p, unsigned char val)
-{
-  __st1_rel((AO_INTEL_PTR_t)p, val);
-}
-#define AO_HAVE_char_store_release
-
-AO_INLINE unsigned short
-AO_short_load_acquire(const volatile unsigned short *p)
+MK_AO_INLINE unsigned char
+MK_AO_char_load_acquire(const volatile unsigned char *p)
 {
   /* A normal volatile load generates an ld.acq         */
-  return (__ld2_acq((AO_INTEL_PTR_t)p));
+  return (__ld1_acq((MK_AO_INTEL_PTR_t)p));
 }
-#define AO_HAVE_short_load_acquire
+#define MK_AO_HAVE_char_load_acquire
 
-AO_INLINE void
-AO_short_store_release(volatile unsigned short *p, unsigned short val)
+MK_AO_INLINE void
+MK_AO_char_store_release(volatile unsigned char *p, unsigned char val)
 {
-  __st2_rel((AO_INTEL_PTR_t)p, val);
+  __st1_rel((MK_AO_INTEL_PTR_t)p, val);
 }
-#define AO_HAVE_short_store_release
+#define MK_AO_HAVE_char_store_release
 
-AO_INLINE unsigned int
-AO_int_load_acquire(const volatile unsigned int *p)
+MK_AO_INLINE unsigned short
+MK_AO_short_load_acquire(const volatile unsigned short *p)
 {
   /* A normal volatile load generates an ld.acq         */
-  return (__ld4_acq((AO_INTEL_PTR_t)p));
+  return (__ld2_acq((MK_AO_INTEL_PTR_t)p));
 }
-#define AO_HAVE_int_load_acquire
+#define MK_AO_HAVE_short_load_acquire
 
-AO_INLINE void
-AO_int_store_release(volatile unsigned int *p, unsigned int val)
+MK_AO_INLINE void
+MK_AO_short_store_release(volatile unsigned short *p, unsigned short val)
 {
-  __st4_rel((AO_INTEL_PTR_t)p, val);
+  __st2_rel((MK_AO_INTEL_PTR_t)p, val);
 }
-#define AO_HAVE_int_store_release
+#define MK_AO_HAVE_short_store_release
 
-AO_INLINE void
-AO_nop_full(void)
+MK_AO_INLINE unsigned int
+MK_AO_int_load_acquire(const volatile unsigned int *p)
+{
+  /* A normal volatile load generates an ld.acq         */
+  return (__ld4_acq((MK_AO_INTEL_PTR_t)p));
+}
+#define MK_AO_HAVE_int_load_acquire
+
+MK_AO_INLINE void
+MK_AO_int_store_release(volatile unsigned int *p, unsigned int val)
+{
+  __st4_rel((MK_AO_INTEL_PTR_t)p, val);
+}
+#define MK_AO_HAVE_int_store_release
+
+MK_AO_INLINE void
+MK_AO_nop_full(void)
 {
   __mf();
 }
-#define AO_HAVE_nop_full
+#define MK_AO_HAVE_nop_full
 
-AO_INLINE AO_t
-AO_fetch_and_add1_acquire (volatile AO_t *p)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_add1_acquire (volatile MK_AO_t *p)
 {
   return __fetchadd8_acq((unsigned __int64 *)p, 1);
 }
-#define AO_HAVE_fetch_and_add1_acquire
+#define MK_AO_HAVE_fetch_and_add1_acquire
 
-AO_INLINE AO_t
-AO_fetch_and_add1_release (volatile AO_t *p)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_add1_release (volatile MK_AO_t *p)
 {
   return __fetchadd8_rel((unsigned __int64 *)p, 1);
 }
 
-#define AO_HAVE_fetch_and_add1_release
+#define MK_AO_HAVE_fetch_and_add1_release
 
-AO_INLINE AO_t
-AO_fetch_and_sub1_acquire (volatile AO_t *p)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_sub1_acquire (volatile MK_AO_t *p)
 {
   return __fetchadd8_acq((unsigned __int64 *)p, -1);
 }
 
-#define AO_HAVE_fetch_and_sub1_acquire
+#define MK_AO_HAVE_fetch_and_sub1_acquire
 
-AO_INLINE AO_t
-AO_fetch_and_sub1_release (volatile AO_t *p)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_sub1_release (volatile MK_AO_t *p)
 {
   return __fetchadd8_rel((unsigned __int64 *)p, -1);
 }
 
-#define AO_HAVE_fetch_and_sub1_release
+#define MK_AO_HAVE_fetch_and_sub1_release
 
-AO_INLINE int
-AO_compare_and_swap_acquire(volatile AO_t *addr,
-                             AO_t old, AO_t new_val)
+MK_AO_INLINE int
+MK_AO_compare_and_swap_acquire(volatile MK_AO_t *addr,
+                             MK_AO_t old, MK_AO_t new_val)
 {
-  AO_t oldval;
+  MK_AO_t oldval;
   oldval = _InterlockedCompareExchange64_acq(addr, new_val, old);
   return (oldval == old);
 }
 
-#define AO_HAVE_compare_and_swap_acquire
+#define MK_AO_HAVE_compare_and_swap_acquire
 
-AO_INLINE int
-AO_compare_and_swap_release(volatile AO_t *addr,
-                             AO_t old, AO_t new_val)
+MK_AO_INLINE int
+MK_AO_compare_and_swap_release(volatile MK_AO_t *addr,
+                             MK_AO_t old, MK_AO_t new_val)
 {
-  AO_t oldval;
+  MK_AO_t oldval;
   oldval = _InterlockedCompareExchange64_rel(addr, new_val, old);
   return (oldval == old);
 }
 
-#define AO_HAVE_compare_and_swap_release
+#define MK_AO_HAVE_compare_and_swap_release
 
-AO_INLINE int
-AO_char_compare_and_swap_acquire(volatile unsigned char *addr,
+MK_AO_INLINE int
+MK_AO_char_compare_and_swap_acquire(volatile unsigned char *addr,
                                  unsigned char old, unsigned char new_val)
 {
   unsigned char oldval;
@@ -166,10 +166,10 @@ AO_char_compare_and_swap_acquire(volatile unsigned char *addr,
   return (oldval == old);
 }
 
-#define AO_HAVE_char_compare_and_swap_acquire
+#define MK_AO_HAVE_char_compare_and_swap_acquire
 
-AO_INLINE int
-AO_char_compare_and_swap_release(volatile unsigned char *addr,
+MK_AO_INLINE int
+MK_AO_char_compare_and_swap_release(volatile unsigned char *addr,
                             unsigned char old, unsigned char new_val)
 {
   unsigned char oldval;
@@ -177,10 +177,10 @@ AO_char_compare_and_swap_release(volatile unsigned char *addr,
   return (oldval == old);
 }
 
-#define AO_HAVE_char_compare_and_swap_release
+#define MK_AO_HAVE_char_compare_and_swap_release
 
-AO_INLINE int
-AO_short_compare_and_swap_acquire(volatile unsigned short *addr,
+MK_AO_INLINE int
+MK_AO_short_compare_and_swap_acquire(volatile unsigned short *addr,
                                  unsigned short old, unsigned short new_val)
 {
   unsigned short oldval;
@@ -188,10 +188,10 @@ AO_short_compare_and_swap_acquire(volatile unsigned short *addr,
   return (oldval == old);
 }
 
-#define AO_HAVE_short_compare_and_swap_acquire
+#define MK_AO_HAVE_short_compare_and_swap_acquire
 
-AO_INLINE int
-AO_short_compare_and_swap_release(volatile unsigned short *addr,
+MK_AO_INLINE int
+MK_AO_short_compare_and_swap_release(volatile unsigned short *addr,
                             unsigned short old, unsigned short new_val)
 {
   unsigned short oldval;
@@ -199,10 +199,10 @@ AO_short_compare_and_swap_release(volatile unsigned short *addr,
   return (oldval == old);
 }
 
-#define AO_HAVE_short_compare_and_swap_release
+#define MK_AO_HAVE_short_compare_and_swap_release
 
-AO_INLINE int
-AO_int_compare_and_swap_acquire(volatile unsigned int *addr,
+MK_AO_INLINE int
+MK_AO_int_compare_and_swap_acquire(volatile unsigned int *addr,
                                  unsigned int old, unsigned int new_val)
 {
   unsigned int oldval;
@@ -210,10 +210,10 @@ AO_int_compare_and_swap_acquire(volatile unsigned int *addr,
   return (oldval == old);
 }
 
-#define AO_HAVE_int_compare_and_swap_acquire
+#define MK_AO_HAVE_int_compare_and_swap_acquire
 
-AO_INLINE int
-AO_int_compare_and_swap_release(volatile unsigned int *addr,
+MK_AO_INLINE int
+MK_AO_int_compare_and_swap_release(volatile unsigned int *addr,
                             unsigned int old, unsigned int new_val)
 {
   unsigned int oldval;
@@ -221,4 +221,4 @@ AO_int_compare_and_swap_release(volatile unsigned int *addr,
   return (oldval == old);
 }
 
-#define AO_HAVE_int_compare_and_swap_release
+#define MK_AO_HAVE_int_compare_and_swap_release

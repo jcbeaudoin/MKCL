@@ -25,9 +25,9 @@
 
 #include "ordered_except_wr.h"
 
-AO_INLINE void
-AO_nop_full(void)
+MK_AO_INLINE void
+MK_AO_nop_full(void)
 {
-  AO_compiler_barrier();
+  MK_AO_compiler_barrier();
 }
-#define AO_HAVE_nop_full
+#define MK_AO_HAVE_nop_full

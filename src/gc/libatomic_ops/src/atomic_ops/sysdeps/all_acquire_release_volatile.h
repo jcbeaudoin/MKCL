@@ -21,7 +21,7 @@
  */
 
 /*
- * Describes architectures on which volatile AO_t, unsigned char, unsigned
+ * Describes architectures on which volatile MK_AO_t, unsigned char, unsigned
  * short, and unsigned int loads and stores have acquire/release semantics for
  * all normally legal alignments.
  */

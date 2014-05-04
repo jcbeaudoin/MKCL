@@ -25,29 +25,29 @@
  * volatile load has acquire semantics, and an unsigned char volatile store has release
  * semantics.  This is true with the standard Itanium ABI.
  */
-#if !defined(AO_GCC_BARRIER)
+#if !defined(MK_AO_GCC_BARRIER)
 #  if defined(__GNUC__)
-#    define AO_GCC_BARRIER() AO_compiler_barrier()
+#    define MK_AO_GCC_BARRIER() MK_AO_compiler_barrier()
 #  else
-#    define AO_GCC_BARRIER()
+#    define MK_AO_GCC_BARRIER()
 #  endif
 #endif
 
-AO_INLINE unsigned char
-AO_char_load_acquire(const volatile unsigned char *p)
+MK_AO_INLINE unsigned char
+MK_AO_char_load_acquire(const volatile unsigned char *p)
 {
   unsigned char result = *p;
   /* A normal volatile load generates an ld.acq         */
-  AO_GCC_BARRIER();
+  MK_AO_GCC_BARRIER();
   return result;
 }
-#define AO_HAVE_char_load_acquire
+#define MK_AO_HAVE_char_load_acquire
 
-AO_INLINE void
-AO_char_store_release(volatile unsigned char *p, unsigned char val)
+MK_AO_INLINE void
+MK_AO_char_store_release(volatile unsigned char *p, unsigned char val)
 {
-  AO_GCC_BARRIER();
+  MK_AO_GCC_BARRIER();
   /* A normal volatile store generates an st.rel        */
   *p = val;
 }
-#define AO_HAVE_char_store_release
+#define MK_AO_HAVE_char_store_release

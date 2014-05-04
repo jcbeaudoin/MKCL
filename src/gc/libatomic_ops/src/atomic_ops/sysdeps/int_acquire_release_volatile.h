@@ -25,29 +25,29 @@
  * int volatile load has acquire semantics, and an unsigned short volatile
  * store has release semantics.  This is true with the standard Itanium ABI.
  */
-#if !defined(AO_GCC_BARRIER)
+#if !defined(MK_AO_GCC_BARRIER)
 #  if defined(__GNUC__)
-#    define AO_GCC_BARRIER() AO_compiler_barrier()
+#    define MK_AO_GCC_BARRIER() MK_AO_compiler_barrier()
 #  else
-#    define AO_GCC_BARRIER()
+#    define MK_AO_GCC_BARRIER()
 #  endif
 #endif
 
-AO_INLINE unsigned int
-AO_int_load_acquire(const volatile unsigned int *p)
+MK_AO_INLINE unsigned int
+MK_AO_int_load_acquire(const volatile unsigned int *p)
 {
   unsigned int result = *p;
   /* A normal volatile load generates an ld.acq         */
-  AO_GCC_BARRIER();
+  MK_AO_GCC_BARRIER();
   return result;
 }
-#define AO_HAVE_int_load_acquire
+#define MK_AO_HAVE_int_load_acquire
 
-AO_INLINE void
-AO_int_store_release(volatile unsigned int *p, unsigned int val)
+MK_AO_INLINE void
+MK_AO_int_store_release(volatile unsigned int *p, unsigned int val)
 {
-  AO_GCC_BARRIER();
+  MK_AO_GCC_BARRIER();
   /* A normal volatile store generates an st.rel        */
   *p = val;
 }
-#define AO_HAVE_int_store_release
+#define MK_AO_HAVE_int_store_release

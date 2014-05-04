@@ -24,10 +24,10 @@
 #include "../standard_ao_double_t.h"
 
 /* Data dependence does not imply read ordering.  */
-#define AO_NO_DD_ORDERING
+#define MK_AO_NO_DD_ORDERING
 
-AO_INLINE void
-AO_nop_full(void)
+MK_AO_INLINE void
+MK_AO_nop_full(void)
 {
   __asm__ __volatile__(
       "       .set push           \n"
@@ -38,10 +38,10 @@ AO_nop_full(void)
       "       .set pop              "
       : : : "memory");
 }
-#define AO_HAVE_nop_full
+#define MK_AO_HAVE_nop_full
 
-AO_INLINE int
-AO_compare_and_swap(volatile AO_t *addr, AO_t old, AO_t new_val)
+MK_AO_INLINE int
+MK_AO_compare_and_swap(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val)
 {
   register int was_equal = 0;
   register int temp;
@@ -64,35 +64,35 @@ AO_compare_and_swap(volatile AO_t *addr, AO_t old, AO_t new_val)
       : "memory");
   return was_equal;
 }
-#define AO_HAVE_compare_and_swap
+#define MK_AO_HAVE_compare_and_swap
 
 /* FIXME: I think the implementations below should be automatically     */
 /* generated if we omit them.  - HB                                     */
 
-AO_INLINE int
-AO_compare_and_swap_acquire(volatile AO_t *addr, AO_t old, AO_t new_val) {
-  int result = AO_compare_and_swap(addr, old, new_val);
-  AO_nop_full();
+MK_AO_INLINE int
+MK_AO_compare_and_swap_acquire(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val) {
+  int result = MK_AO_compare_and_swap(addr, old, new_val);
+  MK_AO_nop_full();
   return result;
 }
-#define AO_HAVE_compare_and_swap_acquire
+#define MK_AO_HAVE_compare_and_swap_acquire
 
-AO_INLINE int
-AO_compare_and_swap_release(volatile AO_t *addr, AO_t old, AO_t new_val) {
-  AO_nop_full();
-  return AO_compare_and_swap(addr, old, new_val);
+MK_AO_INLINE int
+MK_AO_compare_and_swap_release(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val) {
+  MK_AO_nop_full();
+  return MK_AO_compare_and_swap(addr, old, new_val);
 }
-#define AO_HAVE_compare_and_swap_release
+#define MK_AO_HAVE_compare_and_swap_release
 
-AO_INLINE int
-AO_compare_and_swap_full(volatile AO_t *addr, AO_t old, AO_t new_val) {
+MK_AO_INLINE int
+MK_AO_compare_and_swap_full(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val) {
   int result;
-  AO_nop_full();
-  result = AO_compare_and_swap(addr, old, new_val);
-  AO_nop_full();
+  MK_AO_nop_full();
+  result = MK_AO_compare_and_swap(addr, old, new_val);
+  MK_AO_nop_full();
   return result;
 }
-#define AO_HAVE_compare_and_swap_full
+#define MK_AO_HAVE_compare_and_swap_full
 
 /*
  * FIXME: We should also implement fetch_and_add and or primitives

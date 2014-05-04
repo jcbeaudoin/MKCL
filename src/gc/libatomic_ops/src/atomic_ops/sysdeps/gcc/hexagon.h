@@ -17,21 +17,21 @@
 /* versions, "syncht" should suffice.  Likewise, it seems that the      */
 /* auto-defined versions of *_acquire, *_release or *_full suffice for  */
 /* all current ISA implementations.                                     */
-AO_INLINE void
-AO_nop_full(void)
+MK_AO_INLINE void
+MK_AO_nop_full(void)
 {
   __asm__ __volatile__("syncht" : : : "memory");
 }
-#define AO_HAVE_nop_full
+#define MK_AO_HAVE_nop_full
 
 /* The Hexagon has load-locked, store-conditional primitives, and so    */
 /* resulting code is very nearly identical to that of PowerPC.          */
 
-AO_INLINE AO_t
-AO_fetch_and_add(volatile AO_t *addr, AO_t incr)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_add(volatile MK_AO_t *addr, MK_AO_t incr)
 {
-  AO_t oldval;
-  AO_t newval;
+  MK_AO_t oldval;
+  MK_AO_t newval;
   __asm__ __volatile__(
      "1:\n"
      "  %0 = memw_locked(%3);\n"        /* load and reserve            */
@@ -43,10 +43,10 @@ AO_fetch_and_add(volatile AO_t *addr, AO_t incr)
      : "memory", "p1");
   return oldval;
 }
-#define AO_HAVE_fetch_and_add
+#define MK_AO_HAVE_fetch_and_add
 
-AO_INLINE AO_TS_VAL_t
-AO_test_and_set(volatile AO_TS_t *addr)
+MK_AO_INLINE MK_AO_TS_VAL_t
+MK_AO_test_and_set(volatile MK_AO_TS_t *addr)
 {
   int oldval;
   int locked_value = 1;
@@ -64,14 +64,14 @@ AO_test_and_set(volatile AO_TS_t *addr)
      : "=&r"(oldval), "+m"(*addr)
      : "r"(addr), "r"(locked_value)
      : "memory", "p1", "p2");
-  return (AO_TS_VAL_t)oldval;
+  return (MK_AO_TS_VAL_t)oldval;
 }
-#define AO_HAVE_test_and_set
+#define MK_AO_HAVE_test_and_set
 
-AO_INLINE int
-AO_compare_and_swap(volatile AO_t *addr, AO_t old, AO_t new_val)
+MK_AO_INLINE int
+MK_AO_compare_and_swap(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val)
 {
-  AO_t __oldval;
+  MK_AO_t __oldval;
   int result = 0;
   __asm__ __volatile__(
      "1:\n"
@@ -90,9 +90,9 @@ AO_compare_and_swap(volatile AO_t *addr, AO_t old, AO_t new_val)
   );
   return result;
 }
-#define AO_HAVE_compare_and_swap
+#define MK_AO_HAVE_compare_and_swap
 
-/* Generalize first to define more AO_int_... primitives.       */
+/* Generalize first to define more MK_AO_int_... primitives.       */
 #include "../../generalize.h"
 
 #include "../ao_t_is_int.h"

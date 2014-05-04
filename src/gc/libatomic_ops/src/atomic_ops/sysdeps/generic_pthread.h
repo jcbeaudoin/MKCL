@@ -35,235 +35,235 @@
 
 /* We define only the full barrier variants, and count on the           */
 /* generalization section below to fill in the rest.                    */
-extern pthread_mutex_t AO_pt_lock;
+extern pthread_mutex_t MK_AO_pt_lock;
 
-AO_INLINE void
-AO_nop_full(void)
+MK_AO_INLINE void
+MK_AO_nop_full(void)
 {
-  pthread_mutex_lock(&AO_pt_lock);
-  pthread_mutex_unlock(&AO_pt_lock);
+  pthread_mutex_lock(&MK_AO_pt_lock);
+  pthread_mutex_unlock(&MK_AO_pt_lock);
 }
-#define AO_HAVE_nop_full
+#define MK_AO_HAVE_nop_full
 
-AO_INLINE AO_t
-AO_load_full(const volatile AO_t *addr)
+MK_AO_INLINE MK_AO_t
+MK_AO_load_full(const volatile MK_AO_t *addr)
 {
-  AO_t result;
-  pthread_mutex_lock(&AO_pt_lock);
+  MK_AO_t result;
+  pthread_mutex_lock(&MK_AO_pt_lock);
   result = *addr;
-  pthread_mutex_unlock(&AO_pt_lock);
+  pthread_mutex_unlock(&MK_AO_pt_lock);
   return result;
 }
-#define AO_HAVE_load_full
+#define MK_AO_HAVE_load_full
 
-AO_INLINE void
-AO_store_full(volatile AO_t *addr, AO_t val)
+MK_AO_INLINE void
+MK_AO_store_full(volatile MK_AO_t *addr, MK_AO_t val)
 {
-  pthread_mutex_lock(&AO_pt_lock);
+  pthread_mutex_lock(&MK_AO_pt_lock);
   *addr = val;
-  pthread_mutex_unlock(&AO_pt_lock);
+  pthread_mutex_unlock(&MK_AO_pt_lock);
 }
-#define AO_HAVE_store_full
+#define MK_AO_HAVE_store_full
 
-AO_INLINE unsigned char
-AO_char_load_full(const volatile unsigned char *addr)
+MK_AO_INLINE unsigned char
+MK_AO_char_load_full(const volatile unsigned char *addr)
 {
   unsigned char result;
-  pthread_mutex_lock(&AO_pt_lock);
+  pthread_mutex_lock(&MK_AO_pt_lock);
   result = *addr;
-  pthread_mutex_unlock(&AO_pt_lock);
+  pthread_mutex_unlock(&MK_AO_pt_lock);
   return result;
 }
-#define AO_HAVE_char_load_full
+#define MK_AO_HAVE_char_load_full
 
-AO_INLINE void
-AO_char_store_full(volatile unsigned char *addr, unsigned char val)
+MK_AO_INLINE void
+MK_AO_char_store_full(volatile unsigned char *addr, unsigned char val)
 {
-  pthread_mutex_lock(&AO_pt_lock);
+  pthread_mutex_lock(&MK_AO_pt_lock);
   *addr = val;
-  pthread_mutex_unlock(&AO_pt_lock);
+  pthread_mutex_unlock(&MK_AO_pt_lock);
 }
-#define AO_HAVE_char_store_full
+#define MK_AO_HAVE_char_store_full
 
-AO_INLINE unsigned short
-AO_short_load_full(const volatile unsigned short *addr)
+MK_AO_INLINE unsigned short
+MK_AO_short_load_full(const volatile unsigned short *addr)
 {
   unsigned short result;
-  pthread_mutex_lock(&AO_pt_lock);
+  pthread_mutex_lock(&MK_AO_pt_lock);
   result = *addr;
-  pthread_mutex_unlock(&AO_pt_lock);
+  pthread_mutex_unlock(&MK_AO_pt_lock);
   return result;
 }
-#define AO_HAVE_short_load_full
+#define MK_AO_HAVE_short_load_full
 
-AO_INLINE void
-AO_short_store_full(volatile unsigned short *addr, unsigned short val)
+MK_AO_INLINE void
+MK_AO_short_store_full(volatile unsigned short *addr, unsigned short val)
 {
-  pthread_mutex_lock(&AO_pt_lock);
+  pthread_mutex_lock(&MK_AO_pt_lock);
   *addr = val;
-  pthread_mutex_unlock(&AO_pt_lock);
+  pthread_mutex_unlock(&MK_AO_pt_lock);
 }
-#define AO_HAVE_short_store_full
+#define MK_AO_HAVE_short_store_full
 
-AO_INLINE unsigned int
-AO_int_load_full(const volatile unsigned int *addr)
+MK_AO_INLINE unsigned int
+MK_AO_int_load_full(const volatile unsigned int *addr)
 {
   unsigned int result;
-  pthread_mutex_lock(&AO_pt_lock);
+  pthread_mutex_lock(&MK_AO_pt_lock);
   result = *addr;
-  pthread_mutex_unlock(&AO_pt_lock);
+  pthread_mutex_unlock(&MK_AO_pt_lock);
   return result;
 }
-#define AO_HAVE_int_load_full
+#define MK_AO_HAVE_int_load_full
 
-AO_INLINE void
-AO_int_store_full(volatile unsigned int *addr, unsigned int val)
+MK_AO_INLINE void
+MK_AO_int_store_full(volatile unsigned int *addr, unsigned int val)
 {
-  pthread_mutex_lock(&AO_pt_lock);
+  pthread_mutex_lock(&MK_AO_pt_lock);
   *addr = val;
-  pthread_mutex_unlock(&AO_pt_lock);
+  pthread_mutex_unlock(&MK_AO_pt_lock);
 }
-#define AO_HAVE_int_store_full
+#define MK_AO_HAVE_int_store_full
 
-AO_INLINE AO_TS_VAL_t
-AO_test_and_set_full(volatile AO_TS_t *addr)
+MK_AO_INLINE MK_AO_TS_VAL_t
+MK_AO_test_and_set_full(volatile MK_AO_TS_t *addr)
 {
-  AO_TS_VAL_t result;
-  pthread_mutex_lock(&AO_pt_lock);
-  result = (AO_TS_VAL_t)(*addr);
-  *addr = AO_TS_SET;
-  pthread_mutex_unlock(&AO_pt_lock);
-  assert(result == AO_TS_SET || result == AO_TS_CLEAR);
+  MK_AO_TS_VAL_t result;
+  pthread_mutex_lock(&MK_AO_pt_lock);
+  result = (MK_AO_TS_VAL_t)(*addr);
+  *addr = MK_AO_TS_SET;
+  pthread_mutex_unlock(&MK_AO_pt_lock);
+  assert(result == MK_AO_TS_SET || result == MK_AO_TS_CLEAR);
   return result;
 }
-#define AO_HAVE_test_and_set_full
+#define MK_AO_HAVE_test_and_set_full
 
-AO_INLINE AO_t
-AO_fetch_and_add_full(volatile AO_t *p, AO_t incr)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_add_full(volatile MK_AO_t *p, MK_AO_t incr)
 {
-  AO_t tmp;
+  MK_AO_t tmp;
 
-  pthread_mutex_lock(&AO_pt_lock);
+  pthread_mutex_lock(&MK_AO_pt_lock);
   tmp = *p;
   *p = tmp + incr;
-  pthread_mutex_unlock(&AO_pt_lock);
+  pthread_mutex_unlock(&MK_AO_pt_lock);
   return tmp;
 }
-#define AO_HAVE_fetch_and_add_full
+#define MK_AO_HAVE_fetch_and_add_full
 
-AO_INLINE unsigned char
-AO_char_fetch_and_add_full(volatile unsigned char *p, unsigned char incr)
+MK_AO_INLINE unsigned char
+MK_AO_char_fetch_and_add_full(volatile unsigned char *p, unsigned char incr)
 {
   unsigned char tmp;
 
-  pthread_mutex_lock(&AO_pt_lock);
+  pthread_mutex_lock(&MK_AO_pt_lock);
   tmp = *p;
   *p = tmp + incr;
-  pthread_mutex_unlock(&AO_pt_lock);
+  pthread_mutex_unlock(&MK_AO_pt_lock);
   return tmp;
 }
-#define AO_HAVE_char_fetch_and_add_full
+#define MK_AO_HAVE_char_fetch_and_add_full
 
-AO_INLINE unsigned short
-AO_short_fetch_and_add_full(volatile unsigned short *p, unsigned short incr)
+MK_AO_INLINE unsigned short
+MK_AO_short_fetch_and_add_full(volatile unsigned short *p, unsigned short incr)
 {
   unsigned short tmp;
 
-  pthread_mutex_lock(&AO_pt_lock);
+  pthread_mutex_lock(&MK_AO_pt_lock);
   tmp = *p;
   *p = tmp + incr;
-  pthread_mutex_unlock(&AO_pt_lock);
+  pthread_mutex_unlock(&MK_AO_pt_lock);
   return tmp;
 }
-#define AO_HAVE_short_fetch_and_add_full
+#define MK_AO_HAVE_short_fetch_and_add_full
 
-AO_INLINE unsigned int
-AO_int_fetch_and_add_full(volatile unsigned int *p, unsigned int incr)
+MK_AO_INLINE unsigned int
+MK_AO_int_fetch_and_add_full(volatile unsigned int *p, unsigned int incr)
 {
   unsigned int tmp;
 
-  pthread_mutex_lock(&AO_pt_lock);
+  pthread_mutex_lock(&MK_AO_pt_lock);
   tmp = *p;
   *p = tmp + incr;
-  pthread_mutex_unlock(&AO_pt_lock);
+  pthread_mutex_unlock(&MK_AO_pt_lock);
   return tmp;
 }
-#define AO_HAVE_int_fetch_and_add_full
+#define MK_AO_HAVE_int_fetch_and_add_full
 
-AO_INLINE void
-AO_or_full(volatile AO_t *p, AO_t incr)
+MK_AO_INLINE void
+MK_AO_or_full(volatile MK_AO_t *p, MK_AO_t incr)
 {
-  AO_t tmp;
+  MK_AO_t tmp;
 
-  pthread_mutex_lock(&AO_pt_lock);
+  pthread_mutex_lock(&MK_AO_pt_lock);
   tmp = *p;
   *p = (tmp | incr);
-  pthread_mutex_unlock(&AO_pt_lock);
+  pthread_mutex_unlock(&MK_AO_pt_lock);
 }
-#define AO_HAVE_or_full
+#define MK_AO_HAVE_or_full
 
-AO_INLINE int
-AO_compare_and_swap_full(volatile AO_t *addr,
-                             AO_t old, AO_t new_val)
+MK_AO_INLINE int
+MK_AO_compare_and_swap_full(volatile MK_AO_t *addr,
+                             MK_AO_t old, MK_AO_t new_val)
 {
-  pthread_mutex_lock(&AO_pt_lock);
+  pthread_mutex_lock(&MK_AO_pt_lock);
   if (*addr == old)
     {
       *addr = new_val;
-      pthread_mutex_unlock(&AO_pt_lock);
+      pthread_mutex_unlock(&MK_AO_pt_lock);
       return 1;
     }
   else
-    pthread_mutex_unlock(&AO_pt_lock);
+    pthread_mutex_unlock(&MK_AO_pt_lock);
     return 0;
 }
-#define AO_HAVE_compare_and_swap_full
+#define MK_AO_HAVE_compare_and_swap_full
 
 /* Unlike real architectures, we define both double-width CAS variants. */
 
 typedef struct {
-        AO_t AO_val1;
-        AO_t AO_val2;
-} AO_double_t;
-#define AO_HAVE_double_t
+        MK_AO_t MK_AO_val1;
+        MK_AO_t MK_AO_val2;
+} MK_AO_double_t;
+#define MK_AO_HAVE_double_t
 
-AO_INLINE int
-AO_compare_double_and_swap_double_full(volatile AO_double_t *addr,
-                                       AO_t old1, AO_t old2,
-                                       AO_t new1, AO_t new2)
+MK_AO_INLINE int
+MK_AO_compare_double_and_swap_double_full(volatile MK_AO_double_t *addr,
+                                       MK_AO_t old1, MK_AO_t old2,
+                                       MK_AO_t new1, MK_AO_t new2)
 {
-  pthread_mutex_lock(&AO_pt_lock);
-  if (addr -> AO_val1 == old1 && addr -> AO_val2 == old2)
+  pthread_mutex_lock(&MK_AO_pt_lock);
+  if (addr -> MK_AO_val1 == old1 && addr -> MK_AO_val2 == old2)
     {
-      addr -> AO_val1 = new1;
-      addr -> AO_val2 = new2;
-      pthread_mutex_unlock(&AO_pt_lock);
+      addr -> MK_AO_val1 = new1;
+      addr -> MK_AO_val2 = new2;
+      pthread_mutex_unlock(&MK_AO_pt_lock);
       return 1;
     }
   else
-    pthread_mutex_unlock(&AO_pt_lock);
+    pthread_mutex_unlock(&MK_AO_pt_lock);
     return 0;
 }
-#define AO_HAVE_compare_double_and_swap_double_full
+#define MK_AO_HAVE_compare_double_and_swap_double_full
 
-AO_INLINE int
-AO_compare_and_swap_double_full(volatile AO_double_t *addr,
-                                AO_t old1,
-                                AO_t new1, AO_t new2)
+MK_AO_INLINE int
+MK_AO_compare_and_swap_double_full(volatile MK_AO_double_t *addr,
+                                MK_AO_t old1,
+                                MK_AO_t new1, MK_AO_t new2)
 {
-  pthread_mutex_lock(&AO_pt_lock);
-  if (addr -> AO_val1 == old1)
+  pthread_mutex_lock(&MK_AO_pt_lock);
+  if (addr -> MK_AO_val1 == old1)
     {
-      addr -> AO_val1 = new1;
-      addr -> AO_val2 = new2;
-      pthread_mutex_unlock(&AO_pt_lock);
+      addr -> MK_AO_val1 = new1;
+      addr -> MK_AO_val2 = new2;
+      pthread_mutex_unlock(&MK_AO_pt_lock);
       return 1;
     }
   else
-    pthread_mutex_unlock(&AO_pt_lock);
+    pthread_mutex_unlock(&MK_AO_pt_lock);
     return 0;
 }
-#define AO_HAVE_compare_and_swap_double_full
+#define MK_AO_HAVE_compare_and_swap_double_full
 
 /* We can't use hardware loads and stores, since they don't     */
 /* interact correctly with atomic updates.                      */

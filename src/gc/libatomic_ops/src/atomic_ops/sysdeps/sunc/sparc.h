@@ -28,10 +28,10 @@
 /* Test_and_set location is just a byte.                */
 #include "../test_and_set_t_is_char.h"
 
-extern AO_TS_VAL_t
-AO_test_and_set_full(volatile AO_TS_t *addr);
+extern MK_AO_TS_VAL_t
+MK_AO_test_and_set_full(volatile MK_AO_TS_t *addr);
 /* Implemented in separate .S file, for now.    */
-#define AO_HAVE_test_and_set_full
+#define MK_AO_HAVE_test_and_set_full
 
 /* FIXME: Like the gcc version, this needs to be extended for V8        */
 /* and V9.                                                              */

@@ -36,14 +36,14 @@ Dont use with ARM instruction sets lower than v6
  * support engineers. If it turns out to be much quicker than we should implement
  * custom code for ARMv7 using the asm { dmb } command.
  *
- * If only a single processor is used, we can define AO_UNIPROCESSOR
+ * If only a single processor is used, we can define MK_AO_UNIPROCESSOR
  * and do not need to access CP15 for ensuring a DMB at all.
 */
 
-AO_INLINE void
-AO_nop_full(void)
+MK_AO_INLINE void
+MK_AO_nop_full(void)
 {
-# ifndef AO_UNIPROCESSOR
+# ifndef MK_AO_UNIPROCESSOR
     unsigned int dest=0;
     /* issue an data memory barrier (keeps ordering of memory transactions */
     /* before and after this operation)                                    */
@@ -52,15 +52,15 @@ AO_nop_full(void)
             };
 # endif
 }
-#define AO_HAVE_nop_full
+#define MK_AO_HAVE_nop_full
 
-AO_INLINE AO_t
-AO_load(const volatile AO_t *addr)
+MK_AO_INLINE MK_AO_t
+MK_AO_load(const volatile MK_AO_t *addr)
 {
         /* Cast away the volatile in case it adds fence semantics */
-        return (*(const AO_t *)addr);
+        return (*(const MK_AO_t *)addr);
 }
-#define AO_HAVE_load
+#define MK_AO_HAVE_load
 
 /* NEC LE-IT: atomic "store" - according to ARM documentation this is
  * the only safe way to set variables also used in LL/SC environment.
@@ -71,7 +71,7 @@ AO_load(const volatile AO_t *addr)
  * the reservation.  They should, but there is some doubt that this is
  * currently always the case for e.g. Linux.
 */
-AO_INLINE void AO_store(volatile AO_t *addr, AO_t value)
+MK_AO_INLINE void MK_AO_store(volatile MK_AO_t *addr, MK_AO_t value)
 {
         unsigned long tmp;
 
@@ -83,7 +83,7 @@ __asm {
         bne     retry
         };
 }
-#define AO_HAVE_store
+#define MK_AO_HAVE_store
 
 /* NEC LE-IT: replace the SWAP as recommended by ARM:
 
@@ -96,10 +96,10 @@ __asm {
         more flexible, other instructions can be done between the LDREX and STREX accesses.
    "
 */
-AO_INLINE AO_TS_VAL_t
-AO_test_and_set(volatile AO_TS_t *addr) {
+MK_AO_INLINE MK_AO_TS_VAL_t
+MK_AO_test_and_set(volatile MK_AO_TS_t *addr) {
 
-        AO_TS_VAL_t oldval;
+        MK_AO_TS_VAL_t oldval;
         unsigned long tmp;
         unsigned long one = 1;
 retry:
@@ -112,14 +112,14 @@ __asm {
 
         return oldval;
 }
-#define AO_HAVE_test_and_set
+#define MK_AO_HAVE_test_and_set
 
 /* NEC LE-IT: fetch and add for ARMv6 */
-AO_INLINE AO_t
-AO_fetch_and_add(volatile AO_t *p, AO_t incr)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_add(volatile MK_AO_t *p, MK_AO_t incr)
 {
         unsigned long tmp,tmp2;
-        AO_t result;
+        MK_AO_t result;
 
 retry:
 __asm {
@@ -132,14 +132,14 @@ __asm {
 
         return result;
 }
-#define AO_HAVE_fetch_and_add
+#define MK_AO_HAVE_fetch_and_add
 
 /* NEC LE-IT: fetch and add1 for ARMv6 */
-AO_INLINE AO_t
-AO_fetch_and_add1(volatile AO_t *p)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_add1(volatile MK_AO_t *p)
 {
         unsigned long tmp,tmp2;
-        AO_t result;
+        MK_AO_t result;
 
 retry:
 __asm {
@@ -152,14 +152,14 @@ __asm {
 
         return result;
 }
-#define AO_HAVE_fetch_and_add1
+#define MK_AO_HAVE_fetch_and_add1
 
 /* NEC LE-IT: fetch and sub for ARMv6 */
-AO_INLINE AO_t
-AO_fetch_and_sub1(volatile AO_t *p)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_sub1(volatile MK_AO_t *p)
 {
         unsigned long tmp,tmp2;
-        AO_t result;
+        MK_AO_t result;
 
 retry:
 __asm {
@@ -172,14 +172,14 @@ __asm {
 
         return result;
 }
-#define AO_HAVE_fetch_and_sub1
+#define MK_AO_HAVE_fetch_and_sub1
 
 /* NEC LE-IT: compare and swap */
 /* Returns nonzero if the comparison succeeded. */
-AO_INLINE int
-AO_compare_and_swap(volatile AO_t *addr, AO_t old_val, AO_t new_val)
+MK_AO_INLINE int
+MK_AO_compare_and_swap(volatile MK_AO_t *addr, MK_AO_t old_val, MK_AO_t new_val)
 {
-         AO_t result,tmp;
+         MK_AO_t result,tmp;
 
 retry:
 __asm__ {
@@ -196,24 +196,24 @@ __asm__ {
 
         return !(result&2);
 }
-#define AO_HAVE_compare_and_swap
+#define MK_AO_HAVE_compare_and_swap
 
 /* helper functions for the Realview compiler: LDREXD is not usable
  * with inline assembler, so use the "embedded" assembler as
  * suggested by ARM Dev. support (June 2008). */
-__asm inline double_ptr_storage load_ex(volatile AO_double_t *addr) {
+__asm inline double_ptr_storage load_ex(volatile MK_AO_double_t *addr) {
         LDREXD r0,r1,[r0]
 }
 
-__asm inline int store_ex(AO_t val1, AO_t val2, volatile AO_double_t *addr) {
+__asm inline int store_ex(MK_AO_t val1, MK_AO_t val2, volatile MK_AO_double_t *addr) {
         STREXD r3,r0,r1,[r2]
         MOV    r0,r3
 }
 
-AO_INLINE int
-AO_compare_double_and_swap_double(volatile AO_double_t *addr,
-                                  AO_t old_val1, AO_t old_val2,
-                                  AO_t new_val1, AO_t new_val2)
+MK_AO_INLINE int
+MK_AO_compare_double_and_swap_double(volatile MK_AO_double_t *addr,
+                                  MK_AO_t old_val1, MK_AO_t old_val2,
+                                  MK_AO_t new_val1, MK_AO_t new_val2)
 {
         double_ptr_storage old_val =
                         ((double_ptr_storage)old_val2 << 32) | old_val1;
@@ -227,6 +227,6 @@ AO_compare_double_and_swap_double(volatile AO_double_t *addr,
                 if(!result)     return 1;
         }
 }
-#define AO_HAVE_compare_double_and_swap_double
+#define MK_AO_HAVE_compare_double_and_swap_double
 
 #endif // __TARGET_ARCH_ARM

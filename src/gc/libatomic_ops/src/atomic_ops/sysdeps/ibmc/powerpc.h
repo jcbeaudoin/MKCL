@@ -16,109 +16,109 @@
 
 #include "../all_aligned_atomic_load_store.h"
 
-void AO_sync(void);
-#pragma mc_func AO_sync { "7c0004ac" }
+void MK_AO_sync(void);
+#pragma mc_func MK_AO_sync { "7c0004ac" }
 
 #ifdef __NO_LWSYNC__
-# define AO_lwsync AO_sync
+# define MK_AO_lwsync MK_AO_sync
 #else
-  void AO_lwsync(void);
-#pragma mc_func AO_lwsync { "7c2004ac" }
+  void MK_AO_lwsync(void);
+#pragma mc_func MK_AO_lwsync { "7c2004ac" }
 #endif
 
-#define AO_nop_write() AO_lwsync()
-#define AO_HAVE_nop_write
+#define MK_AO_nop_write() MK_AO_lwsync()
+#define MK_AO_HAVE_nop_write
 
-#define AO_nop_read() AO_lwsync()
-#define AO_HAVE_nop_read
+#define MK_AO_nop_read() MK_AO_lwsync()
+#define MK_AO_HAVE_nop_read
 
 /* We explicitly specify load_acquire and store_release, since these    */
 /* rely on the fact that lwsync is also a LoadStore barrier.            */
-AO_INLINE AO_t
-AO_load_acquire(const volatile AO_t *addr)
+MK_AO_INLINE MK_AO_t
+MK_AO_load_acquire(const volatile MK_AO_t *addr)
 {
-  AO_t result = *addr;
-  AO_lwsync();
+  MK_AO_t result = *addr;
+  MK_AO_lwsync();
   return result;
 }
-#define AO_HAVE_load_acquire
+#define MK_AO_HAVE_load_acquire
 
-AO_INLINE void
-AO_store_release(volatile AO_t *addr, AO_t value)
+MK_AO_INLINE void
+MK_AO_store_release(volatile MK_AO_t *addr, MK_AO_t value)
 {
-  AO_lwsync();
+  MK_AO_lwsync();
   *addr = value;
 }
-#define AO_HAVE_store_release
+#define MK_AO_HAVE_store_release
 
 /* This is similar to the code in the garbage collector.  Deleting      */
 /* this and having it synthesized from compare_and_swap would probably  */
 /* only cost us a load immediate instruction.                           */
-/*AO_INLINE AO_TS_VAL_t
-AO_test_and_set(volatile AO_TS_t *addr) {
+/*MK_AO_INLINE MK_AO_TS_VAL_t
+MK_AO_test_and_set(volatile MK_AO_TS_t *addr) {
 # error FIXME Implement me
 }
-#define AO_HAVE_test_and_set*/
+#define MK_AO_HAVE_test_and_set*/
 
-AO_INLINE AO_TS_VAL_t
-AO_test_and_set_acquire(volatile AO_TS_t *addr) {
-  AO_TS_VAL_t result = AO_test_and_set(addr);
-  AO_lwsync();
+MK_AO_INLINE MK_AO_TS_VAL_t
+MK_AO_test_and_set_acquire(volatile MK_AO_TS_t *addr) {
+  MK_AO_TS_VAL_t result = MK_AO_test_and_set(addr);
+  MK_AO_lwsync();
   return result;
 }
-#define AO_HAVE_test_and_set_acquire
+#define MK_AO_HAVE_test_and_set_acquire
 
-AO_INLINE AO_TS_VAL_t
-AO_test_and_set_release(volatile AO_TS_t *addr) {
-  AO_lwsync();
-  return AO_test_and_set(addr);
+MK_AO_INLINE MK_AO_TS_VAL_t
+MK_AO_test_and_set_release(volatile MK_AO_TS_t *addr) {
+  MK_AO_lwsync();
+  return MK_AO_test_and_set(addr);
 }
-#define AO_HAVE_test_and_set_release
+#define MK_AO_HAVE_test_and_set_release
 
-AO_INLINE AO_TS_VAL_t
-AO_test_and_set_full(volatile AO_TS_t *addr) {
-  AO_TS_VAL_t result;
-  AO_lwsync();
-  result = AO_test_and_set(addr);
-  AO_lwsync();
+MK_AO_INLINE MK_AO_TS_VAL_t
+MK_AO_test_and_set_full(volatile MK_AO_TS_t *addr) {
+  MK_AO_TS_VAL_t result;
+  MK_AO_lwsync();
+  result = MK_AO_test_and_set(addr);
+  MK_AO_lwsync();
   return result;
 }
-#define AO_HAVE_test_and_set_full
+#define MK_AO_HAVE_test_and_set_full
 
-/*AO_INLINE int
-AO_compare_and_swap(volatile AO_t *addr, AO_t old, AO_t new_val)
+/*MK_AO_INLINE int
+MK_AO_compare_and_swap(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val)
 {
 # error FIXME Implement me
 }
-#define AO_HAVE_compare_and_swap*/
+#define MK_AO_HAVE_compare_and_swap*/
 
-AO_INLINE int
-AO_compare_and_swap_acquire(volatile AO_t *addr, AO_t old, AO_t new_val)
+MK_AO_INLINE int
+MK_AO_compare_and_swap_acquire(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val)
 {
-  int result = AO_compare_and_swap(addr, old, new_val);
-  AO_lwsync();
+  int result = MK_AO_compare_and_swap(addr, old, new_val);
+  MK_AO_lwsync();
   return result;
 }
-#define AO_HAVE_compare_and_swap_acquire
+#define MK_AO_HAVE_compare_and_swap_acquire
 
-AO_INLINE int
-AO_compare_and_swap_release(volatile AO_t *addr, AO_t old, AO_t new_val)
+MK_AO_INLINE int
+MK_AO_compare_and_swap_release(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val)
 {
-  AO_lwsync();
-  return AO_compare_and_swap(addr, old, new_val);
+  MK_AO_lwsync();
+  return MK_AO_compare_and_swap(addr, old, new_val);
 }
-#define AO_HAVE_compare_and_swap_release
+#define MK_AO_HAVE_compare_and_swap_release
 
-AO_INLINE int
-AO_compare_and_swap_full(volatile AO_t *addr, AO_t old, AO_t new_val)
+MK_AO_INLINE int
+MK_AO_compare_and_swap_full(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val)
 {
   int result;
-  AO_lwsync();
-  result = AO_compare_and_swap(addr, old, new_val);
-  AO_lwsync();
+  MK_AO_lwsync();
+  result = MK_AO_compare_and_swap(addr, old, new_val);
+  MK_AO_lwsync();
   return result;
 }
-#define AO_HAVE_compare_and_swap_full
+#define MK_AO_HAVE_compare_and_swap_full
 
 /* FIXME: We should also implement fetch_and_add and or primitives      */
 /* directly.                                                            */

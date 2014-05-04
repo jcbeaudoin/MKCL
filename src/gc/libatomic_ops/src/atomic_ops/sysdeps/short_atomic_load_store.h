@@ -25,18 +25,18 @@
  * are atomic for all legal alignments.
  */
 
-AO_INLINE unsigned short
-AO_short_load(const volatile unsigned short *addr)
+MK_AO_INLINE unsigned short
+MK_AO_short_load(const volatile unsigned short *addr)
 {
   /* Cast away the volatile for architectures like IA64 where   */
   /* volatile adds barrier semantics.                           */
   return (*(const unsigned short *)addr);
 }
-#define AO_HAVE_short_load
+#define MK_AO_HAVE_short_load
 
-AO_INLINE void
-AO_short_store(volatile unsigned short *addr, unsigned short new_val)
+MK_AO_INLINE void
+MK_AO_short_store(volatile unsigned short *addr, unsigned short new_val)
 {
   (*(unsigned short *)addr) = new_val;
 }
-#define AO_HAVE_short_store
+#define MK_AO_HAVE_short_store

@@ -27,29 +27,29 @@
 /* told me by the support engineers. If it turns out to be much quicker */
 /* than we should implement custom code for ARMv7 using the asm { dmb } */
 /* instruction.                                                         */
-/* If only a single processor is used, we can define AO_UNIPROCESSOR    */
+/* If only a single processor is used, we can define MK_AO_UNIPROCESSOR    */
 /* and do not need to access CP15 for ensuring a DMB.                   */
 
 #if defined(__thumb__) && !defined(__thumb2__)
   /* Thumb One mode does not have ARM "mcr", "swp" and some load/store  */
   /* instructions, so we temporarily switch to ARM mode and go back     */
   /* afterwards (clobbering "r3" register).                             */
-# define AO_THUMB_GO_ARM \
+# define MK_AO_THUMB_GO_ARM \
            "       adr     r3, 4f\n" \
            "       bx      r3\n" \
            "      .align\n" \
            "      .arm\n" \
            "4:\n"
-# define AO_THUMB_RESTORE_MODE \
+# define MK_AO_THUMB_RESTORE_MODE \
            "       adr     r3, 5f + 1\n" \
            "       bx      r3\n" \
            "       .thumb\n" \
            "5:\n"
-# define AO_THUMB_SWITCH_CLOBBERS "r3",
+# define MK_AO_THUMB_SWITCH_CLOBBERS "r3",
 #else
-# define AO_THUMB_GO_ARM /* empty */
-# define AO_THUMB_RESTORE_MODE /* empty */
-# define AO_THUMB_SWITCH_CLOBBERS /* empty */
+# define MK_AO_THUMB_GO_ARM /* empty */
+# define MK_AO_THUMB_RESTORE_MODE /* empty */
+# define MK_AO_THUMB_SWITCH_CLOBBERS /* empty */
 #endif /* !__thumb__ */
 
 /* NEC LE-IT: gcc has no way to easily check the arm architecture       */
@@ -64,34 +64,34 @@
 
 #include "../standard_ao_double_t.h"
 
-AO_INLINE void
-AO_nop_full(void)
+MK_AO_INLINE void
+MK_AO_nop_full(void)
 {
-# ifndef AO_UNIPROCESSOR
+# ifndef MK_AO_UNIPROCESSOR
     unsigned dest = 0;
 
     /* Issue a data memory barrier (keeps ordering of memory    */
     /* transactions before and after this operation).           */
-    __asm__ __volatile__("@AO_nop_full\n"
-      AO_THUMB_GO_ARM
+    __asm__ __volatile__("@MK_AO_nop_full\n"
+      MK_AO_THUMB_GO_ARM
       "       mcr p15,0,%0,c7,c10,5\n"
-      AO_THUMB_RESTORE_MODE
+      MK_AO_THUMB_RESTORE_MODE
       : "=&r"(dest)
       : /* empty */
-      : AO_THUMB_SWITCH_CLOBBERS "memory");
+      : MK_AO_THUMB_SWITCH_CLOBBERS "memory");
 # endif
 }
-#define AO_HAVE_nop_full
+#define MK_AO_HAVE_nop_full
 
-/* NEC LE-IT: AO_t load is simple reading */
-AO_INLINE AO_t
-AO_load(const volatile AO_t *addr)
+/* NEC LE-IT: MK_AO_t load is simple reading */
+MK_AO_INLINE MK_AO_t
+MK_AO_load(const volatile MK_AO_t *addr)
 {
   /* Cast away the volatile for architectures like IA64 where   */
   /* volatile adds barrier semantics.                           */
-  return (*(const AO_t *)addr);
+  return (*(const MK_AO_t *)addr);
 }
-#define AO_HAVE_load
+#define MK_AO_HAVE_load
 
 /* NEC LE-IT: atomic "store" - according to ARM documentation this is
  * the only safe way to set variables also used in LL/SC environment.
@@ -119,22 +119,22 @@ AO_load(const volatile AO_t *addr)
  * the reservation, as they almost certainly should.  Probably change this back
  * in a while?
 */
-AO_INLINE void AO_store(volatile AO_t *addr, AO_t value)
+MK_AO_INLINE void MK_AO_store(volatile MK_AO_t *addr, MK_AO_t value)
 {
-  AO_t flag;
+  MK_AO_t flag;
 
-  __asm__ __volatile__("@AO_store\n"
-    AO_THUMB_GO_ARM
+  __asm__ __volatile__("@MK_AO_store\n"
+    MK_AO_THUMB_GO_ARM
     "1:     ldrex   %0, [%2]\n"
     "       strex   %0, %3, [%2]\n"
     "       teq     %0, #0\n"
     "       bne     1b\n"
-    AO_THUMB_RESTORE_MODE
+    MK_AO_THUMB_RESTORE_MODE
     : "=&r"(flag), "+m"(*addr)
     : "r" (addr), "r"(value)
-    : AO_THUMB_SWITCH_CLOBBERS "cc");
+    : MK_AO_THUMB_SWITCH_CLOBBERS "cc");
 }
-#define AO_HAVE_store
+#define MK_AO_HAVE_store
 
 /* NEC LE-IT: replace the SWAP as recommended by ARM:
    "Applies to: ARM11 Cores
@@ -146,109 +146,109 @@ AO_INLINE void AO_store(volatile AO_t *addr, AO_t value)
       interrupt latencies. LDREX, STREX are more flexible, other instructions
       can be done between the LDREX and STREX accesses."
 */
-#if !defined(AO_FORCE_USE_SWP) || defined(__thumb2__)
+#if !defined(MK_AO_FORCE_USE_SWP) || defined(__thumb2__)
   /* But, on the other hand, there could be a considerable performance  */
   /* degradation in case of a race.  Eg., test_atomic.c executing       */
   /* test_and_set test on a dual-core ARMv7 processor using LDREX/STREX */
   /* showed around 35 times lower performance than that using SWP.      */
-  /* To force use of SWP instruction, use -D AO_FORCE_USE_SWP option    */
+  /* To force use of SWP instruction, use -D MK_AO_FORCE_USE_SWP option    */
   /* (this is ignored in the Thumb-2 mode as SWP is missing there).     */
-  AO_INLINE AO_TS_VAL_t
-  AO_test_and_set(volatile AO_TS_t *addr)
+  MK_AO_INLINE MK_AO_TS_VAL_t
+  MK_AO_test_and_set(volatile MK_AO_TS_t *addr)
   {
-    AO_TS_VAL_t oldval;
+    MK_AO_TS_VAL_t oldval;
     unsigned long flag;
 
-    __asm__ __volatile__("@AO_test_and_set\n"
-      AO_THUMB_GO_ARM
+    __asm__ __volatile__("@MK_AO_test_and_set\n"
+      MK_AO_THUMB_GO_ARM
       "1:     ldrex   %0, [%3]\n"
       "       strex   %1, %4, [%3]\n"
       "       teq     %1, #0\n"
       "       bne     1b\n"
-      AO_THUMB_RESTORE_MODE
+      MK_AO_THUMB_RESTORE_MODE
       : "=&r"(oldval), "=&r"(flag), "+m"(*addr)
       : "r"(addr), "r"(1)
-      : AO_THUMB_SWITCH_CLOBBERS "cc");
+      : MK_AO_THUMB_SWITCH_CLOBBERS "cc");
     return oldval;
   }
-# define AO_HAVE_test_and_set
-#endif /* !AO_FORCE_USE_SWP */
+# define MK_AO_HAVE_test_and_set
+#endif /* !MK_AO_FORCE_USE_SWP */
 
 /* NEC LE-IT: fetch and add for ARMv6 */
-AO_INLINE AO_t
-AO_fetch_and_add(volatile AO_t *p, AO_t incr)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_add(volatile MK_AO_t *p, MK_AO_t incr)
 {
   unsigned long flag, tmp;
-  AO_t result;
+  MK_AO_t result;
 
-  __asm__ __volatile__("@AO_fetch_and_add\n"
-    AO_THUMB_GO_ARM
+  __asm__ __volatile__("@MK_AO_fetch_and_add\n"
+    MK_AO_THUMB_GO_ARM
     "1:     ldrex   %0, [%5]\n"         /* get original         */
     "       add     %2, %0, %4\n"       /* sum up in incr       */
     "       strex   %1, %2, [%5]\n"     /* store them           */
     "       teq     %1, #0\n"
     "       bne     1b\n"
-    AO_THUMB_RESTORE_MODE
+    MK_AO_THUMB_RESTORE_MODE
     : "=&r"(result), "=&r"(flag), "=&r"(tmp), "+m"(*p) /* 0..3 */
     : "r"(incr), "r"(p)                                /* 4..5 */
-    : AO_THUMB_SWITCH_CLOBBERS "cc");
+    : MK_AO_THUMB_SWITCH_CLOBBERS "cc");
   return result;
 }
-#define AO_HAVE_fetch_and_add
+#define MK_AO_HAVE_fetch_and_add
 
 /* NEC LE-IT: fetch and add1 for ARMv6 */
-AO_INLINE AO_t
-AO_fetch_and_add1(volatile AO_t *p)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_add1(volatile MK_AO_t *p)
 {
   unsigned long flag, tmp;
-  AO_t result;
+  MK_AO_t result;
 
-  __asm__ __volatile__("@AO_fetch_and_add1\n"
-    AO_THUMB_GO_ARM
+  __asm__ __volatile__("@MK_AO_fetch_and_add1\n"
+    MK_AO_THUMB_GO_ARM
     "1:     ldrex   %0, [%4]\n"         /* get original */
     "       add     %1, %0, #1\n"       /* increment */
     "       strex   %2, %1, [%4]\n"     /* store them */
     "       teq     %2, #0\n"
     "       bne     1b\n"
-    AO_THUMB_RESTORE_MODE
+    MK_AO_THUMB_RESTORE_MODE
     : "=&r"(result), "=&r"(tmp), "=&r"(flag), "+m"(*p)
     : "r"(p)
-    : AO_THUMB_SWITCH_CLOBBERS "cc");
+    : MK_AO_THUMB_SWITCH_CLOBBERS "cc");
   return result;
 }
-#define AO_HAVE_fetch_and_add1
+#define MK_AO_HAVE_fetch_and_add1
 
 /* NEC LE-IT: fetch and sub for ARMv6 */
-AO_INLINE AO_t
-AO_fetch_and_sub1(volatile AO_t *p)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_sub1(volatile MK_AO_t *p)
 {
   unsigned long flag, tmp;
-  AO_t result;
+  MK_AO_t result;
 
-  __asm__ __volatile__("@AO_fetch_and_sub1\n"
-    AO_THUMB_GO_ARM
+  __asm__ __volatile__("@MK_AO_fetch_and_sub1\n"
+    MK_AO_THUMB_GO_ARM
     "1:     ldrex   %0, [%4]\n"         /* get original */
     "       sub     %1, %0, #1\n"       /* decrement */
     "       strex   %2, %1, [%4]\n"     /* store them */
     "       teq     %2, #0\n"
     "       bne     1b\n"
-    AO_THUMB_RESTORE_MODE
+    MK_AO_THUMB_RESTORE_MODE
     : "=&r"(result), "=&r"(tmp), "=&r"(flag), "+m"(*p)
     : "r"(p)
-    : AO_THUMB_SWITCH_CLOBBERS "cc");
+    : MK_AO_THUMB_SWITCH_CLOBBERS "cc");
   return result;
 }
-#define AO_HAVE_fetch_and_sub1
+#define MK_AO_HAVE_fetch_and_sub1
 
 /* NEC LE-IT: compare and swap */
 /* Returns nonzero if the comparison succeeded. */
-AO_INLINE int
-AO_compare_and_swap(volatile AO_t *addr, AO_t old_val, AO_t new_val)
+MK_AO_INLINE int
+MK_AO_compare_and_swap(volatile MK_AO_t *addr, MK_AO_t old_val, MK_AO_t new_val)
 {
-  AO_t result, tmp;
+  MK_AO_t result, tmp;
 
-  __asm__ __volatile__("@AO_compare_and_swap\n"
-    AO_THUMB_GO_ARM
+  __asm__ __volatile__("@MK_AO_compare_and_swap\n"
+    MK_AO_THUMB_GO_ARM
     "1:     mov     %0, #2\n"           /* store a flag */
     "       ldrex   %1, [%3]\n"         /* get original */
     "       teq     %1, %4\n"           /* see if match */
@@ -258,13 +258,13 @@ AO_compare_and_swap(volatile AO_t *addr, AO_t old_val, AO_t new_val)
     "       strexeq %0, %5, [%3]\n"     /* store new one if matched */
     "       teq     %0, #1\n"
     "       beq     1b\n"               /* if update failed, repeat */
-    AO_THUMB_RESTORE_MODE
+    MK_AO_THUMB_RESTORE_MODE
     : "=&r"(result), "=&r"(tmp), "+m"(*addr)
     : "r"(addr), "r"(old_val), "r"(new_val)
-    : AO_THUMB_SWITCH_CLOBBERS "cc");
+    : MK_AO_THUMB_SWITCH_CLOBBERS "cc");
   return !(result&2);   /* if succeded, return 1, else 0 */
 }
-#define AO_HAVE_compare_and_swap
+#define MK_AO_HAVE_compare_and_swap
 
 #if !defined(__ARM_ARCH_6__) && !defined(__ARM_ARCH_6J__) \
     && !defined(__ARM_ARCH_6T2__) && !defined(__ARM_ARCH_6Z__) \
@@ -274,10 +274,10 @@ AO_compare_and_swap(volatile AO_t *addr, AO_t old_val, AO_t new_val)
   /* LDREXD/STREXD present in ARMv6K/M+ (see gas/config/tc-arm.c)       */
   /* In the Thumb mode, this works only starting from ARMv7 (except for */
   /* the base and 'M' models).                                          */
-  AO_INLINE int
-  AO_compare_double_and_swap_double(volatile AO_double_t *addr,
-                                    AO_t old_val1, AO_t old_val2,
-                                    AO_t new_val1, AO_t new_val2)
+  MK_AO_INLINE int
+  MK_AO_compare_double_and_swap_double(volatile MK_AO_double_t *addr,
+                                    MK_AO_t old_val1, MK_AO_t old_val2,
+                                    MK_AO_t new_val1, MK_AO_t new_val2)
   {
     double_ptr_storage old_val =
                         ((double_ptr_storage)old_val2 << 32) | old_val1;
@@ -287,7 +287,7 @@ AO_compare_and_swap(volatile AO_t *addr, AO_t old_val, AO_t new_val)
     int result = 1;
 
     do {
-      __asm__ __volatile__("@AO_compare_double_and_swap_double\n"
+      __asm__ __volatile__("@MK_AO_compare_double_and_swap_double\n"
         "       ldrexd  %0, [%1]\n"     /* get original to r1 & r2 */
         : "=&r"(tmp)
         : "r"(addr)
@@ -302,7 +302,7 @@ AO_compare_and_swap(volatile AO_t *addr, AO_t old_val, AO_t new_val)
     } while (result);
     return !result;   /* if succeded, return 1 else 0 */
   }
-# define AO_HAVE_compare_double_and_swap_double
+# define MK_AO_HAVE_compare_double_and_swap_double
 #endif
 
 #else
@@ -315,7 +315,7 @@ AO_compare_and_swap(volatile AO_t *addr, AO_t old_val, AO_t new_val)
 #include "../all_atomic_load_store.h"
 
 /* The code should run correctly on a multi-core ARMv6+ as well.        */
-/* There is only a single concern related to AO_store (defined in       */
+/* There is only a single concern related to MK_AO_store (defined in       */
 /* atomic_load_store.h file):                                           */
 /* HB: Based on subsequent discussion, I think it would be OK to use an */
 /* ordinary store here if we knew that interrupt handlers always        */
@@ -325,12 +325,12 @@ AO_compare_and_swap(volatile AO_t *addr, AO_t old_val, AO_t new_val)
 /* ARMv6M does not support ARM mode.    */
 #endif /* __ARM_ARCH_x */
 
-#if !defined(AO_HAVE_test_and_set_full) && !defined(AO_HAVE_test_and_set) \
+#if !defined(MK_AO_HAVE_test_and_set_full) && !defined(MK_AO_HAVE_test_and_set) \
     && !defined(__ARM_ARCH_2__) && !defined(__ARM_ARCH_6M__)
-  AO_INLINE AO_TS_VAL_t
-  AO_test_and_set_full(volatile AO_TS_t *addr)
+  MK_AO_INLINE MK_AO_TS_VAL_t
+  MK_AO_test_and_set_full(volatile MK_AO_TS_t *addr)
   {
-    AO_TS_VAL_t oldval;
+    MK_AO_TS_VAL_t oldval;
     /* SWP on ARM is very similar to XCHG on x86.                       */
     /* The first operand is the result, the second the value            */
     /* to be stored.  Both registers must be different from addr.       */
@@ -339,16 +339,16 @@ AO_compare_and_swap(volatile AO_t *addr, AO_t old_val, AO_t new_val)
     /* on oldval is necessary to prevent the compiler allocating        */
     /* them to the same register if they are both unused.               */
 
-    __asm__ __volatile__("@AO_test_and_set_full\n"
-      AO_THUMB_GO_ARM
+    __asm__ __volatile__("@MK_AO_test_and_set_full\n"
+      MK_AO_THUMB_GO_ARM
       "       swp %0, %2, [%3]\n"
                 /* Ignore GCC "SWP is deprecated for this architecture" */
                 /* warning here (for ARMv6+).                           */
-      AO_THUMB_RESTORE_MODE
+      MK_AO_THUMB_RESTORE_MODE
       : "=&r"(oldval), "=&r"(addr)
       : "r"(1), "1"(addr)
-      : AO_THUMB_SWITCH_CLOBBERS "memory");
+      : MK_AO_THUMB_SWITCH_CLOBBERS "memory");
     return oldval;
   }
-# define AO_HAVE_test_and_set_full
-#endif /* !AO_HAVE_test_and_set[_full] */
+# define MK_AO_HAVE_test_and_set_full
+#endif /* !MK_AO_HAVE_test_and_set[_full] */

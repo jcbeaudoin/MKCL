@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-/* Definitions for architectures on which loads and stores of AO_t are  */
+/* Definitions for architectures on which loads and stores of MK_AO_t are  */
 /* atomic fo all legal alignments.                                      */
 
 MK_AO_INLINE MK_AO_t

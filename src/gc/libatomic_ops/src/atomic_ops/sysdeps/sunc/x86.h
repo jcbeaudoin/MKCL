@@ -33,13 +33,13 @@
 
 #include "../standard_ao_double_t.h"
 
-#if defined(AO_USE_PENTIUM4_INSTRS)
-AO_INLINE void
-AO_nop_full(void)
+#if defined(MK_AO_USE_PENTIUM4_INSTRS)
+MK_AO_INLINE void
+MK_AO_nop_full(void)
 {
   __asm__ __volatile__ ("mfence" : : : "memory");
 }
-#define AO_HAVE_nop_full
+#define MK_AO_HAVE_nop_full
 
 #else
 
@@ -53,20 +53,20 @@ AO_nop_full(void)
 /* currently needed or useful for cached memory accesses.               */
 
 /* Really only works for 486 and later */
-AO_INLINE AO_t
-AO_fetch_and_add_full (volatile AO_t *p, AO_t incr)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_and_add_full (volatile MK_AO_t *p, MK_AO_t incr)
 {
-  AO_t result;
+  MK_AO_t result;
 
   __asm__ __volatile__ ("lock; xaddl %0, %1" :
                         "=r" (result), "=m" (*p) : "0" (incr) /* , "m" (*p) */
                         : "memory");
   return result;
 }
-#define AO_HAVE_fetch_and_add_full
+#define MK_AO_HAVE_fetch_and_add_full
 
-AO_INLINE unsigned char
-AO_char_fetch_and_add_full (volatile unsigned char *p, unsigned char incr)
+MK_AO_INLINE unsigned char
+MK_AO_char_fetch_and_add_full (volatile unsigned char *p, unsigned char incr)
 {
   unsigned char result;
 
@@ -75,10 +75,10 @@ AO_char_fetch_and_add_full (volatile unsigned char *p, unsigned char incr)
                         : "memory");
   return result;
 }
-#define AO_HAVE_char_fetch_and_add_full
+#define MK_AO_HAVE_char_fetch_and_add_full
 
-AO_INLINE unsigned short
-AO_short_fetch_and_add_full (volatile unsigned short *p, unsigned short incr)
+MK_AO_INLINE unsigned short
+MK_AO_short_fetch_and_add_full (volatile unsigned short *p, unsigned short incr)
 {
   unsigned short result;
 
@@ -87,34 +87,34 @@ AO_short_fetch_and_add_full (volatile unsigned short *p, unsigned short incr)
                         : "memory");
   return result;
 }
-#define AO_HAVE_short_fetch_and_add_full
+#define MK_AO_HAVE_short_fetch_and_add_full
 
 /* Really only works for 486 and later */
-AO_INLINE void
-AO_or_full (volatile AO_t *p, AO_t incr)
+MK_AO_INLINE void
+MK_AO_or_full (volatile MK_AO_t *p, MK_AO_t incr)
 {
   __asm__ __volatile__ ("lock; orl %1, %0" :
                         "=m" (*p) : "r" (incr) /* , "m" (*p) */
                         : "memory");
 }
-#define AO_HAVE_or_full
+#define MK_AO_HAVE_or_full
 
-AO_INLINE AO_TS_VAL_t
-AO_test_and_set_full (volatile AO_TS_t *addr)
+MK_AO_INLINE MK_AO_TS_VAL_t
+MK_AO_test_and_set_full (volatile MK_AO_TS_t *addr)
 {
-  AO_TS_t oldval;
+  MK_AO_TS_t oldval;
   /* Note: the "xchg" instruction does not need a "lock" prefix */
   __asm__ __volatile__ ("xchg %b0, %1"
                         : "=q"(oldval), "=m"(*addr)
                         : "0"(0xff) /* , "m"(*addr) */
                         : "memory");
-  return (AO_TS_VAL_t)oldval;
+  return (MK_AO_TS_VAL_t)oldval;
 }
-#define AO_HAVE_test_and_set_full
+#define MK_AO_HAVE_test_and_set_full
 
 /* Returns nonzero if the comparison succeeded. */
-AO_INLINE int
-AO_compare_and_swap_full (volatile AO_t *addr, AO_t old, AO_t new_val)
+MK_AO_INLINE int
+MK_AO_compare_and_swap_full (volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val)
 {
   char result;
   __asm__ __volatile__ ("lock; cmpxchgl %2, %0; setz %1"
@@ -122,17 +122,17 @@ AO_compare_and_swap_full (volatile AO_t *addr, AO_t old, AO_t new_val)
                         : "r" (new_val), "a"(old) : "memory");
   return (int) result;
 }
-#define AO_HAVE_compare_and_swap_full
+#define MK_AO_HAVE_compare_and_swap_full
 
 #if 0
 /* FIXME: not tested (and probably wrong). Besides,     */
 /* it tickles a bug in Sun C 5.10 (when optimizing).    */
 /* Returns nonzero if the comparison succeeded. */
 /* Really requires at least a Pentium.          */
-AO_INLINE int
-AO_compare_double_and_swap_double_full(volatile AO_double_t *addr,
-                                       AO_t old_val1, AO_t old_val2,
-                                       AO_t new_val1, AO_t new_val2)
+MK_AO_INLINE int
+MK_AO_compare_double_and_swap_double_full(volatile MK_AO_double_t *addr,
+                                       MK_AO_t old_val1, MK_AO_t old_val2,
+                                       MK_AO_t new_val1, MK_AO_t new_val2)
 {
   char result;
 #if __PIC__
@@ -158,7 +158,7 @@ AO_compare_double_and_swap_double_full(volatile AO_double_t *addr,
 #endif
   return (int) result;
 }
-#define AO_HAVE_compare_double_and_swap_double_full
+#define MK_AO_HAVE_compare_double_and_swap_double_full
 #endif
 
 #include "../ao_t_is_int.h"
