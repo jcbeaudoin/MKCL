@@ -521,14 +521,14 @@ clean_lisp:
 distclean: clean
 	cd c; $(MAKE) distclean
 	$(RM) bin/mkcl-config.pre
-	$(RM) Makefile bare.lsp compile.pre
 	$(RM) doc/Makefile doc/mkcl.man doc/mkcl-config.man
 	$(RM) mkcl/config.h mkcl/configpre.h
 	$(RM) lsp/config.pre lsp/load.lsp clos/load.lsp
 	$(RM) cmp/cmpdefs.pre cmp/load.lsp
-	(cd gc/libatomic_ops; $(MAKE) distclean)
-	(cd gc; $(MAKE) distclean)
+	-(cd gc/libatomic_ops; $(MAKE) distclean)
+	-(cd gc; $(MAKE) distclean)
 	$(RM) config.status config.version config.log config.cache
+	$(RM) Makefile bare.lsp compile.pre
 
 realclean: distclean
 	cd c; $(MAKE) realclean
