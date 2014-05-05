@@ -526,6 +526,7 @@ distclean: clean
 	$(RM) mkcl/config.h mkcl/configpre.h
 	$(RM) lsp/config.pre lsp/load.lsp clos/load.lsp
 	$(RM) cmp/cmpdefs.pre cmp/load.lsp
+	(cd gc/libatomic_ops; $(MAKE) distclean)
 	(cd gc; $(MAKE) distclean)
 	$(RM) config.status config.version config.log config.cache
 
