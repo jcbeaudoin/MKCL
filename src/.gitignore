@@ -11,14 +11,7 @@ compile.lsp
 compile.pre
 config.log
 config.status
-ext/
 ext-dir-exists
 bin/
-encodings/
-ENCODINGS/
-include/
-lib/
 test/
-autom4te.cache/
-asdf-stage/
 asdf-stage-dir-exists
