@@ -68,14 +68,14 @@ MK_GC_API void MK_GC_CALL MK_GC_generic_malloc_many(size_t /* lb */, int /* k */
 /* amount of code.                                                      */
 # define MK_GC_FAST_MALLOC_GRANS(result,granules,tiny_fl,num_direct,\
                               kind,default_expr,init) \
-{ \
+  do { \
     if (MK_GC_EXPECT((granules) >= MK_GC_TINY_FREELISTS,0)) { \
         result = (default_expr); \
     } else { \
         void **my_fl = (tiny_fl) + (granules); \
         void *my_entry=*my_fl; \
         void *next; \
- \
+    \
         while (MK_GC_EXPECT((MK_GC_word)my_entry \
                         <= (num_direct) + MK_GC_TINY_FREELISTS + 1, 0)) { \
             /* Entry contains counter or NULL */ \
@@ -104,8 +104,8 @@ MK_GC_API void MK_GC_CALL MK_GC_generic_malloc_many(size_t /* lb */, int /* k */
         MK_GC_ASSERT(MK_GC_size(result) >= (granules)*MK_GC_GRANULE_BYTES); \
         MK_GC_ASSERT((kind) == PTRFREE || ((MK_GC_word *)result)[1] == 0); \
       out: ; \
-   } \
-}
+    } \
+  } while (0)
 
 # define MK_GC_WORDS_TO_WHOLE_GRANULES(n) \
         MK_GC_WORDS_TO_GRANULES((n) + MK_GC_GRANULE_WORDS - 1)
@@ -118,29 +118,29 @@ MK_GC_API void MK_GC_CALL MK_GC_generic_malloc_many(size_t /* lb */, int /* k */
 /* free list array.  For single-threaded applications, this may be      */
 /* a global array.                                                      */
 # define MK_GC_MALLOC_WORDS(result,n,tiny_fl) \
-{ \
+  do { \
     size_t grans = MK_GC_WORDS_TO_WHOLE_GRANULES(n); \
     MK_GC_FAST_MALLOC_GRANS(result, grans, tiny_fl, 0, \
                          NORMAL, MK_GC_malloc(grans*MK_GC_GRANULE_BYTES), \
                          *(void **)(result) = 0); \
-}
+  } while (0)
 
 # define MK_GC_MALLOC_ATOMIC_WORDS(result,n,tiny_fl) \
-{ \
+  do { \
     size_t grans = MK_GC_WORDS_TO_WHOLE_GRANULES(n); \
     MK_GC_FAST_MALLOC_GRANS(result, grans, tiny_fl, 0, \
                          PTRFREE, MK_GC_malloc_atomic(grans*MK_GC_GRANULE_BYTES), \
                          (void)0 /* no initialization */); \
-}
+  } while (0)
 
 /* And once more for two word initialized objects: */
 # define MK_GC_CONS(result, first, second, tiny_fl) \
-{ \
+  do { \
     size_t grans = MK_GC_WORDS_TO_WHOLE_GRANULES(2); \
     MK_GC_FAST_MALLOC_GRANS(result, grans, tiny_fl, 0, \
                          NORMAL, MK_GC_malloc(grans*MK_GC_GRANULE_BYTES), \
                          *(void **)(result) = (void *)(first)); \
     ((void **)(result))[1] = (void *)(second); \
-}
+  } while (0)
 
 #endif /* !MK_GC_INLINE_H */

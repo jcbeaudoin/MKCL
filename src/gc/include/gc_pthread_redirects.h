@@ -25,7 +25,7 @@
 /* that we can locate thread stacks and stop the world.                 */
 /* Note also that the collector cannot always see thread specific data. */
 /* Thread specific data should generally consist of pointers to         */
-/* uncollectable objects (allocated with MK_GC_malloc_uncollectable,       */
+/* uncollectible objects (allocated with MK_GC_malloc_uncollectable,       */
 /* not the system malloc), which are deallocated using the destructor   */
 /* facility in thr_keycreate.  Alternatively, keep a redundant pointer  */
 /* to thread specific data on the thread stack.                         */
@@ -58,7 +58,8 @@ MK_GC_API int MK_GC_pthread_detach(pthread_t);
   MK_GC_API int MK_GC_pthread_cancel(pthread_t);
 #endif
 
-#ifdef MK_GC_PTHREAD_EXIT_ATTRIBUTE
+#if defined(MK_GC_PTHREAD_EXIT_ATTRIBUTE) && !defined(MK_GC_PTHREAD_EXIT_DECLARED)
+# define MK_GC_PTHREAD_EXIT_DECLARED
   MK_GC_API void MK_GC_pthread_exit(void *) MK_GC_PTHREAD_EXIT_ATTRIBUTE;
 #endif
 

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 1991-1994 by Xerox Corporation.  All rights reserved.
  *
  * THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY EXPRESSED
@@ -41,7 +41,7 @@ void * MK_GC_DebugAllocProc(size_t size, PCR_Bool ptrFree, PCR_Bool clear )
 {
     if (ptrFree) {
         void * result = (void *)MK_GC_debug_malloc_atomic(size, __FILE__,
-        						     __LINE__);
+                                                             __LINE__);
         if (clear && result != 0) BZERO(result, size);
         return(result);
     } else {
@@ -74,12 +74,12 @@ void MK_GC_enumerate_block(struct hblk *h; enumerate_data * ed)
     word descr;
 #   error This code was updated without testing.
 #   error and its precursor was clearly broken.
-    
+
     hhdr = HDR(h);
     descr = hhdr -> hb_descr;
     sz = hhdr -> hb_sz;
     if (descr != 0 && ed -> ed_pointerfree
-    	|| descr == 0 && !(ed -> ed_pointerfree)) return;
+        || descr == 0 && !(ed -> ed_pointerfree)) return;
     lim = (ptr_t)(h+1) - sz;
     p = (ptr_t)h;
     do {
@@ -87,7 +87,7 @@ void MK_GC_enumerate_block(struct hblk *h; enumerate_data * ed)
         ed -> ed_fail_code =
             (*(ed -> ed_proc))(p, sz, ed -> ed_client_data);
         p+= sz;
-    } while (p <= lim);
+    } while ((word)p <= (word)lim);
 }
 
 struct PCR_MM_ProcsRep * MK_GC_old_allocator = 0;
@@ -99,7 +99,7 @@ PCR_ERes MK_GC_EnumerateProc(
 )
 {
     enumerate_data ed;
-    
+
     ed.ed_proc = proc;
     ed.ed_pointerfree = ptrFree;
     ed.ed_fail_code = PCR_ERes_okay;
@@ -108,8 +108,8 @@ PCR_ERes MK_GC_EnumerateProc(
     if (ed.ed_fail_code != PCR_ERes_okay) {
         return(ed.ed_fail_code);
     } else {
-    	/* Also enumerate objects allocated by my predecessors */
-    	return((*(MK_GC_old_allocator->mmp_enumerate))(ptrFree, proc, data));
+        /* Also enumerate objects allocated by my predecessors */
+        return((*(MK_GC_old_allocator->mmp_enumerate))(ptrFree, proc, data));
     }
 }
 
@@ -118,23 +118,23 @@ void MK_GC_DummyFreeProc(void *p) {}
 void MK_GC_DummyShutdownProc(void) {}
 
 struct PCR_MM_ProcsRep MK_GC_Rep = {
-	MY_MAGIC,
-	MK_GC_AllocProc,
-	MK_GC_ReallocProc,
-	MK_GC_DummyFreeProc,  	/* mmp_free */
-	MK_GC_FreeProc,  		/* mmp_unsafeFree */
-	MK_GC_EnumerateProc,
-	MK_GC_DummyShutdownProc	/* mmp_shutdown */
+        MY_MAGIC,
+        MK_GC_AllocProc,
+        MK_GC_ReallocProc,
+        MK_GC_DummyFreeProc,       /* mmp_free */
+        MK_GC_FreeProc,            /* mmp_unsafeFree */
+        MK_GC_EnumerateProc,
+        MK_GC_DummyShutdownProc    /* mmp_shutdown */
 };
 
 struct PCR_MM_ProcsRep MK_GC_DebugRep = {
-	MY_DEBUGMAGIC,
-	MK_GC_DebugAllocProc,
-	MK_GC_DebugReallocProc,
-	MK_GC_DummyFreeProc,  	/* mmp_free */
-	MK_GC_DebugFreeProc,  		/* mmp_unsafeFree */
-	MK_GC_EnumerateProc,
-	MK_GC_DummyShutdownProc	/* mmp_shutdown */
+        MY_DEBUGMAGIC,
+        MK_GC_DebugAllocProc,
+        MK_GC_DebugReallocProc,
+        MK_GC_DummyFreeProc,       /* mmp_free */
+        MK_GC_DebugFreeProc,               /* mmp_unsafeFree */
+        MK_GC_EnumerateProc,
+        MK_GC_DummyShutdownProc    /* mmp_shutdown */
 };
 
 MK_GC_bool MK_GC_use_debug = 0;
@@ -163,9 +163,9 @@ PCR_MK_GC_Run(void)
              * awful hack to test whether VD is implemented ...
              */
             if( PCR_VD_Start( 0, NIL, 0) != PCR_ERes_FromErr(ENOSYS) ) {
-	        MK_GC_enable_incremental();
-	    }
-	}
+                MK_GC_enable_incremental();
+            }
+        }
     }
     return PCR_ERes_okay;
 }

@@ -19,7 +19,7 @@
 #define MK_GC_PTHREAD_STOP_WORLD_H
 
 struct thread_stop_info {
-#   ifndef MK_GC_OPENBSD_THREADS
+#   ifndef MK_GC_OPENBSD_UTHREADS
       word last_stop_count;     /* MK_GC_last_stop_count value when thread */
                                 /* last successfully handled a suspend  */
                                 /* signal.                              */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 Hewlett-Packard Development Company, L.P.
+ * Copyright (c) 2003-2011 Hewlett-Packard Development Company, L.P.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,6 @@
 
 # define _InterlockedIncrement       InterlockedIncrement
 # define _InterlockedDecrement       InterlockedDecrement
-# define _InterlockedExchange        InterlockedExchange
 # define _InterlockedExchangeAdd     InterlockedExchangeAdd
 # define _InterlockedCompareExchange InterlockedCompareExchange
 
@@ -50,8 +49,6 @@
 #     include <intrin.h>
 #   endif
 
-#   pragma intrinsic (_ReadWriteBarrier)
-
 # else /* elif _MSC_VER < 1400 */
 #  ifdef __cplusplus
      extern "C" {
@@ -59,7 +56,6 @@
    LONG __cdecl _InterlockedIncrement(LONG volatile *);
    LONG __cdecl _InterlockedDecrement(LONG volatile *);
    LONG __cdecl _InterlockedExchangeAdd(LONG volatile *, LONG);
-   LONG __cdecl _InterlockedExchange(LONG volatile *, LONG);
    LONG __cdecl _InterlockedCompareExchange(LONG volatile *,
                                         LONG /* Exchange */, LONG /* Comp */);
 #  ifdef __cplusplus
@@ -67,16 +63,18 @@
 #  endif
 # endif /* _MSC_VER < 1400 */
 
-# pragma intrinsic (_InterlockedIncrement)
-# pragma intrinsic (_InterlockedDecrement)
-# pragma intrinsic (_InterlockedExchange)
-# pragma intrinsic (_InterlockedExchangeAdd)
+# if !defined(MK_AO_PREFER_GENERALIZED) || !defined(MK_AO_ASSUME_WINDOWS98)
+#   pragma intrinsic (_InterlockedIncrement)
+#   pragma intrinsic (_InterlockedDecrement)
+#   pragma intrinsic (_InterlockedExchangeAdd)
+# endif /* !MK_AO_PREFER_GENERALIZED */
 # pragma intrinsic (_InterlockedCompareExchange)
 
 # define MK_AO_INTERLOCKED_VOLATILE volatile
 
 #endif /* _MSC_VER >= 1310 */
 
+#if !defined(MK_AO_PREFER_GENERALIZED) || !defined(MK_AO_ASSUME_WINDOWS98)
 MK_AO_INLINE MK_AO_t
 MK_AO_fetch_and_add_full(volatile MK_AO_t *p, MK_AO_t incr)
 {
@@ -98,21 +96,22 @@ MK_AO_fetch_and_sub1_full(volatile MK_AO_t *p)
   return _InterlockedDecrement((LONG MK_AO_INTERLOCKED_VOLATILE *)p) + 1;
 }
 #define MK_AO_HAVE_fetch_and_sub1_full
+#endif /* !MK_AO_PREFER_GENERALIZED */
 
 #ifdef MK_AO_ASSUME_WINDOWS98
-/* Returns nonzero if the comparison succeeded. */
-MK_AO_INLINE int
-MK_AO_compare_and_swap_full(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val)
-{
-# ifdef MK_AO_OLD_STYLE_INTERLOCKED_COMPARE_EXCHANGE
-    return _InterlockedCompareExchange((PVOID MK_AO_INTERLOCKED_VOLATILE *)addr,
-                                       (PVOID)new_val, (PVOID)old)
-           == (PVOID)old;
-# else
-    return _InterlockedCompareExchange((LONG MK_AO_INTERLOCKED_VOLATILE *)addr,
-                                       (LONG)new_val, (LONG)old)
-           == (LONG)old;
-# endif
-}
-# define MK_AO_HAVE_compare_and_swap_full
+  MK_AO_INLINE MK_AO_t
+  MK_AO_fetch_compare_and_swap_full(volatile MK_AO_t *addr, MK_AO_t old_val,
+                                 MK_AO_t new_val)
+  {
+#   ifdef MK_AO_OLD_STYLE_INTERLOCKED_COMPARE_EXCHANGE
+      return (MK_AO_t)_InterlockedCompareExchange(
+                                        (PVOID MK_AO_INTERLOCKED_VOLATILE *)addr,
+                                        (PVOID)new_val, (PVOID)old_val);
+#   else
+      return (MK_AO_t)_InterlockedCompareExchange(
+                                        (LONG MK_AO_INTERLOCKED_VOLATILE *)addr,
+                                        (LONG)new_val, (LONG)old_val);
+#   endif
+  }
+# define MK_AO_HAVE_fetch_compare_and_swap_full
 #endif /* MK_AO_ASSUME_WINDOWS98 */

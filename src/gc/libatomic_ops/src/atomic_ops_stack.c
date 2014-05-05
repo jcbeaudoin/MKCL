@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2005 Hewlett-Packard Development Company, L.P.
- * Original Author: Hans Boehm
  *
  * This file may be redistributed and/or modified under the
  * terms of the GNU General Public License as published by the Free Software
@@ -9,7 +8,7 @@
  * It is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE.  See the GNU General Public License in the
- * file doc/COPYING for more details.
+ * file COPYING for more details.
  */
 
 #if defined(HAVE_CONFIG_H)
@@ -19,54 +18,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+
 #define MK_AO_REQUIRE_CAS
 #include "atomic_ops_stack.h"
 
-#if defined(_MSC_VER) \
-    || defined(_WIN32) && !defined(__CYGWIN32__) && !defined(__CYGWIN__)
-  /* MK_AO_pause not defined elsewhere */
-  /* FIXME: At least MK_AO_spin should be factored out.    */
-#include <windows.h>
-
-MK_AO_t dummy;
-
-/* Spin for 2**n units. */
-static void MK_AO_spin(int n)
-{
-  int i;
-  MK_AO_T j = MK_AO_load(&dummy);
-
-  for (i = 0; i < (2 << n); ++i)
-    {
-       j *= 5;
-       j -= 4;
-    }
-  MK_AO_store(&dummy, j);
-}
-
-void MK_AO_pause(int n)
-{
-    if (n < 12)
-      MK_AO_spin(n);
-    else
-      {
-        DWORD msecs;
-
-        /* Short async-signal-safe sleep. */
-        msecs = (n > 18? 100 : (1 << (n - 12)));
-        Sleep(msecs);
-      }
-}
-
-#else
-
-/* MK_AO_pause is available elsewhere */
-
-extern void MK_AO_pause(int);
-
-#endif
-
 #ifdef MK_AO_USE_ALMOST_LOCK_FREE
+
+  void MK_AO_pause(int); /* defined in atomic_ops.c */
 
 /* LIFO linked lists based on compare-and-swap.  We need to avoid       */
 /* the case of a node deletion and reinsertion while I'm deleting       */
@@ -138,7 +96,7 @@ MK_AO_stack_push_explicit_aux_release(volatile MK_AO_t *list, MK_AO_t *x,
       next = MK_AO_load(list);
       *x = next;
     }
-  while(!MK_AO_compare_and_swap_release(list, next, x_bits));
+  while (MK_AO_EXPECT_FALSE(!MK_AO_compare_and_swap_release(list, next, x_bits)));
 }
 
 /*
@@ -184,7 +142,7 @@ MK_AO_stack_pop_explicit_aux_acquire(volatile MK_AO_t *list, MK_AO_stack_aux * a
           MK_AO_pause(++j);
         }
     }
-  assert(i >= 0 && i < MK_AO_BL_SIZE);
+  assert(i < MK_AO_BL_SIZE);
   assert(a -> MK_AO_stack_bl[i] == first);
   /* First is on the auxiliary black list.  It may be removed by        */
   /* another thread before we get to it, but a new insertion of x       */
@@ -193,13 +151,25 @@ MK_AO_stack_pop_explicit_aux_acquire(volatile MK_AO_t *list, MK_AO_stack_aux * a
   /* We need to make sure that first is still the first entry on the    */
   /* list.  Otherwise it's possible that a reinsertion of it was        */
   /* already started before we added the black list entry.              */
-  if (first != MK_AO_load(list)) {
+# if defined(__alpha__) && (__GNUC__ == 4)
+    if (first != MK_AO_load(list))
+                        /* Workaround __builtin_expect bug found in     */
+                        /* gcc-4.6.3/alpha causing test_stack failure.  */
+# else
+    if (MK_AO_EXPECT_FALSE(first != MK_AO_load(list)))
+# endif
+  {
     MK_AO_store_release(a->MK_AO_stack_bl+i, 0);
     goto retry;
   }
   first_ptr = MK_AO_REAL_NEXT_PTR(first);
   next = MK_AO_load(first_ptr);
-  if (!MK_AO_compare_and_swap_release(list, first, next)) {
+# if defined(__alpha__) && (__GNUC__ == 4)
+    if (!MK_AO_compare_and_swap_release(list, first, next))
+# else
+    if (MK_AO_EXPECT_FALSE(!MK_AO_compare_and_swap_release(list, first, next)))
+# endif
+  {
     MK_AO_store_release(a->MK_AO_stack_bl+i, 0);
     goto retry;
   }
@@ -232,8 +202,8 @@ void MK_AO_stack_push_release(MK_AO_stack_t *list, MK_AO_t *element)
     do {
       next = MK_AO_load(&(list -> ptr));
       *element = next;
-    } while (!MK_AO_compare_and_swap_release
-                    ( &(list -> ptr), next, (MK_AO_t) element));
+    } while (MK_AO_EXPECT_FALSE(!MK_AO_compare_and_swap_release(&(list -> ptr),
+                                                      next, (MK_AO_t)element)));
     /* This uses a narrow CAS here, an old optimization suggested       */
     /* by Treiber.  Pop is still safe, since we run into the ABA        */
     /* problem only if there were both intervening "pop"s and "push"es. */
@@ -258,8 +228,9 @@ MK_AO_t *MK_AO_stack_pop_acquire(MK_AO_stack_t *list)
       cptr = (MK_AO_t *)MK_AO_load(&(list -> ptr));
       if (cptr == 0) return 0;
       next = *cptr;
-    } while (!MK_AO_compare_double_and_swap_double_release
-                    (list, cversion, (MK_AO_t) cptr, cversion+1, (MK_AO_t) next));
+    } while (MK_AO_EXPECT_FALSE(!MK_AO_compare_double_and_swap_double_release(list,
+                                        cversion, (MK_AO_t)cptr,
+                                        cversion+1, (MK_AO_t)next)));
     return cptr;
 }
 

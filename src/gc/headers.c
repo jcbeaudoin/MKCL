@@ -122,7 +122,7 @@ MK_GC_INNER ptr_t MK_GC_scratch_alloc(size_t bytes)
     bytes += GRANULE_BYTES-1;
     bytes &= ~(GRANULE_BYTES-1);
     scratch_free_ptr += bytes;
-    if (scratch_free_ptr <= MK_GC_scratch_end_ptr) {
+    if ((word)scratch_free_ptr <= (word)MK_GC_scratch_end_ptr) {
         return(result);
     }
     {
@@ -144,8 +144,7 @@ MK_GC_INNER ptr_t MK_GC_scratch_alloc(size_t bytes)
         result = (ptr_t)GET_MEM(bytes_to_get);
         MK_GC_add_to_our_memory(result, bytes_to_get);
         if (result == 0) {
-            if (MK_GC_print_stats)
-                MK_GC_log_printf("Out of memory - trying to allocate less\n");
+            WARN("Out of memory - trying to allocate less\n", 0);
             scratch_free_ptr -= bytes;
             bytes_to_get = bytes;
 #           ifdef USE_MMAP
@@ -280,11 +279,11 @@ MK_GC_INNER MK_GC_bool MK_GC_install_counts(struct hblk *h, size_t sz/* bytes */
     struct hblk * hbp;
     word i;
 
-    for (hbp = h; (char *)hbp < (char *)h + sz; hbp += BOTTOM_SZ) {
+    for (hbp = h; (word)hbp < (word)h + sz; hbp += BOTTOM_SZ) {
         if (!get_index((word) hbp)) return(FALSE);
     }
     if (!get_index((word)h + sz - 1)) return(FALSE);
-    for (hbp = h + 1; (char *)hbp < (char *)h + sz; hbp += 1) {
+    for (hbp = h + 1; (word)hbp < (word)h + sz; hbp += 1) {
         i = HBLK_PTR_DIFF(hbp, h);
         SET_HDR(hbp, (hdr *)(i > MAX_JUMP? MAX_JUMP : i));
     }
@@ -304,7 +303,7 @@ MK_GC_INNER void MK_GC_remove_header(struct hblk *h)
 MK_GC_INNER void MK_GC_remove_counts(struct hblk *h, size_t sz/* bytes */)
 {
     register struct hblk * hbp;
-    for (hbp = h+1; (char *)hbp < (char *)h + sz; hbp += 1) {
+    for (hbp = h+1; (word)hbp < (word)h + sz; hbp += 1) {
         SET_HDR(hbp, 0);
     }
 }

@@ -72,21 +72,22 @@ MK_GC_API void MK_GC_CALL MK_GC_init_gcj_malloc(int /* mp_index */,
 /* Allocate an object, clear it, and store the pointer to the   */
 /* type structure (vtable in gcj).                              */
 /* This adds a byte at the end of the object if MK_GC_malloc would.*/
-MK_GC_API void * MK_GC_CALL MK_GC_gcj_malloc(size_t /* lb */,
-                                void * /* ptr_to_struct_containing_descr */)
-                        MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1);
+MK_GC_API MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1) void * MK_GC_CALL
+        MK_GC_gcj_malloc(size_t /* lb */,
+                      void * /* ptr_to_struct_containing_descr */);
+
 /* The debug versions allocate such that the specified mark_proc        */
 /* is always invoked.                                                   */
-MK_GC_API void * MK_GC_CALL MK_GC_debug_gcj_malloc(size_t /* lb */,
-                                  void * /* ptr_to_struct_containing_descr */,
-                                  MK_GC_EXTRA_PARAMS)
-                        MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1);
+MK_GC_API MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1) void * MK_GC_CALL
+        MK_GC_debug_gcj_malloc(size_t /* lb */,
+                            void * /* ptr_to_struct_containing_descr */,
+                            MK_GC_EXTRA_PARAMS);
 
 /* Similar to MK_GC_gcj_malloc, but assumes that a pointer to near the     */
 /* beginning of the resulting object is always maintained.              */
-MK_GC_API void  * MK_GC_CALL MK_GC_gcj_malloc_ignore_off_page(size_t /* lb */,
-                                void * /* ptr_to_struct_containing_descr */)
-                        MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1);
+MK_GC_API MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1) void * MK_GC_CALL
+        MK_GC_gcj_malloc_ignore_off_page(size_t /* lb */,
+                                void * /* ptr_to_struct_containing_descr */);
 
 /* The kind numbers of normal and debug gcj objects.            */
 /* Useful only for debug support, we hope.                      */

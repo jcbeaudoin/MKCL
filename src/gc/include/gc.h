@@ -17,17 +17,6 @@
  */
 
 /*
- * Copyright 2012, Jean-Claude Beaudoin
- *
- * This file has been modified from the original to include
- * the file gc_local.h
- * 
- * Every symbol of the public interface of this GC has also been
- * prefixed with MK_ in an attempt to make this library a private
- * internal part of MKCL.
- */
-
-/*
  * Note that this defines a large number of tuning hooks, which can
  * safely be ignored in nearly all cases.  For normal use it suffices
  * to call only MK_GC_MALLOC and perhaps MK_GC_REALLOC.
@@ -78,13 +67,14 @@ typedef void * MK_GC_PTR;  /* preserved only for backward compatibility    */
 #endif
 
 /* Get the GC library version. The returned value is a constant in the  */
-/* form: ((version_major<<16) | (version_minor<<8) | alpha_version).    */
+/* form: ((version_major<<16) | (version_minor<<8) | version_micro).    */
 MK_GC_API unsigned MK_GC_CALL MK_GC_get_version(void);
 
 /* Public read-only variables */
 /* The supplied getter functions are preferred for new code.            */
 
-MK_GC_API MK_GC_word MK_GC_gc_no;/* Counter incremented per collection.          */
+MK_GC_API MK_GC_ATTR_DEPRECATED MK_GC_word MK_GC_gc_no;
+                        /* Counter incremented per collection.          */
                         /* Includes empty GCs at startup.               */
 MK_GC_API MK_GC_word MK_GC_CALL MK_GC_get_gc_no(void);
                         /* MK_GC_get_gc_no() is unsynchronized, so         */
@@ -92,18 +82,22 @@ MK_GC_API MK_GC_word MK_GC_CALL MK_GC_get_gc_no(void);
                         /* avoid data races on multiprocessors.         */
 
 #ifdef MK_GC_THREADS
-  MK_GC_API int MK_GC_parallel;
+  MK_GC_API MK_GC_ATTR_DEPRECATED int MK_GC_parallel;
                         /* GC is parallelized for performance on        */
                         /* multiprocessors.  Currently set only         */
                         /* implicitly if collector is built with        */
                         /* PARALLEL_MARK defined and if either:         */
                         /*  Env variable MK_GC_NPROC is set to > 1, or     */
                         /*  MK_GC_NPROC is not set and this is an MP.      */
-                        /* If MK_GC_parallel is set, incremental           */
+                        /* If MK_GC_parallel is on (non-zero), incremental */
                         /* collection is only partially functional,     */
-                        /* and may not be desirable. This getter does   */
+                        /* and may not be desirable.  The getter does   */
                         /* not use or need synchronization (i.e.        */
-                        /* acquiring the GC lock).                      */
+                        /* acquiring the GC lock).  Starting from       */
+                        /* GC v7.3, MK_GC_parallel value is equal to the   */
+                        /* number of marker threads minus one (i.e.     */
+                        /* number of existing parallel marker threads   */
+                        /* excluding the initiating one).               */
   MK_GC_API int MK_GC_CALL MK_GC_get_parallel(void);
 #endif
 
@@ -112,7 +106,7 @@ MK_GC_API MK_GC_word MK_GC_CALL MK_GC_get_gc_no(void);
 /* The supplied setter and getter functions are preferred for new code. */
 
 typedef void * (MK_GC_CALLBACK * MK_GC_oom_func)(size_t /* bytes_requested */);
-MK_GC_API MK_GC_oom_func MK_GC_oom_fn;
+MK_GC_API MK_GC_ATTR_DEPRECATED MK_GC_oom_func MK_GC_oom_fn;
                         /* When there is insufficient memory to satisfy */
                         /* an allocation request, we return             */
                         /* (*MK_GC_oom_fn)(size).  By default this just    */
@@ -122,10 +116,20 @@ MK_GC_API MK_GC_oom_func MK_GC_oom_fn;
                         /* object.  MK_GC_oom_fn must not be 0.            */
                         /* Both the supplied setter and the getter      */
                         /* acquire the GC lock (to avoid data races).   */
-MK_GC_API void MK_GC_CALL MK_GC_set_oom_fn(MK_GC_oom_func);
+MK_GC_API void MK_GC_CALL MK_GC_set_oom_fn(MK_GC_oom_func) MK_GC_ATTR_NONNULL(1);
 MK_GC_API MK_GC_oom_func MK_GC_CALL MK_GC_get_oom_fn(void);
 
-MK_GC_API int MK_GC_find_leak;
+typedef void (MK_GC_CALLBACK * MK_GC_on_heap_resize_proc)(MK_GC_word /* new_size */);
+MK_GC_API MK_GC_ATTR_DEPRECATED MK_GC_on_heap_resize_proc MK_GC_on_heap_resize;
+                        /* Invoked when the heap grows or shrinks.      */
+                        /* Called with the world stopped (and the       */
+                        /* allocation lock held).  May be 0.            */
+MK_GC_API void MK_GC_CALL MK_GC_set_on_heap_resize(MK_GC_on_heap_resize_proc);
+MK_GC_API MK_GC_on_heap_resize_proc MK_GC_CALL MK_GC_get_on_heap_resize(void);
+                        /* Both the supplied setter and the getter      */
+                        /* acquire the GC lock (to avoid data races).   */
+
+MK_GC_API MK_GC_ATTR_DEPRECATED int MK_GC_find_leak;
                         /* Do not actually garbage collect, but simply  */
                         /* report inaccessible memory that was not      */
                         /* deallocated with MK_GC_free.  Initial value     */
@@ -136,7 +140,7 @@ MK_GC_API int MK_GC_find_leak;
 MK_GC_API void MK_GC_CALL MK_GC_set_find_leak(int);
 MK_GC_API int MK_GC_CALL MK_GC_get_find_leak(void);
 
-MK_GC_API int MK_GC_all_interior_pointers;
+MK_GC_API MK_GC_ATTR_DEPRECATED int MK_GC_all_interior_pointers;
                         /* Arrange for pointers to object interiors to  */
                         /* be recognized as valid.  Typically should    */
                         /* not be changed after GC initialization (in   */
@@ -152,7 +156,7 @@ MK_GC_API int MK_GC_all_interior_pointers;
 MK_GC_API void MK_GC_CALL MK_GC_set_all_interior_pointers(int);
 MK_GC_API int MK_GC_CALL MK_GC_get_all_interior_pointers(void);
 
-MK_GC_API int MK_GC_finalize_on_demand;
+MK_GC_API MK_GC_ATTR_DEPRECATED int MK_GC_finalize_on_demand;
                         /* If nonzero, finalizers will only be run in   */
                         /* response to an explicit MK_GC_invoke_finalizers */
                         /* call.  The default is determined by whether  */
@@ -162,7 +166,7 @@ MK_GC_API int MK_GC_finalize_on_demand;
 MK_GC_API void MK_GC_CALL MK_GC_set_finalize_on_demand(int);
 MK_GC_API int MK_GC_CALL MK_GC_get_finalize_on_demand(void);
 
-MK_GC_API int MK_GC_java_finalization;
+MK_GC_API MK_GC_ATTR_DEPRECATED int MK_GC_java_finalization;
                         /* Mark objects reachable from finalizable      */
                         /* objects in a separate post-pass.  This makes */
                         /* it a bit safer to use non-topologically-     */
@@ -175,7 +179,7 @@ MK_GC_API void MK_GC_CALL MK_GC_set_java_finalization(int);
 MK_GC_API int MK_GC_CALL MK_GC_get_java_finalization(void);
 
 typedef void (MK_GC_CALLBACK * MK_GC_finalizer_notifier_proc)(void);
-MK_GC_API MK_GC_finalizer_notifier_proc MK_GC_finalizer_notifier;
+MK_GC_API MK_GC_ATTR_DEPRECATED MK_GC_finalizer_notifier_proc MK_GC_finalizer_notifier;
                         /* Invoked by the collector when there are      */
                         /* objects to be finalized.  Invoked at most    */
                         /* once per GC cycle.  Never invoked unless     */
@@ -188,7 +192,11 @@ MK_GC_API MK_GC_finalizer_notifier_proc MK_GC_finalizer_notifier;
 MK_GC_API void MK_GC_CALL MK_GC_set_finalizer_notifier(MK_GC_finalizer_notifier_proc);
 MK_GC_API MK_GC_finalizer_notifier_proc MK_GC_CALL MK_GC_get_finalizer_notifier(void);
 
-MK_GC_API int MK_GC_dont_gc;  /* != 0 ==> Don't collect.  In versions 6.2a1+, */
+MK_GC_API
+# ifndef MK_GC_DONT_GC
+    MK_GC_ATTR_DEPRECATED
+# endif
+  int MK_GC_dont_gc;       /* != 0 ==> Don't collect.  In versions 6.2a1+, */
                         /* this overrides explicit MK_GC_gcollect() calls. */
                         /* Used as a counter, so that nested enabling   */
                         /* and disabling work correctly.  Should        */
@@ -198,14 +206,14 @@ MK_GC_API int MK_GC_dont_gc;  /* != 0 ==> Don't collect.  In versions 6.2a1+, */
                         /* GC is disabled, MK_GC_is_disabled() is          */
                         /* preferred for new code.                      */
 
-MK_GC_API int MK_GC_dont_expand;
-                        /* Don't expand the heap unless explicitly      */
+MK_GC_API MK_GC_ATTR_DEPRECATED int MK_GC_dont_expand;
+                        /* Do not expand the heap unless explicitly     */
                         /* requested or forced to.  The setter and      */
                         /* getter are unsynchronized.                   */
 MK_GC_API void MK_GC_CALL MK_GC_set_dont_expand(int);
 MK_GC_API int MK_GC_CALL MK_GC_get_dont_expand(void);
 
-MK_GC_API int MK_GC_use_entire_heap;
+MK_GC_API MK_GC_ATTR_DEPRECATED int MK_GC_use_entire_heap;
                 /* Causes the non-incremental collector to use the      */
                 /* entire heap before collecting.  This was the only    */
                 /* option for GC versions < 5.0.  This sometimes        */
@@ -216,7 +224,8 @@ MK_GC_API int MK_GC_use_entire_heap;
                 /* frequencies, and hence fewer instructions executed   */
                 /* in the collector.                                    */
 
-MK_GC_API int MK_GC_full_freq;    /* Number of partial collections between    */
+MK_GC_API MK_GC_ATTR_DEPRECATED int MK_GC_full_freq;
+                            /* Number of partial collections between    */
                             /* full collections.  Matters only if       */
                             /* MK_GC_incremental is set.                   */
                             /* Full collections are also triggered if   */
@@ -232,7 +241,7 @@ MK_GC_API int MK_GC_full_freq;    /* Number of partial collections between    */
 MK_GC_API void MK_GC_CALL MK_GC_set_full_freq(int);
 MK_GC_API int MK_GC_CALL MK_GC_get_full_freq(void);
 
-MK_GC_API MK_GC_word MK_GC_non_gc_bytes;
+MK_GC_API MK_GC_ATTR_DEPRECATED MK_GC_word MK_GC_non_gc_bytes;
                         /* Bytes not considered candidates for          */
                         /* collection.  Used only to control scheduling */
                         /* of collections.  Updated by                  */
@@ -245,7 +254,7 @@ MK_GC_API MK_GC_word MK_GC_non_gc_bytes;
 MK_GC_API void MK_GC_CALL MK_GC_set_non_gc_bytes(MK_GC_word);
 MK_GC_API MK_GC_word MK_GC_CALL MK_GC_get_non_gc_bytes(void);
 
-MK_GC_API int MK_GC_no_dls;
+MK_GC_API MK_GC_ATTR_DEPRECATED int MK_GC_no_dls;
                         /* Don't register dynamic library data segments. */
                         /* Wizards only.  Should be used only if the     */
                         /* application explicitly registers all roots.   */
@@ -257,7 +266,7 @@ MK_GC_API int MK_GC_no_dls;
 MK_GC_API void MK_GC_CALL MK_GC_set_no_dls(int);
 MK_GC_API int MK_GC_CALL MK_GC_get_no_dls(void);
 
-MK_GC_API MK_GC_word MK_GC_free_space_divisor;
+MK_GC_API MK_GC_ATTR_DEPRECATED MK_GC_word MK_GC_free_space_divisor;
                         /* We try to make sure that we allocate at      */
                         /* least N/MK_GC_free_space_divisor bytes between  */
                         /* collections, where N is twice the number     */
@@ -277,7 +286,7 @@ MK_GC_API MK_GC_word MK_GC_free_space_divisor;
 MK_GC_API void MK_GC_CALL MK_GC_set_free_space_divisor(MK_GC_word);
 MK_GC_API MK_GC_word MK_GC_CALL MK_GC_get_free_space_divisor(void);
 
-MK_GC_API MK_GC_word MK_GC_max_retries;
+MK_GC_API MK_GC_ATTR_DEPRECATED MK_GC_word MK_GC_max_retries;
                         /* The maximum number of GCs attempted before   */
                         /* reporting out of memory after heap           */
                         /* expansion fails.  Initially 0.               */
@@ -289,7 +298,8 @@ MK_GC_API void MK_GC_CALL MK_GC_set_max_retries(MK_GC_word);
 MK_GC_API MK_GC_word MK_GC_CALL MK_GC_get_max_retries(void);
 
 
-MK_GC_API char *MK_GC_stackbottom;    /* Cool end of user stack.              */
+MK_GC_API MK_GC_ATTR_DEPRECATED char *MK_GC_stackbottom;
+                                /* Cool end of user stack.              */
                                 /* May be set in the client prior to    */
                                 /* calling any MK_GC_ routines.  This      */
                                 /* avoids some overhead, and            */
@@ -304,7 +314,8 @@ MK_GC_API char *MK_GC_stackbottom;    /* Cool end of user stack.              */
                                 /* MK_GC_call_with_gc_active() and         */
                                 /* MK_GC_register_my_thread() instead.     */
 
-MK_GC_API int MK_GC_dont_precollect;  /* Don't collect as part of GC          */
+MK_GC_API MK_GC_ATTR_DEPRECATED int MK_GC_dont_precollect;
+                                /* Do not collect as part of GC         */
                                 /* initialization.  Should be set only  */
                                 /* if the client wants a chance to      */
                                 /* manually initialize the root set     */
@@ -317,7 +328,7 @@ MK_GC_API int MK_GC_dont_precollect;  /* Don't collect as part of GC          */
 MK_GC_API void MK_GC_CALL MK_GC_set_dont_precollect(int);
 MK_GC_API int MK_GC_CALL MK_GC_get_dont_precollect(void);
 
-MK_GC_API unsigned long MK_GC_time_limit;
+MK_GC_API MK_GC_ATTR_DEPRECATED unsigned long MK_GC_time_limit;
                                /* If incremental collection is enabled, */
                                /* We try to terminate collections       */
                                /* after this many milliseconds.  Not a  */
@@ -357,11 +368,28 @@ MK_GC_API int MK_GC_CALL MK_GC_get_pages_executable(void);
 
 /* Overrides the default handle-fork mode.  Non-zero value means GC     */
 /* should install proper pthread_atfork handlers.  Has effect only if   */
-/* called before MK_GC_INIT.  Clients should invoke MK_GC_set_handle_fork(1)  */
-/* only if going to use fork with GC functions called in the forked     */
-/* child.  (Note that such client and atfork handlers activities are    */
-/* not fully POSIX-compliant.)                                          */
+/* called before MK_GC_INIT.  Clients should invoke MK_GC_set_handle_fork     */
+/* with non-zero argument if going to use fork with GC functions called */
+/* in the forked child.  (Note that such client and atfork handlers     */
+/* activities are not fully POSIX-compliant.)  MK_GC_set_handle_fork       */
+/* instructs MK_GC_init to setup GC fork handlers using pthread_atfork,    */
+/* the latter might fail (or, even, absent on some targets) causing     */
+/* abort at GC initialization.  Starting from 7.3alpha3, problems with  */
+/* missing (or failed) pthread_atfork() could be avoided by invocation  */
+/* of MK_GC_set_handle_fork(-1) at application start-up and surrounding    */
+/* each fork() with the relevant MK_GC_atfork_prepare/parent/child calls.  */
 MK_GC_API void MK_GC_CALL MK_GC_set_handle_fork(int);
+
+/* Routines to handle POSIX fork() manually (no-op if handled           */
+/* automatically).  MK_GC_atfork_prepare should be called immediately      */
+/* before fork(); MK_GC_atfork_parent should be invoked just after fork in */
+/* the branch that corresponds to parent process (i.e., fork result is  */
+/* non-zero); MK_GC_atfork_child is to be called immediately in the child  */
+/* branch (i.e., fork result is 0). Note that MK_GC_atfork_child() call    */
+/* should, of course, precede MK_GC_start_mark_threads call (if any).      */
+MK_GC_API void MK_GC_CALL MK_GC_atfork_prepare(void);
+MK_GC_API void MK_GC_CALL MK_GC_atfork_parent(void);
+MK_GC_API void MK_GC_CALL MK_GC_atfork_child(void);
 
 /* Initialize the collector.  Portable clients should call MK_GC_INIT()    */
 /* from the main program instead.                                       */
@@ -373,29 +401,30 @@ MK_GC_API void MK_GC_CALL MK_GC_init(void);
 /* new object is cleared.  MK_GC_malloc_stubborn promises that no changes  */
 /* to the object will occur after MK_GC_end_stubborn_change has been       */
 /* called on the result of MK_GC_malloc_stubborn.  MK_GC_malloc_uncollectable */
-/* allocates an object that is scanned for pointers to collectable      */
-/* objects, but is not itself collectable.  The object is scanned even  */
+/* allocates an object that is scanned for pointers to collectible      */
+/* objects, but is not itself collectible.  The object is scanned even  */
 /* if it does not appear to be reachable.  MK_GC_malloc_uncollectable and  */
 /* MK_GC_free called on the resulting object implicitly update             */
 /* MK_GC_non_gc_bytes appropriately.                                       */
 /* Note that the MK_GC_malloc_stubborn support doesn't really exist        */
 /* anymore.  MANUAL_VDB provides comparable functionality.              */
-MK_GC_API void * MK_GC_CALL MK_GC_malloc(size_t /* size_in_bytes */)
-                        MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1);
-MK_GC_API void * MK_GC_CALL MK_GC_malloc_atomic(size_t /* size_in_bytes */)
-                        MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1);
-MK_GC_API char * MK_GC_CALL MK_GC_strdup(const char *) MK_GC_ATTR_MALLOC;
-MK_GC_API char * MK_GC_CALL MK_GC_strndup(const char *, size_t) MK_GC_ATTR_MALLOC;
-MK_GC_API void * MK_GC_CALL MK_GC_malloc_uncollectable(size_t /* size_in_bytes */)
-                        MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1);
-MK_GC_API void * MK_GC_CALL MK_GC_malloc_stubborn(size_t /* size_in_bytes */)
-                        MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1);
+MK_GC_API MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1) void * MK_GC_CALL
+        MK_GC_malloc(size_t /* size_in_bytes */);
+MK_GC_API MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1) void * MK_GC_CALL
+        MK_GC_malloc_atomic(size_t /* size_in_bytes */);
+MK_GC_API MK_GC_ATTR_MALLOC char * MK_GC_CALL MK_GC_strdup(const char *);
+MK_GC_API MK_GC_ATTR_MALLOC char * MK_GC_CALL
+        MK_GC_strndup(const char *, size_t) MK_GC_ATTR_NONNULL(1);
+MK_GC_API MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1) void * MK_GC_CALL
+        MK_GC_malloc_uncollectable(size_t /* size_in_bytes */);
+MK_GC_API MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1) void * MK_GC_CALL
+        MK_GC_malloc_stubborn(size_t /* size_in_bytes */);
 
 /* MK_GC_memalign() is not well tested.                                    */
-MK_GC_API void * MK_GC_CALL MK_GC_memalign(size_t /* align */, size_t /* lb */)
-                        MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(2);
+MK_GC_API MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(2) void * MK_GC_CALL
+        MK_GC_memalign(size_t /* align */, size_t /* lb */);
 MK_GC_API int MK_GC_CALL MK_GC_posix_memalign(void ** /* memptr */, size_t /* align */,
-                        size_t /* lb */);
+                        size_t /* lb */) MK_GC_ATTR_NONNULL(1);
 
 /* Explicitly deallocate an object.  Dangerous if used incorrectly.     */
 /* Requires a pointer to the base of an object.                         */
@@ -418,8 +447,8 @@ MK_GC_API void MK_GC_CALL MK_GC_free(void *);
 /* allowing more than one stubborn object to be changed at once, but it */
 /* is acceptable to do so.  The same applies to dropping stubborn       */
 /* objects that are still changeable.                                   */
-MK_GC_API void MK_GC_CALL MK_GC_change_stubborn(void *);
-MK_GC_API void MK_GC_CALL MK_GC_end_stubborn_change(void *);
+MK_GC_API void MK_GC_CALL MK_GC_change_stubborn(const void *) MK_GC_ATTR_NONNULL(1);
+MK_GC_API void MK_GC_CALL MK_GC_end_stubborn_change(const void *) MK_GC_ATTR_NONNULL(1);
 
 /* Return a pointer to the base (lowest address) of an object given     */
 /* a pointer to a location within the object.                           */
@@ -434,10 +463,16 @@ MK_GC_API void MK_GC_CALL MK_GC_end_stubborn_change(void *);
 /* MK_GC_free.                                                             */
 MK_GC_API void * MK_GC_CALL MK_GC_base(void * /* displaced_pointer */);
 
+/* Return non-zero (TRUE) if and only if the argument points to         */
+/* somewhere in GC heap.  Primary use is as a fast alternative to       */
+/* MK_GC_base to check whether the pointed object is allocated by GC       */
+/* or not.  It is assumed that the collector is already initialized.    */
+MK_GC_API int MK_GC_CALL MK_GC_is_heap_ptr(const void *);
+
 /* Given a pointer to the base of an object, return its size in bytes.  */
 /* The returned size may be slightly larger than what was originally    */
 /* requested.                                                           */
-MK_GC_API size_t MK_GC_CALL MK_GC_size(const void * /* object_addr */);
+MK_GC_API size_t MK_GC_CALL MK_GC_size(const void * /* obj_addr */) MK_GC_ATTR_NONNULL(1);
 
 /* For compatibility with C library.  This is occasionally faster than  */
 /* a malloc followed by a bcopy.  But if you rely on that, either here  */
@@ -467,10 +502,9 @@ MK_GC_API void MK_GC_CALL MK_GC_set_max_heap_size(MK_GC_word /* n */);
 /* need not be scanned.  This is sometimes important if the application */
 /* maps large read/write files into the address space, which could be   */
 /* mistaken for dynamic library data segments on some systems.          */
-/* The section (referred to by low_address) must be pointer-aligned.    */
-/* low_address must not be greater than high_address_plus_1.            */
+/* Both section start and end are not needed to be pointer-aligned.     */
 MK_GC_API void MK_GC_CALL MK_GC_exclude_static_roots(void * /* low_address */,
-                                        void * /* high_address_plus_1 */);
+                                            void * /* high_address_plus_1 */);
 
 /* Clear the set of root segments.  Wizards only.                       */
 MK_GC_API void MK_GC_CALL MK_GC_clear_roots(void);
@@ -528,13 +562,15 @@ MK_GC_API void MK_GC_CALL MK_GC_gcollect_and_unmap(void);
 /* MK_GC_try_to_collect() returns 0 if the collection was aborted (or the  */
 /* collections are disabled), 1 if it succeeded.                        */
 typedef int (MK_GC_CALLBACK * MK_GC_stop_func)(void);
-MK_GC_API int MK_GC_CALL MK_GC_try_to_collect(MK_GC_stop_func /* stop_func */);
+MK_GC_API int MK_GC_CALL MK_GC_try_to_collect(MK_GC_stop_func /* stop_func */)
+                                                        MK_GC_ATTR_NONNULL(1);
 
 /* Set and get the default stop_func.  The default stop_func is used by */
 /* MK_GC_gcollect() and by implicitly trigged collections (except for the  */
 /* case when handling out of memory).  Must not be 0.                   */
 /* Both the setter and getter acquire the GC lock to avoid data races.  */
-MK_GC_API void MK_GC_CALL MK_GC_set_stop_func(MK_GC_stop_func /* stop_func */);
+MK_GC_API void MK_GC_CALL MK_GC_set_stop_func(MK_GC_stop_func /* stop_func */)
+                                                        MK_GC_ATTR_NONNULL(1);
 MK_GC_API MK_GC_stop_func MK_GC_CALL MK_GC_get_stop_func(void);
 
 /* Return the number of bytes in the heap.  Excludes collector private  */
@@ -543,7 +579,8 @@ MK_GC_API MK_GC_stop_func MK_GC_CALL MK_GC_get_stop_func(void);
 /* that were allocated but never written.                               */
 /* This is an unsynchronized getter, so it should be called typically   */
 /* with the GC lock held to avoid data races on multiprocessors (the    */
-/* alternative is to use MK_GC_get_heap_usage_safe API call instead).      */
+/* alternative is to use MK_GC_get_heap_usage_safe or MK_GC_get_prof_stats    */
+/* API calls instead).                                                  */
 /* This getter remains lock-free (unsynchronized) for compatibility     */
 /* reason since some existing clients call it from a GC callback        */
 /* holding the allocator lock.  (This API function and the following    */
@@ -585,6 +622,63 @@ MK_GC_API void MK_GC_CALL MK_GC_get_heap_usage_safe(MK_GC_word * /* pheap_size *
                                            MK_GC_word * /* pbytes_since_gc */,
                                            MK_GC_word * /* ptotal_bytes */);
 
+/* Structure used to query GC statistics (profiling information).       */
+/* More fields could be added in the future.  To preserve compatibility */
+/* new fields should be added only to the end, and no deprecated fields */
+/* should be removed from.                                              */
+struct MK_GC_prof_stats_s {
+  MK_GC_word heapsize_full;
+            /* Heap size in bytes (including the area unmapped to OS).  */
+            /* Same as MK_GC_get_heap_size() + MK_GC_get_unmapped_bytes().    */
+  MK_GC_word free_bytes_full;
+            /* Total bytes contained in free and unmapped blocks.       */
+            /* Same as MK_GC_get_free_bytes() + MK_GC_get_unmapped_bytes().   */
+  MK_GC_word unmapped_bytes;
+            /* Amount of memory unmapped to OS.  Same as the value      */
+            /* returned by MK_GC_get_unmapped_bytes().                     */
+  MK_GC_word bytes_allocd_since_gc;
+            /* Number of bytes allocated since the recent collection.   */
+            /* Same as returned by MK_GC_get_bytes_since_gc().             */
+  MK_GC_word allocd_bytes_before_gc;
+            /* Number of bytes allocated before the recent garbage      */
+            /* collection.  The value may wrap.  Same as the result of  */
+            /* MK_GC_get_total_bytes() - MK_GC_get_bytes_since_gc().          */
+  MK_GC_word non_gc_bytes;
+            /* Number of bytes not considered candidates for garbage    */
+            /* collection.  Same as returned by MK_GC_get_non_gc_bytes().  */
+  MK_GC_word gc_no;
+            /* Garbage collection cycle number.  The value may wrap     */
+            /* (and could be -1).  Same as returned by MK_GC_get_gc_no().  */
+  MK_GC_word markers_m1;
+            /* Number of marker threads (excluding the initiating one). */
+            /* Same as returned by MK_GC_get_parallel (or 0 if the         */
+            /* collector is single-threaded).                           */
+  MK_GC_word bytes_reclaimed_since_gc;
+            /* Approximate number of reclaimed bytes after recent GC.   */
+  MK_GC_word reclaimed_bytes_before_gc;
+            /* Approximate number of bytes reclaimed before the recent  */
+            /* garbage collection.  The value may wrap.                 */
+};
+
+/* Atomically get GC statistics (various global counters).  Clients     */
+/* should pass the size of the buffer (of MK_GC_prof_stats_s type) to fill */
+/* in the values - this is for interoperability between different GC    */
+/* versions, an old client could have fewer fields, and vice versa,     */
+/* client could use newer gc.h (with more entries declared in the       */
+/* structure) than that of the linked libgc binary; in the latter case, */
+/* unsupported (unknown) fields are filled in with -1.  Return the size */
+/* (in bytes) of the filled in part of the structure (excluding all     */
+/* unknown fields, if any).                                             */
+MK_GC_API size_t MK_GC_CALL MK_GC_get_prof_stats(struct MK_GC_prof_stats_s *,
+                                        size_t /* stats_sz */);
+#ifdef MK_GC_THREADS
+  /* Same as above but unsynchronized (i.e., not holding the allocation */
+  /* lock).  Clients should call it using MK_GC_call_with_alloc_lock to    */
+  /* avoid data races on multiprocessors.                               */
+  MK_GC_API size_t MK_GC_CALL MK_GC_get_prof_stats_unsafe(struct MK_GC_prof_stats_s *,
+                                                 size_t /* stats_sz */);
+#endif
+
 /* Disable garbage collection.  Even MK_GC_gcollect calls will be          */
 /* ineffective.                                                         */
 MK_GC_API void MK_GC_CALL MK_GC_disable(void);
@@ -593,8 +687,8 @@ MK_GC_API void MK_GC_CALL MK_GC_disable(void);
 /* (i.e., MK_GC_dont_gc value is non-zero).  Does not acquire the lock.    */
 MK_GC_API int MK_GC_CALL MK_GC_is_disabled(void);
 
-/* Re-enable garbage collection.  MK_GC_disable() and MK_GC_enable() calls    */
-/* nest.  Garbage collection is enabled if the number of calls to both  */
+/* Try to re-enable garbage collection.  MK_GC_disable() and MK_GC_enable()   */
+/* calls nest.  Garbage collection is enabled if the number of calls to */
 /* both functions is equal.                                             */
 MK_GC_API void MK_GC_CALL MK_GC_enable(void);
 
@@ -602,7 +696,7 @@ MK_GC_API void MK_GC_CALL MK_GC_enable(void);
 /* dirty bits are available or most heap objects are pointer-free       */
 /* (atomic) or immutable.  Don't use in leak finding mode.  Ignored if  */
 /* MK_GC_dont_gc is non-zero.  Only the generational piece of this is      */
-/* functional if MK_GC_parallel is TRUE or if MK_GC_time_limit is             */
+/* functional if MK_GC_parallel is non-zero or if MK_GC_time_limit is         */
 /* MK_GC_TIME_UNLIMITED.  Causes thread-local variant of MK_GC_gcj_malloc()   */
 /* to revert to locked allocation.  Must be called before any such      */
 /* MK_GC_gcj_malloc() calls.  For best performance, should be called as    */
@@ -619,6 +713,7 @@ MK_GC_API void MK_GC_CALL MK_GC_enable_incremental(void);
 #define MK_GC_PROTECTS_STACK         8 /* Probably impractical.            */
 
 #define MK_GC_PROTECTS_NONE 0
+/* The collector is assumed to be initialized before this call.         */
 MK_GC_API int MK_GC_CALL MK_GC_incremental_protection_needs(void);
 
 /* Perform some garbage collection work, if appropriate.        */
@@ -644,10 +739,10 @@ MK_GC_API int MK_GC_CALL MK_GC_collect_a_little(void);
 /* for arrays likely to be larger than 100K or so.  For other systems,  */
 /* or if the collector is not configured to recognize all interior      */
 /* pointers, the threshold is normally much higher.                     */
-MK_GC_API void * MK_GC_CALL MK_GC_malloc_ignore_off_page(size_t /* lb */)
-                        MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1);
-MK_GC_API void * MK_GC_CALL MK_GC_malloc_atomic_ignore_off_page(size_t /* lb */)
-                        MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1);
+MK_GC_API MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1) void * MK_GC_CALL
+        MK_GC_malloc_ignore_off_page(size_t /* lb */);
+MK_GC_API MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1) void * MK_GC_CALL
+        MK_GC_malloc_atomic_ignore_off_page(size_t /* lb */);
 
 #ifdef MK_GC_ADD_CALLER
 # define MK_GC_EXTRAS MK_GC_RETURN_ADDR, __FILE__, __LINE__
@@ -659,43 +754,40 @@ MK_GC_API void * MK_GC_CALL MK_GC_malloc_atomic_ignore_off_page(size_t /* lb */)
 
 /* The following is only defined if the library has been suitably       */
 /* compiled:                                                            */
-MK_GC_API void * MK_GC_CALL MK_GC_malloc_atomic_uncollectable(
-                                                size_t /* size_in_bytes */)
-                        MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1);
-MK_GC_API void * MK_GC_CALL MK_GC_debug_malloc_atomic_uncollectable(size_t,
-                                                           MK_GC_EXTRA_PARAMS)
-                        MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1);
+MK_GC_API MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1) void * MK_GC_CALL
+        MK_GC_malloc_atomic_uncollectable(size_t /* size_in_bytes */);
+MK_GC_API MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1) void * MK_GC_CALL
+        MK_GC_debug_malloc_atomic_uncollectable(size_t, MK_GC_EXTRA_PARAMS);
 
 /* Debugging (annotated) allocation.  MK_GC_gcollect will check            */
 /* objects allocated in this way for overwrites, etc.                   */
-MK_GC_API void * MK_GC_CALL MK_GC_debug_malloc(size_t /* size_in_bytes */,
-                                      MK_GC_EXTRA_PARAMS)
-                        MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1);
-MK_GC_API void * MK_GC_CALL MK_GC_debug_malloc_atomic(size_t /* size_in_bytes */,
-                                             MK_GC_EXTRA_PARAMS)
-                        MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1);
-MK_GC_API char * MK_GC_CALL MK_GC_debug_strdup(const char *,
-                                      MK_GC_EXTRA_PARAMS) MK_GC_ATTR_MALLOC;
-MK_GC_API char * MK_GC_CALL MK_GC_debug_strndup(const char *, size_t,
-                                       MK_GC_EXTRA_PARAMS) MK_GC_ATTR_MALLOC;
-MK_GC_API void * MK_GC_CALL MK_GC_debug_malloc_uncollectable(
-                        size_t /* size_in_bytes */, MK_GC_EXTRA_PARAMS)
-                        MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1);
-MK_GC_API void * MK_GC_CALL MK_GC_debug_malloc_stubborn(size_t /* size_in_bytes */,
-                                               MK_GC_EXTRA_PARAMS)
-                        MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1);
-MK_GC_API void * MK_GC_CALL MK_GC_debug_malloc_ignore_off_page(
-                        size_t /* size_in_bytes */, MK_GC_EXTRA_PARAMS)
-                        MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1);
-MK_GC_API void * MK_GC_CALL MK_GC_debug_malloc_atomic_ignore_off_page(
-                        size_t /* size_in_bytes */, MK_GC_EXTRA_PARAMS)
-                        MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1);
+MK_GC_API MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1) void * MK_GC_CALL
+        MK_GC_debug_malloc(size_t /* size_in_bytes */, MK_GC_EXTRA_PARAMS);
+MK_GC_API MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1) void * MK_GC_CALL
+        MK_GC_debug_malloc_atomic(size_t /* size_in_bytes */, MK_GC_EXTRA_PARAMS);
+MK_GC_API MK_GC_ATTR_MALLOC char * MK_GC_CALL
+        MK_GC_debug_strdup(const char *, MK_GC_EXTRA_PARAMS);
+MK_GC_API MK_GC_ATTR_MALLOC char * MK_GC_CALL
+        MK_GC_debug_strndup(const char *, size_t, MK_GC_EXTRA_PARAMS)
+                                                        MK_GC_ATTR_NONNULL(1);
+MK_GC_API MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1) void * MK_GC_CALL
+        MK_GC_debug_malloc_uncollectable(size_t /* size_in_bytes */,
+                                      MK_GC_EXTRA_PARAMS);
+MK_GC_API MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1) void * MK_GC_CALL
+        MK_GC_debug_malloc_stubborn(size_t /* size_in_bytes */, MK_GC_EXTRA_PARAMS);
+MK_GC_API MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1) void * MK_GC_CALL
+        MK_GC_debug_malloc_ignore_off_page(size_t /* size_in_bytes */,
+                                        MK_GC_EXTRA_PARAMS);
+MK_GC_API MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1) void * MK_GC_CALL
+        MK_GC_debug_malloc_atomic_ignore_off_page(size_t /* size_in_bytes */,
+                                        MK_GC_EXTRA_PARAMS);
 MK_GC_API void MK_GC_CALL MK_GC_debug_free(void *);
 MK_GC_API void * MK_GC_CALL MK_GC_debug_realloc(void * /* old_object */,
                         size_t /* new_size_in_bytes */, MK_GC_EXTRA_PARAMS)
                         /* 'realloc' attr */ MK_GC_ATTR_ALLOC_SIZE(2);
-MK_GC_API void MK_GC_CALL MK_GC_debug_change_stubborn(void *);
-MK_GC_API void MK_GC_CALL MK_GC_debug_end_stubborn_change(void *);
+MK_GC_API void MK_GC_CALL MK_GC_debug_change_stubborn(const void *) MK_GC_ATTR_NONNULL(1);
+MK_GC_API void MK_GC_CALL MK_GC_debug_end_stubborn_change(const void *)
+                                                        MK_GC_ATTR_NONNULL(1);
 
 /* Routines that allocate objects with debug information (like the      */
 /* above), but just fill in dummy file and line number information.     */
@@ -709,11 +801,11 @@ MK_GC_API void MK_GC_CALL MK_GC_debug_end_stubborn_change(void *);
 /*    platforms it may be more convenient not to recompile, e.g. for    */
 /*    leak detection.  This can be accomplished by instructing the      */
 /*    linker to replace malloc/realloc with these.                      */
-MK_GC_API void * MK_GC_CALL MK_GC_debug_malloc_replacement(size_t /* size_in_bytes */)
-                        MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1);
-MK_GC_API void * MK_GC_CALL MK_GC_debug_realloc_replacement(void * /* object_addr */,
-                                                   size_t /* size_in_bytes */)
-                        /* 'realloc' attr */ MK_GC_ATTR_ALLOC_SIZE(2);
+MK_GC_API MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1) void * MK_GC_CALL
+        MK_GC_debug_malloc_replacement(size_t /* size_in_bytes */);
+MK_GC_API /* 'realloc' attr */ MK_GC_ATTR_ALLOC_SIZE(2) void * MK_GC_CALL
+        MK_GC_debug_realloc_replacement(void * /* object_addr */,
+                                     size_t /* size_in_bytes */);
 
 #ifdef MK_GC_DEBUG_REPLACEMENT
 # define MK_GC_MALLOC(sz) MK_GC_debug_malloc_replacement(sz)
@@ -751,7 +843,10 @@ MK_GC_API void * MK_GC_CALL MK_GC_debug_realloc_replacement(void * /* object_add
 # define MK_GC_CHANGE_STUBBORN(p) MK_GC_debug_change_stubborn(p)
 # define MK_GC_END_STUBBORN_CHANGE(p) MK_GC_debug_end_stubborn_change(p)
 # define MK_GC_GENERAL_REGISTER_DISAPPEARING_LINK(link, obj) \
-      MK_GC_general_register_disappearing_link(link, MK_GC_base(obj))
+      MK_GC_general_register_disappearing_link(link, \
+                                        MK_GC_base((/* no const */ void *)(obj)))
+# define MK_GC_REGISTER_LONG_LINK(link, obj) \
+      MK_GC_register_long_link(link, MK_GC_base((/* no const */ void *)(obj)))
 # define MK_GC_REGISTER_DISPLACEMENT(n) MK_GC_debug_register_displacement(n)
 #else
 # define MK_GC_MALLOC_ATOMIC(sz) MK_GC_malloc_atomic(sz)
@@ -777,6 +872,8 @@ MK_GC_API void * MK_GC_CALL MK_GC_debug_realloc_replacement(void * /* object_add
 # define MK_GC_END_STUBBORN_CHANGE(p) MK_GC_end_stubborn_change(p)
 # define MK_GC_GENERAL_REGISTER_DISAPPEARING_LINK(link, obj) \
       MK_GC_general_register_disappearing_link(link, obj)
+# define MK_GC_REGISTER_LONG_LINK(link, obj) \
+      MK_GC_register_long_link(link, obj)
 # define MK_GC_REGISTER_DISPLACEMENT(n) MK_GC_register_displacement(n)
 #endif /* !MK_GC_DEBUG */
 
@@ -793,9 +890,10 @@ MK_GC_API void * MK_GC_CALL MK_GC_debug_realloc_replacement(void * /* object_add
 #ifdef MK_GC_REQUIRE_WCSDUP
   /* This might be unavailable on some targets (or not needed). */
   /* wchar_t should be defined in stddef.h */
-  MK_GC_API wchar_t * MK_GC_CALL MK_GC_wcsdup(const wchar_t *) MK_GC_ATTR_MALLOC;
-  MK_GC_API wchar_t * MK_GC_CALL MK_GC_debug_wcsdup(const wchar_t *,
-                                           MK_GC_EXTRA_PARAMS) MK_GC_ATTR_MALLOC;
+  MK_GC_API MK_GC_ATTR_MALLOC wchar_t * MK_GC_CALL
+        MK_GC_wcsdup(const wchar_t *) MK_GC_ATTR_NONNULL(1);
+  MK_GC_API MK_GC_ATTR_MALLOC wchar_t * MK_GC_CALL
+        MK_GC_debug_wcsdup(const wchar_t *, MK_GC_EXTRA_PARAMS) MK_GC_ATTR_NONNULL(1);
 # ifdef MK_GC_DEBUG
 #   define MK_GC_WCSDUP(s) MK_GC_debug_wcsdup(s, MK_GC_EXTRAS)
 # else
@@ -815,10 +913,12 @@ typedef void (MK_GC_CALLBACK * MK_GC_finalization_proc)(void * /* obj */,
 
 MK_GC_API void MK_GC_CALL MK_GC_register_finalizer(void * /* obj */,
                         MK_GC_finalization_proc /* fn */, void * /* cd */,
-                        MK_GC_finalization_proc * /* ofn */, void ** /* ocd */);
+                        MK_GC_finalization_proc * /* ofn */, void ** /* ocd */)
+                                                MK_GC_ATTR_NONNULL(1);
 MK_GC_API void MK_GC_CALL MK_GC_debug_register_finalizer(void * /* obj */,
                         MK_GC_finalization_proc /* fn */, void * /* cd */,
-                        MK_GC_finalization_proc * /* ofn */, void ** /* ocd */);
+                        MK_GC_finalization_proc * /* ofn */, void ** /* ocd */)
+                                                MK_GC_ATTR_NONNULL(1);
         /* When obj is no longer accessible, invoke             */
         /* (*fn)(obj, cd).  If a and b are inaccessible, and    */
         /* a points to b (after disappearing links have been    */
@@ -854,7 +954,7 @@ MK_GC_API void MK_GC_CALL MK_GC_debug_register_finalizer(void * /* obj */,
         /* allocated by MK_GC_malloc or friends. Obj may also be   */
         /* NULL or point to something outside GC heap (in this  */
         /* case, fn is ignored, *ofn and *ocd are set to NULL). */
-        /* Note that any garbage collectable object referenced  */
+        /* Note that any garbage collectible object referenced  */
         /* by cd will be considered accessible until the        */
         /* finalizer is invoked.                                */
 
@@ -869,10 +969,12 @@ MK_GC_API void MK_GC_CALL MK_GC_debug_register_finalizer(void * /* obj */,
 /* refers to the object itself.                                 */
 MK_GC_API void MK_GC_CALL MK_GC_register_finalizer_ignore_self(void * /* obj */,
                         MK_GC_finalization_proc /* fn */, void * /* cd */,
-                        MK_GC_finalization_proc * /* ofn */, void ** /* ocd */);
+                        MK_GC_finalization_proc * /* ofn */, void ** /* ocd */)
+                                                MK_GC_ATTR_NONNULL(1);
 MK_GC_API void MK_GC_CALL MK_GC_debug_register_finalizer_ignore_self(void * /* obj */,
                         MK_GC_finalization_proc /* fn */, void * /* cd */,
-                        MK_GC_finalization_proc * /* ofn */, void ** /* ocd */);
+                        MK_GC_finalization_proc * /* ofn */, void ** /* ocd */)
+                                                MK_GC_ATTR_NONNULL(1);
 
 /* Another version of the above.  It ignores all cycles.        */
 /* It should probably only be used by Java implementations.     */
@@ -880,10 +982,12 @@ MK_GC_API void MK_GC_CALL MK_GC_debug_register_finalizer_ignore_self(void * /* o
 /* refers to the object itself.                                 */
 MK_GC_API void MK_GC_CALL MK_GC_register_finalizer_no_order(void * /* obj */,
                         MK_GC_finalization_proc /* fn */, void * /* cd */,
-                        MK_GC_finalization_proc * /* ofn */, void ** /* ocd */);
+                        MK_GC_finalization_proc * /* ofn */, void ** /* ocd */)
+                                                MK_GC_ATTR_NONNULL(1);
 MK_GC_API void MK_GC_CALL MK_GC_debug_register_finalizer_no_order(void * /* obj */,
                         MK_GC_finalization_proc /* fn */, void * /* cd */,
-                        MK_GC_finalization_proc * /* ofn */, void ** /* ocd */);
+                        MK_GC_finalization_proc * /* ofn */, void ** /* ocd */)
+                                                MK_GC_ATTR_NONNULL(1);
 
 /* This is a special finalizer that is useful when an object's  */
 /* finalizer must be run when the object is known to be no      */
@@ -903,10 +1007,12 @@ MK_GC_API void MK_GC_CALL MK_GC_debug_register_finalizer_no_order(void * /* obj 
 /* unordered finalization (e.g. Java, C#).                      */
 MK_GC_API void MK_GC_CALL MK_GC_register_finalizer_unreachable(void * /* obj */,
                         MK_GC_finalization_proc /* fn */, void * /* cd */,
-                        MK_GC_finalization_proc * /* ofn */, void ** /* ocd */);
+                        MK_GC_finalization_proc * /* ofn */, void ** /* ocd */)
+                                                MK_GC_ATTR_NONNULL(1);
 MK_GC_API void MK_GC_CALL MK_GC_debug_register_finalizer_unreachable(void * /* obj */,
                         MK_GC_finalization_proc /* fn */, void * /* cd */,
-                        MK_GC_finalization_proc * /* ofn */, void ** /* ocd */);
+                        MK_GC_finalization_proc * /* ofn */, void ** /* ocd */)
+                                                MK_GC_ATTR_NONNULL(1);
 
 #define MK_GC_NO_MEMORY 2  /* Failure due to lack of memory.       */
 
@@ -917,7 +1023,8 @@ MK_GC_API void MK_GC_CALL MK_GC_debug_register_finalizer_unreachable(void * /* o
 /* where p is a pointer that is not followed by finalization    */
 /* code, and should not be considered in determining            */
 /* finalization order.                                          */
-MK_GC_API int MK_GC_CALL MK_GC_register_disappearing_link(void ** /* link */);
+MK_GC_API int MK_GC_CALL MK_GC_register_disappearing_link(void ** /* link */)
+                                                MK_GC_ATTR_NONNULL(1);
         /* Link should point to a field of a heap allocated     */
         /* object obj.  *link will be cleared when obj is       */
         /* found to be inaccessible.  This happens BEFORE any   */
@@ -939,7 +1046,8 @@ MK_GC_API int MK_GC_CALL MK_GC_register_disappearing_link(void ** /* link */);
         /* Only exists for backward compatibility.  See below:  */
 
 MK_GC_API int MK_GC_CALL MK_GC_general_register_disappearing_link(void ** /* link */,
-                                                         void * /* obj */);
+                                                    const void * /* obj */)
+                        MK_GC_ATTR_NONNULL(1) MK_GC_ATTR_NONNULL(2);
         /* A slight generalization of the above. *link is       */
         /* cleared when obj first becomes inaccessible.  This   */
         /* can be used to implement weak pointers easily and    */
@@ -971,10 +1079,46 @@ MK_GC_API int MK_GC_CALL MK_GC_general_register_disappearing_link(void ** /* lin
         /* MK_GC_NO_MEMORY if registration failed for lack of      */
         /* memory (and MK_GC_oom_fn did not handle the problem).   */
 
+MK_GC_API int MK_GC_CALL MK_GC_move_disappearing_link(void ** /* link */,
+                                             void ** /* new_link */)
+                        MK_GC_ATTR_NONNULL(2);
+        /* Moves a link previously registered via               */
+        /* MK_GC_general_register_disappearing_link (or            */
+        /* MK_GC_register_disappearing_link).  Does not change the */
+        /* target object of the weak reference.  Does not       */
+        /* change (*new_link) content.  May be called with      */
+        /* new_link equal to link (to check whether link has    */
+        /* been registered).  Returns MK_GC_SUCCESS on success,    */
+        /* MK_GC_DUPLICATE if there is already another             */
+        /* disappearing link at the new location (never         */
+        /* returned if new_link is equal to link), MK_GC_NOT_FOUND */
+        /* if no link is registered at the original location.   */
+
 MK_GC_API int MK_GC_CALL MK_GC_unregister_disappearing_link(void ** /* link */);
         /* Undoes a registration by either of the above two     */
         /* routines.  Returns 0 if link was not actually        */
         /* registered (otherwise returns 1).                    */
+
+MK_GC_API int MK_GC_CALL MK_GC_register_long_link(void ** /* link */,
+                                    const void * /* obj */)
+                        MK_GC_ATTR_NONNULL(1) MK_GC_ATTR_NONNULL(2);
+        /* Similar to MK_GC_general_register_disappearing_link but */
+        /* *link only gets cleared when obj becomes truly       */
+        /* inaccessible.  An object becomes truly inaccessible  */
+        /* when it can no longer be resurrected from its        */
+        /* finalizer (e.g. by assigning itself to a pointer     */
+        /* traceable from root).  This can be used to implement */
+        /* long weak pointers easily and safely.                */
+
+MK_GC_API int MK_GC_CALL MK_GC_move_long_link(void ** /* link */,
+                                     void ** /* new_link */)
+                        MK_GC_ATTR_NONNULL(2);
+        /* Similar to MK_GC_move_disappearing_link but for a link  */
+        /* previously registered via MK_GC_register_long_link.     */
+
+MK_GC_API int MK_GC_CALL MK_GC_unregister_long_link(void ** /* link */);
+        /* Similar to MK_GC_unregister_disappearing_link but for a */
+        /* registration by either of the above two routines.    */
 
 /* Returns !=0 if MK_GC_invoke_finalizers has something to do.     */
 MK_GC_API int MK_GC_CALL MK_GC_should_invoke_finalizers(void);
@@ -1005,17 +1149,29 @@ MK_GC_API int MK_GC_CALL MK_GC_invoke_finalizers(void);
 #endif
 
 /* MK_GC_set_warn_proc can be used to redirect or filter warning messages. */
-/* p may not be a NULL pointer.  Both the setter and the getter acquire */
-/* the GC lock (to avoid data races).                                   */
+/* p may not be a NULL pointer.  msg is printf format string (arg must  */
+/* match the format).  Both the setter and the getter acquire the GC    */
+/* lock (to avoid data races).                                          */
 typedef void (MK_GC_CALLBACK * MK_GC_warn_proc)(char * /* msg */,
                                           MK_GC_word /* arg */);
-MK_GC_API void MK_GC_CALL MK_GC_set_warn_proc(MK_GC_warn_proc /* p */);
+MK_GC_API void MK_GC_CALL MK_GC_set_warn_proc(MK_GC_warn_proc /* p */) MK_GC_ATTR_NONNULL(1);
 /* MK_GC_get_warn_proc returns the current warn_proc.                      */
 MK_GC_API MK_GC_warn_proc MK_GC_CALL MK_GC_get_warn_proc(void);
 
 /* MK_GC_ignore_warn_proc may be used as an argument for MK_GC_set_warn_proc  */
 /* to suppress all warnings (unless statistics printing is turned on).  */
 MK_GC_API void MK_GC_CALLBACK MK_GC_ignore_warn_proc(char *, MK_GC_word);
+
+/* abort_func is invoked on GC fatal aborts (just before OS-dependent   */
+/* abort or exit(1) is called).  Must be non-NULL.  The default one     */
+/* outputs msg to stderr provided msg is non-NULL.  msg is NULL if      */
+/* invoked before exit(1) otherwise msg is non-NULL (i.e., if invoked   */
+/* before abort).  Both the setter and getter acquire the GC lock.      */
+/* Both the setter and getter are defined only if the library has been  */
+/* compiled without SMALL_CONFIG.                                       */
+typedef void (MK_GC_CALLBACK * MK_GC_abort_func)(const char * /* msg */);
+MK_GC_API void MK_GC_CALL MK_GC_set_abort_func(MK_GC_abort_func) MK_GC_ATTR_NONNULL(1);
+MK_GC_API MK_GC_abort_func MK_GC_CALL MK_GC_get_abort_func(void);
 
 /* The following is intended to be used by a higher level       */
 /* (e.g. Java-like) finalization facility.  It is expected      */
@@ -1041,7 +1197,7 @@ typedef MK_GC_word MK_GC_hidden_pointer;
 
 typedef void * (MK_GC_CALLBACK * MK_GC_fn_type)(void * /* client_data */);
 MK_GC_API void * MK_GC_CALL MK_GC_call_with_alloc_lock(MK_GC_fn_type /* fn */,
-                                                void * /* client_data */);
+                                void * /* client_data */) MK_GC_ATTR_NONNULL(1);
 
 /* These routines are intended to explicitly notify the collector       */
 /* of new threads.  Often this is unnecessary because thread creation   */
@@ -1070,13 +1226,15 @@ typedef void * (MK_GC_CALLBACK * MK_GC_stack_base_func)(
 /* be used to provide a sufficiently accurate stack base.  And we       */
 /* implement it everywhere.                                             */
 MK_GC_API void * MK_GC_CALL MK_GC_call_with_stack_base(MK_GC_stack_base_func /* fn */,
-                                              void * /* arg */);
+                                        void * /* arg */) MK_GC_ATTR_NONNULL(1);
 
 #define MK_GC_SUCCESS 0
 #define MK_GC_DUPLICATE 1          /* Was already registered.              */
 #define MK_GC_NO_THREADS 2         /* No thread support in GC.             */
         /* MK_GC_NO_THREADS is not returned by any GC function anymore.    */
 #define MK_GC_UNIMPLEMENTED 3 /* Not yet implemented on this platform.     */
+#define MK_GC_NOT_FOUND 4          /* Requested link not found (returned   */
+                                /* by MK_GC_move_disappearing_link).       */
 
 #if defined(MK_GC_DARWIN_THREADS) || defined(MK_GC_WIN32_THREADS)
   /* Use implicit thread registration and processing (via Win32 DllMain */
@@ -1088,9 +1246,26 @@ MK_GC_API void * MK_GC_CALL MK_GC_call_with_stack_base(MK_GC_stack_base_func /* 
 #endif
 
 #ifdef MK_GC_THREADS
-  /* Return the signal number (constant) used by the garbage collector  */
-  /* to suspend threads on POSIX systems.  Return -1 otherwise.         */
+  /* Suggest the GC to use the specific signal to suspend threads.      */
+  /* Has no effect after MK_GC_init and on non-POSIX systems.              */
+  MK_GC_API void MK_GC_CALL MK_GC_set_suspend_signal(int);
+
+  /* Suggest the GC to use the specific signal to resume threads.       */
+  /* Has no effect after MK_GC_init and on non-POSIX systems.              */
+  MK_GC_API void MK_GC_CALL MK_GC_set_thr_restart_signal(int);
+
+  /* Return the signal number (constant after initialization) used by   */
+  /* the GC to suspend threads on POSIX systems.  Return -1 otherwise.  */
   MK_GC_API int MK_GC_CALL MK_GC_get_suspend_signal(void);
+
+  /* Return the signal number (constant after initialization) used by   */
+  /* the garbage collector to restart (resume) threads on POSIX         */
+  /* systems.  Return -1 otherwise.                                     */
+  MK_GC_API int MK_GC_CALL MK_GC_get_thr_restart_signal(void);
+
+  /* Restart marker threads after POSIX fork in child.  Meaningless in  */
+  /* other situations.  Should not be called if fork followed by exec.  */
+  MK_GC_API void MK_GC_CALL MK_GC_start_mark_threads(void);
 
   /* Explicitly enable MK_GC_register_my_thread() invocation.              */
   /* Done implicitly if a GC thread-creation function is called (or     */
@@ -1120,7 +1295,12 @@ MK_GC_API void * MK_GC_CALL MK_GC_call_with_stack_base(MK_GC_stack_base_func /* 
   /* latter case, the explicit call is normally required for threads    */
   /* created by third-party libraries.                                  */
   /* A manually registered thread requires manual unregistering.        */
-  MK_GC_API int MK_GC_CALL MK_GC_register_my_thread(const struct MK_GC_stack_base *);
+  MK_GC_API int MK_GC_CALL MK_GC_register_my_thread(const struct MK_GC_stack_base *)
+                                                        MK_GC_ATTR_NONNULL(1);
+
+  /* Return non-zero (TRUE) if and only if the calling thread is        */
+  /* registered with the garbage collector.                             */
+  MK_GC_API int MK_GC_CALL MK_GC_thread_is_registered(void);
 
   /* Unregister the current thread.  Only an explicitly registered      */
   /* thread (i.e. for which MK_GC_register_my_thread() returns MK_GC_SUCCESS) */
@@ -1147,7 +1327,7 @@ MK_GC_API void * MK_GC_CALL MK_GC_call_with_stack_base(MK_GC_stack_base_func /* 
 /* allowed for fn to call MK_GC_call_with_gc_active() (even recursively),  */
 /* thus temporarily toggling the collector's state back to "active".    */
 MK_GC_API void * MK_GC_CALL MK_GC_do_blocking(MK_GC_fn_type /* fn */,
-                                     void * /* client_data */);
+                                void * /* client_data */) MK_GC_ATTR_NONNULL(1);
 
 /* Call a function switching to the "active" state of the collector for */
 /* the current thread (i.e. the user function is allowed to call any    */
@@ -1159,7 +1339,7 @@ MK_GC_API void * MK_GC_CALL MK_GC_do_blocking(MK_GC_fn_type /* fn */,
 /* MK_GC_do_blocking.  MK_GC_call_with_gc_active() often can be used to       */
 /* provide a sufficiently accurate stack base.                          */
 MK_GC_API void * MK_GC_CALL MK_GC_call_with_gc_active(MK_GC_fn_type /* fn */,
-                                             void * /* client_data */);
+                                void * /* client_data */) MK_GC_ATTR_NONNULL(1);
 
 /* Attempt to fill in the MK_GC_stack_base structure with the stack base   */
 /* for this thread.  This appears to be required to implement anything  */
@@ -1168,7 +1348,8 @@ MK_GC_API void * MK_GC_CALL MK_GC_call_with_gc_active(MK_GC_fn_type /* fn */,
 /* It is also unfortunately hard to implement well on many platforms.   */
 /* Returns MK_GC_SUCCESS or MK_GC_UNIMPLEMENTED.  This function acquires the  */
 /* GC lock on some platforms.                                           */
-MK_GC_API int MK_GC_CALL MK_GC_get_stack_base(struct MK_GC_stack_base *);
+MK_GC_API int MK_GC_CALL MK_GC_get_stack_base(struct MK_GC_stack_base *)
+                                                        MK_GC_ATTR_NONNULL(1);
 
 /* The following routines are primarily intended for use with a         */
 /* preprocessor which inserts calls to check C pointer arithmetic.      */
@@ -1185,8 +1366,10 @@ MK_GC_API void * MK_GC_CALL MK_GC_same_obj(void * /* p */, void * /* q */);
 /* the second argument is in units of bytes, not multiples of the       */
 /* object size.  This should either be invoked from a macro, or the     */
 /* call should be automatically generated.                              */
-MK_GC_API void * MK_GC_CALL MK_GC_pre_incr(void **, ptrdiff_t /* how_much */);
-MK_GC_API void * MK_GC_CALL MK_GC_post_incr(void **, ptrdiff_t /* how_much */);
+MK_GC_API void * MK_GC_CALL MK_GC_pre_incr(void **, ptrdiff_t /* how_much */)
+                                                        MK_GC_ATTR_NONNULL(1);
+MK_GC_API void * MK_GC_CALL MK_GC_post_incr(void **, ptrdiff_t /* how_much */)
+                                                        MK_GC_ATTR_NONNULL(1);
 
 /* Check that p is visible                                              */
 /* to the collector as a possibly pointer containing location.          */
@@ -1263,7 +1446,7 @@ MK_GC_API void (MK_GC_CALLBACK * MK_GC_is_visible_print_proc)(void *);
 /* This returns a list of objects, linked through their first word.     */
 /* Its use can greatly reduce lock contention problems, since the       */
 /* allocation lock can be acquired and released many fewer times.       */
-MK_GC_API void * MK_GC_CALL MK_GC_malloc_many(size_t /* lb */);
+MK_GC_API MK_GC_ATTR_MALLOC void * MK_GC_CALL MK_GC_malloc_many(size_t /* lb */);
 #define MK_GC_NEXT(p) (*(void * *)(p))     /* Retrieve the next element    */
                                         /* in returned list.            */
 
@@ -1287,9 +1470,12 @@ typedef int (MK_GC_CALLBACK * MK_GC_has_static_roots_func)(
 MK_GC_API void MK_GC_CALL MK_GC_register_has_static_roots_callback(
                                         MK_GC_has_static_roots_func);
 
-#if defined(MK_GC_WIN32_THREADS) && !defined(MK_GC_PTHREADS)
+#if defined(MK_GC_WIN32_THREADS) \
+    && (!defined(MK_GC_PTHREADS) || defined(MK_GC_BUILD) || defined(WINAPI))
+                /* Note: for Cygwin and win32-pthread, this is skipped  */
+                /* unless windows.h is included before gc.h.            */
 
-# ifndef MK_GC_NO_THREAD_DECLS
+# if !defined(MK_GC_NO_THREAD_DECLS) || defined(MK_GC_BUILD)
 
 #   ifdef __cplusplus
       } /* Including windows.h in an extern "C" context no longer works. */
@@ -1312,6 +1498,23 @@ MK_GC_API void MK_GC_CALL MK_GC_register_has_static_roots_callback(
 #     define MK_GC_ExitThread _MK_GC_ExitThread
 #   endif
 
+#   ifdef MK_GC_INSIDE_DLL
+      /* Export GC DllMain to be invoked from client DllMain.   */
+#     ifdef MK_GC_UNDERSCORE_STDCALL
+#       define MK_GC_DllMain _MK_GC_DllMain
+#     endif
+      MK_GC_API BOOL WINAPI MK_GC_DllMain(HINSTANCE /* inst */, ULONG /* reason */,
+                                    LPVOID /* reserved */);
+#   endif /* MK_GC_INSIDE_DLL */
+
+#   if !defined(_UINTPTR_T) && !defined(_UINTPTR_T_DEFINED) \
+       && !defined(UINTPTR_MAX)
+      typedef MK_GC_word MK_GC_uintptr_t;
+#   else
+      typedef uintptr_t MK_GC_uintptr_t;
+#   endif
+#   define MK_GC_WIN32_SIZE_T MK_GC_uintptr_t
+
     /* All threads must be created using MK_GC_CreateThread or             */
     /* MK_GC_beginthreadex, or must explicitly call MK_GC_register_my_thread  */
     /* (and call MK_GC_unregister_my_thread before thread termination), so */
@@ -1324,7 +1527,7 @@ MK_GC_API void MK_GC_CALL MK_GC_register_has_static_roots_callback(
     /* so that the thread is properly unregistered.                     */
     MK_GC_API HANDLE WINAPI MK_GC_CreateThread(
                 LPSECURITY_ATTRIBUTES /* lpThreadAttributes */,
-                DWORD /* dwStackSize */,
+                MK_GC_WIN32_SIZE_T /* dwStackSize */,
                 LPTHREAD_START_ROUTINE /* lpStartAddress */,
                 LPVOID /* lpParameter */, DWORD /* dwCreationFlags */,
                 LPDWORD /* lpThreadId */);
@@ -1338,13 +1541,6 @@ MK_GC_API void MK_GC_CALL MK_GC_register_has_static_roots_callback(
                                                 DWORD /* dwExitCode */);
 
 #   if !defined(_WIN32_WCE) && !defined(__CEGCC__)
-#     if !defined(_UINTPTR_T) && !defined(_UINTPTR_T_DEFINED) \
-                && !defined(UINTPTR_MAX)
-        typedef MK_GC_word MK_GC_uintptr_t;
-#     else
-        typedef uintptr_t MK_GC_uintptr_t;
-#     endif
-
       MK_GC_API MK_GC_uintptr_t MK_GC_CALL MK_GC_beginthreadex(
                         void * /* security */, unsigned /* stack_size */,
                         unsigned (__stdcall *)(void *),
@@ -1400,9 +1596,9 @@ MK_GC_API int MK_GC_CALL MK_GC_get_force_unmap_on_gcollect(void);
   /* Similarly gnu-win32 DLLs need explicit initialization from the     */
   /* main program, as does AIX.                                         */
   extern int _data_start__[], _data_end__[], _bss_start__[], _bss_end__[];
-# define MK_GC_DATASTART (_data_start__ < _bss_start__ ? \
+# define MK_GC_DATASTART ((MK_GC_word)_data_start__ < (MK_GC_word)_bss_start__ ? \
                        (void *)_data_start__ : (void *)_bss_start__)
-# define MK_GC_DATAEND (_data_end__ > _bss_end__ ? \
+# define MK_GC_DATAEND ((MK_GC_word)_data_end__ > (MK_GC_word)_bss_end__ ? \
                      (void *)_data_end__ : (void *)_bss_end__)
 # define MK_GC_INIT_CONF_ROOTS MK_GC_add_roots(MK_GC_DATASTART, MK_GC_DATAEND); \
                                  MK_GC_gcollect() /* For blacklisting. */
@@ -1412,6 +1608,13 @@ MK_GC_API int MK_GC_CALL MK_GC_get_force_unmap_on_gcollect(void);
 # define MK_GC_DATASTART ((void *)((ulong)_data))
 # define MK_GC_DATAEND ((void *)((ulong)_end))
 # define MK_GC_INIT_CONF_ROOTS MK_GC_add_roots(MK_GC_DATASTART, MK_GC_DATAEND)
+#elif (defined(PLATFORM_ANDROID) || defined(__ANDROID__)) \
+      && !defined(MK_GC_NOT_DLL)
+  /* Required if GC is built as shared lib with -D IGNORE_DYNAMIC_LOADING. */
+# pragma weak __data_start
+  extern int __data_start[], _end[];
+# define MK_GC_INIT_CONF_ROOTS (void)((MK_GC_word)(__data_start) != 0 ? \
+                                (MK_GC_add_roots(__data_start, _end), 0) : 0)
 #else
 # define MK_GC_INIT_CONF_ROOTS /* empty */
 #endif
@@ -1431,7 +1634,11 @@ MK_GC_API int MK_GC_CALL MK_GC_get_force_unmap_on_gcollect(void);
 # define MK_GC_INIT_CONF_FORCE_UNMAP_ON_GCOLLECT /* empty */
 #endif
 
-#ifdef MK_GC_MAX_RETRIES
+#ifdef MK_GC_DONT_GC
+  /* This is for debugging only (useful if environment variables are    */
+  /* unsupported); cannot call MK_GC_disable as goes before MK_GC_init.       */
+# define MK_GC_INIT_CONF_MAX_RETRIES (void)(MK_GC_dont_gc = 1)
+#elif defined(MK_GC_MAX_RETRIES)
   /* Set MK_GC_max_retries to the desired value at start-up */
 # define MK_GC_INIT_CONF_MAX_RETRIES MK_GC_set_max_retries(MK_GC_MAX_RETRIES)
 #else
@@ -1458,6 +1665,19 @@ MK_GC_API int MK_GC_CALL MK_GC_get_force_unmap_on_gcollect(void);
 # define MK_GC_INIT_CONF_TIME_LIMIT MK_GC_set_time_limit(MK_GC_TIME_LIMIT)
 #else
 # define MK_GC_INIT_CONF_TIME_LIMIT /* empty */
+#endif
+
+#if defined(MK_GC_SIG_SUSPEND) && defined(MK_GC_THREADS)
+# define MK_GC_INIT_CONF_SUSPEND_SIGNAL MK_GC_set_suspend_signal(MK_GC_SIG_SUSPEND)
+#else
+# define MK_GC_INIT_CONF_SUSPEND_SIGNAL /* empty */
+#endif
+
+#if defined(MK_GC_SIG_THR_RESTART) && defined(MK_GC_THREADS)
+# define MK_GC_INIT_CONF_THR_RESTART_SIGNAL \
+                MK_GC_set_thr_restart_signal(MK_GC_SIG_THR_RESTART)
+#else
+# define MK_GC_INIT_CONF_THR_RESTART_SIGNAL /* empty */
 #endif
 
 #ifdef MK_GC_MAXIMUM_HEAP_SIZE
@@ -1497,6 +1717,8 @@ MK_GC_API int MK_GC_CALL MK_GC_get_force_unmap_on_gcollect(void);
                     MK_GC_INIT_CONF_FREE_SPACE_DIVISOR; \
                     MK_GC_INIT_CONF_FULL_FREQ; \
                     MK_GC_INIT_CONF_TIME_LIMIT; \
+                    MK_GC_INIT_CONF_SUSPEND_SIGNAL; \
+                    MK_GC_INIT_CONF_THR_RESTART_SIGNAL; \
                     MK_GC_INIT_CONF_MAXIMUM_HEAP_SIZE; \
                     MK_GC_init(); /* real GC initialization */ \
                     MK_GC_INIT_CONF_ROOTS; /* post-init */ \
@@ -1507,12 +1729,32 @@ MK_GC_API int MK_GC_CALL MK_GC_get_force_unmap_on_gcollect(void);
 /* This explicitly deallocates the heap.                */
 MK_GC_API void MK_GC_CALL MK_GC_win32_free_heap(void);
 
-#if defined(_AMIGA) && !defined(MK_GC_AMIGA_MAKINGLIB)
-  /* Allocation really goes through MK_GC_amiga_allocwrapper_do    */
-# include "gc_amiga_redirects.h"
+#if defined(__SYMBIAN32__)
+  void MK_GC_init_global_static_roots(void);
 #endif
 
-#include "gc_local.h"  /* JCB */
+#if defined(_AMIGA) && !defined(MK_GC_AMIGA_MAKINGLIB)
+  /* Allocation really goes through MK_GC_amiga_allocwrapper_do.   */
+  void *MK_GC_amiga_realloc(void *, size_t);
+# define MK_GC_realloc(a,b) MK_GC_amiga_realloc(a,b)
+  void MK_GC_amiga_set_toany(void (*)(void));
+  extern int MK_GC_amiga_free_space_divisor_inc;
+  extern void *(*MK_GC_amiga_allocwrapper_do)(size_t, void *(MK_GC_CALL *)(size_t));
+# define MK_GC_malloc(a) \
+        (*MK_GC_amiga_allocwrapper_do)(a,MK_GC_malloc)
+# define MK_GC_malloc_atomic(a) \
+        (*MK_GC_amiga_allocwrapper_do)(a,MK_GC_malloc_atomic)
+# define MK_GC_malloc_uncollectable(a) \
+        (*MK_GC_amiga_allocwrapper_do)(a,MK_GC_malloc_uncollectable)
+# define MK_GC_malloc_stubborn(a) \
+        (*MK_GC_amiga_allocwrapper_do)(a,MK_GC_malloc_stubborn)
+# define MK_GC_malloc_atomic_uncollectable(a) \
+        (*MK_GC_amiga_allocwrapper_do)(a,MK_GC_malloc_atomic_uncollectable)
+# define MK_GC_malloc_ignore_off_page(a) \
+        (*MK_GC_amiga_allocwrapper_do)(a,MK_GC_malloc_ignore_off_page)
+# define MK_GC_malloc_atomic_ignore_off_page(a) \
+        (*MK_GC_amiga_allocwrapper_do)(a,MK_GC_malloc_atomic_ignore_off_page)
+#endif /* _AMIGA && !MK_GC_AMIGA_MAKINGLIB */
 
 #ifdef __cplusplus
   }  /* end of extern "C" */

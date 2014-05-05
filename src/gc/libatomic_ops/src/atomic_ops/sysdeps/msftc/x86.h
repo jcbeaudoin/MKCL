@@ -26,16 +26,11 @@
 
 #include "../all_aligned_atomic_load_store.h"
 
-/* Real X86 implementations, except for some old WinChips, appear       */
-/* to enforce ordering between memory operations, EXCEPT that a later   */
-/* read can pass earlier writes, presumably due to the visible          */
-/* presence of store buffers.                                           */
-/* We ignore both the WinChips, and the fact that the official specs    */
-/* seem to be much weaker (and arguably too weak to be usable).         */
-
-#include "../ordered_except_wr.h"
-
 #include "../test_and_set_t_is_char.h"
+
+#if defined(MK_AO_ASSUME_VISTA) && !defined(MK_AO_ASSUME_WINDOWS98)
+# define MK_AO_ASSUME_WINDOWS98
+#endif
 
 #ifndef MK_AO_USE_INTERLOCKED_INTRINSICS
   /* _Interlocked primitives (Inc, Dec, Xchg, Add) are always available */
@@ -67,6 +62,34 @@ MK_AO_nop_full(void)
 
 #endif
 
+#ifndef MK_AO_NO_ASM_XADD
+  MK_AO_INLINE unsigned char
+  MK_AO_char_fetch_and_add_full(volatile unsigned char *p, unsigned char incr)
+  {
+    __asm
+    {
+      mov al, incr
+      mov ebx, p
+      lock xadd byte ptr [ebx], al
+    }
+    /* Ignore possible "missing return value" warning here.     */
+  }
+# define MK_AO_HAVE_char_fetch_and_add_full
+
+  MK_AO_INLINE unsigned short
+  MK_AO_short_fetch_and_add_full(volatile unsigned short *p, unsigned short incr)
+  {
+    __asm
+    {
+      mov ax, incr
+      mov ebx, p
+      lock xadd word ptr [ebx], ax
+    }
+    /* Ignore possible "missing return value" warning here.     */
+  }
+# define MK_AO_HAVE_short_fetch_and_add_full
+#endif /* !MK_AO_NO_ASM_XADD */
+
 MK_AO_INLINE MK_AO_TS_VAL_t
 MK_AO_test_and_set_full(volatile MK_AO_TS_t *addr)
 {
@@ -85,36 +108,36 @@ MK_AO_test_and_set_full(volatile MK_AO_TS_t *addr)
 #endif
 
 #ifdef MK_AO_ASSUME_VISTA
+# include "../standard_ao_double_t.h"
 
-/* NEC LE-IT: whenever we run on a pentium class machine we have that
- * certain function */
+  /* Reading or writing a quadword aligned on a 64-bit boundary is      */
+  /* always carried out atomically (requires at least a Pentium).       */
+# define MK_AO_ACCESS_double_CHECK_ALIGNED
+# include "../loadstore/double_atomic_load_store.h"
 
-#include "../standard_ao_double_t.h"
-#pragma intrinsic (_InterlockedCompareExchange64)
-/* Returns nonzero if the comparison succeeded. */
-MK_AO_INLINE int
-MK_AO_compare_double_and_swap_double_full(volatile MK_AO_double_t *addr,
-                                       MK_AO_t old_val1, MK_AO_t old_val2,
-                                       MK_AO_t new_val1, MK_AO_t new_val2)
-{
-    __int64 oldv = (__int64)old_val1 | ((__int64)old_val2 << 32);
-    __int64 newv = (__int64)new_val1 | ((__int64)new_val2 << 32);
-    return _InterlockedCompareExchange64((__int64 volatile *)addr,
-                                       newv, oldv) == oldv;
-}
-#define MK_AO_HAVE_compare_double_and_swap_double_full
+  /* Whenever we run on a Pentium class machine, we have that certain   */
+  /* function.                                                          */
+# pragma intrinsic (_InterlockedCompareExchange64)
 
-#ifdef __cplusplus
-MK_AO_INLINE int
-MK_AO_double_compare_and_swap_full(volatile MK_AO_double_t *addr,
-                                MK_AO_double_t old_val, MK_AO_double_t new_val)
-{
-    return _InterlockedCompareExchange64((__int64 volatile *)addr,
-                new_val.MK_AO_whole, old_val.MK_AO_whole) == old_val.MK_AO_whole;
-}
-#define MK_AO_HAVE_double_compare_and_swap_full
-#endif /* __cplusplus */
-
+  /* Returns nonzero if the comparison succeeded.       */
+  MK_AO_INLINE int
+  MK_AO_double_compare_and_swap_full(volatile MK_AO_double_t *addr,
+                                  MK_AO_double_t old_val, MK_AO_double_t new_val)
+  {
+    return (double_ptr_storage)_InterlockedCompareExchange64(
+                                        (__int64 volatile *)addr,
+                                        new_val.MK_AO_whole /* exchange */,
+                                        old_val.MK_AO_whole) == old_val.MK_AO_whole;
+  }
+# define MK_AO_HAVE_double_compare_and_swap_full
 #endif /* MK_AO_ASSUME_VISTA */
 
-#include "../ao_t_is_int.h"
+#define MK_AO_T_IS_INT
+
+/* Real X86 implementations, except for some old WinChips, appear       */
+/* to enforce ordering between memory operations, EXCEPT that a later   */
+/* read can pass earlier writes, presumably due to the visible          */
+/* presence of store buffers.                                           */
+/* We ignore both the WinChips, and the fact that the official specs    */
+/* seem to be much weaker (and arguably too weak to be usable).         */
+#include "../ordered_except_wr.h"

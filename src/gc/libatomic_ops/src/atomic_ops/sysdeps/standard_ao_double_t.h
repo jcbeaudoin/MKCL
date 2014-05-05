@@ -1,27 +1,62 @@
 /*
- * NEC LE-IT: For 64-bit OS we extend the double type to hold two int64's
+ * Copyright (c) 2004-2011 Hewlett-Packard Development Company, L.P.
  *
- *  x86-64: __m128 serves as placeholder which also requires the compiler
- *          to align it on 16 byte boundary (as required by cmpxchg16).
- * Similar things could be done for PowerPC 64-bit using a VMX data type...
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
-#if (defined(__x86_64__) && __GNUC__ >= 4) || defined(_WIN64)
+/* For 64-bit systems, we extend the double type to hold two int64's.   */
+/* x86-64 (except for x32): __m128 serves as a placeholder which also   */
+/* requires the compiler to align it on 16-byte boundary (as required   */
+/* by cmpxchg16).                                                       */
+/* Similar things could be done for PPC 64-bit using a VMX data type.   */
+
+#if ((defined(__x86_64__) && __GNUC__ >= 4) || defined(_WIN64)) \
+    && !defined(__ILP32__)
 # include <xmmintrin.h>
   typedef __m128 double_ptr_storage;
 #elif defined(_WIN32) && !defined(__GNUC__)
   typedef unsigned __int64 double_ptr_storage;
+#elif defined(__aarch64__)
+  typedef unsigned __int128 double_ptr_storage;
 #else
   typedef unsigned long long double_ptr_storage;
 #endif
-
 # define MK_AO_HAVE_DOUBLE_PTR_STORAGE
 
 typedef union {
+    struct { MK_AO_t MK_AO_v1; MK_AO_t MK_AO_v2; } MK_AO_parts;
+        /* Note that MK_AO_v1 corresponds to the low or the high part of   */
+        /* MK_AO_whole depending on the machine endianness.                */
     double_ptr_storage MK_AO_whole;
-    struct {MK_AO_t MK_AO_v1; MK_AO_t MK_AO_v2;} MK_AO_parts;
+        /* MK_AO_whole is now (starting from v7.3alpha3) the 2nd element   */
+        /* of this union to make MK_AO_DOUBLE_T_INITIALIZER portable       */
+        /* (because __m128 definition could vary from a primitive type  */
+        /* to a structure or array/vector).                             */
 } MK_AO_double_t;
-
 #define MK_AO_HAVE_double_t
+
+/* Dummy declaration as a compile-time assertion for MK_AO_double_t size.  */
+struct MK_AO_double_t_size_static_assert {
+    char dummy[sizeof(MK_AO_double_t) == 2 * sizeof(MK_AO_t) ? 1 : -1];
+};
+
+#define MK_AO_DOUBLE_T_INITIALIZER { { (MK_AO_t)0, (MK_AO_t)0 } }
+
 #define MK_AO_val1 MK_AO_parts.MK_AO_v1
 #define MK_AO_val2 MK_AO_parts.MK_AO_v2

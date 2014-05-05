@@ -56,13 +56,12 @@ MK_GC_INNER ptr_t * MK_GC_gcjobjfreelist = NULL;
 
 STATIC ptr_t * MK_GC_gcjdebugobjfreelist = NULL;
 
-/*ARGSUSED*/
-STATIC struct MK_GC_ms_entry * MK_GC_gcj_fake_mark_proc(word * addr,
-                                        struct MK_GC_ms_entry *mark_stack_ptr,
-                                        struct MK_GC_ms_entry *mark_stack_limit,
-                                        word env)
+STATIC struct MK_GC_ms_entry * MK_GC_gcj_fake_mark_proc(word * addr MK_GC_ATTR_UNUSED,
+                        struct MK_GC_ms_entry *mark_stack_ptr,
+                        struct MK_GC_ms_entry * mark_stack_limit MK_GC_ATTR_UNUSED,
+                        word env MK_GC_ATTR_UNUSED)
 {
-    ABORT("No client gcj mark proc is specified");
+    ABORT_RET("No client gcj mark proc is specified");
     return mark_stack_ptr;
 }
 
@@ -89,8 +88,8 @@ MK_GC_API void MK_GC_CALL MK_GC_init_gcj_malloc(int mp_index,
 #   else
       ignore_gcj_info = (0 != GETENV("MK_GC_IGNORE_GCJ_INFO"));
 #   endif
-    if (MK_GC_print_stats && ignore_gcj_info) {
-        MK_GC_log_printf("Gcj-style type information is disabled!\n");
+    if (ignore_gcj_info) {
+      MK_GC_COND_LOG_PRINTF("Gcj-style type information is disabled!\n");
     }
     MK_GC_ASSERT(MK_GC_mark_procs[mp_index] == (MK_GC_mark_proc)0); /* unused */
     MK_GC_mark_procs[mp_index] = (MK_GC_mark_proc)(word)mp;
@@ -145,8 +144,8 @@ static void maybe_finalize(void)
    static word last_finalized_no = 0;
    DCL_LOCK_STATE;
 
-   if (MK_GC_gc_no == last_finalized_no) return;
-   if (!MK_GC_is_initialized) return;
+   if (MK_GC_gc_no == last_finalized_no ||
+       !EXPECT(MK_GC_is_initialized, TRUE)) return;
    UNLOCK();
    MK_GC_INVOKE_FINALIZERS();
    LOCK();
@@ -169,6 +168,7 @@ static void maybe_finalize(void)
     word lg;
     DCL_LOCK_STATE;
 
+    MK_GC_DBG_COLLECT_AT_MALLOC(lb);
     if(SMALL_OBJ(lb)) {
         lg = MK_GC_size_map[lb];
         opp = &(MK_GC_gcjobjfreelist[lg]);
@@ -220,10 +220,8 @@ MK_GC_API void * MK_GC_CALL MK_GC_debug_gcj_malloc(size_t lb,
     if (result == 0) {
         MK_GC_oom_func oom_fn = MK_GC_oom_fn;
         UNLOCK();
-        MK_GC_err_printf("MK_GC_debug_gcj_malloc(%ld, %p) returning NULL (",
-                      (unsigned long)lb, ptr_to_struct_containing_descr);
-        MK_GC_err_puts(s);
-        MK_GC_err_printf(":%d)\n", i);
+        MK_GC_err_printf("MK_GC_debug_gcj_malloc(%lu, %p) returning NULL (%s:%d)\n",
+                (unsigned long)lb, ptr_to_struct_containing_descr, s, i);
         return((*oom_fn)(lb));
     }
     *((void **)((ptr_t)result + sizeof(oh))) = ptr_to_struct_containing_descr;
@@ -244,11 +242,13 @@ MK_GC_API void * MK_GC_CALL MK_GC_gcj_malloc_ignore_off_page(size_t lb,
     word lg;
     DCL_LOCK_STATE;
 
+    MK_GC_DBG_COLLECT_AT_MALLOC(lb);
     if(SMALL_OBJ(lb)) {
         lg = MK_GC_size_map[lb];
         opp = &(MK_GC_gcjobjfreelist[lg]);
         LOCK();
-        if( (op = *opp) == 0 ) {
+        op = *opp;
+        if (EXPECT(0 == op, FALSE)) {
             maybe_finalize();
             op = (ptr_t)GENERAL_MALLOC_INNER_IOP(lb, MK_GC_gcj_kind);
             if (0 == op) {

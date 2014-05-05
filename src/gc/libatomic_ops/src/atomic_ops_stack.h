@@ -119,7 +119,7 @@ typedef struct MK_AO__stack {
   MK_AO_stack_aux MK_AO_aux;
 } MK_AO_stack_t;
 
-#define MK_AO_STACK_INITIALIZER {0}
+#define MK_AO_STACK_INITIALIZER {0,{{0}}}
 
 MK_AO_INLINE void MK_AO_stack_init(MK_AO_stack_t *list)
 {
@@ -157,7 +157,7 @@ MK_AO_INLINE void MK_AO_stack_init(MK_AO_stack_t *list)
 typedef volatile MK_AO_double_t MK_AO_stack_t;
 /* MK_AO_val1 is version, MK_AO_val2 is pointer.      */
 
-#define MK_AO_STACK_INITIALIZER {0}
+#define MK_AO_STACK_INITIALIZER MK_AO_DOUBLE_T_INITIALIZER
 
 MK_AO_INLINE void MK_AO_stack_init(MK_AO_stack_t *list)
 {

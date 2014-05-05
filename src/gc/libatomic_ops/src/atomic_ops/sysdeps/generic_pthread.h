@@ -141,83 +141,224 @@ MK_AO_test_and_set_full(volatile MK_AO_TS_t *addr)
 MK_AO_INLINE MK_AO_t
 MK_AO_fetch_and_add_full(volatile MK_AO_t *p, MK_AO_t incr)
 {
-  MK_AO_t tmp;
+  MK_AO_t old_val;
 
   pthread_mutex_lock(&MK_AO_pt_lock);
-  tmp = *p;
-  *p = tmp + incr;
+  old_val = *p;
+  *p = old_val + incr;
   pthread_mutex_unlock(&MK_AO_pt_lock);
-  return tmp;
+  return old_val;
 }
 #define MK_AO_HAVE_fetch_and_add_full
 
 MK_AO_INLINE unsigned char
 MK_AO_char_fetch_and_add_full(volatile unsigned char *p, unsigned char incr)
 {
-  unsigned char tmp;
+  unsigned char old_val;
 
   pthread_mutex_lock(&MK_AO_pt_lock);
-  tmp = *p;
-  *p = tmp + incr;
+  old_val = *p;
+  *p = old_val + incr;
   pthread_mutex_unlock(&MK_AO_pt_lock);
-  return tmp;
+  return old_val;
 }
 #define MK_AO_HAVE_char_fetch_and_add_full
 
 MK_AO_INLINE unsigned short
 MK_AO_short_fetch_and_add_full(volatile unsigned short *p, unsigned short incr)
 {
-  unsigned short tmp;
+  unsigned short old_val;
 
   pthread_mutex_lock(&MK_AO_pt_lock);
-  tmp = *p;
-  *p = tmp + incr;
+  old_val = *p;
+  *p = old_val + incr;
   pthread_mutex_unlock(&MK_AO_pt_lock);
-  return tmp;
+  return old_val;
 }
 #define MK_AO_HAVE_short_fetch_and_add_full
 
 MK_AO_INLINE unsigned int
 MK_AO_int_fetch_and_add_full(volatile unsigned int *p, unsigned int incr)
 {
-  unsigned int tmp;
+  unsigned int old_val;
 
   pthread_mutex_lock(&MK_AO_pt_lock);
-  tmp = *p;
-  *p = tmp + incr;
+  old_val = *p;
+  *p = old_val + incr;
   pthread_mutex_unlock(&MK_AO_pt_lock);
-  return tmp;
+  return old_val;
 }
 #define MK_AO_HAVE_int_fetch_and_add_full
 
 MK_AO_INLINE void
-MK_AO_or_full(volatile MK_AO_t *p, MK_AO_t incr)
+MK_AO_and_full(volatile MK_AO_t *p, MK_AO_t value)
 {
-  MK_AO_t tmp;
-
   pthread_mutex_lock(&MK_AO_pt_lock);
-  tmp = *p;
-  *p = (tmp | incr);
+  *p &= value;
+  pthread_mutex_unlock(&MK_AO_pt_lock);
+}
+#define MK_AO_HAVE_and_full
+
+MK_AO_INLINE void
+MK_AO_or_full(volatile MK_AO_t *p, MK_AO_t value)
+{
+  pthread_mutex_lock(&MK_AO_pt_lock);
+  *p |= value;
   pthread_mutex_unlock(&MK_AO_pt_lock);
 }
 #define MK_AO_HAVE_or_full
 
-MK_AO_INLINE int
-MK_AO_compare_and_swap_full(volatile MK_AO_t *addr,
-                             MK_AO_t old, MK_AO_t new_val)
+MK_AO_INLINE void
+MK_AO_xor_full(volatile MK_AO_t *p, MK_AO_t value)
 {
   pthread_mutex_lock(&MK_AO_pt_lock);
-  if (*addr == old)
-    {
-      *addr = new_val;
-      pthread_mutex_unlock(&MK_AO_pt_lock);
-      return 1;
-    }
-  else
-    pthread_mutex_unlock(&MK_AO_pt_lock);
-    return 0;
+  *p ^= value;
+  pthread_mutex_unlock(&MK_AO_pt_lock);
 }
-#define MK_AO_HAVE_compare_and_swap_full
+#define MK_AO_HAVE_xor_full
+
+MK_AO_INLINE void
+MK_AO_char_and_full(volatile unsigned char *p, unsigned char value)
+{
+  pthread_mutex_lock(&MK_AO_pt_lock);
+  *p &= value;
+  pthread_mutex_unlock(&MK_AO_pt_lock);
+}
+#define MK_AO_HAVE_char_and_full
+
+MK_AO_INLINE void
+MK_AO_char_or_full(volatile unsigned char *p, unsigned char value)
+{
+  pthread_mutex_lock(&MK_AO_pt_lock);
+  *p |= value;
+  pthread_mutex_unlock(&MK_AO_pt_lock);
+}
+#define MK_AO_HAVE_char_or_full
+
+MK_AO_INLINE void
+MK_AO_char_xor_full(volatile unsigned char *p, unsigned char value)
+{
+  pthread_mutex_lock(&MK_AO_pt_lock);
+  *p ^= value;
+  pthread_mutex_unlock(&MK_AO_pt_lock);
+}
+#define MK_AO_HAVE_char_xor_full
+
+MK_AO_INLINE void
+MK_AO_short_and_full(volatile unsigned short *p, unsigned short value)
+{
+  pthread_mutex_lock(&MK_AO_pt_lock);
+  *p &= value;
+  pthread_mutex_unlock(&MK_AO_pt_lock);
+}
+#define MK_AO_HAVE_short_and_full
+
+MK_AO_INLINE void
+MK_AO_short_or_full(volatile unsigned short *p, unsigned short value)
+{
+  pthread_mutex_lock(&MK_AO_pt_lock);
+  *p |= value;
+  pthread_mutex_unlock(&MK_AO_pt_lock);
+}
+#define MK_AO_HAVE_short_or_full
+
+MK_AO_INLINE void
+MK_AO_short_xor_full(volatile unsigned short *p, unsigned short value)
+{
+  pthread_mutex_lock(&MK_AO_pt_lock);
+  *p ^= value;
+  pthread_mutex_unlock(&MK_AO_pt_lock);
+}
+#define MK_AO_HAVE_short_xor_full
+
+MK_AO_INLINE void
+MK_AO_int_and_full(volatile unsigned *p, unsigned value)
+{
+  pthread_mutex_lock(&MK_AO_pt_lock);
+  *p &= value;
+  pthread_mutex_unlock(&MK_AO_pt_lock);
+}
+#define MK_AO_HAVE_int_and_full
+
+MK_AO_INLINE void
+MK_AO_int_or_full(volatile unsigned *p, unsigned value)
+{
+  pthread_mutex_lock(&MK_AO_pt_lock);
+  *p |= value;
+  pthread_mutex_unlock(&MK_AO_pt_lock);
+}
+#define MK_AO_HAVE_int_or_full
+
+MK_AO_INLINE void
+MK_AO_int_xor_full(volatile unsigned *p, unsigned value)
+{
+  pthread_mutex_lock(&MK_AO_pt_lock);
+  *p ^= value;
+  pthread_mutex_unlock(&MK_AO_pt_lock);
+}
+#define MK_AO_HAVE_int_xor_full
+
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_compare_and_swap_full(volatile MK_AO_t *addr, MK_AO_t old_val,
+                               MK_AO_t new_val)
+{
+  MK_AO_t fetched_val;
+
+  pthread_mutex_lock(&MK_AO_pt_lock);
+  fetched_val = *addr;
+  if (fetched_val == old_val)
+    *addr = new_val;
+  pthread_mutex_unlock(&MK_AO_pt_lock);
+  return fetched_val;
+}
+#define MK_AO_HAVE_fetch_compare_and_swap_full
+
+MK_AO_INLINE unsigned char
+MK_AO_char_fetch_compare_and_swap_full(volatile unsigned char *addr,
+                                    unsigned char old_val,
+                                    unsigned char new_val)
+{
+  unsigned char fetched_val;
+
+  pthread_mutex_lock(&MK_AO_pt_lock);
+  fetched_val = *addr;
+  if (fetched_val == old_val)
+    *addr = new_val;
+  pthread_mutex_unlock(&MK_AO_pt_lock);
+  return fetched_val;
+}
+#define MK_AO_HAVE_char_fetch_compare_and_swap_full
+
+MK_AO_INLINE unsigned short
+MK_AO_short_fetch_compare_and_swap_full(volatile unsigned short *addr,
+                                     unsigned short old_val,
+                                     unsigned short new_val)
+{
+  unsigned short fetched_val;
+
+  pthread_mutex_lock(&MK_AO_pt_lock);
+  fetched_val = *addr;
+  if (fetched_val == old_val)
+    *addr = new_val;
+  pthread_mutex_unlock(&MK_AO_pt_lock);
+  return fetched_val;
+}
+#define MK_AO_HAVE_short_fetch_compare_and_swap_full
+
+MK_AO_INLINE unsigned
+MK_AO_int_fetch_compare_and_swap_full(volatile unsigned *addr, unsigned old_val,
+                                   unsigned new_val)
+{
+  unsigned fetched_val;
+
+  pthread_mutex_lock(&MK_AO_pt_lock);
+  fetched_val = *addr;
+  if (fetched_val == old_val)
+    *addr = new_val;
+  pthread_mutex_unlock(&MK_AO_pt_lock);
+  return fetched_val;
+}
+#define MK_AO_HAVE_int_fetch_compare_and_swap_full
 
 /* Unlike real architectures, we define both double-width CAS variants. */
 
@@ -226,6 +367,31 @@ typedef struct {
         MK_AO_t MK_AO_val2;
 } MK_AO_double_t;
 #define MK_AO_HAVE_double_t
+
+#define MK_AO_DOUBLE_T_INITIALIZER { (MK_AO_t)0, (MK_AO_t)0 }
+
+MK_AO_INLINE MK_AO_double_t
+MK_AO_double_load_full(const volatile MK_AO_double_t *addr)
+{
+  MK_AO_double_t result;
+
+  pthread_mutex_lock(&MK_AO_pt_lock);
+  result.MK_AO_val1 = addr->MK_AO_val1;
+  result.MK_AO_val2 = addr->MK_AO_val2;
+  pthread_mutex_unlock(&MK_AO_pt_lock);
+  return result;
+}
+#define MK_AO_HAVE_double_load_full
+
+MK_AO_INLINE void
+MK_AO_double_store_full(volatile MK_AO_double_t *addr, MK_AO_double_t value)
+{
+  pthread_mutex_lock(&MK_AO_pt_lock);
+  addr->MK_AO_val1 = value.MK_AO_val1;
+  addr->MK_AO_val2 = value.MK_AO_val2;
+  pthread_mutex_unlock(&MK_AO_pt_lock);
+}
+#define MK_AO_HAVE_double_store_full
 
 MK_AO_INLINE int
 MK_AO_compare_double_and_swap_double_full(volatile MK_AO_double_t *addr,
@@ -242,14 +408,13 @@ MK_AO_compare_double_and_swap_double_full(volatile MK_AO_double_t *addr,
     }
   else
     pthread_mutex_unlock(&MK_AO_pt_lock);
-    return 0;
+  return 0;
 }
 #define MK_AO_HAVE_compare_double_and_swap_double_full
 
 MK_AO_INLINE int
 MK_AO_compare_and_swap_double_full(volatile MK_AO_double_t *addr,
-                                MK_AO_t old1,
-                                MK_AO_t new1, MK_AO_t new2)
+                                MK_AO_t old1, MK_AO_t new1, MK_AO_t new2)
 {
   pthread_mutex_lock(&MK_AO_pt_lock);
   if (addr -> MK_AO_val1 == old1)
@@ -261,7 +426,7 @@ MK_AO_compare_and_swap_double_full(volatile MK_AO_double_t *addr,
     }
   else
     pthread_mutex_unlock(&MK_AO_pt_lock);
-    return 0;
+  return 0;
 }
 #define MK_AO_HAVE_compare_and_swap_double_full
 

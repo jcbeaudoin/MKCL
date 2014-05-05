@@ -68,7 +68,7 @@ STATIC word MK_GC_checksum(struct hblk *h)
     word *lim = (word *)(h+1);
     word result = 0;
 
-    while (p < lim) {
+    while ((word)p < (word)lim) {
         result += *p++;
     }
     return(result | 0x80000000 /* doesn't look like pointer */);
@@ -108,7 +108,7 @@ STATIC void MK_GC_update_check_page(struct hblk *h, int index)
     pe -> new_sum = MK_GC_checksum(h);
 #   if !defined(MSWIN32) && !defined(MSWINCE)
         if (pe -> new_sum != 0x80000000 && !MK_GC_page_was_ever_dirty(h)) {
-            MK_GC_err_printf("MK_GC_page_was_ever_dirty(%p) is wrong\n", h);
+            MK_GC_err_printf("MK_GC_page_was_ever_dirty(%p) is wrong\n", (void *)h);
         }
 #   endif
     if (MK_GC_page_was_dirty(h)) {
@@ -146,8 +146,7 @@ STATIC void MK_GC_update_check_page(struct hblk *h, int index)
 
 word MK_GC_bytes_in_used_blocks = 0;
 
-/*ARGSUSED*/
-STATIC void MK_GC_add_block(struct hblk *h, word dummy)
+STATIC void MK_GC_add_block(struct hblk *h, word dummy MK_GC_ATTR_UNUSED)
 {
    hdr * hhdr = HDR(h);
    size_t bytes = hhdr -> hb_sz;
@@ -163,12 +162,11 @@ STATIC void MK_GC_check_blocks(void)
 
     MK_GC_bytes_in_used_blocks = 0;
     MK_GC_apply_to_all_blocks(MK_GC_add_block, (word)0);
-    if (MK_GC_print_stats)
-      MK_GC_log_printf("MK_GC_bytes_in_used_blocks = %lu,"
-                    " bytes_in_free_blocks = %lu, heapsize = %lu\n",
-                    (unsigned long)MK_GC_bytes_in_used_blocks,
-                    (unsigned long)bytes_in_free_blocks,
-                    (unsigned long)MK_GC_heapsize);
+    MK_GC_COND_LOG_PRINTF("MK_GC_bytes_in_used_blocks = %lu,"
+                       " bytes_in_free_blocks = %lu, heapsize = %lu\n",
+                       (unsigned long)MK_GC_bytes_in_used_blocks,
+                       (unsigned long)bytes_in_free_blocks,
+                       (unsigned long)MK_GC_heapsize);
     if (MK_GC_bytes_in_used_blocks + bytes_in_free_blocks != MK_GC_heapsize) {
         MK_GC_err_printf("LOST SOME BLOCKS!!\n");
     }
@@ -194,17 +192,15 @@ void MK_GC_check_dirty(void)
     for (i = 0; i < MK_GC_n_heap_sects; i++) {
         start = MK_GC_heap_sects[i].hs_start;
         for (h = (struct hblk *)start;
-             h < (struct hblk *)(start + MK_GC_heap_sects[i].hs_bytes);
-             h++) {
+             (word)h < (word)(start + MK_GC_heap_sects[i].hs_bytes); h++) {
              MK_GC_update_check_page(h, index);
              index++;
              if (index >= NSUMS) goto out;
         }
     }
 out:
-    if (MK_GC_print_stats)
-      MK_GC_log_printf("Checked %lu clean and %lu dirty pages\n",
-                    (unsigned long)MK_GC_n_clean, (unsigned long)MK_GC_n_dirty);
+    MK_GC_COND_LOG_PRINTF("Checked %lu clean and %lu dirty pages\n",
+                       (unsigned long)MK_GC_n_clean, (unsigned long)MK_GC_n_dirty);
     if (MK_GC_n_dirty_errors > 0) {
         MK_GC_err_printf("Found %d dirty bit errors (%d were faulted)\n",
                       MK_GC_n_dirty_errors, MK_GC_n_faulted_dirty_errors);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 Hewlett-Packard Development Company, L.P.
+ * Copyright (c) 2003-2011 Hewlett-Packard Development Company, L.P.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,9 +20,12 @@
  * SOFTWARE.
  */
 
-#ifndef ATOMIC_OPS_H
+#ifndef MK_AO_ATOMIC_OPS_H
+#define MK_AO_ATOMIC_OPS_H
 
-#define ATOMIC_OPS_H
+#include "atomic_ops/ao_version.h"
+                        /* Define version numbers here to allow         */
+                        /* test on build machines for cross-builds.     */
 
 #include <assert.h>
 #include <stddef.h>
@@ -56,7 +59,8 @@
 /*        preceding reads.                                      */
 /* _write: Earlier writes precede both this operation and       */
 /*        later writes.                                         */
-/* _full: Ordered with respect to both earlier and later memops.*/
+/* _full: Ordered with respect to both earlier and later memory */
+/*        operations.                                           */
 /* _release_write: Ordered with respect to earlier writes.      */
 /* _acquire_read: Ordered with respect to later reads.          */
 /*                                                              */
@@ -69,8 +73,11 @@
 /* MK_AO_fetch_and_add                                             */
 /* MK_AO_fetch_and_add1                                            */
 /* MK_AO_fetch_and_sub1                                            */
+/* MK_AO_and                                                       */
 /* MK_AO_or                                                        */
+/* MK_AO_xor                                                       */
 /* MK_AO_compare_and_swap                                          */
+/* MK_AO_fetch_compare_and_swap                                    */
 /*                                                              */
 /* Note that atomicity guarantees are valid only if both        */
 /* readers and writers use MK_AO_ operations to access the         */
@@ -84,9 +91,14 @@
 /* or can only be read concurrently, then x can be accessed     */
 /* via ordinary references and assignments.                     */
 /*                                                              */
-/* Compare_and_exchange takes an address and an expected old    */
-/* value and a new value, and returns an int.  Nonzero          */
+/* MK_AO_compare_and_swap takes an address and an expected old     */
+/* value and a new value, and returns an int.  Non-zero result  */
 /* indicates that it succeeded.                                 */
+/* MK_AO_fetch_compare_and_swap takes an address and an expected   */
+/* old value and a new value, and returns the real old value.   */
+/* The operation succeeded if and only if the expected old      */
+/* value matches the old value returned.                        */
+/*                                                              */
 /* Test_and_set takes an address, atomically replaces it by     */
 /* MK_AO_TS_SET, and returns the prior value.                      */
 /* An MK_AO_TS_t location can be reset with the                    */
@@ -94,8 +106,9 @@
 /* MK_AO_fetch_and_add takes an address and an MK_AO_t increment      */
 /* value.  The MK_AO_fetch_and_add1 and MK_AO_fetch_and_sub1 variants */
 /* are provided, since they allow faster implementations on     */
-/* some hardware. MK_AO_or atomically ors an MK_AO_t value into a     */
-/* memory location, but does not provide access to the original.*/
+/* some hardware. MK_AO_and, MK_AO_or, MK_AO_xor do atomically and, or,  */
+/* xor (respectively) an MK_AO_t value into a memory location,     */
+/* but do not provide access to the original.                   */
 /*                                                              */
 /* We expect this list to grow slowly over time.                */
 /*                                                              */
@@ -105,7 +118,7 @@
 /*      data.x = ...; data.y = ...; ...                         */
 /*      MK_AO_store_release_write(&data_is_initialized, 1)         */
 /* then data is guaranteed to be initialized after the test     */
-/*      if (MK_AO_load_release_read(&data_is_initialized)) ...     */
+/*      if (MK_AO_load_acquire_read(&data_is_initialized)) ...     */
 /* succeeds.  Furthermore, this should generate near-optimal    */
 /* code on all common platforms.                                */
 /*                                                              */
@@ -136,7 +149,7 @@
 /* added as a higher layer.  But that would sacrifice           */
 /* usability from signal handlers.                              */
 /* The synthesis section is implemented almost entirely in      */
-/* atomic_ops_generalize.h.                                     */
+/* atomic_ops/generalize.h.                                     */
 
 /* Some common defaults.  Overridden for some architectures.    */
 #define MK_AO_t size_t
@@ -147,14 +160,21 @@
 #define MK_AO_TS_INITIALIZER (MK_AO_t)MK_AO_TS_CLEAR
 
 /* Platform-dependent stuff:                                    */
-#if defined(__GNUC__) || defined(_MSC_VER) || defined(__INTEL_COMPILER) \
-        || defined(__DMC__) || defined(__WATCOMC__)
+#if (defined(__GNUC__) || defined(_MSC_VER) || defined(__INTEL_COMPILER) \
+        || defined(__DMC__) || defined(__WATCOMC__)) && !defined(MK_AO_NO_INLINE)
 # define MK_AO_INLINE static __inline
-#elif defined(__sun)
+#elif defined(__sun) && !defined(MK_AO_NO_INLINE)
 # define MK_AO_INLINE static inline
 #else
 # define MK_AO_INLINE static
 #endif
+
+#if __GNUC__ >= 3 && !defined(LINT2)
+# define MK_AO_EXPECT_FALSE(expr) __builtin_expect(expr, 0)
+  /* Equivalent to (expr) but predict that usually (expr) == 0. */
+#else
+# define MK_AO_EXPECT_FALSE(expr) (expr)
+#endif /* !__GNUC__ */
 
 #if defined(__GNUC__) && !defined(__INTEL_COMPILER)
 # define MK_AO_compiler_barrier() __asm__ __volatile__("" : : : "memory")
@@ -176,7 +196,8 @@
         /* But the documentation warns about VC++ 2003 and earlier.     */
 # endif
 #elif defined(__INTEL_COMPILER)
-# define MK_AO_compiler_barrier() __memory_barrier() /* Too strong? IA64-only? */
+# define MK_AO_compiler_barrier() __memory_barrier()
+                                        /* FIXME: Too strong? IA64-only? */
 #elif defined(_HPUX_SOURCE)
 # if defined(__ia64)
 #   include <machine/sys/inline.h>
@@ -212,11 +233,12 @@
 #   include "atomic_ops/sysdeps/gcc/x86.h"
 # endif /* __i386__ */
 # if defined(__x86_64__)
-#   if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 2)
+#   if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 2)) \
+       && !defined(MK_AO_USE_SYNC_CAS_BUILTIN)
       /* It is safe to use __sync CAS built-in on this architecture.    */
 #     define MK_AO_USE_SYNC_CAS_BUILTIN
 #   endif
-#   include "atomic_ops/sysdeps/gcc/x86_64.h"
+#   include "atomic_ops/sysdeps/gcc/x86.h"
 # endif /* __x86_64__ */
 # if defined(__ia64__)
 #   include "atomic_ops/sysdeps/gcc/ia64.h"
@@ -244,7 +266,11 @@
      || defined(__powerpc64__) || defined(__ppc64__)
 #   include "atomic_ops/sysdeps/gcc/powerpc.h"
 # endif /* __powerpc__ */
-# if defined(__arm__) && !defined(MK_AO_USE_PTHREAD_DEFS)
+# if defined(__aarch64__)
+#   include "atomic_ops/sysdeps/gcc/aarch64.h"
+#   define MK_AO_CAN_EMUL_CAS
+# endif /* __aarch64__ */
+# if defined(__arm__)
 #   include "atomic_ops/sysdeps/gcc/arm.h"
 #   define MK_AO_CAN_EMUL_CAS
 # endif /* __arm__ */
@@ -288,10 +314,10 @@
 #     include "atomic_ops/sysdeps/gcc/x86.h"
 #   endif /* __i386__ */
 #   if defined(__x86_64__)
-#     if __INTEL_COMPILER > 1110
+#     if (__INTEL_COMPILER > 1110) && !defined(MK_AO_USE_SYNC_CAS_BUILTIN)
 #       define MK_AO_USE_SYNC_CAS_BUILTIN
 #     endif
-#     include "atomic_ops/sysdeps/gcc/x86_64.h"
+#     include "atomic_ops/sysdeps/gcc/x86.h"
 #   endif /* __x86_64__ */
 # endif
 #endif
@@ -320,12 +346,9 @@
 
 #if defined(__sun) && !defined(__GNUC__) && !defined(MK_AO_USE_PTHREAD_DEFS)
   /* Note: use -DMK_AO_USE_PTHREAD_DEFS if Sun CC does not handle inline asm. */
-# if defined(__i386)
+# if defined(__i386) || defined(__x86_64) || defined(__amd64)
 #   include "atomic_ops/sysdeps/sunc/x86.h"
-# endif /* __i386 */
-# if defined(__x86_64) || defined(__amd64)
-#   include "atomic_ops/sysdeps/sunc/x86_64.h"
-# endif /* __x86_64 */
+# endif
 #endif
 
 #if !defined(__GNUC__) && (defined(sparc) || defined(__sparc)) \
@@ -335,8 +358,11 @@
 #endif
 
 #if defined(MK_AO_REQUIRE_CAS) && !defined(MK_AO_HAVE_compare_and_swap) \
+    && !defined(MK_AO_HAVE_fetch_compare_and_swap) \
     && !defined(MK_AO_HAVE_compare_and_swap_full) \
-    && !defined(MK_AO_HAVE_compare_and_swap_acquire)
+    && !defined(MK_AO_HAVE_fetch_compare_and_swap_full) \
+    && !defined(MK_AO_HAVE_compare_and_swap_acquire) \
+    && !defined(MK_AO_HAVE_fetch_compare_and_swap_acquire)
 # if defined(MK_AO_CAN_EMUL_CAS)
 #   include "atomic_ops/sysdeps/emul_cas.h"
 # else
@@ -355,14 +381,31 @@
 
 /* The generalization section.  */
 #if !defined(MK_AO_GENERALIZE_TWICE) && defined(MK_AO_CAN_EMUL_CAS) \
-    && !defined(MK_AO_HAVE_compare_and_swap_full)
+    && !defined(MK_AO_HAVE_compare_and_swap_full) \
+    && !defined(MK_AO_HAVE_fetch_compare_and_swap_full)
 # define MK_AO_GENERALIZE_TWICE
 #endif
 
-/* Theoretically we should repeatedly include atomic_ops_generalize.h.  */
+/* Theoretically we should repeatedly include atomic_ops/generalize.h.  */
 /* In fact, we observe that this converges after a small fixed number   */
 /* of iterations, usually one.                                          */
 #include "atomic_ops/generalize.h"
+
+#if !defined(MK_AO_GENERALIZE_TWICE) \
+    && defined(MK_AO_HAVE_compare_double_and_swap_double) \
+    && (!defined(MK_AO_HAVE_double_load) || !defined(MK_AO_HAVE_double_store))
+# define MK_AO_GENERALIZE_TWICE
+#endif
+
+#ifdef MK_AO_T_IS_INT
+  /* Included after the first generalization pass.      */
+# include "atomic_ops/sysdeps/ao_t_is_int.h"
+# ifndef MK_AO_GENERALIZE_TWICE
+    /* Always generalize again. */
+#   define MK_AO_GENERALIZE_TWICE
+# endif
+#endif /* MK_AO_T_IS_INT */
+
 #ifdef MK_AO_GENERALIZE_TWICE
 # include "atomic_ops/generalize.h"
 #endif
@@ -372,4 +415,4 @@
 #define MK_AO_T MK_AO_t
 #define MK_AO_TS_VAL MK_AO_TS_VAL_t
 
-#endif /* ATOMIC_OPS_H */
+#endif /* !MK_AO_ATOMIC_OPS_H */

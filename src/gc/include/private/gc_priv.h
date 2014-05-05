@@ -18,24 +18,15 @@
 /*
  * Copyright 2012, Jean-Claude Beaudoin
  *
- * This file has been modified from the original to include
- * a facility to configure the suspend/restart signals used to
- * stop/resume the world on Linux.
- * A pair of callback hooks to intercept calls to exit() or abort()
- * has also been implemented to better support embeddability of MKCL.
- * Both these improvements have been submitted for inclusion
- * in the development branch of the GC.
- * 
- * Every symbol of the public interface of this GC has also been
- * prefixed with MK_ in an attempt to make this library a private
- * internal part of MKCL.
+ * MKCL cannot ever call abort() or exit(),
+ * modifications have been done accordingly.
  */
 
 #ifndef MK_GC_PRIVATE_H
 #define MK_GC_PRIVATE_H
 
 #ifdef HAVE_CONFIG_H
-# include "private/config.h"
+# include "config.h"
 #endif
 
 #ifndef MK_GC_BUILD
@@ -116,8 +107,8 @@ typedef char * ptr_t;   /* A generic pointer to which we can add        */
   /* for the GC-scope function definitions and prototypes.  Must not be */
   /* used in gcconfig.h.  Shouldn't be used for the debugging-only      */
   /* functions.  Currently, not used for the functions declared in or   */
-  /* called from the "dated" source files (pcr_interface.c, specific.c  */
-  /* and in the "extra" folder).                                        */
+  /* called from the "dated" source files (pcr_interface.c and files    */
+  /* located in the "extra" folder).                                    */
 # if defined(MK_GC_DLL) && defined(__GNUC__) && !defined(MSWIN32) \
         && !defined(MSWINCE) && !defined(CYGWIN32)
 #   if __GNUC__ >= 4
@@ -145,6 +136,14 @@ typedef char * ptr_t;   /* A generic pointer to which we can add        */
 # include "gc_hdrs.h"
 #endif
 
+#ifndef MK_GC_ATTR_UNUSED
+# if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+#   define MK_GC_ATTR_UNUSED __attribute__((__unused__))
+# else
+#   define MK_GC_ATTR_UNUSED /* empty */
+# endif
+#endif /* !MK_GC_ATTR_UNUSED */
+
 #if __GNUC__ >= 3 && !defined(LINT2)
 # define EXPECT(expr, outcome) __builtin_expect(expr,outcome)
   /* Equivalent to (expr), but predict that usually (expr)==outcome. */
@@ -153,9 +152,10 @@ typedef char * ptr_t;   /* A generic pointer to which we can add        */
 #endif /* __GNUC__ */
 
 #ifdef HAVE_CONFIG_H
-  /* The `inline' keyword as determined by Autoconf's `AC_C_INLINE'.    */
+  /* The "inline" keyword is determined by Autoconf AC_C_INLINE.    */
 # define MK_GC_INLINE static inline
 #elif defined(_MSC_VER) || defined(__INTEL_COMPILER) || defined(__DMC__) \
+        || ((__GNUC__ >= 3) && defined(__STRICT_ANSI__)) \
         || defined(__WATCOMC__)
 # define MK_GC_INLINE static __inline
 #elif (__GNUC__ >= 3) || defined(__sun)
@@ -192,13 +192,14 @@ typedef char * ptr_t;   /* A generic pointer to which we can add        */
 # ifdef STACK_GROWS_DOWN
 #   define COOLER_THAN >
 #   define HOTTER_THAN <
-#   define MAKE_COOLER(x,y) if ((x)+(y) > (x)) {(x) += (y);} \
-                            else {(x) = (ptr_t)ONES;}
+#   define MAKE_COOLER(x,y) if ((word)((x) + (y)) > (word)(x)) {(x) += (y);} \
+                            else (x) = (ptr_t)ONES
 #   define MAKE_HOTTER(x,y) (x) -= (y)
 # else
 #   define COOLER_THAN <
 #   define HOTTER_THAN >
-#   define MAKE_COOLER(x,y) if ((x)-(y) < (x)) {(x) -= (y);} else {(x) = 0;}
+#   define MAKE_COOLER(x,y) if ((word)((x) - (y)) < (word)(x)) {(x) -= (y);} \
+                            else (x) = 0
 #   define MAKE_HOTTER(x,y) (x) += (y)
 # endif
 
@@ -240,7 +241,7 @@ typedef char * ptr_t;   /* A generic pointer to which we can add        */
                     /* 1. There are probably no interesting, portable,  */
                     /*    strictly ANSI conforming C programs.          */
                     /* 2. This option makes it hard for the collector   */
-                    /*    to allocate space that is not ``pointed to''  */
+                    /*    to allocate space that is not "pointed to"    */
                     /*    by integers, etc.  Under SunOS 4.X with a     */
                     /*    statically linked libc, we empirically        */
                     /*    observed that it would be difficult to        */
@@ -255,7 +256,29 @@ typedef char * ptr_t;   /* A generic pointer to which we can add        */
                     /* through MK_GC_all_interior_pointers.                */
 
 
-#define MK_GC_INVOKE_FINALIZERS() MK_GC_notify_or_invoke_finalizers()
+#ifndef MK_GC_NO_FINALIZATION
+#  define MK_GC_INVOKE_FINALIZERS() MK_GC_notify_or_invoke_finalizers()
+   MK_GC_INNER void MK_GC_notify_or_invoke_finalizers(void);
+                        /* If MK_GC_finalize_on_demand is not set, invoke  */
+                        /* eligible finalizers. Otherwise:              */
+                        /* Call *MK_GC_finalizer_notifier if there are     */
+                        /* finalizers to be run, and we haven't called  */
+                        /* this procedure yet this GC cycle.            */
+
+   MK_GC_INNER void MK_GC_push_finalizer_structures(void);
+   MK_GC_INNER void MK_GC_finalize(void);
+                        /* Perform all indicated finalization actions   */
+                        /* on unmarked objects.                         */
+                        /* Unreachable finalizable objects are enqueued */
+                        /* for processing by MK_GC_invoke_finalizers.      */
+                        /* Invoked with lock.                           */
+
+#  ifndef SMALL_CONFIG
+     MK_GC_INNER void MK_GC_print_finalization_stats(void);
+#  endif
+#else
+#  define MK_GC_INVOKE_FINALIZERS() (void)0
+#endif /* MK_GC_NO_FINALIZATION */
 
 #if !defined(DONT_ADD_BYTE_AT_END)
 # ifdef LINT2
@@ -331,9 +354,12 @@ typedef char * ptr_t;   /* A generic pointer to which we can add        */
 # undef GET_TIME
 # undef MS_TIME_DIFF
 # define CLOCK_TYPE struct timeval
-# define GET_TIME(x) { struct rusage rusage; \
-                       getrusage (RUSAGE_SELF,  &rusage); \
-                       x = rusage.ru_utime; }
+# define GET_TIME(x) \
+                do { \
+                  struct rusage rusage; \
+                  getrusage(RUSAGE_SELF, &rusage); \
+                  x = rusage.ru_utime; \
+                } while (0)
 # define MS_TIME_DIFF(a,b) ((unsigned long)(a.tv_sec - b.tv_sec) * 1000 \
                             + (unsigned long)(a.tv_usec - b.tv_usec) / 1000)
 #elif defined(MSWIN32) || defined(MSWINCE)
@@ -344,13 +370,10 @@ typedef char * ptr_t;   /* A generic pointer to which we can add        */
 # include <windows.h>
 # include <winbase.h>
 # define CLOCK_TYPE DWORD
-# define GET_TIME(x) x = GetTickCount()
+# define GET_TIME(x) (void)(x = GetTickCount())
 # define MS_TIME_DIFF(a,b) ((long)((a)-(b)))
 #else /* !MSWIN32, !MSWINCE, !BSD_TIME */
 # include <time.h>
-# if !defined(__STDC__) && defined(SPARC) && defined(SUNOS4)
-    clock_t clock(void);        /* Not in time.h, where it belongs      */
-# endif
 # if defined(FREEBSD) && !defined(CLOCKS_PER_SEC)
 #   include <machine/limits.h>
 #   define CLOCKS_PER_SEC CLK_TCK
@@ -368,7 +391,7 @@ typedef char * ptr_t;   /* A generic pointer to which we can add        */
     /* microseconds (which are not really clock ticks).                 */
 # endif
 # define CLOCK_TYPE clock_t
-# define GET_TIME(x) x = clock()
+# define GET_TIME(x) (void)(x = clock())
 # define MS_TIME_DIFF(a,b) (CLOCKS_PER_SEC % 1000 == 0 ? \
         (unsigned long)((a) - (b)) / (unsigned long)(CLOCKS_PER_SEC / 1000) \
         : ((unsigned long)((a) - (b)) * 1000) / (unsigned long)CLOCKS_PER_SEC)
@@ -395,6 +418,12 @@ typedef char * ptr_t;   /* A generic pointer to which we can add        */
 # endif
 # if defined(DARWIN)
 #   include <string.h>
+#   define BCOPY_EXISTS
+# endif
+# if defined(MACOS) && defined(POWERPC)
+#   include <MacMemory.h>
+#   define bcopy(x,y,n) BlockMoveData(x, y, n)
+#   define bzero(x,n) BlockZero(x, n)
 #   define BCOPY_EXISTS
 # endif
 
@@ -434,6 +463,10 @@ typedef char * ptr_t;   /* A generic pointer to which we can add        */
 # endif
 
 /* Abandon ship */
+#if 1 /* MKCL cannot ever call abort() or exit(). JCB */
+MK_GC_API_PRIV MK_GC_abort_func MK_GC_on_abort;
+# define ABORT(msg) MK_GC_on_abort(msg)
+#else
 # ifdef PCR
 #   define ABORT(s) PCR_Base_Panic(s)
 # else
@@ -447,52 +480,78 @@ typedef char * ptr_t;   /* A generic pointer to which we can add        */
 #     define DebugBreak() _exit(-1) /* there is no abort() in WinCE */
 #   endif
 #   ifdef SMALL_CONFIG
-#       if (defined(MSWIN32) && !defined(LINT2)) || defined(MSWINCE)
-#           define ABORT(msg) DebugBreak()
-#       else
-#           define ABORT(msg) abort()
-#       endif
+#     define MK_GC_on_abort(msg) (void)0 /* be silent on abort */
 #   else
-        MK_GC_API_PRIV void MK_GC_abort(const char * msg);
-#       define ABORT(msg) MK_GC_abort(msg)
-#   endif
-# endif
+      MK_GC_API_PRIV MK_GC_abort_func MK_GC_on_abort;
+#   endif /* !SMALL_CONFIG */
+#   if defined(MSWIN32) && (defined(NO_DEBUGGING) || defined(LINT2))
+      /* A more user-friendly abort after showing fatal message.        */
+#     define ABORT(msg) (MK_GC_on_abort(msg), _exit(-1))
+                /* Exit on error without running "at-exit" callbacks.   */
+#   elif defined(MSWINCE) && defined(NO_DEBUGGING)
+#     define ABORT(msg) (MK_GC_on_abort(msg), ExitProcess(-1))
+#   elif defined(MSWIN32) || defined(MSWINCE)
+#     define ABORT(msg) { MK_GC_on_abort(msg); DebugBreak(); }
+                /* Note that: on a WinCE box, this could be silently    */
+                /* ignored (i.e., the program is not aborted);          */
+                /* DebugBreak is a statement in some toolchains.        */
+#   else
+#     define ABORT(msg) (MK_GC_on_abort(msg), abort())
+#   endif /* !MSWIN32 */
+# endif /* !PCR */
+#endif
+
+/* For abort message with 1-3 arguments.  C_msg and C_fmt should be     */
+/* literals.  C_msg should not contain format specifiers.  Arguments    */
+/* should match their format specifiers.                                */
+#define ABORT_ARG1(C_msg, C_fmt, arg1) \
+                do { \
+                  MK_GC_COND_LOG_PRINTF(C_msg /* + */ C_fmt, arg1); \
+                  ABORT(C_msg); \
+                } while (0)
+#define ABORT_ARG2(C_msg, C_fmt, arg1, arg2) \
+                do { \
+                  MK_GC_COND_LOG_PRINTF(C_msg /* + */ C_fmt, arg1, arg2); \
+                  ABORT(C_msg); \
+                } while (0)
+#define ABORT_ARG3(C_msg, C_fmt, arg1, arg2, arg3) \
+                do { \
+                  MK_GC_COND_LOG_PRINTF(C_msg /* + */ C_fmt, arg1, arg2, arg3); \
+                  ABORT(C_msg); \
+                } while (0)
+
+/* Same as ABORT but does not have 'no-return' attribute.       */
+/* ABORT on a dummy condition (which is always true).           */
+#define ABORT_RET(msg) \
+              if ((signed_word)MK_GC_current_warn_proc == -1) {} else ABORT(msg)
 
 /* Exit abnormally, but without making a mess (e.g. out of memory) */
 # ifdef PCR
 #   define EXIT() PCR_Base_Exit(1,PCR_waitForever)
 # else
-#  if 0 /* JCB */
-#   define EXIT() (void)exit(1)
+#  if 1 /* MKCL cannot ever call abort() or exit(). JCB */
+#   define EXIT() (MK_GC_on_abort(NULL))
 #  else
-        MK_GC_API void MK_GC_exit(int status); /* JCB */
-#       define EXIT() MK_GC_exit(1) /* JCB */
+#   define EXIT() (MK_GC_on_abort(NULL), exit(1 /* EXIT_FAILURE */))
 #  endif
 # endif
 
+
 /* Print warning message, e.g. almost out of memory.    */
+/* The argument (if any) format specifier should be:    */
+/* "%s", "%p" or "%"WARN_PRIdPTR.                       */
 #define WARN(msg, arg) (*MK_GC_current_warn_proc)("GC Warning: " msg, \
                                                (MK_GC_word)(arg))
 MK_GC_EXTERN MK_GC_warn_proc MK_GC_current_warn_proc;
 
-/* Print format type macro for signed_word.  Currently used for WARN()  */
-/* only.  This could be of use on Win64 but commented out since Win64   */
-/* is only a little-endian architecture (for now) and the WARN format   */
-/* string is, possibly, processed on the client side, so non-standard   */
-/* print type modifiers should be avoided (if possible).                */
-#if defined(_MSC_VER) && defined(_WIN64) && !defined(MK_GC_PRIdPTR)
-/* #define MK_GC_PRIdPTR "I64d" */
-#endif
-
-#if !defined(MK_GC_PRIdPTR) && (defined(_LLP64) || defined(__LLP64__) \
-        || defined(_WIN64))
-/* #include <inttypes.h> */
-/* #define MK_GC_PRIdPTR PRIdPTR */
-#endif
-
-#ifndef MK_GC_PRIdPTR
+/* Print format type macro for decimal signed_word value passed WARN(). */
+/* This could be redefined for Win64 or LLP64, but typically should     */
+/* not be done as the WARN format string is, possibly, processed on the */
+/* client side, so non-standard print type modifiers (like MS "I64d")   */
+/* should be avoided here if possible.                                  */
+#ifndef WARN_PRIdPTR
   /* Assume sizeof(void *) == sizeof(long) (or a little-endian machine) */
-# define MK_GC_PRIdPTR "ld"
+# define WARN_PRIdPTR "ld"
 #endif
 
 /* Get environment entry */
@@ -514,6 +573,10 @@ MK_GC_EXTERN MK_GC_warn_proc MK_GC_current_warn_proc;
 #endif
 
 #if defined(DARWIN)
+# ifndef MAC_OS_X_VERSION_MAX_ALLOWED
+#   include <AvailabilityMacros.h>
+                /* Include this header just to import the above macro.  */
+# endif
 # if defined(POWERPC)
 #   if CPP_WORDSZ == 32
 #     define MK_GC_THREAD_STATE_T          ppc_thread_state_t
@@ -526,9 +589,16 @@ MK_GC_EXTERN MK_GC_warn_proc MK_GC_current_warn_proc;
 #   endif
 # elif defined(I386) || defined(X86_64)
 #   if CPP_WORDSZ == 32
-#     define MK_GC_THREAD_STATE_T          x86_thread_state32_t
-#     define MK_GC_MACH_THREAD_STATE       x86_THREAD_STATE32
-#     define MK_GC_MACH_THREAD_STATE_COUNT x86_THREAD_STATE32_COUNT
+#     if defined(i386_THREAD_STATE_COUNT) && !defined(x86_THREAD_STATE32_COUNT)
+        /* Use old naming convention for 32-bit x86.    */
+#       define MK_GC_THREAD_STATE_T                i386_thread_state_t
+#       define MK_GC_MACH_THREAD_STATE             i386_THREAD_STATE
+#       define MK_GC_MACH_THREAD_STATE_COUNT       i386_THREAD_STATE_COUNT
+#     else
+#       define MK_GC_THREAD_STATE_T                x86_thread_state32_t
+#       define MK_GC_MACH_THREAD_STATE             x86_THREAD_STATE32
+#       define MK_GC_MACH_THREAD_STATE_COUNT       x86_THREAD_STATE32_COUNT
+#     endif
 #   else
 #     define MK_GC_THREAD_STATE_T          x86_thread_state64_t
 #     define MK_GC_MACH_THREAD_STATE       x86_THREAD_STATE64
@@ -536,10 +606,16 @@ MK_GC_EXTERN MK_GC_warn_proc MK_GC_current_warn_proc;
 #   endif
 # else
 #   if defined(ARM32)
-#     define MK_GC_THREAD_STATE_T          arm_thread_state_t
+#     define MK_GC_THREAD_STATE_T                  arm_thread_state_t
+#     ifdef ARM_MACHINE_THREAD_STATE_COUNT
+#       define MK_GC_MACH_THREAD_STATE             ARM_MACHINE_THREAD_STATE
+#       define MK_GC_MACH_THREAD_STATE_COUNT       ARM_MACHINE_THREAD_STATE_COUNT
+#     endif
 #   else
 #     error define MK_GC_THREAD_STATE_T
 #   endif
+# endif
+# ifndef MK_GC_MACH_THREAD_STATE
 #   define MK_GC_MACH_THREAD_STATE         MACHINE_THREAD_STATE
 #   define MK_GC_MACH_THREAD_STATE_COUNT   MACHINE_THREAD_STATE_COUNT
 # endif
@@ -794,13 +870,23 @@ typedef word page_hash_table[PHT_SIZE];
 
 #ifdef PARALLEL_MARK
 # include "atomic_ops.h"
-  typedef MK_AO_t counter_t;
+# define counter_t volatile MK_AO_t
 #else
   typedef size_t counter_t;
-# if defined(THREADS) && defined(MPROTECT_VDB)
+# if defined(THREADS) && (defined(MPROTECT_VDB) \
+                || (defined(MK_GC_ASSERTIONS) && defined(THREAD_LOCAL_ALLOC)))
 #   include "atomic_ops.h"
 # endif
 #endif /* !PARALLEL_MARK */
+
+union word_ptr_ao_u {
+  word w;
+  signed_word sw;
+  void *vp;
+# ifdef MK_AO_HAVE_load
+    volatile MK_AO_t ao;
+# endif
+};
 
 /* We maintain layout maps for heap blocks containing objects of a given */
 /* size.  Each entry in this map describes a byte offset and has the     */
@@ -826,6 +912,14 @@ struct hblkhdr {
                                 /* before it can be reallocated.        */
                                 /* Only set with USE_MUNMAP.            */
 #       define FREE_BLK 4       /* Block is free, i.e. not in use.      */
+#       ifdef ENABLE_DISCLAIM
+#         define HAS_DISCLAIM 8
+                                /* This kind has a callback on reclaim. */
+#         define MARK_UNCONDITIONALLY 0x10
+                                /* Mark from all objects, marked or     */
+                                /* not.  Used to mark objects needed by */
+                                /* reclaim notifier.                    */
+#       endif
     unsigned short hb_last_reclaimed;
                                 /* Value of MK_GC_gc_no when block was     */
                                 /* last allocated or swept. May wrap.   */
@@ -974,13 +1068,24 @@ struct roots {
 #     define MAX_HEAP_SECTS 768         /* Separately added heap sections. */
 #   endif
 # elif defined(SMALL_CONFIG) && !defined(USE_PROC_FOR_LIBRARIES)
-#   define MAX_HEAP_SECTS 128           /* Roughly 256MB (128*2048*1K)  */
+#   if defined(PARALLEL_MARK) && (defined(MSWIN32) || defined(CYGWIN32))
+#     define MAX_HEAP_SECTS 384
+#   else
+#     define MAX_HEAP_SECTS 128         /* Roughly 256MB (128*2048*1K)  */
+#   endif
 # elif CPP_WORDSZ > 32
 #   define MAX_HEAP_SECTS 1024          /* Roughly 8GB                  */
 # else
 #   define MAX_HEAP_SECTS 512           /* Roughly 4GB                  */
 # endif
 #endif /* !MAX_HEAP_SECTS */
+
+typedef struct MK_GC_ms_entry {
+    ptr_t mse_start;    /* First word of object, word aligned.  */
+    union word_ptr_ao_u mse_descr;
+                        /* Descriptor; low order two bits are tags,     */
+                        /* as described in gc_mark.h.                   */
+} mse;
 
 /* Lists of all heap blocks and free lists      */
 /* as well as other random data structures      */
@@ -1003,7 +1108,6 @@ struct roots {
 
 struct _MK_GC_arrays {
   word _heapsize;               /* Heap size in bytes.                  */
-  word _max_heapsize;
   word _requested_heapsize;     /* Heap size due to explicit expansion. */
   ptr_t _last_heap_addr;
   ptr_t _prev_heap_addr;
@@ -1020,12 +1124,12 @@ struct _MK_GC_arrays {
         /* large object blocks.  This is used to help decide when it    */
         /* is safe to split up a large block.                           */
   word _bytes_allocd_before_gc;
-                /* Number of words allocated before this        */
+                /* Number of bytes allocated before this        */
                 /* collection cycle.                            */
 # ifndef SEPARATE_GLOBALS
 #   define MK_GC_bytes_allocd MK_GC_arrays._bytes_allocd
     word _bytes_allocd;
-        /* Number of words allocated during this collection cycle.      */
+        /* Number of bytes allocated during this collection cycle.      */
 # endif
   word _bytes_dropped;
         /* Number of black-listed bytes dropped during GC cycle */
@@ -1036,9 +1140,6 @@ struct _MK_GC_arrays {
         /* Approximate number of bytes in objects (and headers) */
         /* that became ready for finalization in the last       */
         /* collection.                                          */
-  word _non_gc_bytes_at_gc;
-        /* Number of explicitly managed bytes of storage        */
-        /* at last collection.                                  */
   word _bytes_freed;
         /* Number of explicitly deallocated bytes of memory     */
         /* since last collection.                               */
@@ -1050,6 +1151,18 @@ struct _MK_GC_arrays {
   ptr_t _scratch_last_end_ptr;
         /* Used by headers.c, and can easily appear to point to */
         /* heap.                                                */
+  mse *_mark_stack;
+        /* Limits of stack for MK_GC_mark routine.  All ranges     */
+        /* between MK_GC_mark_stack (incl.) and MK_GC_mark_stack_top  */
+        /* (incl.) still need to be marked from.                */
+  mse *_mark_stack_limit;
+# ifdef PARALLEL_MARK
+    mse *volatile _mark_stack_top;
+        /* Updated only with mark lock held, but read asynchronously.   */
+        /* TODO: Use union to avoid casts to MK_AO_t */
+# else
+    mse *_mark_stack_top;
+# endif
   MK_GC_mark_proc _mark_procs[MAX_MARK_PROCS];
         /* Table of user-defined mark procedures.  There is     */
         /* a small number of these, which can be referenced     */
@@ -1063,18 +1176,18 @@ struct _MK_GC_arrays {
                           /* free list for atomic objs  */
 # endif
   void *_uobjfreelist[MAXOBJGRANULES+1];
-                          /* Uncollectable but traced objs      */
+                          /* Uncollectible but traced objs      */
                           /* objects on this and auobjfreelist  */
                           /* are always marked, except during   */
                           /* garbage collections.               */
 # ifdef ATOMIC_UNCOLLECTABLE
 #   define MK_GC_auobjfreelist MK_GC_arrays._auobjfreelist
     void *_auobjfreelist[MAXOBJGRANULES+1];
-                        /* Atomic uncollectable but traced objs */
+                        /* Atomic uncollectible but traced objs */
 # endif
-  word _composite_in_use; /* Number of words in accessible      */
+  word _composite_in_use; /* Number of bytes in the accessible  */
                           /* composite objects.                 */
-  word _atomic_in_use;    /* Number of words in accessible      */
+  word _atomic_in_use;    /* Number of bytes in the accessible  */
                           /* atomic objects.                    */
 # ifdef USE_MUNMAP
 #   define MK_GC_unmapped_bytes MK_GC_arrays._unmapped_bytes
@@ -1179,7 +1292,7 @@ struct _MK_GC_arrays {
     struct callinfo _last_stack[NFRAMES];
                 /* Stack at last garbage collection.  Useful for        */
                 /* debugging mysterious object disappearances.  In the  */
-                /* multithreaded case, we currently only save the       */
+                /* multi-threaded case, we currently only save the      */
                 /* calling stack.                                       */
 # endif
 };
@@ -1199,11 +1312,12 @@ MK_GC_API_PRIV MK_GC_FAR struct _MK_GC_arrays MK_GC_arrays;
 #define MK_GC_large_allocd_bytes MK_GC_arrays._large_allocd_bytes
 #define MK_GC_large_free_bytes MK_GC_arrays._large_free_bytes
 #define MK_GC_last_heap_addr MK_GC_arrays._last_heap_addr
+#define MK_GC_mark_stack MK_GC_arrays._mark_stack
+#define MK_GC_mark_stack_limit MK_GC_arrays._mark_stack_limit
+#define MK_GC_mark_stack_top MK_GC_arrays._mark_stack_top
 #define MK_GC_mark_procs MK_GC_arrays._mark_procs
-#define MK_GC_max_heapsize MK_GC_arrays._max_heapsize
 #define MK_GC_max_large_allocd_bytes MK_GC_arrays._max_large_allocd_bytes
 #define MK_GC_modws_valid_offsets MK_GC_arrays._modws_valid_offsets
-#define MK_GC_non_gc_bytes_at_gc MK_GC_arrays._non_gc_bytes_at_gc
 #define MK_GC_prev_heap_addr MK_GC_arrays._prev_heap_addr
 #define MK_GC_requested_heapsize MK_GC_arrays._requested_heapsize
 #define MK_GC_scratch_end_ptr MK_GC_arrays._scratch_end_ptr
@@ -1236,6 +1350,20 @@ MK_GC_EXTERN struct obj_kind {
                         /* template to obtain descriptor.  Otherwise    */
                         /* template is used as is.                      */
    MK_GC_bool ok_init;   /* Clear objects before putting them on the free list. */
+#  ifdef ENABLE_DISCLAIM
+     MK_GC_bool ok_mark_unconditionally;
+                        /* Mark from all, including unmarked, objects   */
+                        /* in block.  Used to protect objects reachable */
+                        /* from reclaim notifiers.                      */
+     int (MK_GC_CALLBACK *ok_disclaim_proc)(void * /*obj*/);
+                        /* The disclaim procedure is called before obj  */
+                        /* is reclaimed, but must also tolerate being   */
+                        /* called with object from freelist.  Non-zero  */
+                        /* exit prevents object from being reclaimed.   */
+#    define OK_DISCLAIM_INITZ /* comma */, FALSE, 0
+#  else
+#    define OK_DISCLAIM_INITZ /* empty */
+#  endif /* !ENABLE_DISCLAIM */
 } MK_GC_obj_kinds[MAXOBJKINDS];
 
 #define beginMK_GC_obj_kinds ((ptr_t)(&MK_GC_obj_kinds))
@@ -1248,7 +1376,7 @@ MK_GC_EXTERN struct obj_kind {
 
 #ifdef SEPARATE_GLOBALS
   extern word MK_GC_bytes_allocd;
-        /* Number of words allocated during this collection cycle */
+        /* Number of bytes allocated during this collection cycle.      */
   extern ptr_t MK_GC_objfreelist[MAXOBJGRANULES+1];
                           /* free list for NORMAL objects */
 # define beginMK_GC_objfreelist ((ptr_t)(&MK_GC_objfreelist))
@@ -1434,7 +1562,6 @@ MK_GC_INNER void MK_GC_invalidate_mark_state(void);
                                 /* objects may point to unmarked        */
                                 /* ones, and roots may point to         */
                                 /* unmarked objects.  Reset mark stack. */
-MK_GC_INNER MK_GC_bool MK_GC_mark_stack_empty(void);
 MK_GC_INNER MK_GC_bool MK_GC_mark_some(ptr_t cold_gc_frame);
                         /* Perform about one pages worth of marking     */
                         /* work of whatever kind is needed.  Returns    */
@@ -1449,19 +1576,18 @@ MK_GC_INNER void MK_GC_initiate_gc(void);
 MK_GC_INNER MK_GC_bool MK_GC_collection_in_progress(void);
                         /* Collection is in progress, or was abandoned. */
 
-MK_GC_API_PRIV void MK_GC_push_all(ptr_t bottom, ptr_t top);
-                                /* Push everything in a range           */
-                                /* onto mark stack.                     */
 #ifndef MK_GC_DISABLE_INCREMENTAL
-  MK_GC_API_PRIV void MK_GC_push_conditional(ptr_t b, ptr_t t, MK_GC_bool all);
+# define MK_GC_PUSH_CONDITIONAL(b, t, all) \
+                MK_GC_push_conditional((ptr_t)(b), (ptr_t)(t), all)
+                        /* Do either of MK_GC_push_all or MK_GC_push_selected */
+                        /* depending on the third arg.                  */
 #else
-# define MK_GC_push_conditional(b, t, all) MK_GC_push_all(b, t)
+# define MK_GC_PUSH_CONDITIONAL(b, t, all) MK_GC_push_all((ptr_t)(b), (ptr_t)(t))
 #endif
-                                /* Do either of the above, depending    */
-                                /* on the third arg.                    */
+
 MK_GC_INNER void MK_GC_push_all_stack(ptr_t b, ptr_t t);
-                                    /* As above, but consider           */
-                                    /*  interior pointers as valid      */
+                                    /* As MK_GC_push_all but consider      */
+                                    /* interior pointers as valid.      */
 MK_GC_INNER void MK_GC_push_all_eager(ptr_t b, ptr_t t);
                                     /* Same as MK_GC_push_all_stack, but   */
                                     /* ensures that stack is scanned    */
@@ -1477,7 +1603,7 @@ MK_GC_INNER void MK_GC_push_all_eager(ptr_t b, ptr_t t);
 MK_GC_INNER void MK_GC_push_roots(MK_GC_bool all, ptr_t cold_gc_frame);
                                         /* Push all or dirty roots.     */
 
-MK_GC_API_PRIV void (*MK_GC_push_other_roots)(void);
+MK_GC_API_PRIV MK_GC_push_other_roots_proc MK_GC_push_other_roots;
                         /* Push system or application specific roots    */
                         /* onto the mark stack.  In some environments   */
                         /* (e.g. threads environments) this is          */
@@ -1487,7 +1613,6 @@ MK_GC_API_PRIV void (*MK_GC_push_other_roots)(void);
                         /* visible as used by some well-known 3rd-party */
                         /* software (e.g., ECL) currently.              */
 
-MK_GC_INNER void MK_GC_push_finalizer_structures(void);
 #ifdef THREADS
   void MK_GC_push_thread_structures(void);
 #endif
@@ -1573,9 +1698,8 @@ void MK_GC_register_data_segments(void);
 # define MK_GC_ADD_TO_BLACK_LIST_NORMAL(bits, source) \
                 if (MK_GC_all_interior_pointers) { \
                   MK_GC_add_to_black_list_stack((word)(bits), (source)); \
-                } else { \
-                  MK_GC_add_to_black_list_normal((word)(bits), (source)); \
-                }
+                } else \
+                  MK_GC_add_to_black_list_normal((word)(bits), (source))
   MK_GC_INNER void MK_GC_add_to_black_list_stack(word p, ptr_t source);
 # define MK_GC_ADD_TO_BLACK_LIST_STACK(bits, source) \
             MK_GC_add_to_black_list_stack((word)(bits), (source))
@@ -1584,9 +1708,8 @@ void MK_GC_register_data_segments(void);
 # define MK_GC_ADD_TO_BLACK_LIST_NORMAL(bits, source) \
                 if (MK_GC_all_interior_pointers) { \
                   MK_GC_add_to_black_list_stack((word)(bits)); \
-                } else { \
-                  MK_GC_add_to_black_list_normal((word)(bits)); \
-                }
+                } else \
+                  MK_GC_add_to_black_list_normal((word)(bits))
   MK_GC_INNER void MK_GC_add_to_black_list_stack(word p);
 # define MK_GC_ADD_TO_BLACK_LIST_STACK(bits, source) \
             MK_GC_add_to_black_list_stack((word)(bits))
@@ -1706,23 +1829,10 @@ MK_GC_INNER void MK_GC_collect_a_little_inner(int n);
                                 /* collection work, if appropriate.     */
                                 /* A unit is an amount appropriate for  */
                                 /* HBLKSIZE bytes of allocation.        */
-/* void * MK_GC_generic_malloc(size_t lb, int k); */
-                                /* Allocate an object of the given      */
-                                /* kind.  By default, there are only    */
-                                /* a few kinds: composite(pointerfree), */
-                                /* atomic, uncollectable, etc.          */
-                                /* We claim it's possible for clever    */
-                                /* client code that understands GC      */
-                                /* internals to add more, e.g. to       */
-                                /* communicate object layout info       */
-                                /* to the collector.                    */
-                                /* The actual decl is in gc_mark.h.     */
-MK_GC_INNER void * MK_GC_generic_malloc_ignore_off_page(size_t b, int k);
-                                /* As above, but pointers past the      */
-                                /* first page of the resulting object   */
-                                /* are ignored.                         */
+
 MK_GC_INNER void * MK_GC_generic_malloc_inner(size_t lb, int k);
-                                /* Ditto, but I already hold lock, etc. */
+                                /* Allocate an object of the given      */
+                                /* kind but assuming lock already held. */
 MK_GC_INNER void * MK_GC_generic_malloc_inner_ignore_off_page(size_t lb, int k);
                                 /* Allocate an object, where            */
                                 /* the client guarantees that there     */
@@ -1736,9 +1846,16 @@ MK_GC_INNER ptr_t MK_GC_allocobj(size_t sz, int kind);
                                 /* head.  Sz is in granules.            */
 
 #ifdef MK_GC_ADD_CALLER
-# define MK_GC_DBG_RA MK_GC_RETURN_ADDR,
+  /* MK_GC_DBG_EXTRAS is used by GC debug API functions (unlike MK_GC_EXTRAS  */
+  /* used by GC debug API macros) thus MK_GC_RETURN_ADDR_PARENT (pointing  */
+  /* to client caller) should be used if possible.                      */
+# ifdef MK_GC_RETURN_ADDR_PARENT
+#  define MK_GC_DBG_EXTRAS MK_GC_RETURN_ADDR_PARENT, NULL, 0
+# else
+#  define MK_GC_DBG_EXTRAS MK_GC_RETURN_ADDR, NULL, 0
+# endif
 #else
-# define MK_GC_DBG_RA /* empty */
+# define MK_GC_DBG_EXTRAS "unknown", 0
 #endif
 
 /* We make the MK_GC_clear_stack() call a tail one, hoping to get more of  */
@@ -1747,6 +1864,16 @@ MK_GC_INNER ptr_t MK_GC_allocobj(size_t sz, int kind);
     MK_GC_clear_stack(MK_GC_generic_malloc(lb, k))
 #define GENERAL_MALLOC_IOP(lb,k) \
     MK_GC_clear_stack(MK_GC_generic_malloc_ignore_off_page(lb, k))
+
+#ifdef MK_GC_COLLECT_AT_MALLOC
+  extern size_t MK_GC_dbg_collect_at_malloc_min_lb;
+                            /* variable visible outside for debugging   */
+# define MK_GC_DBG_COLLECT_AT_MALLOC(lb) \
+                (void)((lb) >= MK_GC_dbg_collect_at_malloc_min_lb ? \
+                            (MK_GC_gcollect(), 0) : 0)
+#else
+# define MK_GC_DBG_COLLECT_AT_MALLOC(lb) (void)0
+#endif /* !MK_GC_COLLECT_AT_MALLOC */
 
 /* Allocation routines that bypass the thread local cache.      */
 #ifdef THREAD_LOCAL_ALLOC
@@ -1772,20 +1899,6 @@ MK_GC_INNER void MK_GC_remove_counts(struct hblk * h, size_t sz);
                                 /* Remove forwarding counts for h.      */
 MK_GC_INNER hdr * MK_GC_find_header(ptr_t h);
 
-MK_GC_INNER void MK_GC_finalize(void);
-                        /* Perform all indicated finalization actions   */
-                        /* on unmarked objects.                         */
-                        /* Unreachable finalizable objects are enqueued */
-                        /* for processing by MK_GC_invoke_finalizers.      */
-                        /* Invoked with lock.                           */
-
-MK_GC_INNER void MK_GC_notify_or_invoke_finalizers(void);
-                        /* If MK_GC_finalize_on_demand is not set, invoke  */
-                        /* eligible finalizers. Otherwise:              */
-                        /* Call *MK_GC_finalizer_notifier if there are     */
-                        /* finalizers to be run, and we haven't called  */
-                        /* this procedure yet this GC cycle.            */
-
 MK_GC_INNER void MK_GC_add_to_heap(struct hblk *p, size_t bytes);
                         /* Add a HBLKSIZE aligned chunk to the heap.    */
 
@@ -1809,9 +1922,9 @@ MK_GC_EXTERN void (*MK_GC_print_all_smashed)(void);
                         /* Print MK_GC_smashed if it's not empty.          */
                         /* Clear MK_GC_smashed list.                       */
 MK_GC_EXTERN void (*MK_GC_print_heap_obj)(ptr_t p);
-                        /* If possible print s followed by a more       */
-                        /* detailed description of the object           */
-                        /* referred to by p.                            */
+                        /* If possible print (using MK_GC_err_printf)      */
+                        /* a more detailed description (terminated with */
+                        /* "\n") of the object referred to by p.        */
 
 #if defined(LINUX) && defined(__ELF__) && !defined(SMALL_CONFIG)
   void MK_GC_print_address_map(void);
@@ -1828,26 +1941,18 @@ MK_GC_EXTERN void (*MK_GC_print_heap_obj)(ptr_t p);
 
 MK_GC_EXTERN MK_GC_bool MK_GC_have_errors; /* We saw a smashed or leaked object. */
                                   /* Call error printing routine        */
-                                  /* occasionally.  It is ok to read it */
+                                  /* occasionally.  It is OK to read it */
                                   /* without acquiring the lock.        */
 
+#define VERBOSE 2
 #ifndef SMALL_CONFIG
   /* MK_GC_print_stats should be visible to extra/MacOS.c. */
   extern int MK_GC_print_stats;    /* Nonzero generates basic GC log.      */
                                 /* VERBOSE generates add'l messages.    */
-#else
+#else /* SMALL_CONFIG */
 # define MK_GC_print_stats 0
   /* Will this remove the message character strings from the executable? */
   /* With a particular level of optimizations, it should...              */
-#endif
-#define VERBOSE 2
-
-#ifndef NO_DEBUGGING
-  MK_GC_EXTERN MK_GC_bool MK_GC_dump_regularly;
-                                /* Generate regular debugging dumps.    */
-# define COND_DUMP if (MK_GC_dump_regularly) MK_GC_dump()
-#else
-# define COND_DUMP /* empty */
 #endif
 
 #ifdef KEEP_BACK_PTRS
@@ -1902,7 +2007,20 @@ MK_GC_EXTERN MK_GC_bool MK_GC_print_back_height;
 #endif
 
 #ifdef CAN_HANDLE_FORK
-  MK_GC_EXTERN MK_GC_bool MK_GC_handle_fork;
+  MK_GC_EXTERN int MK_GC_handle_fork;
+                /* Fork-handling mode:                                  */
+                /* 0 means no fork handling requested (but client could */
+                /* anyway call fork() provided it is surrounded with    */
+                /* MK_GC_atfork_prepare/parent/child calls);               */
+                /* -1 means GC tries to use pthread_at_fork if it is    */
+                /* available (if it succeeds then MK_GC_handle_fork value  */
+                /* is changed to 1), client should nonetheless surround */
+                /* fork() with MK_GC_atfork_prepare/parent/child (for the  */
+                /* case of pthread_at_fork failure or absence);         */
+                /* 1 (or other values) means client fully relies on     */
+                /* pthread_at_fork (so if it is missing or failed then  */
+                /* abort occurs in MK_GC_init), MK_GC_atfork_prepare and the  */
+                /* accompanying routines are no-op in such a case.      */
 #endif
 
 #ifndef MK_GC_DISABLE_INCREMENTAL
@@ -1926,10 +2044,8 @@ MK_GC_EXTERN MK_GC_bool MK_GC_print_back_height;
   MK_GC_INNER void MK_GC_dirty_init(void);
 #endif /* !MK_GC_DISABLE_INCREMENTAL */
 
-/* Slow/general mark bit manipulation: */
-MK_GC_API_PRIV MK_GC_bool MK_GC_is_marked(ptr_t p);
-MK_GC_API_PRIV void MK_GC_clear_mark_bit(ptr_t p);
-MK_GC_API_PRIV void MK_GC_set_mark_bit(ptr_t p);
+/* Same as MK_GC_base but excepts and returns a pointer to const object.   */
+#define MK_GC_base_C(p) ((const void *)MK_GC_base((/* no const */ void *)(p)))
 
 /* Stubborn objects: */
 void MK_GC_read_changed(void); /* Analogous to MK_GC_read_dirty */
@@ -1944,10 +2060,9 @@ void MK_GC_print_block_list(void);
 void MK_GC_print_hblkfreelist(void);
 void MK_GC_print_heap_sects(void);
 void MK_GC_print_static_roots(void);
-#ifndef SMALL_CONFIG
-  MK_GC_INNER void MK_GC_print_finalization_stats(void);
-#endif
 /* void MK_GC_dump(void); - declared in gc.h */
+
+extern word MK_GC_fo_entries; /* should be visible in extra/MacOS.c */
 
 #ifdef KEEP_BACK_PTRS
    MK_GC_INNER void MK_GC_store_back_pointer(ptr_t source, ptr_t dest);
@@ -1960,15 +2075,7 @@ void MK_GC_print_static_roots(void);
 #endif
 
 /* Make arguments appear live to compiler */
-#if defined(__BORLANDC__) || defined(__WATCOMC__) || defined(__CC_ARM)
-  void MK_GC_noop(void*, ...);
-#else
-# ifdef __DMC__
-    void MK_GC_noop(...);
-# else
-    void MK_GC_noop();
-# endif
-#endif
+void MK_GC_noop6(word, word, word, word, word, word);
 
 MK_GC_API void MK_GC_CALL MK_GC_noop1(word);
 
@@ -1982,6 +2089,9 @@ MK_GC_API void MK_GC_CALL MK_GC_noop1(word);
 #endif
 
 /* Logging and diagnostic output:       */
+/* MK_GC_printf is used typically on client explicit print requests.       */
+/* For all MK_GC_X_printf routines, it is recommended to put "\n" at       */
+/* 'format' string end (for output atomicity).                          */
 MK_GC_API_PRIV void MK_GC_printf(const char * format, ...)
                         MK_GC_ATTR_FORMAT_PRINTF(1, 2);
                         /* A version of printf that doesn't allocate,   */
@@ -1990,11 +2100,52 @@ MK_GC_API_PRIV void MK_GC_printf(const char * format, ...)
                         /* allocate for long arguments.)                */
 MK_GC_API_PRIV void MK_GC_err_printf(const char * format, ...)
                         MK_GC_ATTR_FORMAT_PRINTF(1, 2);
+
+/* Basic logging routine.  Typically, MK_GC_log_printf is called directly  */
+/* only inside various DEBUG_x blocks.                                  */
+#if defined(__cplusplus) && defined(SYMBIAN)
+  extern "C" {
+#endif
 MK_GC_API_PRIV void MK_GC_log_printf(const char * format, ...)
                         MK_GC_ATTR_FORMAT_PRINTF(1, 2);
+#if defined(__cplusplus) && defined(SYMBIAN)
+  }
+#endif
+
+#ifndef MK_GC_ANDROID_LOG
+# define MK_GC_PRINT_STATS_FLAG (MK_GC_print_stats != 0)
+# define MK_GC_INFOLOG_PRINTF MK_GC_COND_LOG_PRINTF
+  /* MK_GC_verbose_log_printf is called only if MK_GC_print_stats is VERBOSE. */
+# define MK_GC_verbose_log_printf MK_GC_log_printf
+#else
+  extern MK_GC_bool MK_GC_quiet;
+# define MK_GC_PRINT_STATS_FLAG (!MK_GC_quiet)
+  /* INFO/DBG loggers are enabled even if MK_GC_print_stats is off. */
+# ifndef MK_GC_INFOLOG_PRINTF
+#   define MK_GC_INFOLOG_PRINTF if (MK_GC_quiet) {} else MK_GC_info_log_printf
+# endif
+  MK_GC_INNER void MK_GC_info_log_printf(const char *format, ...)
+                        MK_GC_ATTR_FORMAT_PRINTF(1, 2);
+  MK_GC_INNER void MK_GC_verbose_log_printf(const char *format, ...)
+                        MK_GC_ATTR_FORMAT_PRINTF(1, 2);
+#endif /* MK_GC_ANDROID_LOG */
+
+/* Convenient macros for MK_GC_[verbose_]log_printf invocation.    */
+#define MK_GC_COND_LOG_PRINTF \
+                if (EXPECT(!MK_GC_print_stats, TRUE)) {} else MK_GC_log_printf
+#define MK_GC_VERBOSE_LOG_PRINTF \
+    if (EXPECT(MK_GC_print_stats != VERBOSE, TRUE)) {} else MK_GC_verbose_log_printf
+#ifndef MK_GC_DBGLOG_PRINTF
+# define MK_GC_DBGLOG_PRINTF if (!MK_GC_PRINT_STATS_FLAG) {} else MK_GC_log_printf
+#endif
+
 void MK_GC_err_puts(const char *s);
                         /* Write s to stderr, don't buffer, don't add   */
                         /* newlines, don't ...                          */
+
+/* Handy macro for logging size values (of word type) in KiB (rounding  */
+/* to nearest value).                                                   */
+#define TO_KiB_UL(v) ((unsigned long)(((v) + ((1 << 9) - 1)) >> 10))
 
 MK_GC_EXTERN unsigned MK_GC_fail_count;
                         /* How many consecutive GC/expansion failures?  */
@@ -2005,6 +2156,12 @@ MK_GC_EXTERN long MK_GC_large_alloc_warn_interval; /* defined in misc.c */
 MK_GC_EXTERN signed_word MK_GC_bytes_found;
                 /* Number of reclaimed bytes after garbage collection;  */
                 /* protected by GC lock; defined in reclaim.c.          */
+
+#ifndef MK_GC_GET_HEAP_USAGE_NOT_NEEDED
+  MK_GC_EXTERN word MK_GC_reclaimed_bytes_before_gc;
+                /* Number of bytes reclaimed before this        */
+                /* collection cycle; used for statistics only.  */
+#endif
 
 #ifdef USE_MUNMAP
   MK_GC_EXTERN int MK_GC_unmap_threshold; /* defined in allchblk.c */
@@ -2086,7 +2243,7 @@ MK_GC_INNER ptr_t MK_GC_store_debug_info(ptr_t p, word sz, const char *str,
     MK_GC_INNER MK_GC_bool MK_GC_text_mapping(char *nm, ptr_t *startp, ptr_t *endp);
                                                 /* from os_dep.c */
 # endif
-#elif defined(MSWIN32) || defined(MSWINCE)
+#elif defined(USE_WINALLOC)
   MK_GC_INNER void MK_GC_add_current_malloc_heap(void);
 #endif /* !REDIRECT_MALLOC */
 
@@ -2146,21 +2303,27 @@ MK_GC_INNER ptr_t MK_GC_store_debug_info(ptr_t p, word sz, const char *str,
 #endif
 
 #ifdef NEED_PROC_MAPS
-  MK_GC_INNER char *MK_GC_parse_map_entry(char *buf_ptr, ptr_t *start, ptr_t *end,
-                                    char **prot, unsigned int *maj_dev,
-                                    char **mapping_name);
+# if defined(DYNAMIC_LOADING) && defined(USE_PROC_FOR_LIBRARIES)
+    MK_GC_INNER char *MK_GC_parse_map_entry(char *buf_ptr, ptr_t *start, ptr_t *end,
+                                      char **prot, unsigned int *maj_dev,
+                                      char **mapping_name);
+# endif
   MK_GC_INNER char *MK_GC_get_maps(void); /* from os_dep.c */
-#endif
+#endif /* NEED_PROC_MAPS */
 
 #ifdef MK_GC_ASSERTIONS
-#  define MK_GC_ASSERT(expr) \
+# define MK_GC_ASSERT(expr) \
+              do { \
                 if (!(expr)) { \
                   MK_GC_err_printf("Assertion failure: %s:%d\n", \
                                 __FILE__, __LINE__); \
                   ABORT("assertion failure"); \
-                }
+                } \
+              } while (0)
+  MK_GC_INNER word MK_GC_compute_large_free_bytes(void);
+  MK_GC_INNER word MK_GC_compute_root_size(void);
 #else
-#  define MK_GC_ASSERT(expr)
+# define MK_GC_ASSERT(expr)
 #endif
 
 /* Check a compile time assertion at compile time.  The error   */
@@ -2174,15 +2337,30 @@ MK_GC_INNER ptr_t MK_GC_store_debug_info(ptr_t p, word sz, const char *str,
 # define MK_GC_STATIC_ASSERT(expr) (void)sizeof(char[(expr)? 1 : -1])
 #endif
 
+#define COND_DUMP_CHECKS \
+          do { \
+            MK_GC_ASSERT(MK_GC_compute_large_free_bytes() == MK_GC_large_free_bytes); \
+            MK_GC_ASSERT(MK_GC_compute_root_size() == MK_GC_root_size); \
+          } while (0)
+
+#ifndef NO_DEBUGGING
+  MK_GC_EXTERN MK_GC_bool MK_GC_dump_regularly;
+                                /* Generate regular debugging dumps.    */
+# define COND_DUMP if (EXPECT(MK_GC_dump_regularly, FALSE)) MK_GC_dump(); \
+                        else COND_DUMP_CHECKS
+#else
+# define COND_DUMP COND_DUMP_CHECKS
+#endif
+
 #if defined(PARALLEL_MARK)
   /* We need additional synchronization facilities from the thread      */
   /* support.  We believe these are less performance critical           */
   /* than the main garbage collector lock; standard pthreads-based      */
   /* implementations should be sufficient.                              */
 
-  MK_GC_EXTERN long MK_GC_markers;  /* Number of mark threads we would like   */
-                              /* to have.  Includes the initiating      */
-                              /* thread.  Defined in mark.c.            */
+# define MK_GC_markers_m1 MK_GC_parallel
+                        /* Number of mark threads we would like to have */
+                        /* excluding the initiating thread.             */
 
   /* The mark lock and condition variable.  If the GC lock is also      */
   /* acquired, the GC lock must be acquired first.  The mark lock is    */
@@ -2228,17 +2406,13 @@ MK_GC_INNER ptr_t MK_GC_store_debug_info(ptr_t p, word sz, const char *str,
 #     define SIG_SUSPEND SIGLOST
 #   else
       /* Linuxthreads itself uses SIGUSR1 and SIGUSR2.                  */
-#     if 0 /* JCB */
-#       define SIG_SUSPEND SIGPWR
-#     else /* JCB */
-#       define SIG_SUSPEND MK_GC_suspend_signal() /* JCB */
-#       define SIG_THR_RESTART MK_GC_thread_restart_signal() /* JCB */
-
-#       define SIG_SUSPEND_DEFAULT SIGPWR /* JCB */
-#       define SIG_THR_RESTART_DEFAULT SIGXCPU /* JCB */
-#     endif /* JCB */
+#     define SIG_SUSPEND SIGPWR
 #   endif
-# elif !defined(MK_GC_OPENBSD_THREADS) && !defined(MK_GC_DARWIN_THREADS)
+# elif defined(MK_GC_OPENBSD_THREADS)
+#   ifndef MK_GC_OPENBSD_UTHREADS
+#     define SIG_SUSPEND SIGXFSZ
+#   endif
+# elif !defined(MK_GC_DARWIN_THREADS)
 #   if defined(_SIGRTMIN)
 #     define SIG_SUSPEND _SIGRTMIN + 6
 #   else
@@ -2251,12 +2425,14 @@ MK_GC_INNER ptr_t MK_GC_store_debug_info(ptr_t p, word sz, const char *str,
 # define MK_GC_SEM_INIT_PSHARED 0
 #endif
 
+#include <setjmp.h>
+
 /* Some macros for setjmp that works across signal handlers     */
 /* were possible, and a couple of routines to facilitate        */
 /* catching accesses to bad addresses when that's               */
 /* possible/needed.                                             */
-#if defined(UNIX_LIKE) || (defined(NEED_FIND_LIMIT) && defined(CYGWIN32))
-# include <setjmp.h>
+#if (defined(UNIX_LIKE) || (defined(NEED_FIND_LIMIT) && defined(CYGWIN32))) \
+    && !defined(MK_GC_NO_SIGSETJMP)
 # if defined(SUNOS5SIGS) && !defined(FREEBSD) && !defined(LINUX)
 #  include <sys/siginfo.h>
 # endif
@@ -2267,13 +2443,13 @@ MK_GC_INNER ptr_t MK_GC_store_debug_info(ptr_t p, word sz, const char *str,
 # define JMP_BUF sigjmp_buf
 #else
 # ifdef ECOS
-#   define SETJMP(env)  hal_setjmp(env)
+#   define SETJMP(env) hal_setjmp(env)
 # else
 #   define SETJMP(env) setjmp(env)
 # endif
 # define LONGJMP(env, val) longjmp(env, val)
 # define JMP_BUF jmp_buf
-#endif /* !UNIX_LIKE */
+#endif /* !UNIX_LIKE || MK_GC_NO_SIGSETJMP */
 
 /* Do we need the MK_GC_find_limit machinery to find the end of a  */
 /* data segment.                                                */
@@ -2334,19 +2510,19 @@ MK_GC_INNER ptr_t MK_GC_store_debug_info(ptr_t p, word sz, const char *str,
 # else
 #   define INCR_CANCEL_DISABLE()
 #   define DECR_CANCEL_DISABLE()
-#   define ASSERT_CANCEL_DISABLED()
+#   define ASSERT_CANCEL_DISABLED() (void)0
 # endif /* MK_GC_ASSERTIONS & ... */
 # define DISABLE_CANCEL(state) \
-        { pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &state); \
-          INCR_CANCEL_DISABLE(); }
+        do { pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &state); \
+          INCR_CANCEL_DISABLE(); } while (0)
 # define RESTORE_CANCEL(state) \
-        { ASSERT_CANCEL_DISABLED(); \
+        do { ASSERT_CANCEL_DISABLED(); \
           pthread_setcancelstate(state, NULL); \
-          DECR_CANCEL_DISABLE(); }
+          DECR_CANCEL_DISABLE(); } while (0)
 #else /* !CANCEL_SAFE */
-# define DISABLE_CANCEL(state)
-# define RESTORE_CANCEL(state)
-# define ASSERT_CANCEL_DISABLED()
+# define DISABLE_CANCEL(state) (void)0
+# define RESTORE_CANCEL(state) (void)0
+# define ASSERT_CANCEL_DISABLED() (void)0
 #endif /* !CANCEL_SAFE */
 
 #endif /* MK_GC_PRIVATE_H */

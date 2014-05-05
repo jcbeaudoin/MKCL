@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 Hewlett-Packard Development Company, L.P.
+ * Copyright (c) 2003-2011 Hewlett-Packard Development Company, L.P.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,12 +43,15 @@
 # define MK_AO_USE_NO_SIGNALS
 #endif
 
+#undef MK_AO_REQUIRE_CAS
+#include "atomic_ops.h" /* Without cas emulation! */
+
 #if !defined(_MSC_VER) && !defined(__MINGW32__) && !defined(__BORLANDC__) \
     || defined(MK_AO_USE_NO_SIGNALS)
 
-#undef MK_AO_REQUIRE_CAS
-
-#include <pthread.h>
+#ifndef MK_AO_NO_PTHREADS
+# include <pthread.h>
+#endif
 
 #ifndef MK_AO_USE_NO_SIGNALS
 # include <signal.h>
@@ -66,17 +69,14 @@
 # include <sys/select.h>
 #endif
 
-#include "atomic_ops.h"  /* Without cas emulation! */
-
 #ifndef MK_AO_HAVE_double_t
 # include "atomic_ops/sysdeps/standard_ao_double_t.h"
 #endif
 
-/*
- * Lock for pthreads-based implementation.
- */
-
-pthread_mutex_t MK_AO_pt_lock = PTHREAD_MUTEX_INITIALIZER;
+/* Lock for pthreads-based implementation.      */
+#ifndef MK_AO_NO_PTHREADS
+  pthread_mutex_t MK_AO_pt_lock = PTHREAD_MUTEX_INITIALIZER;
+#endif
 
 /*
  * Out of line compare-and-swap emulation based on test and set.
@@ -87,7 +87,7 @@ pthread_mutex_t MK_AO_pt_lock = PTHREAD_MUTEX_INITIALIZER;
  * never acquire more than one lock at a time, this can't deadlock.
  * We explicitly disable signals while we perform this operation.
  *
- * FIXME: We should probably also support emulation based on Lamport
+ * TODO: Probably also support emulation based on Lamport
  * locks, since we may not have test_and_set either.
  */
 #define MK_AO_HASH_SIZE 16
@@ -101,44 +101,7 @@ MK_AO_TS_t MK_AO_locks[MK_AO_HASH_SIZE] = {
   MK_AO_TS_INITIALIZER, MK_AO_TS_INITIALIZER, MK_AO_TS_INITIALIZER, MK_AO_TS_INITIALIZER,
 };
 
-static MK_AO_T dummy = 1;
-
-/* Spin for 2**n units. */
-void MK_AO_spin(int n)
-{
-  int i;
-  MK_AO_T j = MK_AO_load(&dummy);
-
-  for (i = 0; i < (2 << n); ++i)
-    {
-       j *= 5;
-       j -= 4;
-    }
-  MK_AO_store(&dummy, j);
-}
-
-void MK_AO_pause(int n)
-{
-  if (n < 12)
-    MK_AO_spin(n);
-  else
-    {
-#     ifdef MK_AO_USE_NANOSLEEP
-        struct timespec ts;
-        ts.tv_sec = 0;
-        ts.tv_nsec = (n > 28 ? 100000 * 1000 : 1 << (n - 2));
-        nanosleep(&ts, 0);
-#     elif defined(MK_AO_USE_WIN32_PTHREADS)
-        Sleep(n > 28 ? 100 : 1 << (n - 22)); /* in millis */
-#     else
-        struct timeval tv;
-        /* Short async-signal-safe sleep. */
-        tv.tv_sec = 0;
-        tv.tv_usec = n > 28 ? 100000 : 1 << (n - 12);
-        select(0, 0, 0, 0, &tv);
-#     endif
-    }
-}
+void MK_AO_pause(int); /* defined below */
 
 static void lock_ool(volatile MK_AO_TS_t *l)
 {
@@ -150,7 +113,7 @@ static void lock_ool(volatile MK_AO_TS_t *l)
 
 MK_AO_INLINE void lock(volatile MK_AO_TS_t *l)
 {
-  if (MK_AO_test_and_set_acquire(l) == MK_AO_TS_SET)
+  if (MK_AO_EXPECT_FALSE(MK_AO_test_and_set_acquire(l) == MK_AO_TS_SET))
     lock_ool(l);
 }
 
@@ -163,24 +126,18 @@ MK_AO_INLINE void unlock(volatile MK_AO_TS_t *l)
   static sigset_t all_sigs;
   static volatile MK_AO_t initialized = 0;
   static volatile MK_AO_TS_t init_lock = MK_AO_TS_INITIALIZER;
-#endif
 
-int MK_AO_compare_and_swap_emulation(volatile MK_AO_t *addr, MK_AO_t old,
-                                  MK_AO_t new_val)
-{
-  MK_AO_TS_t *my_lock = MK_AO_locks + MK_AO_HASH(addr);
-  int result;
-
-# ifndef MK_AO_USE_NO_SIGNALS
-    sigset_t old_sigs;
-    if (!MK_AO_load_acquire(&initialized))
+  MK_AO_INLINE void block_all_signals(sigset_t *old_sigs_ptr)
+  {
+    if (MK_AO_EXPECT_FALSE(!MK_AO_load_acquire(&initialized)))
     {
       lock(&init_lock);
-      if (!initialized) sigfillset(&all_sigs);
+      if (!initialized)
+        sigfillset(&all_sigs);
       unlock(&init_lock);
       MK_AO_store_release(&initialized, 1);
     }
-    sigprocmask(SIG_BLOCK, &all_sigs, &old_sigs);
+    sigprocmask(SIG_BLOCK, &all_sigs, old_sigs_ptr);
         /* Neither sigprocmask nor pthread_sigmask is 100%      */
         /* guaranteed to work here.  Sigprocmask is not         */
         /* guaranteed be thread safe, and pthread_sigmask       */
@@ -188,20 +145,28 @@ int MK_AO_compare_and_swap_emulation(volatile MK_AO_t *addr, MK_AO_t old,
         /* sigprocmask may block some pthreads-internal         */
         /* signals.  So long as we do that for short periods,   */
         /* we should be OK.                                     */
+  }
+#endif /* !MK_AO_USE_NO_SIGNALS */
+
+MK_AO_t MK_AO_fetch_compare_and_swap_emulation(volatile MK_AO_t *addr, MK_AO_t old_val,
+                                         MK_AO_t new_val)
+{
+  MK_AO_TS_t *my_lock = MK_AO_locks + MK_AO_HASH(addr);
+  MK_AO_t fetched_val;
+
+# ifndef MK_AO_USE_NO_SIGNALS
+    sigset_t old_sigs;
+    block_all_signals(&old_sigs);
 # endif
   lock(my_lock);
-  if (*addr == old)
-    {
-      *addr = new_val;
-      result = 1;
-    }
-  else
-    result = 0;
+  fetched_val = *addr;
+  if (fetched_val == old_val)
+    *addr = new_val;
   unlock(my_lock);
 # ifndef MK_AO_USE_NO_SIGNALS
     sigprocmask(SIG_SETMASK, &old_sigs, NULL);
 # endif
-  return result;
+  return fetched_val;
 }
 
 int MK_AO_compare_double_and_swap_double_emulation(volatile MK_AO_double_t *addr,
@@ -213,21 +178,7 @@ int MK_AO_compare_double_and_swap_double_emulation(volatile MK_AO_double_t *addr
 
 # ifndef MK_AO_USE_NO_SIGNALS
     sigset_t old_sigs;
-    if (!MK_AO_load_acquire(&initialized))
-    {
-      lock(&init_lock);
-      if (!initialized) sigfillset(&all_sigs);
-      unlock(&init_lock);
-      MK_AO_store_release(&initialized, 1);
-    }
-    sigprocmask(SIG_BLOCK, &all_sigs, &old_sigs);
-        /* Neither sigprocmask nor pthread_sigmask is 100%      */
-        /* guaranteed to work here.  Sigprocmask is not         */
-        /* guaranteed be thread safe, and pthread_sigmask       */
-        /* is not async-signal-safe.  Under linuxthreads,       */
-        /* sigprocmask may block some pthreads-internal         */
-        /* signals.  So long as we do that for short periods,   */
-        /* we should be OK.                                     */
+    block_all_signals(&old_sigs);
 # endif
   lock(my_lock);
   if (addr -> MK_AO_val1 == old_val1 && addr -> MK_AO_val2 == old_val2)
@@ -255,6 +206,48 @@ void MK_AO_store_full_emulation(volatile MK_AO_t *addr, MK_AO_t val)
 
 #else /* Non-posix platform */
 
-extern int MK_AO_non_posix_implementation_is_entirely_in_headers;
+# include <windows.h>
+
+# define MK_AO_USE_WIN32_PTHREADS
+                /* define to use Sleep() */
+
+  extern int MK_AO_non_posix_implementation_is_entirely_in_headers;
 
 #endif
+
+static MK_AO_t spin_dummy = 1;
+
+/* Spin for 2**n units. */
+static void MK_AO_spin(int n)
+{
+  MK_AO_t j = MK_AO_load(&spin_dummy);
+  int i = 2 << n;
+
+  while (i-- > 0)
+    j += (j - 1) << 2;
+  /* Given 'spin_dummy' is initialized to 1, j is 1 after the loop.     */
+  MK_AO_store(&spin_dummy, j);
+}
+
+void MK_AO_pause(int n)
+{
+  if (n < 12)
+    MK_AO_spin(n);
+  else
+    {
+#     ifdef MK_AO_USE_NANOSLEEP
+        struct timespec ts;
+        ts.tv_sec = 0;
+        ts.tv_nsec = (n > 28 ? 100000 * 1000 : 1 << (n - 2));
+        nanosleep(&ts, 0);
+#     elif defined(MK_AO_USE_WIN32_PTHREADS)
+        Sleep(n > 28 ? 100 : n < 22 ? 1 : 1 << (n - 22)); /* in millis */
+#     else
+        struct timeval tv;
+        /* Short async-signal-safe sleep. */
+        tv.tv_sec = 0;
+        tv.tv_usec = n > 28 ? 100000 : 1 << (n - 12);
+        select(0, 0, 0, 0, &tv);
+#     endif
+    }
+}

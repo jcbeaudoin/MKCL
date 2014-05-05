@@ -28,7 +28,7 @@
   /* of the heap.                                                 */
   /* This excludes the check as to whether the back pointer is    */
   /* odd, which is added by the MK_GC_HAS_DEBUG_INFO macro.          */
-  /* Note that if DBG_HDRS_ALL is set, uncollectable objects      */
+  /* Note that if DBG_HDRS_ALL is set, uncollectible objects      */
   /* on free lists may not have debug information set.  Thus it's */
   /* not always safe to return TRUE (1), even if the client does  */
   /* its part.  Return -1 if the object with debug info has been  */
@@ -115,10 +115,10 @@
         ptr_t target = *(ptr_t *)bp;
         ptr_t alternate_target = *(ptr_t *)alternate_ptr;
 
-        if (alternate_target >= MK_GC_least_plausible_heap_addr
-            && alternate_target <= MK_GC_greatest_plausible_heap_addr
-            && (target < MK_GC_least_plausible_heap_addr
-                || target > MK_GC_greatest_plausible_heap_addr)) {
+        if ((word)alternate_target >= (word)MK_GC_least_plausible_heap_addr
+            && (word)alternate_target <= (word)MK_GC_greatest_plausible_heap_addr
+            && ((word)target < (word)MK_GC_least_plausible_heap_addr
+                || (word)target > (word)MK_GC_greatest_plausible_heap_addr)) {
             bp = alternate_ptr;
         }
       }
@@ -142,7 +142,9 @@
   MK_GC_API void * MK_GC_CALL MK_GC_generate_random_heap_address(void)
   {
     size_t i;
+    size_t size;
     word heap_offset = RANDOM();
+
     if (MK_GC_heapsize > RAND_MAX) {
         heap_offset *= RAND_MAX;
         heap_offset += RANDOM();
@@ -151,17 +153,18 @@
         /* This doesn't yield a uniform distribution, especially if     */
         /* e.g. RAND_MAX = 1.5* MK_GC_heapsize.  But for typical cases,    */
         /* it's not too bad.                                            */
-    for (i = 0; i < MK_GC_n_heap_sects; ++ i) {
-        size_t size = MK_GC_heap_sects[i].hs_bytes;
+    for (i = 0;; ++i) {
+        if (i >= MK_GC_n_heap_sects)
+          ABORT("MK_GC_generate_random_heap_address: size inconsistency");
+
+        size = MK_GC_heap_sects[i].hs_bytes;
         if (heap_offset < size) {
-            return MK_GC_heap_sects[i].hs_start + heap_offset;
+            break;
         } else {
             heap_offset -= size;
         }
     }
-    ABORT("MK_GC_generate_random_heap_address: size inconsistency");
-    /*NOTREACHED*/
-    return 0;
+    return MK_GC_heap_sects[i].hs_start + heap_offset;
   }
 
   /* Generate a random address inside a valid marked heap object. */
@@ -186,7 +189,7 @@
     void *base;
 
     MK_GC_print_heap_obj(MK_GC_base(current));
-    MK_GC_err_printf("\n");
+
     for (i = 0; ; ++i) {
       source = MK_GC_get_back_ptr_info(current, &base, &offset);
       if (MK_GC_UNREFERENCED == source) {
@@ -209,10 +212,9 @@
           MK_GC_err_printf("list of finalizable objects\n\n");
           goto out;
         case MK_GC_REFD_FROM_HEAP:
-          MK_GC_err_printf("offset %ld in object:\n", (unsigned long)offset);
+          MK_GC_err_printf("offset %ld in object:\n", (long)offset);
           /* Take MK_GC_base(base) to get real base, i.e. header. */
           MK_GC_print_heap_obj(MK_GC_base(base));
-          MK_GC_err_printf("\n");
           break;
         default:
           MK_GC_err_printf("INTERNAL ERROR: UNEXPECTED SOURCE!!!!\n");
@@ -223,8 +225,8 @@
     out:;
   }
 
-  /* Force a garbage collection and generate a backtrace from a */
-  /* random heap address.                                       */
+  /* Force a garbage collection and generate/print a backtrace  */
+  /* from a random heap address.                                */
   MK_GC_INNER void MK_GC_generate_random_backtrace_no_gc(void)
   {
     void * current;
@@ -246,12 +248,12 @@
 #endif /* KEEP_BACK_PTRS */
 
 # define CROSSES_HBLK(p, sz) \
-        (((word)(p + sizeof(oh) + sz - 1) ^ (word)p) >= HBLKSIZE)
+        (((word)((p) + sizeof(oh) + (sz) - 1) ^ (word)(p)) >= HBLKSIZE)
 
 /* Store debugging info into p.  Return displaced pointer.         */
 /* This version assumes we do hold the allocation lock.            */
-STATIC ptr_t MK_GC_store_debug_info_inner(ptr_t p, word sz, const char *string,
-                                       int linenum)
+STATIC ptr_t MK_GC_store_debug_info_inner(ptr_t p, word sz MK_GC_ATTR_UNUSED,
+                                       const char *string, int linenum)
 {
     word * result = (word *)((oh *)p + 1);
 
@@ -319,69 +321,83 @@ MK_GC_API void MK_GC_CALL MK_GC_register_describe_type_fn(int kind,
   MK_GC_describe_type_fns[kind] = fn;
 }
 
-/* Print a type description for the object whose client-visible address */
-/* is p.                                                                */
-STATIC void MK_GC_print_type(ptr_t p)
-{
-    hdr * hhdr = MK_GC_find_header(p);
-    char buffer[MK_GC_TYPE_DESCR_LEN + 1];
-    int kind = hhdr -> hb_obj_kind;
-
-    if (0 != MK_GC_describe_type_fns[kind] && MK_GC_is_marked(MK_GC_base(p))) {
-        /* This should preclude free list objects except with   */
-        /* thread-local allocation.                             */
-        buffer[MK_GC_TYPE_DESCR_LEN] = 0;
-        (MK_GC_describe_type_fns[kind])(p, buffer);
-        MK_GC_ASSERT(buffer[MK_GC_TYPE_DESCR_LEN] == 0);
-        MK_GC_err_puts(buffer);
-    } else {
-        switch(kind) {
-          case PTRFREE:
-            MK_GC_err_puts("PTRFREE");
-            break;
-          case NORMAL:
-            MK_GC_err_puts("NORMAL");
-            break;
-          case UNCOLLECTABLE:
-            MK_GC_err_puts("UNCOLLECTABLE");
-            break;
-#         ifdef ATOMIC_UNCOLLECTABLE
-            case AUNCOLLECTABLE:
-              MK_GC_err_puts("ATOMIC UNCOLLECTABLE");
-              break;
-#         endif
-          case STUBBORN:
-            MK_GC_err_puts("STUBBORN");
-            break;
-          default:
-            MK_GC_err_printf("kind=%d descr=0x%lx", kind,
-                          (unsigned long)(hhdr -> hb_descr));
-        }
-    }
-}
-
 #define GET_OH_LINENUM(ohdr) ((int)(ohdr)->oh_int)
 
-/* Print a human-readable description of the object to stderr. p points */
-/* to somewhere inside an object with the debugging info.               */
+#ifndef SHORT_DBG_HDRS
+# define IF_NOT_SHORTDBG_HDRS(x) x
+# define COMMA_IFNOT_SHORTDBG_HDRS(x) /* comma */, x
+#else
+# define IF_NOT_SHORTDBG_HDRS(x) /* empty */
+# define COMMA_IFNOT_SHORTDBG_HDRS(x) /* empty */
+#endif
+
+/* Print a human-readable description of the object to stderr.          */
+/* p points to somewhere inside an object with the debugging info.      */
 STATIC void MK_GC_print_obj(ptr_t p)
 {
     oh * ohdr = (oh *)MK_GC_base(p);
+    ptr_t q;
+    hdr * hhdr;
+    int kind;
+    char *kind_str;
+    char buffer[MK_GC_TYPE_DESCR_LEN + 1];
 
     MK_GC_ASSERT(I_DONT_HOLD_LOCK());
 #   ifdef LINT2
       if (!ohdr) ABORT("Invalid MK_GC_print_obj argument");
 #   endif
-    MK_GC_err_printf("%p (", ((ptr_t)ohdr + sizeof(oh)));
-    MK_GC_err_puts(ohdr -> oh_string);
-#   ifdef SHORT_DBG_HDRS
-      MK_GC_err_printf(":%d, ", GET_OH_LINENUM(ohdr));
-#   else
-      MK_GC_err_printf(":%d, sz=%lu, ",
-                    GET_OH_LINENUM(ohdr), (unsigned long)(ohdr -> oh_sz));
-#   endif
-    MK_GC_print_type((ptr_t)(ohdr + 1));
-    MK_GC_err_puts(")\n");
+
+    q = (ptr_t)(ohdr + 1);
+    /* Print a type description for the object whose client-visible     */
+    /* address is q.                                                    */
+    hhdr = MK_GC_find_header(q);
+    kind = hhdr -> hb_obj_kind;
+    if (0 != MK_GC_describe_type_fns[kind] && MK_GC_is_marked(ohdr)) {
+        /* This should preclude free list objects except with   */
+        /* thread-local allocation.                             */
+        buffer[MK_GC_TYPE_DESCR_LEN] = 0;
+        (MK_GC_describe_type_fns[kind])(q, buffer);
+        MK_GC_ASSERT(buffer[MK_GC_TYPE_DESCR_LEN] == 0);
+        kind_str = buffer;
+    } else {
+        switch(kind) {
+          case PTRFREE:
+            kind_str = "PTRFREE";
+            break;
+          case NORMAL:
+            kind_str = "NORMAL";
+            break;
+          case UNCOLLECTABLE:
+            kind_str = "UNCOLLECTABLE";
+            break;
+#         ifdef ATOMIC_UNCOLLECTABLE
+            case AUNCOLLECTABLE:
+              kind_str = "ATOMIC_UNCOLLECTABLE";
+              break;
+#         endif
+          case STUBBORN:
+            kind_str = "STUBBORN";
+            break;
+          default:
+            kind_str = NULL;
+                /* The alternative is to use snprintf(buffer) but it is */
+                /* not quite portable (see vsnprintf in misc.c).        */
+        }
+    }
+
+    if (NULL != kind_str) {
+        MK_GC_err_printf("%p (%s:%d," IF_NOT_SHORTDBG_HDRS(" sz=%lu,") " %s)\n",
+                      (ptr_t)ohdr + sizeof(oh),
+                      ohdr->oh_string, GET_OH_LINENUM(ohdr) /*, */
+                      COMMA_IFNOT_SHORTDBG_HDRS((unsigned long)ohdr->oh_sz),
+                      kind_str);
+    } else {
+        MK_GC_err_printf("%p (%s:%d," IF_NOT_SHORTDBG_HDRS(" sz=%lu,")
+                      " kind=%d descr=0x%lx)\n", (ptr_t)ohdr + sizeof(oh),
+                      ohdr->oh_string, GET_OH_LINENUM(ohdr) /*, */
+                      COMMA_IFNOT_SHORTDBG_HDRS((unsigned long)ohdr->oh_sz),
+                      kind, (unsigned long)hhdr->hb_descr);
+    }
     PRINT_CALL_CHAIN(ohdr);
 }
 
@@ -408,7 +424,7 @@ STATIC void MK_GC_debug_print_heap_obj_proc(ptr_t p)
 #   ifdef LINT2
       if (!ohdr) ABORT("Invalid MK_GC_print_smashed_obj argument");
 #   endif
-    if (clobbered_addr <= (ptr_t)(&(ohdr -> oh_sz))
+    if ((word)clobbered_addr <= (word)(&ohdr->oh_sz)
         || ohdr -> oh_string == 0) {
         MK_GC_err_printf(
                 "%s %p in or near object at %p(<smashed>, appr. sz = %lu)\n",
@@ -433,8 +449,9 @@ STATIC void MK_GC_debug_print_heap_obj_proc(ptr_t p)
   STATIC void MK_GC_do_nothing(void) {}
 #endif
 
-MK_GC_INNER void MK_GC_start_debugging(void)
+STATIC void MK_GC_start_debugging_inner(void)
 {
+  MK_GC_ASSERT(I_HOLD_LOCK());
 # ifndef SHORT_DBG_HDRS
     MK_GC_check_heap = MK_GC_check_heap_proc;
     MK_GC_print_all_smashed = MK_GC_print_all_smashed_proc;
@@ -444,30 +461,67 @@ MK_GC_INNER void MK_GC_start_debugging(void)
 # endif
   MK_GC_print_heap_obj = MK_GC_debug_print_heap_obj_proc;
   MK_GC_debugging_started = TRUE;
-  MK_GC_register_displacement((word)sizeof(oh));
+  MK_GC_register_displacement_inner((word)sizeof(oh));
+}
+
+MK_GC_INNER void MK_GC_start_debugging(void)
+{
+  DCL_LOCK_STATE;
+
+  LOCK();
+  MK_GC_start_debugging_inner();
+  UNLOCK();
 }
 
 size_t MK_GC_debug_header_size = sizeof(oh);
 
 MK_GC_API void MK_GC_CALL MK_GC_debug_register_displacement(size_t offset)
 {
-    MK_GC_register_displacement(offset);
-    MK_GC_register_displacement((word)sizeof(oh) + offset);
+  DCL_LOCK_STATE;
+
+  LOCK();
+  MK_GC_register_displacement_inner(offset);
+  MK_GC_register_displacement_inner((word)sizeof(oh) + offset);
+  UNLOCK();
 }
+
+#ifdef MK_GC_ADD_CALLER
+# if defined(HAVE_DLADDR) && defined(MK_GC_RETURN_ADDR_PARENT)
+#   include <dlfcn.h>
+
+    STATIC void MK_GC_caller_func_offset(word ad, const char **symp, int *offp)
+    {
+      Dl_info caller;
+
+      if (ad && dladdr((void *)ad, &caller) && caller.dli_sname != NULL) {
+        *symp = caller.dli_sname;
+        *offp = (int)((char *)ad - (char *)caller.dli_saddr);
+      }
+      if (NULL == *symp) {
+        *symp = "unknown";
+      }
+    }
+# else
+#   define MK_GC_caller_func_offset(ad, symp, offp) (void)(*(symp) = "unknown")
+# endif
+#endif /* MK_GC_ADD_CALLER */
 
 MK_GC_API void * MK_GC_CALL MK_GC_debug_malloc(size_t lb, MK_GC_EXTRA_PARAMS)
 {
     void * result;
+
     /* Note that according to malloc() specification, if size is 0 then */
     /* malloc() returns either NULL, or a unique pointer value that can */
     /* later be successfully passed to free(). We always do the latter. */
     result = MK_GC_malloc(lb + DEBUG_BYTES);
-
+#   ifdef MK_GC_ADD_CALLER
+      if (s == NULL) {
+        MK_GC_caller_func_offset(ra, &s, &i);
+      }
+#   endif
     if (result == 0) {
-        MK_GC_err_printf("MK_GC_debug_malloc(%lu) returning NULL (",
-                      (unsigned long) lb);
-        MK_GC_err_puts(s);
-        MK_GC_err_printf(":%ld)\n", (unsigned long)i);
+        MK_GC_err_printf("MK_GC_debug_malloc(%lu) returning NULL (%s:%d)\n",
+                      (unsigned long)lb, s, i);
         return(0);
     }
     if (!MK_GC_debugging_started) {
@@ -483,10 +537,8 @@ MK_GC_API void * MK_GC_CALL MK_GC_debug_malloc_ignore_off_page(size_t lb,
     void * result = MK_GC_malloc_ignore_off_page(lb + DEBUG_BYTES);
 
     if (result == 0) {
-        MK_GC_err_printf("MK_GC_debug_malloc_ignore_off_page(%lu) returning NULL (",
-                       (unsigned long) lb);
-        MK_GC_err_puts(s);
-        MK_GC_err_printf(":%lu)\n", (unsigned long)i);
+        MK_GC_err_printf("MK_GC_debug_malloc_ignore_off_page(%lu)"
+                      " returning NULL (%s:%d)\n", (unsigned long)lb, s, i);
         return(0);
     }
     if (!MK_GC_debugging_started) {
@@ -503,9 +555,7 @@ MK_GC_API void * MK_GC_CALL MK_GC_debug_malloc_atomic_ignore_off_page(size_t lb,
 
     if (result == 0) {
         MK_GC_err_printf("MK_GC_debug_malloc_atomic_ignore_off_page(%lu)"
-                      " returning NULL (", (unsigned long)lb);
-        MK_GC_err_puts(s);
-        MK_GC_err_printf(":%lu)\n", (unsigned long)i);
+                      " returning NULL (%s:%d)\n", (unsigned long)lb, s, i);
         return(0);
     }
     if (!MK_GC_debugging_started) {
@@ -530,6 +580,9 @@ MK_GC_API void * MK_GC_CALL MK_GC_debug_malloc_atomic_ignore_off_page(size_t lb,
                        (unsigned long) lb);
         return(0);
     }
+    if (!MK_GC_debugging_started) {
+        MK_GC_start_debugging_inner();
+    }
     ADD_CALL_CHAIN(result, MK_GC_RETURN_ADDR);
     return (MK_GC_store_debug_info_inner(result, (word)lb, "INTERNAL", 0));
   }
@@ -545,6 +598,9 @@ MK_GC_API void * MK_GC_CALL MK_GC_debug_malloc_atomic_ignore_off_page(size_t lb,
                        (unsigned long) lb);
         return(0);
     }
+    if (!MK_GC_debugging_started) {
+        MK_GC_start_debugging_inner();
+    }
     ADD_CALL_CHAIN(result, MK_GC_RETURN_ADDR);
     return (MK_GC_store_debug_info_inner(result, (word)lb, "INTERNAL", 0));
   }
@@ -556,10 +612,8 @@ MK_GC_API void * MK_GC_CALL MK_GC_debug_malloc_atomic_ignore_off_page(size_t lb,
     void * result = MK_GC_malloc_stubborn(lb + DEBUG_BYTES);
 
     if (result == 0) {
-        MK_GC_err_printf("MK_GC_debug_malloc(%lu) returning NULL (",
-                      (unsigned long) lb);
-        MK_GC_err_puts(s);
-        MK_GC_err_printf(":%lu)\n", (unsigned long)i);
+        MK_GC_err_printf("MK_GC_debug_malloc_stubborn(%lu)"
+                      " returning NULL (%s:%d)\n", (unsigned long)lb, s, i);
         return(0);
     }
     if (!MK_GC_debugging_started) {
@@ -569,36 +623,33 @@ MK_GC_API void * MK_GC_CALL MK_GC_debug_malloc_atomic_ignore_off_page(size_t lb,
     return (MK_GC_store_debug_info(result, (word)lb, s, i));
   }
 
-  MK_GC_API void MK_GC_CALL MK_GC_debug_change_stubborn(void *p)
+  MK_GC_API void MK_GC_CALL MK_GC_debug_change_stubborn(const void *p)
   {
-    void * q = MK_GC_base(p);
+    const void * q = MK_GC_base_C(p);
     hdr * hhdr;
 
     if (q == 0) {
-        MK_GC_err_printf("Bad argument: %p to MK_GC_debug_change_stubborn\n", p);
-        ABORT("MK_GC_debug_change_stubborn: bad arg");
+        ABORT_ARG1("MK_GC_debug_change_stubborn: bad arg", ": %p", p);
     }
     hhdr = HDR(q);
     if (hhdr -> hb_obj_kind != STUBBORN) {
-        MK_GC_err_printf("MK_GC_debug_change_stubborn arg not stubborn: %p\n", p);
-        ABORT("MK_GC_debug_change_stubborn: arg not stubborn");
+        ABORT_ARG1("MK_GC_debug_change_stubborn: arg not stubborn", ": %p", p);
     }
     MK_GC_change_stubborn(q);
   }
 
-  MK_GC_API void MK_GC_CALL MK_GC_debug_end_stubborn_change(void *p)
+  MK_GC_API void MK_GC_CALL MK_GC_debug_end_stubborn_change(const void *p)
   {
-    void * q = MK_GC_base(p);
+    const void * q = MK_GC_base_C(p);
     hdr * hhdr;
 
     if (q == 0) {
-        MK_GC_err_printf("Bad argument: %p to MK_GC_debug_end_stubborn_change\n", p);
-        ABORT("MK_GC_debug_end_stubborn_change: bad arg");
+        ABORT_ARG1("MK_GC_debug_end_stubborn_change: bad arg", ": %p", p);
     }
     hhdr = HDR(q);
     if (hhdr -> hb_obj_kind != STUBBORN) {
-        MK_GC_err_printf("debug_end_stubborn_change arg not stubborn: %p\n", p);
-        ABORT("MK_GC_debug_end_stubborn_change: arg not stubborn");
+        ABORT_ARG1("MK_GC_debug_end_stubborn_change: arg not stubborn",
+                   ": %p", p);
     }
     MK_GC_end_stubborn_change(q);
   }
@@ -610,11 +661,11 @@ MK_GC_API void * MK_GC_CALL MK_GC_debug_malloc_atomic_ignore_off_page(size_t lb,
     return MK_GC_debug_malloc(lb, OPT_RA s, i);
   }
 
-  /*ARGSUSED*/
-  MK_GC_API void MK_GC_CALL MK_GC_debug_change_stubborn(void *p) {}
+  MK_GC_API void MK_GC_CALL MK_GC_debug_change_stubborn(
+                                const void * p MK_GC_ATTR_UNUSED) {}
 
-  /*ARGSUSED*/
-  MK_GC_API void MK_GC_CALL MK_GC_debug_end_stubborn_change(void *p) {}
+  MK_GC_API void MK_GC_CALL MK_GC_debug_end_stubborn_change(
+                                const void * p MK_GC_ATTR_UNUSED) {}
 #endif /* !STUBBORN_ALLOC */
 
 MK_GC_API void * MK_GC_CALL MK_GC_debug_malloc_atomic(size_t lb, MK_GC_EXTRA_PARAMS)
@@ -622,10 +673,8 @@ MK_GC_API void * MK_GC_CALL MK_GC_debug_malloc_atomic(size_t lb, MK_GC_EXTRA_PAR
     void * result = MK_GC_malloc_atomic(lb + DEBUG_BYTES);
 
     if (result == 0) {
-        MK_GC_err_printf("MK_GC_debug_malloc_atomic(%lu) returning NULL (",
-                      (unsigned long) lb);
-        MK_GC_err_puts(s);
-        MK_GC_err_printf(":%lu)\n", (unsigned long)i);
+        MK_GC_err_printf("MK_GC_debug_malloc_atomic(%lu) returning NULL (%s:%d)\n",
+                      (unsigned long)lb, s, i);
         return(0);
     }
     if (!MK_GC_debugging_started) {
@@ -653,12 +702,7 @@ MK_GC_API char * MK_GC_CALL MK_GC_debug_strdup(const char *str, MK_GC_EXTRA_PARA
 #   endif
     return NULL;
   }
-# ifndef MSWINCE
-    strcpy(copy, str);
-# else
-    /* strcpy() is deprecated in WinCE */
-    memcpy(copy, str, lb);
-# endif
+  BCOPY(str, copy, lb);
   return copy;
 }
 
@@ -705,10 +749,8 @@ MK_GC_API void * MK_GC_CALL MK_GC_debug_malloc_uncollectable(size_t lb,
     void * result = MK_GC_malloc_uncollectable(lb + UNCOLLECTABLE_DEBUG_BYTES);
 
     if (result == 0) {
-        MK_GC_err_printf("MK_GC_debug_malloc_uncollectable(%lu) returning NULL (",
-                      (unsigned long) lb);
-        MK_GC_err_puts(s);
-        MK_GC_err_printf(":%lu)\n", (unsigned long)i);
+        MK_GC_err_printf("MK_GC_debug_malloc_uncollectable(%lu)"
+                      " returning NULL (%s:%d)\n", (unsigned long)lb, s, i);
         return(0);
     }
     if (!MK_GC_debugging_started) {
@@ -726,11 +768,8 @@ MK_GC_API void * MK_GC_CALL MK_GC_debug_malloc_uncollectable(size_t lb,
         MK_GC_malloc_atomic_uncollectable(lb + UNCOLLECTABLE_DEBUG_BYTES);
 
     if (result == 0) {
-        MK_GC_err_printf(
-                "MK_GC_debug_malloc_atomic_uncollectable(%lu) returning NULL (",
-                (unsigned long) lb);
-        MK_GC_err_puts(s);
-        MK_GC_err_printf(":%lu)\n", (unsigned long)i);
+        MK_GC_err_printf("MK_GC_debug_malloc_atomic_uncollectable(%lu)"
+                      " returning NULL (%s:%d)\n", (unsigned long)lb, s, i);
         return(0);
     }
     if (!MK_GC_debugging_started) {
@@ -756,8 +795,7 @@ MK_GC_API void MK_GC_CALL MK_GC_debug_free(void * p)
 
     base = MK_GC_base(p);
     if (base == 0) {
-      MK_GC_err_printf("Attempt to free invalid pointer %p\n", p);
-      ABORT("Invalid pointer passed to free()");
+      ABORT_ARG1("Invalid pointer passed to free()", ": %p", p);
     }
     if ((ptr_t)p - (ptr_t)base != sizeof(oh)) {
       MK_GC_err_printf(
@@ -829,13 +867,18 @@ MK_GC_API void * MK_GC_CALL MK_GC_debug_realloc(void * p, size_t lb, MK_GC_EXTRA
     void * base;
     void * result;
     hdr * hhdr;
-    if (p == 0)
-      return(MK_GC_debug_malloc(lb, OPT_RA s, i));
 
+    if (p == 0) {
+      return MK_GC_debug_malloc(lb, OPT_RA s, i);
+    }
+#   ifdef MK_GC_ADD_CALLER
+      if (s == NULL) {
+        MK_GC_caller_func_offset(ra, &s, &i);
+      }
+#   endif
     base = MK_GC_base(p);
     if (base == 0) {
-        MK_GC_err_printf("Attempt to reallocate invalid pointer %p\n", p);
-        ABORT("Invalid pointer passed to realloc()");
+        ABORT_ARG1("Invalid pointer passed to realloc()", ": %p", p);
     }
     if ((ptr_t)p - (ptr_t)base != sizeof(oh)) {
         MK_GC_err_printf(
@@ -865,8 +908,7 @@ MK_GC_API void * MK_GC_CALL MK_GC_debug_realloc(void * p, size_t lb, MK_GC_EXTRA
 #    endif
       default:
         result = NULL; /* initialized to prevent warning. */
-        MK_GC_err_printf("MK_GC_debug_realloc: encountered bad kind\n");
-        ABORT("Bad kind");
+        ABORT_RET("MK_GC_debug_realloc: encountered bad kind");
     }
 
     if (result != NULL) {
@@ -912,20 +954,23 @@ STATIC void MK_GC_print_all_smashed_proc(void)
 
     MK_GC_ASSERT(I_DONT_HOLD_LOCK());
     if (MK_GC_n_smashed == 0) return;
-    MK_GC_err_printf("MK_GC_check_heap_block: found smashed heap objects:\n");
+    MK_GC_err_printf("MK_GC_check_heap_block: found %u smashed heap objects:\n",
+                  MK_GC_n_smashed);
     for (i = 0; i < MK_GC_n_smashed; ++i) {
-        MK_GC_print_smashed_obj("", (ptr_t)MK_GC_base(MK_GC_smashed[i]) + sizeof(oh),
-                             MK_GC_smashed[i]);
+        ptr_t base = (ptr_t)MK_GC_base(MK_GC_smashed[i]);
+
+#       ifdef LINT2
+          if (!base) ABORT("Invalid MK_GC_smashed element");
+#       endif
+        MK_GC_print_smashed_obj("", base + sizeof(oh), MK_GC_smashed[i]);
         MK_GC_smashed[i] = 0;
     }
     MK_GC_n_smashed = 0;
-    MK_GC_err_printf("\n");
 }
 
 /* Check all marked objects in the given block for validity     */
 /* Avoid MK_GC_apply_to_each_object for performance reasons.       */
-/*ARGSUSED*/
-STATIC void MK_GC_check_heap_block(struct hblk *hbp, word dummy)
+STATIC void MK_GC_check_heap_block(struct hblk *hbp, word dummy MK_GC_ATTR_UNUSED)
 {
     struct hblkhdr * hhdr = HDR(hbp);
     size_t sz = hhdr -> hb_sz;
@@ -939,7 +984,8 @@ STATIC void MK_GC_check_heap_block(struct hblk *hbp, word dummy)
       plim = hbp->hb_body + HBLKSIZE - sz;
     }
     /* go through all words in block */
-    for (bit_no = 0; p <= plim; bit_no += MARK_BIT_OFFSET(sz), p += sz) {
+    for (bit_no = 0; (word)p <= (word)plim;
+         bit_no += MARK_BIT_OFFSET(sz), p += sz) {
       if (mark_bit_from_hdr(hhdr, bit_no) && MK_GC_HAS_DEBUG_INFO((ptr_t)p)) {
         ptr_t clobbered = MK_GC_check_annotated_obj((oh *)p);
         if (clobbered != 0)
@@ -984,6 +1030,8 @@ MK_GC_INNER MK_GC_bool MK_GC_check_leaked(ptr_t base)
 }
 
 #endif /* !SHORT_DBG_HDRS */
+
+#ifndef MK_GC_NO_FINALIZATION
 
 struct closure {
     MK_GC_finalization_proc cl_fn;
@@ -1056,9 +1104,8 @@ MK_GC_API void MK_GC_CALL MK_GC_debug_register_finalizer(void * obj,
         return;
     }
     if ((ptr_t)obj - base != sizeof(oh)) {
-        MK_GC_err_printf(
-            "MK_GC_debug_register_finalizer called with non-base-pointer %p\n",
-            obj);
+        MK_GC_err_printf("MK_GC_debug_register_finalizer called with"
+                      " non-base-pointer %p\n", obj);
     }
     if (0 == fn) {
       MK_GC_register_finalizer(base, 0, 0, &my_old_fn, &my_old_cd);
@@ -1086,10 +1133,8 @@ MK_GC_API void MK_GC_CALL MK_GC_debug_register_finalizer_no_order
         return;
     }
     if ((ptr_t)obj - base != sizeof(oh)) {
-        MK_GC_err_printf(
-          "MK_GC_debug_register_finalizer_no_order called with "
-          "non-base-pointer %p\n",
-          obj);
+        MK_GC_err_printf("MK_GC_debug_register_finalizer_no_order called with"
+                      " non-base-pointer %p\n", obj);
     }
     if (0 == fn) {
       MK_GC_register_finalizer_no_order(base, 0, 0, &my_old_fn, &my_old_cd);
@@ -1117,10 +1162,8 @@ MK_GC_API void MK_GC_CALL MK_GC_debug_register_finalizer_unreachable
         return;
     }
     if ((ptr_t)obj - base != sizeof(oh)) {
-        MK_GC_err_printf(
-            "MK_GC_debug_register_finalizer_unreachable called with "
-            "non-base-pointer %p\n",
-            obj);
+        MK_GC_err_printf("MK_GC_debug_register_finalizer_unreachable called with"
+                      " non-base-pointer %p\n", obj);
     }
     if (0 == fn) {
       MK_GC_register_finalizer_unreachable(base, 0, 0, &my_old_fn, &my_old_cd);
@@ -1148,9 +1191,8 @@ MK_GC_API void MK_GC_CALL MK_GC_debug_register_finalizer_ignore_self
         return;
     }
     if ((ptr_t)obj - base != sizeof(oh)) {
-        MK_GC_err_printf(
-            "MK_GC_debug_register_finalizer_ignore_self called with "
-            "non-base-pointer %p\n", obj);
+        MK_GC_err_printf("MK_GC_debug_register_finalizer_ignore_self called with"
+                      " non-base-pointer %p\n", obj);
     }
     if (0 == fn) {
       MK_GC_register_finalizer_ignore_self(base, 0, 0, &my_old_fn, &my_old_cd);
@@ -1163,12 +1205,14 @@ MK_GC_API void MK_GC_CALL MK_GC_debug_register_finalizer_ignore_self
     store_old(obj, my_old_fn, (struct closure *)my_old_cd, ofn, ocd);
 }
 
+#endif /* !MK_GC_NO_FINALIZATION */
+
 MK_GC_API void * MK_GC_CALL MK_GC_debug_malloc_replacement(size_t lb)
 {
-    return MK_GC_debug_malloc(lb, MK_GC_DBG_RA "unknown", 0);
+    return MK_GC_debug_malloc(lb, MK_GC_DBG_EXTRAS);
 }
 
 MK_GC_API void * MK_GC_CALL MK_GC_debug_realloc_replacement(void *p, size_t lb)
 {
-    return MK_GC_debug_realloc(p, lb, MK_GC_DBG_RA "unknown", 0);
+    return MK_GC_debug_realloc(p, lb, MK_GC_DBG_EXTRAS);
 }

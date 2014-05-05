@@ -33,5 +33,4 @@ MK_AO_test_and_set_full(volatile MK_AO_TS_t *addr);
 /* Implemented in separate .S file, for now.    */
 #define MK_AO_HAVE_test_and_set_full
 
-/* FIXME: Like the gcc version, this needs to be extended for V8        */
-/* and V9.                                                              */
+/* TODO: Like the gcc version, extend this for V8 and V9.   */

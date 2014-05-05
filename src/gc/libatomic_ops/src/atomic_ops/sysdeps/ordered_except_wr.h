@@ -32,60 +32,11 @@
 MK_AO_INLINE void
 MK_AO_nop_write(void)
 {
+  /* MK_AO_nop_write implementation is the same as of MK_AO_nop_read. */
   MK_AO_compiler_barrier();
   /* sfence according to Intel docs.  Pentium 3 and up. */
   /* Unnecessary for cached accesses?                   */
 }
 #define MK_AO_HAVE_nop_write
 
-#if defined(MK_AO_HAVE_store)
-  MK_AO_INLINE void
-  MK_AO_store_write(volatile MK_AO_t *addr, MK_AO_t val)
-  {
-    MK_AO_compiler_barrier();
-    MK_AO_store(addr, val);
-  }
-# define MK_AO_HAVE_store_write
-
-# define MK_AO_store_release(addr, val) MK_AO_store_write(addr, val)
-# define MK_AO_HAVE_store_release
-#endif /* MK_AO_HAVE_store */
-
-#if defined(MK_AO_HAVE_char_store)
-  MK_AO_INLINE void
-  MK_AO_char_store_write(volatile unsigned char *addr, unsigned char val)
-  {
-    MK_AO_compiler_barrier();
-    MK_AO_char_store(addr, val);
-  }
-# define MK_AO_HAVE_char_store_write
-
-# define MK_AO_char_store_release(addr, val) MK_AO_char_store_write(addr, val)
-# define MK_AO_HAVE_char_store_release
-#endif /* MK_AO_HAVE_char_store */
-
-#if defined(MK_AO_HAVE_short_store)
-  MK_AO_INLINE void
-  MK_AO_short_store_write(volatile unsigned short *addr, unsigned short val)
-  {
-    MK_AO_compiler_barrier();
-    MK_AO_short_store(addr, val);
-  }
-# define MK_AO_HAVE_short_store_write
-
-# define MK_AO_short_store_release(addr, val) MK_AO_short_store_write(addr, val)
-# define MK_AO_HAVE_short_store_release
-#endif /* MK_AO_HAVE_short_store */
-
-#if defined(MK_AO_HAVE_int_store)
-  MK_AO_INLINE void
-  MK_AO_int_store_write(volatile unsigned int *addr, unsigned int val)
-  {
-    MK_AO_compiler_barrier();
-    MK_AO_int_store(addr, val);
-  }
-# define MK_AO_HAVE_int_store_write
-
-# define MK_AO_int_store_release(addr, val) MK_AO_int_store_write(addr, val)
-# define MK_AO_HAVE_int_store_release
-#endif /* MK_AO_HAVE_int_store */
+#include "loadstore/ordered_stores_only.h"

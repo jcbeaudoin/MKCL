@@ -30,3 +30,5 @@ MK_AO_test_and_set_full(volatile MK_AO_TS_t *addr)
   return oldval? MK_AO_TS_CLEAR : MK_AO_TS_SET;
 }
 #define MK_AO_HAVE_test_and_set_full
+
+/* TODO: Very incomplete.       */

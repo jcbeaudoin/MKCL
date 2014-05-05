@@ -153,9 +153,8 @@ MK_GC_API void * MK_GC_CALL MK_GC_realloc(void * p, size_t lb)
 # ifdef REDIRECT_REALLOC
 
 /* As with malloc, avoid two levels of extra calls here.        */
-
 # define MK_GC_debug_realloc_replacement(p, lb) \
-        MK_GC_debug_realloc(p, lb, MK_GC_DBG_RA "unknown", 0)
+        MK_GC_debug_realloc(p, lb, MK_GC_DBG_EXTRAS)
 
 void * realloc(void * p, size_t lb)
   {
@@ -165,11 +164,10 @@ void * realloc(void * p, size_t lb)
 # undef MK_GC_debug_realloc_replacement
 # endif /* REDIRECT_REALLOC */
 
-
 /* Allocate memory such that only pointers to near the          */
 /* beginning of the object are considered.                      */
-/* We avoid holding allocation lock while we clear memory.      */
-MK_GC_INNER void * MK_GC_generic_malloc_ignore_off_page(size_t lb, int k)
+/* We avoid holding allocation lock while we clear the memory.  */
+MK_GC_API void * MK_GC_CALL MK_GC_generic_malloc_ignore_off_page(size_t lb, int k)
 {
     void *result;
     size_t lg;
@@ -186,8 +184,10 @@ MK_GC_INNER void * MK_GC_generic_malloc_ignore_off_page(size_t lb, int k)
         return((*MK_GC_get_oom_fn())(lb));
     n_blocks = OBJ_SZ_TO_BLOCKS(lb_rounded);
     init = MK_GC_obj_kinds[k].ok_init;
-    if (MK_GC_have_errors) MK_GC_print_all_errors();
+    if (EXPECT(MK_GC_have_errors, FALSE))
+      MK_GC_print_all_errors();
     MK_GC_INVOKE_FINALIZERS();
+    MK_GC_DBG_COLLECT_AT_MALLOC(lb);
     LOCK();
     result = (ptr_t)MK_GC_alloc_large(ADD_SLOP(lb), k, IGNORE_OFF_PAGE);
     if (0 != result) {
@@ -242,7 +242,7 @@ MK_GC_API void MK_GC_CALL MK_GC_incr_bytes_freed(size_t n)
 }
 
 # ifdef PARALLEL_MARK
-    STATIC volatile signed_word MK_GC_bytes_allocd_tmp = 0;
+    STATIC volatile MK_AO_t MK_GC_bytes_allocd_tmp = 0;
                         /* Number of bytes of memory allocated since    */
                         /* we released the GC lock.  Instead of         */
                         /* reacquiring the GC lock just to add this in, */
@@ -282,16 +282,19 @@ MK_GC_API void MK_GC_CALL MK_GC_generic_malloc_many(size_t lb, int k, void **res
     MK_GC_ASSERT(lb != 0 && (lb & (GRANULE_BYTES-1)) == 0);
     if (!SMALL_OBJ(lb)) {
         op = MK_GC_generic_malloc(lb, k);
-        if(0 != op) obj_link(op) = 0;
+        if (EXPECT(0 != op, TRUE))
+            obj_link(op) = 0;
         *result = op;
         return;
     }
     lw = BYTES_TO_WORDS(lb);
     lg = BYTES_TO_GRANULES(lb);
-    if (MK_GC_have_errors) MK_GC_print_all_errors();
+    if (EXPECT(MK_GC_have_errors, FALSE))
+      MK_GC_print_all_errors();
     MK_GC_INVOKE_FINALIZERS();
+    MK_GC_DBG_COLLECT_AT_MALLOC(lb);
     LOCK();
-    if (!MK_GC_is_initialized) MK_GC_init();
+    if (!EXPECT(MK_GC_is_initialized, TRUE)) MK_GC_init();
     /* Do our share of marking work */
       if (MK_GC_incremental && !MK_GC_dont_gc) {
         ENTER_GC();
@@ -313,16 +316,16 @@ MK_GC_API void MK_GC_CALL MK_GC_generic_malloc_many(size_t lb, int k, void **res
             hhdr -> hb_last_reclaimed = (unsigned short) MK_GC_gc_no;
 #           ifdef PARALLEL_MARK
               if (MK_GC_parallel) {
-                  signed_word my_bytes_allocd_tmp = MK_GC_bytes_allocd_tmp;
-
+                  signed_word my_bytes_allocd_tmp =
+                                (signed_word)MK_AO_load(&MK_GC_bytes_allocd_tmp);
                   MK_GC_ASSERT(my_bytes_allocd_tmp >= 0);
                   /* We only decrement it while holding the GC lock.    */
                   /* Thus we can't accidentally adjust it down in more  */
                   /* than one thread simultaneously.                    */
+
                   if (my_bytes_allocd_tmp != 0) {
-                    (void)MK_AO_fetch_and_add(
-                                (volatile void *)(&MK_GC_bytes_allocd_tmp),
-                                (MK_AO_t)(-my_bytes_allocd_tmp));
+                    (void)MK_AO_fetch_and_add(&MK_GC_bytes_allocd_tmp,
+                                           (MK_AO_t)(-my_bytes_allocd_tmp));
                     MK_GC_bytes_allocd += my_bytes_allocd_tmp;
                   }
                   MK_GC_acquire_mark_lock();
@@ -342,9 +345,8 @@ MK_GC_API void MK_GC_CALL MK_GC_generic_malloc_many(size_t lb, int k, void **res
 #             ifdef PARALLEL_MARK
                 if (MK_GC_parallel) {
                   *result = op;
-                  (void)MK_AO_fetch_and_add(
-                                (volatile MK_AO_t *)(&MK_GC_bytes_allocd_tmp),
-                                (MK_AO_t)(my_bytes_allocd));
+                  (void)MK_AO_fetch_and_add(&MK_GC_bytes_allocd_tmp,
+                                         (MK_AO_t)my_bytes_allocd);
                   MK_GC_acquire_mark_lock();
                   -- MK_GC_fl_builder_count;
                   if (MK_GC_fl_builder_count == 0) MK_GC_notify_all_builder();
@@ -364,8 +366,8 @@ MK_GC_API void MK_GC_CALL MK_GC_generic_malloc_many(size_t lb, int k, void **res
                 MK_GC_release_mark_lock();
                 LOCK();
                 /* GC lock is needed for reclaim list access.   We      */
-                /* must decrement fl_builder_count before reaquiring GC */
-                /* lock.  Hopefully this path is rare.                  */
+                /* must decrement fl_builder_count before reacquiring   */
+                /* the lock.  Hopefully this path is rare.              */
               }
 #           endif
         }
@@ -462,6 +464,8 @@ MK_GC_API void * MK_GC_CALL MK_GC_memalign(size_t align, size_t lb)
     /* is a multiple of align.  That would be correct up to HBLKSIZE.      */
     new_lb = lb + align - 1;
     result = MK_GC_malloc(new_lb);
+            /* It is OK not to check result for NULL as in that case    */
+            /* MK_GC_memalign returns NULL too since (0 + 0 % align) is 0. */
     offset = (word)result % align;
     if (offset != 0) {
         offset = align - offset;
@@ -475,7 +479,7 @@ MK_GC_API void * MK_GC_CALL MK_GC_memalign(size_t align, size_t lb)
     return result;
 }
 
-/* This one exists largerly to redirect posix_memalign for leaks finding. */
+/* This one exists largely to redirect posix_memalign for leaks finding. */
 MK_GC_API int MK_GC_CALL MK_GC_posix_memalign(void **memptr, size_t align, size_t lb)
 {
   /* Check alignment properly.  */
@@ -498,7 +502,7 @@ MK_GC_API int MK_GC_CALL MK_GC_posix_memalign(void **memptr, size_t align, size_
 }
 
 #ifdef ATOMIC_UNCOLLECTABLE
-  /* Allocate lb bytes of pointerfree, untraced, uncollectable data     */
+  /* Allocate lb bytes of pointer-free, untraced, uncollectible data    */
   /* This is normally roughly equivalent to the system malloc.          */
   /* But it may be useful if malloc is redefined.                       */
   MK_GC_API void * MK_GC_CALL MK_GC_malloc_atomic_uncollectable(size_t lb)
@@ -509,13 +513,15 @@ MK_GC_API int MK_GC_CALL MK_GC_posix_memalign(void **memptr, size_t align, size_
     DCL_LOCK_STATE;
 
     if( SMALL_OBJ(lb) ) {
+        MK_GC_DBG_COLLECT_AT_MALLOC(lb);
         if (EXTRA_BYTES != 0 && lb != 0) lb--;
                   /* We don't need the extra byte, since this won't be  */
                   /* collected anyway.                                  */
         lg = MK_GC_size_map[lb];
         opp = &(MK_GC_auobjfreelist[lg]);
         LOCK();
-        if( (op = *opp) != 0 ) {
+        op = *opp;
+        if (EXPECT(0 != op, TRUE)) {
             *opp = obj_link(op);
             obj_link(op) = 0;
             MK_GC_bytes_allocd += GRANULES_TO_BYTES(lg);
@@ -563,12 +569,7 @@ MK_GC_API char * MK_GC_CALL MK_GC_strdup(const char *s)
 #   endif
     return NULL;
   }
-# ifndef MSWINCE
-    strcpy(copy, s);
-# else
-    /* strcpy() is deprecated in WinCE */
-    memcpy(copy, s, lb);
-# endif
+  BCOPY(s, copy, lb);
   return copy;
 }
 

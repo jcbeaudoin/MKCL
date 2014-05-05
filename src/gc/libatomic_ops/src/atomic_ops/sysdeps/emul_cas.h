@@ -35,16 +35,16 @@
  * operate on compare_and_swap locations.
  */
 
-#if !defined(ATOMIC_OPS_H)
-#  error This file should not be included directly.
+#ifndef MK_AO_ATOMIC_OPS_H
+# error This file should not be included directly.
 #endif
 
 #ifndef MK_AO_HAVE_double_t
 # include "standard_ao_double_t.h"
 #endif
 
-int MK_AO_compare_and_swap_emulation(volatile MK_AO_t *addr, MK_AO_t old,
-                                  MK_AO_t new_val);
+MK_AO_t MK_AO_fetch_compare_and_swap_emulation(volatile MK_AO_t *addr, MK_AO_t old_val,
+                                         MK_AO_t new_val);
 
 int MK_AO_compare_double_and_swap_double_emulation(volatile MK_AO_double_t *addr,
                                                 MK_AO_t old_val1, MK_AO_t old_val2,
@@ -52,11 +52,13 @@ int MK_AO_compare_double_and_swap_double_emulation(volatile MK_AO_double_t *addr
 
 void MK_AO_store_full_emulation(volatile MK_AO_t *addr, MK_AO_t val);
 
-#define MK_AO_compare_and_swap_full(addr, old, newval) \
-       MK_AO_compare_and_swap_emulation(addr, old, newval)
-#define MK_AO_HAVE_compare_and_swap_full
+#ifndef MK_AO_HAVE_fetch_compare_and_swap_full
+# define MK_AO_fetch_compare_and_swap_full(addr, old, newval) \
+                MK_AO_fetch_compare_and_swap_emulation(addr, old, newval)
+# define MK_AO_HAVE_fetch_compare_and_swap_full
+#endif
 
-#ifndef MK_AO_HAVE_compare_double_and_swap_double
+#ifndef MK_AO_HAVE_compare_double_and_swap_double_full
 # define MK_AO_compare_double_and_swap_double_full(addr, old1, old2, \
                                                 newval1, newval2) \
         MK_AO_compare_double_and_swap_double_emulation(addr, old1, old2, \

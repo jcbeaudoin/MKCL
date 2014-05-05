@@ -29,7 +29,6 @@ typedef unsigned long MK_AO_t __attribute__ ((aligned (4)));
 
 #include "../test_and_set_t_is_char.h"
 
-/* Contributed by Tony Mantler or new.  Should be changed to MIT license? */
 MK_AO_INLINE MK_AO_TS_VAL_t
 MK_AO_test_and_set_full(volatile MK_AO_TS_t *addr) {
   MK_AO_TS_t oldval;
@@ -64,4 +63,6 @@ MK_AO_compare_and_swap_full(volatile MK_AO_t *addr,
 }
 #define MK_AO_HAVE_compare_and_swap_full
 
-#include "../ao_t_is_int.h"
+/* TODO: implement MK_AO_fetch_compare_and_swap.   */
+
+#define MK_AO_T_IS_INT

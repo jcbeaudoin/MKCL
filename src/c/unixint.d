@@ -49,12 +49,12 @@ typedef void (*mkcl_sighandler_t)(int, siginfo_t *, void *);
 
 
 #ifdef __linux
-# if 0
-#  define MK_GC_SIG_SUSPEND SIGPWR  /* should we include gc.h instead of this rogue def? */
-#  define MK_GC_SIG_THR_RESTART SIGXCPU   /* should we include gc.h instead of this rogue def? */
-# else
+# if MKCL_GC_7_2d
 #  define MK_GC_SIG_SUSPEND MK_GC_suspend_signal()
 #  define MK_GC_SIG_THR_RESTART MK_GC_thread_restart_signal()
+# else
+#  define MK_GC_SIG_SUSPEND MK_GC_get_suspend_signal()
+#  define MK_GC_SIG_THR_RESTART MK_GC_get_thr_restart_signal()
 # endif
 
 #if 0
@@ -1910,8 +1910,13 @@ void mkcl_init_early_unixint(MKCL)
 void mkcl_init_late_unixint(MKCL)
 {
 #if defined(__linux)
+#if MKCL_GC_7_2d
   int gc_thread_suspend_sig = MK_GC_suspend_signal();
   int gc_thread_restart_sig = MK_GC_thread_restart_signal();
+#else
+  int gc_thread_suspend_sig = MK_GC_get_suspend_signal();
+  int gc_thread_restart_sig = MK_GC_get_thr_restart_signal();
+#endif
   int i;
 
   install_lisp_terminal_signal_handler(env);

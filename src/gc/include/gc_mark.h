@@ -56,7 +56,12 @@
 /* not count on the presence of a type descriptor, and must handle this */
 /* case correctly somehow.                                              */
 #define MK_GC_PROC_BYTES 100
-struct MK_GC_ms_entry;
+
+#ifdef MK_GC_BUILD
+  struct MK_GC_ms_entry;
+#else
+  struct MK_GC_ms_entry { void *opaque; };
+#endif
 typedef struct MK_GC_ms_entry * (*MK_GC_mark_proc)(MK_GC_word * /* addr */,
                                 struct MK_GC_ms_entry * /* mark_stack_ptr */,
                                 struct MK_GC_ms_entry * /* mark_stack_limit */,
@@ -103,8 +108,8 @@ typedef struct MK_GC_ms_entry * (*MK_GC_mark_proc)(MK_GC_word * /* addr */,
                         /* The latter alternative can be used if each   */
                         /* object contains a type descriptor in the     */
                         /* first word.                                  */
-                        /* Note that in multithreaded environments      */
-                        /* per object descriptors must be located in    */
+                        /* Note that in the multi-threaded environments */
+                        /* per-object descriptors must be located in    */
                         /* either the first two or last two words of    */
                         /* the object, since only those are guaranteed  */
                         /* to be cleared while the allocation lock is   */
@@ -164,27 +169,38 @@ MK_GC_API void ** MK_GC_CALL MK_GC_new_free_list_inner(void);
 
 /* Return a new kind, as specified. */
 MK_GC_API unsigned MK_GC_CALL MK_GC_new_kind(void ** /* free_list */,
-                                    MK_GC_word /* mark_descriptor_template */,
-                                    int /* add_size_to_descriptor */,
-                                    int /* clear_new_objects */);
+                            MK_GC_word /* mark_descriptor_template */,
+                            int /* add_size_to_descriptor */,
+                            int /* clear_new_objects */) MK_GC_ATTR_NONNULL(1);
                 /* The last two parameters must be zero or one. */
 MK_GC_API unsigned MK_GC_CALL MK_GC_new_kind_inner(void ** /* free_list */,
-                                    MK_GC_word /* mark_descriptor_template */,
-                                    int /* add_size_to_descriptor */,
-                                    int /* clear_new_objects */);
+                            MK_GC_word /* mark_descriptor_template */,
+                            int /* add_size_to_descriptor */,
+                            int /* clear_new_objects */) MK_GC_ATTR_NONNULL(1);
 
 /* Return a new mark procedure identifier, suitable for use as  */
 /* the first argument in MK_GC_MAKE_PROC.                          */
 MK_GC_API unsigned MK_GC_CALL MK_GC_new_proc(MK_GC_mark_proc);
 MK_GC_API unsigned MK_GC_CALL MK_GC_new_proc_inner(MK_GC_mark_proc);
 
-/* Allocate an object of a given kind.  Note that in multithreaded      */
+/* Allocate an object of a given kind.  By default, there are only      */
+/* a few kinds: composite (pointer-free), atomic, uncollectible, etc.   */
+/* We claim it is possible for clever client code that understands the  */
+/* GC internals to add more, e.g. to communicate object layout          */
+/* information to the collector.  Note that in the multi-threaded       */
 /* contexts, this is usually unsafe for kinds that have the descriptor  */
 /* in the object itself, since there is otherwise a window in which     */
 /* the descriptor is not correct.  Even in the single-threaded case,    */
 /* we need to be sure that cleared objects on a free list don't         */
 /* cause a GC crash if they are accidentally traced.                    */
-MK_GC_API void * MK_GC_CALL MK_GC_generic_malloc(size_t /* lb */, int /* k */);
+MK_GC_API MK_GC_ATTR_MALLOC void * MK_GC_CALL MK_GC_generic_malloc(size_t /* lb */,
+                                                       int /* k */);
+
+MK_GC_API MK_GC_ATTR_MALLOC void * MK_GC_CALL MK_GC_generic_malloc_ignore_off_page(
+                                        size_t /* lb */, int /* k */);
+                                /* As above, but pointers to past the   */
+                                /* first page of the resulting object   */
+                                /* are ignored.                         */
 
 typedef void (MK_GC_CALLBACK * MK_GC_describe_type_fn)(void * /* p */,
                                                  char * /* out_buf */);
@@ -223,6 +239,27 @@ MK_GC_API void * MK_GC_CALL MK_GC_clear_stack(void *);
 typedef void (MK_GC_CALLBACK * MK_GC_start_callback_proc)(void);
 MK_GC_API void MK_GC_CALL MK_GC_set_start_callback(MK_GC_start_callback_proc);
 MK_GC_API MK_GC_start_callback_proc MK_GC_CALL MK_GC_get_start_callback(void);
+
+/* Slow/general mark bit manipulation.  The caller must hold the        */
+/* allocation lock.  MK_GC_is_marked returns 1 (TRUE) or 0.                */
+MK_GC_API int MK_GC_CALL MK_GC_is_marked(const void *) MK_GC_ATTR_NONNULL(1);
+MK_GC_API void MK_GC_CALL MK_GC_clear_mark_bit(const void *) MK_GC_ATTR_NONNULL(1);
+MK_GC_API void MK_GC_CALL MK_GC_set_mark_bit(const void *) MK_GC_ATTR_NONNULL(1);
+
+/* Push everything in the given range onto the mark stack.              */
+/* (MK_GC_push_conditional pushes either all or only dirty pages depending */
+/* on the third argument.)                                              */
+MK_GC_API void MK_GC_CALL MK_GC_push_all(char * /* bottom */, char * /* top */);
+MK_GC_API void MK_GC_CALL MK_GC_push_conditional(char * /* bottom */, char * /* top */,
+                                        int /* bool all */);
+
+/* Set and get the client push-other-roots procedure.  A client         */
+/* supplied procedure should also call the original procedure.          */
+/* Note that both the setter and getter require some external           */
+/* synchronization to avoid data race.                                  */
+typedef void (MK_GC_CALLBACK * MK_GC_push_other_roots_proc)(void);
+MK_GC_API void MK_GC_CALL MK_GC_set_push_other_roots(MK_GC_push_other_roots_proc);
+MK_GC_API MK_GC_push_other_roots_proc MK_GC_CALL MK_GC_get_push_other_roots(void);
 
 #ifdef __cplusplus
   } /* end of extern "C" */

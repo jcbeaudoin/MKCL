@@ -1,6 +1,6 @@
 
 #ifdef HAVE_CONFIG_H
-# include "private/config.h"
+# include "config.h"
 #endif
 
 #ifndef MK_GC_THREADS
@@ -59,12 +59,12 @@ void * MK_GC_CALLBACK on_thread_exit_inner (struct MK_GC_stack_base * sb, void *
   if (res == MK_GC_SUCCESS)
     MK_GC_unregister_my_thread ();
 
-  return (void*)(MK_GC_word)creation_res;
+  return arg ? (void*)(MK_GC_word)creation_res : 0;
 }
 
 void on_thread_exit (void *v)
 {
-  MK_GC_call_with_stack_base (on_thread_exit_inner, NULL);
+  MK_GC_call_with_stack_base (on_thread_exit_inner, v);
 }
 
 void make_key (void)
@@ -90,8 +90,9 @@ int main (void)
     pthread_t t;
     void *res;
     if (MK_GC_pthread_create (&t, NULL, entry, NULL) == 0
-        && (i & 1) != 0)
-      MK_GC_pthread_join (t, &res);
+        && (i & 1) != 0) {
+      (void)MK_GC_pthread_join(t, &res);
+    }
   }
   return 0;
 }

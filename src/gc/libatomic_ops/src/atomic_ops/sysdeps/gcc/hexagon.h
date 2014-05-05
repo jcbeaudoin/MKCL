@@ -27,6 +27,7 @@ MK_AO_nop_full(void)
 /* The Hexagon has load-locked, store-conditional primitives, and so    */
 /* resulting code is very nearly identical to that of PowerPC.          */
 
+#ifndef MK_AO_PREFER_GENERALIZED
 MK_AO_INLINE MK_AO_t
 MK_AO_fetch_and_add(volatile MK_AO_t *addr, MK_AO_t incr)
 {
@@ -67,32 +68,55 @@ MK_AO_test_and_set(volatile MK_AO_TS_t *addr)
   return (MK_AO_TS_VAL_t)oldval;
 }
 #define MK_AO_HAVE_test_and_set
+#endif /* !MK_AO_PREFER_GENERALIZED */
 
-MK_AO_INLINE int
-MK_AO_compare_and_swap(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val)
+#ifndef MK_AO_GENERALIZE_ASM_BOOL_CAS
+  MK_AO_INLINE int
+  MK_AO_compare_and_swap(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val)
+  {
+    MK_AO_t __oldval;
+    int result = 0;
+    __asm__ __volatile__(
+      "1:\n"
+      "  %0 = memw_locked(%3);\n"       /* load and reserve             */
+      "  {\n"
+      "    p2 = cmp.eq(%0,%4);\n"       /* if load is not equal to      */
+      "    if (!p2.new) jump:nt 2f; \n" /* old, fail                    */
+      "  }\n"
+      "  memw_locked(%3,p1) = %5;\n"    /* else store conditional       */
+      "  if (!p1) jump 1b;\n"           /* retry if lost reservation    */
+      "  %1 = #1\n"                     /* success, result = 1          */
+      "2:\n"
+      : "=&r" (__oldval), "+r" (result), "+m"(*addr)
+      : "r" (addr), "r" (old), "r" (new_val)
+      : "p1", "p2", "memory"
+    );
+    return result;
+  }
+# define MK_AO_HAVE_compare_and_swap
+#endif /* !MK_AO_GENERALIZE_ASM_BOOL_CAS */
+
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_compare_and_swap(volatile MK_AO_t *addr, MK_AO_t old_val, MK_AO_t new_val)
 {
   MK_AO_t __oldval;
-  int result = 0;
+
   __asm__ __volatile__(
      "1:\n"
-     "  %0 = memw_locked(%3);\n"        /* load and reserve            */
+     "  %0 = memw_locked(%2);\n"        /* load and reserve            */
      "  {\n"
-     "    p2 = cmp.eq(%0,%4);\n"        /* if load is not equal to     */
-     "    if (!p2.new) jump:nt 2f; \n"  /* old, fail                   */
+     "    p2 = cmp.eq(%0,%3);\n"        /* if load is not equal to     */
+     "    if (!p2.new) jump:nt 2f; \n"  /* old_val, fail               */
      "  }\n"
-     "  memw_locked(%3,p1) = %5;\n"     /* else store conditional      */
+     "  memw_locked(%2,p1) = %4;\n"     /* else store conditional      */
      "  if (!p1) jump 1b;\n"            /* retry if lost reservation   */
-     "  %1 = #1\n"                      /* success, result = 1         */
      "2:\n"
-     : "=&r" (__oldval), "+r" (result), "+m"(*addr)
-     : "r" (addr), "r" (old), "r" (new_val)
+     : "=&r" (__oldval), "+m"(*addr)
+     : "r" (addr), "r" (old_val), "r" (new_val)
      : "p1", "p2", "memory"
   );
-  return result;
+  return __oldval;
 }
-#define MK_AO_HAVE_compare_and_swap
+#define MK_AO_HAVE_fetch_compare_and_swap
 
-/* Generalize first to define more MK_AO_int_... primitives.       */
-#include "../../generalize.h"
-
-#include "../ao_t_is_int.h"
+#define MK_AO_T_IS_INT

@@ -42,7 +42,8 @@
 #include <sched.h>
 
 /* Invoked from MK_GC_start_routine(). */
-void * MK_GC_CALLBACK MK_GC_inner_start_routine(struct MK_GC_stack_base *sb, void *arg)
+MK_GC_INNER_PTHRSTART void * MK_GC_CALLBACK MK_GC_inner_start_routine(
+                                        struct MK_GC_stack_base *sb, void *arg)
 {
   void * (*start)(void *);
   void * start_arg;
@@ -54,8 +55,8 @@ void * MK_GC_CALLBACK MK_GC_inner_start_routine(struct MK_GC_stack_base *sb, voi
     pthread_cleanup_push(MK_GC_thread_exit_proc, me);
 # endif
   result = (*start)(start_arg);
-# ifdef DEBUG_THREADS
-    MK_GC_log_printf("Finishing thread 0x%x\n", (unsigned)pthread_self());
+# if defined(DEBUG_THREADS) && !defined(MK_GC_PTHREAD_START_STANDALONE)
+    MK_GC_log_printf("Finishing thread %p\n", (void *)pthread_self());
 # endif
   me -> status = result;
 # ifndef NACL

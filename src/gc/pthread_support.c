@@ -26,7 +26,7 @@
  * other Posix thread implementations.  We are trying to merge
  * all flavors of pthread support code into this file.
  */
- /* DG/UX ix86 support <takis@xfree86.org> */
+
 /*
  * Linux_threads.c now also includes some code to support HPUX and
  * OSF1 (Compaq Tru64 Unix, really).  The OSF1 support is based on Eric Benson's
@@ -82,9 +82,11 @@
 #if !defined(USE_SPIN_LOCK)
   MK_GC_INNER pthread_mutex_t MK_GC_allocate_ml = PTHREAD_MUTEX_INITIALIZER;
 #endif
-MK_GC_INNER unsigned long MK_GC_lock_holder = NO_THREAD;
-                /* Used only for assertions, and to prevent      */
-                /* recursive reentry in the system call wrapper. */
+
+#ifdef MK_GC_ASSERTIONS
+  MK_GC_INNER unsigned long MK_GC_lock_holder = NO_THREAD;
+                /* Used only for assertions.    */
+#endif
 
 #if defined(MK_GC_DGUX386_THREADS)
 # include <sys/dg_sys_info.h>
@@ -144,7 +146,7 @@ MK_GC_INNER unsigned long MK_GC_lock_holder = NO_THREAD;
 #     define REAL_FUNC(f) MK_GC_real_##f
       /* We define both MK_GC_f and plain f to be the wrapped function.    */
       /* In that way plain calls work, as do calls from files that      */
-      /* included gc.h, wich redefined f to MK_GC_f.                       */
+      /* included gc.h, which redefined f to MK_GC_f.                      */
       /* FIXME: Needs work for DARWIN and True64 (OSF1) */
       typedef int (* MK_GC_pthread_create_t)(pthread_t *,
                                     MK_GC_PTHREAD_CREATE_CONST pthread_attr_t *,
@@ -227,25 +229,14 @@ MK_GC_INNER unsigned long MK_GC_lock_holder = NO_THREAD;
   STATIC void MK_GC_init_real_syms(void)
   {
     void *dl_handle;
-#   ifndef RTLD_NEXT
-#     define LIBPTHREAD_NAME "libpthread.so.0"
-#     define LIBPTHREAD_NAME_LEN 16 /* incl. trailing 0 */
-      size_t len = LIBPTHREAD_NAME_LEN - 1;
-      char namebuf[LIBPTHREAD_NAME_LEN];
-      static char *libpthread_name = LIBPTHREAD_NAME;
-#   endif
 
     if (MK_GC_syms_initialized) return;
 #   ifdef RTLD_NEXT
       dl_handle = RTLD_NEXT;
 #   else
-      dl_handle = dlopen(libpthread_name, RTLD_LAZY);
+      dl_handle = dlopen("libpthread.so.0", RTLD_LAZY);
       if (NULL == dl_handle) {
-        while (isdigit(libpthread_name[len-1])) --len;
-        if (libpthread_name[len-1] == '.') --len;
-        BCOPY(libpthread_name, namebuf, len);
-        namebuf[len] = '\0';
-        dl_handle = dlopen(namebuf, RTLD_LAZY);
+        dl_handle = dlopen("libpthread.so", RTLD_LAZY); /* without ".0" */
       }
       if (NULL == dl_handle) ABORT("Couldn't open libpthread");
 #   endif
@@ -275,16 +266,17 @@ MK_GC_INNER unsigned long MK_GC_lock_holder = NO_THREAD;
     MK_GC_syms_initialized = TRUE;
   }
 
-# define INIT_REAL_SYMS() if (!MK_GC_syms_initialized) MK_GC_init_real_syms();
+# define INIT_REAL_SYMS() if (EXPECT(MK_GC_syms_initialized, TRUE)) {} \
+                            else MK_GC_init_real_syms()
 #else
-# define INIT_REAL_SYMS()
+# define INIT_REAL_SYMS() (void)0
 #endif
 
 static MK_GC_bool parallel_initialized = FALSE;
 
 MK_GC_INNER MK_GC_bool MK_GC_need_to_lock = FALSE;
 
-STATIC long MK_GC_nprocs = 1;
+STATIC int MK_GC_nprocs = 1;
                         /* Number of processors.  We may not have       */
                         /* access to all of them, but this is as good   */
                         /* a guess as any ...                           */
@@ -353,7 +345,7 @@ static ptr_t marker_sp[MAX_MARKERS - 1] = {0};
   MK_GC_INNER MK_GC_bool MK_GC_is_mach_marker(thread_act_t thread)
   {
     int i;
-    for (i = 0; i < MK_GC_markers - 1; i++) {
+    for (i = 0; i < MK_GC_markers_m1; i++) {
       if (marker_mach_threads[i] == thread)
         return TRUE;
     }
@@ -400,16 +392,28 @@ STATIC void * MK_GC_mark_thread(void * id)
 
 STATIC pthread_t MK_GC_mark_threads[MAX_MARKERS];
 
-static void start_mark_threads(void)
+#ifdef CAN_HANDLE_FORK
+  static int available_markers_m1 = 0;
+# define start_mark_threads MK_GC_start_mark_threads
+  MK_GC_API void MK_GC_CALL
+#else
+# define available_markers_m1 MK_GC_markers_m1
+  static void
+#endif
+start_mark_threads(void)
 {
     int i;
     pthread_attr_t attr;
 
     MK_GC_ASSERT(I_DONT_HOLD_LOCK());
+#   ifdef CAN_HANDLE_FORK
+      if (available_markers_m1 <= 0 || MK_GC_parallel) return;
+                /* Skip if parallel markers disabled or already started. */
+#   endif
+
     INIT_REAL_SYMS(); /* for pthread_create */
 
     if (0 != pthread_attr_init(&attr)) ABORT("pthread_attr_init failed");
-
     if (0 != pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED))
         ABORT("pthread_attr_setdetachstate failed");
 
@@ -420,7 +424,6 @@ static void start_mark_threads(void)
 #     define MIN_STACK_SIZE (8*HBLKSIZE*sizeof(word))
       {
         size_t old_size;
-        int code;
 
         if (pthread_attr_getstacksize(&attr, &old_size) != 0)
           ABORT("pthread_attr_getstacksize failed");
@@ -430,21 +433,18 @@ static void start_mark_threads(void)
         }
       }
 #   endif /* HPUX || MK_GC_DGUX386_THREADS */
-    for (i = 0; i < MK_GC_markers - 1; ++i) {
+    for (i = 0; i < available_markers_m1; ++i) {
       if (0 != REAL_FUNC(pthread_create)(MK_GC_mark_threads + i, &attr,
                               MK_GC_mark_thread, (void *)(word)i)) {
-        WARN("Marker thread creation failed, errno = %" MK_GC_PRIdPTR "\n",
+        WARN("Marker thread creation failed, errno = %" WARN_PRIdPTR "\n",
              errno);
         /* Don't try to create other marker threads.    */
-        MK_GC_markers = i + 1;
-        if (i == 0) MK_GC_parallel = FALSE;
         break;
       }
     }
-    if (MK_GC_print_stats) {
-      MK_GC_log_printf("Started %ld mark helper threads\n", MK_GC_markers - 1);
-    }
+    MK_GC_markers_m1 = i;
     pthread_attr_destroy(&attr);
+    MK_GC_COND_LOG_PRINTF("Started %d mark helper threads\n", MK_GC_markers_m1);
 }
 
 #endif /* PARALLEL_MARK */
@@ -459,9 +459,27 @@ void MK_GC_push_thread_structures(void)
     MK_GC_push_all((ptr_t)(MK_GC_threads), (ptr_t)(MK_GC_threads)+sizeof(MK_GC_threads));
 #   if defined(THREAD_LOCAL_ALLOC)
       MK_GC_push_all((ptr_t)(&MK_GC_thread_key),
-                  (ptr_t)(&MK_GC_thread_key) + sizeof(&MK_GC_thread_key));
+                  (ptr_t)(&MK_GC_thread_key) + sizeof(MK_GC_thread_key));
 #   endif
 }
+
+#ifdef DEBUG_THREADS
+  STATIC int MK_GC_count_threads(void)
+  {
+    int i;
+    int count = 0;
+    MK_GC_ASSERT(I_HOLD_LOCK());
+    for (i = 0; i < THREAD_TABLE_SZ; ++i) {
+        MK_GC_thread th = MK_GC_threads[i];
+        while (th) {
+            if (!(th->flags & FINISHED))
+                ++count;
+            th = th->next;
+        }
+    }
+    return count;
+  }
+#endif /* DEBUG_THREADS */
 
 /* It may not be safe to allocate when we register the first thread.    */
 static struct MK_GC_Thread_Rep first_thread;
@@ -473,9 +491,12 @@ STATIC MK_GC_thread MK_GC_new_thread(pthread_t id)
     int hv = NUMERIC_THREAD_ID(id) % THREAD_TABLE_SZ;
     MK_GC_thread result;
     static MK_GC_bool first_thread_used = FALSE;
+#   ifdef DEBUG_THREADS
+        MK_GC_log_printf("Creating thread %p\n", (void *)id);
+#   endif
 
     MK_GC_ASSERT(I_HOLD_LOCK());
-    if (!first_thread_used) {
+    if (!EXPECT(first_thread_used, TRUE)) {
         result = &first_thread;
         first_thread_used = TRUE;
     } else {
@@ -505,6 +526,11 @@ STATIC void MK_GC_delete_thread(pthread_t id)
     int hv = NUMERIC_THREAD_ID(id) % THREAD_TABLE_SZ;
     register MK_GC_thread p = MK_GC_threads[hv];
     register MK_GC_thread prev = 0;
+
+#   ifdef DEBUG_THREADS
+      MK_GC_log_printf("Deleting thread %p, n_threads = %d\n",
+                    (void *)id, MK_GC_count_threads());
+#   endif
 
 #   ifdef NACL
       MK_GC_nacl_shutdown_gc_thread();
@@ -554,6 +580,11 @@ STATIC void MK_GC_delete_gc_thread(MK_GC_thread t)
         mach_port_deallocate(mach_task_self(), p->stop_info.mach_thread);
 #   endif
     MK_GC_INTERNAL_FREE(p);
+
+#   ifdef DEBUG_THREADS
+      MK_GC_log_printf("Deleted thread %p, n_threads = %d\n",
+                    (void *)id, MK_GC_count_threads());
+#   endif
 }
 
 /* Return a MK_GC_thread corresponding to a given pthread_t.       */
@@ -608,10 +639,22 @@ MK_GC_INNER unsigned char *MK_GC_check_finalizer_nested(void)
     LOCK();
     me = MK_GC_lookup_thread(pthread_self());
     UNLOCK();
-    return (char *)tsd >= (char *)&me->tlfs
-            && (char *)tsd < (char *)&me->tlfs + sizeof(me->tlfs);
+    return (word)tsd >= (word)(&me->tlfs)
+            && (word)tsd < (word)(&me->tlfs) + sizeof(me->tlfs);
   }
 #endif /* MK_GC_ASSERTIONS && THREAD_LOCAL_ALLOC */
+
+MK_GC_API int MK_GC_CALL MK_GC_thread_is_registered(void)
+{
+    pthread_t self = pthread_self();
+    MK_GC_thread me;
+    DCL_LOCK_STATE;
+
+    LOCK();
+    me = MK_GC_lookup_thread(self);
+    UNLOCK();
+    return me != NULL;
+}
 
 #ifdef CAN_HANDLE_FORK
 /* Remove all entries from the MK_GC_threads table, except the     */
@@ -632,15 +675,17 @@ STATIC void MK_GC_remove_all_threads_but_me(void)
           me = p;
           p -> next = 0;
 #         ifdef MK_GC_DARWIN_THREADS
-            /* Update thread Id after fork (it is ok to call    */
+            /* Update thread Id after fork (it is OK to call    */
             /* MK_GC_destroy_thread_local and MK_GC_free_internal     */
             /* before update).                                  */
             me -> stop_info.mach_thread = mach_thread_self();
+#         elif defined(PLATFORM_ANDROID)
+            me -> kernel_id = gettid();
 #         endif
 #         if defined(THREAD_LOCAL_ALLOC) && !defined(USE_CUSTOM_SPECIFIC)
             /* Some TLS implementations might be not fork-friendly, so  */
             /* we re-assign thread-local pointer to 'tlfs' for safety   */
-            /* instead of the assertion check (again, it is ok to call  */
+            /* instead of the assertion check (again, it is OK to call  */
             /* MK_GC_destroy_thread_local and MK_GC_free_internal before).    */
             if (MK_GC_setspecific(MK_GC_thread_key, &me->tlfs) != 0)
               ABORT("MK_GC_setspecific failed (in child)");
@@ -668,10 +713,13 @@ STATIC void MK_GC_remove_all_threads_but_me(void)
 
     MK_GC_ASSERT(I_HOLD_LOCK());
 #   ifdef PARALLEL_MARK
-      for (i = 0; i < MK_GC_markers - 1; ++i) {
-        if (marker_sp[i] > lo && marker_sp[i] < hi) return TRUE;
+      for (i = 0; i < MK_GC_markers_m1; ++i) {
+        if ((word)marker_sp[i] > (word)lo && (word)marker_sp[i] < (word)hi)
+          return TRUE;
 #       ifdef IA64
-          if (marker_bsp[i] > lo && marker_bsp[i] < hi) return TRUE;
+          if ((word)marker_bsp[i] > (word)lo
+              && (word)marker_bsp[i] < (word)hi)
+            return TRUE;
 #       endif
       }
 #   endif
@@ -679,9 +727,13 @@ STATIC void MK_GC_remove_all_threads_but_me(void)
       for (p = MK_GC_threads[i]; p != 0; p = p -> next) {
         if (0 != p -> stack_end) {
 #         ifdef STACK_GROWS_UP
-            if (p -> stack_end >= lo && p -> stack_end < hi) return TRUE;
+            if ((word)p->stack_end >= (word)lo
+                && (word)p->stack_end < (word)hi)
+              return TRUE;
 #         else /* STACK_GROWS_DOWN */
-            if (p -> stack_end > lo && p -> stack_end <= hi) return TRUE;
+            if ((word)p->stack_end > (word)lo
+                && (word)p->stack_end <= (word)hi)
+              return TRUE;
 #         endif
         }
       }
@@ -702,14 +754,16 @@ STATIC void MK_GC_remove_all_threads_but_me(void)
 
     MK_GC_ASSERT(I_HOLD_LOCK());
 #   ifdef PARALLEL_MARK
-      for (i = 0; i < MK_GC_markers - 1; ++i) {
-        if (marker_sp[i] > result && marker_sp[i] < bound)
+      for (i = 0; i < MK_GC_markers_m1; ++i) {
+        if ((word)marker_sp[i] > (word)result
+            && (word)marker_sp[i] < (word)bound)
           result = marker_sp[i];
       }
 #   endif
     for (i = 0; i < THREAD_TABLE_SZ; i++) {
       for (p = MK_GC_threads[i]; p != 0; p = p -> next) {
-        if (p -> stack_end > result && p -> stack_end < bound) {
+        if ((word)p->stack_end > (word)result
+            && (word)p->stack_end < (word)bound) {
           result = p -> stack_end;
         }
       }
@@ -726,7 +780,26 @@ STATIC void MK_GC_remove_all_threads_but_me(void)
         /* the real one.                                                */
 #endif
 
-#if defined(MK_GC_LINUX_THREADS) && !defined(PLATFORM_ANDROID) && !defined(NACL)
+#ifdef MK_GC_HPUX_THREADS
+# define MK_GC_get_nprocs() pthread_num_processors_np()
+
+#elif defined(MK_GC_OSF1_THREADS) || defined(MK_GC_AIX_THREADS) \
+      || defined(MK_GC_SOLARIS_THREADS) || defined(MK_GC_GNU_THREADS) \
+      || defined(PLATFORM_ANDROID) || defined(NACL)
+  MK_GC_INLINE int MK_GC_get_nprocs(void)
+  {
+    int nprocs = (int)sysconf(_SC_NPROCESSORS_ONLN);
+    return nprocs > 0 ? nprocs : 1; /* ignore error silently */
+  }
+
+#elif defined(MK_GC_IRIX_THREADS)
+  MK_GC_INLINE int MK_GC_get_nprocs(void)
+  {
+    int nprocs = (int)sysconf(_SC_NPROC_ONLN);
+    return nprocs > 0 ? nprocs : 1; /* ignore error silently */
+  }
+
+#elif defined(MK_GC_LINUX_THREADS) /* && !PLATFORM_ANDROID && !NACL */
   /* Return the number of processors. */
   STATIC int MK_GC_get_nprocs(void)
   {
@@ -760,7 +833,42 @@ STATIC void MK_GC_remove_all_threads_but_me(void)
     }
     return result;
   }
-#endif /* MK_GC_LINUX_THREADS && !PLATFORM_ANDROID && !NACL */
+
+#elif defined(MK_GC_DGUX386_THREADS)
+  /* Return the number of processors, or i <= 0 if it can't be determined. */
+  STATIC int MK_GC_get_nprocs(void)
+  {
+    int numCpus;
+    struct dg_sys_info_pm_info pm_sysinfo;
+    int status = 0;
+
+    status = dg_sys_info((long int *) &pm_sysinfo,
+        DG_SYS_INFO_PM_INFO_TYPE, DG_SYS_INFO_PM_CURRENT_VERSION);
+    if (status < 0)
+       /* set -1 for error */
+       numCpus = -1;
+    else
+      /* Active CPUs */
+      numCpus = pm_sysinfo.idle_vp_count;
+    return(numCpus);
+  }
+
+#elif defined(MK_GC_DARWIN_THREADS) || defined(MK_GC_FREEBSD_THREADS) \
+      || defined(MK_GC_NETBSD_THREADS) || defined(MK_GC_OPENBSD_THREADS)
+  STATIC int MK_GC_get_nprocs(void)
+  {
+    int mib[] = {CTL_HW,HW_NCPU};
+    int res;
+    size_t len = sizeof(res);
+
+    sysctl(mib, sizeof(mib)/sizeof(int), &res, &len, NULL, 0);
+    return res;
+  }
+
+#else
+  /* E.g., MK_GC_RTEMS_PTHREADS */
+# define MK_GC_get_nprocs() 1 /* not implemented */
+#endif /* !MK_GC_LINUX_THREADS && !MK_GC_DARWIN_THREADS && ... */
 
 #if defined(ARM32) && defined(MK_GC_LINUX_THREADS) && !defined(NACL)
   /* Some buggy Linux/arm kernels show only non-sleeping CPUs in        */
@@ -837,7 +945,7 @@ IF_CANCEL(static int fork_cancel_state;)
                                 /* protected by allocation lock.        */
 
 /* Called before a fork()               */
-STATIC void MK_GC_fork_prepare_proc(void)
+static void fork_prepare_proc(void)
 {
     /* Acquire all relevant locks, so that after releasing the locks    */
     /* the child will see a consistent state in which monitor           */
@@ -860,8 +968,8 @@ STATIC void MK_GC_fork_prepare_proc(void)
 #     endif
 }
 
-/* Called in parent after a fork()      */
-STATIC void MK_GC_fork_parent_proc(void)
+/* Called in parent after a fork() (even if the latter failed). */
+static void fork_parent_proc(void)
 {
 #   if defined(PARALLEL_MARK)
       if (MK_GC_parallel)
@@ -872,7 +980,7 @@ STATIC void MK_GC_fork_parent_proc(void)
 }
 
 /* Called in child after a fork()       */
-STATIC void MK_GC_fork_child_proc(void)
+static void fork_child_proc(void)
 {
     /* Clean up the thread table, so that just our thread is left. */
 #   if defined(PARALLEL_MARK)
@@ -883,51 +991,37 @@ STATIC void MK_GC_fork_child_proc(void)
 #   ifdef PARALLEL_MARK
       /* Turn off parallel marking in the child, since we are probably  */
       /* just going to exec, and we would have to restart mark threads. */
-        MK_GC_markers = 1;
         MK_GC_parallel = FALSE;
 #   endif /* PARALLEL_MARK */
     RESTORE_CANCEL(fork_cancel_state);
     UNLOCK();
 }
+
+  /* Routines for fork handling by client (no-op if pthread_atfork works). */
+  MK_GC_API void MK_GC_CALL MK_GC_atfork_prepare(void)
+  {
+#   if defined(MK_GC_DARWIN_THREADS) && defined(MPROTECT_VDB)
+      if (MK_GC_dirty_maintained) {
+        MK_GC_ASSERT(0 == MK_GC_handle_fork);
+        ABORT("Unable to fork while mprotect_thread is running");
+      }
+#   endif
+    if (MK_GC_handle_fork <= 0)
+      fork_prepare_proc();
+  }
+
+  MK_GC_API void MK_GC_CALL MK_GC_atfork_parent(void)
+  {
+    if (MK_GC_handle_fork <= 0)
+      fork_parent_proc();
+  }
+
+  MK_GC_API void MK_GC_CALL MK_GC_atfork_child(void)
+  {
+    if (MK_GC_handle_fork <= 0)
+      fork_child_proc();
+  }
 #endif /* CAN_HANDLE_FORK */
-
-#if defined(MK_GC_DGUX386_THREADS)
-  /* Return the number of processors, or i<= 0 if it can't be determined. */
-  STATIC int MK_GC_get_nprocs(void)
-  {
-    /* <takis@XFree86.Org> */
-    int numCpus;
-    struct dg_sys_info_pm_info pm_sysinfo;
-    int status = 0;
-
-    status = dg_sys_info((long int *) &pm_sysinfo,
-        DG_SYS_INFO_PM_INFO_TYPE, DG_SYS_INFO_PM_CURRENT_VERSION);
-    if (status < 0)
-       /* set -1 for error */
-       numCpus = -1;
-    else
-      /* Active CPUs */
-      numCpus = pm_sysinfo.idle_vp_count;
-
-#  ifdef DEBUG_THREADS
-     MK_GC_log_printf("Number of active CPUs in this system: %d\n", numCpus);
-#  endif
-    return(numCpus);
-  }
-#endif /* MK_GC_DGUX386_THREADS */
-
-#if defined(MK_GC_DARWIN_THREADS) || defined(MK_GC_FREEBSD_THREADS) \
-    || defined(MK_GC_NETBSD_THREADS) || defined(MK_GC_OPENBSD_THREADS)
-  static int get_ncpu(void)
-  {
-    int mib[] = {CTL_HW,HW_NCPU};
-    int res;
-    size_t len = sizeof(res);
-
-    sysctl(mib, sizeof(mib)/sizeof(int), &res, &len, NULL, 0);
-    return res;
-  }
-#endif  /* MK_GC_DARWIN_THREADS || ... */
 
 #ifdef INCLUDE_LINUX_THREAD_DESCR
   __thread int MK_GC_dummy_thread_local;
@@ -941,12 +1035,20 @@ MK_GC_INNER void MK_GC_thr_init(void)
   if (MK_GC_thr_initialized) return;
   MK_GC_thr_initialized = TRUE;
 
+  MK_GC_ASSERT((word)&MK_GC_threads % sizeof(word) == 0);
 # ifdef CAN_HANDLE_FORK
     /* Prepare for forks if requested.  */
-    if (MK_GC_handle_fork
-        && pthread_atfork(MK_GC_fork_prepare_proc, MK_GC_fork_parent_proc,
-                          MK_GC_fork_child_proc) != 0)
-      ABORT("pthread_atfork failed");
+    if (MK_GC_handle_fork) {
+#     ifdef CAN_CALL_ATFORK
+        if (pthread_atfork(fork_prepare_proc, fork_parent_proc,
+                           fork_child_proc) == 0) {
+          /* Handlers successfully registered.  */
+          MK_GC_handle_fork = 1;
+        } else
+#     endif
+      /* else */ if (MK_GC_handle_fork != -1)
+        ABORT("pthread_atfork failed");
+    }
 # endif
 # ifdef INCLUDE_LINUX_THREAD_DESCR
     /* Explicitly register the region including the address     */
@@ -995,67 +1097,51 @@ MK_GC_INNER void MK_GC_thr_init(void)
 #     endif
       )
   {
-#   if defined(MK_GC_HPUX_THREADS)
-      MK_GC_nprocs = pthread_num_processors_np();
-#   elif defined(MK_GC_OSF1_THREADS) || defined(MK_GC_AIX_THREADS) \
-         || defined(MK_GC_SOLARIS_THREADS) || defined(MK_GC_GNU_THREADS) \
-         || defined(PLATFORM_ANDROID) || defined(NACL)
-      MK_GC_nprocs = sysconf(_SC_NPROCESSORS_ONLN);
-      if (MK_GC_nprocs <= 0) MK_GC_nprocs = 1;
-#   elif defined(MK_GC_IRIX_THREADS)
-      MK_GC_nprocs = sysconf(_SC_NPROC_ONLN);
-      if (MK_GC_nprocs <= 0) MK_GC_nprocs = 1;
-#   elif defined(MK_GC_DARWIN_THREADS) || defined(MK_GC_FREEBSD_THREADS) \
-         || defined(MK_GC_NETBSD_THREADS) || defined(MK_GC_OPENBSD_THREADS)
-      MK_GC_nprocs = get_ncpu();
-#   elif defined(MK_GC_LINUX_THREADS) || defined(MK_GC_DGUX386_THREADS)
-      MK_GC_nprocs = MK_GC_get_nprocs();
-#   elif defined(MK_GC_RTEMS_PTHREADS)
-      MK_GC_nprocs = 1; /* not implemented */
-#   endif
+    MK_GC_nprocs = MK_GC_get_nprocs();
   }
   if (MK_GC_nprocs <= 0) {
-    WARN("MK_GC_get_nprocs() returned %" MK_GC_PRIdPTR "\n", MK_GC_nprocs);
+    WARN("MK_GC_get_nprocs() returned %" WARN_PRIdPTR "\n", MK_GC_nprocs);
     MK_GC_nprocs = 2; /* assume dual-core */
 #   ifdef PARALLEL_MARK
-      MK_GC_markers = 1;
+      available_markers_m1 = 0; /* but use only one marker */
 #   endif
   } else {
 #  ifdef PARALLEL_MARK
      {
        char * markers_string = GETENV("MK_GC_MARKERS");
+       int markers_m1;
+
        if (markers_string != NULL) {
-         MK_GC_markers = atoi(markers_string);
-         if (MK_GC_markers > MAX_MARKERS) {
+         markers_m1 = atoi(markers_string) - 1;
+         if (markers_m1 >= MAX_MARKERS) {
            WARN("Limiting number of mark threads\n", 0);
-           MK_GC_markers = MAX_MARKERS;
+           markers_m1 = MAX_MARKERS - 1;
          }
        } else {
-         MK_GC_markers = MK_GC_nprocs;
-         if (MK_GC_markers >= MAX_MARKERS)
-           MK_GC_markers = MAX_MARKERS; /* silently limit MK_GC_markers value */
+         markers_m1 = MK_GC_nprocs - 1;
+#        ifdef MK_GC_MIN_MARKERS
+           /* This is primarily for targets without getenv().   */
+           if (markers_m1 < MK_GC_MIN_MARKERS - 1)
+             markers_m1 = MK_GC_MIN_MARKERS - 1;
+#        endif
+         if (markers_m1 >= MAX_MARKERS)
+           markers_m1 = MAX_MARKERS - 1; /* silently limit the value */
        }
+       available_markers_m1 = markers_m1;
      }
-#   endif
+#  endif
   }
+  MK_GC_COND_LOG_PRINTF("Number of processors = %d\n", MK_GC_nprocs);
 # ifdef PARALLEL_MARK
-    if (MK_GC_print_stats) {
-      MK_GC_log_printf(
-        "Number of processors = %ld, number of marker threads = %ld\n",
-        MK_GC_nprocs, MK_GC_markers);
-    }
-    if (MK_GC_markers <= 1) {
+    if (available_markers_m1 <= 0) {
+      /* Disable parallel marking.      */
       MK_GC_parallel = FALSE;
-      if (MK_GC_print_stats) {
-        MK_GC_log_printf("Single marker thread, turning off parallel marking\n");
-      }
+      MK_GC_COND_LOG_PRINTF(
+                "Single marker thread, turning off parallel marking\n");
     } else {
-      MK_GC_parallel = TRUE;
       /* Disable true incremental collection, but generational is OK.   */
       MK_GC_time_limit = MK_GC_TIME_UNLIMITED;
-    }
-    /* If we are using a parallel marker, actually start helper threads. */
-    if (MK_GC_parallel) {
+      /* If we are using a parallel marker, actually start helper threads. */
       start_mark_threads();
     }
 # endif
@@ -1089,11 +1175,14 @@ MK_GC_INNER void MK_GC_init_parallel(void)
                                         sigset_t *oset)
   {
     sigset_t fudged_set;
+    int sig_suspend;
 
     INIT_REAL_SYMS();
     if (set != NULL && (how == SIG_BLOCK || how == SIG_SETMASK)) {
         fudged_set = *set;
-        sigdelset(&fudged_set, SIG_SUSPEND);
+        sig_suspend = MK_GC_get_suspend_signal();
+        MK_GC_ASSERT(sig_suspend >= 0);
+        sigdelset(&fudged_set, sig_suspend);
         set = &fudged_set;
     }
     return(REAL_FUNC(pthread_sigmask)(how, set, oset));
@@ -1103,10 +1192,10 @@ MK_GC_INNER void MK_GC_init_parallel(void)
 /* Wrapper for functions that are likely to block for an appreciable    */
 /* length of time.                                                      */
 
-/*ARGSUSED*/
-MK_GC_INNER void MK_GC_do_blocking_inner(ptr_t data, void * context)
+MK_GC_INNER void MK_GC_do_blocking_inner(ptr_t data, void * context MK_GC_ATTR_UNUSED)
 {
     struct blocking_data * d = (struct blocking_data *) data;
+    pthread_t self = pthread_self();
     MK_GC_thread me;
 #   if defined(SPARC) || defined(IA64)
         ptr_t stack_ptr = MK_GC_save_regs_in_stack();
@@ -1117,7 +1206,7 @@ MK_GC_INNER void MK_GC_do_blocking_inner(ptr_t data, void * context)
     DCL_LOCK_STATE;
 
     LOCK();
-    me = MK_GC_lookup_thread(pthread_self());
+    me = MK_GC_lookup_thread(self);
     MK_GC_ASSERT(!(me -> thread_blocked));
 #   ifdef SPARC
         me -> stop_info.stack_ptr = stack_ptr;
@@ -1156,28 +1245,32 @@ MK_GC_API void * MK_GC_CALL MK_GC_call_with_gc_active(MK_GC_fn_type fn,
                                              void * client_data)
 {
     struct MK_GC_traced_stack_sect_s stacksect;
+    pthread_t self = pthread_self();
     MK_GC_thread me;
     DCL_LOCK_STATE;
 
     LOCK();   /* This will block if the world is stopped.       */
-    me = MK_GC_lookup_thread(pthread_self());
+    me = MK_GC_lookup_thread(self);
 
     /* Adjust our stack base value (this could happen unless    */
     /* MK_GC_get_stack_base() was used which returned MK_GC_SUCCESS). */
     if ((me -> flags & MAIN_THREAD) == 0) {
       MK_GC_ASSERT(me -> stack_end != NULL);
-      if (me -> stack_end HOTTER_THAN (ptr_t)(&stacksect))
+      if ((word)me->stack_end HOTTER_THAN (word)(&stacksect))
         me -> stack_end = (ptr_t)(&stacksect);
     } else {
       /* The original stack. */
-      if (MK_GC_stackbottom HOTTER_THAN (ptr_t)(&stacksect))
+      if ((word)MK_GC_stackbottom HOTTER_THAN (word)(&stacksect))
         MK_GC_stackbottom = (ptr_t)(&stacksect);
     }
 
     if (!me->thread_blocked) {
       /* We are not inside MK_GC_do_blocking() - do nothing more.  */
       UNLOCK();
-      return fn(client_data);
+      client_data = fn(client_data);
+      /* Prevent treating the above as a tail call.     */
+      MK_GC_noop1((word)(&stacksect));
+      return client_data; /* result */
     }
 
     /* Setup new "stack section".       */
@@ -1214,10 +1307,13 @@ MK_GC_API void * MK_GC_CALL MK_GC_call_with_gc_active(MK_GC_fn_type fn,
 STATIC void MK_GC_unregister_my_thread_inner(MK_GC_thread me)
 {
 #   ifdef DEBUG_THREADS
-      MK_GC_log_printf("Unregistering thread 0x%x\n", (unsigned)pthread_self());
+      MK_GC_log_printf(
+                "Unregistering thread %p, gc_thread = %p, n_threads = %d\n",
+                (void *)me->id, me, MK_GC_count_threads());
 #   endif
     MK_GC_ASSERT(!(me -> flags & FINISHED));
 #   if defined(THREAD_LOCAL_ALLOC)
+      MK_GC_ASSERT(MK_GC_getspecific(MK_GC_thread_key) == &me->tlfs);
       MK_GC_destroy_thread_local(&(me->tlfs));
 #   endif
 #   if defined(MK_GC_PTHREAD_EXIT_ATTRIBUTE) || !defined(MK_GC_NO_PTHREAD_CANCEL)
@@ -1241,6 +1337,7 @@ STATIC void MK_GC_unregister_my_thread_inner(MK_GC_thread me)
 MK_GC_API int MK_GC_CALL MK_GC_unregister_my_thread(void)
 {
     pthread_t self = pthread_self();
+    MK_GC_thread me;
     IF_CANCEL(int cancel_state;)
     DCL_LOCK_STATE;
 
@@ -1249,7 +1346,14 @@ MK_GC_API int MK_GC_CALL MK_GC_unregister_my_thread(void)
     /* Wait for any GC that may be marking from our stack to    */
     /* complete before we remove this thread.                   */
     MK_GC_wait_for_gc_completion(FALSE);
-    MK_GC_unregister_my_thread_inner(MK_GC_lookup_thread(self));
+    me = MK_GC_lookup_thread(self);
+#   ifdef DEBUG_THREADS
+        MK_GC_log_printf(
+                "Called MK_GC_unregister_my_thread on %p, gc_thread = %p\n",
+                (void *)self, me);
+#   endif
+    MK_GC_ASSERT(me->id == self);
+    MK_GC_unregister_my_thread_inner(me);
     RESTORE_CANCEL(cancel_state);
     UNLOCK();
     return MK_GC_SUCCESS;
@@ -1260,8 +1364,12 @@ MK_GC_API int MK_GC_CALL MK_GC_unregister_my_thread(void)
 /* results in at most a tiny one-time leak.  And        */
 /* linuxthreads doesn't reclaim the main threads        */
 /* resources or id anyway.                              */
-MK_GC_INNER void MK_GC_thread_exit_proc(void *arg)
+MK_GC_INNER_PTHRSTART void MK_GC_thread_exit_proc(void *arg)
 {
+#   ifdef DEBUG_THREADS
+        MK_GC_log_printf("Called MK_GC_thread_exit_proc on %p, gc_thread = %p\n",
+                      (void *)((MK_GC_thread)arg)->id, arg);
+#   endif
     IF_CANCEL(int cancel_state;)
     DCL_LOCK_STATE;
 
@@ -1367,12 +1475,13 @@ MK_GC_API int WRAP_FUNC(pthread_detach)(pthread_t thread)
 #ifdef MK_GC_PTHREAD_EXIT_ATTRIBUTE
   MK_GC_API MK_GC_PTHREAD_EXIT_ATTRIBUTE void WRAP_FUNC(pthread_exit)(void *retval)
   {
+    pthread_t self = pthread_self();
     MK_GC_thread me;
     DCL_LOCK_STATE;
 
     INIT_REAL_SYMS();
     LOCK();
-    me = MK_GC_lookup_thread(pthread_self());
+    me = MK_GC_lookup_thread(self);
     /* We test DISABLED_GC because someone else could call    */
     /* pthread_cancel at the same time.                       */
     if (me != 0 && (me -> flags & DISABLED_GC) == 0) {
@@ -1491,7 +1600,8 @@ struct start_info {
 /* Called from MK_GC_inner_start_routine().  Defined in this file to       */
 /* minimize the number of include files in pthread_start.c (because     */
 /* sem_t and sem_post() are not used that file directly).               */
-MK_GC_INNER MK_GC_thread MK_GC_start_rtn_prepare_thread(void *(**pstart)(void *),
+MK_GC_INNER_PTHRSTART MK_GC_thread MK_GC_start_rtn_prepare_thread(
+                                        void *(**pstart)(void *),
                                         void **pstart_arg,
                                         struct MK_GC_stack_base *sb, void *arg)
 {
@@ -1501,8 +1611,8 @@ MK_GC_INNER MK_GC_thread MK_GC_start_rtn_prepare_thread(void *(**pstart)(void *)
     DCL_LOCK_STATE;
 
 #   ifdef DEBUG_THREADS
-      MK_GC_log_printf("Starting thread 0x%x, pid = %ld, sp = %p\n",
-                    (unsigned)self, (long)getpid(), &arg);
+      MK_GC_log_printf("Starting thread %p, pid = %ld, sp = %p\n",
+                    (void *)self, (long)getpid(), &arg);
 #   endif
     LOCK();
     me = MK_GC_register_my_thread_inner(sb, self);
@@ -1521,7 +1631,8 @@ MK_GC_INNER MK_GC_thread MK_GC_start_rtn_prepare_thread(void *(**pstart)(void *)
     return me;
 }
 
-void * MK_GC_CALLBACK MK_GC_inner_start_routine(struct MK_GC_stack_base *sb, void *arg);
+MK_GC_INNER_PTHRSTART void * MK_GC_CALLBACK MK_GC_inner_start_routine(
+                                        struct MK_GC_stack_base *sb, void *arg);
                                         /* defined in pthread_start.c   */
 
 STATIC void * MK_GC_start_routine(void * arg)
@@ -1568,8 +1679,9 @@ MK_GC_API int WRAP_FUNC(pthread_create)(pthread_t *new_thread,
     si = (struct start_info *)MK_GC_INTERNAL_MALLOC(sizeof(struct start_info),
                                                  NORMAL);
     UNLOCK();
-    if (!parallel_initialized) MK_GC_init_parallel();
-    if (0 == si &&
+    if (!EXPECT(parallel_initialized, TRUE))
+      MK_GC_init_parallel();
+    if (EXPECT(0 == si, FALSE) &&
         (si = (struct start_info *)
                 (*MK_GC_get_oom_fn())(sizeof(struct start_info))) == 0)
       return(ENOMEM);
@@ -1579,7 +1691,8 @@ MK_GC_API int WRAP_FUNC(pthread_create)(pthread_t *new_thread,
     si -> start_routine = start_routine;
     si -> arg = arg;
     LOCK();
-    if (!MK_GC_thr_initialized) MK_GC_thr_init();
+    if (!EXPECT(MK_GC_thr_initialized, TRUE))
+      MK_GC_thr_init();
 #   ifdef MK_GC_ASSERTIONS
       {
         size_t stack_size = 0;
@@ -1588,8 +1701,10 @@ MK_GC_API int WRAP_FUNC(pthread_create)(pthread_t *new_thread,
         }
         if (0 == stack_size) {
            pthread_attr_t my_attr;
+
            pthread_attr_init(&my_attr);
            pthread_attr_getstacksize(&my_attr, &stack_size);
+           pthread_attr_destroy(&my_attr);
         }
         /* On Solaris 10, with default attr initialization,     */
         /* stack_size remains 0.  Fudge it.                     */
@@ -1620,22 +1735,24 @@ MK_GC_API int WRAP_FUNC(pthread_create)(pthread_t *new_thread,
     si -> flags = my_flags;
     UNLOCK();
 #   ifdef DEBUG_THREADS
-      MK_GC_log_printf("About to start new thread from thread 0x%x\n",
-                    (unsigned)pthread_self());
+      MK_GC_log_printf("About to start new thread from thread %p\n",
+                    (void *)pthread_self());
 #   endif
     MK_GC_need_to_lock = TRUE;
 
     result = REAL_FUNC(pthread_create)(new_thread, attr, MK_GC_start_routine, si);
 
-#   ifdef DEBUG_THREADS
-      MK_GC_log_printf("Started thread 0x%x\n", (unsigned)(*new_thread));
-#   endif
     /* Wait until child has been added to the thread table.             */
     /* This also ensures that we hold onto si until the child is done   */
     /* with it.  Thus it doesn't matter whether it is otherwise         */
     /* visible to the collector.                                        */
     if (0 == result) {
         IF_CANCEL(int cancel_state;)
+
+#       ifdef DEBUG_THREADS
+          if (new_thread)
+            MK_GC_log_printf("Started thread %p\n", (void *)(*new_thread));
+#       endif
         DISABLE_CANCEL(cancel_state);
                 /* pthread_create is not a cancellation point. */
         while (0 != sem_wait(&(si -> registered))) {
@@ -1666,7 +1783,7 @@ STATIC void MK_GC_pause(void)
         __asm__ __volatile__ (" " : : : "memory");
 #     else
         /* Something that's unlikely to be optimized away. */
-        MK_GC_noop(++dummy);
+        MK_GC_noop1(++dummy);
 #     endif
     }
 }
@@ -1701,9 +1818,9 @@ MK_GC_INNER volatile MK_GC_bool MK_GC_collecting = 0;
 /* #define LOCK_STATS */
 /* Note that LOCK_STATS requires MK_AO_HAVE_test_and_set.  */
 #ifdef LOCK_STATS
-  MK_AO_t MK_GC_spin_count = 0;
-  MK_AO_t MK_GC_block_count = 0;
-  MK_AO_t MK_GC_unlocked_count = 0;
+  volatile MK_AO_t MK_GC_spin_count = 0;
+  volatile MK_AO_t MK_GC_block_count = 0;
+  volatile MK_AO_t MK_GC_unlocked_count = 0;
 #endif
 
 STATIC void MK_GC_generic_lock(pthread_mutex_t * lock)
@@ -1813,7 +1930,7 @@ yield:
     }
 }
 
-#else  /* !USE_SPINLOCK */
+#else  /* !USE_SPIN_LOCK */
 MK_GC_INNER void MK_GC_lock(void)
 {
 #ifndef NO_PTHREAD_TRYLOCK
@@ -1827,13 +1944,24 @@ MK_GC_INNER void MK_GC_lock(void)
 #endif /* !NO_PTHREAD_TRYLOCK */
 }
 
-#endif /* !USE_SPINLOCK */
+#endif /* !USE_SPIN_LOCK */
 
 #ifdef PARALLEL_MARK
 
-#ifdef MK_GC_ASSERTIONS
-  MK_GC_INNER unsigned long MK_GC_mark_lock_holder = NO_THREAD;
-#endif
+# ifdef MK_GC_ASSERTIONS
+    STATIC unsigned long MK_GC_mark_lock_holder = NO_THREAD;
+#   define SET_MARK_LOCK_HOLDER \
+                (void)(MK_GC_mark_lock_holder = NUMERIC_THREAD_ID(pthread_self()))
+#   define UNSET_MARK_LOCK_HOLDER \
+                do { \
+                  MK_GC_ASSERT(MK_GC_mark_lock_holder \
+                                == NUMERIC_THREAD_ID(pthread_self())); \
+                  MK_GC_mark_lock_holder = NO_THREAD; \
+                } while (0)
+# else
+#   define SET_MARK_LOCK_HOLDER (void)0
+#   define UNSET_MARK_LOCK_HOLDER (void)0
+# endif /* !MK_GC_ASSERTIONS */
 
 #ifdef GLIBC_2_1_MUTEX_HACK
   /* Ugly workaround for a linux threads bug in the final versions      */
@@ -1853,18 +1981,14 @@ static pthread_cond_t builder_cv = PTHREAD_COND_INITIALIZER;
 
 MK_GC_INNER void MK_GC_acquire_mark_lock(void)
 {
+    MK_GC_ASSERT(MK_GC_mark_lock_holder != NUMERIC_THREAD_ID(pthread_self()));
     MK_GC_generic_lock(&mark_mutex);
-#   ifdef MK_GC_ASSERTIONS
-        MK_GC_mark_lock_holder = NUMERIC_THREAD_ID(pthread_self());
-#   endif
+    SET_MARK_LOCK_HOLDER;
 }
 
 MK_GC_INNER void MK_GC_release_mark_lock(void)
 {
-    MK_GC_ASSERT(MK_GC_mark_lock_holder == NUMERIC_THREAD_ID(pthread_self()));
-#   ifdef MK_GC_ASSERTIONS
-        MK_GC_mark_lock_holder = NO_THREAD;
-#   endif
+    UNSET_MARK_LOCK_HOLDER;
     if (pthread_mutex_unlock(&mark_mutex) != 0) {
         ABORT("pthread_mutex_unlock failed");
     }
@@ -1877,18 +2001,13 @@ MK_GC_INNER void MK_GC_release_mark_lock(void)
 /*    free-list link may be ignored.                                    */
 STATIC void MK_GC_wait_builder(void)
 {
-    MK_GC_ASSERT(MK_GC_mark_lock_holder == NUMERIC_THREAD_ID(pthread_self()));
     ASSERT_CANCEL_DISABLED();
-#   ifdef MK_GC_ASSERTIONS
-        MK_GC_mark_lock_holder = NO_THREAD;
-#   endif
+    UNSET_MARK_LOCK_HOLDER;
     if (pthread_cond_wait(&builder_cv, &mark_mutex) != 0) {
         ABORT("pthread_cond_wait failed");
     }
     MK_GC_ASSERT(MK_GC_mark_lock_holder == NO_THREAD);
-#   ifdef MK_GC_ASSERTIONS
-        MK_GC_mark_lock_holder = NUMERIC_THREAD_ID(pthread_self());
-#   endif
+    SET_MARK_LOCK_HOLDER;
 }
 
 MK_GC_INNER void MK_GC_wait_for_reclaim(void)
@@ -1912,18 +2031,13 @@ static pthread_cond_t mark_cv = PTHREAD_COND_INITIALIZER;
 
 MK_GC_INNER void MK_GC_wait_marker(void)
 {
-    MK_GC_ASSERT(MK_GC_mark_lock_holder == NUMERIC_THREAD_ID(pthread_self()));
     ASSERT_CANCEL_DISABLED();
-#   ifdef MK_GC_ASSERTIONS
-        MK_GC_mark_lock_holder = NO_THREAD;
-#   endif
+    UNSET_MARK_LOCK_HOLDER;
     if (pthread_cond_wait(&mark_cv, &mark_mutex) != 0) {
         ABORT("pthread_cond_wait failed");
     }
     MK_GC_ASSERT(MK_GC_mark_lock_holder == NO_THREAD);
-#   ifdef MK_GC_ASSERTIONS
-        MK_GC_mark_lock_holder = NUMERIC_THREAD_ID(pthread_self());
-#   endif
+    SET_MARK_LOCK_HOLDER;
 }
 
 MK_GC_INNER void MK_GC_notify_all_marker(void)
@@ -1934,5 +2048,13 @@ MK_GC_INNER void MK_GC_notify_all_marker(void)
 }
 
 #endif /* PARALLEL_MARK */
+
+#ifdef PTHREAD_REGISTER_CANCEL_WEAK_STUBS
+  /* Workaround "undefined reference" linkage errors on some targets. */
+  void __pthread_register_cancel() __attribute__((__weak__));
+  void __pthread_unregister_cancel() __attribute__((__weak__));
+  void __pthread_register_cancel() {}
+  void __pthread_unregister_cancel() {}
+#endif
 
 #endif /* MK_GC_PTHREADS */

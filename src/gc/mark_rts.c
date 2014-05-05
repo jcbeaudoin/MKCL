@@ -39,25 +39,37 @@ int MK_GC_no_dls = 0;      /* Register dynamic library data segments.      */
 static int n_root_sets = 0;
         /* MK_GC_static_roots[0..n_root_sets) contains the valid root sets. */
 
+#if !defined(NO_DEBUGGING) || defined(MK_GC_ASSERTIONS)
+  /* Should return the same value as MK_GC_root_size.      */
+  MK_GC_INNER word MK_GC_compute_root_size(void)
+  {
+    int i;
+    word size = 0;
+
+    for (i = 0; i < n_root_sets; i++) {
+      size += MK_GC_static_roots[i].r_end - MK_GC_static_roots[i].r_start;
+    }
+    return size;
+  }
+#endif /* !NO_DEBUGGING || MK_GC_ASSERTIONS */
+
 #if !defined(NO_DEBUGGING)
   /* For debugging:     */
   void MK_GC_print_static_roots(void)
   {
     int i;
-    size_t total = 0;
+    word size;
 
     for (i = 0; i < n_root_sets; i++) {
         MK_GC_printf("From %p to %p%s\n",
-                  MK_GC_static_roots[i].r_start,
-                  MK_GC_static_roots[i].r_end,
+                  MK_GC_static_roots[i].r_start, MK_GC_static_roots[i].r_end,
                   MK_GC_static_roots[i].r_tmp ? " (temporary)" : "");
-        total += MK_GC_static_roots[i].r_end - MK_GC_static_roots[i].r_start;
     }
-    MK_GC_printf("Total size: %ld\n", (unsigned long) total);
-    if (MK_GC_root_size != total) {
-        MK_GC_err_printf("MK_GC_root_size incorrect: %ld!!\n",
-                      (long) MK_GC_root_size);
-    }
+    MK_GC_printf("MK_GC_root_size: %lu\n", (unsigned long)MK_GC_root_size);
+
+    if ((size = MK_GC_compute_root_size()) != MK_GC_root_size)
+      MK_GC_err_printf("MK_GC_root_size incorrect!! Should be: %lu\n",
+                    (unsigned long)size);
   }
 #endif /* !NO_DEBUGGING */
 
@@ -70,13 +82,14 @@ static int n_root_sets = 0;
     int i;
 
     if (last_root_set < n_root_sets
-        && p >= MK_GC_static_roots[last_root_set].r_start
-        && p < MK_GC_static_roots[last_root_set].r_end) return(TRUE);
+        && (word)p >= (word)MK_GC_static_roots[last_root_set].r_start
+        && (word)p < (word)MK_GC_static_roots[last_root_set].r_end)
+      return(TRUE);
     for (i = 0; i < n_root_sets; i++) {
-        if (p >= MK_GC_static_roots[i].r_start
-            && p < MK_GC_static_roots[i].r_end) {
-            last_root_set = i;
-            return(TRUE);
+        if ((word)p >= (word)MK_GC_static_roots[i].r_start
+            && (word)p < (word)MK_GC_static_roots[i].r_end) {
+          last_root_set = i;
+          return(TRUE);
         }
     }
     return(FALSE);
@@ -139,7 +152,7 @@ MK_GC_API void MK_GC_CALL MK_GC_add_roots(void *b, void *e)
 {
     DCL_LOCK_STATE;
 
-    if (!MK_GC_is_initialized) MK_GC_init();
+    if (!EXPECT(MK_GC_is_initialized, TRUE)) MK_GC_init();
     LOCK();
     MK_GC_add_roots_inner((ptr_t)b, (ptr_t)e, FALSE);
     UNLOCK();
@@ -156,12 +169,12 @@ void MK_GC_add_roots_inner(ptr_t b, ptr_t e, MK_GC_bool tmp)
 {
     struct roots * old;
 
-    MK_GC_ASSERT(b <= e);
+    MK_GC_ASSERT((word)b <= (word)e);
     b = (ptr_t)(((word)b + (sizeof(word) - 1)) & ~(sizeof(word) - 1));
                                         /* round b up to word boundary */
     e = (ptr_t)((word)e & ~(sizeof(word) - 1));
                                         /* round e down to word boundary */
-    if (b >= e) return; /* nothing to do */
+    if ((word)b >= (word)e) return; /* nothing to do */
 
 #   if defined(MSWIN32) || defined(MSWINCE) || defined(CYGWIN32)
       /* Spend the time to ensure that there are no overlapping */
@@ -175,12 +188,13 @@ void MK_GC_add_roots_inner(ptr_t b, ptr_t e, MK_GC_bool tmp)
         old = 0; /* initialized to prevent warning. */
         for (i = 0; i < n_root_sets; i++) {
             old = MK_GC_static_roots + i;
-            if (b <= old -> r_end && e >= old -> r_start) {
-                if (b < old -> r_start) {
+            if ((word)b <= (word)old->r_end
+                 && (word)e >= (word)old->r_start) {
+                if ((word)b < (word)old->r_start) {
                     MK_GC_root_size += old->r_start - b;
                     old -> r_start = b;
                 }
-                if (e > old -> r_end) {
+                if ((word)e > (word)old->r_end) {
                     MK_GC_root_size += e - old->r_end;
                     old -> r_end = e;
                 }
@@ -196,12 +210,13 @@ void MK_GC_add_roots_inner(ptr_t b, ptr_t e, MK_GC_bool tmp)
               other = MK_GC_static_roots + i;
               b = other -> r_start;
               e = other -> r_end;
-              if (b <= old -> r_end && e >= old -> r_start) {
-                if (b < old -> r_start) {
+              if ((word)b <= (word)old->r_end
+                  && (word)e >= (word)old->r_start) {
+                if ((word)b < (word)old->r_start) {
                     MK_GC_root_size += old->r_start - b;
                     old -> r_start = b;
                 }
-                if (e > old -> r_end) {
+                if ((word)e > (word)old->r_end) {
                     MK_GC_root_size += e - old->r_end;
                     old -> r_end = e;
                 }
@@ -219,7 +234,7 @@ void MK_GC_add_roots_inner(ptr_t b, ptr_t e, MK_GC_bool tmp)
 #   else
       old = (struct roots *)MK_GC_roots_present(b);
       if (old != 0) {
-        if (e <= old -> r_end) /* already there */ return;
+        if ((word)e <= (word)old->r_end) /* already there */ return;
         /* else extend */
         MK_GC_root_size += e - old -> r_end;
         old -> r_end = e;
@@ -229,6 +244,11 @@ void MK_GC_add_roots_inner(ptr_t b, ptr_t e, MK_GC_bool tmp)
     if (n_root_sets == MAX_ROOT_SETS) {
         ABORT("Too many root sets");
     }
+
+#   ifdef DEBUG_ADD_DEL_ROOTS
+      MK_GC_log_printf("Adding data root section %d: %p .. %p%s\n",
+                    n_root_sets, b, e, tmp ? " (temporary)" : "");
+#   endif
     MK_GC_static_roots[n_root_sets].r_start = (ptr_t)b;
     MK_GC_static_roots[n_root_sets].r_end = (ptr_t)e;
     MK_GC_static_roots[n_root_sets].r_tmp = tmp;
@@ -246,7 +266,7 @@ MK_GC_API void MK_GC_CALL MK_GC_clear_roots(void)
 {
     DCL_LOCK_STATE;
 
-    if (!MK_GC_is_initialized) MK_GC_init();
+    if (!EXPECT(MK_GC_is_initialized, TRUE)) MK_GC_init();
     LOCK();
     roots_were_cleared = TRUE;
     n_root_sets = 0;
@@ -254,12 +274,20 @@ MK_GC_API void MK_GC_CALL MK_GC_clear_roots(void)
 #   if !defined(MSWIN32) && !defined(MSWINCE) && !defined(CYGWIN32)
       BZERO(MK_GC_root_index, RT_SIZE * sizeof(void *));
 #   endif
+#   ifdef DEBUG_ADD_DEL_ROOTS
+      MK_GC_log_printf("Clear all data root sections\n");
+#   endif
     UNLOCK();
 }
 
 /* Internal use only; lock held.        */
 STATIC void MK_GC_remove_root_at_pos(int i)
 {
+#   ifdef DEBUG_ADD_DEL_ROOTS
+      MK_GC_log_printf("Remove data root section at %d: %p .. %p%s\n",
+                    i, MK_GC_static_roots[i].r_start, MK_GC_static_roots[i].r_end,
+                    MK_GC_static_roots[i].r_tmp ? " (temporary)" : "");
+#   endif
     MK_GC_root_size -= (MK_GC_static_roots[i].r_end - MK_GC_static_roots[i].r_start);
     MK_GC_static_roots[i].r_start = MK_GC_static_roots[n_root_sets-1].r_start;
     MK_GC_static_roots[i].r_end = MK_GC_static_roots[n_root_sets-1].r_end;
@@ -319,8 +347,8 @@ STATIC void MK_GC_remove_tmp_roots(void)
   {
     int i;
     for (i = 0; i < n_root_sets; ) {
-        if (MK_GC_static_roots[i].r_start >= b
-            && MK_GC_static_roots[i].r_end <= e) {
+        if ((word)MK_GC_static_roots[i].r_start >= (word)b
+            && (word)MK_GC_static_roots[i].r_end <= (word)e) {
             MK_GC_remove_root_at_pos(i);
         } else {
             i++;
@@ -341,12 +369,12 @@ STATIC void MK_GC_remove_tmp_roots(void)
     register int i;
 
     if (last_root_set < n_root_sets
-        && p >= MK_GC_static_roots[last_root_set].r_start
-        && p < MK_GC_static_roots[last_root_set].r_end)
+        && (word)p >= (word)MK_GC_static_roots[last_root_set].r_start
+        && (word)p < (word)MK_GC_static_roots[last_root_set].r_end)
         return MK_GC_static_roots[last_root_set].r_tmp;
     for (i = 0; i < n_root_sets; i++) {
-        if (p >= MK_GC_static_roots[i].r_start
-            && p < MK_GC_static_roots[i].r_end) {
+        if ((word)p >= (word)MK_GC_static_roots[i].r_start
+            && (word)p < (word)MK_GC_static_roots[i].r_end) {
             last_root_set = i;
             return MK_GC_static_roots[i].r_tmp;
         }
@@ -413,7 +441,7 @@ MK_GC_INNER void MK_GC_exclude_static_roots_inner(void *start, void *finish)
     size_t next_index, i;
 
     MK_GC_ASSERT((word)start % sizeof(word) == 0);
-    MK_GC_ASSERT(start < finish);
+    MK_GC_ASSERT((word)start < (word)finish);
 
     if (0 == MK_GC_excl_table_entries) {
         next = 0;
@@ -447,10 +475,12 @@ MK_GC_API void MK_GC_CALL MK_GC_exclude_static_roots(void *b, void *e)
 {
     DCL_LOCK_STATE;
 
-    /* Adjust the upper boundary for safety (round down) */
-    e = (void *)((word)e & ~(sizeof(word) - 1));
-
     if (b == e) return;  /* nothing to exclude? */
+
+    /* Round boundaries (in direction reverse to that of MK_GC_add_roots). */
+    b = (void *)((word)b & ~(sizeof(word) - 1));
+    e = (void *)(((word)e + (sizeof(word) - 1)) & ~(sizeof(word) - 1));
+    if (0 == e) e = (void *)(word)(~(sizeof(word) - 1)); /* handle overflow */
 
     LOCK();
     MK_GC_exclude_static_roots_inner(b, e);
@@ -458,20 +488,20 @@ MK_GC_API void MK_GC_CALL MK_GC_exclude_static_roots(void *b, void *e)
 }
 
 /* Invoke push_conditional on ranges that are not excluded. */
-/*ARGSUSED*/
 STATIC void MK_GC_push_conditional_with_exclusions(ptr_t bottom, ptr_t top,
-                                                MK_GC_bool all)
+                                                MK_GC_bool all MK_GC_ATTR_UNUSED)
 {
     struct exclusion * next;
     ptr_t excl_start;
 
-    while (bottom < top) {
+    while ((word)bottom < (word)top) {
         next = MK_GC_next_exclusion(bottom);
-        if (0 == next || (excl_start = next -> e_start) >= top) {
-            MK_GC_push_conditional(bottom, top, all);
+        if (0 == next || (word)(excl_start = next -> e_start) >= (word)top) {
+            MK_GC_PUSH_CONDITIONAL(bottom, top, all);
             return;
         }
-        if (excl_start > bottom) MK_GC_push_conditional(bottom, excl_start, all);
+        if ((word)excl_start > (word)bottom)
+          MK_GC_PUSH_CONDITIONAL(bottom, excl_start, all);
         bottom = next -> e_end;
     }
 }
@@ -483,7 +513,7 @@ STATIC void MK_GC_push_conditional_with_exclusions(ptr_t bottom, ptr_t top,
   {
     while (traced_stack_sect != NULL) {
         ptr_t frame_bs_lo = traced_stack_sect -> backing_store_end;
-        MK_GC_ASSERT(frame_bs_lo <= bs_hi);
+        MK_GC_ASSERT((word)frame_bs_lo <= (word)bs_hi);
         if (eager) {
             MK_GC_push_all_eager(frame_bs_lo, bs_hi);
         } else {
@@ -492,7 +522,7 @@ STATIC void MK_GC_push_conditional_with_exclusions(ptr_t bottom, ptr_t top,
         bs_hi = traced_stack_sect -> saved_backing_store_ptr;
         traced_stack_sect = traced_stack_sect -> prev;
     }
-    MK_GC_ASSERT(bs_lo <= bs_hi);
+    MK_GC_ASSERT((word)bs_lo <= (word)bs_hi);
     if (eager) {
         MK_GC_push_all_eager(bs_lo, bs_hi);
     } else {
@@ -507,7 +537,7 @@ MK_GC_INNER void MK_GC_push_all_stack_sections(ptr_t lo, ptr_t hi,
                         struct MK_GC_traced_stack_sect_s *traced_stack_sect)
 {
     while (traced_stack_sect != NULL) {
-        MK_GC_ASSERT(lo HOTTER_THAN (ptr_t)traced_stack_sect);
+        MK_GC_ASSERT((word)lo HOTTER_THAN (word)traced_stack_sect);
 #       ifdef STACK_GROWS_UP
             MK_GC_push_all_stack((ptr_t)traced_stack_sect, lo);
 #       else /* STACK_GROWS_DOWN */
@@ -517,7 +547,7 @@ MK_GC_INNER void MK_GC_push_all_stack_sections(ptr_t lo, ptr_t hi,
         MK_GC_ASSERT(lo != NULL);
         traced_stack_sect = traced_stack_sect -> prev;
     }
-    MK_GC_ASSERT(!(hi HOTTER_THAN lo));
+    MK_GC_ASSERT(!((word)hi HOTTER_THAN (word)lo));
 #   ifdef STACK_GROWS_UP
         /* We got them backwards! */
         MK_GC_push_all_stack(hi, lo);
@@ -559,7 +589,8 @@ STATIC void MK_GC_push_all_stack_partially_eager(ptr_t bottom, ptr_t top,
         MK_GC_push_all_stack(bottom, top);
         return;
     }
-    MK_GC_ASSERT(bottom <= cold_gc_frame && cold_gc_frame <= top);
+    MK_GC_ASSERT((word)bottom <= (word)cold_gc_frame
+              && (word)cold_gc_frame <= (word)top);
 #   ifdef STACK_GROWS_DOWN
         MK_GC_push_all(cold_gc_frame - sizeof(ptr_t), top);
         MK_GC_push_all_eager(bottom, cold_gc_frame);
@@ -580,10 +611,10 @@ STATIC void MK_GC_push_all_stack_part_eager_sections(ptr_t lo, ptr_t hi,
         ptr_t cold_gc_frame, struct MK_GC_traced_stack_sect_s *traced_stack_sect)
 {
     MK_GC_ASSERT(traced_stack_sect == NULL || cold_gc_frame == NULL ||
-                cold_gc_frame HOTTER_THAN (ptr_t)traced_stack_sect);
+              (word)cold_gc_frame HOTTER_THAN (word)traced_stack_sect);
 
     while (traced_stack_sect != NULL) {
-        MK_GC_ASSERT(lo HOTTER_THAN (ptr_t)traced_stack_sect);
+        MK_GC_ASSERT((word)lo HOTTER_THAN (word)traced_stack_sect);
 #       ifdef STACK_GROWS_UP
             MK_GC_push_all_stack_partially_eager((ptr_t)traced_stack_sect, lo,
                                               cold_gc_frame);
@@ -597,7 +628,7 @@ STATIC void MK_GC_push_all_stack_part_eager_sections(ptr_t lo, ptr_t hi,
         cold_gc_frame = NULL; /* Use at most once.      */
     }
 
-    MK_GC_ASSERT(!(hi HOTTER_THAN lo));
+    MK_GC_ASSERT(!((word)hi HOTTER_THAN (word)lo));
 #   ifdef STACK_GROWS_UP
         /* We got them backwards! */
         MK_GC_push_all_stack_partially_eager(hi, lo, cold_gc_frame);
@@ -624,8 +655,8 @@ STATIC void MK_GC_push_all_stack_part_eager_sections(ptr_t lo, ptr_t hi,
  * seen.
  * FIXME: Merge with per-thread stuff.
  */
-/*ARGSUSED*/
-STATIC void MK_GC_push_current_stack(ptr_t cold_gc_frame, void * context)
+STATIC void MK_GC_push_current_stack(ptr_t cold_gc_frame,
+                                  void * context MK_GC_ATTR_UNUSED)
 {
 #   if defined(THREADS)
         if (0 == cold_gc_frame) return;
@@ -648,12 +679,13 @@ STATIC void MK_GC_push_current_stack(ptr_t cold_gc_frame, void * context)
               {
                 ptr_t bsp = MK_GC_save_regs_ret_val;
                 ptr_t cold_gc_bs_pointer = bsp - 2048;
-                if (MK_GC_all_interior_pointers &&
-                    cold_gc_bs_pointer > BACKING_STORE_BASE) {
+                if (MK_GC_all_interior_pointers
+                    && (word)cold_gc_bs_pointer > (word)BACKING_STORE_BASE) {
                   /* Adjust cold_gc_bs_pointer if below our innermost   */
                   /* "traced stack section" in backing store.           */
-                  if (MK_GC_traced_stack_sect != NULL && cold_gc_bs_pointer <
-                                MK_GC_traced_stack_sect->backing_store_end)
+                  if (MK_GC_traced_stack_sect != NULL
+                      && (word)cold_gc_bs_pointer
+                          < (word)MK_GC_traced_stack_sect->backing_store_end)
                     cold_gc_bs_pointer =
                                 MK_GC_traced_stack_sect->backing_store_end;
                   MK_GC_push_all_register_sections(BACKING_STORE_BASE,
@@ -683,7 +715,9 @@ MK_GC_INNER void (*MK_GC_push_typed_structures)(void) = 0;
  */
 STATIC void MK_GC_push_gc_structures(void)
 {
-    MK_GC_push_finalizer_structures();
+#   ifndef MK_GC_NO_FINALIZATION
+      MK_GC_push_finalizer_structures();
+#   endif
 #   if defined(THREADS)
       MK_GC_push_thread_structures();
 #   endif
@@ -708,8 +742,9 @@ STATIC void MK_GC_push_regs_and_stack(ptr_t cold_gc_frame)
 }
 
 /*
- * Call the mark routines (MK_GC_tl_push for a single pointer, MK_GC_push_conditional
- * on groups of pointers) on every top level accessible pointer.
+ * Call the mark routines (MK_GC_tl_push for a single pointer,
+ * MK_GC_push_conditional on groups of pointers) on every top level
+ * accessible pointer.
  * If all is FALSE, arrange to push only possibly altered values.
  * Cold_gc_frame is an address inside a GC frame that
  * remains valid until all marking is complete.

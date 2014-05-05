@@ -28,9 +28,10 @@
 
 #include "../test_and_set_t_is_ao_t.h"
 
-MK_AO_INLINE MK_AO_TS_VAL_t
-MK_AO_test_and_set_full(volatile MK_AO_TS_t *addr)
-{
+#ifndef MK_AO_PREFER_GENERALIZED
+  MK_AO_INLINE MK_AO_TS_VAL_t
+  MK_AO_test_and_set_full(volatile MK_AO_TS_t *addr)
+  {
         register long ret;
 
         __asm__ __volatile__(
@@ -40,8 +41,9 @@ MK_AO_test_and_set_full(volatile MK_AO_TS_t *addr)
                 : "memory");
 
         return (MK_AO_TS_VAL_t)ret;
-}
-#define MK_AO_HAVE_test_and_set_full
+  }
+# define MK_AO_HAVE_test_and_set_full
+#endif /* !MK_AO_PREFER_GENERALIZED */
 
 MK_AO_INLINE int
 MK_AO_compare_and_swap_full(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val)
@@ -63,3 +65,7 @@ MK_AO_compare_and_swap_full(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val
        return (int)ret;
 }
 #define MK_AO_HAVE_compare_and_swap_full
+
+/* TODO: implement MK_AO_fetch_compare_and_swap.   */
+
+#define MK_AO_T_IS_INT

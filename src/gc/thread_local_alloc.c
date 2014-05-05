@@ -32,8 +32,14 @@ MK_GC_key_t MK_GC_thread_key;
 
 static MK_GC_bool keys_initialized;
 
+#ifdef ENABLE_DISCLAIM
+  MK_GC_INNER ptr_t * MK_GC_finalized_objfreelist = NULL;
+        /* This variable is declared here to prevent linking of         */
+        /* fnlz_mlc module unless the client uses the latter one.       */
+#endif
+
 /* Return a single nonempty freelist fl to the global one pointed to    */
-/* by gfl.      */
+/* by gfl.                                                              */
 
 static void return_single_freelist(void *fl, void **gfl)
 {
@@ -83,7 +89,8 @@ MK_GC_INNER void MK_GC_init_thread_local(MK_GC_tlfs p)
     int i;
 
     MK_GC_ASSERT(I_HOLD_LOCK());
-    if (!keys_initialized) {
+    if (!EXPECT(keys_initialized, TRUE)) {
+        MK_GC_ASSERT((word)&MK_GC_thread_key % sizeof(word) == 0);
         if (0 != MK_GC_key_create(&MK_GC_thread_key, 0)) {
             ABORT("Failed to create key for local allocator");
         }
@@ -98,6 +105,9 @@ MK_GC_INNER void MK_GC_init_thread_local(MK_GC_tlfs p)
 #       ifdef MK_GC_GCJ_SUPPORT
           p -> gcj_freelists[i] = (void *)(word)1;
 #       endif
+#       ifdef ENABLE_DISCLAIM
+          p -> finalized_freelists[i] = (void *)(word)1;
+#       endif
     }
     /* Set up the size 0 free lists.    */
     /* We now handle most of them like regular free lists, to ensure    */
@@ -108,6 +118,9 @@ MK_GC_INNER void MK_GC_init_thread_local(MK_GC_tlfs p)
 #   ifdef MK_GC_GCJ_SUPPORT
         p -> gcj_freelists[0] = ERROR_FL;
 #   endif
+#   ifdef ENABLE_DISCLAIM
+        p -> finalized_freelists[0] = (void *)(word)1;
+#   endif
 }
 
 /* We hold the allocator lock.  */
@@ -115,13 +128,14 @@ MK_GC_INNER void MK_GC_destroy_thread_local(MK_GC_tlfs p)
 {
     /* We currently only do this from the thread itself or from */
     /* the fork handler for a child process.                    */
-#   ifndef HANDLE_FORK
-      MK_GC_ASSERT(MK_GC_getspecific(MK_GC_thread_key) == (void *)p);
-#   endif
     return_freelists(p -> ptrfree_freelists, MK_GC_aobjfreelist);
     return_freelists(p -> normal_freelists, MK_GC_objfreelist);
 #   ifdef MK_GC_GCJ_SUPPORT
         return_freelists(p -> gcj_freelists, (void **)MK_GC_gcjobjfreelist);
+#   endif
+#   ifdef ENABLE_DISCLAIM
+        return_freelists(p -> finalized_freelists,
+                         (void **)MK_GC_finalized_objfreelist);
 #   endif
 }
 
@@ -161,8 +175,8 @@ MK_GC_API void * MK_GC_CALL MK_GC_malloc(size_t bytes)
     MK_GC_FAST_MALLOC_GRANS(result, granules, tiny_fl, DIRECT_GRANULES,
                          NORMAL, MK_GC_core_malloc(bytes), obj_link(result)=0);
 #   ifdef LOG_ALLOCS
-      MK_GC_err_printf("MK_GC_malloc(%u) = %p : %u\n",
-                        (unsigned)bytes, result, (unsigned)MK_GC_gc_no);
+      MK_GC_log_printf("MK_GC_malloc(%lu) returned %p, recent GC #%lu\n",
+                    (unsigned long)bytes, result, (unsigned long)MK_GC_gc_no);
 #   endif
     return result;
 }
@@ -226,7 +240,7 @@ MK_GC_API void * MK_GC_CALL MK_GC_malloc_atomic(size_t bytes)
 MK_GC_API void * MK_GC_CALL MK_GC_gcj_malloc(size_t bytes,
                                     void * ptr_to_struct_containing_descr)
 {
-  if (MK_GC_EXPECT(MK_GC_incremental, 0)) {
+  if (EXPECT(MK_GC_incremental, FALSE)) {
     return MK_GC_core_gcj_malloc(bytes, ptr_to_struct_containing_descr);
   } else {
     size_t granules = ROUNDED_UP_GRANULES(bytes);
@@ -284,6 +298,11 @@ MK_GC_INNER void MK_GC_mark_thread_local_fls_for(MK_GC_tlfs p)
           if ((word)q > HBLKSIZE) MK_GC_set_fl_marks(q);
         }
 #     endif /* MK_GC_GCJ_SUPPORT */
+#     ifdef ENABLE_DISCLAIM
+        q = p -> finalized_freelists[j];
+        if ((word)q > HBLKSIZE)
+          MK_GC_set_fl_marks(q);
+#     endif
     }
 }
 
@@ -298,6 +317,9 @@ MK_GC_INNER void MK_GC_mark_thread_local_fls_for(MK_GC_tlfs p)
           MK_GC_check_fl_marks(&p->normal_freelists[j]);
 #         ifdef MK_GC_GCJ_SUPPORT
             MK_GC_check_fl_marks(&p->gcj_freelists[j]);
+#         endif
+#         ifdef ENABLE_DISCLAIM
+            MK_GC_check_fl_marks(&p->finalized_freelists[j]);
 #         endif
         }
     }

@@ -915,7 +915,9 @@ static void (*old_MK_GC_start_call_back)(void);
 extern void (*MK_GC_start_call_back)(void);  /* Internal and private to Boehm's GC. */ /* Not thread protected! */
 
 static void mkcl_GC_abort(const char * const msg);
+#if MKCL_GC_7_2d
 static void mkcl_GC_exit(const int status);
+#endif
 
 static void * customize_GC(void * client_data)
 {
@@ -924,7 +926,11 @@ static void * customize_GC(void * client_data)
   old_MK_GC_start_call_back = MK_GC_start_call_back;
   MK_GC_start_call_back = mkcl_count_GC_collections; /* We should do proper chaining of GC start callbacks! */
 
+#if MKCL_GC_7_2d
   MK_GC_java_finalization = 1; /* not thread-safe! Ok as long as nobody want that topological sort stuff. */
+#else
+  MK_GC_set_java_finalization(TRUE);
+#endif
 
   {
     int old_finalize_on_demand = MK_GC_get_finalize_on_demand();
@@ -933,7 +939,9 @@ static void * customize_GC(void * client_data)
   }
 
   MK_GC_set_abort_func(mkcl_GC_abort);
+#if MKCL_GC_7_2d
   MK_GC_set_exit_func(mkcl_GC_exit);
+#endif
 }
 
 static int alloc_initialized = FALSE;
@@ -993,7 +1001,11 @@ mkcl_init_alloc(void)
   }
 
   MK_GC_set_suspend_signal(gc_thread_suspend_sig);
-  MK_GC_set_thread_restart_signal(gc_thread_restart_sig);  
+#if MKCL_GC_7_2d
+  MK_GC_set_thread_restart_signal(gc_thread_restart_sig);
+#else
+  MK_GC_set_thr_restart_signal(gc_thread_restart_sig);
+#endif
 #endif /* __linux */
 
   MK_GC_init();
@@ -1474,6 +1486,7 @@ static void mkcl_GC_abort(const char * const msg)
     mkcl_thread_exit(env, MKCL_GC_ABORT); /* This one should never be called unless we're really confused. */
 }
 
+#if MKCL_GC_7_2d
 static void mkcl_GC_exit(const int status)
 {
   mkcl_env env = MKCL_ENV();
@@ -1487,7 +1500,7 @@ static void mkcl_GC_exit(const int status)
   else
     mkcl_thread_exit(env, MKCL_GC_EXIT); /* This one should never be called unless we're really confused. */
 }
-
+#endif
 
 /******************************************************************************************/
 

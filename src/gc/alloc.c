@@ -99,21 +99,21 @@ char * const MK_GC_copyright[] =
 /* gc.h, which is included by gc_priv.h.                                */
 #ifndef MK_GC_NO_VERSION_VAR
   const unsigned MK_GC_version = ((MK_GC_VERSION_MAJOR << 16) |
-                        (MK_GC_VERSION_MINOR << 8) | MK_GC_TMP_ALPHA_VERSION);
+                        (MK_GC_VERSION_MINOR << 8) | MK_GC_VERSION_MICRO);
 #endif
 
 MK_GC_API unsigned MK_GC_CALL MK_GC_get_version(void)
 {
   return (MK_GC_VERSION_MAJOR << 16) | (MK_GC_VERSION_MINOR << 8) |
-          MK_GC_TMP_ALPHA_VERSION;
+          MK_GC_VERSION_MICRO;
 }
 
 /* some more variables */
 
 #ifdef MK_GC_DONT_EXPAND
-  MK_GC_bool MK_GC_dont_expand = TRUE;
+  int MK_GC_dont_expand = TRUE;
 #else
-  MK_GC_bool MK_GC_dont_expand = FALSE;
+  int MK_GC_dont_expand = FALSE;
 #endif
 
 #ifndef MK_GC_FREE_SPACE_DIVISOR
@@ -181,11 +181,9 @@ MK_GC_API MK_GC_stop_func MK_GC_CALL MK_GC_get_stop_func(void)
     GET_TIME(current_time);
     time_diff = MS_TIME_DIFF(current_time,MK_GC_start_time);
     if (time_diff >= MK_GC_time_limit) {
-        if (MK_GC_print_stats) {
-          MK_GC_log_printf(
+        MK_GC_COND_LOG_PRINTF(
                 "Abandoning stopped marking after %lu msecs (attempt %d)\n",
                 time_diff, MK_GC_n_attempts);
-        }
         return(1);
     }
     return(0);
@@ -196,10 +194,11 @@ MK_GC_API MK_GC_stop_func MK_GC_CALL MK_GC_get_stop_func(void)
   MK_GC_INNER word MK_GC_total_stacksize = 0; /* updated on every push_all_stacks */
 #endif
 
-/* Return the minimum number of words that must be allocated between    */
-/* collections to amortize the collection cost.                         */
+/* Return the minimum number of bytes that must be allocated between    */
+/* collections to amortize the collection cost.  Should be non-zero.    */
 static word min_bytes_allocd(void)
 {
+    word result;
 #   ifdef STACK_GROWS_UP
       word stack_size = MK_GC_approx_sp() - MK_GC_stackbottom;
             /* MK_GC_stackbottom is used only for a single-threaded case.  */
@@ -228,12 +227,16 @@ static word min_bytes_allocd(void)
     total_root_size = 2 * stack_size + MK_GC_root_size;
     scan_size = 2 * MK_GC_composite_in_use + MK_GC_atomic_in_use / 4
                 + total_root_size;
+    result = scan_size / MK_GC_free_space_divisor;
     if (MK_GC_incremental) {
-        return scan_size / (2 * MK_GC_free_space_divisor);
-    } else {
-        return scan_size / MK_GC_free_space_divisor;
+      result /= 2;
     }
+    return result > 0 ? result : 1;
 }
+
+STATIC word MK_GC_non_gc_bytes_at_gc = 0;
+                /* Number of explicitly managed bytes of storage        */
+                /* at last collection.                                  */
 
 /* Return the number of bytes allocated, adjusted for explicit storage  */
 /* management, etc..  This number is used in deciding when to trigger   */
@@ -363,11 +366,9 @@ STATIC void MK_GC_maybe_gc(void)
               MK_GC_wait_for_reclaim();
 #         endif
           if (MK_GC_need_full_gc || n_partial_gcs >= MK_GC_full_freq) {
-            if (MK_GC_print_stats) {
-              MK_GC_log_printf(
-                  "***>Full mark for collection %lu after %ld allocd bytes\n",
-                  (unsigned long)MK_GC_gc_no + 1, (long)MK_GC_bytes_allocd);
-            }
+            MK_GC_COND_LOG_PRINTF(
+                "***>Full mark for collection #%lu after %lu allocd bytes\n",
+                (unsigned long)MK_GC_gc_no + 1, (unsigned long)MK_GC_bytes_allocd);
             MK_GC_promote_black_lists();
             (void)MK_GC_reclaim_all((MK_GC_stop_func)0, TRUE);
             MK_GC_notify_full_gc();
@@ -416,10 +417,8 @@ MK_GC_INNER MK_GC_bool MK_GC_try_to_collect_inner(MK_GC_stop_func stop_func)
     ASSERT_CANCEL_DISABLED();
     if (MK_GC_dont_gc || (*stop_func)()) return FALSE;
     if (MK_GC_incremental && MK_GC_collection_in_progress()) {
-      if (MK_GC_print_stats) {
-        MK_GC_log_printf(
+      MK_GC_COND_LOG_PRINTF(
             "MK_GC_try_to_collect_inner: finishing collection in progress\n");
-      }
       /* Just finish collection already in progress.    */
         while(MK_GC_collection_in_progress()) {
             if ((*stop_func)()) return(FALSE);
@@ -560,7 +559,7 @@ MK_GC_API int MK_GC_CALL MK_GC_collect_a_little(void)
 #ifndef SMALL_CONFIG
   /* Variables for world-stop average delay time statistic computation. */
   /* "divisor" is incremented every world-stop and halved when reached  */
-  /* its maximum (or upon "total_time" oveflow).                        */
+  /* its maximum (or upon "total_time" overflow).                       */
   static unsigned world_stopped_total_time = 0;
   static unsigned world_stopped_total_divisor = 0;
 # ifndef MAX_TOTAL_TIME_DIVISOR
@@ -569,6 +568,14 @@ MK_GC_API int MK_GC_CALL MK_GC_collect_a_little(void)
     /* newer ones).                                                     */
 #   define MAX_TOTAL_TIME_DIVISOR 1000
 # endif
+#endif
+
+#ifdef USE_MUNMAP
+# define IF_USE_MUNMAP(x) x
+# define COMMA_IF_USE_MUNMAP(x) /* comma */, x
+#else
+# define IF_USE_MUNMAP(x) /* empty */
+# define COMMA_IF_USE_MUNMAP(x) /* empty */
 #endif
 
 /*
@@ -584,7 +591,7 @@ STATIC MK_GC_bool MK_GC_stopped_mark(MK_GC_stop_func stop_func)
       CLOCK_TYPE current_time;
 #   endif
 
-#   if !defined(REDIRECT_MALLOC) && (defined(MSWIN32) || defined(MSWINCE))
+#   if !defined(REDIRECT_MALLOC) && defined(USE_WINALLOC)
         MK_GC_add_current_malloc_heap();
 #   endif
 #   if defined(REGISTER_LIBRARIES_EARLY)
@@ -592,7 +599,7 @@ STATIC MK_GC_bool MK_GC_stopped_mark(MK_GC_stop_func stop_func)
 #   endif
 
 #   ifndef SMALL_CONFIG
-      if (MK_GC_print_stats)
+      if (MK_GC_PRINT_STATS_FLAG)
         GET_TIME(start_time);
 #   endif
 
@@ -600,12 +607,10 @@ STATIC MK_GC_bool MK_GC_stopped_mark(MK_GC_stop_func stop_func)
 #   ifdef THREAD_LOCAL_ALLOC
       MK_GC_world_stopped = TRUE;
 #   endif
-    if (MK_GC_print_stats) {
         /* Output blank line for convenience here */
-        MK_GC_log_printf(
-              "\n--> Marking for collection %lu after %lu allocated bytes\n",
+    MK_GC_COND_LOG_PRINTF(
+              "\n--> Marking for collection #%lu after %lu allocated bytes\n",
               (unsigned long)MK_GC_gc_no + 1, (unsigned long) MK_GC_bytes_allocd);
-    }
 #   ifdef MAKE_BACK_GRAPH
       if (MK_GC_print_back_height) {
         MK_GC_build_back_graph();
@@ -615,14 +620,13 @@ STATIC MK_GC_bool MK_GC_stopped_mark(MK_GC_stop_func stop_func)
     /* Mark from all roots.  */
         /* Minimize junk left in my registers and on the stack */
             MK_GC_clear_a_few_frames();
-            MK_GC_noop(0,0,0,0,0,0);
+            MK_GC_noop6(0,0,0,0,0,0);
+
         MK_GC_initiate_gc();
         for (i = 0;;i++) {
           if ((*stop_func)()) {
-            if (MK_GC_print_stats) {
-              MK_GC_log_printf("Abandoned stopped marking after %u iterations\n",
-                            i);
-            }
+            MK_GC_COND_LOG_PRINTF("Abandoned stopped marking after"
+                               " %u iterations\n", i);
             MK_GC_deficit = i;     /* Give the mutator a chance.   */
 #           ifdef THREAD_LOCAL_ALLOC
               MK_GC_world_stopped = FALSE;
@@ -634,24 +638,23 @@ STATIC MK_GC_bool MK_GC_stopped_mark(MK_GC_stop_func stop_func)
         }
 
     MK_GC_gc_no++;
-    if (MK_GC_print_stats) {
-      MK_GC_log_printf(
-             "Collection %lu reclaimed %ld bytes ---> heapsize = %lu bytes\n",
-             (unsigned long)(MK_GC_gc_no - 1), (long)MK_GC_bytes_found,
-             (unsigned long)MK_GC_heapsize);
-    }
+    MK_GC_DBGLOG_PRINTF("GC #%lu freed %ld bytes, heap %lu KiB"
+                     IF_USE_MUNMAP(" (+ %lu KiB unmapped)") "\n",
+                     (unsigned long)MK_GC_gc_no, (long)MK_GC_bytes_found,
+                     TO_KiB_UL(MK_GC_heapsize - MK_GC_unmapped_bytes) /*, */
+                     COMMA_IF_USE_MUNMAP(TO_KiB_UL(MK_GC_unmapped_bytes)));
 
     /* Check all debugged objects for consistency */
-        if (MK_GC_debugging_started) {
-            (*MK_GC_check_heap)();
-        }
+    if (MK_GC_debugging_started) {
+      (*MK_GC_check_heap)();
+    }
 
 #   ifdef THREAD_LOCAL_ALLOC
       MK_GC_world_stopped = FALSE;
 #   endif
     START_WORLD();
 #   ifndef SMALL_CONFIG
-      if (MK_GC_print_stats) {
+      if (MK_GC_PRINT_STATS_FLAG) {
         unsigned long time_diff;
         unsigned total_time, divisor;
         GET_TIME(current_time);
@@ -732,10 +735,9 @@ MK_GC_INNER void MK_GC_set_fl_marks(ptr_t q)
       for (p = list; p != NULL;) {
         MK_AO_t *next;
 
-        if (!MK_GC_is_marked((ptr_t)p)) {
-          MK_GC_err_printf("Unmarked object %p on list %p\n",
-                        (void *)p, (void *)list);
-          ABORT("Unmarked local free list entry");
+        if (!MK_GC_is_marked(p)) {
+          ABORT_ARG2("Unmarked local free list entry",
+                     ": object %p on list %p", (void *)p, (void *)list);
         }
 
         /* While traversing the free-list, it re-reads the pointer to   */
@@ -807,6 +809,17 @@ STATIC void MK_GC_clear_fl_marks(ptr_t q)
   void MK_GC_check_tls(void);
 #endif
 
+MK_GC_on_heap_resize_proc MK_GC_on_heap_resize = 0;
+
+/* Used for logging only. */
+MK_GC_INLINE int MK_GC_compute_heap_usage_percent(void)
+{
+  word used = MK_GC_composite_in_use + MK_GC_atomic_in_use;
+  word heap_sz = MK_GC_heapsize - MK_GC_unmapped_bytes;
+  return used >= heap_sz ? 0 : used < ((word)-1) / 100 ?
+                (int)((used * 100) / heap_sz) : (int)(used / (heap_sz / 100));
+}
+
 /* Finish up a collection.  Assumes mark bits are consistent, lock is   */
 /* held, but the world is otherwise running.                            */
 STATIC void MK_GC_finish_collection(void)
@@ -829,6 +842,10 @@ STATIC void MK_GC_finish_collection(void)
         GET_TIME(start_time);
 #   endif
 
+#   ifndef MK_GC_GET_HEAP_USAGE_NOT_NEEDED
+      if (MK_GC_bytes_found > 0)
+        MK_GC_reclaimed_bytes_before_gc += (word)MK_GC_bytes_found;
+#   endif
     MK_GC_bytes_found = 0;
 #   if defined(LINUX) && defined(__ELF__) && !defined(SMALL_CONFIG)
         if (GETENV("MK_GC_PRINT_ADDRESS_MAP") != 0) {
@@ -853,7 +870,9 @@ STATIC void MK_GC_finish_collection(void)
         /* The above just checks; it doesn't really reclaim anything.   */
     }
 
-    MK_GC_finalize();
+#   ifndef MK_GC_NO_FINALIZATION
+      MK_GC_finalize();
+#   endif
 #   ifdef STUBBORN_ALLOC
       MK_GC_clean_changing_list();
 #   endif
@@ -891,18 +910,15 @@ STATIC void MK_GC_finish_collection(void)
       }
     }
 
-    if (MK_GC_print_stats == VERBOSE)
-        MK_GC_log_printf("Bytes recovered before sweep - f.l. count = %ld\n",
-                      (long)MK_GC_bytes_found);
+    MK_GC_VERBOSE_LOG_PRINTF("Bytes recovered before sweep - f.l. count = %ld\n",
+                          (long)MK_GC_bytes_found);
 
     /* Reconstruct free lists to contain everything not marked */
     MK_GC_start_reclaim(FALSE);
-    if (MK_GC_print_stats) {
-      MK_GC_log_printf("Heap contains %lu pointer-containing "
-                    "+ %lu pointer-free reachable bytes\n",
-                    (unsigned long)MK_GC_composite_in_use,
-                    (unsigned long)MK_GC_atomic_in_use);
-    }
+    MK_GC_DBGLOG_PRINTF("In-use heap: %d%% (%lu KiB pointers + %lu KiB other)\n",
+                     MK_GC_compute_heap_usage_percent(),
+                     TO_KiB_UL(MK_GC_composite_in_use),
+                     TO_KiB_UL(MK_GC_atomic_in_use));
     if (MK_GC_is_full_gc) {
         MK_GC_used_heap_size_after_full = USED_HEAP_SIZE;
         MK_GC_need_full_gc = FALSE;
@@ -911,18 +927,12 @@ STATIC void MK_GC_finish_collection(void)
                             > min_bytes_allocd();
     }
 
-    if (MK_GC_print_stats == VERBOSE) {
-#     ifdef USE_MUNMAP
-        MK_GC_log_printf("Immediately reclaimed %ld bytes in heap"
-                      " of size %lu bytes (%lu unmapped)\n",
-                      (long)MK_GC_bytes_found, (unsigned long)MK_GC_heapsize,
-                      (unsigned long)MK_GC_unmapped_bytes);
-#     else
-        MK_GC_log_printf(
-                "Immediately reclaimed %ld bytes in heap of size %lu bytes\n",
-                (long)MK_GC_bytes_found, (unsigned long)MK_GC_heapsize);
-#     endif
-    }
+    MK_GC_VERBOSE_LOG_PRINTF("Immediately reclaimed %ld bytes, heapsize:"
+                          " %lu bytes" IF_USE_MUNMAP(" (%lu unmapped)") "\n",
+                          (long)MK_GC_bytes_found,
+                          (unsigned long)MK_GC_heapsize /*, */
+                          COMMA_IF_USE_MUNMAP((unsigned long)
+                                              MK_GC_unmapped_bytes));
 
     /* Reset or increment counters for next cycle */
     MK_GC_n_attempts = 0;
@@ -934,17 +944,15 @@ STATIC void MK_GC_finish_collection(void)
     MK_GC_bytes_freed = 0;
     MK_GC_finalizer_bytes_freed = 0;
 
-#   ifdef USE_MUNMAP
-      MK_GC_unmap_old();
-#   endif
+    IF_USE_MUNMAP(MK_GC_unmap_old());
 
 #   ifndef SMALL_CONFIG
       if (MK_GC_print_stats) {
         GET_TIME(done_time);
-
-        /* A convenient place to output finalization statistics. */
-        MK_GC_print_finalization_stats();
-
+#       ifndef MK_GC_NO_FINALIZATION
+          /* A convenient place to output finalization statistics.      */
+          MK_GC_print_finalization_stats();
+#       endif
         MK_GC_log_printf("Finalize plus initiate sweep took %lu + %lu msecs\n",
                       MS_TIME_DIFF(finalize_time,start_time),
                       MS_TIME_DIFF(done_time,finalize_time));
@@ -954,16 +962,14 @@ STATIC void MK_GC_finish_collection(void)
 
 /* If stop_func == 0 then MK_GC_default_stop_func is used instead.         */
 STATIC MK_GC_bool MK_GC_try_to_collect_general(MK_GC_stop_func stop_func,
-                                         MK_GC_bool force_unmap)
+                                         MK_GC_bool force_unmap MK_GC_ATTR_UNUSED)
 {
     MK_GC_bool result;
-#   ifdef USE_MUNMAP
-      int old_unmap_threshold;
-#   endif
+    IF_USE_MUNMAP(int old_unmap_threshold;)
     IF_CANCEL(int cancel_state;)
     DCL_LOCK_STATE;
 
-    if (!MK_GC_is_initialized) MK_GC_init();
+    if (!EXPECT(MK_GC_is_initialized, TRUE)) MK_GC_init();
     if (MK_GC_debugging_started) MK_GC_print_all_smashed();
     MK_GC_INVOKE_FINALIZERS();
     LOCK();
@@ -976,13 +982,11 @@ STATIC MK_GC_bool MK_GC_try_to_collect_general(MK_GC_stop_func stop_func,
 #   endif
     ENTER_GC();
     /* Minimize junk left in my registers */
-      MK_GC_noop(0,0,0,0,0,0);
+      MK_GC_noop6(0,0,0,0,0,0);
     result = MK_GC_try_to_collect_inner(stop_func != 0 ? stop_func :
                                      MK_GC_default_stop_func);
     EXIT_GC();
-#   ifdef USE_MUNMAP
-      MK_GC_unmap_threshold = old_unmap_threshold; /* restore */
-#   endif
+    IF_USE_MUNMAP(MK_GC_unmap_threshold = old_unmap_threshold); /* restore */
     RESTORE_CANCEL(cancel_state);
     UNLOCK();
     if (result) {
@@ -1074,7 +1078,7 @@ MK_GC_INNER void MK_GC_add_to_heap(struct hblk *p, size_t bytes)
     phdr -> hb_flags = 0;
     MK_GC_freehblk(p);
     MK_GC_heapsize += bytes;
-    if ((ptr_t)p <= (ptr_t)MK_GC_least_plausible_heap_addr
+    if ((word)p <= (word)MK_GC_least_plausible_heap_addr
         || MK_GC_least_plausible_heap_addr == 0) {
         MK_GC_least_plausible_heap_addr = (void *)((ptr_t)p - sizeof(word));
                 /* Making it a little smaller than necessary prevents   */
@@ -1082,7 +1086,7 @@ MK_GC_INNER void MK_GC_add_to_heap(struct hblk *p, size_t bytes)
                 /* itself.  There's some unintentional reflection       */
                 /* here.                                                */
     }
-    if ((ptr_t)p + bytes >= (ptr_t)MK_GC_greatest_plausible_heap_addr) {
+    if ((word)p + bytes >= (word)MK_GC_greatest_plausible_heap_addr) {
         MK_GC_greatest_plausible_heap_addr = (void *)endp;
     }
 }
@@ -1092,14 +1096,17 @@ MK_GC_INNER void MK_GC_add_to_heap(struct hblk *p, size_t bytes)
   {
     unsigned i;
 
-    MK_GC_printf("Total heap size: %lu\n", (unsigned long)MK_GC_heapsize);
+    MK_GC_printf("Total heap size: %lu" IF_USE_MUNMAP(" (%lu unmapped)") "\n",
+              (unsigned long)MK_GC_heapsize /*, */
+              COMMA_IF_USE_MUNMAP((unsigned long)MK_GC_unmapped_bytes));
+
     for (i = 0; i < MK_GC_n_heap_sects; i++) {
       ptr_t start = MK_GC_heap_sects[i].hs_start;
       size_t len = MK_GC_heap_sects[i].hs_bytes;
       struct hblk *h;
       unsigned nbl = 0;
 
-      for (h = (struct hblk *)start; h < (struct hblk *)(start + len); h++) {
+      for (h = (struct hblk *)start; (word)h < (word)(start + len); h++) {
         if (MK_GC_is_black_listed(h, HBLKSIZE)) nbl++;
       }
       MK_GC_printf("Section %d from %p to %p %lu/%lu blacklisted\n",
@@ -1122,6 +1129,8 @@ MK_GC_INLINE word MK_GC_min(word x, word y)
     return(x < y? x : y);
 }
 
+STATIC word MK_GC_max_heapsize = 0;
+
 MK_GC_API void MK_GC_CALL MK_GC_set_max_heap_size(MK_GC_word n)
 {
     MK_GC_max_heapsize = n;
@@ -1129,13 +1138,10 @@ MK_GC_API void MK_GC_CALL MK_GC_set_max_heap_size(MK_GC_word n)
 
 MK_GC_word MK_GC_max_retries = 0;
 
-/*
- * this explicitly increases the size of the heap.  It is used
- * internally, but may also be invoked from MK_GC_expand_hp by the user.
- * The argument is in units of HBLKSIZE.
- * Tiny values of n are rounded up.
- * Returns FALSE on failure.
- */
+/* This explicitly increases the size of the heap.  It is used          */
+/* internally, but may also be invoked from MK_GC_expand_hp by the user.   */
+/* The argument is in units of HBLKSIZE (tiny values are rounded up).   */
+/* Returns FALSE on failure.                                            */
 MK_GC_INNER MK_GC_bool MK_GC_expand_hp_inner(word n)
 {
     word bytes;
@@ -1159,22 +1165,19 @@ MK_GC_INNER MK_GC_bool MK_GC_expand_hp_inner(word n)
     space = GET_MEM(bytes);
     MK_GC_add_to_our_memory((ptr_t)space, bytes);
     if (space == 0) {
-        if (MK_GC_print_stats) {
-            MK_GC_log_printf("Failed to expand heap by %ld bytes\n",
-                          (unsigned long)bytes);
-        }
+        WARN("Failed to expand heap by %" WARN_PRIdPTR " bytes\n", bytes);
         return(FALSE);
     }
-    if (MK_GC_print_stats) {
-      MK_GC_log_printf("Increasing heap size by %lu after %lu allocated bytes\n",
-                    (unsigned long)bytes, (unsigned long)MK_GC_bytes_allocd);
-    }
+    MK_GC_INFOLOG_PRINTF("Grow heap to %lu KiB after %lu bytes allocated\n",
+                      TO_KiB_UL(MK_GC_heapsize + bytes),
+                      (unsigned long)MK_GC_bytes_allocd);
     /* Adjust heap limits generously for blacklisting to work better.   */
     /* MK_GC_add_to_heap performs minimal adjustment needed for            */
     /* correctness.                                                     */
     expansion_slop = min_bytes_allocd() + 4*MAXHINCR*HBLKSIZE;
     if ((MK_GC_last_heap_addr == 0 && !((word)space & SIGNB))
-        || (MK_GC_last_heap_addr != 0 && MK_GC_last_heap_addr < (ptr_t)space)) {
+        || (MK_GC_last_heap_addr != 0
+            && (word)MK_GC_last_heap_addr < (word)space)) {
         /* Assume the heap is growing up */
         word new_limit = (word)space + bytes + expansion_slop;
         if (new_limit > (word)space) {
@@ -1199,6 +1202,9 @@ MK_GC_INNER MK_GC_bool MK_GC_expand_hp_inner(word n)
          MK_GC_heapsize + expansion_slop - 2*MAXHINCR*HBLKSIZE;
       if (MK_GC_collect_at_heapsize < MK_GC_heapsize /* wrapped */)
          MK_GC_collect_at_heapsize = (word)(-1);
+    if (MK_GC_on_heap_resize)
+      (*MK_GC_on_heap_resize)(MK_GC_heapsize);
+
     return(TRUE);
 }
 
@@ -1210,16 +1216,21 @@ MK_GC_API int MK_GC_CALL MK_GC_expand_hp(size_t bytes)
     DCL_LOCK_STATE;
 
     LOCK();
-    if (!MK_GC_is_initialized) MK_GC_init();
+    if (!EXPECT(MK_GC_is_initialized, TRUE)) MK_GC_init();
     result = (int)MK_GC_expand_hp_inner(divHBLKSZ((word)bytes));
     if (result) MK_GC_requested_heapsize += bytes;
     UNLOCK();
     return(result);
 }
 
+word MK_GC_fo_entries = 0; /* used also in extra/MacOS.c */
+
 MK_GC_INNER unsigned MK_GC_fail_count = 0;
                         /* How many consecutive GC/expansion failures?  */
                         /* Reset by MK_GC_allochblk.                       */
+
+static word last_fo_entries = 0;
+static word last_bytes_finalized = 0;
 
 /* Collect or expand heap in an attempt make the indicated number of    */
 /* free blocks available.  Should be called until the blocks are        */
@@ -1235,7 +1246,10 @@ MK_GC_INNER MK_GC_bool MK_GC_collect_or_expand(word needed_blocks,
 
     DISABLE_CANCEL(cancel_state);
     if (!MK_GC_incremental && !MK_GC_dont_gc &&
-        ((MK_GC_dont_expand && MK_GC_bytes_allocd > 0) || MK_GC_should_collect())) {
+        ((MK_GC_dont_expand && MK_GC_bytes_allocd > 0)
+         || (MK_GC_fo_entries > (last_fo_entries + 500)
+             && (last_bytes_finalized | MK_GC_bytes_finalized) != 0)
+         || MK_GC_should_collect())) {
       /* Try to do a full collection using 'default' stop_func (unless  */
       /* nothing has been allocated since the latest collection or heap */
       /* expansion is disabled).                                        */
@@ -1245,6 +1259,8 @@ MK_GC_INNER MK_GC_bool MK_GC_collect_or_expand(word needed_blocks,
       if (gc_not_stopped == TRUE || !retry) {
         /* Either the collection hasn't been aborted or this is the     */
         /* first attempt (in a loop).                                   */
+        last_fo_entries = MK_GC_fo_entries;
+        last_bytes_finalized = MK_GC_bytes_finalized;
         RESTORE_CANCEL(cancel_state);
         return(TRUE);
       }
@@ -1282,14 +1298,14 @@ MK_GC_INNER MK_GC_bool MK_GC_collect_or_expand(word needed_blocks,
         MK_GC_gcollect_inner();
       } else {
 #       if !defined(AMIGA) || !defined(MK_GC_AMIGA_FASTALLOC)
-          WARN("Out of Memory! Heap size: %" MK_GC_PRIdPTR " MiB."
+          WARN("Out of Memory! Heap size: %" WARN_PRIdPTR " MiB."
                " Returning NULL!\n", (MK_GC_heapsize - MK_GC_unmapped_bytes) >> 20);
 #       endif
         RESTORE_CANCEL(cancel_state);
         return(FALSE);
       }
-    } else if (MK_GC_fail_count && MK_GC_print_stats) {
-      MK_GC_log_printf("Memory available again...\n");
+    } else if (MK_GC_fail_count) {
+      MK_GC_COND_LOG_PRINTF("Memory available again...\n");
     }
     RESTORE_CANCEL(cancel_state);
     return(TRUE);

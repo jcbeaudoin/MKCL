@@ -18,10 +18,6 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- *
- * Modified by Carlos O'Donell <carlos@baldric.uwo.ca>, 2003
- *      - Added self-aligning lock.
- *
  */
 
 #include "../all_atomic_load_store.h"
@@ -53,13 +49,9 @@ typedef enum {MK_AO_PA_TS_set = 0, MK_AO_PA_TS_clear = 1} MK_AO_PA_TS_val;
 /* load and clear, so hppa spinlocks must use zero to signify that      */
 /* someone is holding the lock.  The address used for the ldcw          */
 /* semaphore must be 16-byte aligned.                                   */
-
-#define __ldcw(a) ({ \
-  volatile unsigned int __ret;                                  \
-  __asm__ __volatile__("ldcw 0(%2),%0"                          \
-                      : "=r" (__ret), "=m" (*(a)) : "r" (a));   \
-  __ret;                                                        \
-})
+#define MK_AO_ldcw(a, ret) \
+  __asm__ __volatile__("ldcw 0(%2), %0" \
+                       : "=r" (ret), "=m" (*(a)) : "r" (a))
 
 /* Because malloc only guarantees 8-byte alignment for malloc'd data,   */
 /* and GCC only guarantees 8-byte alignment for stack locals, we can't  */
@@ -68,27 +60,29 @@ typedef enum {MK_AO_PA_TS_set = 0, MK_AO_PA_TS_clear = 1} MK_AO_PA_TS_val;
 /* we use a struct containing an array of four ints for the atomic lock */
 /* type and dynamically select the 16-byte aligned int from the array   */
 /* for the semaphore.                                                   */
-#define __PA_LDCW_ALIGNMENT 16
-#define __ldcw_align(a) ({ \
-  unsigned long __ret = (unsigned long) a;                      \
-  __ret += __PA_LDCW_ALIGNMENT - 1;                                     \
-  __ret &= ~(__PA_LDCW_ALIGNMENT - 1);                                  \
-  (volatile unsigned int *) __ret;                                      \
-})
+#define MK_AO_PA_LDCW_ALIGNMENT 16
+#define MK_AO_ldcw_align(addr) \
+            ((volatile unsigned *)(((unsigned long)(addr) \
+                                        + (MK_AO_PA_LDCW_ALIGNMENT - 1)) \
+                                   & ~(MK_AO_PA_LDCW_ALIGNMENT - 1)))
 
 /* Works on PA 1.1 and PA 2.0 systems */
 MK_AO_INLINE MK_AO_TS_VAL_t
 MK_AO_test_and_set_full(volatile MK_AO_TS_t * addr)
 {
-  volatile unsigned int *a = __ldcw_align (addr);
-  return (MK_AO_TS_VAL_t) __ldcw (a);
+  volatile unsigned int ret;
+  volatile unsigned *a = MK_AO_ldcw_align(addr);
+
+  MK_AO_ldcw(a, ret);
+  return (MK_AO_TS_VAL_t)ret;
 }
 #define MK_AO_HAVE_test_and_set_full
 
 MK_AO_INLINE void
 MK_AO_pa_clear(volatile MK_AO_TS_t * addr)
 {
-  volatile unsigned int *a = __ldcw_align (addr);
+  volatile unsigned *a = MK_AO_ldcw_align(addr);
+
   MK_AO_compiler_barrier();
   *a = 1;
 }

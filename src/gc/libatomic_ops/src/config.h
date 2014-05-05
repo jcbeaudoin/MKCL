@@ -1,6 +1,78 @@
 /* src/config.h.  Generated from config.h.in by configure.  */
 /* src/config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Inline assembly avalable (only VC/x86_64) */
+/* #undef MK_AO_ASM_X64_AVAILABLE */
+
+/* Assume Windows Server 2003, Vista or later target (only VC/x86) */
+/* #undef MK_AO_ASSUME_VISTA */
+
+/* Assume hardware compare-and-swap functionality available on target (only
+   VC/x86) */
+/* #undef MK_AO_ASSUME_WINDOWS98 */
+
+/* Assume target is not old AMD Opteron chip (only x86_64) */
+/* #undef MK_AO_CMPXCHG16B_AVAILABLE */
+
+/* Force test_and_set to use SWP instruction instead of LDREX/STREX (only arm
+   v6+) */
+/* #undef MK_AO_FORCE_USE_SWP */
+
+/* Force compare_and_swap definition via fetch_compare_and_swap */
+/* #undef MK_AO_GENERALIZE_ASM_BOOL_CAS */
+
+/* No pthreads library available */
+/* #undef MK_AO_NO_PTHREADS */
+
+/* Assume target is not sparc v9+ (only sparc) */
+/* #undef MK_AO_NO_SPARC_V9 */
+
+/* Assume ancient MS VS Win32 headers (only VC/arm v6+, VC/x86) */
+/* #undef MK_AO_OLD_STYLE_INTERLOCKED_COMPARE_EXCHANGE */
+
+/* Prefer generalized definitions to direct assembly-based ones */
+/* #undef MK_AO_PREFER_GENERALIZED */
+
+/* Trace MK_AO_malloc/free calls (for debug only) */
+/* #undef MK_AO_TRACE_MALLOC */
+
+/* Assume single-core target (only arm v6+) */
+/* #undef MK_AO_UNIPROCESSOR */
+
+/* Assume Win32 _Interlocked primitives available as intrinsics (only VC/arm)
+   */
+/* #undef MK_AO_USE_INTERLOCKED_INTRINSICS */
+
+/* Use nanosleep() instead of select() (only if atomic operations are
+   emulated) */
+/* #undef MK_AO_USE_NANOSLEEP */
+
+/* Do not block signals in compare_and_swap (only if atomic operations are
+   emulated) */
+/* #undef MK_AO_USE_NO_SIGNALS */
+
+/* Use Pentium 4 'mfence' instruction (only x86) */
+/* #undef MK_AO_USE_PENTIUM4_INSTRS */
+
+/* Emulate atomic operations via slow and async-signal-unsafe pthread locking
+   */
+/* #undef MK_AO_USE_PTHREAD_DEFS */
+
+/* Prefer GCC built-in CAS intrinsics in favor of inline assembly (only
+   gcc/x86, gcc/x86_64) */
+/* #undef MK_AO_USE_SYNC_CAS_BUILTIN */
+
+/* Use Win32 Sleep() instead of select() (only if atomic operations are
+   emulated) */
+/* #undef MK_AO_USE_WIN32_PTHREADS */
+
+/* Emulate double-width CAS via pthread locking in case of no hardware support
+   (only gcc/x86_64, the emulation is unsafe) */
+/* #undef MK_AO_WEAK_DOUBLE_CAS_EMULATION */
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#define HAVE_DLFCN_H 1
+
 /* Define to 1 if you have the `getpagesize' function. */
 #define HAVE_GETPAGESIZE 1
 
@@ -37,6 +109,13 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
 
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#define LT_OBJDIR ".libs/"
+
+/* Define to disable assertion checking. */
+#define NDEBUG 1
+
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 /* #undef NO_MINUS_C_MINUS_O */
 
@@ -44,13 +123,13 @@
 #define PACKAGE "libatomic_ops"
 
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT ""
+#define PACKAGE_BUGREPORT "gc@linux.hpl.hp.com"
 
 /* Define to the full name of this package. */
 #define PACKAGE_NAME "libatomic_ops"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "libatomic_ops 7.2"
+#define PACKAGE_STRING "libatomic_ops 7.4.0"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "libatomic_ops"
@@ -59,13 +138,13 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "7.2"
+#define PACKAGE_VERSION "7.4.0"
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
 /* Version number of package */
-#define VERSION "7.2"
+#define VERSION "7.4.0"
 
 /* Indicates the use of pthreads (NetBSD). */
 /* #undef _PTHREADS */

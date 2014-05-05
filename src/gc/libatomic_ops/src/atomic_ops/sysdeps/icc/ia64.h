@@ -104,121 +104,102 @@ MK_AO_nop_full(void)
 }
 #define MK_AO_HAVE_nop_full
 
+#ifndef MK_AO_PREFER_GENERALIZED
 MK_AO_INLINE MK_AO_t
-MK_AO_fetch_and_add1_acquire (volatile MK_AO_t *p)
+MK_AO_fetch_and_add1_acquire(volatile MK_AO_t *p)
 {
   return __fetchadd8_acq((unsigned __int64 *)p, 1);
 }
 #define MK_AO_HAVE_fetch_and_add1_acquire
 
 MK_AO_INLINE MK_AO_t
-MK_AO_fetch_and_add1_release (volatile MK_AO_t *p)
+MK_AO_fetch_and_add1_release(volatile MK_AO_t *p)
 {
   return __fetchadd8_rel((unsigned __int64 *)p, 1);
 }
-
 #define MK_AO_HAVE_fetch_and_add1_release
 
 MK_AO_INLINE MK_AO_t
-MK_AO_fetch_and_sub1_acquire (volatile MK_AO_t *p)
+MK_AO_fetch_and_sub1_acquire(volatile MK_AO_t *p)
 {
   return __fetchadd8_acq((unsigned __int64 *)p, -1);
 }
-
 #define MK_AO_HAVE_fetch_and_sub1_acquire
 
 MK_AO_INLINE MK_AO_t
-MK_AO_fetch_and_sub1_release (volatile MK_AO_t *p)
+MK_AO_fetch_and_sub1_release(volatile MK_AO_t *p)
 {
   return __fetchadd8_rel((unsigned __int64 *)p, -1);
 }
-
 #define MK_AO_HAVE_fetch_and_sub1_release
+#endif /* !MK_AO_PREFER_GENERALIZED */
 
-MK_AO_INLINE int
-MK_AO_compare_and_swap_acquire(volatile MK_AO_t *addr,
-                             MK_AO_t old, MK_AO_t new_val)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_compare_and_swap_acquire(volatile MK_AO_t *addr, MK_AO_t old_val,
+                                  MK_AO_t new_val)
 {
-  MK_AO_t oldval;
-  oldval = _InterlockedCompareExchange64_acq(addr, new_val, old);
-  return (oldval == old);
+  return _InterlockedCompareExchange64_acq(addr, new_val, old_val);
 }
+#define MK_AO_HAVE_fetch_compare_and_swap_acquire
 
-#define MK_AO_HAVE_compare_and_swap_acquire
-
-MK_AO_INLINE int
-MK_AO_compare_and_swap_release(volatile MK_AO_t *addr,
-                             MK_AO_t old, MK_AO_t new_val)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_compare_and_swap_release(volatile MK_AO_t *addr, MK_AO_t old_val,
+                                  MK_AO_t new_val)
 {
-  MK_AO_t oldval;
-  oldval = _InterlockedCompareExchange64_rel(addr, new_val, old);
-  return (oldval == old);
+  return _InterlockedCompareExchange64_rel(addr, new_val, old_val);
 }
+#define MK_AO_HAVE_fetch_compare_and_swap_release
 
-#define MK_AO_HAVE_compare_and_swap_release
-
-MK_AO_INLINE int
-MK_AO_char_compare_and_swap_acquire(volatile unsigned char *addr,
-                                 unsigned char old, unsigned char new_val)
+MK_AO_INLINE unsigned char
+MK_AO_char_fetch_compare_and_swap_acquire(volatile unsigned char *addr,
+                                       unsigned char old_val,
+                                       unsigned char new_val)
 {
-  unsigned char oldval;
-  oldval = _InterlockedCompareExchange8_acq(addr, new_val, old);
-  return (oldval == old);
+  return _InterlockedCompareExchange8_acq(addr, new_val, old_val);
 }
+#define MK_AO_HAVE_char_fetch_compare_and_swap_acquire
 
-#define MK_AO_HAVE_char_compare_and_swap_acquire
-
-MK_AO_INLINE int
-MK_AO_char_compare_and_swap_release(volatile unsigned char *addr,
-                            unsigned char old, unsigned char new_val)
+MK_AO_INLINE unsigned char
+MK_AO_char_fetch_compare_and_swap_release(volatile unsigned char *addr,
+                                       unsigned char old_val,
+                                       unsigned char new_val)
 {
-  unsigned char oldval;
-  oldval = _InterlockedCompareExchange8_rel(addr, new_val, old);
-  return (oldval == old);
+  return _InterlockedCompareExchange8_rel(addr, new_val, old_val);
 }
+#define MK_AO_HAVE_char_fetch_compare_and_swap_release
 
-#define MK_AO_HAVE_char_compare_and_swap_release
-
-MK_AO_INLINE int
-MK_AO_short_compare_and_swap_acquire(volatile unsigned short *addr,
-                                 unsigned short old, unsigned short new_val)
+MK_AO_INLINE unsigned short
+MK_AO_short_fetch_compare_and_swap_acquire(volatile unsigned short *addr,
+                                        unsigned short old_val,
+                                        unsigned short new_val)
 {
-  unsigned short oldval;
-  oldval = _InterlockedCompareExchange16_acq(addr, new_val, old);
-  return (oldval == old);
+  return _InterlockedCompareExchange16_acq(addr, new_val, old_val);
 }
+#define MK_AO_HAVE_short_fetch_compare_and_swap_acquire
 
-#define MK_AO_HAVE_short_compare_and_swap_acquire
-
-MK_AO_INLINE int
-MK_AO_short_compare_and_swap_release(volatile unsigned short *addr,
-                            unsigned short old, unsigned short new_val)
+MK_AO_INLINE unsigned short
+MK_AO_short_fetch_compare_and_swap_release(volatile unsigned short *addr,
+                                        unsigned short old_val,
+                                        unsigned short new_val)
 {
-  unsigned short oldval;
-  oldval = _InterlockedCompareExchange16_rel(addr, new_val, old);
-  return (oldval == old);
+  return _InterlockedCompareExchange16_rel(addr, new_val, old_val);
 }
+#define MK_AO_HAVE_short_fetch_compare_and_swap_release
 
-#define MK_AO_HAVE_short_compare_and_swap_release
-
-MK_AO_INLINE int
-MK_AO_int_compare_and_swap_acquire(volatile unsigned int *addr,
-                                 unsigned int old, unsigned int new_val)
+MK_AO_INLINE unsigned int
+MK_AO_int_fetch_compare_and_swap_acquire(volatile unsigned int *addr,
+                                      unsigned int old_val,
+                                      unsigned int new_val)
 {
-  unsigned int oldval;
-  oldval = _InterlockedCompareExchange_acq(addr, new_val, old);
-  return (oldval == old);
+  return _InterlockedCompareExchange_acq(addr, new_val, old_val);
 }
+#define MK_AO_HAVE_int_fetch_compare_and_swap_acquire
 
-#define MK_AO_HAVE_int_compare_and_swap_acquire
-
-MK_AO_INLINE int
-MK_AO_int_compare_and_swap_release(volatile unsigned int *addr,
-                            unsigned int old, unsigned int new_val)
+MK_AO_INLINE unsigned int
+MK_AO_int_fetch_compare_and_swap_release(volatile unsigned int *addr,
+                                      unsigned int old_val,
+                                      unsigned int new_val)
 {
-  unsigned int oldval;
-  oldval = _InterlockedCompareExchange_rel(addr, new_val, old);
-  return (oldval == old);
+  return _InterlockedCompareExchange_rel(addr, new_val, old_val);
 }
-
-#define MK_AO_HAVE_int_compare_and_swap_release
+#define MK_AO_HAVE_int_fetch_compare_and_swap_release

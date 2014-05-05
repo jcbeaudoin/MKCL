@@ -136,10 +136,17 @@ MK_GC_EXTERN MK_GC_bool MK_GC_in_thread_creation;
   MK_GC_INNER void MK_GC_unblock_gc_signals(void);
 #endif
 
-MK_GC_INNER MK_GC_thread MK_GC_start_rtn_prepare_thread(void *(**pstart)(void *),
+#ifdef MK_GC_PTHREAD_START_STANDALONE
+# define MK_GC_INNER_PTHRSTART /* empty */
+#else
+# define MK_GC_INNER_PTHRSTART MK_GC_INNER
+#endif
+
+MK_GC_INNER_PTHRSTART MK_GC_thread MK_GC_start_rtn_prepare_thread(
+                                        void *(**pstart)(void *),
                                         void **pstart_arg,
                                         struct MK_GC_stack_base *sb, void *arg);
-MK_GC_INNER void MK_GC_thread_exit_proc(void *);
+MK_GC_INNER_PTHRSTART void MK_GC_thread_exit_proc(void *);
 
 #endif /* MK_GC_PTHREADS && !MK_GC_WIN32_THREADS */
 

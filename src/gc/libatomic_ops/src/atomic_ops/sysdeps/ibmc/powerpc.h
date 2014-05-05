@@ -51,6 +51,7 @@ MK_AO_store_release(volatile MK_AO_t *addr, MK_AO_t value)
 }
 #define MK_AO_HAVE_store_release
 
+#ifndef MK_AO_PREFER_GENERALIZED
 /* This is similar to the code in the garbage collector.  Deleting      */
 /* this and having it synthesized from compare_and_swap would probably  */
 /* only cost us a load immediate instruction.                           */
@@ -84,41 +85,44 @@ MK_AO_test_and_set_full(volatile MK_AO_TS_t *addr) {
   return result;
 }
 #define MK_AO_HAVE_test_and_set_full
+#endif /* !MK_AO_PREFER_GENERALIZED */
 
-/*MK_AO_INLINE int
-MK_AO_compare_and_swap(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val)
+/*MK_AO_INLINE MK_AO_t
+MK_AO_fetch_compare_and_swap(volatile MK_AO_t *addr, MK_AO_t old_val, MK_AO_t new_val)
 {
 # error FIXME Implement me
 }
-#define MK_AO_HAVE_compare_and_swap*/
+#define MK_AO_HAVE_fetch_compare_and_swap*/
 
-MK_AO_INLINE int
-MK_AO_compare_and_swap_acquire(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_compare_and_swap_acquire(volatile MK_AO_t *addr, MK_AO_t old_val,
+                                  MK_AO_t new_val)
 {
-  int result = MK_AO_compare_and_swap(addr, old, new_val);
+  MK_AO_t result = MK_AO_fetch_compare_and_swap(addr, old_val, new_val);
   MK_AO_lwsync();
   return result;
 }
-#define MK_AO_HAVE_compare_and_swap_acquire
+#define MK_AO_HAVE_fetch_compare_and_swap_acquire
 
-MK_AO_INLINE int
-MK_AO_compare_and_swap_release(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_compare_and_swap_release(volatile MK_AO_t *addr, MK_AO_t old_val,
+                                  MK_AO_t new_val)
 {
   MK_AO_lwsync();
-  return MK_AO_compare_and_swap(addr, old, new_val);
+  return MK_AO_fetch_compare_and_swap(addr, old_val, new_val);
 }
-#define MK_AO_HAVE_compare_and_swap_release
+#define MK_AO_HAVE_fetch_compare_and_swap_release
 
-MK_AO_INLINE int
-MK_AO_compare_and_swap_full(volatile MK_AO_t *addr, MK_AO_t old, MK_AO_t new_val)
+MK_AO_INLINE MK_AO_t
+MK_AO_fetch_compare_and_swap_full(volatile MK_AO_t *addr, MK_AO_t old_val,
+                               MK_AO_t new_val)
 {
-  int result;
+  MK_AO_t result;
   MK_AO_lwsync();
-  result = MK_AO_compare_and_swap(addr, old, new_val);
+  result = MK_AO_fetch_compare_and_swap(addr, old_val, new_val);
   MK_AO_lwsync();
   return result;
 }
-#define MK_AO_HAVE_compare_and_swap_full
+#define MK_AO_HAVE_fetch_compare_and_swap_full
 
-/* FIXME: We should also implement fetch_and_add and or primitives      */
-/* directly.                                                            */
+/* TODO: Implement MK_AO_fetch_and_add, MK_AO_and/or/xor directly.    */

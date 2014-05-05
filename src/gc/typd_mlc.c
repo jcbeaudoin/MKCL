@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 1991-1994 by Xerox Corporation.  All rights reserved.
- * opyright (c) 1999-2000 by Hewlett-Packard Company.  All rights reserved.
+ * Copyright (c) 1999-2000 by Hewlett-Packard Company.  All rights reserved.
  *
  * THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY EXPRESSED
  * OR IMPLIED.  ANY USE IS AT YOUR OWN RISK.
@@ -110,7 +110,7 @@ STATIC void MK_GC_push_typed_structures_proc(void)
 /* starting index.                                              */
 /* Returns -1 on failure.                                       */
 /* Caller does not hold allocation lock.                        */
-STATIC signed_word MK_GC_add_ext_descriptor(MK_GC_bitmap bm, word nbits)
+STATIC signed_word MK_GC_add_ext_descriptor(const MK_GC_word * bm, word nbits)
 {
     size_t nwords = divWORDSZ(nbits + WORDSZ-1);
     signed_word result;
@@ -126,6 +126,7 @@ STATIC signed_word MK_GC_add_ext_descriptor(MK_GC_bitmap bm, word nbits)
         word ed_size = MK_GC_ed_size;
 
         if (ed_size == 0) {
+            MK_GC_ASSERT((word)&MK_GC_ext_descriptors % sizeof(word) == 0);
             MK_GC_push_typed_structures = MK_GC_push_typed_structures_proc;
             UNLOCK();
             new_size = ED_INITIAL_SIZE;
@@ -360,7 +361,7 @@ STATIC void MK_GC_init_explicit_typing(void)
       MK_GC_eobjfreelist = (ptr_t *)MK_GC_new_free_list_inner();
       MK_GC_explicit_kind = MK_GC_new_kind_inner(
                             (void **)MK_GC_eobjfreelist,
-                            (((word)WORDS_TO_BYTES(-1)) | MK_GC_DS_PER_OBJECT),
+                            (WORDS_TO_BYTES((word)-1) | MK_GC_DS_PER_OBJECT),
                             TRUE, TRUE);
                 /* Descriptors are in the last word of the object. */
       MK_GC_typed_mark_proc_index = MK_GC_new_proc_inner(MK_GC_typed_mark_proc);
@@ -372,9 +373,7 @@ STATIC void MK_GC_init_explicit_typing(void)
                             MK_GC_MAKE_PROC(MK_GC_array_mark_proc_index, 0),
                             FALSE, TRUE);
       for (i = 0; i < WORDSZ/2; i++) {
-          MK_GC_descr d = (((word)(-1)) >> (WORDSZ - i)) << (WORDSZ - i);
-          d |= MK_GC_DS_BITMAP;
-          MK_GC_bm_table[i] = d;
+          MK_GC_bm_table[i] = (((word)-1) << (WORDSZ - i)) | MK_GC_DS_BITMAP;
       }
     UNLOCK();
 }
@@ -394,7 +393,7 @@ STATIC mse * MK_GC_typed_mark_proc(word * addr, mse * mark_stack_ptr,
         if (bm & 1) {
             current = *current_p;
             FIXUP_POINTER(current);
-            if ((ptr_t)current >= least_ha && (ptr_t)current <= greatest_ha) {
+            if (current >= (word)least_ha && current <= (word)greatest_ha) {
                 PUSH_CONTENTS((ptr_t)current, mark_stack_ptr,
                               mark_stack_limit, (ptr_t)current_p, exit1);
             }
@@ -406,12 +405,12 @@ STATIC mse * MK_GC_typed_mark_proc(word * addr, mse * mark_stack_ptr,
         /* we also can't overflow the mark stack unless we actually     */
         /* mark something.                                              */
         mark_stack_ptr++;
-        if (mark_stack_ptr >= mark_stack_limit) {
+        if ((word)mark_stack_ptr >= (word)mark_stack_limit) {
             mark_stack_ptr = MK_GC_signal_mark_stack_overflow(mark_stack_ptr);
         }
         mark_stack_ptr -> mse_start = (ptr_t)(addr + WORDSZ);
-        mark_stack_ptr -> mse_descr =
-                MK_GC_MAKE_PROC(MK_GC_typed_mark_proc_index, env+1);
+        mark_stack_ptr -> mse_descr.w =
+                        MK_GC_MAKE_PROC(MK_GC_typed_mark_proc_index, env + 1);
     }
     return(mark_stack_ptr);
 }
@@ -431,8 +430,8 @@ STATIC word MK_GC_descr_obj_size(complex_descriptor *d)
         return(MK_GC_descr_obj_size(d -> sd.sd_first)
                + MK_GC_descr_obj_size(d -> sd.sd_second));
       default:
-        ABORT("Bad complex descriptor");
-        /*NOTREACHED*/ return 0; /*NOTREACHED*/
+        ABORT_RET("Bad complex descriptor");
+        return 0;
     }
 }
 
@@ -457,7 +456,7 @@ STATIC mse * MK_GC_push_complex_descriptor(word *addr, complex_descriptor *d,
           for (i = 0; i < nelements; i++) {
               msp++;
               msp -> mse_start = current;
-              msp -> mse_descr = descr;
+              msp -> mse_descr.w = descr;
               current += sz;
           }
           return(msp);
@@ -488,14 +487,14 @@ STATIC mse * MK_GC_push_complex_descriptor(word *addr, complex_descriptor *d,
           return(msp);
         }
       default:
-        ABORT("Bad complex descriptor");
-        /*NOTREACHED*/ return 0; /*NOTREACHED*/
+        ABORT_RET("Bad complex descriptor");
+        return 0;
    }
 }
 
-/*ARGSUSED*/
 STATIC mse * MK_GC_array_mark_proc(word * addr, mse * mark_stack_ptr,
-                                mse * mark_stack_limit, word env)
+                                mse * mark_stack_limit,
+                                word env MK_GC_ATTR_UNUSED)
 {
     hdr * hhdr = HDR(addr);
     size_t sz = hhdr -> hb_sz;
@@ -522,24 +521,26 @@ STATIC mse * MK_GC_array_mark_proc(word * addr, mse * mark_stack_ptr,
         MK_GC_mark_stack_too_small = TRUE;
         new_mark_stack_ptr = orig_mark_stack_ptr + 1;
         new_mark_stack_ptr -> mse_start = (ptr_t)addr;
-        new_mark_stack_ptr -> mse_descr = sz | MK_GC_DS_LENGTH;
+        new_mark_stack_ptr -> mse_descr.w = sz | MK_GC_DS_LENGTH;
     } else {
         /* Push descriptor itself */
         new_mark_stack_ptr++;
         new_mark_stack_ptr -> mse_start = (ptr_t)(addr + nwords - 1);
-        new_mark_stack_ptr -> mse_descr = sizeof(word) | MK_GC_DS_LENGTH;
+        new_mark_stack_ptr -> mse_descr.w = sizeof(word) | MK_GC_DS_LENGTH;
     }
     return new_mark_stack_ptr;
 }
 
-MK_GC_API MK_GC_descr MK_GC_CALL MK_GC_make_descriptor(MK_GC_bitmap bm, size_t len)
+MK_GC_API MK_GC_descr MK_GC_CALL MK_GC_make_descriptor(const MK_GC_word * bm, size_t len)
 {
     signed_word last_set_bit = len - 1;
     MK_GC_descr result;
     signed_word i;
 #   define HIGH_BIT (((word)1) << (WORDSZ - 1))
 
-    if (!MK_GC_explicit_typing_initialized) MK_GC_init_explicit_typing();
+    if (!EXPECT(MK_GC_explicit_typing_initialized, TRUE))
+      MK_GC_init_explicit_typing();
+
     while (last_set_bit >= 0 && !MK_GC_get_bit(bm, last_set_bit))
       last_set_bit--;
     if (last_set_bit < 0) return(0 /* no pointers */);
@@ -589,10 +590,12 @@ MK_GC_API void * MK_GC_CALL MK_GC_malloc_explicitly_typed(size_t lb, MK_GC_descr
 
     lb += TYPD_EXTRA_BYTES;
     if(SMALL_OBJ(lb)) {
+        MK_GC_DBG_COLLECT_AT_MALLOC(lb);
         lg = MK_GC_size_map[lb];
         opp = &(MK_GC_eobjfreelist[lg]);
         LOCK();
-        if( (op = *opp) == 0 ) {
+        op = *opp;
+        if (EXPECT(0 == op, FALSE)) {
             UNLOCK();
             op = (ptr_t)GENERAL_MALLOC((word)lb, MK_GC_explicit_kind);
             if (0 == op) return 0;
@@ -624,10 +627,12 @@ MK_GC_API void * MK_GC_CALL MK_GC_malloc_explicitly_typed_ignore_off_page(size_t
 
     lb += TYPD_EXTRA_BYTES;
     if( SMALL_OBJ(lb) ) {
+        MK_GC_DBG_COLLECT_AT_MALLOC(lb);
         lg = MK_GC_size_map[lb];
         opp = &(MK_GC_eobjfreelist[lg]);
         LOCK();
-        if( (op = *opp) == 0 ) {
+        op = *opp;
+        if (EXPECT(0 == op, FALSE)) {
             UNLOCK();
             op = (ptr_t)GENERAL_MALLOC_IOP(lb, MK_GC_explicit_kind);
             if (0 == op) return 0;
@@ -642,7 +647,7 @@ MK_GC_API void * MK_GC_CALL MK_GC_malloc_explicitly_typed_ignore_off_page(size_t
    } else {
        op = (ptr_t)GENERAL_MALLOC_IOP(lb, MK_GC_explicit_kind);
        if (op != NULL) {
-         lg = BYTES_TO_WORDS(MK_GC_size(op));
+         lg = BYTES_TO_GRANULES(MK_GC_size(op));
          ((word *)op)[GRANULES_TO_WORDS(lg) - 1] = d;
        }
    }
@@ -679,7 +684,8 @@ MK_GC_API void * MK_GC_CALL MK_GC_calloc_explicitly_typed(size_t n, size_t lb,
         lg = MK_GC_size_map[lb];
         opp = &(MK_GC_arobjfreelist[lg]);
         LOCK();
-        if( (op = *opp) == 0 ) {
+        op = *opp;
+        if (EXPECT(0 == op, FALSE)) {
             UNLOCK();
             op = (ptr_t)GENERAL_MALLOC((word)lb, MK_GC_array_kind);
             if (0 == op) return(0);
@@ -709,13 +715,16 @@ MK_GC_API void * MK_GC_CALL MK_GC_calloc_explicitly_typed(size_t n, size_t lb,
        lp -> ld_descriptor = leaf.ld_descriptor;
        ((volatile word *)op)[GRANULES_TO_WORDS(lg) - 1] = (word)lp;
    } else {
+#    ifndef MK_GC_NO_FINALIZATION
        size_t lw = GRANULES_TO_WORDS(lg);
 
        ((word *)op)[lw - 1] = (word)complex_descr;
        /* Make sure the descriptor is cleared once there is any danger  */
        /* it may have been collected.                                   */
        if (MK_GC_general_register_disappearing_link((void * *)((word *)op+lw-1),
-                                                 op) == MK_GC_NO_MEMORY) {
+                                                 op) == MK_GC_NO_MEMORY)
+#    endif
+       {
            /* Couldn't register it due to lack of memory.  Punt.        */
            /* This will probably fail too, but gives the recovery code  */
            /* a chance.                                                 */

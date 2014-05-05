@@ -12,6 +12,7 @@
  * provided the above notices are retained, and a notice that the code was
  * modified is included with the above copyright notice.
  */
+
 /*
  * Some simple primitives for allocation with explicit type information.
  * Facilities for dynamic type inference may be added later.
@@ -48,7 +49,7 @@ typedef MK_GC_word * MK_GC_bitmap;
 
 typedef MK_GC_word MK_GC_descr;
 
-MK_GC_API MK_GC_descr MK_GC_CALL MK_GC_make_descriptor(MK_GC_bitmap /* bm */,
+MK_GC_API MK_GC_descr MK_GC_CALL MK_GC_make_descriptor(const MK_GC_word * /* MK_GC_bitmap bm */,
                                            size_t /* len */);
                 /* Return a type descriptor for the object whose layout */
                 /* is described by the argument.                        */
@@ -76,19 +77,21 @@ MK_GC_API MK_GC_descr MK_GC_CALL MK_GC_make_descriptor(MK_GC_bitmap /* bm */,
 /* ...                                                                  */
 /* T_descr = MK_GC_make_descriptor(T_bitmap, MK_GC_WORD_LEN(T));              */
 
-MK_GC_API void * MK_GC_CALL MK_GC_malloc_explicitly_typed(size_t /* size_in_bytes */,
-                                                 MK_GC_descr /* d */);
+MK_GC_API MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1) void * MK_GC_CALL
+        MK_GC_malloc_explicitly_typed(size_t /* size_in_bytes */,
+                                   MK_GC_descr /* d */);
                 /* Allocate an object whose layout is described by d.   */
                 /* The resulting object MAY NOT BE PASSED TO REALLOC.   */
                 /* The returned object is cleared.                      */
 
-MK_GC_API void * MK_GC_CALL MK_GC_malloc_explicitly_typed_ignore_off_page(
-                                        size_t /* size_in_bytes */,
-                                        MK_GC_descr /* d */);
+MK_GC_API MK_GC_ATTR_MALLOC MK_GC_ATTR_ALLOC_SIZE(1) void * MK_GC_CALL
+        MK_GC_malloc_explicitly_typed_ignore_off_page(size_t /* size_in_bytes */,
+                                                   MK_GC_descr /* d */);
 
-MK_GC_API void * MK_GC_CALL MK_GC_calloc_explicitly_typed(size_t /* nelements */,
-                                        size_t /* element_size_in_bytes */,
-                                        MK_GC_descr /* d */);
+MK_GC_API MK_GC_ATTR_MALLOC void * MK_GC_CALL
+        MK_GC_calloc_explicitly_typed(size_t /* nelements */,
+                                   size_t /* element_size_in_bytes */,
+                                   MK_GC_descr /* d */);
         /* Allocate an array of nelements elements, each of the */
         /* given size, and with the given descriptor.           */
         /* The element size must be a multiple of the byte      */

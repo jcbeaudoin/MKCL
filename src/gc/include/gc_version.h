@@ -18,28 +18,30 @@
 /* This should never be included directly; it is included only from gc.h. */
 #if defined(MK_GC_H)
 
+/* The policy regarding version numbers: development code has odd       */
+/* "minor" number (and "micro" part is 0); when development is finished */
+/* and a release is prepared, "minor" number is incremented (keeping    */
+/* "micro" number still zero), whenever a defect is fixed a new release */
+/* is prepared incrementing "micro" part to odd value (the most stable  */
+/* release has the biggest "micro" number).                             */
+
 /* The version here should match that in configure/configure.ac */
 /* Eventually this one may become unnecessary.  For now we need */
 /* it to keep the old-style build process working.              */
 #define MK_GC_TMP_VERSION_MAJOR 7
-#define MK_GC_TMP_VERSION_MINOR 2
-#define MK_GC_TMP_ALPHA_VERSION MK_GC_NOT_ALPHA
-
-#ifndef MK_GC_NOT_ALPHA
-# define MK_GC_NOT_ALPHA 0xff
-#endif
+#define MK_GC_TMP_VERSION_MINOR 4
+#define MK_GC_TMP_VERSION_MICRO 0 /* 7.4.0 */
 
 #ifdef MK_GC_VERSION_MAJOR
 # if MK_GC_TMP_VERSION_MAJOR != MK_GC_VERSION_MAJOR \
      || MK_GC_TMP_VERSION_MINOR != MK_GC_VERSION_MINOR \
-     || defined(MK_GC_ALPHA_VERSION) != (MK_GC_TMP_ALPHA_VERSION != MK_GC_NOT_ALPHA) \
-     || (defined(MK_GC_ALPHA_VERSION) && MK_GC_TMP_ALPHA_VERSION != MK_GC_ALPHA_VERSION)
-#   error Inconsistent version info.  Check doc/README, include/gc_version.h, and configure.ac.
+     || MK_GC_TMP_VERSION_MICRO != MK_GC_VERSION_MICRO
+#   error Inconsistent version info.  Check README.md, include/gc_version.h and configure.ac.
 # endif
 #else
 # define MK_GC_VERSION_MAJOR MK_GC_TMP_VERSION_MAJOR
 # define MK_GC_VERSION_MINOR MK_GC_TMP_VERSION_MINOR
-# define MK_GC_ALPHA_VERSION MK_GC_TMP_ALPHA_VERSION
+# define MK_GC_VERSION_MICRO MK_GC_TMP_VERSION_MICRO
 #endif /* !MK_GC_VERSION_MAJOR */
 
 #endif

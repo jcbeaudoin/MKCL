@@ -20,8 +20,6 @@
  * SOFTWARE.
  */
 
-#include "../read_ordered.h"
-
 #ifndef MK_AO_ASSUME_WINDOWS98
   /* CAS is always available */
 # define MK_AO_ASSUME_WINDOWS98
@@ -30,61 +28,36 @@
 /* FIXME: Do _InterlockedOps really have a full memory barrier?         */
 /* (MSDN WinCE docs say nothing about it.)                              */
 
-#if _M_ARM >= 6
-/* ARMv6 is the first architecture providing support for simple LL/SC.  */
-
-#include "../standard_ao_double_t.h"
-
-/* If only a single processor is used, we can define MK_AO_UNIPROCESSOR    */
-/* and do not need to access CP15 for ensuring a DMB at all.            */
-#ifdef MK_AO_UNIPROCESSOR
-  MK_AO_INLINE void MK_AO_nop_full(void) {}
-# define MK_AO_HAVE_nop_full
-#else
-/* MK_AO_nop_full() is emulated using MK_AO_test_and_set_full().              */
-#endif
-
-#include "../test_and_set_t_is_ao_t.h"
-/* MK_AO_test_and_set() is emulated using CAS.                             */
-
-MK_AO_INLINE MK_AO_t
-MK_AO_load(const volatile MK_AO_t *addr)
-{
-  /* Cast away the volatile in case it adds fence semantics */
-  return (*(const MK_AO_t *)addr);
-}
-#define MK_AO_HAVE_load
-
-MK_AO_INLINE void
-MK_AO_store_full(volatile MK_AO_t *addr, MK_AO_t value)
-{
-  /* Emulate atomic store using CAS.    */
-  MK_AO_t old = MK_AO_load(addr);
-  MK_AO_t current;
-# ifdef MK_AO_OLD_STYLE_INTERLOCKED_COMPARE_EXCHANGE
-    while ((current = (MK_AO_t)_InterlockedCompareExchange(
-                                (PVOID MK_AO_INTERLOCKED_VOLATILE *)addr,
-                                (PVOID)value, (PVOID)old)) != old)
-      old = current;
-# else
-    while ((current = (MK_AO_t)_InterlockedCompareExchange(
-                                (LONG MK_AO_INTERLOCKED_VOLATILE *)addr,
-                                (LONG)value, (LONG)old)) != old)
-      old = current;
-# endif
-}
-#define MK_AO_HAVE_store_full
-
-/* FIXME: implement MK_AO_compare_double_and_swap_double() */
-
-#else /* _M_ARM < 6 */
-
-/* Some slide set, if it has been red correctly, claims that Loads      */
-/* followed by either a Load or a Store are ordered, but nothing        */
-/* else is. It appears that SWP is the only simple memory barrier.      */
-#include "../all_atomic_load_store.h"
-
 #include "../test_and_set_t_is_ao_t.h"
 /* MK_AO_test_and_set_full() is emulated using CAS.                        */
 
+/* Some ARM slide set, if it has been read correctly, claims that Loads */
+/* followed by either a Load or a Store are ordered, but nothing else.  */
+/* It is assumed that Windows interrupt handlers clear the LL/SC flag.  */
+/* Unaligned accesses are not guaranteed to be atomic.                  */
+#include "../all_aligned_atomic_load_store.h"
+
+/* If only a single processor is used, we can define MK_AO_UNIPROCESSOR.   */
+#ifdef MK_AO_UNIPROCESSOR
+  MK_AO_INLINE void MK_AO_nop_full(void)
+  {
+    MK_AO_compiler_barrier();
+  }
+# define MK_AO_HAVE_nop_full
+#else
+  /* MK_AO_nop_full() is emulated using MK_AO_test_and_set_full().            */
+#endif
+
+#if _M_ARM >= 6
+/* ARMv6 is the first architecture providing support for simple LL/SC.  */
+
+/* #include "../standard_ao_double_t.h" */
+/* TODO: implement double-wide operations (similar to x86).     */
+
+#else /* _M_ARM < 6 */
+
+/* TODO: implement MK_AO_test_and_set_full using SWP.      */
+
 #endif /* _M_ARM < 6 */
+
+#define MK_AO_T_IS_INT
