@@ -57,12 +57,12 @@ typedef void (*mkcl_sighandler_t)(int, siginfo_t *, void *);
 #  define MK_GC_SIG_THR_RESTART MK_GC_get_thr_restart_signal()
 # endif
 
-#if 0
-#define DEBUG_SIGNALS
+# if 0
+#  define DEBUG_SIGNALS
 static int mkcl_lose_on_rogue_signal = 1;
-#else
+# else
 static int mkcl_lose_on_rogue_signal = 0;
-#endif
+# endif
 
 static int interrupt_sig = 0;
 static int resume_sig = 0;

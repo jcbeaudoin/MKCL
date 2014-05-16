@@ -161,7 +161,7 @@ mkcl_base_string_raw_pointer(MKCL, mkcl_object f)
   f = mkcl_check_cl_type(env, @'si::make-foreign-data-from-array', f, mkcl_t_base_string);
   s = f->base_string.self;
   if (f->base_string.hasfillp && s[f->base_string.fillp] != 0) {
-    mkcl_FEerror(env, "Cannot coerce a string with fill pointer to (char *)", 0); /* Is this still really true? JCB */
+    mkcl_FEerror(env, "Cannot coerce a base-string with fill pointer to (char *)", 0); /* Is this still really true? JCB */
   }
   return (char *)s;
 }
