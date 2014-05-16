@@ -738,7 +738,11 @@ int main() {
   fclose(f);
   f = fopen("conftestval","w");
   if (f == NULL) exit(1);
-  fprintf(f, output);
+#if 0
+  fprintf(f, output); /* This one seems to spook some security settings now. */
+#else
+  fputs(output, f);
+#endif
   fclose(f);
   exit(0);
 }
