@@ -793,11 +793,13 @@ MK_GC_INNER word MK_GC_page_size = 0;
 
       SIZE_T mbi_size = VirtualQuery(&a_var, &mbi, sizeof(mbi));
 
+      if (mbi_size != sizeof(mbi)) ABORT("Weird VirtualQuery result");
+
       ptr_t stack_top = mbi.BaseAddress + mbi.RegionSize;
       ptr_t stack_base = mbi.AllocationBase;
       word stack_size = stack_top - stack_base;
 
-      if (mbi_size != sizeof(mbi)) ABORT("Weird VirtualQuery result");
+      if (stack_size == 0) ABORT("VirtualQuery reported a stack of size 0");
 
       sb -> mem_base = stack_top;
       return MK_GC_SUCCESS;
