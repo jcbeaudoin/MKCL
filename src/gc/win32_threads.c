@@ -70,6 +70,12 @@
 
 #else
 
+/* We force the definition of DONT_USE_SIGNALANDWAIT since Microsoft
+   has reneged its commitment on atomicity of SignalObjectAndWait(). JCB */
+# ifndef DONT_USE_SIGNALANDWAIT
+#  define DONT_USE_SIGNALANDWAIT
+# endif
+
 # ifdef MSWINCE
     /* Force DONT_USE_SIGNALANDWAIT implementation of PARALLEL_MARK     */
     /* for WinCE (since Win32 SignalObjectAndWait() is missing).        */
