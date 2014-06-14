@@ -314,7 +314,7 @@ mkclmin.@LIBEXT@: depend c/*.d mkcl/*.h c/arch/*.d
 mkcltop.@LIBEXT@: depend c/main.d c/all_symbols.d c/symbols_list.h
 	cd c; $(MAKE) ../mkcltop.@LIBEXT@
 
-gc/.libs/@LIBPREFIX@gc.@LIBEXT@:
+gc/.libs/@LIBPREFIX@gc.@LIBEXT@: gc/*.c gc/include/*.h gc/include/*/*.h
 	cd gc; $(MAKE)
 
 mkclgc.@LIBEXT@: gc/.libs/@LIBPREFIX@gc.@LIBEXT@
@@ -495,13 +495,14 @@ doc: $(TARGETS)
 
 clean: clean_lisp clean_contribs
 	cd c; $(MAKE) clean
-	$(RM) compile.lsp bin/mkcl-config BUILD-STAMP mkcl/config-install.h
+	$(RM) depend compile.lsp bin/mkcl-config BUILD-STAMP mkcl/config-install.h
 	$(RM) mkcl_min$(EXE) bin/mkcl$(EXE) bin/mkcl-dyn bin/mkcl-small$(EXE) bin/mkcl-full$(EXE)
 	$(RM) MKCLINIT* bin/MKCLINIT*
 	$(RM) MKC*.c MKC*.tmp bin/MKC*.c bin/MKC*.tmp
 	$(RM) -r encodings
 	$(RM) MODULES help.doc TAGS
 	$(RM) mkcl/gc/*.h ./mkclgc.@LIBEXT@
+	cd gc; $(MAKE) clean-libtool clean-libLTLIBRARIES
 	$(RM) *.dll bin/*.dll
 	$(RM) *.o *.a *.la *.so *.data *.fasb *.fas core core.* a.out
 	cd bin; $(RM) *.o *.a *.la *.so *.data *.fasb *.fas core core.* a.out
@@ -546,6 +547,7 @@ TAGS: lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre c/*.d c/*.h 
 
 
 depend: c/GNUmakefile
+	touch depend
 
 c/GNUmakefile:
 	cd c; $(MAKE) depend
