@@ -1187,6 +1187,7 @@ $(top_srcdir)/include/config.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 
 distclean-hdr:
 	-rm -f include/config.h include/stamp-h1
+	-rm -f include/private/config.h include/private/stamp-h1 # old stuff, gc7.2d and before
 bdw-gc.pc: $(top_builddir)/config.status $(srcdir)/bdw-gc.pc.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 

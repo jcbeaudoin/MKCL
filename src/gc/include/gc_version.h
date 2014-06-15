@@ -36,7 +36,8 @@
 # if MK_GC_TMP_VERSION_MAJOR != MK_GC_VERSION_MAJOR \
      || MK_GC_TMP_VERSION_MINOR != MK_GC_VERSION_MINOR \
      || MK_GC_TMP_VERSION_MICRO != MK_GC_VERSION_MICRO
-#   error Inconsistent version info.  Check README.md, include/gc_version.h and configure.ac.
+#   error "Inconsistent version info.  Check README.md, include/gc_version.h and configure.ac." \
+"You may also try to do "make distclean" and then "configure" again."
 # endif
 #else
 # define MK_GC_VERSION_MAJOR MK_GC_TMP_VERSION_MAJOR
