@@ -52,7 +52,7 @@ You can compare this string with e.g.: (ASDF:VERSION-SATISFIES (ASDF:ASDF-VERSIO
          ;; "3.4.5.67" would be a development version in the official upstream of 3.4.5.
          ;; "3.4.5.0.8" would be your eighth local modification of official release 3.4.5
          ;; "3.4.5.67.8" would be your eighth local modification of development version 3.4.5.67
-         (asdf-version "3.0.3.0.1")
+         (asdf-version "3.0.3.0.2")
          (existing-version (asdf-version)))
     (setf *asdf-version* asdf-version)
     (when (and existing-version (not (equal asdf-version existing-version)))
@@ -133,6 +133,7 @@ You can compare this string with e.g.: (ASDF:VERSION-SATISFIES (ASDF:ASDF-VERSIO
     "Try to upgrade of ASDF. If a different version was used, return T.
    We need do that before we operate on anything that may possibly depend on ASDF."
     (let ((*load-print* nil)
+          #+mkcl (clos::*redefine-class-in-place* t)
           (*compile-print* nil))
       (handler-bind (((or style-warning) #'muffle-warning))
         (symbol-call :asdf :load-system :asdf :verbose nil))))
