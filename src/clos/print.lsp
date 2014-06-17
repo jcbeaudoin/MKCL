@@ -181,6 +181,7 @@ printer and we should rather use MAKE-LOAD-FORM."
 ;;; ----------------------------------------------------------------------
 
 (defmethod describe-object ((obj t) (stream t))
+  (ensure-up-to-date-instance obj)
   (let* ((class (class-of obj))
 	 (slotds (class-slots class)))
     (format stream "~%~A is an instance of class ~S" obj class)
@@ -198,6 +199,7 @@ printer and we should rather use MAKE-LOAD-FORM."
 
 #-(and) ;; This buys us next to nothing over the primary T method and is more fragile. JCB
 (defmethod describe-object ((obj class) (stream t))
+  (ensure-up-to-date-instance obj)
   (let* ((class  (si:instance-class obj))
 	 (slotds (class-slots class)))
     (format stream "~%~A is an instance of class ~A"

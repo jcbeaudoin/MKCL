@@ -41,13 +41,16 @@
 ;;;
 (defun inline-args (forms &optional types)
   (declare (ignore types))
-  (flet ((all-locations (args &aux (res t))
+  (flet (
+         #-(and) ;; JCB
+           (all-locations (args &aux (res t))
 	   (dolist (arg args res)
 	     (unless (member (c1form-name arg)
 			     '(LOCATION VAR SYS:STRUCTURE-REF
 			       SYS:INSTANCE-REF)
 			     :test #'eq)
-	       (setq res nil)))))
+	       (setq res nil))))
+         )
 
     (do ((forms forms (cdr forms))
 	 (form) (locs))

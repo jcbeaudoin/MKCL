@@ -30,4 +30,5 @@
 	 #+(or)
 	 (format t "~&Need to update-instance ~S. s = ~S. slots = ~S.~%"
 		 i s (class-slots (si::instance-class i)))
-         (update-instance i)))))
+         (update-instance i)))
+     i))

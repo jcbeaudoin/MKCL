@@ -841,6 +841,7 @@
   (declare (type standard-object object)
 	   (type fixnum index)
 	   )
+  (ensure-up-to-date-instance object)
   (let ((value (si:instance-ref object index)))
     (if (si:sl-boundp value)
 	value
@@ -865,6 +866,7 @@
 	       `(si::instance-ref ,slotd #.(position 'location +slot-definition-slots+
 						     :key #'first))))
     (values #'(lambda (self)
+                (ensure-up-to-date-instance self)
 		(let* ((class (si:instance-class self))
 		       (table (slot-table class))
 		       (slotd (gethash slot-name table))
@@ -876,7 +878,8 @@
 		      value
 		      (values (slot-unbound (class-of self) self slot-name)))))
 	    #'(lambda (value self)
-		(let* ((class (si:instance-class self))
+                (ensure-up-to-date-instance self)
+                (let* ((class (si:instance-class self))
 		       (table (slot-table class))
 		       (slotd (gethash slot-name table))
 		       (index (slot-definition-location slotd)))
@@ -886,9 +889,11 @@
 
 (defun std-class-sealed-accessors (index)
   (values #'(lambda (self)
+              (ensure-up-to-date-instance self)
 	      (safe-instance-ref self index))
 	  #'(lambda (value self)
-	      (si:instance-set self index value))))
+              (ensure-up-to-date-instance self)
+              (si:instance-set self index value))))
 
 (defun std-class-accessors (slot-name)
   ;; The following are very slow. We do not optimize for the slot position.
@@ -959,10 +964,11 @@
 	(setq slotname (slot-definition-name slot))
 	(case (slot-definition-allocation slot)
 	  (:INSTANCE
-	   (format stream "~%~A:~24,8T~A"
-		   slotname
-		   (if (slot-boundp obj slotname)
-		       (slot-value obj slotname) "Unbound")))
+           (ignore-errors
+             (format stream "~%~A:~24,8T~A"
+                     slotname
+                     (if (slot-boundp obj slotname)
+                         (slot-value obj slotname) "Unbound"))))
 	  ;; :CLASS
 	  (T (setq has-shared-slots t))))
       (when has-shared-slots
@@ -971,10 +977,11 @@
 	(dolist (slot slotds)
 	  (setq slotname (slot-definition-name slot))
 	  (unless (eq (slot-definition-allocation slot) :INSTANCE)
-	    (format stream "~%~A:~24,8T~A"
-		    slotname
-		    (if (slot-boundp obj slotname)
-			(slot-value obj slotname) "Unbound")))))))
+            (ignore-errors
+              (format stream "~%~A:~24,8T~A"
+                      slotname
+                      (if (slot-boundp obj slotname)
+                          (slot-value obj slotname) "Unbound"))))))))
   obj)
 
 ;;; ----------------------------------------------------------------------
@@ -982,9 +989,11 @@
 
 #-(and) ;; This buys us next to nothing over the standard-object method and is more fragile. JCB
 (defmethod describe-object ((obj standard-class) (stream t))
+  (ensure-up-to-date-instance obj)
   (let ((slotds (class-slots (si:instance-class obj))))
-    (format t "~%~A is an instance of class ~A"
-	    obj (class-name (si:instance-class obj)))
+    (ignore-errors
+      (format t "~%~A is an instance of class ~A"
+              obj (class-name (si:instance-class obj))))
     (do ((scan slotds (cdr scan))
 	 (i 0 (1+ i)))
 	((null scan))
@@ -999,6 +1008,6 @@
 		  (prin1 (class-name e))
 		  (when (cdr scan) (princ " ")))
 	     (princ ")"))
-	    (otherwise (prin1 (si:instance-ref obj i))))))
+	    (otherwise (ignore-errors (prin1 (si:instance-ref obj i)))))))
   obj)
 

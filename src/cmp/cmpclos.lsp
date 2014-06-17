@@ -103,7 +103,7 @@
 	  (let* ((slotd (clos::accessor-method-slot-definition reader))
 		 (index (clos::safe-slot-definition-location slotd)))
 	    (when (clos::accessor-method-class-sealedp reader)
-	      (c1expr `(clos::safe-instance-ref ,object ,index)))))))))
+	      (c1expr `(clos::safe-instance-ref (ensure-up-to-date-instance ,object) ,index)))))))))
 
 (defun try-optimize-slot-writer (orig-writers args)
   (let* ((c-args (mapcar #'c1expr args))
@@ -114,5 +114,5 @@
 	  (let* ((slotd (clos::accessor-method-slot-definition writer))
 		 (index (clos::safe-slot-definition-location slotd)))
 	    (when (clos::accessor-method-class-sealedp writer)
-	      (c1expr `(si::instance-set ,(second args) ,index ,(first args))))))))))
+	      (c1expr `(si::instance-set (ensure-up-to-date-instance ,(second args)) ,index ,(first args))))))))))
 

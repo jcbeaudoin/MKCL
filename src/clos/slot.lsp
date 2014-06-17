@@ -87,9 +87,9 @@
 	  (f (nth i accessors)))
       (setf (fdefinition f)
 	    #'(lambda (x)
-		(if (consp x) (nth position x) (si:instance-ref x position))))
+		(if (consp x) (nth position x) (si:instance-ref (ensure-up-to-date-instance x) position))))
       (setf (fdefinition `(setf ,f))
-	    #'(lambda (v x) (if (consp x) (setf (nth position x) v) (si:instance-set x position v)))))))
+	    #'(lambda (v x) (if (consp x) (setf (nth position x) v) (si:instance-set (ensure-up-to-date-instance x) position v)))))))
 
 ;;; ----------------------------------------------------------------------
 ;;;
