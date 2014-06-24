@@ -515,7 +515,7 @@
 (defun locative-type-from-var-kind (kind)
   (cdr (assoc kind '((:object . "_mkcl_object_loc")
 		     (:fixnum . "_mkcl_word_loc")
-		     (:char . "_mkcl_base_char_loc")
+		     (:char . "_mkcl_base_char_loc") ;; FIXME, how about :wchar? JCB
 		     (:float . "_mkcl_float_loc")
 		     (:double . "_mkcl_double_loc")
 		     (:long-float . "_mkcl_long_double_loc")

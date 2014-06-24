@@ -102,7 +102,7 @@
 	      ;; *destination* must be RETURN-FIXNUM
 	      (setq loc (list 'COERCE-LOC
 			      (getf '(RETURN-FIXNUM :fixnum
-				      RETURN-CHARACTER :char
+				      RETURN-CHARACTER :char ;; probably wrong with Unicode. FIXME. JCB
 				      RETURN-SINGLE-FLOAT :float
 				      RETURN-DOUBLE-FLOAT :double
 				      RETURN-OBJECT :object)
