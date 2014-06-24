@@ -191,7 +191,10 @@
               (eq return-rep-type :void)
               (let ((info-type (inline-info-return-rep-type ib)))
                 (or (eq return-rep-type info-type)
-                    ;; :bool can be coerced to any other location type
+                    ;; :wchar is a natural assigment promotion of :unsigned-char or :char
+                    (and (eq return-rep-type :wchar)
+                         (or (eq info-type :char) (eq info-type :unsigned-char)))
+                    ;; :bool can be coerced to any other location type (Really? JCB)
                     (eq info-type :bool)))))
      ia)
     ((null ia)
