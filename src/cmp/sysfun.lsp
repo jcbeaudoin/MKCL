@@ -1912,7 +1912,7 @@
     (def-inline elt :always (string fixnum) :wchar "mkcl_character_index_raw(env, #0, #1)")
     (def-inline elt :always (base-string fixnum) :char "mkcl_base_char_index_raw(env, #0, #1)")
     #+unicode
-    (def-inline elt :unsafe (string fixnum) :wchar "((#0)->string.self[#1])")
+    (def-inline elt :unsafe (mkcl:character-string fixnum) :wchar "((#0)->string.self[#1])")
     (def-inline elt :unsafe (base-string fixnum) :char "((#0)->base_string.self[#1])")
 
     (proclaim-function si:elt-set (sequence fixnum t) t)
@@ -1970,9 +1970,9 @@
     (def-inline char :always (base-string t) :char "mkcl_base_char_index_raw(env, #0, mkcl_safe_fixnum_to_word(env, #1))")
     (def-inline char :always (base-string fixnum) :char "mkcl_base_char_index_raw(env, #0, #1)")
     #+unicode
-    (def-inline char :unsafe (string t) :wchar "((#0)->string.self[mkcl_fixnum_to_word(#1)])")
+    (def-inline char :unsafe (mkcl:character-string t) :wchar "((#0)->string.self[mkcl_fixnum_to_word(#1)])")
     #+unicode
-    (def-inline char :unsafe (string fixnum) :wchar "((#0)->string.self[#1])")
+    (def-inline char :unsafe (mkcl:character-string fixnum) :wchar "((#0)->string.self[#1])")
     (def-inline char :unsafe (base-string t) :char "((#0)->base_string.self[mkcl_fixnum_to_word(#1)])")
     (def-inline char :unsafe (base-string fixnum) :char "((#0)->base_string.self[#1])")
 
@@ -1992,10 +1992,10 @@
     (def-inline si:char-set :always (string fixnum character) :wchar "mkcl_character_set_index_raw(env, #0, #1, #2)")
     (def-inline si:char-set :always (base-string fixnum base-char) :char "mkcl_base_char_set_index_raw(env, #0, #1, #2)")
     #+unicode
-    (def-inline si:char-set :unsafe (string t t) t
+    (def-inline si:char-set :unsafe (mkcl:character-string t t) t
       "@2;((#0)->string.self[mkcl_fixnum_to_word(#1)]=mkcl_char_code(env, #2),(#2))")
     #+unicode
-    (def-inline si:char-set :unsafe (string fixnum t) t
+    (def-inline si:char-set :unsafe (mkcl:character-string fixnum t) t
       "@2;((#0)->string.self[#1]=mkcl_char_code(env, #2),(#2))")
     (def-inline si:char-set :unsafe (base-string t t) t
       "@2;((#0)->base_string.self[mkcl_fixnum_to_word(#1)]=mkcl_char_code(env, #2),(#2))")
@@ -2024,7 +2024,7 @@
     (def-inline schar :always (base-string t) :char "mkcl_base_char_index_raw(env, #0, mkcl_safe_fixnum_to_word(env, #1))")
     (def-inline schar :always (base-string fixnum) :char "mkcl_base_char_index_raw(env, #0, #1)")
     #+unicode
-    (def-inline schar :unsafe (string fixnum) :wchar "((#0)->string.self[#1])")
+    (def-inline schar :unsafe (mkcl:character-string fixnum) :wchar "((#0)->string.self[#1])")
     (def-inline schar :unsafe (base-string fixnum) :char "((#0)->base_string.self[#1])")
 
     (proclaim-function si:schar-set (simple-string fixnum character) character)
@@ -2043,10 +2043,10 @@
     #+unicode  ;; For identical args signature, largest return type must be last.
     (def-inline si:schar-set :always (string fixnum character) :wchar "mkcl_character_set_index_raw(env, #0, #1, #2)")
     #+unicode
-    (def-inline si:schar-set :unsafe (string fixnum t) t
+    (def-inline si:schar-set :unsafe (mkcl:character-string fixnum t) t
       "@2;((#0)->string.self[#1]=mkcl_char_code(env, #2),(#2))")
     #+unicode
-    (def-inline si:schar-set :unsafe (string fixnum t) t
+    (def-inline si:schar-set :unsafe (mkcl:character-string fixnum t) t
       "@2;((#0)->string.self[mkcl_fixnum_to_word(#1)]=mkcl_char_code(env, #2),(#2))")
     (def-inline si:schar-set :unsafe (base-string fixnum t) t
       "@2;((#0)->base_string.self[#1]=mkcl_char_code(env, #2),(#2))")
