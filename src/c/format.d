@@ -22,7 +22,7 @@
   int null_strm = 0;
 @
   if (mkcl_Null(strm)) {
-    strm = mkcl_alloc_adjustable_extended_string(env, 64);
+    strm = mkcl_alloc_adjustable_character_string(env, 64);
     null_strm = 1;
   } else if (strm == mk_cl_Ct) {
     strm = mkcl_symbol_value(env, @'*standard-output*');

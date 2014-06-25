@@ -233,20 +233,15 @@ called simple-strings."
   (if size `(array character (,size)) '(array character (*)))
   #+unicode
   (if size
-      `(or (array base-char (,size))
-	   (array character (,size)))
-      '(or (array base-char (*)) (array character (*)))))
+      `(or (array base-char (,size)) (array character (,size)))
+    '(or (array base-char (*)) (array character (*)))))
 
 (deftype base-string (&optional size)
   "A string which is made of BASE-CHAR."
   (if size `(array base-char (,size)) '(array base-char (*))))
 
-(deftype extended-string (&optional size)
-  "A string which is nt a base string"
-  #-unicode (declare (ignore size))
-  #-unicode
-  NIL
-  #+unicode
+(deftype character-string (&optional size)
+  "A string which is not a BASE-CHAR string but rather a string of full CHARACTER."
   (if size `(array character (,size)) '(array character (*))))
 
 (deftype bit-vector (&optional size)

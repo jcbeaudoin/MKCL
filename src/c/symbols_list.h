@@ -1089,7 +1089,7 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
   {{MKCL_EXT_ "CHDIR", MKCL_EXT_ORDINARY, mk_mkcl_chdir, -1, MKCL_OBJNULL}},
   {{SYS_ "CLEAR-COMPILER-PROPERTIES", SI_ORDINARY, mk_cl_identity, 1, MKCL_OBJNULL}},
   {{SYS_ "COERCE-TO-BASE-STRING", SI_ORDINARY, mk_si_coerce_to_base_string, 1, MKCL_OBJNULL}},
-  {{SYS_ "COERCE-TO-EXTENDED-STRING", SI_ORDINARY, mk_si_coerce_to_extended_string, 1, MKCL_OBJNULL}},
+  {{SYS_ "COERCE-TO-CHARACTER-STRING", SI_ORDINARY, mk_si_coerce_to_character_string, 1, MKCL_OBJNULL}},
   {{SYS_ "COERCE-TO-FILENAME", SI_ORDINARY, mk_si_coerce_to_filename, 1, MKCL_OBJNULL}},
   {{SYS_ "COERCE-TO-FUNCTION", SI_ORDINARY, mk_si_coerce_to_function, 1, MKCL_OBJNULL}},
   {{SYS_ "COERCE-TO-PACKAGE", SI_ORDINARY, mk_si_coerce_to_package, 1, MKCL_OBJNULL}},
@@ -1656,7 +1656,7 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
 
   {{KEY_ "ADDRESS", KEYWORD, NULL, -1, MKCL_OBJNULL}},
 
-  {{MKCL_EXT_ "EXTENDED-STRING", MKCL_EXT_ORDINARY, NULL, -1, MKCL_OBJNULL}},
+  {{MKCL_EXT_ "CHARACTER-STRING", MKCL_EXT_ORDINARY, NULL, -1, MKCL_OBJNULL}},
 
   {{KEY_ "LATIN-1", KEYWORD, NULL, -1, MKCL_OBJNULL}},
   {{KEY_ "ISO-8859-1", KEYWORD, NULL, -1, MKCL_OBJNULL}},

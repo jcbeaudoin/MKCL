@@ -2374,9 +2374,9 @@ extern "C" {
   extern MKCL_API mkcl_object mk_mkcl_base_char_p(MKCL, mkcl_object x);
   extern MKCL_API mkcl_object mk_si_coerce_to_base_string(MKCL, mkcl_object x);
   extern MKCL_API mkcl_object mk_si_base_string_p(MKCL, mkcl_object x);
-  extern MKCL_API mkcl_object mk_si_coerce_to_extended_string(MKCL, mkcl_object x);
-  extern MKCL_API mkcl_object mkcl_alloc_simple_extended_string(MKCL, mkcl_index l);
-  extern MKCL_API mkcl_object mkcl_alloc_adjustable_extended_string(MKCL, mkcl_index l);
+  extern MKCL_API mkcl_object mk_si_coerce_to_character_string(MKCL, mkcl_object x);
+  extern MKCL_API mkcl_object mkcl_alloc_simple_character_string(MKCL, mkcl_index l);
+  extern MKCL_API mkcl_object mkcl_alloc_adjustable_character_string(MKCL, mkcl_index l);
 
   static inline mkcl_object mkcl_coerce_to_base_string(MKCL, mkcl_object x)
   { return ((mkcl_type_of(x) != mkcl_t_base_string) ? mk_si_copy_to_simple_base_string(env, x) : x); }

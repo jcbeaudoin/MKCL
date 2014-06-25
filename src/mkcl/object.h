@@ -196,7 +196,7 @@ extern "C" {
 #define MKCL_BIT_VECTOR_P(x)     ((MKCL_IMMEDIATE(x) == 0) && !mkcl_Null(x) && ((x)->d.t == mkcl_t_bitvector))
 #define MKCL_STRINGP(x)	         ((MKCL_IMMEDIATE(x) == 0) && !mkcl_Null(x) \
 				  && ((x)->d.t == mkcl_t_base_string || (x)->d.t == mkcl_t_string))
-#define MKCL_EXTENDED_STRING_P(x) ((MKCL_IMMEDIATE(x) == 0) && !mkcl_Null(x) && (x)->d.t == mkcl_t_string)
+#define MKCL_CHARACTER_STRING_P(x) ((MKCL_IMMEDIATE(x) == 0) && !mkcl_Null(x) && (x)->d.t == mkcl_t_string)
 #define MKCL_BASE_STRING_P(x) 	 ((MKCL_IMMEDIATE(x) == 0) && !mkcl_Null(x) && ((x)->d.t == mkcl_t_base_string))
 #define MKCL_UTF_8_P(x) 	 ((MKCL_IMMEDIATE(x) == 0) && !mkcl_Null(x) && ((x)->d.t == mkcl_t_UTF_8))
 #define MKCL_UTF_16_P(x) 	 ((MKCL_IMMEDIATE(x) == 0) && !mkcl_Null(x) && ((x)->d.t == mkcl_t_UTF_16))

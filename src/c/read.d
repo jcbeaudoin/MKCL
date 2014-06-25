@@ -61,7 +61,7 @@ mk_si_get_buffer_string(MKCL)
 
   mkcl_call_stack_check(env);
   if (pool == mk_cl_Cnil) {
-    output = mkcl_alloc_adjustable_extended_string(env, MKCL_BUFFER_STRING_SIZE);
+    output = mkcl_alloc_adjustable_character_string(env, MKCL_BUFFER_STRING_SIZE);
   } else {
     output = MKCL_CAR(pool);
     env->string_pool = MKCL_CDR(pool);

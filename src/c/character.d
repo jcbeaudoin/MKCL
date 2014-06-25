@@ -93,7 +93,7 @@ mkcl_string_case(const mkcl_object str)
       }
       return str_case;
     }
-  else if (MKCL_EXTENDED_STRING_P(str))
+  else if (MKCL_CHARACTER_STRING_P(str))
     {
       const mkcl_character *text = str->string.self;
       const mkcl_index dim = str->string.dim;

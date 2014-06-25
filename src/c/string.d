@@ -101,7 +101,7 @@ do_make_base_string(MKCL, mkcl_index s, mkcl_base_char code)
 static mkcl_object
 do_make_string(MKCL, mkcl_index s, mkcl_character code)
 {
-  mkcl_object x = mkcl_alloc_simple_extended_string(env, s);
+  mkcl_object x = mkcl_alloc_simple_character_string(env, s);
   mkcl_index i;
   for (i = 0;  i < s;  i++)
     x->string.self[i] = code;
@@ -151,7 +151,7 @@ mkcl_alloc_simple_base_string(MKCL, mkcl_index length)
 }
 
 mkcl_object
-mkcl_alloc_simple_extended_string(MKCL, mkcl_index length)
+mkcl_alloc_simple_character_string(MKCL, mkcl_index length)
 {
   mkcl_object x;
 
@@ -177,9 +177,9 @@ mkcl_alloc_adjustable_base_string(MKCL, mkcl_index l)
 }
 
 mkcl_object
-mkcl_alloc_adjustable_extended_string(MKCL, mkcl_index l)
+mkcl_alloc_adjustable_character_string(MKCL, mkcl_index l)
 {
-  mkcl_object output = mkcl_alloc_simple_extended_string(env, l);
+  mkcl_object output = mkcl_alloc_simple_character_string(env, l);
   output->string.fillp = 0;
   output->string.hasfillp = TRUE;
   output->string.adjustable = TRUE;
@@ -270,7 +270,7 @@ mkcl_object mkcl_copy_string(MKCL, mkcl_object s)
   if (s->string.t == mkcl_t_string)
     {
       len = s->string.fillp;
-      new = mkcl_alloc_simple_extended_string(env, len);
+      new = mkcl_alloc_simple_character_string(env, len);
       if (len)
 	mkcl_wmemcpy(new->string.self, s->string.self, len + 1);
     }
@@ -331,7 +331,7 @@ mkcl_coerce_list_to_base_string(MKCL, mkcl_object l)
 mkcl_object
 mkcl_coerce_list_to_string(MKCL, mkcl_object l)
 {
-  mkcl_object s = mkcl_alloc_adjustable_extended_string(env, 10);
+  mkcl_object s = mkcl_alloc_adjustable_character_string(env, 10);
   mkcl_loop_for_in(env, l) {
     mkcl_object maybe_char = MKCL_CAR(l);
     if (MKCL_CHARACTERP(maybe_char))
@@ -418,7 +418,7 @@ mk_si_copy_to_simple_string(MKCL, mkcl_object x)
       mkcl_character * from = x->string.self;
       mkcl_character * to;
 
-      y = mkcl_alloc_simple_extended_string(env, length);
+      y = mkcl_alloc_simple_character_string(env, length);
       to = y->string.self;
       for (index=0; index < length; index++)
 	to[index] = from[index];
@@ -431,7 +431,7 @@ mk_si_copy_to_simple_string(MKCL, mkcl_object x)
       mkcl_base_char * from = x->base_string.self;
       mkcl_character * to;
 
-      y = mkcl_alloc_simple_extended_string(env, length);
+      y = mkcl_alloc_simple_character_string(env, length);
       to = y->string.self;
       for (index = 0; index < length; index++)
 	to[index] = from[index];
@@ -491,7 +491,7 @@ mk_cl_string(MKCL, mkcl_object x)
       y->base_string.self[0] = c;
       x = y;
     } else {
-      y = mkcl_alloc_simple_extended_string(env, 1);
+      y = mkcl_alloc_simple_character_string(env, 1);
       y->string.self[0] = c;
       x = y;
     }
@@ -520,7 +520,7 @@ mk_si_coerce_to_base_string(MKCL, mkcl_object x)
 
 
 mkcl_object
-mk_si_coerce_to_extended_string(MKCL, mkcl_object x)
+mk_si_coerce_to_character_string(MKCL, mkcl_object x)
 {
   mkcl_object y;
 
@@ -531,7 +531,7 @@ mk_si_coerce_to_extended_string(MKCL, mkcl_object x)
     case mkcl_t_base_string:
       {
 	mkcl_index index; const mkcl_index len = x->base_string.fillp;
-	y = mkcl_alloc_simple_extended_string(env, len);
+	y = mkcl_alloc_simple_character_string(env, len);
 	for(index=0; index < len; index++) {
 	  y->string.self[index] = x->base_string.self[index];
 	}
@@ -542,7 +542,7 @@ mk_si_coerce_to_extended_string(MKCL, mkcl_object x)
       y = x;
       break;
     case mkcl_t_character:
-      y = mkcl_alloc_simple_extended_string(env, 1);
+      y = mkcl_alloc_simple_character_string(env, 1);
       y->string.self[0] = MKCL_CHAR_CODE(x);
       break;
     case mkcl_t_symbol:
@@ -555,7 +555,7 @@ mk_si_coerce_to_extended_string(MKCL, mkcl_object x)
       y = mkcl_coerce_list_to_string(env, x);
       break;
     default:
-      x = mkcl_type_error(env, @'si::coerce-to-extended-string',"",x,@'string');
+      x = mkcl_type_error(env, @'si::coerce-to-character-string',"",x,@'string');
       goto AGAIN;
     }
   @(return y);
@@ -1350,21 +1350,21 @@ mkcl_object mkcl_concatenate_3_base_strings(MKCL, mkcl_object str1, mkcl_object 
   if (narg == 1) {
     mkcl_object s = mkcl_va_arg(args);
     
-    if (MKCL_EXTENDED_STRING_P(s))
+    if (MKCL_CHARACTER_STRING_P(s))
       output = mkcl_copy_string(env, s);
     else
-      output = mk_si_coerce_to_extended_string(env, s);
+      output = mk_si_coerce_to_character_string(env, s);
   } else {
     /* Compute final size and store NONEMPTY coerced strings. */
     for (i = 0, l = 0; i < narg; i++) {
-      mkcl_object s = mk_si_coerce_to_extended_string(env, mkcl_va_arg(args));
+      mkcl_object s = mk_si_coerce_to_character_string(env, mkcl_va_arg(args));
       if (s->string.fillp) {
 	MKCL_TEMP_STACK_PUSH(env, s);
 	l += s->string.fillp;
       }
     }
     /* Do actual copying by recovering those strings */
-    output = mkcl_alloc_simple_extended_string(env, l);
+    output = mkcl_alloc_simple_character_string(env, l);
     while (l) {
       mkcl_object s = MKCL_TEMP_STACK_POP_UNSAFE(env);
       size_t bytes = s->string.fillp;
@@ -1380,13 +1380,13 @@ mkcl_object mkcl_concatenate_2_strings(MKCL, mkcl_object str1, mkcl_object str2)
   if (mkcl_unlikely(!MKCL_STRINGP(str1))) mkcl_FEtype_error_string(env, str1);
   if (mkcl_unlikely(!MKCL_STRINGP(str2))) mkcl_FEtype_error_string(env, str2);
 
-  if (str1->d.t == mkcl_t_base_string) str1 = mk_si_coerce_to_extended_string(env, str1);
-  if (str2->d.t == mkcl_t_base_string) str2 = mk_si_coerce_to_extended_string(env, str2);
+  if (str1->d.t == mkcl_t_base_string) str1 = mk_si_coerce_to_character_string(env, str1);
+  if (str2->d.t == mkcl_t_base_string) str2 = mk_si_coerce_to_character_string(env, str2);
 
   mkcl_index len1 = str1->string.fillp;
   mkcl_index len2 = str2->string.fillp;
 
-  mkcl_object new = mkcl_alloc_simple_extended_string(env, len1 + len2);
+  mkcl_object new = mkcl_alloc_simple_character_string(env, len1 + len2);
 
   mkcl_wmemcpy(new->string.self, str1->string.self, len1);
   mkcl_wmemcpy(&(new->string.self[len1]), str2->string.self, len2);
@@ -1399,15 +1399,15 @@ mkcl_object mkcl_concatenate_3_strings(MKCL, mkcl_object str1, mkcl_object str2,
   if (mkcl_unlikely(!MKCL_STRINGP(str2))) mkcl_FEtype_error_string(env, str2);
   if (mkcl_unlikely(!MKCL_STRINGP(str3))) mkcl_FEtype_error_string(env, str3);
 
-  if (str1->d.t == mkcl_t_base_string) str1 = mk_si_coerce_to_extended_string(env, str1);
-  if (str2->d.t == mkcl_t_base_string) str2 = mk_si_coerce_to_extended_string(env, str2);
-  if (str3->d.t == mkcl_t_base_string) str3 = mk_si_coerce_to_extended_string(env, str3);
+  if (str1->d.t == mkcl_t_base_string) str1 = mk_si_coerce_to_character_string(env, str1);
+  if (str2->d.t == mkcl_t_base_string) str2 = mk_si_coerce_to_character_string(env, str2);
+  if (str3->d.t == mkcl_t_base_string) str3 = mk_si_coerce_to_character_string(env, str3);
 
   mkcl_index len1 = str1->string.fillp;
   mkcl_index len2 = str2->string.fillp;
   mkcl_index len3 = str3->string.fillp;
 
-  mkcl_object new = mkcl_alloc_simple_extended_string(env, len1 + len2 + len3);
+  mkcl_object new = mkcl_alloc_simple_character_string(env, len1 + len2 + len3);
 
   mkcl_wmemcpy(new->string.self, str1->string.self, len1);
   mkcl_wmemcpy(&(new->string.self[len1]), str2->string.self, len2);
@@ -1456,7 +1456,7 @@ mkcl_character * mkcl_extend_string(MKCL, mkcl_object s)
   if (new_length > MKCL_ADIMLIM)
     new_length = MKCL_ADIMLIM;
 
-  other = mkcl_alloc_adjustable_extended_string(env, new_length);
+  other = mkcl_alloc_adjustable_character_string(env, new_length);
   if (fillp) mkcl_wmemcpy(other->string.self, s->string.self, fillp);
   other->string.fillp = fillp;
   s = mk_si_replace_array(env, s, other);
@@ -1528,7 +1528,7 @@ mkcl_object mkcl_substring(MKCL, mkcl_object str, mkcl_index start, mkcl_index e
   len = end - start;
   if (str->string.t == mkcl_t_string)
     {
-      new = mkcl_alloc_simple_extended_string(env, len);
+      new = mkcl_alloc_simple_character_string(env, len);
       if (len)
 	memcpy(new->string.self, &(str->string.self[start]), len * sizeof(new->string.self[0]));
     }
@@ -1681,7 +1681,7 @@ mkcl_search_in_string(MKCL, mkcl_object str1, mkcl_object str2)
     }
 
   if (str1->string.t == mkcl_t_base_string)
-    str1 = mk_si_coerce_to_extended_string(env, str1);
+    str1 = mk_si_coerce_to_character_string(env, str1);
   
   const mkcl_index start1 = 0;
   const mkcl_index end1 = str1->string.fillp;
@@ -1779,7 +1779,7 @@ mkcl_object mkcl_replace_in_string(MKCL, mkcl_object str1, mkcl_object str2)
   if (str1->string.t != str2->string.t)
     {
       if (str1->string.t == mkcl_t_string)
-	str2 = mk_si_coerce_to_extended_string(env, str2);
+	str2 = mk_si_coerce_to_character_string(env, str2);
       else
 	str2 = mk_si_coerce_to_base_string(env, str2);
     }
@@ -1814,7 +1814,7 @@ mkcl_object mkcl_replace_in_string_k(MKCL, mkcl_object str1, mkcl_object str2,
   if (str1->string.t != str2->string.t)
     {
       if (str1->string.t == mkcl_t_string)
-	str2 = mk_si_coerce_to_extended_string(env, str2);
+	str2 = mk_si_coerce_to_character_string(env, str2);
       else
 	str2 = mk_si_coerce_to_base_string(env, str2);
     }
@@ -2323,7 +2323,7 @@ mkcl_object mkcl_utf_8_to_string(MKCL, mkcl_object utf_8)
       i += utf_8_decoder(env, &self[i], dim - i, &data[fillp], &invalid);
     data[fillp] = '\0';
  
-    mkcl_object new = mkcl_alloc_adjustable_extended_string(env, fillp);
+    mkcl_object new = mkcl_alloc_adjustable_character_string(env, fillp);
     if (fillp)
       mkcl_wmemcpy(new->string.self, data, fillp + 1);
     new->string.fillp = fillp;
@@ -2796,7 +2796,7 @@ mkcl_object mkcl_utf_16_to_string(MKCL, mkcl_object utf_16)
       i += utf_16_decoder(env, &self[i], dim - i, &data[fillp], &invalid);
     data[fillp] = '\0';
  
-    mkcl_object new = mkcl_alloc_adjustable_extended_string(env, fillp);
+    mkcl_object new = mkcl_alloc_adjustable_character_string(env, fillp);
     if (fillp)
       mkcl_wmemcpy(new->string.self, data, fillp + 1);
     new->string.fillp = fillp;

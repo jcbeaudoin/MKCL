@@ -686,7 +686,7 @@ mkcl_alloc_simple_vector(MKCL, mkcl_index l, mkcl_elttype aet)
     case mkcl_aet_bc:
       return mkcl_alloc_simple_base_string(env, l);
     case mkcl_aet_ch:
-      return mkcl_alloc_simple_extended_string(env, l);
+      return mkcl_alloc_simple_character_string(env, l);
     case mkcl_aet_bit:
       x = mkcl_alloc_raw_bitvector(env);
       x->vector.hasfillp = FALSE;

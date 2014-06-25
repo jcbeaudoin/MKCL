@@ -1663,7 +1663,7 @@ mkcl_object
 mkcl_make_string_output_stream(MKCL, mkcl_index line_length, bool extended, mkcl_object encoding)
 {
   mkcl_object s = (extended 
-		   ? mkcl_alloc_adjustable_extended_string(env, line_length)
+		   ? mkcl_alloc_adjustable_character_string(env, line_length)
 		   : mkcl_alloc_adjustable_base_string(env, line_length));
 
   return mk_si_make_string_output_stream_from_string(env, s, encoding);
@@ -1704,7 +1704,7 @@ mk_cl_get_output_stream_string(MKCL, mkcl_object strm)
 
   mkcl_object strng = MKCL_STRING_OUTPUT_STREAM_STRING(strm);
   mkcl_object new = (mkcl_type_of(strng) == mkcl_t_string
-		     ? mkcl_alloc_adjustable_extended_string(env, DEFAULT_OUTPUT_STRING_LENGTH)
+		     ? mkcl_alloc_adjustable_character_string(env, DEFAULT_OUTPUT_STRING_LENGTH)
 		     : mkcl_alloc_adjustable_base_string(env, DEFAULT_OUTPUT_STRING_LENGTH));
 
   MKCL_STRING_OUTPUT_STREAM_STRING(strm) = new;
