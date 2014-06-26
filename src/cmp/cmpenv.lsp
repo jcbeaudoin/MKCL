@@ -91,7 +91,7 @@
            (member (car al) '(&optional &rest &key)))
        (nreverse types))
       ;;(declare (object al))
-      (push (type-filter (car al)) types)))
+      (push (si::type-filter (car al)) types)))
 
 (defun add-function-declaration (fname arg-types return-types)
   (if (si::valid-function-name-p fname)
