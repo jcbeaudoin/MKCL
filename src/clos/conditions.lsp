@@ -1,6 +1,6 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: CLOS -*-
 ;;;;
-;;;;  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2014, Jean-Claude Beaudoin.
 ;;;;  Copyright (c) 2001, Juan Jose Garcia-Ripoll
 ;;;;  Copyright (c) 1992, Giuseppe Attardi.
 ;;;;
@@ -94,24 +94,23 @@
 	  (push restart output))))
     #+(and) ;; This is the more defensive version. JCB
     (when (consp *restart-clusters*)
-      (do* ((restart-clusters *restart-clusters* (and (consp restart-clusters) (cdr restart-clusters)))
-	    )
+      (do* ((restart-clusters *restart-clusters* (and (consp restart-clusters) (cdr restart-clusters))))
 	   ((or (null restart-clusters) (not (consp restart-clusters))))
 	(let ((restart-cluster (car restart-clusters)))
 	  (when (consp restart-cluster)
 	    (do* ((sub-cluster restart-cluster (and (consp sub-cluster) (cdr sub-cluster)))
-		  )
-		 ((or (null sub-cluster) (not (consp sub-cluster))))
+                  (cluster-output ()))
+		 ((or (null sub-cluster) (not (consp sub-cluster)))
+                  (setq output (nconc (nreverse cluster-output) output)))
 	      (let ((restart (car sub-cluster)))
 		(when (and (restart-p restart)
 			   (or (not condition)
 			       (member restart assoc-restart)
 			       (not (member restart other)))
 			   (funcall (restart-test-function restart) condition))
-		  (push restart output))))))))
+		  (push restart cluster-output))))))))
 
-    (nreverse output))
-  )
+    output))
 
 (defmacro restart-bind (bindings &body forms)
   `(let* ((*dynamic-cons-stack* *dynamic-cons-stack*)
@@ -736,9 +735,9 @@ memory limits before executing the program again."))))
 (defvar *universal-error-handler-stack* nil)
 (defvar *universal-error-handler-level* 0)
 
-(defun sys::universal-error-handler
-  (continue-string datum args &aux (*universal-error-handler-level* (1+ *universal-error-handler-level*)))
-  "Args: (continue-string datum args)
+(defun sys::universal-error-handler (datum args
+                                     &aux (*universal-error-handler-level* (1+ *universal-error-handler-level*)))
+  "Args: (datum args)
 MKCL specific.
 Starts the error handler of MKCL.
 When an error is detected, MKCL calls this function with the specified
@@ -771,35 +770,25 @@ arguments.  To change the error handler of MKCL, redefine this function.
 	  (mkcl::quit :exit-code 1)
 	(mt:abandon-thread 1))
       )
-    (cond
-      ((eq t continue-string)
-       ; from CEerror; mostly allocation errors
-       (with-simple-restart (ignore "Ignore the error, and try the operation again")
-	 (signal condition)
-	 (try-to-invoke-debugger condition)))
-      ((stringp continue-string)
-       (with-simple-restart
-	 (continue "~A" (format nil "~?" continue-string args))
-	 (signal condition)
-	 (try-to-invoke-debugger condition)))
-      ((and continue-string (symbolp continue-string))
-       ; from CEerror
-       (with-simple-restart (accept "Accept the error, returning NIL")
-	 (multiple-value-bind (rv used-restart)
-	   (with-simple-restart (ignore "Ignore the error, and try the operation again")
-	     (multiple-value-bind (rv used-restart)
-	       (with-simple-restart (continue "Continue, using ~S" continue-string)
-		 (signal condition)
-		 (try-to-invoke-debugger condition))
+    (signal condition)
+    (try-to-invoke-debugger condition)))
 
-	       (if used-restart continue-string rv)))
-	   (if used-restart t rv))))
-      (t ;; Fatal (i.e.: non-continue) errors go through this branch.
-	(progn
-	  (signal condition)
-	  (try-to-invoke-debugger condition))))))
+(defun cerror (continue-format-control datum &rest args)
+  ;;(declare (:c-export "mk_cl_cerror"))
+  (if (or (stringp continue-format-control) (functionp continue-format-control))
+      (with-simple-restart
+       (continue "~A" (apply #'format nil continue-format-control args))
+       (apply #'error datum args))
+    (progn
+      (warn "In cerror: Ignoring what is not a proper format-control value for continue-format-control: ~S" continue-format-control)
+      (apply #'error datum args)
+      )
+    )
+  nil)
 
-(defun sys::tpl-continue-command (&rest any)
+
+
+(defun sys::tpl-continue-command (&rest any) ;; any use? JCB
   (apply #'invoke-restart 'continue any))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

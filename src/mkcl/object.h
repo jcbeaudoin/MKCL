@@ -5,7 +5,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2014, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -1270,7 +1270,7 @@ extern "C" {
     mk_cl_Cnil,						\
     (sizeof(chars)-1),					\
     (sizeof(chars)-1),					\
-    (chars),						\
+    ((mkcl_base_char *) chars),                         \
     mkcl_base_char_index, mkcl_base_char_set_index,	\
   }
 
@@ -1280,7 +1280,7 @@ extern "C" {
     mk_cl_Cnil,							\
     (nb_char),							\
     (nb_char),							\
-    (chars),							\
+    ((mkcl_base_char *) chars),                                 \
     mkcl_base_char_index, mkcl_base_char_set_index,		\
   }
 

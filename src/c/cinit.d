@@ -5,7 +5,7 @@
 /*
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2012, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2014, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -75,6 +75,13 @@ mk_si_find_relative_package(MKCL, mkcl_narg narg, mkcl_object package, ...)
   @(return mk_cl_Cnil);
 }
 
+@(defun cerror (cformat eformat &rest args)
+@
+  const mkcl_object rest = mkcl_grab_rest_args(env, args, FALSE);
+  mk_cl_apply(env, 3, @+'error', eformat, rest);
+@)
+
+
 static mkcl_object mk_si_simple_toplevel(MKCL)
 {
   mkcl_object output = mkcl_core.standard_output;
@@ -87,11 +94,8 @@ static mkcl_object mk_si_simple_toplevel(MKCL)
   mkcl_force_output(env, output);
   for (i = 1; i<mkcl_fixnum_to_word(mk_mkcl_argc(env)); i++) {
     mkcl_object arg = mk_mkcl_argv(env, MKCL_MAKE_FIXNUM(i));
-#if 0
-    mk_cl_load(env, 1, arg);
-#else
+
     mk_cl_load(env, 3, arg, @':external-format', mk_cl_list(env, 2, @':ascii', @':lf'));
-#endif
   }
   while (1) {
     mkcl_write_cstr(env, "\n> ", output);

@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2014, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -87,23 +87,24 @@ mkcl_FEerror(MKCL, const char *s, int narg, ...)
 {
   mkcl_va_list args;
   mkcl_va_start(env, args, narg, narg, 0);
-  mkcl_funcall3(env, @+'si::universal-error-handler',
-		mk_cl_Cnil,                    /*  not correctable  */
+  mkcl_funcall2(env, @+'si::universal-error-handler',
 		mkcl_make_simple_base_string(env, (char *) s),	 /*  condition text  */
 		mkcl_grab_rest_args(env, args, FALSE));
   mkcl_lose(env, "Should not have returned from universal-error-handler");
 }
 
 mkcl_object
-mkcl_CEerror(MKCL, mkcl_object c, const char *err, int narg, ...)
+mkcl_CEerror(MKCL, mkcl_object c, const char *err, mkcl_narg narg, ...)
 {
   mkcl_va_list args;
+  mkcl_index err_len = (err ? strlen(err) : 0);
+
+  mkcl_base_string_object_sized(err_msg_obj, err, err_len);
   mkcl_va_start(env, args, narg, narg, 0);
-  return mkcl_funcall3(env, @+'si::universal-error-handler',
-		       c,			/*  correctable  */
-		       mkcl_make_simple_base_string(env, (char *) err), /* continue-format-string  */
-		       mkcl_grab_rest_args(env, args, FALSE));
+  mk_cl_cerror(env, 3, c, ((mkcl_object) &err_msg_obj), mkcl_grab_rest_args(env, args, FALSE));
+  return mk_cl_Cnil; /* As required by ANSI spec. */
 }
+
 
 /***********************
  * Conditions signaler *
@@ -264,9 +265,9 @@ mkcl_FEinvalid_function_name(MKCL, mkcl_object fname)
 	      @':datum', fname);
 }
 
-/*      bootstrap version                */
+/* Bootstrap version. The permanent version is in conditions.lsp.   */
 static mkcl_object
-universal_error_handler(MKCL, mkcl_narg narg, mkcl_object c, mkcl_object err, mkcl_object args, ...)
+universal_error_handler(MKCL, mkcl_object err, mkcl_object args)
 {
   char * msg;
 
@@ -274,6 +275,15 @@ universal_error_handler(MKCL, mkcl_narg narg, mkcl_object c, mkcl_object err, mk
     msg = (char *) err->base_string.self; /* Could do better Unicode-wise. JCB */
   else
     msg = "Lisp initialization error";
+
+  {
+    int i = 0;
+    mkcl_index narg = mkcl_length(env, args);
+    const int arg_max = ((narg <= 10) ? narg : 10);
+
+    mkcl_println_T(env, err);
+    for (i = 0; i < arg_max; i++) mkcl_println_T(env, mkcl_nth(env, i, args));
+  }
 
   fprintf(stderr, "\n MKCL bootstrap error handler:\n\t%s.\n", msg);
   fflush(stderr);
@@ -534,29 +544,15 @@ mkcl_FEwin32_stream_error(MKCL, mkcl_object stream, const char *msg, int narg, .
  * Higher level interface to errors *
  ************************************/
 
-@(defun error (eformat &rest args)
+@(defun error (datum &rest args)
 @
-  /* mkcl_enable_interrupts(env); */
-  mkcl_funcall3(env,
-		@+'si::universal-error-handler',
-		mk_cl_Cnil,
-		eformat,
-		mkcl_grab_rest_args(env, args, FALSE));
+  mkcl_funcall2(env, @+'si::universal-error-handler', datum, mkcl_grab_rest_args(env, args, FALSE));
   mkcl_lose(env, "Should not have returned from universal-error-handler");
 @)
 
-@(defun cerror (cformat eformat &rest args)
-@
-  /* mkcl_enable_interrupts(env); */
-  return mkcl_funcall3(env,
-		       @+'si::universal-error-handler',
-		       cformat,
-		       eformat,
-		       mkcl_grab_rest_args(env, args, FALSE));
-@)
 
 void
 mkcl_init_error(MKCL)
 {
-  mkcl_def_c_function_va(env, @'si::universal-error-handler', (mkcl_objectfn) universal_error_handler); /* bootstrap version. */
+  mkcl_def_c_function(env, @'si::universal-error-handler', universal_error_handler, 2); /* bootstrap version. */
 }

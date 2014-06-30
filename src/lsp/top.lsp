@@ -364,6 +364,7 @@ rebinds this variable to NIL when control enters a break loop.")
         :r                                              [Abbreviation]~@
         ~@
         Display available restarts.~%")
+#| ;; The debugger waiting list facility needs to be redone.
       ((:s :switch) tpl-switch-command nil
        ":s(witch)       Switch to next thread to debug"
        ":switch debuggee                                [Break command]~@
@@ -378,6 +379,7 @@ rebinds this variable to NIL when control enters a break loop.")
         :w                                              [Abbreviation]~@
         ~@
         Display debugger's waiting list.~%")
+|#
       )
   )
 
@@ -1440,27 +1442,17 @@ package."
 		    (debug-commands (update-debug-commands restart-commands)))
 	       (interactive-loop :commands debug-commands)
 	       )
+#|         ;; This facility needs to be redone. JCB
 	   (suspend-debug ()
 	     :report (lambda (s)
 		       ;;(format s "Put this thread back on debugger's waiting list.")
 		       (princ "Put this thread back on debugger's waiting list." s)
 		       )
 	     (go waiting-room))
-	   (quit-debugger ()
-	     :report (lambda (s)
-		       ;;(format s "Quit debugger level ~D. (Unsafe! Expert only)" break-level)
-		       (princ "Quit debugger level " s)
-		       (princ break-level s)
-		       (princ ". (Unsafe! Expert only)" s)
-		       )
-	     (go quit))
+|#
 	   )
 	 ) ;; with-debugger-lock
-     quit
-     ;; (format *debug-io* "~&Leaving debugger level ~D.~%" break-level)
-     ;; Making a normal function return from the debugger
-     ;; seems to be a very bad idea! Basically, it usually dumps core...
-     (throw *quit-tag* t)
+       (mt:abandon-thread :abandonned-by-debugger) ;; ANSI spec says debugger cannot do a normal return!
      ) ;; tagbody
     )
   )
@@ -1508,7 +1500,9 @@ package."
        ;; debugger with an even more serious error or we'll get a crash!
        )
      )
-   (finish-output)))
+   (finish-output)
+   (mt:abandon-thread :abandonned-by-debugger) ;; ANSI spec says debugger cannot do a normal return!
+   ))
 
 
 (defun safe-eval (form env err-value)

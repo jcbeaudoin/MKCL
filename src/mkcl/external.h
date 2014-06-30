@@ -2,7 +2,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2013, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2014, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -742,8 +742,8 @@ extern "C" {
   extern MKCL_API void mkcl_FEundefined_function(MKCL, mkcl_object fname) mkcl_noreturn;
   extern MKCL_API void mkcl_FEinvalid_function(MKCL, mkcl_object obj) mkcl_noreturn;
   extern MKCL_API void mkcl_FEinvalid_function_name(MKCL, mkcl_object obj) mkcl_noreturn;
-  extern MKCL_API mkcl_object mkcl_CEerror(MKCL, mkcl_object c, const char *err_str, int narg, ...);
-  extern MKCL_API void mkcl_FEillegal_index(MKCL, mkcl_object x, mkcl_object i);
+  extern MKCL_API mkcl_object mkcl_CEerror(MKCL, mkcl_object c, const char *err_str, mkcl_narg narg, ...);
+  extern MKCL_API void mkcl_FEillegal_index(MKCL, mkcl_object x, mkcl_object i) mkcl_noreturn;
   extern MKCL_API void mkcl_FEtype_error_symbol(MKCL, mkcl_object obj) mkcl_noreturn;
   extern MKCL_API void mkcl_FElibc_error(MKCL, const char *msg, int narg, ...) mkcl_noreturn;
   extern MKCL_API void mkcl_FElibc_file_error(MKCL, mkcl_object pathname, const char *msg, int narg, ...) mkcl_noreturn;
