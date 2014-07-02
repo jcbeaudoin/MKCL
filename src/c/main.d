@@ -1138,7 +1138,11 @@ mkcl_setenv(MKCL, mkcl_object var, mkcl_object value)
 # else
     mkcl_OSstring_push_extend(env, os_var, '=');
     mkcl_OSstring_nconc(env, os_var, os_value);
+#  ifdef MKCL_WINDOWS
+    ret_val = _wputenv((wchar_t *) mkcl_OSstring_self(os_var));
+#  else
     ret_val = putenv((char*)mkcl_OSstring_self(os_var));
+#  endif
 # endif
   }
   if (ret_val)
