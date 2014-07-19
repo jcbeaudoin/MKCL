@@ -23,13 +23,17 @@
   #+(and)
   nil ;; simply return nil to say that the optimization could not be done. JCB
 
-  #+(or)  ;; There is doubts whether these optimizations really work. Let's err on the safe side. JCB
+  ;; There is doubts whether these optimizations really work. Let's err on the safe side. JCB
+  ;; There isn't much of a doubt anymore. It's wrong. JCB
+  #-(and)
   (when (fboundp fname)
     (let ((gf (fdefinition fname)))
       (when (typep gf 'standard-generic-function)
 	(when (policy-inline-slot-access-p)
 	  (maybe-optimize-slot-accessor fname gf args)))))
   )
+
+#|  ;; This stuff is just wrong! JCB
 
 ;;;
 ;;; PRECOMPUTE APPLICABLE METHODS
@@ -115,4 +119,6 @@
 		 (index (clos::safe-slot-definition-location slotd)))
 	    (when (clos::accessor-method-class-sealedp writer)
 	      (c1expr `(si::instance-set (ensure-up-to-date-instance ,(second args)) ,index ,(first args))))))))))
+
+|#
 

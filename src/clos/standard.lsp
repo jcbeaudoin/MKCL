@@ -482,6 +482,8 @@
 	    (class-size class) (compute-instance-size slots)
 	    (class-default-initargs class) (compute-default-initargs class)
 	    (class-finalized-p class) t))
+
+#|
     ;;
     ;; When a class is sealed we rewrite the list of direct slots to fix
     ;; their locations. This may imply adding _new_ direct slots.
@@ -519,6 +521,7 @@
 			     def)
 		      direct-slots))
 	   finally (setf (class-direct-slots class) direct-slots))))
+|#
     ;;
     ;; This is not really needed, because when we modify the list of slots
     ;; all instances automatically become obsolete (See change.lsp)
@@ -937,13 +940,13 @@
 	  (install-method fname nil `(,standard-class) '(self)
 			  nil nil reader nil reader-class
 			  :slot-definition slotd
-			  :class-sealedp (class-sealedp standard-class)
+			  ;;:class-sealedp (class-sealedp standard-class)
 			  :source (class-source standard-class)))
 	(dolist (fname (slot-definition-writers slotd))
 	  (install-method fname nil `(,(find-class t) ,standard-class) '(value self)
 			  nil nil writer nil writer-class
 			  :slot-definition slotd
-			  :class-sealedp (class-sealedp standard-class)
+			  ;;:class-sealedp (class-sealedp standard-class)
 			  :source (class-source standard-class)))))))
 
 ;;; ======================================================================

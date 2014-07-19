@@ -69,8 +69,10 @@
 	    '(
 	      (slot-definition :initarg :slot-definition :initform nil
 	       :accessor accessor-method-slot-definition)
+#|
 	      (class-sealedp :initarg :class-sealedp :initform nil
 	       :accessor accessor-method-class-sealedp)
+|#
 	      ))))
 
 #.(create-accessors +standard-accessor-method-slots+ 'standard-accessor-method)
