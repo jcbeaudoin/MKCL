@@ -180,34 +180,47 @@
 			 :lambda-list '(class &rest initargs &key &allow-other-keys))
 
 (defmethod reinitialize-instance ((class class) &rest initargs
-				  &key direct-superclasses (direct-slots nil direct-slots-p)
+				  &key
+                                  (direct-superclasses nil direct-superclasses-p)
+                                  (direct-slots nil direct-slots-p)
                                   &allow-other-keys)
   (declare (ignore initargs))
   (let ((name (class-name class)))
     (when (member name '(CLASS BUILT-IN-CLASS) :test #'eq)
       (error "The kernel CLOS class ~S cannot be changed." name)))
 
-  ;; remove previous defined accessor methods
-  (when (class-finalized-p class)
-    (remove-optional-slot-accessors class))
+  (let ((was-already-finalized-p (class-finalized-p class))
+        (checked-direct-superclasses (when direct-superclasses-p
+                                       ;; checking that class direct hierarchy makes sense.
+                                       (check-direct-superclasses class direct-superclasses))))
 
-  (call-next-method)
+    (when was-already-finalized-p
+      (unfinalize-class class))      
 
-  ;; the list of direct slots is converted to direct-slot-definitions
-  (when direct-slots-p
-    (setf (class-direct-slots class)
-	  (loop for s in direct-slots
-		collect (canonical-slot-to-direct-slot class s))))
+    (when direct-superclasses-p
+      ;; Remove old subclass relationships since direct class hierarchy is about to change.
+      (dolist (l (class-direct-superclasses class))
+        (remove-direct-subclass l class)))
 
-  ;; set up inheritance checking that it makes sense
-  (dolist (l (setf (class-direct-superclasses class)
-		   (check-direct-superclasses class direct-superclasses)))
-    (add-direct-subclass l class))
+    (call-next-method)
 
-  (unfinalize-class class)
+    ;; the list of direct slots is converted to direct-slot-definitions
+    (when direct-slots-p
+      (setf (class-direct-slots class)
+            (loop for s in direct-slots
+                  collect (canonical-slot-to-direct-slot class s))))
 
-  ;; if there are no forward references, we can just finalize the class here
-  (finalize-unless-forward class)  ;; somewhat eager. JCB
+    (when direct-superclasses-p
+      ;; Setup new subclass relationships since direct class hierarchy has changed.    
+      (setf (class-direct-superclasses class) checked-direct-superclasses)
+      (dolist (l checked-direct-superclasses)
+        (add-direct-subclass l class)))
+
+    (when was-already-finalized-p
+      (finalize-inheritance class)
+      ;; Here AMOP says we should also update dependents, but that protocol isn't implemented yet. JCB
+      )
+    )
 
   class)
 
@@ -215,6 +228,7 @@
   (setf (class-slots class) (copy-list (class-slots class)))
   class)
 
+#| ;; Where is that coming from? Not AMOP for sure! JCB
 (defun remove-optional-slot-accessors (class)
   (declare (class class))
   (let ((class-name (class-name class)))
@@ -256,4 +270,6 @@
 	    (remove-method gf-object found))
 	(when (null (generic-function-methods gf-object))
 	  (fmakunbound writer)))))))
+|#
+
 
