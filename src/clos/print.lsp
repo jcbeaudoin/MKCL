@@ -155,12 +155,13 @@ printer and we should rather use MAKE-LOAD-FORM."
 (defmethod print-object ((m standard-method) stream)
   (print-unreadable-object (m stream :type t :identity t)
     (ignore-errors
-     (format stream "~A ~A"
+     (format stream "~A ~S ~A"
 	     (let ((gf (method-generic-function m)))
 	       (if (or (eq gf si::unbound) (null gf))
 		   'UNNAMED
 		 (generic-function-name gf)
 		 ))
+             (method-qualifiers m)
 	     (method-specializers m))))
   m)
 
