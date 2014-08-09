@@ -186,14 +186,13 @@
                                   &allow-other-keys)
   (declare (ignore initargs))
   (let ((name (class-name class)))
-    (when (member name '(CLASS BUILT-IN-CLASS) :test #'eq)
+    (when (member name '(CLASS BUILT-IN-CLASS) :test #'eq) ;; Too weak! This restriction should be a lot broader. JCB
       (error "The kernel CLOS class ~S cannot be changed." name)))
 
   (let ((was-already-finalized-p (class-finalized-p class))
         (checked-direct-superclasses (when direct-superclasses-p
                                        ;; checking that class direct hierarchy makes sense.
                                        (check-direct-superclasses class direct-superclasses))))
-
     (when was-already-finalized-p
       (unfinalize-class class))      
 
@@ -210,66 +209,24 @@
             (loop for s in direct-slots
                   collect (canonical-slot-to-direct-slot class s))))
 
+    ;; assure coherence of class hierarchy.
     (when direct-superclasses-p
       ;; Setup new subclass relationships since direct class hierarchy has changed.    
       (setf (class-direct-superclasses class) checked-direct-superclasses)
       (dolist (l checked-direct-superclasses)
         (add-direct-subclass l class)))
 
+    #+(and) ;; if there are no forward references, we can just finalize the class here
+    (finalize-unless-forward class)  ;; somewhat eager. JCB
+    #-(and) ;; This here should replace the line just above but there is something foobar with our finalization. JCB
     (when was-already-finalized-p
       (finalize-inheritance class)
       ;; Here AMOP says we should also update dependents, but that protocol isn't implemented yet. JCB
       )
     )
-
   class)
 
 (defmethod make-instances-obsolete ((class class))
   (setf (class-slots class) (copy-list (class-slots class)))
   class)
-
-#| ;; Where is that coming from? Not AMOP for sure! JCB
-(defun remove-optional-slot-accessors (class)
-  (declare (class class))
-  (let ((class-name (class-name class)))
-    (dolist (slotd (class-slots class))
-      ;; remove previous defined reader methods
-      (dolist (reader (slot-definition-readers slotd))
-	(let* ((gf-object (fdefinition reader))
-	       found)
-	  ;; primary method
-	  (when (setq found
-		      (find-method gf-object nil (list class-name) nil))
-	    (remove-method gf-object found))
-	  ;; before method
-	  (when (setq found
-		      (find-method gf-object ':before (list class-name) nil))
-	    (remove-method gf-object found))
-	  ;; after method
-	  (when (setq found
-		      (find-method gf-object ':after (list class-name) nil))
-	    (remove-method gf-object found))
-	(when (null (generic-function-methods gf-object))
-	  (fmakunbound reader))))
-
-      ;; remove previous defined writer methods
-      (dolist (writer (slot-definition-writers slotd))
-	(let* ((gf-object (fdefinition writer))
-	       found)
-	  ;; primary method
-	  (when (setq found
-		      (find-method gf-object nil (list 'T class-name) nil))
-	    (remove-method gf-object found))
-	  ;; before method
-	  (when (setq found
-		      (find-method gf-object ':before (list 'T class-name) nil))
-	    (remove-method gf-object found))
-	  ;; after method
-	  (when (setq found
-		      (find-method gf-object ':after (list 'T class-name) nil))
-	    (remove-method gf-object found))
-	(when (null (generic-function-methods gf-object))
-	  (fmakunbound writer)))))))
-|#
-
 
