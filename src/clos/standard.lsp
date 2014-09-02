@@ -111,8 +111,6 @@
   (apply #'shared-initialize instance '() initargs)
   )
 
-(defvar *trace-shared-initialize* nil)
-
 ;;; Right now class T and class standard-object are essentially equivalent
 ;;; but if someone subclasses T directly this will not be true anymore.
 ;;; You should then uncomment the following method that should provide
@@ -120,9 +118,6 @@
 ;;;
 (defmethod shared-initialize ((instance T) slot-names &rest initargs)
   (declare (dynamic-extent initargs))
-
-  (when *trace-shared-initialize* 
-    (format t "~&In shared_initialize_T for object of class: ~S." (class-of instance)))
 
   ;; initialize-instance slots
   (dolist (slotd (class-slots (class-of instance)))
@@ -179,9 +174,6 @@
 
   (declare (dynamic-extent initargs))
 
-  (when *trace-shared-initialize* 
-    (format t "~&In shared_initialize_STANDARD_OBJECT for object of class: ~S." (class-of instance)))
-
   ;; initialize-instance slots
   (dolist (slotd (if (eq +instance-to-initialize+ instance)
 		     +cached-class-slots+
@@ -194,13 +186,15 @@
 	   ((null l) nil)
 	   (setf initarg (pop l))
 	   (when (endp l)
-	     (simple-program-error "Wrong number of keyword arguments for SHARED-INITIALIZE, ~A"
-				   initargs))
+	     (simple-program-error "Wrong number of keyword arguments for SHARED-INITIALIZE, ~A" initargs))
 	   (unless (symbolp initarg)
 	     (simple-program-error "Not a valid initarg: ~A" initarg))
 	   (setf val (pop l))
 	   (when (member initarg slot-initargs :test #'eq)
-	     (si:instance-set instance (slot-definition-location slotd) val) ;; direct. JCB
+             (let ((index (slot-definition-location slotd)))
+               (if (mkcl:fixnump index)
+                   (si:instance-set instance (the fixnum index) val) ;; local direct. JCB
+                 (rplaca index val)))  ;; shared direct. JCB
 	     (return t)))
        ;; Try to initialize the slot from its initform.
        (when (and slot-names
@@ -209,11 +203,12 @@
 		  (not (slot-boundp instance slot-name)))
 	 (let ((initfun (slot-definition-initfunction slotd)))
 	   (when initfun
-	     (si:instance-set instance 
-	     		      (slot-definition-location slotd)
-	     		      (funcall initfun)) ;; direct. JCB
-	     ))))
-      ))
+             (let ((index (slot-definition-location slotd))
+                   (val (funcall initfun)))
+               (if (mkcl:fixnump index)
+                   (si:instance-set instance (the fixnum index) val) ;; local direct. JCB
+                 (rplaca index val)))  ;; shared direct. JCB
+	     ))))))
   instance)
 
 ;;; ----------------------------------------------------------------------
