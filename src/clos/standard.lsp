@@ -82,7 +82,7 @@
 (defvar +cached-class+ nil)
 (defvar +instance-to-initialize+ nil)
 
-(defmethod initialize-instance ((instance T) &rest initargs &key &allow-other-keys)
+(defmethod initialize-instance ((instance T) &rest initargs)
   (declare (dynamic-extent initargs))
   (apply #'shared-initialize instance 'T initargs))
 
@@ -118,7 +118,7 @@
 ;;; You should then uncomment the following method that should provide
 ;;; a useful default behavior on T.
 ;;;
-(defmethod shared-initialize ((instance T) slot-names &rest initargs &key &allow-other-keys)
+(defmethod shared-initialize ((instance T) slot-names &rest initargs)
   (declare (dynamic-extent initargs))
 
   (when *trace-shared-initialize* 
@@ -342,7 +342,7 @@
   )
 	
 
-(defmethod make-instance ((class class) &rest initargs &key &allow-other-keys)
+(defmethod make-instance ((class class) &rest initargs)
   (declare (dynamic-extent initargs))
   (let ((cached-make-instance (class-cached-make-instance class)))
     (unless (and cached-make-instance (class-finalized-p class))
@@ -393,9 +393,7 @@
 
 
 
-(defmethod initialize-instance ((class class) &rest initargs
-				&key sealedp direct-superclasses direct-slots
-                                &allow-other-keys)
+(defmethod initialize-instance ((class class) &rest initargs &key sealedp direct-superclasses direct-slots)
   (declare (ignore sealedp))
   (declare (dynamic-extent initargs))
   ;; convert the slots from lists to direct slots
@@ -420,9 +418,10 @@
 
 (defvar *optimize-slot-access* t)
 
-(defmethod shared-initialize :after ((class standard-class) slot-names &rest initargs &key
+(defmethod shared-initialize :after ((class standard-class) slot-names &rest initargs
+                                     &key
 				     (optimize-slot-access (list *optimize-slot-access*))
-				     sealedp &allow-other-keys)
+				     sealedp)
   (declare (ignore slot-names initargs))
   (setf (class-optimize-slot-access class) (first optimize-slot-access)
 	(class-sealedp class) (and sealedp t)))

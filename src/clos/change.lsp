@@ -33,9 +33,8 @@
 ;;;	   extra processing.
 ;;;
 
-(defmethod update-instance-for-different-class
-    ((old-data standard-object) (new-data standard-object) &rest initargs)
-    ;;(declare (dynamic-extent initargs))
+(defmethod update-instance-for-different-class ((old-data standard-object) (new-data standard-object) &rest initargs)
+  ;;(declare (dynamic-extent initargs))
   (let ((old-local-slotds (si::instance-sig old-data))
 	(new-local-slotds (remove :instance (si::instance-sig new-data)
 				  :test-not #'eq :key #'slot-definition-allocation))
@@ -118,9 +117,8 @@
 ;;;
 
 (defmethod update-instance-for-redefined-class
-    ((instance standard-object) added-slots discarded-slots property-list
-     &rest initargs)
-    ;;(declare (dynamic-extent initargs))
+    ((instance standard-object) added-slots discarded-slots property-list &rest initargs)
+  ;;(declare (dynamic-extent initargs))
   (multiple-value-bind (method-initargs allow-other-keys)
       (valid-keywords-from-methods (append (compute-applicable-methods
 					    #'update-instance-for-redefined-class
@@ -188,8 +186,7 @@
 (defmethod reinitialize-instance ((class class) &rest initargs
 				  &key
                                   (direct-superclasses nil direct-superclasses-p)
-                                  (direct-slots nil direct-slots-p)
-                                  &allow-other-keys)
+                                  (direct-slots nil direct-slots-p))
   (declare (ignore initargs))
   (let ((name (class-name class)))
     (when (member name '(CLASS BUILT-IN-CLASS) :test #'eq) ;; Too weak! This restriction should be a lot broader. JCB

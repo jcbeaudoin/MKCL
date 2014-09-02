@@ -1,7 +1,7 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: CLOS -*-
 ;;;;
 ;;;;  Copyright (c) 1992, Giuseppe Attardi.
-;;;;  Copyright (c) 2010, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2014, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -396,4 +396,18 @@
 ;;;
 ;;; End of MOP stubs.
 ;;;
+
+(defgeneric make-instance (class &rest initargs &key &allow-other-keys))
+
+(defgeneric allocate-instance (class &rest initargs &key &allow-other-keys))
+
+(defgeneric initialize-instance (instance &rest initargs &key &allow-other-keys))
+
+(defgeneric shared-initialize (instance slot-names &rest initargs &key &allow-other-keys))
+
+;;(defgeneric reinitialize-instance (instance &rest initargs &key &allow-other-keys)) ;; already done in clos-change.lsp
+
+(defgeneric update-instance-for-different-class (previous current &rest initargs &key &allow-other-keys))
+
+(defgeneric update-instance-for-redefined-class (instance added-slots discarded-slots property-list &rest initargs &key &allow-other-keys))
 

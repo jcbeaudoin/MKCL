@@ -125,7 +125,6 @@
 			      (declarations nil)
 			      method-combination
 			      (method-class (find-class 'method))
-                              &allow-other-keys
 			      )
   ;;
   ;; Check the validity of several fields.
@@ -182,8 +181,7 @@
 	  (lambda-list-required-arguments lambda-list)))
   gfun)
 
-(defmethod shared-initialize ((gfun standard-generic-function) slot-names
-			      &rest initargs)
+(defmethod shared-initialize ((gfun standard-generic-function) slot-names &rest initargs)
   (declare (ignore slot-names initargs))
   (call-next-method)
   (compute-g-f-spec-list gfun)

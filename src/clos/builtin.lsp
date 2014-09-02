@@ -41,7 +41,7 @@
   (si:instance-class-set the-t (find-class 'built-in-class))
   (si::instance-sig-set the-t))
 
-(defmethod make-instance ((class built-in-class) &rest initargs &key &allow-other-keys)
+(defmethod make-instance ((class built-in-class) &rest initargs)
   (declare (ignore initargs))
   (error "The built-in class (~A) cannot be instantiated" class))
 
@@ -129,7 +129,7 @@
   (make-instances-obsolete (find-class class))
   class)
 
-(defmethod make-instance ((class-name symbol) &rest initargs &key &allow-other-keys)
+(defmethod make-instance ((class-name symbol) &rest initargs)
   (declare (dynamic-extent initargs))
   (apply #'make-instance (find-class class-name) initargs))
 
@@ -168,7 +168,7 @@
    print-function))
 
 ;;; structure-classes cannot be instantiated
-(defmethod make-instance ((class structure-class) &rest initargs &key &allow-other-keys)
+(defmethod make-instance ((class structure-class) &rest initargs)
   (declare (ignore initargs))
   (error "The structure-class (~A) cannot be instantiated" class))
 
