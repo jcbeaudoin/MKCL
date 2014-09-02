@@ -451,12 +451,12 @@ static void _mkcl_boot_inner(MKCL)
        * to the code 10, because the default name must be
        * Newline. */
       static const mkcl_base_string_object(null_str_obj, "Null");
-      static const mkcl_base_string_object(bell_str_obj, "Bell");
+      /* static const mkcl_base_string_object(bell_str_obj, "Bell"); */ /* clashes with Unicode U1F514. */
       static const mkcl_base_string_object(linefeed_str_obj, "Linefeed");
       static const mkcl_base_string_object(escape_str_obj, "Escape");
       
       mkcl_sethash(env, (mkcl_object) &null_str_obj, char_names_table, MKCL_MAKE_FIXNUM(0));
-      mkcl_sethash(env, (mkcl_object) &bell_str_obj, char_names_table, MKCL_MAKE_FIXNUM(7));
+      /* mkcl_sethash(env, (mkcl_object) &bell_str_obj, char_names_table, MKCL_MAKE_FIXNUM(7)); */
       mkcl_sethash(env, (mkcl_object) &linefeed_str_obj, char_names_table, MKCL_MAKE_FIXNUM(10));
       mkcl_sethash(env, (mkcl_object) &escape_str_obj, char_names_table, MKCL_MAKE_FIXNUM(27));
     }
