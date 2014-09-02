@@ -1,7 +1,7 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: CLOS -*-
 ;;;;
 ;;;;  Copyright (c) 1992, Giuseppe Attardi.
-;;;;  Copyright (c) 2010, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2014, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -833,22 +833,18 @@
 ;;;
 
 (defun unbound-slot-error (object index)
-  (declare (type standard-object object)
-	   (type fixnum index)
-	   )
+  (declare (type standard-object object) (type fixnum index))
   (let* ((class (class-of object))
 	 (slotd (find index (class-slots class) :key #'slot-definition-location)))
     (values (slot-unbound class object (slot-definition-name slotd)))))
 
 (defun safe-instance-ref (object index)
-  (declare (type standard-object object)
-	   (type fixnum index)
-	   )
+  (declare (type standard-object object) (type fixnum index))
   (ensure-up-to-date-instance object)
   (let ((value (si:instance-ref object index)))
     (if (si:sl-boundp value)
 	value
-	(unbound-slot-error object index))))
+      (unbound-slot-error object index))))
 
 ;;; The following does not get as fast as it should because we are not
 ;;; allowed to memoize the position of a slot. The problem is that the
@@ -861,63 +857,56 @@
 ;;; class. Both semantics are incompatible, but we currently have no
 ;;; safe way to choose one or another
 ;;;
-(defun std-class-optimized-accessors (slot-name)
-  (macrolet ((slot-table (class)
-	       `(si::instance-ref ,class #.(position 'slot-table +standard-class-slots+
-						     :key #'first)))
-	     (slot-definition-location (slotd)
-	       `(si::instance-ref ,slotd #.(position 'location +slot-definition-slots+
-						     :key #'first))))
+(defun std-class-optimized-accessors (slotd)
+  (macrolet ((slot-definition-location (slotd)
+	       `(si::instance-ref ,slotd #.(position 'location +slot-definition-slots+ :key #'first))))
     (values #'(lambda (self)
+                (declare (type standard-object self))
                 (ensure-up-to-date-instance self)
-		(let* ((class (si:instance-class self))
-		       (table (slot-table class))
-		       (slotd (gethash slot-name table))
-		       (index (slot-definition-location slotd))
+		(let* ((index (slot-definition-location slotd))
 		       (value (if (mkcl:fixnump index)
 				  (si:instance-ref self (the fixnum index))
-				  (car (the cons index))))) ;; the assumption that index is a cons is not very safe. JCB
+				  (car index)))) ;; the assumption that index is a cons is not very safe. JCB
 		  (if (si:sl-boundp value)
 		      value
-		      (values (slot-unbound (class-of self) self slot-name)))))
+		      (values (slot-unbound (si::instance-class self) self (slot-definition-name slotd))))))
 	    #'(lambda (value self)
+                (declare (type standard-object self))
                 (ensure-up-to-date-instance self)
-                (let* ((class (si:instance-class self))
-		       (table (slot-table class))
-		       (slotd (gethash slot-name table))
-		       (index (slot-definition-location slotd)))
+                (let ((index (slot-definition-location slotd)))
 		  (if (mkcl:fixnump index)
 		      (si:instance-set self (the fixnum index) value)
-		      (rplaca (the cons index) value))))))) ;; the assumption that index is a cons is not very safe. JCB
+		      (rplaca index value))))))) ;; the assumption that index is a cons is not very safe. JCB
 
-(defun std-class-sealed-accessors (index)
+(defun std-class-optimized-local-slot-accessors (index)
+  (declare (type fixnum index))
   (values #'(lambda (self)
+              (declare (type standard-object self))
               (ensure-up-to-date-instance self)
-	      (safe-instance-ref self index))
+              (safe-instance-ref self (the fixnum index)))
 	  #'(lambda (value self)
+              (declare (type standard-object self))
               (ensure-up-to-date-instance self)
-              (si:instance-set self index value))))
+              (si:instance-set self (the fixnum index) value))))
 
-(defun std-class-accessors (slot-name)
-  ;; The following are very slow. We do not optimize for the slot position.
+(defun std-class-accessors (slotd)
+  ;; The following are very slow. It does the full MOP instance structure protocol dance.
   (values #'(lambda (self)
-	      (slot-value self slot-name))
+	      (slot-value-using-class (si::instance-class self) self slotd))
 	  #'(lambda (value self)
-	      (setf (slot-value self slot-name) value))))
+	      (setf (slot-value-using-class (si::instance-class self) self slotd) value))))
 
 (defun std-class-generate-accessors (standard-class &aux optimizable)
   (dolist (slotd (class-slots standard-class))
     (multiple-value-bind (reader writer)
-	(let ((name (slot-definition-name slotd))
-	      (allocation (slot-definition-allocation slotd))
+	(let ((allocation (slot-definition-allocation slotd))
 	      (location (safe-slot-definition-location slotd)))
-	  (cond ((and (eq allocation :instance) (typep location 'fixnum))
-		 (std-class-sealed-accessors (slot-definition-location slotd)))
-		((and (eq allocation :instance)
-		      (class-optimize-slot-access standard-class))
-		 (std-class-optimized-accessors name))
+	  (cond ((class-optimize-slot-access standard-class)
+                 (if (and (eq allocation :instance) (typep location 'fixnum))
+                     (std-class-optimized-local-slot-accessors location)
+                   (std-class-optimized-accessors slotd)))
 		(t
-		 (std-class-accessors name))))
+		 (std-class-accessors slotd))))
       (let* ((reader-args (list :function reader
 				:generic-function nil
 				:qualifiers nil
@@ -926,7 +915,7 @@
 				:slot-definition slotd))
 	     (reader-class (if (boundp '*early-methods*)
 			       'standard-reader-method
-			       (apply #'reader-method-class standard-class slotd reader-args)))
+                             (apply #'reader-method-class standard-class slotd reader-args)))
 	     (writer-args (list :function writer
 				:generic-function nil
 				:qualifiers nil
@@ -940,13 +929,11 @@
 	  (install-method fname nil `(,standard-class) '(self)
 			  nil nil reader nil reader-class
 			  :slot-definition slotd
-			  ;;:class-sealedp (class-sealedp standard-class)
 			  :source (class-source standard-class)))
 	(dolist (fname (slot-definition-writers slotd))
 	  (install-method fname nil `(,(find-class t) ,standard-class) '(value self)
 			  nil nil writer nil writer-class
 			  :slot-definition slotd
-			  ;;:class-sealedp (class-sealedp standard-class)
 			  :source (class-source standard-class)))))))
 
 ;;; ======================================================================
