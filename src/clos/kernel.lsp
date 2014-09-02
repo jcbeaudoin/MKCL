@@ -421,9 +421,9 @@
       (if (atom spec2)
 	  (si::subclassp spec1 spec2)
 	  ;; There is only one class with a single element, which
-	  ;; is NIL = (MEMBER NIL).
+	  ;; is NIL = (MEMBER NIL).   | FIXME: This is most probably both false and undecidable! JCB
 	  (and (null (second spec2))
-	       (eq (class-name (first spec1)) 'nil)))
+	       (eq (class-name spec1) 'null)))
       (if (atom spec2)
 	  (si::of-class-p (second spec1) spec2)
 	  (eql (second spec1) (second spec2)))))
