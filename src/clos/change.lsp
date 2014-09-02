@@ -1,7 +1,7 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: CLOS -*-
 ;;;;
 ;;;;  Copyright (c) 1992, Giuseppe Attardi.
-;;;;  Copyright (c) 2010, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2014, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -55,6 +55,8 @@
 (defmethod change-class ((instance standard-object) (new-class standard-class)
 			 &rest initargs)
   ;;(declare (dynamic-extent initargs))
+  (unless (class-finalized-p new-class)
+    (finalize-inheritance new-class))
   (let* ((old-instance (si::copy-instance instance))
 	 (new-size (class-size new-class))
 	 (instance (si::allocate-raw-instance instance new-class new-size)))
@@ -130,15 +132,16 @@
 	(check-initargs (class-of instance) initargs method-initargs)))
   (apply #'shared-initialize instance added-slots initargs))
 
-(defun update-instance (instance)
+(defun update-instance (instance &aux (class (class-of instance)))
   (declare (type standard-object instance))
-  (let* ((class (class-of instance))
-	 (old-slotds (si::instance-sig instance))
-	 (new-slotds (class-slots class))
-	 (old-instance (si::copy-instance instance))
-	 (discarded-slots '())
-	 (added-slots '())
-	 (property-list '()))
+  (unless (class-finalized-p class)
+    (finalize-inheritance class))
+  (let ((old-slotds (si::instance-sig instance))
+        (new-slotds (class-slots class))
+        (old-instance (si::copy-instance instance))
+        (discarded-slots '())
+        (added-slots '())
+        (property-list '()))
     (unless (equal old-slotds new-slotds)
       (setf instance (si::allocate-raw-instance instance class (class-size class)))
       (si::instance-sig-set instance)
@@ -171,13 +174,16 @@
 ;;; ----------------------------------------------------------------------
 ;;; CLASS REDEFINITION PROTOCOL
 
-(defun unfinalize-class (class)
-  (setf (class-finalized-p class) nil)
+(defun refinalize-inheritance (class)
+  (finalize-inheritance class)
   (dolist (subclass (class-direct-subclasses class))
-    (unfinalize-class subclass)))
+    (when (class-finalized-p subclass)
+      (refinalize-inheritance subclass))
+    )
+  )
 
 (ensure-generic-function 'reinitialize-instance
-			 :lambda-list '(class &rest initargs &key &allow-other-keys))
+			 :lambda-list '(instance &rest initargs &key &allow-other-keys))
 
 (defmethod reinitialize-instance ((class class) &rest initargs
 				  &key
@@ -194,7 +200,7 @@
                                        ;; checking that class direct hierarchy makes sense.
                                        (check-direct-superclasses class direct-superclasses))))
     (when was-already-finalized-p
-      (unfinalize-class class))      
+      (setf (class-finalized-p class) nil))      
 
     (when direct-superclasses-p
       ;; Remove old subclass relationships since direct class hierarchy is about to change.
@@ -216,12 +222,13 @@
       (dolist (l checked-direct-superclasses)
         (add-direct-subclass l class)))
 
-    #+(and) ;; if there are no forward references, we can just finalize the class here
-    (finalize-unless-forward class)  ;; somewhat eager. JCB
-    #-(and) ;; This here should replace the line just above but there is something foobar with our finalization. JCB
-    (when was-already-finalized-p
-      (finalize-inheritance class)
-      ;; Here AMOP says we should also update dependents, but that protocol isn't implemented yet. JCB
+    (if was-already-finalized-p
+        (progn
+          (refinalize-inheritance class)
+          ;; Here AMOP says we should also update dependents, but that protocol isn't implemented yet. JCB
+          )
+      #+(and) ;; if there are no forward references, we can just finalize the class here
+      (finalize-unless-forward class)  ;; somewhat eager. AMOP says not to do this. Will disappear in MKCL 1.2! JCB
       )
     )
   class)
