@@ -210,44 +210,43 @@
 ;;; 1) Functional interface
 ;;;
 
-(defun find-slot-definition (class slot-name)
+(defun find-effective-slot-definition (class slot-name)
   (if (eq (si:instance-class class) +the-standard-class+)
       (gethash (class-slot-table class) slot-name nil)
-      (find slot-name (class-slots class) :key #'slot-definition-name))) ;; linear search.
+    (find slot-name (class-slots class) :key #'slot-definition-name))) ;; linear search.
 
 (defun slot-value (self slot-name)
   (let* ((class (class-of self))
-	 (slotd (find-slot-definition class slot-name)))
+	 (slotd (find-effective-slot-definition class slot-name)))
     (if slotd
 	(slot-value-using-class class self slotd)
-	(values (slot-missing class self slot-name 'SLOT-VALUE)))))
+      (values (slot-missing class self slot-name 'SLOT-VALUE)))))
 
 (defun slot-boundp (self slot-name)
   (let* ((class (class-of self))
-	 (slotd (find-slot-definition class slot-name)))
+	 (slotd (find-effective-slot-definition class slot-name)))
     (if slotd
 	(slot-boundp-using-class class self slotd)
-	(values (slot-missing class self slot-name 'SLOT-BOUNDP)))))
+      (values (slot-missing class self slot-name 'SLOT-BOUNDP)))))
 
 (defun (setf slot-value) (value self slot-name)
   (let* ((class (class-of self))
-	 (slotd (find-slot-definition class slot-name)))
+	 (slotd (find-effective-slot-definition class slot-name)))
     (if slotd
 	(funcall #'(setf slot-value-using-class) value class self slotd)
-	(slot-missing class self slot-name 'SETF value))
+      (slot-missing class self slot-name 'SETF value))
     value))
 
 (defun slot-makunbound (self slot-name)
   (let* ((class (class-of self))
-	 (slotd (find-slot-definition class slot-name)))
+	 (slotd (find-effective-slot-definition class slot-name)))
     (if slotd
 	(slot-makunbound-using-class class self slotd)
-	(slot-missing class self slot-name 'SLOT-MAKUNBOUND))
+      (slot-missing class self slot-name 'SLOT-MAKUNBOUND))
     self))
 
 (defun slot-exists-p (self slot-name)
-  (and (find-slot-definition (class-of self) slot-name)
-       t))
+  (and (find-effective-slot-definition (class-of self) slot-name) T))
 
 ;;;
 ;;; For the next accessor we define a method.

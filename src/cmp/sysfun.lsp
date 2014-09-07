@@ -2303,9 +2303,9 @@
    clos::slot-makunbound
    clos::slot-value
    clos::slot-exists-p
+   clos::standard-instance-set
    ;; standard.lsp
    clos::safe-instance-ref
-   clos::standard-instance-set
    ;; kernel.lsp
    clos::install-method
    clos::class-id

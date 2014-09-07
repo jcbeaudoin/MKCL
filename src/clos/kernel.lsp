@@ -23,8 +23,7 @@
 ;;; During bootstrap these need to be redefined at some point
 ;;; and thus cannot be load-time evaluated.
 #+mkcl-bootstrap
-(proclaim '(notinline clos::find-slot-definition
-		      cl::ensure-generic-function
+(proclaim '(notinline cl::ensure-generic-function
 		      clos::method-p
 		      cl::make-method
 		      cl::add-method

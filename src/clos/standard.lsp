@@ -870,7 +870,7 @@
                 (let ((index (slot-definition-location slotd)))
 		  (if (mkcl:fixnump index)
 		      (si:instance-set self (the fixnum index) value)
-		      (rplaca index value))))))) ;; the assumption that index is a cons is not very safe. JCB
+		      (setf (car index) value))))))) ;; the assumption that index is a cons is not very safe. JCB
 
 (defun std-class-optimized-local-slot-accessors (index)
   (declare (type fixnum index))

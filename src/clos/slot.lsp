@@ -1,6 +1,7 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: CLOS -*-
 ;;;;
 ;;;;  Copyright (c) 1992, Giuseppe Attardi.
+;;;;  Copyright (c) 2010-2014, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -41,6 +42,7 @@
     (writers :initarg :writers :initform nil :accessor slot-definition-writers)
     (documentation :initarg :documentation :initform nil :accessor slot-definition-documentation)
     (location :initarg :location :initform nil :accessor slot-definition-location)
+    (class :initarg :class :initform nil :accessor slot-definition-class) ;; extension to MOP. JCB
     ))
 
 (defun class-shared-slots (class)
@@ -62,7 +64,7 @@
 	   (value (if initfunc (funcall initfunc) (unbound)))
 	   )
       (setf (getf slotd :initfunction) (constantly value)
-		  (getf slotd :location) (list value))
+            (getf slotd :location) (list value))
       #+(or)
       (if initfunc
 	  (let ((value (funcall initfunc)))
