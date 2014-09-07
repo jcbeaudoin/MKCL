@@ -770,6 +770,7 @@ Returns T if X belongs to TYPE; NIL otherwise."
 	 :format-arguments (list object type)))
 
 (defun coerce (object type &aux aux)
+  ;; FIXME: conformance of this piece of code with the ANSI-CL specification is dubious. JCB
   "Args: (x type)
 Coerces X to an object of the specified type, if possible.  Signals an error
 if not possible."
@@ -780,9 +781,13 @@ if not possible."
 	 (case type
 	   ((T) object)
 	   (LIST
-	    (do ((io (make-seq-iterator object) (seq-iterator-next object io))
-	         (l nil (cons (seq-iterator-ref object io) l)))
-	        ((null io) l)))
+            ;; cl:loop is not defined yet so we use a more explicit form of looping.
+            (do ((io (make-seq-iterator object) (seq-iterator-next object io))
+                 (root nil)
+	         (head nil))
+	        ((null io) root)
+                (if root (rplacd head (setq head (cons (seq-iterator-ref object io) nil)))
+                  (setq root (setq head (cons (seq-iterator-ref object io) nil))))))
            (BASE-CHAR (let ((new (character object)))
                         (if (mkcl:base-char-p new) new (error-coerce object type))))
 	   (CHARACTER (character object))
