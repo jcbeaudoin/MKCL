@@ -193,6 +193,7 @@
       (error "The kernel CLOS class ~S cannot be changed." name)))
 
   (let ((was-already-finalized-p (class-finalized-p class))
+        (old-direct-slots (class-direct-slots class))
         (checked-direct-superclasses (when direct-superclasses-p
                                        ;; checking that class direct hierarchy makes sense.
                                        (check-direct-superclasses class direct-superclasses))))
@@ -210,7 +211,15 @@
     (when direct-slots-p
       (setf (class-direct-slots class)
             (loop for s in direct-slots
-                  collect (canonical-slot-to-direct-slot class s))))
+                  collect (let ((d-s (canonical-slot-to-direct-slot class s)))
+                            (when (eq :class (slot-definition-allocation d-s))
+                              (let ((old-d-s (find (slot-definition-name d-s)
+                                                   old-direct-slots
+                                                   :key #'slot-definition-name)))
+                                (if (and old-d-s (eq :class (slot-definition-allocation old-d-s)))
+                                    (setf (slot-definition-location d-s) (slot-definition-location old-d-s))
+                                  (provision-shared-slot d-s))))
+                            d-s))))
 
     ;; assure coherence of class hierarchy.
     (when direct-superclasses-p

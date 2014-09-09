@@ -393,7 +393,11 @@
   (declare (dynamic-extent initargs))
   ;; convert the slots from lists to direct slots
   (setf direct-slots (loop for s in direct-slots
-			   collect (canonical-slot-to-direct-slot class s)))
+                           collect (let ((d-s (canonical-slot-to-direct-slot class s)))
+                                     (when (eq :class (slot-definition-allocation d-s))
+                                       (provision-shared-slot d-s))
+                                     d-s)
+                           ))
 
   ;; verify that the inheritance list makes sense
   (setf direct-superclasses (check-direct-superclasses class direct-superclasses))

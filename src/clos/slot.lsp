@@ -59,23 +59,13 @@
   (list name initform initfunction type allocation initargs readers writers documentation location))
 
 (defun provision-shared-slot (slotd)
-  (when (eq (getf slotd :allocation) :class)
-    (let* ((initfunc (getf slotd :initfunction))
-	   (value (if initfunc (funcall initfunc) (unbound)))
-	   )
-      (setf (getf slotd :initfunction) (constantly value)
-            (getf slotd :location) (list value))
-      #+(or)
-      (if initfunc
-	  (let ((value (funcall initfunc)))
-	    (setf (getf slotd :initfunction) (constantly value)
-		  (getf slotd :location) (list value)))
-	(setf (getf slotd :location) (list (unbound))))
-      ))
+  (let* ((initfunc (slot-definition-initfunction slotd))
+         (value (if initfunc (funcall initfunc) (unbound))))
+    (setf (slot-definition-initfunction slotd) (constantly value)
+          (slot-definition-location slotd) (list value)))
   slotd)
 
 (defun canonical-slot-to-direct-slot (class slotd)
-  (setq slotd (provision-shared-slot slotd))
   (if (find-class 'slot-definition nil)
       (apply #'make-instance
 	     (apply #'direct-slot-definition-class class slotd)
