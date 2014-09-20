@@ -484,7 +484,7 @@ uninstall:
 	$(RM) -r $(includedir)/mkcl $(mkcldir)
 	for i in $(LSP_LIBRARIES); do \
 	  case $$i in \
-	    *.dll) $(RM) $(libdir)/$$i || : ; $(RM) $(bindir)/$$i || : ;;
+	    *.dll) $(RM) $(libdir)/$$i || : ; $(RM) $(bindir)/$$i || : ;; \
 	    *) $(RM) $(libdir)/$$i || : ;; \
 	  esac \
 	done
