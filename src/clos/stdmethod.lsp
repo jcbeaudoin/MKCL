@@ -17,7 +17,7 @@
 ;;; Generic Functions
 ;;; ----------------------------------------------------------------------
 
-(defclass generic-function (standard-object function) ())
+(defclass generic-function (function standard-object) ())
 
 (defclass standard-generic-function (generic-function)
   #.+standard-generic-function-slots+)
