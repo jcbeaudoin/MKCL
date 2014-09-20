@@ -480,7 +480,7 @@ install-contribs-local: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS)
 
 
 uninstall:
-	for i in $(TARGETS) mkcl-config; do $(RM) $(bindir)/$$i; done
+	for i in $(TARGETS) mkcl-config; do $(RM) $(bindir)/$$(basename $$i); done
 	$(RM) -r $(includedir)/mkcl $(mkcldir)
 	for i in $(LSP_LIBRARIES); do \
 	  case $$i in \
