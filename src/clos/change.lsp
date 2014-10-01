@@ -219,6 +219,7 @@
                                 (if (and old-d-s (eq :class (slot-definition-allocation old-d-s)))
                                     (setf (slot-definition-location d-s) (slot-definition-location old-d-s))
                                   (provision-shared-slot d-s))))
+                            (ensure-slot-readers-writers d-s)
                             d-s))))
 
     ;; assure coherence of class hierarchy.

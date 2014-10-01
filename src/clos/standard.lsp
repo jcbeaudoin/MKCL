@@ -386,27 +386,35 @@
   (unless (has-forward-referenced-parents class)
     (finalize-inheritance class)))
 
+(defun ensure-slot-readers-writers (direct-slot-def)
+  (dolist (reader (slot-definition-readers direct-slot-def))
+    (ensure-generic-function reader :lambda-list '(self)))
+  (dolist (writer (slot-definition-writers direct-slot-def))
+    (ensure-generic-function writer :lambda-list '(value self)))
+  )
+
 
 
 (defmethod initialize-instance ((class class) &rest initargs &key sealedp direct-superclasses direct-slots)
   (declare (ignore sealedp))
   (declare (dynamic-extent initargs))
-  ;; convert the slots from lists to direct slots
-  (setf direct-slots (loop for s in direct-slots
-                           collect (let ((d-s (canonical-slot-to-direct-slot class s)))
-                                     (when (eq :class (slot-definition-allocation d-s))
-                                       (provision-shared-slot d-s))
-                                     d-s)
-                           ))
 
   ;; verify that the inheritance list makes sense
   (setf direct-superclasses (check-direct-superclasses class direct-superclasses))
 
   (apply #'call-next-method class
-         :direct-slots direct-slots
          :direct-superclasses direct-superclasses
          initargs)
 
+  ;; convert the slots from canonical to direct slots
+  (setf (class-direct-slots class) (loop for s in direct-slots
+                                         collect (let ((d-s (canonical-slot-to-direct-slot class s)))
+                                                   (when (eq :class (slot-definition-allocation d-s))
+                                                     (provision-shared-slot d-s))
+                                                   (ensure-slot-readers-writers d-s)
+                                                   d-s)
+                                         ))
+  
   ;; record the inheritance in parents
   (dolist (l (setf direct-superclasses (class-direct-superclasses class)))
     (add-direct-subclass l class))
