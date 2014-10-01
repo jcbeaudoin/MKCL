@@ -488,6 +488,7 @@ uninstall:
 	    *) $(RM) $(libdir)/$$i || : ;; \
 	  esac \
 	done
+	cd $(libdir) && rm -f @SONAME3@ @SONAME2@ @SONAME1@ @SONAME@
 #	cd doc; $(MAKE) uninstall
 
 doc: $(TARGETS)
