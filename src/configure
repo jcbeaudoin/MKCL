@@ -625,6 +625,8 @@ MKCL_PATCH_LEVEL
 MKCL_MINOR_VERSION
 MKCL_MAJOR_VERSION
 MKCL_VERSION_NUMBER
+MKCL_INTERNAL_STATIC_NAME
+MKCL_INTERNAL_SONAME
 SONAME_LDFLAGS
 SONAME
 SONAME1
@@ -3988,7 +3990,7 @@ case "${host_os}" in
 		LDRPATH='-Wl,--rpath,~A'
 		clibs="-ldl"
 		CFLAGS="-D_GNU_SOURCE -fno-strict-aliasing ${CFLAGS}"
-		SONAME="mkcl.${SHAREDEXT}.SOVERSION"
+		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
 	gnu*)
@@ -4000,7 +4002,7 @@ case "${host_os}" in
 		LDRPATH='-Wl,--rpath,~A'
 		clibs="-ldl"
 		CFLAGS="-D_GNU_SOURCE ${CFLAGS}"
-		SONAME="mkcl.${SHAREDEXT}.SOVERSION"
+		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
 	kfreebsd*-gnu)
@@ -4012,7 +4014,7 @@ case "${host_os}" in
 		LDRPATH='-Wl,--rpath,~A'
 		clibs="-ldl"
 		CFLAGS="-D_GNU_SOURCE ${CFLAGS}"
-		SONAME="mkcl.${SHAREDEXT}.SOVERSION"
+		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
 	freebsd*)
@@ -4022,7 +4024,7 @@ case "${host_os}" in
 		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
 		LDRPATH="-Wl,--rpath,~A"
 		clibs=""
-		SONAME="mkcl.${SHAREDEXT}.SOVERSION"
+		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
 	netbsd*)
@@ -4032,7 +4034,7 @@ case "${host_os}" in
 		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
 		LDRPATH="-Wl,--rpath,~A"
 		clibs=""
-		SONAME="mkcl.${SHAREDEXT}.SOVERSION"
+		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
 	openbsd*)
@@ -4043,7 +4045,7 @@ case "${host_os}" in
 		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
 		LDRPATH="-Wl,--rpath,~A"
 		clibs=""
-		SONAME="mkcl.${SHAREDEXT}.SOVERSION"
+		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
 	solaris*)
@@ -4109,7 +4111,7 @@ case "${host_os}" in
                 enable_boehm=included
 		# MKCL, due to some of the libraries, does not build on
 		# 64 bit mode on OSX. We prevent GMP using that mode.
-		SONAME="mkcl.SOVERSION.${SHAREDEXT}"
+		SONAME="${SHAREDPREFIX}mkcl.SOVERSION.${SHAREDEXT}"
 		SONAME_LDFLAGS="-Wl,-install_name,SONAME -Wl,-compatibility_version,${PACKAGE_VERSION}"
 		;;
 	nsk*)
@@ -4653,6 +4655,10 @@ fi
 
 
 
+
+
+MKCL_INTERNAL_SONAME="mkcl_${PACKAGE_VERSION}.${SHAREDEXT}"
+MKCL_INTERNAL_STATIC_NAME="mkcl_${PACKAGE_VERSION}.${LIBEXT}"
 
 
 
@@ -7688,13 +7694,13 @@ if test ${enable_shared} = "yes"; then
 
 $as_echo "#define ENABLE_DLOPEN 1" >>confdefs.h
 
-  LSP_LIBRARIES="mkcl_${PACKAGE_VERSION}.${SHAREDEXT}"
+    LSP_LIBRARIES="${MKCL_INTERNAL_SONAME}"
 
 LSP_FEATURES=":wants-dlopen ${LSP_FEATURES}"
 
 else
   enable_soname=no
-  LSP_LIBRARIES="mkcl_${PACKAGE_VERSION}.${LIBEXT}"
+    LSP_LIBRARIES="${MKCL_INTERNAL_STATIC_NAME}"
   LDRPATH='~*'
 fi
 

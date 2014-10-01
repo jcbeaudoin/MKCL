@@ -379,12 +379,12 @@ install-base: all mkcl/config-install.h
 	    esac \
 	  fi \
 	done
-	if [ "x@SONAME@" != "x" -a -f "@SONAME@" ]; then \
-	  ( cd $(libdir) && rm -f @SONAME3@ @SONAME2@ @SONAME1@ && \
-	    mv @SONAME@ @SONAME3@ && \
-	    $(LN_S) @SONAME3@ @SONAME2@ && \
-	    $(LN_S) @SONAME3@ @SONAME1@ && \
-	    $(LN_S) @SONAME3@ @SONAME@ ) \
+	if [ "x@MKCL_INTERNAL_SONAME@" != "x" -a -f "@MKCL_INTERNAL_SONAME@" ]; then \
+	  ( cd $(libdir) && rm -f @SONAME3@ @SONAME2@ @SONAME1@ @SONAME@ && \
+	    $(LN_S) @MKCL_INTERNAL_SONAME@ @SONAME3@ && \
+	    $(LN_S) @MKCL_INTERNAL_SONAME@ @SONAME2@ && \
+	    $(LN_S) @MKCL_INTERNAL_SONAME@ @SONAME1@ && \
+	    $(LN_S) @MKCL_INTERNAL_SONAME@ @SONAME@ ) \
 	fi
 	for i in $(MKCL_STATIC_PARTS) $(LIBRARIES); do \
 	  if test -s $$i ; then \
@@ -447,12 +447,12 @@ install-base-local: all mkcl/config-install.h
 	    esac \
 	  fi \
 	done
-	if [ "x@SONAME@" != "x" -a -f "@SONAME@" ]; then \
-	  ( cd ./lib/ && rm -f @SONAME3@ @SONAME2@ @SONAME1@ && \
-	    mv @SONAME@ @SONAME3@ && \
-	    $(LN_S) @SONAME3@ @SONAME2@ && \
-	    $(LN_S) @SONAME3@ @SONAME1@ && \
-	    $(LN_S) @SONAME3@ @SONAME@ ) \
+	if [ "x@MKCL_INTERNAL_SONAME@" != "x" -a -f "@MKCL_INTERNAL_SONAME@" ]; then \
+	  ( cd ./lib/ && rm -f @SONAME3@ @SONAME2@ @SONAME1@ @SONAME@ && \
+	    $(LN_S) @MKCL_INTERNAL_SONAME@ @SONAME3@ && \
+	    $(LN_S) @MKCL_INTERNAL_SONAME@ @SONAME2@ && \
+	    $(LN_S) @MKCL_INTERNAL_SONAME@ @SONAME1@ && \
+	    $(LN_S) @MKCL_INTERNAL_SONAME@ @SONAME@ ) \
 	fi
 	for i in $(MKCL_STATIC_PARTS) $(LIBRARIES); do \
 	  if test -s $$i ; then \

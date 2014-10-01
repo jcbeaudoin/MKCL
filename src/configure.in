@@ -482,6 +482,10 @@ AC_SUBST(SONAME2)
 AC_SUBST(SONAME1)
 AC_SUBST(SONAME)
 AC_SUBST(SONAME_LDFLAGS)
+MKCL_INTERNAL_SONAME="mkcl_${PACKAGE_VERSION}.${SHAREDEXT}"
+MKCL_INTERNAL_STATIC_NAME="mkcl_${PACKAGE_VERSION}.${LIBEXT}"
+AC_SUBST(MKCL_INTERNAL_SONAME)
+AC_SUBST(MKCL_INTERNAL_STATIC_NAME)
 
 dnl Related to that, the package version number
 MKCL_VERSION_NUMBER=$(($PACKAGE_MAJOR * 1000000 + $PACKAGE_MINOR * 10000 + $PACKAGE_PATCH ))
@@ -639,11 +643,13 @@ dnl ----------------------------------------------------------------------
 dnl Lisp library and libmkcl features
 if test ${enable_shared} = "yes"; then
   AC_DEFINE(ENABLE_DLOPEN, [1], [Allow loading dynamically linked code])
-  LSP_LIBRARIES="mkcl_${PACKAGE_VERSION}.${SHAREDEXT}"
+  dnl  LSP_LIBRARIES="mkcl_${PACKAGE_VERSION}.${SHAREDEXT}"
+  LSP_LIBRARIES="${MKCL_INTERNAL_SONAME}"
   MKCL_ADD_FEATURE([wants-dlopen])
 else
   enable_soname=no
-  LSP_LIBRARIES="mkcl_${PACKAGE_VERSION}.${LIBEXT}"
+  dnl  LSP_LIBRARIES="mkcl_${PACKAGE_VERSION}.${LIBEXT}"
+  LSP_LIBRARIES="${MKCL_INTERNAL_STATIC_NAME}"
   LDRPATH='~*'
 fi
 
