@@ -475,7 +475,7 @@ The top-level loop of MKCL. It is called by default when MKCL is invoked."
 (defun terminal-interrupt (correctablep)
   (let ((*break-enable* t))
     (if correctablep
-      (cerror "Continues execution." 'mkcl:interactive-interrupt)
+      (cerror "Continue execution." 'mkcl:interactive-interrupt)
       (error "Console interrupt -- cannot continue."))))
 
 (defun terminal-interrupt-interactive ()

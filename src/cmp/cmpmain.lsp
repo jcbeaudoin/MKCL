@@ -33,7 +33,7 @@
       (finish-output)
       )
     (unless (zerop result)
-      (cerror "Continues anyway."
+      (cerror "Continue anyway."
 	      "(mkcl:run-command ~S) returned non-zero value ~D~%~
                  Command output:~%~{~A~}~%"
 	      string result output))
