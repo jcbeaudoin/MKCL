@@ -35,7 +35,7 @@
 		    (c1call-symbol fun (cdr form)))
 		   ((and (consp fun) (eq (car fun) 'LAMBDA))
 		    (c1funcall form))
-		   (t (cmperr "~s is not a legal function name." fun)))))
+		   (t (cmperr "~s is not a valid lambda expression as operator of a compound form." fun)))))
 	  (t (c1constant-value form :always t)))))
   (if (eq form '*cmperr-tag*)
       (c1nil)
