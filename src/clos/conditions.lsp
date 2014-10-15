@@ -66,7 +66,8 @@
 (defun compute-restarts (&optional condition)
   (let* ((assoc-restart ())
 	 (other ())
-	 (output ()))
+	 (output ())
+         (output-last nil))
     #+(or) ;; This is the naive optimist version. JCB
     (when condition
       (dolist (i *condition-restarts*)
@@ -85,7 +86,7 @@
 	      (setq other (append (rest i) other)))))))
 
     #+(or) ;; This is the naive optimist version. JCB
-    (dolist (restart-cluster *restart-clusters*)
+    (dolist (restart-cluster *restart-clusters* (setq output (nreverse output)))
       (dolist (restart restart-cluster)
 	(when (and (or (not condition)
 		       (member restart assoc-restart)
@@ -99,17 +100,25 @@
 	(let ((restart-cluster (car restart-clusters)))
 	  (when (consp restart-cluster)
 	    (do* ((sub-cluster restart-cluster (and (consp sub-cluster) (cdr sub-cluster)))
-                  (cluster-output ()))
+                  (cluster-output ())
+                  (cluster-output-last nil))
 		 ((or (null sub-cluster) (not (consp sub-cluster)))
-                  (setq output (nconc (nreverse cluster-output) output)))
+                  (when cluster-output
+                    (if output-last
+                        (setf (cdr output-last) cluster-output)
+                      (setq output cluster-output))
+                    (setq output-last cluster-output-last)))
 	      (let ((restart (car sub-cluster)))
 		(when (and (restart-p restart)
 			   (or (not condition)
 			       (member restart assoc-restart)
 			       (not (member restart other)))
 			   (funcall (restart-test-function restart) condition))
-		  (push restart cluster-output))))))))
-
+                  (let ((it (cons restart nil)))
+                    (if cluster-output-last
+                        (rplacd cluster-output-last it)
+                      (setq cluster-output it))
+                    (setq cluster-output-last it))))))))) 
     output))
 
 (defmacro restart-bind (bindings &body forms)
