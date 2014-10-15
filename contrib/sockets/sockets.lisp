@@ -1058,7 +1058,7 @@ also known as unix-domain sockets."))
 #endif
         sockaddr.sun_family = #2;
         strncpy(sockaddr.sun_path,#1,sizeof(sockaddr.sun_path));
-	sockaddr.sun_path[sizeof(sockaddr.sun_path)-1] = '\0';
+	sockaddr.sun_path[sizeof(sockaddr.sun_path)-1] = '\\0';
 
 	MKCL_LIBC_NO_INTR(env, (output = bind(#0,(struct sockaddr*)&sockaddr, sizeof(struct sockaddr_un))));
 
@@ -1107,7 +1107,7 @@ also known as unix-domain sockets."))
 #endif
         sockaddr.sun_family = #1;
         strncpy(sockaddr.sun_path,#2,sizeof(sockaddr.sun_path));
-	sockaddr.sun_path[sizeof(sockaddr.sun_path)-1] = '\0';
+	sockaddr.sun_path[sizeof(sockaddr.sun_path)-1] = '\\0';
 
 	MKCL_LIBC_Zzz(env, #3, (output = connect(#0, (struct sockaddr*)&sockaddr, sizeof(struct sockaddr_un))));
         mk_mt_test_for_thread_shutdown(env);
