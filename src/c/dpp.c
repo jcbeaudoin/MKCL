@@ -919,7 +919,8 @@ main(int argc, char **argv)
     strcpy(filename, "-");
   } else {
     in = fopen(argv[1],"r");
-    strncpy(filename, argv[1], BUFSIZ);
+    strncpy(filename, argv[1], BUFSIZ-1);
+    filename[BUFSIZ-1] = '\0';
   }
 #ifdef _MSC_VER
   /* Convert all backslashes in filename into slashes,
@@ -931,10 +932,11 @@ main(int argc, char **argv)
 #endif
   if (argc < 3 || !strcmp(argv[2],"-")) {
     out = stdout;
-    strncpy(outfile, "-", BUFSIZ);
+    strcpy(outfile, "-");
   } else {
     out = fopen(argv[2],"w");
-    strncpy(outfile, argv[2], BUFSIZ);
+    strncpy(outfile, argv[2], BUFSIZ-1);
+    outfile[BUFSIZ-1] = '\0';
   }
   if (in == NULL)
     error("can't open input file");
