@@ -1453,7 +1453,7 @@ mk_cl_namestring(MKCL, mkcl_object x)
 
   if (mkcl_stringp(env, path) && defaults->pathname.logical)
     {
-      mkcl_index s = 0, e = mkcl_string_length(env, path), ep;
+      mkcl_index s = 0, e = mkcl_string_length(env, path), ep = 0;
       mkcl_object new_path = mkcl_parse_namestring(env, path, s, e, &ep, defaults->pathname.host, mkcl_may_be_wild_namestring);
       
       if (mkcl_Null(new_path) || ep != e)
@@ -1485,7 +1485,7 @@ mk_cl_namestring(MKCL, mkcl_object x)
 
   if (mkcl_stringp(env, path) && defaults->pathname.logical)
     {
-      mkcl_index s = 0, e = mkcl_string_length(env, path), ep;
+      mkcl_index s = 0, e = mkcl_string_length(env, path), ep = 0;
       mkcl_object new_path = mkcl_parse_namestring(env, path, s, e, &ep, defaults->pathname.host, mkcl_may_be_wild_namestring);
       
       if (mkcl_Null(new_path) || ep != e)
@@ -1512,11 +1512,15 @@ mk_cl_namestring(MKCL, mkcl_object x)
   if (!mkcl_Null(defaults)) {
     defaults = mk_cl_pathname(env, defaults);
   }
-  x = mkcl_make_pathname(env,
-			 ((host != MKCL_OBJNULL)
+
+  mkcl_object new_host = ((host != MKCL_OBJNULL)
 			  ? (((logical = mkcl_logical_hostname_p(env, host)), (verbatim |= logical))
                              ? host : common_transcase(env, host))
-			  : (mkcl_Null(defaults) ? mk_si_default_pathname_defaults(env)->pathname.host : defaults->pathname.host)),
+			  : (mkcl_Null(defaults)
+                             ? mk_si_default_pathname_defaults(env)->pathname.host : defaults->pathname.host));
+
+  x = mkcl_make_pathname(env,
+			 new_host,
 			 ((device != MKCL_OBJNULL)
 			  ? (verbatim ? device : common_transcase(env, device))
 			  : (mkcl_Null(defaults) ? device : defaults->pathname.device)),
@@ -1816,14 +1820,18 @@ static mkcl_object
 coerce_to_from_pathname(MKCL, mkcl_object x, mkcl_object host)
 {
   switch (mkcl_type_of(x)) {
+  default:
+    mkcl_FEerror(env, "~S is not a valid from-pathname translation", 1, x);
   case mkcl_t_string:
   case mkcl_t_base_string:
     x = mk_cl_parse_namestring(env, 2, x, host);
+    goto mkcl_t_pathname_case;  /* fallthrough is such bad taste! */
   case mkcl_t_pathname:
+  mkcl_t_pathname_case:
     if (x->pathname.logical)
       return x;
-  default:
-    mkcl_FEerror(env, "~S is not a valid from-pathname translation", 1, x);
+    else
+      mkcl_FEerror(env, "~S is not a logical pathname as it must to be a valid from-pathname translation", 1, x);
   }
 }
 

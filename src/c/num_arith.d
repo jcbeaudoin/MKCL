@@ -29,6 +29,7 @@
   /* INV: type check in mkcl_times() */
   while (narg--)
     prod = mkcl_times(env, prod, mkcl_va_arg(nums));
+  mkcl_va_end(nums);
   @(return prod);
 @)
 
@@ -262,6 +263,7 @@ mkcl_times(MKCL, mkcl_object x, mkcl_object y)
   /* INV: type check is in mkcl_plus() */
   while (narg--)
   sum = mkcl_plus(env, sum, mkcl_va_arg(nums));
+  mkcl_va_end(nums);
   @(return sum);
 @)
 
@@ -480,9 +482,10 @@ mkcl_plus(MKCL, mkcl_object x, mkcl_object y)
 @
   /* INV: argument type check in number_{negate,minus}() */
   if (narg == 1)
-    { @(return mkcl_negate(env, num)); }
+    { mkcl_va_end(nums); @(return mkcl_negate(env, num)); }
   for (diff = num;  --narg; )
     diff = mkcl_minus(env, diff, mkcl_va_arg(nums));
+  mkcl_va_end(nums);
   @(return diff);
 @)
 
@@ -770,9 +773,10 @@ mkcl_negate(MKCL, mkcl_object x)
   if (narg == 0)
     mkcl_FEwrong_num_arguments(env, @'/');
   if (narg == 1)
-    { @(return mkcl_divide(env, MKCL_MAKE_FIXNUM(1), num)); }
+    { mkcl_va_end(nums); @(return mkcl_divide(env, MKCL_MAKE_FIXNUM(1), num)); }
   while (--narg)
     num = mkcl_divide(env, num, mkcl_va_arg(nums));
+  mkcl_va_end(nums);
   @(return num);
 @)
 
@@ -786,8 +790,10 @@ mkcl_divide(MKCL, mkcl_object x, mkcl_object y)
   case mkcl_t_bignum:
     switch (mkcl_type_of(y)) {
     case mkcl_t_fixnum:
+#if 0 /* slows down the normal case and will be caught anyway by mkcl_make_ratio(). */
       if (y == MKCL_MAKE_FIXNUM(0))
 	mkcl_FEdivision_by_zero(env, x, y);
+#endif
     case mkcl_t_bignum:
       if (mkcl_minusp(env, y) == TRUE) {
 	x = mkcl_negate(env, x);
@@ -815,8 +821,10 @@ mkcl_divide(MKCL, mkcl_object x, mkcl_object y)
   case mkcl_t_ratio:
     switch (mkcl_type_of(y)) {
     case mkcl_t_fixnum:
+#if 0 /* slows down the normal case and will be caught anyway by mkcl_make_ratio(). */
       if (y == MKCL_MAKE_FIXNUM(0))
 	mkcl_FEdivision_by_zero(env, x, y);
+#endif
     case mkcl_t_bignum:
       z = mkcl_times(env, x->ratio.den, y);
       z = mkcl_make_ratio(env, x->ratio.num, z);
@@ -990,15 +998,17 @@ mkcl_integer_divide(MKCL, mkcl_object x, mkcl_object y)
 	mkcl_object gcd;
 @
   if (narg == 0)
-  @(return MKCL_MAKE_FIXNUM(0))
+    { mkcl_va_end(nums); @(return MKCL_MAKE_FIXNUM(0)) }
   /* INV: mkcl_gcd() checks types */
   gcd = mkcl_va_arg(nums);
   if (narg == 1) {
     mkcl_assert_type_integer(env, gcd);
+    mkcl_va_end(nums);
     @(return (mkcl_minusp(env, gcd) ? mkcl_negate(env, gcd) : gcd));
   }
   while (--narg)
     gcd = mkcl_gcd(env, gcd, mkcl_va_arg(nums));
+  mkcl_va_end(nums);
   @(return gcd);
 @)
 
@@ -1145,7 +1155,7 @@ mkcl_one_minus(MKCL, mkcl_object x)
 	mkcl_object lcm;
 @
   if (narg == 0)
-    { @(return MKCL_MAKE_FIXNUM(1)); }
+    { mkcl_va_end(nums); @(return MKCL_MAKE_FIXNUM(1)); }
   /* INV: mkcl_gcd() checks types. By placing `numi' before `lcm' in
      this call, we make sure that errors point to `numi' */
   lcm = mkcl_va_arg(nums);
@@ -1157,5 +1167,6 @@ mkcl_one_minus(MKCL, mkcl_object x)
     if (g != MKCL_MAKE_FIXNUM(0))
       lcm = mkcl_divide(env, t, g);
   }
+  mkcl_va_end(nums);
   @(return (mkcl_minusp(env, lcm) ? mkcl_negate(env, lcm) : lcm));
 @)

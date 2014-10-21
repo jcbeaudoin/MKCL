@@ -161,7 +161,8 @@ mk_cl_alphanumericp(MKCL, mkcl_object c)
   /* INV: mkcl_char_eq() checks types of `c' and `cs' */
   while (--narg)
   if (!mkcl_char_eq(env, c, mkcl_va_arg(cs)))
-    @(return mk_cl_Cnil);
+    { mkcl_va_end(cs); @(return mk_cl_Cnil); }
+  mkcl_va_end(cs);
   @(return mk_cl_Ct);
 @)
 
@@ -185,8 +186,10 @@ mkcl_char_eq(MKCL, mkcl_object x, mkcl_object y)
     c = mkcl_va_arg(cs);
     for (j = 1; j<i; j++)
       if (mkcl_char_eq(env, mkcl_va_arg(ds), c))
-	@(return mk_cl_Cnil);
+        { mkcl_va_end(cs); mkcl_va_end(ds); @(return mk_cl_Cnil); }
+    mkcl_va_end(ds);
   }
+  mkcl_va_end(cs);
   @(return mk_cl_Ct);
 @)
 
@@ -201,7 +204,7 @@ Lchar_cmp(MKCL, mkcl_narg narg, int s, int t, mkcl_va_list args)
   for (; --narg; c = d) {
     d = mkcl_va_arg(args);
     if (s*mkcl_char_cmp(env, d, c) < t)
-      @(return mk_cl_Cnil);
+      { @(return mk_cl_Cnil); }
   }
   @(return mk_cl_Ct);
 }
@@ -217,22 +220,30 @@ mkcl_char_cmp(MKCL, mkcl_object x, mkcl_object y)
 
 @(defun char< (&rest args)
 @
-  return Lchar_cmp(env, narg, 1, 1, args);
+  mkcl_object val = Lchar_cmp(env, narg, 1, 1, args);
+  mkcl_va_end(args);
+  return val;
 @)
 
 @(defun char> (&rest args)
 @
-  return Lchar_cmp(env, narg,-1, 1, args);
+  mkcl_object val = Lchar_cmp(env, narg,-1, 1, args);
+  mkcl_va_end(args);
+  return val;
 @)
 
 @(defun char<= (&rest args)
 @
-  return Lchar_cmp(env, narg, 1, 0, args);
+  mkcl_object val = Lchar_cmp(env, narg, 1, 0, args);
+  mkcl_va_end(args);
+  return val;
 @)
 
 @(defun char>= (&rest args)
 @
-  return Lchar_cmp(env, narg,-1, 0, args);
+  mkcl_object val = Lchar_cmp(env, narg,-1, 0, args);
+  mkcl_va_end(args);
+  return val;
 @)
 
 @(defun char_equal (c &rest cs)
@@ -241,8 +252,9 @@ mkcl_char_cmp(MKCL, mkcl_object x, mkcl_object y)
   /* INV: mkcl_char_equal() checks the type of its arguments */
   for (narg--, i = 0;  i < narg;  i++) {
     if (!mkcl_char_equal(env, c, mkcl_va_arg(cs)))
-      @(return mk_cl_Cnil);
+      { mkcl_va_end(cs); @(return mk_cl_Cnil); }
   }
+  mkcl_va_end(cs);
   @(return mk_cl_Ct);
 @)
 
@@ -268,8 +280,10 @@ mkcl_char_equal(MKCL, mkcl_object x, mkcl_object y)
     c = mkcl_va_arg(cs);
     for (j=1;  j<i;  j++)
       if (mkcl_char_equal(env, c, mkcl_va_arg(ds)))
-	@(return mk_cl_Cnil);
+        { mkcl_va_end(cs); mkcl_va_end(ds); @(return mk_cl_Cnil); }
+    mkcl_va_end(ds);
   }
+  mkcl_va_end(cs);
   @(return mk_cl_Ct);
 @)
 
@@ -285,7 +299,7 @@ Lchar_compare(MKCL, mkcl_narg narg, int s, int t, mkcl_va_list args)
   for (; --narg; c = d) {
     d = mkcl_va_arg(args);
     if (s*mkcl_char_compare(env, d, c) < t)
-      @(return mk_cl_Cnil);
+      { @(return mk_cl_Cnil); }
   }
   @(return mk_cl_Ct);
 }
@@ -306,22 +320,30 @@ mkcl_char_compare(MKCL, mkcl_object x, mkcl_object y)
 
 @(defun char-lessp (&rest args)
 @
-  return Lchar_compare(env, narg, 1, 1, args);
+  mkcl_object val = Lchar_compare(env, narg, 1, 1, args);
+  mkcl_va_end(args);
+  return val;
 @)
 
 @(defun char-greaterp (&rest args)
 @
-  return Lchar_compare(env, narg,-1, 1, args);
+  mkcl_object val = Lchar_compare(env, narg,-1, 1, args);
+  mkcl_va_end(args);
+  return val;
 @)
 
 @(defun char-not-greaterp (&rest args)
 @
-  return Lchar_compare(env, narg, 1, 0, args);
+  mkcl_object val = Lchar_compare(env, narg, 1, 0, args);
+  mkcl_va_end(args);
+  return val;
 @)
 
 @(defun char-not-lessp (&rest args)
 @
-  return Lchar_compare(env, narg,-1, 0, args);
+  mkcl_object val = Lchar_compare(env, narg,-1, 0, args);
+  mkcl_va_end(args);
+  return val;
 @)
 
 
@@ -468,13 +490,13 @@ mk_cl_char_name(MKCL, mkcl_object c)
   mkcl_character code = mkcl_char_code(env, c);
   mkcl_object output;
 
-  if ((code >= 0) && (code <= 127)) /* Are we ASCII? */
+  if (/* (code >= 0) && */ (code <= 127)) /* Are we ASCII? */
     output = mkcl_gethash_safe(env, MKCL_MAKE_FIXNUM(code), mkcl_core.char_names, mk_cl_Cnil);
   else
     {
       char name[20];
 
-      if ((code >= 0) && (code < 0x010000)) /* Are we confined to 16 bits? */
+      if (/* (code >= 0) && */ (code < 0x010000)) /* Are we confined to 16 bits? */
 	sprintf(name, "U%04x", code);
       else
 	sprintf(name, "U%06x", code);
@@ -513,7 +535,7 @@ mk_cl_name_char(MKCL, mkcl_object name)
 	{
 	  mkcl_character code = mkcl_fixnum_to_word(c);
 
-	  if ((code < 0) || (code >= MKCL_CHAR_CODE_LIMIT)) /* Outside valid character code range? */
+	  if (/* (code < 0) || */ (code >= MKCL_CHAR_CODE_LIMIT)) /* Outside valid character code range? */
 	    { @(return mk_cl_Cnil); }
 	  else
 	    { @(return MKCL_CODE_CHAR(code)); }

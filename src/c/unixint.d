@@ -703,8 +703,6 @@ void mkcl_sigsegv_handler(int sig, siginfo_t *info, void *aux)
 	  (old->sa_sigaction)(sig, info, aux);
 	else
 	  (old->sa_handler)(sig);
-      else
-	mkcl_lose(env, "mkcl_sigsegv_handler called outside a lisp thread!");
       
     }
   else
@@ -742,14 +740,16 @@ void mkcl_sigsegv_handler(int sig, siginfo_t *info, void *aux)
 
 	    switch (info->si_code)
 	      {
-	      case SI_USER:
-		if (info->si_pid != mkcl_debugged_by_process_id) goto error;
+	      case SI_USER: /* Software generated (by kill or raise). */
+		if (info->si_pid != mkcl_debugged_by_process_id) goto error; else goto normal;
 	      case SEGV_MAPERR: /* Address not mapped to object.  */
 	      case SEGV_ACCERR: /* Invalid permissions for mapped object.  */
+              normal:
 		sprintf(address_cstr, "%p", info->si_addr);
 		break;
 	      error:
 	      default:
+#ifdef DEBUG_SIGNALS
 		sig_print("\nMKCL: received an invalid SIGSEGV signal from pid = ");
 		sig_print(ltoad(info->si_pid, address_cstr));
 		sig_print(" and uid = ");
@@ -758,6 +758,7 @@ void mkcl_sigsegv_handler(int sig, siginfo_t *info, void *aux)
 		sig_print(ltoad(info->si_code, address_cstr));
 		if (info->si_code == SI_KERNEL) sig_print(" (SI_KERNEL)");
 		sig_print(".\n");
+#endif
 		sprintf(address_cstr, "invalid address");
 		break;
 	      }
@@ -811,6 +812,7 @@ void mkcl_sigbus_handler(int sig, siginfo_t *info, void *aux)
 	    sprintf(address_cstr, "%p", info->si_addr);
 	    break;
 	  default:
+#ifdef DEBUG_SIGNALS
 	    sig_print("\nMKCL: received an invalid SIGBUS signal from pid = ");
 	    sig_print(ltoad(info->si_pid, address_cstr));
 	    sig_print(" and uid = ");
@@ -818,6 +820,7 @@ void mkcl_sigbus_handler(int sig, siginfo_t *info, void *aux)
 	    sig_print(", si_code = ");
 	    sig_print(ltoad(info->si_code, address_cstr));
 	    sig_print(".\n");
+#endif
 	    sprintf(address_cstr, "invalid address");
 	    break;
 	  }

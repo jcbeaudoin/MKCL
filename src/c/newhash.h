@@ -148,7 +148,7 @@ static mkcl_index hash_word(mkcl_index c, mkcl_index w)
 	return c;
 }
 
-static mkcl_index hash_base_string(const mkcl_base_char *s, mkcl_index len, mkcl_index h)
+static mkcl_index hash_base_string(const mkcl_base_char *s, const mkcl_index len, mkcl_index h)
 {
 	mkcl_index a = GOLDEN_RATIO, b = GOLDEN_RATIO, i;
 	for (i = len; i >= 3; i -= 3) {
@@ -158,15 +158,16 @@ static mkcl_index hash_base_string(const mkcl_base_char *s, mkcl_index len, mkcl
 		mix(a, b, h);
 	}
 	switch (i) {
+		/* all the case statements fall through */
 	case 2: a += *s; s++;
 	case 1: b += *s;
-	default: h += len;
+	case 0: h += len;
 	}
 	mix(a, b, h);
 	return h;
 }
 
-static mkcl_index hash_full_string(const mkcl_character *s, mkcl_index len, mkcl_index h)
+static mkcl_index hash_full_string(const mkcl_character *s, const mkcl_index len, mkcl_index h)
 {
 	mkcl_index a = GOLDEN_RATIO, b = GOLDEN_RATIO, i;
 	for (i = len; i >= 3; i -= 3) {
@@ -176,9 +177,10 @@ static mkcl_index hash_full_string(const mkcl_character *s, mkcl_index len, mkcl
 		mix(a, b, h);
 	}
 	switch (i) {
+		/* all the case statements fall through */
 	case 2: a += (*s); s++;
 	case 1: b += (*s);
-	default: h += len;
+	case 0: h += len;
 	}
 	mix(a, b, h);
 	return h;

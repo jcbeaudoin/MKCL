@@ -2269,6 +2269,7 @@ static const struct mkcl_file_ops broadcast_ops = {
       not_an_output_stream(env, x);
     streams = MKCL_CONS(env, x, streams);
   }
+  mkcl_va_end(ap);
   x = alloc_stream(env);
   if (mkcl_Null(streams)) {
     x->stream.format = @':default';
@@ -2585,6 +2586,7 @@ static const struct mkcl_file_ops concatenated_ops = {
       not_an_input_stream(env, x);
     streams = MKCL_CONS(env, x, streams);
   }
+  mkcl_va_end(ap);
   x = alloc_stream(env);
   if (mkcl_Null(streams)) {
     x->stream.format = @':default';
@@ -3334,7 +3336,7 @@ set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_str
 	  encoder = utf_16be_encoder;
 	  decoder = utf_16be_decoder;
 
-	  if (flags | MKCL_STREAM_LITTLE_ENDIAN) {
+	  if (flags & MKCL_STREAM_LITTLE_ENDIAN) {
 	    static const mkcl_base_string_object(reason_string_obj,
 						 "Incoherent stream format :UTF-16BE on a little-endian stream");
 	    @(return mk_cl_Cnil ((mkcl_object) &reason_string_obj));
@@ -3366,7 +3368,7 @@ set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_str
 	  encoder = utf_32be_encoder;
 	  decoder = utf_32be_decoder;
 
-	  if (flags | MKCL_STREAM_LITTLE_ENDIAN) {
+	  if (flags & MKCL_STREAM_LITTLE_ENDIAN) {
 	    static const mkcl_base_string_object(reason_string_obj,
 						 "Incoherent stream format :UTF-32BE on a little-endian stream");
 	    @(return mk_cl_Cnil ((mkcl_object) &reason_string_obj));
@@ -4480,7 +4482,7 @@ mkcl_stream_to_handle(MKCL, mkcl_object s, bool output)
   case mkcl_smm_concatenated: /* many to one */
   case mkcl_smm_broadcast: /* one to many */
   case mkcl_smm_string_input:
-  case_mkcl_smm_string_output:
+  case mkcl_smm_string_output:
   case mkcl_smm_probe:
   default:
     mkcl_FEerror(env, "mkcl_stream_to_handle: invalid stream type: ~S", 1, s);

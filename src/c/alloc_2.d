@@ -942,6 +942,7 @@ static void * customize_GC(void * client_data)
 #if MKCL_GC_7_2d
   MK_GC_set_exit_func(mkcl_GC_exit);
 #endif
+  return NULL;
 }
 
 static int alloc_initialized = FALSE;
@@ -963,8 +964,7 @@ mkcl_init_alloc(void)
      other than 0 (a bit a la pthread_xxx()) choosing that value
      to be coherent with the already predefined libc errno values.
    */
-  if (alloc_initialized) return; /* Not really thread-safe. */
-  alloc_initialized = TRUE;
+  if (alloc_initialized) return 0; /* Not really thread-safe. */  /* 0 indicates success, sort of. */
 
 #ifdef MKCL_WINDOWS
   InitializeCriticalSection(&oom_handler_lock);
@@ -1012,12 +1012,22 @@ mkcl_init_alloc(void)
 
   MK_GC_disable();
 
+#ifdef MKCL_WINDOWS
+  EnterCriticalSection(&oom_handler_lock);
+#else
+  { int rc; if (rc = pthread_mutex_lock(&oom_handler_lock)) return rc; }
+#endif
   MK_GC_set_max_heap_size(mkcl_core.max_heap_size = mkcl_get_option(MKCL_OPT_HEAP_SIZE));
+#ifdef MKCL_WINDOWS
+  LeaveCriticalSection(&oom_handler_lock);
+#else
+  { int rc; if (rc = pthread_mutex_unlock(&oom_handler_lock)) return rc; }
+#endif
   /* Save some memory in case we get tight. */
   if (mkcl_core.max_heap_size == 0) {
     mkcl_index size = mkcl_get_option(MKCL_OPT_HEAP_SAFETY_AREA);
     mkcl_core.safety_region = MK_GC_MALLOC(size);
-  } else if (mkcl_core.safety_region) {
+  } else {
     mkcl_core.safety_region = NULL;
   }
 
@@ -1028,6 +1038,7 @@ mkcl_init_alloc(void)
   MK_GC_add_roots(mkcl_root_symbols, (mkcl_root_symbols + mkcl_root_symbols_count));
 
   MK_GC_set_warn_proc(no_warnings);
+  alloc_initialized = TRUE;
   return 0; /* 0 indicates success. */
 }
 
@@ -1441,6 +1452,7 @@ mkcl_object mk_si_scrub_values(MKCL)
   env->nvalues = MKCL_MULTIPLE_VALUES_LIMIT;
   for (i = 0; i < MKCL_MULTIPLE_VALUES_LIMIT; i++)
     env->values[i] = mk_cl_Cnil;
+  @(return);
 }
 
 @(defun si::gc (&optional area)
@@ -1655,14 +1667,10 @@ mkcl_object
 mk_si_room_report(MKCL, mkcl_object label)
 {
   mkcl_call_stack_check(env);
-  switch (mkcl_type_of(label))
-    {
-    case mkcl_t_string: label = mk_si_coerce_to_base_string(env, label);
-    case mkcl_t_base_string:
+  if (mkcl_type_of(label) == mkcl_t_string)
+    label = mk_si_coerce_to_base_string(env, label);
+  if (mkcl_type_of(label) == mkcl_t_base_string)
       fprintf(stderr, "\n%s:\n", label->base_string.self);
-      break;
-    default: break;
-    }
   
   if (env->alloc) {
     struct mkcl_alloc_stats alloc = *(env->alloc); /* snapshot */

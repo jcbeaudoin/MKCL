@@ -246,12 +246,14 @@ mkcl_object
 mk_si_trace_specials(MKCL)
 {
   mkcl_trace_specials = TRUE;
+  @(return mk_cl_Ct);
 }
 
 mkcl_object
 mk_si_untrace_specials(MKCL)
 {
   mkcl_trace_specials = FALSE;
+  @(return mk_cl_Cnil);
 }
 
 
@@ -281,8 +283,8 @@ mkcl_set_symbol_value(MKCL, mkcl_object s, mkcl_object value)
 	  if (v != MKCL_END_OF_BDS_CHAIN)
 	    return env->specials[index] = value;
 	}
-      return s->symbol.value = value;
     }
+  return s->symbol.value = value;
 }
 #endif
 
@@ -424,26 +426,29 @@ ihs_function_name(mkcl_object x)
 {
   mkcl_object y;
 
-  switch (mkcl_type_of(x)) {
-  case mkcl_t_symbol:
-    return(x);
+  switch (mkcl_type_of(x))
+    {
+    case mkcl_t_symbol:
+      return(x);
 
-  case mkcl_t_bclosure:
-    x = x->bclosure.code;
-  case mkcl_t_bytecode:
-    y = x->bytecode.name;
-    if (mkcl_Null(y))
-      return(@'lambda');
-    else
-      return y;
+    case mkcl_t_bclosure:
+      x = x->bclosure.code;
+      goto mkcl_t_bytecode_case;  /* fallthrough is such bad taste! */
+    case mkcl_t_bytecode:
+    mkcl_t_bytecode_case:
+      y = x->bytecode.name;
+      if (mkcl_Null(y))
+        return(@'lambda');
+      else
+        return y;
 
-  case mkcl_t_cfun:
-    return(x->cfun.name);
-  case mkcl_t_cclosure:
-    return (x->cclosure.name);
-  default:
-    return(mk_cl_Cnil);
-  }
+    case mkcl_t_cfun:
+      return(x->cfun.name);
+    case mkcl_t_cclosure:
+      return (x->cclosure.name);
+    default:
+      return(mk_cl_Cnil);
+    }
 }
 
 static mkcl_ihs_ptr

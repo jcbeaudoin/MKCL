@@ -285,7 +285,7 @@ mkcl_object mk_si_mangle_name(MKCL, mkcl_object symbol)
     { @(return mk_cl_Ct mkcl_make_simple_base_string(env, "mk_cl_Ct")); }
 
   mkcl_index p  = (mkcl_symbol_initializer*)symbol - mkcl_root_symbols;
-  if (p >= 0 && p <= mkcl_root_symbols_count) {
+  if (/* p >= 0 && */ p <= mkcl_root_symbols_count) {
     mkcl_object output = mk_cl_format(env, 4, mk_cl_Cnil,
 				      mkcl_make_simple_base_string(env, "MKCL_SYM(~S,~D)"),
 				      mkcl_symbol_name(env, symbol), MKCL_MAKE_FIXNUM(p));

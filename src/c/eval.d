@@ -132,6 +132,7 @@ mk_cl_funcall(MKCL, mkcl_narg narg, mkcl_object function, ...)
       mkcl_object *sp = lastarg->frame.base;
       const mkcl_narg n = lastarg->frame.size;
 
+      mkcl_va_end(args);
       env->function = fun;
       if (fun == MKCL_OBJNULL || fun == mk_cl_Cnil)
 	mkcl_FEundefined_function(env, fun);
@@ -174,7 +175,6 @@ mk_cl_funcall(MKCL, mkcl_narg narg, mkcl_object function, ...)
 
 	default:
 	  return mkcl_apply_from_temp_stack_frame(env, lastarg, fun);
-	  break;
 	}
     }
   } else {
@@ -251,6 +251,7 @@ mk_cl_funcall(MKCL, mkcl_narg narg, mkcl_object function, ...)
     }
 
     mkcl_temp_stack_frame_close(env, frame);
+    mkcl_va_end(args);
     return out;
   }
 @)

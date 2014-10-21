@@ -78,7 +78,9 @@ mk_si_find_relative_package(MKCL, mkcl_narg narg, mkcl_object package, ...)
 @(defun cerror (cformat eformat &rest args)
 @
   const mkcl_object rest = mkcl_grab_rest_args(env, args, FALSE);
-  mk_cl_apply(env, 3, @+'error', eformat, rest);
+  mkcl_va_end(args);
+  mkcl_object val = mk_cl_apply(env, 3, @+'error', eformat, rest);
+  @(return val);
 @)
 
 

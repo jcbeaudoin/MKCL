@@ -187,6 +187,7 @@ mkcl_dynamic_callback_execute(mkcl_object cbk_info, char *arg_buffer)
     {
       env = imported_env = mkcl_import_current_thread(mkcl_dynamic_callback_import_thread_name, mk_cl_Cnil, NULL, NULL);
       if (imported_env == NULL)
+        /* In the normal case we always set errno = 0, so this is clearly an error situation. */
 	{ errno = ENOMEM; return; }
     }
 

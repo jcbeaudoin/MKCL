@@ -143,6 +143,7 @@ extern inline mkcl_object mk_cl_cdr(MKCL, mkcl_object x);
       tail = cons;
     }
   }
+  mkcl_va_end(args);
   @(return head);
 @)
 
@@ -161,6 +162,7 @@ extern inline mkcl_object mk_cl_cdr(MKCL, mkcl_object x);
     }
     MKCL_RPLACD(tail, mkcl_va_arg(args));
   }
+  mkcl_va_end(args);
   @(return head);
 @)
 
@@ -226,6 +228,7 @@ static mkcl_object copy_proper_tail(MKCL, mkcl_object * cursor_ptr)
 	MKCL_RPLACD(tail, mkcl_va_arg(rest));
 
     }
+  mkcl_va_end(rest);
   @(return head);
 @)
 
@@ -628,6 +631,7 @@ mk_cl_revappend(MKCL, mkcl_object x, mkcl_object y)
     }
     tail = new_tail;
   }
+  mkcl_va_end(lists);
   @(return head);
 @)
 

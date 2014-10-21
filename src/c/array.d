@@ -36,9 +36,24 @@ static const mkcl_index mkcl_aet_size[] = {
   sizeof(mkcl_int32_t),
   sizeof(mkcl_uint64_t),
   sizeof(mkcl_int64_t),
-  sizeof(mkcl_character),      /* mkcl_aet_ch */
-  sizeof(mkcl_base_char)       /* mkcl_aet_bc */
+  sizeof(mkcl_character),     /* mkcl_aet_ch */
+  sizeof(mkcl_base_char),     /* mkcl_aet_bc */
+  0
 };
+
+static mkcl_object mkcl_aref_index_nil(MKCL, mkcl_object x, mkcl_index i)
+{
+  while (mkcl_unlikely(!(MKCL_ARRAYP(x) && x->array.elttype == mkcl_aet_nil)))
+    x = mkcl_ensure_specialized_array_type(env, x, mkcl_aet_nil);
+  return mk_cl_Cnil;
+}
+
+static mkcl_object mkcl_aset_index_nil(MKCL, mkcl_object x, mkcl_index i, mkcl_object v)
+{
+  while (mkcl_unlikely(!(MKCL_ARRAYP(x) && x->array.elttype == mkcl_aet_nil)))
+    x = mkcl_ensure_specialized_array_type(env, x, mkcl_aet_nil);
+  return v;
+}
 
 mkcl_object (* const mkcl_array_elem_accessor[])(__MKCL, mkcl_object array, mkcl_index i) =
 {
@@ -58,7 +73,8 @@ mkcl_object (* const mkcl_array_elem_accessor[])(__MKCL, mkcl_object array, mkcl
   mkcl_aref_index_b64,
   mkcl_aref_index_i64,
   mkcl_aref_index_ch,
-  mkcl_aref_index_bc
+  mkcl_aref_index_bc,
+  mkcl_aref_index_nil
 };
 
 mkcl_object (* const mkcl_array_elem_setter[])(__MKCL, mkcl_object array, mkcl_index i, mkcl_object val) =
@@ -79,8 +95,8 @@ mkcl_object (* const mkcl_array_elem_setter[])(__MKCL, mkcl_object array, mkcl_i
   mkcl_aset_index_b64,
   mkcl_aset_index_i64,
   mkcl_aset_index_ch,
-  mkcl_aset_index_bc
-
+  mkcl_aset_index_bc,
+  mkcl_aset_index_nil
 };
 
 static void displace (MKCL, mkcl_object from, mkcl_object to, mkcl_object offset);
@@ -213,6 +229,7 @@ mk_si_row_major_aset(MKCL, mkcl_object x, mkcl_object indx, mkcl_object val)
       x = mkcl_type_error(env, @'aref',"argument",x,@'array');
       goto AGAIN;
     }
+    mkcl_va_end(indx);
     /* By construction, "j" is a valid array index and should thus be within the range of fixnum. */
     @(return MKCL_MAKE_FIXNUM(j));
   } 
@@ -317,6 +334,7 @@ mkcl_index mkcl_array_row_major_index_3_t(MKCL, mkcl_object a, mkcl_object i, mk
       x = mkcl_type_error(env, @'aref',"argument",x,@'array');
       goto AGAIN;
     }
+    mkcl_va_end(indx);
     @(return mkcl_aref_index(env, x, j));
   } 
 @)
@@ -392,6 +410,7 @@ mkcl_vref(MKCL, mkcl_object v, mkcl_object index)
       x = mkcl_type_error(env, @'si::aset',"destination",v,@'array');
       goto AGAIN;
     }
+    mkcl_va_end(dims);
     @(return mkcl_aset_index(env, x, j, v));
   } 
 @)
@@ -659,7 +678,7 @@ mk_si_make_vector(MKCL, mkcl_object etype, mkcl_object dim, mkcl_object adj,
   } else if (fillp == mk_cl_Ct) {
     x->vector.hasfillp = TRUE;
     f = d;
-  } else if (MKCL_FIXNUMP(fillp) && ((f = mkcl_fixnum_to_word(fillp)) <= d) && (f >= 0)) {
+  } else if (MKCL_FIXNUMP(fillp) && ((f = mkcl_fixnum_to_word(fillp)) <= d) /* && (f >= 0) */) {
     x->vector.hasfillp = TRUE;
   } else {
     fillp = mkcl_type_error(env, @'make-array',"fill pointer",fillp,

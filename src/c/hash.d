@@ -1278,6 +1278,7 @@ mk_cl_sxhash(MKCL, mkcl_object key)
     mkcl_object o = mkcl_va_arg(args);
     h = _hash_eql(h, o);
   }
+  mkcl_va_end(args);
   @(return MKCL_MAKE_FIXNUM(h))
 @)
 
@@ -1288,6 +1289,7 @@ mk_cl_sxhash(MKCL, mkcl_object key)
     mkcl_object o = mkcl_va_arg(args);
     h = _hash_equal(3, h, o);
   }
+  mkcl_va_end(args);
   @(return MKCL_MAKE_FIXNUM(h))
 @)
 
@@ -1298,6 +1300,7 @@ mk_cl_sxhash(MKCL, mkcl_object key)
     mkcl_object o = mkcl_va_arg(args);
     h = _hash_equalp(env, 3, h, o);
   }
+  mkcl_va_end(args);
   @(return MKCL_MAKE_FIXNUM(h));
 @)
 

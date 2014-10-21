@@ -65,6 +65,7 @@ mk_si_structure_subtype_p(MKCL, mkcl_object x, mkcl_object y)
 
   for (i = 0;  i < narg;  i++)
     MKCL_SLOT(x, i) = mkcl_va_arg(args);
+  mkcl_va_end(args);
   @(return x);
 @)
 

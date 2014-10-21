@@ -227,7 +227,9 @@ mkcl_dynamic_callback_execute(int64_t i1, int64_t i2, int64_t i3, int64_t i4,
     {
       env = imported_env = mkcl_import_current_thread(mkcl_dynamic_callback_import_thread_name, mk_cl_Cnil, NULL, NULL);
       if (imported_env == NULL)
-	{ errno = ENOMEM; return; }
+        /* In the normal case we always set errno = 0, so this is clearly an error situation.
+           Returning -1 is just to please the compiler. */
+	{ errno = ENOMEM; return -1; }
     }
 
   MKCL_BUILD_TEMP_STACK_FRAME(env, frame, aux);

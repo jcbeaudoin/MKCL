@@ -151,6 +151,7 @@ extern "C" {
     va_list args;							\
     va_start(args, lastarg);						\
     frame->frame.base = (void*)args;					\
+    va_end(args);                                                       \
   } else {								\
     frame->frame.base = env->temp_stack_top - narg;/* underflow? */	\
   }
@@ -172,6 +173,7 @@ extern "C" {
       *p = va_arg(args, mkcl_object);					\
       ++p;								\
     }									\
+    va_end(args);                                                       \
     frame->frame.stack = (void*)0x1;					\
   } else {								\
     frame->frame.base = env->temp_stack_top - narg;/* underflow? */	\

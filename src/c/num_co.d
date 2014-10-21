@@ -861,12 +861,11 @@ mkcl_object
 mk_cl_decode_float(MKCL, mkcl_object x)
 {
   int e, s;
-  mkcl_type tx = mkcl_type_of(x);
   mkcl_object sign;
 
   mkcl_call_stack_check(env);
  AGAIN:
-  switch (tx) {
+  switch (mkcl_type_of(x)) {
   case mkcl_t_singlefloat: {
     float f = mkcl_single_float(x);
     if (f >= 0.0) {

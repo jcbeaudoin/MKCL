@@ -785,6 +785,14 @@ put_declaration(void)
 	fprintf(out, "\t  %s = KEY_VARS[%d];\n\t}\n", keyword[i].k_var, i);
       }
     }
+    if (!rest_flag)
+      {
+        put_lineno();
+        if (simple_varargs)
+          fprintf(out,"\tva_end(%s);\n", rest_var);
+        else
+          fprintf(out,"\tmkcl_va_end(%s);\n", rest_var);
+      }
   }
   for (i = 0;  i < naux;  i++) {
     put_lineno();

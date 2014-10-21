@@ -85,7 +85,8 @@ long_double_fix_compare(mkcl_word n, long double d)
   /* INV: For >= 2 arguments, mkcl_number_equalp() performs checks */
   for (i = 1; i < narg; i++)
     if (!mkcl_number_equalp(env, num, mkcl_va_arg(nums)))
-      { @(return mk_cl_Cnil); }
+      { mkcl_va_end(nums); @(return mk_cl_Cnil); }
+  mkcl_va_end(nums);
   @(return mk_cl_Ct);
 @)
 
@@ -402,8 +403,10 @@ mkcl_number_compare(MKCL, mkcl_object x, mkcl_object y)
     numi = mkcl_va_arg(nums);
     for (j = 1; j<i; j++)
       if (mkcl_number_equalp(env, numi, mkcl_va_arg(numb)))
-	{ @(return mk_cl_Cnil); }
+	{ mkcl_va_end(nums); mkcl_va_end(numb); @(return mk_cl_Cnil); }
+    mkcl_va_end(numb);
   }
+  mkcl_va_end(nums);
   @(return mk_cl_Ct);
 @)
 
@@ -423,9 +426,11 @@ monotonic(MKCL, int s, int t, int narg, mkcl_va_list nums)
   mkcl_return1(mk_cl_Ct);
 }
 
-#define MONOTONIC(i, j) (MKCL, mkcl_narg narg, ...) \
+#define MONOTONIC(i, j) (MKCL, mkcl_narg narg, ...)             \
   { mkcl_va_list nums; mkcl_va_start(env, nums, narg, narg, 0);	\
-    return monotonic(env, i, j, narg, nums); }
+    mkcl_object val = monotonic(env, i, j, narg, nums);         \
+    mkcl_va_end(nums);                                          \
+    return val; }
 
 mkcl_object @<= MONOTONIC( 1, 0)
 mkcl_object @>= MONOTONIC(-1, 0)
@@ -443,6 +448,7 @@ mkcl_object @>  MONOTONIC(-1, 1)
     if (mkcl_number_compare(env, max, numi) < 0)
       max = numi;
   } while (--narg);
+  mkcl_va_end(nums);
   @(return max);
 @)
 
@@ -457,6 +463,7 @@ mkcl_object @>  MONOTONIC(-1, 1)
     if (mkcl_number_compare(env, min, numi) > 0)
       min = numi;
   } while (--narg);
+  mkcl_va_end(nums);
   @(return min);
 @)
 

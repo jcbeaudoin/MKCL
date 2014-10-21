@@ -953,6 +953,7 @@ string_compare(MKCL, mkcl_narg narg, int sign1, int sign2, int case_sensitive, m
   } else {
     result = mk_cl_Cnil;
   }
+  mkcl_va_end(ARGS); 
   @(return result);
 #undef start1p
 #undef start2p
@@ -1013,11 +1014,6 @@ string_compare(MKCL, mkcl_narg narg, int sign1, int sign2, int case_sensitive, m
 @)
 
 
-mkcl_object mkcl_base_string_NE(MKCL, mkcl_object str1, mkcl_object str2)
-{ /* returns the "mismatch-index" on success or ((mkcl_index)-1) on failure. */
-
-}
-
 mkcl_object mkcl_base_string_L(MKCL, mkcl_object str1, mkcl_object str2)
 { /* returns the "mismatch-index" on success or ((mkcl_index)-1) on failure. */
   while (mkcl_unlikely(!MKCL_STRINGP(str1))) str1 = mkcl_type_error(env, @'string=', "", str1, @'string');
@@ -1030,6 +1026,12 @@ mkcl_object mkcl_base_string_L(MKCL, mkcl_object str1, mkcl_object str2)
     return mk_cl_Cnil;
   else
     return (memcmp(str1->base_string.self, str2->base_string.self, i) == 0) ? mk_cl_Ct : mk_cl_Cnil;
+}
+
+#if 0 /* Not implemented yet. */
+mkcl_object mkcl_base_string_NE(MKCL, mkcl_object str1, mkcl_object str2)
+{ /* returns the "mismatch-index" on success or ((mkcl_index)-1) on failure. */
+
 }
 
 mkcl_object mkcl_base_string_G(MKCL, mkcl_object str1, mkcl_object str2)
@@ -1046,7 +1048,7 @@ mkcl_object mkcl_base_string_GE(MKCL, mkcl_object str1, mkcl_object str2)
 { /* returns the "mismatch-index" on success or ((mkcl_index)-1) on failure. */
 
 }
-
+#endif
 
 
 /* ***************************************** */
@@ -1176,6 +1178,7 @@ string_case(MKCL, mkcl_narg narg, mkcl_casefun casefun, mkcl_va_list ARGS)
       conv->base_string.self[i] = (*casefun)(conv->base_string.self[i], &b);
     break;
   }
+  mkcl_va_end(ARGS); 
   @(return conv);
 #undef startp
 #undef start
@@ -1255,6 +1258,7 @@ nstring_case(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_casefun casefun, mkcl_v
     for (i = s;  i < e;  i++)
       strng->base_string.self[i] = (*casefun)(strng->base_string.self[i], &b);
   }
+  mkcl_va_end(ARGS);
   @(return strng);
 #undef startp
 #undef start
@@ -1306,6 +1310,7 @@ nstring_case(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_casefun casefun, mkcl_v
       memcpy(output->base_string.self + l, s->base_string.self, bytes);
     }
   }
+  mkcl_va_end(args);
   @(return output);
 @)
 
@@ -1372,6 +1377,7 @@ mkcl_object mkcl_concatenate_3_base_strings(MKCL, mkcl_object str1, mkcl_object 
       mkcl_wmemcpy((output->string.self + l), s->string.self, bytes);
     }
   }
+  mkcl_va_end(args);
   @(return output);
 @)
 
@@ -2136,18 +2142,18 @@ int printf(const char *format, ...);
 
 mkcl_object mk_si_utf_8(MKCL, mkcl_object string)
 {
-  mkcl_index i;
-  mkcl_index utf_8_dim = 0;
+  mkcl_index i = 0;
   mkcl_index j = 0;
-  bool invalid;
 
   mkcl_call_stack_check(env);
   for (;;)
     switch(mkcl_type_of(string)) {
     case mkcl_t_string:
       {
+        mkcl_index utf_8_dim = 0;
 	mkcl_index str_len = string->string.fillp;
 	mkcl_character * str = string->string.self;
+        bool invalid = FALSE;
 
 	for (i = 0; i < str_len; i++)
 	  utf_8_dim += utf_8_size(str[i]);
@@ -2171,8 +2177,10 @@ mkcl_object mk_si_utf_8(MKCL, mkcl_object string)
       }
     case mkcl_t_base_string:
       {
+        mkcl_index utf_8_dim = 0;
 	mkcl_index str_len = string->base_string.fillp;
 	mkcl_base_char * str = string->base_string.self;
+        bool invalid = FALSE;
 
 	for (i = 0; i < str_len; i++)
 	  utf_8_dim += utf_8_size(str[i]);
@@ -2196,7 +2204,8 @@ mkcl_object mk_si_utf_8(MKCL, mkcl_object string)
       }
     case mkcl_t_UTF_16:
       {
-	mkcl_index nb_char;
+        mkcl_index utf_8_dim = 0;
+	mkcl_index nb_char = 0;
 	mkcl_index str_len = string->UTF_16.fillp;
 	bool utf_8_invalid = FALSE;
 	bool utf_16_invalid = FALSE;
@@ -2219,7 +2228,7 @@ mkcl_object mk_si_utf_8(MKCL, mkcl_object string)
       }
       break;
     case mkcl_t_UTF_8:
-      { @(return string (invalid ? mk_cl_Ct : mk_cl_Cnil)); }
+      { @(return string mk_cl_Cnil); }
       break;
     case mkcl_t_vector:
       switch (string->vector.elttype)
@@ -2437,6 +2446,7 @@ mkcl_object mk_si_utf_8_char(MKCL, mkcl_object utf_8, mkcl_object index_fix)
 	memcpy((output->UTF_8.self + len), s->UTF_8.self, bytes);
       }
     }
+    mkcl_va_end(args);
     @(return output);
   }
 @)
@@ -2613,7 +2623,6 @@ mkcl_object mk_si_utf_16_length(MKCL, mkcl_object utf_16)
 
 mkcl_object mk_si_utf_16(MKCL, mkcl_object string)
 {
-  bool invalid = FALSE;
   mkcl_index i;
   mkcl_index utf_16_dim = 0;
   mkcl_index j = 0;
@@ -2623,6 +2632,7 @@ mkcl_object mk_si_utf_16(MKCL, mkcl_object string)
     switch(mkcl_type_of(string)) {
     case mkcl_t_string:
       {
+        bool invalid = FALSE;
 	mkcl_index str_len = string->string.fillp;
 	mkcl_character * str = string->string.self;
 
@@ -2644,6 +2654,9 @@ mkcl_object mk_si_utf_16(MKCL, mkcl_object string)
       }
     case mkcl_t_base_string:
       {
+#if 0
+        bool invalid = FALSE;
+#endif
 	mkcl_index str_len = string->base_string.fillp;
 	mkcl_base_char * str = string->base_string.self;
 
@@ -2670,7 +2683,11 @@ mkcl_object mk_si_utf_16(MKCL, mkcl_object string)
 	utf_16->UTF_16.fillp = utf_16->UTF_16.dim = utf_16_dim;
 	utf_16->UTF_16.self = self;
 
+#if 0
 	@(return utf_16 (invalid ? mk_cl_Ct : mk_cl_Cnil));
+#else
+	@(return utf_16 mk_cl_Cnil);
+#endif
       }
     case mkcl_t_UTF_8:
       {
@@ -2697,7 +2714,7 @@ mkcl_object mk_si_utf_16(MKCL, mkcl_object string)
       }
       break;
     case mkcl_t_UTF_16:
-      { @(return string (invalid ? mk_cl_Ct : mk_cl_Cnil)); }
+      { @(return string mk_cl_Cnil); }
       break;
     case mkcl_t_vector:
       switch (string->vector.elttype)
@@ -2924,6 +2941,7 @@ mkcl_object mk_si_utf_16_char(MKCL, mkcl_object utf_16, mkcl_object index_fix)
 	/* memcpy((output->UTF_16.self + len), s->UTF_16.self, bytes); */
       }
     }
+    mkcl_va_end(args);
     @(return output);
   }
 @)

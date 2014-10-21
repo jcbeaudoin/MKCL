@@ -27,6 +27,7 @@
     MKCL_VALUES(0) = mk_cl_Cnil;
   else for (i = 0; i < narg; i++)
 	 MKCL_VALUES(i) = mkcl_va_arg(args);
+  mkcl_va_end(args);
   mkcl_returnn(MKCL_VALUES(0));
 @)
 

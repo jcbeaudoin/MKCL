@@ -423,7 +423,6 @@ extern "C" {
   };
 
   typedef enum {		/*  array element type  */
-    mkcl_aet_nil = -1,
     mkcl_aet_object = 0,	/*  t                */
     mkcl_aet_fixnum,            /*  fixnum           */
     mkcl_aet_sf,		/*  single-float     */
@@ -442,7 +441,8 @@ extern "C" {
     mkcl_aet_i64,
     mkcl_aet_ch,		/*  character        */
     mkcl_aet_bc,		/*  base-char        */
-    mkcl_aet_last_type = mkcl_aet_bc
+    mkcl_aet_nil,
+    mkcl_aet_last_type = mkcl_aet_nil
   } mkcl_elttype;
 
   typedef unsigned char mkcl_char8;

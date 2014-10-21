@@ -53,13 +53,24 @@ mkcl_FEpackage_error(MKCL, mkcl_object package, char *message, int narg, ...)
 void
 mkcl_CEpackage_error(MKCL, mkcl_object package, char *message, char *continue_message, int narg, ...)
 {
-  mkcl_va_list args;
-  mkcl_va_start(env, args, narg, narg, 0);
+  mkcl_object format_args = mk_cl_Cnil;
+
+  if (narg)
+    {
+      mkcl_va_list args;
+
+      mkcl_va_start(env, args, narg, narg, 0);
+      format_args = mkcl_grab_rest_args(env, args, FALSE);
+      mkcl_va_end(args);
+    }
+  else
+    format_args = mkcl_list1(env, package);
+
   mk_cl_cerror(env, 8,
 	       mkcl_make_simple_base_string(env, continue_message),
 	       @'si::simple-package-error',
 	       @':format-control', mkcl_make_simple_base_string(env, message),
-	       @':format-arguments', (narg ? mkcl_grab_rest_args(env, args, FALSE) : mkcl_list1(env, package)),
+	       @':format-arguments', format_args,
 	       @':package', package);
 }
 

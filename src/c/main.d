@@ -126,7 +126,7 @@ mkcl_get_option(mkcl_option option)
 int
 mkcl_set_option(mkcl_option option, mkcl_word value)
 {
-  if (option > MKCL_OPT_MAXIMUM || option < 0)
+  if (option >= MKCL_OPT_MAXIMUM || option < 0)
     return MKCL_BAD_OPTION;
   else if (option < MKCL_OPT_BOOTED && option_values[MKCL_OPT_BOOTED])
     return MKCL_IMMUTABLE_OPTION;

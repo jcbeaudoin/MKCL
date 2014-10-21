@@ -275,10 +275,10 @@ static thread_value_t CALL_CONV thread_entry_point(void *arg)
   if (env->own_thread != thread) return (thread_value_t) MKCL_THREAD_ABORTED;
 
 #ifndef MKCL_WINDOWS
-  pthread_mutex_lock(thread->thread.running_lock);
+  if (pthread_mutex_lock(thread->thread.running_lock)) return (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR;
   /* Insert some private os-level thread initialization here */
-  pthread_mutex_unlock(thread->thread.running_lock);
-  pthread_mutex_destroy(thread->thread.running_lock);
+  if (pthread_mutex_unlock(thread->thread.running_lock)) return (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR;
+  if (pthread_mutex_destroy(thread->thread.running_lock)) return (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR;
   thread->thread.running_lock = NULL;
 #endif
 
@@ -330,10 +330,10 @@ static void * signal_servicing_thread_entry_point(void *arg)
 
   if (env->own_thread != thread) return (void *) MKCL_THREAD_ABORTED;
 
-  pthread_mutex_lock(thread->thread.running_lock);
+  if (pthread_mutex_lock(thread->thread.running_lock)) return (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR;
   /* Insert some private thread initialization here */
-  pthread_mutex_unlock(thread->thread.running_lock);
-  pthread_mutex_destroy(thread->thread.running_lock);
+  if (pthread_mutex_unlock(thread->thread.running_lock)) return (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR;
+  if (pthread_mutex_destroy(thread->thread.running_lock)) return (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR;
   thread->thread.running_lock = NULL;
 
   /* The CATCH_ALL point provides us with an elegant way
@@ -1013,10 +1013,10 @@ static thread_value_t CALL_CONV imported_thread_pool_filler(void * arg)
   thread_value_t status = (thread_value_t) MKCL_THREAD_NORMAL_EXIT;
 
 #ifndef MKCL_WINDOWS
-  pthread_mutex_lock(thread->thread.running_lock);
+  if (pthread_mutex_lock(thread->thread.running_lock)) return (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR;
   /* Insert some private thread initialization here */
-  pthread_mutex_unlock(thread->thread.running_lock);
-  pthread_mutex_destroy(thread->thread.running_lock);
+  if (pthread_mutex_unlock(thread->thread.running_lock)) return (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR;
+  if (pthread_mutex_destroy(thread->thread.running_lock)) return (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR;
   thread->thread.running_lock = NULL;
 #endif
 
@@ -1196,6 +1196,7 @@ static mkcl_object pop_from_imported_thread_pool(mkcl_thread_import_failure_hand
   mkcl_object pool = mk_cl_Cnil;
   char * os_error = NULL;
   int rc = 0;
+  bool pool_locked = FALSE;
 
 #ifdef MKCL_WINDOWS
     EnterCriticalSection(&mkcl_imported_thread_pool_lock);
@@ -1203,7 +1204,7 @@ static mkcl_object pop_from_imported_thread_pool(mkcl_thread_import_failure_hand
   if (rc = pthread_mutex_lock(&mkcl_imported_thread_pool_lock))
     { os_error = "pop_from_imported_thread_pool failed on pthread_mutex_lock"; goto LOSE; }
 #endif
-
+  pool_locked = TRUE;
   pool = mkcl_core.imported_thread_pool;
 
   if (mkcl_Null(pool))
@@ -1269,11 +1270,22 @@ static mkcl_object pop_from_imported_thread_pool(mkcl_thread_import_failure_hand
  LOSE:
 #ifdef MKCL_WINDOWS
   LeaveCriticalSection(&mkcl_imported_thread_pool_lock);
-#else
-  pthread_mutex_unlock(&mkcl_imported_thread_pool_lock);
-#endif
   if (handler)
     (*handler)(handler_data, rc, os_error);
+#else
+  {
+    int rc2 = 0;
+    char * os_error2 = NULL;
+
+    if (pool_locked)
+      if (rc2 = pthread_mutex_unlock(&mkcl_imported_thread_pool_lock))
+        { os_error2 = "pop_from_imported_thread_pool failed on pthread_mutex_unlock"; }
+    if (handler)
+      (*handler)(handler_data, rc, os_error);
+    if (handler) /* should be unreachable */
+      (*handler)(handler_data, rc2, os_error2);
+  }
+#endif
   return(mk_cl_Cnil); /* should be unreachable */
 }
 
@@ -1411,10 +1423,10 @@ static thread_value_t CALL_CONV finalization_thread_entry_point(void * arg)
   if (env->own_thread != thread) return (thread_value_t) MKCL_THREAD_ABORTED;
 
 #ifndef MKCL_WINDOWS
-  pthread_mutex_lock(thread->thread.running_lock);
+  if (pthread_mutex_lock(thread->thread.running_lock)) return (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR;
   /* Insert some private thread initialization here */
-  pthread_mutex_unlock(thread->thread.running_lock);
-  pthread_mutex_destroy(thread->thread.running_lock);
+  if (pthread_mutex_unlock(thread->thread.running_lock)) return (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR;
+  if (pthread_mutex_destroy(thread->thread.running_lock)) return (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR;
   thread->thread.running_lock = NULL;
 #endif
 
@@ -1444,7 +1456,12 @@ static thread_value_t CALL_CONV finalization_thread_entry_point(void * arg)
     pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
     /* pthread_mutex_init(&mutex, NULL); */
-    pthread_mutex_lock(&mutex);
+    if (pthread_mutex_lock(&mutex))
+      {
+        /* status = (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR; */
+        thread->thread.result_value = mk_cl_Cnil;
+        goto CLEAN_UP_MUTEX_UNLOCKED;
+      }
 #endif
 
     for (;;) /* forever until we're shutdown. */
@@ -1504,6 +1521,16 @@ static thread_value_t CALL_CONV finalization_thread_entry_point(void * arg)
 #endif
 #endif
       }
+
+#if __unix
+    if (pthread_mutext_unlock(&mutex))
+      {
+        /* status = (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR; */
+        thread->thread.result_value = mk_cl_Cnil;
+      }
+#endif /* __unix */
+
+  CLEAN_UP_MUTEX_UNLOCKED:
 #if 1
     mkcl_cleanup_thread_lisp_context(env);
 #else
@@ -1742,10 +1769,7 @@ mk_mt_unblock_signals(MKCL)
 mkcl_object
 mk_mt_thread_preset(MKCL, mkcl_narg narg, mkcl_object thread, mkcl_object function, ...)
 {
-  mkcl_va_list args;
-
   mkcl_call_stack_check(env);
-  mkcl_va_start(env, args, function, narg, 2);
   if (narg < 2)
     mkcl_FEwrong_num_arguments(env, @'mt::thread-preset');
   mkcl_assert_type_thread(env, thread);
@@ -1770,8 +1794,14 @@ mk_mt_thread_preset(MKCL, mkcl_narg narg, mkcl_object thread, mkcl_object functi
     }
 
   thread->thread.function = function;
-  thread->thread.args = mkcl_grab_rest_args(env, args, FALSE);
   thread->thread.status = mkcl_thread_set;
+  {
+    mkcl_va_list args;
+    
+    mkcl_va_start(env, args, function, narg, 2);
+    thread->thread.args = mkcl_grab_rest_args(env, args, FALSE);
+    mkcl_va_end(args);
+  }
   @(return thread);
 }
 
@@ -2742,7 +2772,7 @@ mkcl_object
 mk_mt_thread_enable(MKCL, mkcl_object thread)
 {
   mkcl_object output;
-  int code;
+  int create_code, code;
 
   mkcl_call_stack_check(env);
   mkcl_assert_type_thread(env, thread);
@@ -2821,17 +2851,23 @@ mk_mt_thread_enable(MKCL, mkcl_object thread)
 	  { errno = code; mkcl_FElibc_error(env, "Thread stack size adjustment failed for thread ~S", 1, thread); }
       }
 
-    pthread_mutex_lock(thread->thread.running_lock);
+    MKCL_LIBC_NO_INTR(env, code = pthread_mutex_lock(thread->thread.running_lock));
+    if (code)
+      { errno = code; mkcl_FElibc_error(env, "Startup synchronization initiation failed for thread ~S", 1, thread); }
 
     thread->thread.thread = 0;
-    MKCL_GC_NO_INTR(env, code = pthread_create(&thread->thread.thread, attr, thread_entry_point, thread)); /* GC redirect */
-    thread->thread.base_thread = thread->thread.thread;
+    MKCL_GC_NO_INTR(env, create_code = pthread_create(&thread->thread.thread, attr, thread_entry_point, thread)); /* GC redirect */
+    if (create_code == 0) thread->thread.base_thread = thread->thread.thread;
 
-    pthread_attr_destroy(attr);
-    pthread_mutex_unlock(thread->thread.running_lock);
+    MKCL_LIBC_NO_INTR(env, code = pthread_mutex_unlock(thread->thread.running_lock));
+    if (code)
+      { errno = code; mkcl_FElibc_error(env, "Startup synchronization initiation failed for thread ~S", 1, thread); }
+    MKCL_LIBC_NO_INTR(env, code = pthread_attr_destroy(attr));
+    if (code)
+      { errno = code; mkcl_FElibc_error(env, "Thread attributes cleanup failed for thread ~S", 1, thread); }
   }
 
-  switch (code)
+  switch (create_code)
     {
     case 0:
       output = thread;
@@ -2839,12 +2875,12 @@ mk_mt_thread_enable(MKCL, mkcl_object thread)
     case EAGAIN:
     case EINVAL:
     case EPERM: /* These should raise a condition instead, with more info. JCB */
-      errno = code;
+      errno = create_code;
       mkcl_FElibc_error(env, "Thread creation failed for thread ~S", 1, thread);
       output = mk_cl_Cnil;
       break;
     default: /* maybe we should lose on this one. (its undocumented!) JCB */
-      errno = code;
+      errno = create_code;
       mkcl_FElibc_error(env, "Thread creation failed for thread ~S", 1, thread);
       output = mk_cl_Cnil;
       break;
@@ -3070,16 +3106,20 @@ mk_mt_thread_run_function(MKCL, mkcl_narg narg, mkcl_object name, mkcl_object fu
   mkcl_va_list args;
 
   mkcl_call_stack_check(env);
-  mkcl_va_start(env, args, function, narg, 2);
   if (narg < 2)
     mkcl_FEwrong_num_arguments(env, @'mt::thread-run-function');
+
+  mkcl_va_start(env, args, function, narg, 2);
+  mkcl_object rest = mkcl_grab_rest_args(env, args, FALSE);
+  mkcl_va_end(args);
+
   if (MKCL_CONSP(name)) {
     /* This is useful to pass :initial-bindings to make-thread */
     thread = mk_cl_apply(env, 2, @'mt::make-thread', name);
   } else {
     thread = mk_mt_make_thread(env, 2, @':name', name);
   }
-  mk_cl_apply(env, 4, @'mt::thread-preset', thread, function, mkcl_grab_rest_args(env, args, FALSE));
+  mk_cl_apply(env, 4, @'mt::thread-preset', thread, function, rest);
   return mk_mt_thread_enable(env, thread);
 }
 
@@ -4030,6 +4070,11 @@ mkcl_init_early_threads(MKCL)
 #else
   InitializeCriticalSection(&mkcl_imported_thread_pool_lock);
 #endif
+
+  EnterCriticalSection(&mkcl_imported_thread_pool_lock);
+  mkcl_core.imported_thread_pool = mk_cl_Cnil;
+  LeaveCriticalSection(&mkcl_imported_thread_pool_lock);
+
 #else /* def MKCL_WINDOWS */
 
     if (pthread_mutexattr_init(&recursive_mutexattr))
@@ -4064,10 +4109,19 @@ mkcl_init_early_threads(MKCL)
     if (pthread_mutex_init(&mkcl_imported_thread_pool_lock, mutexattr))
       mkcl_lose(env, "mkcl_init_early_threads failed on pthread_mutex_init");
   }
+
+  if (pthread_mutex_lock(&mkcl_imported_thread_pool_lock))
+    mkcl_lose(env, "mkcl_init_early_threads failed on pthread_mutex_lock");
+  else
+    {
+      mkcl_core.imported_thread_pool = mk_cl_Cnil;
+      if (pthread_mutex_unlock(&mkcl_imported_thread_pool_lock))
+        mkcl_lose(env, "fill_imported_thread_pool failed on pthread_mutex_unlock");
+    }
 #endif /* def MKCL_WINDOWS */
+
   mkcl_core.threads = MKCL_OBJNULL;
   mkcl_core.top_special_index = 0;
-  mkcl_core.imported_thread_pool = mk_cl_Cnil;
 
 #ifdef __linux
   pthread_sigmask(SIG_SETMASK, NULL, &mkcl_standard_sigmask);
@@ -4347,7 +4401,7 @@ mk_mt_thread_shutdown_requested_p(MKCL, mkcl_object thread)
 {
   mkcl_call_stack_check(env);
   mkcl_assert_type_thread(env, thread);
-  @(return ((thread->thread.shutdown_requested = TRUE) ? mk_cl_Ct : mk_cl_Cnil));
+  @(return ((thread->thread.shutdown_requested == TRUE) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 

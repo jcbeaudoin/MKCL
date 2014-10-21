@@ -23,7 +23,7 @@
   struct mkcl_temp_stack_frame frames_aux[2];				\
   const mkcl_object cdrs_frame = (mkcl_object)frames_aux;		\
   const mkcl_object cars_frame = (mkcl_object)(frames_aux+1);		\
-  MKCL_TEMP_STACK_FRAME_FROM_VA_LIST(env,cdrs_frame,list);			\
+  MKCL_TEMP_STACK_FRAME_FROM_VA_LIST(env,cdrs_frame,list);              \
   MKCL_TEMP_STACK_FRAME_COPY(cars_frame, cdrs_frame);			\
   narg = cars_frame->frame.size;					\
   if (narg == 0) {							\
@@ -45,6 +45,7 @@
 	if (mkcl_Null(cdr)) {
 	  mkcl_temp_stack_frame_close(env, cars_frame);
 	  mkcl_temp_stack_frame_close(env, cdrs_frame);
+          mkcl_va_end(lists);
 	  @(return res);
 	}
 	MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, MKCL_CONS_CAR(cdr));
@@ -71,6 +72,7 @@
 	if (mkcl_Null(cdr)) {
 	  mkcl_temp_stack_frame_close(env, cars_frame);
 	  mkcl_temp_stack_frame_close(env, cdrs_frame);
+          mkcl_va_end(lists);
 	  @(return res);
 	}
 	MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, cdr);
@@ -97,6 +99,7 @@
 	if (mkcl_Null(cdr)) {
 	  mkcl_temp_stack_frame_close(env, cars_frame);
 	  mkcl_temp_stack_frame_close(env, cdrs_frame);
+          mkcl_va_end(lists);
 	  @(return onelist);
 	}
 	MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, MKCL_CONS_CAR(cdr));
@@ -122,6 +125,7 @@
 	if (mkcl_Null(cdr)) {
 	  mkcl_temp_stack_frame_close(env, cars_frame);
 	  mkcl_temp_stack_frame_close(env, cdrs_frame);
+          mkcl_va_end(lists);
 	  @(return onelist);
 	}
 	MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, cdr);
@@ -147,6 +151,7 @@
 	if (mkcl_Null(cdr)) {
 	  mkcl_temp_stack_frame_close(env, cars_frame);
 	  mkcl_temp_stack_frame_close(env, cdrs_frame);
+          mkcl_va_end(lists);
 	  @(return res);
 	}
 	MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, MKCL_CONS_CAR(cdr));
@@ -174,6 +179,7 @@
 	if (mkcl_Null(cdr)) {
 	  mkcl_temp_stack_frame_close(env, cars_frame);
 	  mkcl_temp_stack_frame_close(env, cdrs_frame);
+          mkcl_va_end(lists);
 	  @(return res);
 	}
 	MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, cdr);

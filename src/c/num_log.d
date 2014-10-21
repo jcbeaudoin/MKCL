@@ -441,33 +441,41 @@ mkcl_word_bit_length(mkcl_word i)
 @(defun logior (&rest nums)
 @
   if (narg == 0)
-    { @(return MKCL_MAKE_FIXNUM(0)); }
+    { mkcl_va_end(nums); @(return MKCL_MAKE_FIXNUM(0)); }
   /* INV: log_op() checks types and outputs first argument as default. */
-  @(return log_op(env, narg, MKCL_BOOLIOR, nums))
+  mkcl_object val = log_op(env, narg, MKCL_BOOLIOR, nums);
+  mkcl_va_end(nums);
+  @(return val)
 @)
 
 @(defun logxor (&rest nums)
 @
   if (narg == 0)
-    { @(return MKCL_MAKE_FIXNUM(0)); }
+    { mkcl_va_end(nums); @(return MKCL_MAKE_FIXNUM(0)); }
   /* INV: log_op() checks types and outputs first argument as default. */
-  @(return log_op(env, narg, MKCL_BOOLXOR, nums))
+  mkcl_object val = log_op(env, narg, MKCL_BOOLXOR, nums);
+  mkcl_va_end(nums);
+  @(return val);
 @)
 
 @(defun logand (&rest nums)
 @
   if (narg == 0)
-    { @(return MKCL_MAKE_FIXNUM(-1)); }
+    { mkcl_va_end(nums); @(return MKCL_MAKE_FIXNUM(-1)); }
   /* INV: log_op() checks types and outputs first argument as default. */
-  @(return log_op(env, narg, MKCL_BOOLAND, nums))
+  mkcl_object val = log_op(env, narg, MKCL_BOOLAND, nums);
+  mkcl_va_end(nums);
+  @(return val);
 @)
 
 @(defun logeqv (&rest nums)
 @
   if (narg == 0)
-    { @(return MKCL_MAKE_FIXNUM(-1)); }
+    { mkcl_va_end(nums); @(return MKCL_MAKE_FIXNUM(-1)); }
   /* INV: log_op() checks types and outputs first argument as default. */
-  @(return log_op(env, narg, MKCL_BOOLEQV, nums))
+  mkcl_object val = log_op(env, narg, MKCL_BOOLEQV, nums);
+  mkcl_va_end(nums);
+  @(return val)
 @)
 
 mkcl_object

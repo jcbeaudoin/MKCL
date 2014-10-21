@@ -923,28 +923,24 @@ write_character(MKCL, int i, mkcl_object stream)
 }
 
 static void
-write_array(MKCL, bool vector, mkcl_object x, mkcl_object stream)
+write_array(MKCL, mkcl_object x, mkcl_object stream)
 {
   const mkcl_index *adims;
   mkcl_index subscripts[MKCL_ARANKLIM];
   mkcl_word n, j, m, k, i;
   mkcl_word print_length;
   mkcl_word print_level;
-  bool readably = mkcl_print_readably(env);
+  const bool readably = mkcl_print_readably(env);
 
-  if (vector) {
-    adims = &x->vector.fillp;
-    n = 1;
-  } else {
-    adims = x->array.dims;
-    n = x->array.rank;
-  }
+  adims = x->array.dims;
+  n = x->array.rank;
+
   if (readably) {
     print_length = MKCL_MOST_POSITIVE_FIXNUM;
     print_level = MKCL_MOST_POSITIVE_FIXNUM;
   } else {
     if (!mkcl_print_array(env)) {
-      write_str(env, vector ? "#<vector " : "#<array ", stream);
+      write_str(env, "#<array ", stream);
       write_addr(env, x, stream);
       mkcl_write_char(env, '>', stream);
       return;
@@ -972,7 +968,7 @@ write_array(MKCL, bool vector, mkcl_object x, mkcl_object stream)
       mk_si_write_object(env, mk_cl_Cnil, stream);
     }
     mkcl_write_char(env, ' ', stream);
-  } else if (!vector) {
+  } else {
     write_decimal(env, n, stream);
     mkcl_write_char(env, 'A', stream);
   }
@@ -1038,6 +1034,69 @@ write_array(MKCL, bool vector, mkcl_object x, mkcl_object stream)
     mkcl_bds_unwind1(env);
   }
   if (readably) {
+    mkcl_write_char(env, ')', stream);
+  }
+}
+
+static void
+write_vector(MKCL, mkcl_object x, mkcl_object stream)
+{
+  const bool vector = TRUE;
+  const mkcl_index adim = x->vector.fillp;
+  const bool readably = mkcl_print_readably(env);
+  mkcl_word print_length;
+  mkcl_word print_level;
+
+  if (readably) {
+    print_length = MKCL_MOST_POSITIVE_FIXNUM;
+    print_level = MKCL_MOST_POSITIVE_FIXNUM;
+  } else {
+    if (!mkcl_print_array(env)) {
+      write_str(env, "#<vector ", stream);
+      write_addr(env, x, stream);
+      mkcl_write_char(env, '>', stream);
+      return;
+    }
+    print_level = mkcl_print_level(env);
+    print_length = mkcl_print_length(env);
+  }
+  mkcl_write_char(env, '#', stream);
+
+  if (print_level == 0)
+    return;
+
+  if (readably) { /* special implementation-defined *readeable* syntax. */
+    mkcl_write_char(env, 'A', stream);
+    mkcl_write_char(env, '(', stream);
+    mk_si_write_object(env, mkcl_elttype_to_symbol(env, mkcl_array_elttype(env, x)), stream);
+    mkcl_write_char(env, ' ', stream);
+      mkcl_write_char(env, '(', stream);
+      mk_si_write_object(env, MKCL_MAKE_FIXNUM(adim), stream);
+      mkcl_write_char(env, ')', stream);
+    mkcl_write_char(env, ' ', stream);
+  }
+
+  mkcl_bds_bind(env, @'*print-level*', MKCL_MAKE_FIXNUM(print_level - 1));
+
+  mkcl_write_char(env, '(', stream);
+  {
+    mkcl_index i = 0;
+    for (i = 0; i < adim; i++)
+      {
+        if (i >= print_length)
+          {
+            write_str(env, "...", stream);
+            break;
+          }
+        if (i > 0)
+          mkcl_write_char(env, ' ', stream);
+        mk_si_write_object(env, mkcl_aref_index(env, x, i), stream);
+      }
+  }
+  mkcl_write_char(env, ')', stream);
+
+  mkcl_bds_unwind1(env);
+  if (readably) { /* match special syntax initiated here above. */
     mkcl_write_char(env, ')', stream);
   }
 }
@@ -1142,11 +1201,11 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
     break;
 
   case mkcl_t_array:
-    write_array(env, 0, x, stream);
+    write_array(env, x, stream);
     break;
 
   case mkcl_t_vector:
-    write_array(env, 1, x, stream);
+    write_vector(env, x, stream);
     break;
 
   case mkcl_t_string:
@@ -1276,10 +1335,14 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
 	  }
 	  break;
 	}
+#if 0 /* What is the purpose of this piece of code over the alternative below, I fail to see! JCB */
       if (i == 0 && y != MKCL_OBJNULL && mkcl_type_of(y) == mkcl_t_symbol)
 	mkcl_write_char(env, ' ', stream);
       else
 	mkcl_write_char(env, ' ', stream);
+#else
+      mkcl_write_char(env, ' ', stream);
+#endif
     }
     /* RIGHT_PAREN: */
     mkcl_write_char(env, ')', stream);
@@ -1403,7 +1466,7 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
   case mkcl_t_random:
     if (mkcl_print_readably(env)) {
       write_str(env, "#$", stream);
-      write_array(env, 1, x->random.value, stream);
+      write_vector(env, x->random.value, stream);
     } else {
       write_str(env, "#<random-state ", stream);
       write_addr(env, x->random.value, stream);
@@ -1501,13 +1564,7 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
     mkcl_write_char(env, '>', stream);
     break;
   case mkcl_t_instance:
-#if 0
-    if (!MKCL_INSTANCEP(MKCL_CLASS_OF(x)))
-      mkcl_FEwrong_type_argument(env, @'si::instance', MKCL_CLASS_OF(x));
-    call_print_object(env, x, stream);
-#else
     mkcl_funcall2(env, @+'print-object', x, stream);
-#endif
     break;
   case mkcl_t_foreign:
     if (mkcl_print_readably(env)) mkcl_FEprint_not_readable(env, x);
@@ -1833,16 +1890,18 @@ static bool
 potential_number_p(MKCL, mkcl_object strng, mkcl_word base)
 {
   /* See ANSI 2.3.1.1 */
-  mkcl_index i, l;
+  bool saw_a_digit = FALSE;
+  mkcl_index l = mkcl_string_length(env, strng);
   mkcl_character c;
 
-  l = mkcl_string_length(env, strng);
   if (l == 0)
     return FALSE;
   c = mkcl_char(env, strng, 0);
 
   /* A potential number must begin with a digit, sign or extension character (^ _) */
-  if ((mkcl_digitp(c, base) < 0) && c != '+' && c != '-' && c != '^' && c != '_')
+  if (mkcl_digitp(c, base) >= 0)
+    saw_a_digit = TRUE;
+  else if (c != '+' && c != '-' && c != '^' && c != '_' && c != '.')
     return FALSE;
 
   /* A potential number cannot end with a sign */
@@ -1850,21 +1909,26 @@ potential_number_p(MKCL, mkcl_object strng, mkcl_word base)
   if (c == '+' || c == '-')
     return FALSE;
 
-  for (i = 1;  i < l;  i++) {
-    c = mkcl_char(env, strng, i);
-    /* It can only contain digits, signs, ratio markers, extension characters and
-     * number markers. Number markers are letters, but two adjacent letters fail
-     * to be a number marker. */
-    if (mkcl_digitp(c, base) >= 0 || c == '+' && c == '-' && c == '/' && c == '.' &&
-	c == '^' && c == '_') {
-      continue;
-    }
-    if (mkcl_alpha_char_p(c) && (((i+1) >= l) || !mkcl_alpha_char_p(mkcl_char(env, strng, i+1)))) {
-      continue;
-    }
-    return FALSE;
+  {
+    mkcl_index i;
+
+    for (i = 1;  i < l;  i++)
+      {
+        c = mkcl_char(env, strng, i);
+        /* It can only contain digits, signs, ratio markers, extension characters and
+         * number markers. Number markers are letters, but two adjacent letters fail
+         * to be a number marker. */
+        if (mkcl_digitp(c, base) >= 0)
+          { saw_a_digit = TRUE; continue; }
+        else if (c == '+' || c == '-' || c == '/' || c == '.' || c == '^' || c == '_')
+          { continue; }
+        if (mkcl_alpha_char_p(c) && (((i+1) >= l) || !mkcl_alpha_char_p(mkcl_char(env, strng, i+1))))
+          { continue; }
+        else
+          return FALSE;
+      }
   }
-  return TRUE;
+  return saw_a_digit;
 }
 
 

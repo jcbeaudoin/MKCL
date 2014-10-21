@@ -41,7 +41,7 @@ mkcl_make_cfun(MKCL, mkcl_objectfn_fixed c_function, mkcl_object name,
 {
   mkcl_object cf;
 
-  if (narg < 0 || narg > MKCL_C_ARGUMENTS_LIMIT)
+  if (narg < 0 || narg >= MKCL_C_ARGUMENTS_LIMIT)
     mkcl_FEprogram_error(env, "mkcl_make_cfun: function ~S requires too many arguments. ~D",
 			 2, name, MKCL_MAKE_FIXNUM(narg));
 
@@ -458,6 +458,7 @@ mkcl_clone_cclosure(MKCL, mkcl_object c0, mkcl_object new_cenv)
       tail = cons;
     }
   }
+    mkcl_va_end(args);
   @(return head);
 @)
 
@@ -627,7 +628,9 @@ mk_cl_function_lambda_expression(MKCL, mkcl_object fun)
   case mkcl_t_bclosure:
     closure_p = mk_cl_Ct;
     fun = fun->bclosure.code;
+    goto mkcl_t_bytecode_case; /* fallthrough is such bad taste! */
   case mkcl_t_bytecode:
+  mkcl_t_bytecode_case:
     name = fun->bytecode.name;
     lambda_expr = fun->bytecode.definition;
     if (name == mk_cl_Cnil)
@@ -646,12 +649,15 @@ mk_cl_function_lambda_expression(MKCL, mkcl_object fun)
     lambda_expr = mk_cl_Cnil;
     break;
   case mkcl_t_instance:
-    if (fun->instance.isgf) {
+    if (fun->instance.isgf)
+      {
       name = mk_cl_Cnil;
       closure_p = mk_cl_Cnil;
       lambda_expr = mk_cl_Cnil;
-      break;
-    }
+      }
+    else
+      mkcl_FEinvalid_function(env, fun);
+    break;
   default:
     mkcl_FEinvalid_function(env, fun);
   }

@@ -51,6 +51,7 @@ user_function_dispatch(MKCL, mkcl_narg narg, ...)
   for (i = 0; i < narg; i++) {
     MKCL_TEMP_STACK_FRAME_SET(frame, i, mkcl_va_arg(args));
   }
+  mkcl_va_end(args);
   fun = fun->instance.slots[fun->instance.length - 1];
   output = mkcl_apply_from_temp_stack_frame(env, frame, fun);
   mkcl_temp_stack_frame_close(env, frame);

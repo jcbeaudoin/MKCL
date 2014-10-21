@@ -508,6 +508,7 @@ mk_si_putprop(MKCL, mkcl_object sym, mkcl_object value, mkcl_object indicator)
     mk_si_putprop(env, sym, mkcl_va_arg(ind_values), prop);
     narg--;
   }
+  mkcl_va_end(ind_values);
   @(return sym);
 @)
 

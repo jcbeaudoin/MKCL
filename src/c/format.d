@@ -48,5 +48,6 @@
   } else {
     mkcl_funcall3(env, @+'si::formatter-aux', strm, string, mkcl_grab_rest_args(env, args, FALSE));
   }
+  mkcl_va_end(args);
   @(return output);
 @)

@@ -200,134 +200,135 @@ mkcl_read_object_with_delimiter(MKCL, mkcl_object in, mkcl_character delimiter, 
   upcase = count = length = 0;
   external_symbol = false; colon = 0;
   token = mk_si_get_buffer_string(env);
-  for (;;) {
-    if (c == ':' && (flags != MKCL_READ_ONLY_TOKEN) && a == mkcl_cat_constituent) {
-      colon++;
-      goto NEXT;
-    }
-    if (colon > 2) {
-      while (colon--) {
-	mkcl_string_push_extend(env, token, ':');
-	length++;
+  for (;;)
+    {
+      if (c == ':' && (flags != MKCL_READ_ONLY_TOKEN) && a == mkcl_cat_constituent) {
+        colon++;
+        goto NEXT;
       }
-    } else if (colon) {
-      external_symbol = (colon == 1);
-      TOKEN_STRING_CHAR_SET(token,length,'\0');
-      /* If the readtable case was :INVERT and all non-escaped characters
-       * had the same case, we revert their case. */
-      if (read_case == mkcl_case_invert) {
-	if (upcase == count) {
-	  invert_buffer_case(token, escape_list, -1);
-	} else if (upcase == -count) {
-	  invert_buffer_case(token, escape_list, +1);
-	}
-      }
-      if (length == 0) {
-	p = mkcl_core.keyword_package;
-	external_symbol = 0;
-      } else {
+      if (colon > 2) {
+        while (colon--) {
+          mkcl_string_push_extend(env, token, ':');
+          length++;
+        }
+      } else if (colon) {
+        external_symbol = (colon == 1);
+        TOKEN_STRING_CHAR_SET(token,length,'\0');
+        /* If the readtable case was :INVERT and all non-escaped characters
+         * had the same case, we revert their case. */
+        if (read_case == mkcl_case_invert) {
+          if (upcase == count) {
+            invert_buffer_case(token, escape_list, -1);
+          } else if (upcase == -count) {
+            invert_buffer_case(token, escape_list, +1);
+          }
+        }
+        if (length == 0) {
+          p = mkcl_core.keyword_package;
+          external_symbol = 0;
+        } else {
 #if 0
-	p = mkcl_find_package_nolock(env, token); /* Why is this "nolock"? JCB */
+          p = mkcl_find_package_nolock(env, token); /* Why is this "nolock"? JCB */
 #else
-	p = mk_cl_find_package(env, token);
+          p = mk_cl_find_package(env, token);
 #endif
-      }
-      if (mkcl_Null(p) && !suppress) {
-	/* When loading binary files, we sometimes must create
-	   symbols whose package has not yet been made. We
-	   allow it, but later on in mkcl_read_VV we make sure that
-	   all referenced packages have been properly built.
-	*/
-	mkcl_object name = mk_cl_copy_seq(env, token);
-	volatile bool list_locked = false;
+        }
+        if (mkcl_Null(p) && !suppress) {
+          /* When loading binary files, we sometimes must create
+             symbols whose package has not yet been made. We
+             allow it, but later on in mkcl_read_VV we make sure that
+             all referenced packages have been properly built.
+          */
+          mkcl_object name = mk_cl_copy_seq(env, token);
+          volatile bool list_locked = false;
 
-	MKCL_UNWIND_PROTECT_BEGIN(env) {
-	  MKCL_LIBC_NO_INTR(env, (MKCL_PACKAGE_LIST_LOCK(), list_locked = true));
-	  if (mkcl_core.packages_to_be_created == MKCL_OBJNULL
-	      || mkcl_Null(MKCL_SYM_VAL(env, @'si::+reading-fasl-file+')))
-	    p = mk_cl_Cnil; /* we confirm. */
-	  else if (!mkcl_Null(p = mkcl_assoc(env, name, mkcl_core.packages_to_be_created)))
-	    p = MKCL_CDR(p);
-	  else
-	    {
-	      p = _mkcl_alloc_package(env, name);
-	      mkcl_core.packages_to_be_created = mk_cl_acons(env, name, p, mkcl_core.packages_to_be_created);
-	    }
-	} MKCL_UNWIND_PROTECT_EXIT {
-	  if (list_locked) MKCL_PACKAGE_LIST_UNLOCK();
-	} MKCL_UNWIND_PROTECT_END;
+          MKCL_UNWIND_PROTECT_BEGIN(env) {
+            MKCL_LIBC_NO_INTR(env, (MKCL_PACKAGE_LIST_LOCK(), list_locked = true));
+            if (mkcl_core.packages_to_be_created == MKCL_OBJNULL
+                || mkcl_Null(MKCL_SYM_VAL(env, @'si::+reading-fasl-file+')))
+              p = mk_cl_Cnil; /* we confirm. */
+            else if (!mkcl_Null(p = mkcl_assoc(env, name, mkcl_core.packages_to_be_created)))
+              p = MKCL_CDR(p);
+            else
+              {
+                p = _mkcl_alloc_package(env, name);
+                mkcl_core.packages_to_be_created = mk_cl_acons(env, name, p, mkcl_core.packages_to_be_created);
+              }
+          } MKCL_UNWIND_PROTECT_EXIT {
+            if (list_locked) MKCL_PACKAGE_LIST_UNLOCK();
+          } MKCL_UNWIND_PROTECT_END;
 	
-	if (mkcl_Null(p))
-	  mkcl_FEerror(env, "There is no package with the name ~A.", 1, name);	
+          if (mkcl_Null(p))
+            mkcl_FEerror(env, "There is no package with the name ~A.", 1, name);	
+        }
+        TOKEN_STRING_FILLP(token) = length = 0;
+        upcase = count = colon = 0;
+        escape_list = mk_cl_Cnil;
       }
-      TOKEN_STRING_FILLP(token) = length = 0;
-      upcase = count = colon = 0;
-      escape_list = mk_cl_Cnil;
-    }
-    if (a == mkcl_cat_single_escape) {
-      c = mkcl_read_char_noeof(env, in);
-      a = mkcl_cat_constituent;
-      if (read_case == mkcl_case_invert) {
-	escape_list = MKCL_CONS(env,
-				MKCL_CONS(env, MKCL_MAKE_FIXNUM(length), MKCL_MAKE_FIXNUM(length)),
-				escape_list);
-      } else {
-	escape_list = mk_cl_Ct;
+      if (a == mkcl_cat_single_escape) {
+        c = mkcl_read_char_noeof(env, in);
+        /* a = mkcl_cat_constituent; */ /* This value is said to be unused. */
+        if (read_case == mkcl_case_invert) {
+          escape_list = MKCL_CONS(env,
+                                  MKCL_CONS(env, MKCL_MAKE_FIXNUM(length), MKCL_MAKE_FIXNUM(length)),
+                                  escape_list);
+        } else {
+          escape_list = mk_cl_Ct;
+        }
+        mkcl_string_push_extend(env, token, c);
+        length++;
+        goto NEXT;
+      }
+      if (a == mkcl_cat_multiple_escape) {
+        mkcl_index begin = length;
+        for (;;) {
+          c = mkcl_read_char_noeof(env, in);
+          a = mkcl_readtable_get(env, rtbl, c, NULL);
+          if (a == mkcl_cat_single_escape) {
+            c = mkcl_read_char_noeof(env, in);
+            /* a = mkcl_cat_constituent; */ /* This value is said to be unused. */
+          } else if (a == mkcl_cat_multiple_escape)
+            break;
+          mkcl_string_push_extend(env, token, c);
+          length++;
+        }
+        if (read_case == mkcl_case_invert) {
+          escape_list = MKCL_CONS(env, MKCL_CONS(env, MKCL_MAKE_FIXNUM(begin),
+                                                 MKCL_MAKE_FIXNUM(length-1)),
+                                  escape_list);
+        } else {
+          escape_list = mk_cl_Ct;
+        }
+        goto NEXT;
+      }
+      if (a == mkcl_cat_whitespace || a == mkcl_cat_terminating) {
+        mkcl_unread_char(env, c, in);
+        break;
+      }
+      if (mkcl_invalid_constituent_character_p(c)) {
+        mkcl_FEreader_error(env, "While reading a lisp token, found invalid constituent character #\\~:C", in, 1, MKCL_CODE_CHAR(c));
+      }
+      if (read_case != mkcl_case_preserve) {
+        if (mkcl_upper_case_p(c)) {
+          upcase++;
+          count++;
+          if (read_case == mkcl_case_downcase)
+            c = mkcl_char_downcase(c);
+        } else if (mkcl_lower_case_p(c)) {
+          upcase--;
+          count++;
+          if (read_case == mkcl_case_upcase)
+            c = mkcl_char_upcase(c);
+        }
       }
       mkcl_string_push_extend(env, token, c);
       length++;
-      goto NEXT;
+    NEXT:
+      c = mkcl_read_char(env, in);
+      if (c == EOF)
+        break;
+      a = mkcl_readtable_get(env, rtbl, c, NULL);
     }
-    if (a == mkcl_cat_multiple_escape) {
-      mkcl_index begin = length;
-      for (;;) {
-	c = mkcl_read_char_noeof(env, in);
-	a = mkcl_readtable_get(env, rtbl, c, NULL);
-	if (a == mkcl_cat_single_escape) {
-	  c = mkcl_read_char_noeof(env, in);
-	  a = mkcl_cat_constituent;
-	} else if (a == mkcl_cat_multiple_escape)
-	  break;
-	mkcl_string_push_extend(env, token, c);
-	length++;
-      }
-      if (read_case == mkcl_case_invert) {
-	escape_list = MKCL_CONS(env, MKCL_CONS(env, MKCL_MAKE_FIXNUM(begin),
-				     MKCL_MAKE_FIXNUM(length-1)),
-			   escape_list);
-      } else {
-	escape_list = mk_cl_Ct;
-      }
-      goto NEXT;
-    }
-    if (a == mkcl_cat_whitespace || a == mkcl_cat_terminating) {
-      mkcl_unread_char(env, c, in);
-      break;
-    }
-    if (mkcl_invalid_constituent_character_p(c)) {
-      mkcl_FEreader_error(env, "While reading a lisp token, found invalid constituent character #\\~:C", in, 1, MKCL_CODE_CHAR(c));
-    }
-    if (read_case != mkcl_case_preserve) {
-      if (mkcl_upper_case_p(c)) {
-	upcase++;
-	count++;
-	if (read_case == mkcl_case_downcase)
-	  c = mkcl_char_downcase(c);
-      } else if (mkcl_lower_case_p(c)) {
-	upcase--;
-	count++;
-	if (read_case == mkcl_case_upcase)
-	  c = mkcl_char_upcase(c);
-      }
-    }
-    mkcl_string_push_extend(env, token, c);
-    length++;
-  NEXT:
-    c = mkcl_read_char(env, in);
-    if (c == EOF)
-      break;
-    a = mkcl_readtable_get(env, rtbl, c, NULL);
-  }
 
   if (suppress) {
     x = mk_cl_Cnil;
@@ -1126,7 +1127,7 @@ sharp_colon_reader(MKCL, mkcl_object in, mkcl_object ch, mkcl_object d)
 	a = mkcl_readtable_get(env, rtbl, c, NULL);
 	if (a == mkcl_cat_single_escape) {
 	  c = mkcl_read_char_noeof(env, in);
-	  a = mkcl_cat_constituent;
+	  /* a = mkcl_cat_constituent; */ /* This value is said to be unused. */
 	} else if (a == mkcl_cat_multiple_escape)
 	  break;
 	mkcl_string_push_extend(env, token, c);
@@ -1272,60 +1273,68 @@ do_patch_sharp(MKCL, mkcl_object x)
 
   switch (mkcl_type_of(x))
     {
-    case mkcl_t_cons: {
-      mkcl_object y = x;
-      mkcl_object *place = &x;
-      do {
-	/* This was the result of a #d# */
-	if (MKCL_CAR(y) == MKCL_OBJNULL) {
-	  *place = MKCL_CDR(y);
-	  return x;
-	} else {
-	  MKCL_RPLACA(y, do_patch_sharp(env, MKCL_CAR(y)));
-	}
-	place = &MKCL_CONS_CDR(y);
-	y = MKCL_CONS_CDR(y);
-      } while (MKCL_CONSP(y));
-      break;
-    }
-    case mkcl_t_vector:
-      if (x->vector.elttype == mkcl_aet_object) {
-	mkcl_index i;
-	for (i = 0;  i < x->vector.fillp;  i++)
-	  x->vector.self.t[i] = do_patch_sharp(env, x->vector.self.t[i]);
+    case mkcl_t_cons:
+      {
+        mkcl_object y = x;
+        mkcl_object *place = &x;
+        do {
+          /* This was the result of a #d# */
+          if (MKCL_CAR(y) == MKCL_OBJNULL) {
+            *place = MKCL_CDR(y);
+            return x;
+          } else {
+            MKCL_RPLACA(y, do_patch_sharp(env, MKCL_CAR(y)));
+          }
+          place = &MKCL_CONS_CDR(y);
+          y = MKCL_CONS_CDR(y);
+        } while (MKCL_CONSP(y));
       }
+      break;
+    case mkcl_t_vector:
+      if (x->vector.elttype == mkcl_aet_object)
+        {
+          mkcl_index i;
+          for (i = 0;  i < x->vector.fillp;  i++)
+            x->vector.self.t[i] = do_patch_sharp(env, x->vector.self.t[i]);
+        }
       break;
     case mkcl_t_array:
-      if (x->vector.elttype == mkcl_aet_object) {
-	mkcl_index i, j;
-	for (i = 0, j = 1;  i < x->array.rank;  i++)
-	  j *= x->array.dims[i];
-	for (i = 0;  i < j;  i++)
-	  x->array.self.t[i] = do_patch_sharp(env, x->array.self.t[i]);
+      if (x->vector.elttype == mkcl_aet_object)
+        {
+          mkcl_index i, j;
+          for (i = 0, j = 1;  i < x->array.rank;  i++)
+            j *= x->array.dims[i];
+          for (i = 0;  i < j;  i++)
+            x->array.self.t[i] = do_patch_sharp(env, x->array.self.t[i]);
+        }
+      break;
+    case mkcl_t_complex:
+      {
+        mkcl_object r = do_patch_sharp(env, x->_complex.real);
+        mkcl_object i = do_patch_sharp(env, x->_complex.imag);
+        if (r != x->_complex.real || i != x->_complex.imag) {
+          mkcl_object c = mkcl_make_complex(env, r, i);
+          x->_complex = c->_complex;
+        }
       }
       break;
-    case mkcl_t_complex: {
-      mkcl_object r = do_patch_sharp(env, x->_complex.real);
-      mkcl_object i = do_patch_sharp(env, x->_complex.imag);
-      if (r != x->_complex.real || i != x->_complex.imag) {
-	mkcl_object c = mkcl_make_complex(env, r, i);
-	x->_complex = c->_complex;
+    case mkcl_t_bclosure:
+      {
+        x->bclosure.lex = do_patch_sharp(env, x->bclosure.lex);
+        x = x->bclosure.code = do_patch_sharp(env, x->bclosure.code);
+      }
+      goto mkcl_t_bytecode_case;
+    case mkcl_t_bytecode:
+    mkcl_t_bytecode_case:
+      {
+        mkcl_index i = 0;
+        x->bytecode.name = do_patch_sharp(env, x->bytecode.name);
+        x->bytecode.definition = do_patch_sharp(env, x->bytecode.definition);
+        for (i = 0; i < x->bytecode.data_size; i++) {
+          x->bytecode.data[i] = do_patch_sharp(env, x->bytecode.data[i]);
+        }
       }
       break;
-    }
-    case mkcl_t_bclosure: {
-      x->bclosure.lex = do_patch_sharp(env, x->bclosure.lex);
-      x = x->bclosure.code = do_patch_sharp(env, x->bclosure.code);
-    }
-    case mkcl_t_bytecode: {
-      mkcl_index i = 0;
-      x->bytecode.name = do_patch_sharp(env, x->bytecode.name);
-      x->bytecode.definition = do_patch_sharp(env, x->bytecode.definition);
-      for (i = 0; i < x->bytecode.data_size; i++) {
-	x->bytecode.data[i] = do_patch_sharp(env, x->bytecode.data[i]);
-      }
-      break;
-    }
     default: break;
     }
   return(x);
@@ -1436,18 +1445,18 @@ sharp_dollar_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
 mkcl_object
 mkcl_copy_readtable(MKCL, mkcl_object from, mkcl_object to)
 {
-  struct mkcl_readtable_entry *from_rtab, *to_rtab;
-  mkcl_index i;
-  size_t entry_bytes = sizeof(struct mkcl_readtable_entry);
-  size_t total_bytes = entry_bytes * MKCL_RTABSIZE;
-  mkcl_object output;
-  volatile bool locked = false;
-
+  mkcl_call_stack_check(env);
   mkcl_assert_type_readtable(env, from);
+  if (!mkcl_Null(to)) mkcl_assert_type_readtable(env, to);
 
-  output = mkcl_alloc_raw_readtable(env);
-  output->readtable.table = to_rtab 
+  const size_t entry_bytes = sizeof(struct mkcl_readtable_entry);
+  const size_t total_bytes = entry_bytes * MKCL_RTABSIZE;
+  struct mkcl_readtable_entry * __restrict__ to_rtab
     = (struct mkcl_readtable_entry *) mkcl_alloc_align(env, total_bytes, entry_bytes);
+  enum mkcl_readtable_case to_read_case;
+  mkcl_object __restrict__ to_hash;
+  mkcl_index i;
+  volatile bool locked = false;
 
   MKCL_UNWIND_PROTECT_BEGIN(env) {
     mkcl_interrupt_status old_intr;
@@ -1457,7 +1466,7 @@ mkcl_copy_readtable(MKCL, mkcl_object from, mkcl_object to)
     READTABLE_LOCK(from); locked = true;
     mkcl_set_interrupt_status(env, &old_intr);
 
-    from_rtab = from->readtable.table;
+    struct mkcl_readtable_entry * from_rtab = from->readtable.table;
     memcpy(to_rtab, from_rtab, total_bytes);
     for (i = 0;  i < MKCL_RTABSIZE;  i++) {
       mkcl_object d = from_rtab[i].dispatch;
@@ -1466,34 +1475,20 @@ mkcl_copy_readtable(MKCL, mkcl_object from, mkcl_object to)
       }
       to_rtab[i].dispatch = d;
     }
-    output->readtable.read_case = from->readtable.read_case;
+    to_read_case = from->readtable.read_case;
     if (!mkcl_Null(from->readtable.hash)) {
-      output->readtable.hash = mk_si_copy_hash_table(env, from->readtable.hash);
+      to_hash = mk_si_copy_hash_table(env, from->readtable.hash);
     } else {
-      output->readtable.hash = mk_cl_Cnil;
+      to_hash = mk_cl_Cnil;
     }
   } MKCL_UNWIND_PROTECT_EXIT {
     if (locked) READTABLE_UNLOCK(from);
   } MKCL_UNWIND_PROTECT_END;
 
-  if (!mkcl_Null(to))
+  if (mkcl_Null(to))
     {
       mkcl_interrupt_status old_intr;
-      mkcl_assert_type_readtable(env, to);
-      
-      mkcl_get_interrupt_status(env, &old_intr);
-      mkcl_disable_interrupts(env);
-      READTABLE_LOCK(to);
-      to->readtable.read_case = output->readtable.read_case;
-      to->readtable.table = output->readtable.table;
-      to->readtable.hash = output->readtable.hash;
-      READTABLE_UNLOCK(to);
-      mkcl_set_interrupt_status(env, &old_intr);
-      
-      output = to;
-    }
-  else
-    {
+      mkcl_object __restrict__ output = mkcl_alloc_raw_readtable(env);
 #if defined(MKCL_WINDOWS)
 #if 0
       output->readtable.lock = CreateMutex(NULL, FALSE, mkcl_handle_debug_name(env, "readtable lock"));
@@ -1509,8 +1504,33 @@ mkcl_copy_readtable(MKCL, mkcl_object from, mkcl_object to)
 	mkcl_C_lose(env, "mkcl_copy_readtable failed on pthread_mutex_init.");
 #endif
       mk_si_set_finalizer(env, output, mk_cl_Ct); /* The mutex needs to be deallocated at some point. */
+
+      mkcl_get_interrupt_status(env, &old_intr);
+      mkcl_disable_interrupts(env);
+      READTABLE_LOCK(output);
+      output->readtable.table = to_rtab;
+      output->readtable.read_case = to_read_case;
+      output->readtable.hash = to_hash;
+      READTABLE_UNLOCK(output);
+      mkcl_set_interrupt_status(env, &old_intr);
+
+      return output;
     }
-  return output;
+  else
+    {
+      mkcl_interrupt_status old_intr;
+      
+      mkcl_get_interrupt_status(env, &old_intr);
+      mkcl_disable_interrupts(env);
+      READTABLE_LOCK(to);
+      to->readtable.read_case = to_read_case;
+      to->readtable.table = to_rtab;
+      to->readtable.hash = to_hash;
+      READTABLE_UNLOCK(to);
+      mkcl_set_interrupt_status(env, &old_intr);
+      
+      return to;
+    }
 }
 
 mkcl_object
@@ -2194,41 +2214,59 @@ extra_argument(MKCL, int c, mkcl_object stream, mkcl_object d)
 void
 mkcl_init_read(MKCL)
 {
-  struct mkcl_readtable_entry *rtab;
-  mkcl_object r;
-  int i;
+  mkcl_object __restrict__ r;
 
+#if 0
   mkcl_core.standard_readtable = r = mkcl_alloc_raw_readtable(env);
   mkcl_core.standard_readtable->readtable.read_case = mkcl_case_upcase;
+#else
+  r = mkcl_alloc_raw_readtable(env);
+  r->readtable.read_case = mkcl_case_upcase;
+#endif
 
 #if defined(MKCL_WINDOWS)
 #if 0
-  mkcl_core.standard_readtable->readtable.lock = CreateMutex(NULL, FALSE, mkcl_handle_debug_name(env, "standard readtable lock"));
-  if ( mkcl_core.standard_readtable->readtable.lock == NULL )
+  r->readtable.lock = CreateMutex(NULL, FALSE, mkcl_handle_debug_name(env, "standard readtable lock"));
+  if ( r->readtable.lock == NULL )
     mkcl_FEwin32_error(env, "mkcl_init_read failed to create readtable lock.", 0);
 #else
-  InitializeCriticalSection(&(mkcl_core.standard_readtable->readtable.lock));
+  InitializeCriticalSection(&(r->readtable.lock));
 #endif
 #else
   {
     const pthread_mutexattr_t * const mutexattr = mkcl_normal_mutexattr;
 
-    if (pthread_mutex_init(&(mkcl_core.standard_readtable->readtable.lock), mutexattr))
+    if (pthread_mutex_init(&(r->readtable.lock), mutexattr))
       mkcl_lose(env, "mkcl_init_read failed on pthread_mutex_init.");
   }
 #endif
 
   /* Someone really paranoid would lock the readtable during its initialization... */
+  /* Coverity motivated us to be so. */
 
-  mkcl_core.standard_readtable->readtable.table
-    = rtab
-    = (struct mkcl_readtable_entry *)
-    mkcl_alloc(env, MKCL_RTABSIZE * sizeof(struct mkcl_readtable_entry));
-  for (i = 0;  i < MKCL_RTABSIZE;  i++) {
-    rtab[i].syntax_type = mkcl_cat_constituent;
-    rtab[i].dispatch = mk_cl_Cnil;
+  {
+    struct mkcl_readtable_entry * rtab
+      = (struct mkcl_readtable_entry *) mkcl_alloc(env, MKCL_RTABSIZE * sizeof(struct mkcl_readtable_entry));
+    int i;
+
+    for (i = 0;  i < MKCL_RTABSIZE;  i++)
+      {
+        rtab[i].syntax_type = mkcl_cat_constituent;
+        rtab[i].dispatch = mk_cl_Cnil;
+      }
+    {
+      mkcl_interrupt_status old_intr;
+      bool locked = false;
+
+      mkcl_get_interrupt_status(env, &old_intr);
+      mkcl_disable_interrupts(env);
+      READTABLE_LOCK(r); locked = true;
+      r->readtable.table = rtab;
+      r->readtable.hash = mk_cl_Cnil;
+      if (locked) READTABLE_UNLOCK(r);
+      mkcl_set_interrupt_status(env, &old_intr);
+    }
   }
-  mkcl_core.standard_readtable->readtable.hash = mk_cl_Cnil;
 
   mkcl_core.dispatch_reader = make_cf2(env, dispatch_reader_fun);
 
@@ -2279,10 +2317,13 @@ mkcl_init_read(MKCL)
 
   mkcl_init_backq(env);
 
-  r = mkcl_copy_readtable(env, mkcl_core.standard_readtable, mk_cl_Cnil);
-  MKCL_SET(@'*readtable*', r);
-  mk_cl_set_dispatch_macro_character(env, 4, MKCL_CODE_CHAR('#'), MKCL_CODE_CHAR('!'), mk_cl_Cnil, r);
+  {
+    mkcl_object r2 = mkcl_copy_readtable(env, r, mk_cl_Cnil);
+    MKCL_SET(@'*readtable*', r2);
+    mk_cl_set_dispatch_macro_character(env, 4, MKCL_CODE_CHAR('#'), MKCL_CODE_CHAR('!'), mk_cl_Cnil, r2);
+  }
   MKCL_SET(@'*read-default-float-format*', @'single-float');
+  mkcl_core.standard_readtable = r;
 }
 
 /*
@@ -2302,22 +2343,26 @@ mkcl_read_VV(MKCL,
 	     void (*entry_point)(MKCL, mkcl_object, mkcl_object),
 	     mkcl_object filename)
 {
-  volatile bool locked = false;
-  volatile mkcl_object old_ptbc;
   volatile mkcl_object x;
+  mkcl_object old_ptbc = mk_si_packages_in_waiting(env);
   mkcl_index i, len, perm_len, temp_len;
   mkcl_object in;
   mkcl_object *VV, *VVtemp = 0;
 
-  MKCL_UNWIND_PROTECT_BEGIN(env) {
-    MKCL_LIBC_NO_INTR(env, (MKCL_PACKAGE_LIST_LOCK(), locked = true));
-    if ( mkcl_core.packages_to_be_created == MKCL_OBJNULL )
-      old_ptbc = mk_cl_Cnil;
-    else
-      old_ptbc = mk_cl_copy_alist(env, mkcl_core.packages_to_be_created);
-  } MKCL_UNWIND_PROTECT_EXIT {
-    if (locked) MKCL_PACKAGE_LIST_UNLOCK();
-  } MKCL_UNWIND_PROTECT_END;
+#if 0
+  {
+    volatile bool locked = false;
+    MKCL_UNWIND_PROTECT_BEGIN(env) {
+      MKCL_LIBC_NO_INTR(env, (MKCL_PACKAGE_LIST_LOCK(), locked = true));
+      if ( mkcl_core.packages_to_be_created == MKCL_OBJNULL )
+        old_ptbc = mk_cl_Cnil;
+      else
+        old_ptbc = mk_cl_copy_alist(env, mkcl_core.packages_to_be_created);
+    } MKCL_UNWIND_PROTECT_EXIT {
+      if (locked) MKCL_PACKAGE_LIST_UNLOCK();
+    } MKCL_UNWIND_PROTECT_END;
+  }
+#endif
   
   if (mkcl_Null(block)) {
     block = mkcl_alloc_raw_codeblock(env);
@@ -2489,7 +2534,7 @@ mkcl_read_VV(MKCL,
 
     MKCL_UNWIND_PROTECT_BEGIN(env) {
       MKCL_LIBC_NO_INTR(env, (MKCL_PACKAGE_LIST_LOCK(), locked = true));
-      x = mkcl_core.packages_to_be_created;
+      mkcl_object x = mkcl_core.packages_to_be_created;
       mkcl_loop_for_on(env, x) {
         mkcl_object pkg_name = MKCL_CAR(MKCL_CAR(x));
         if ( mk_cl_Cnil == mk_cl_assoc(env, 2, pkg_name, old_ptbc) )

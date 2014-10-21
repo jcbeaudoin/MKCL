@@ -45,7 +45,7 @@ mkcl_init_random_state(MKCL)
   int j;
 #if defined(__unix)
   static const char random_path[] = "/dev/urandom";
-  static const mkcl_base_string_object(random_source_obj, (char *) random_path);
+  static const mkcl_base_string_object(random_source_obj, random_path);
   static const mkcl_object random_source = (mkcl_object) &random_source_obj;
   FILE *fp = fopen(random_path /*"/dev/urandom"*/,"r");
   if (fp) {

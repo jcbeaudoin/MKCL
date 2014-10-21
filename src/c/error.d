@@ -101,7 +101,9 @@ mkcl_CEerror(MKCL, mkcl_object c, const char *err, mkcl_narg narg, ...)
 
   mkcl_base_string_object_sized(err_msg_obj, err, err_len);
   mkcl_va_start(env, args, narg, narg, 0);
-  mk_cl_cerror(env, 3, c, ((mkcl_object) &err_msg_obj), mkcl_grab_rest_args(env, args, FALSE));
+  mkcl_object rest = mkcl_grab_rest_args(env, args, FALSE);
+  mkcl_va_end(args);
+  mk_cl_cerror(env, 3, c, ((mkcl_object) &err_msg_obj), rest);
   return mk_cl_Cnil; /* As required by ANSI spec. */
 }
 
@@ -546,7 +548,10 @@ mkcl_FEwin32_stream_error(MKCL, mkcl_object stream, const char *msg, int narg, .
 
 @(defun error (datum &rest args)
 @
-  mkcl_funcall2(env, @+'si::universal-error-handler', datum, mkcl_grab_rest_args(env, args, FALSE));
+  mkcl_object rest = mkcl_grab_rest_args(env, args, FALSE);
+
+  mkcl_va_end(args);
+  mkcl_funcall2(env, @+'si::universal-error-handler', datum, rest);
   mkcl_lose(env, "Should not have returned from universal-error-handler");
 @)
 

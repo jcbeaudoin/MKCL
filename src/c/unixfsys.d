@@ -969,8 +969,12 @@ mkcl_homedir_pathname(MKCL, mkcl_object user)
 #ifdef __unix
 	  struct passwd pwd;
 	  struct passwd *result;
-	  const size_t bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
-	
+	  long bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
+          
+          if (bufsize <= -1) /* Has sysconf() failed to find the value of _SC_GETPW_R_SIZE_MAX? */
+            bufsize = (32 * 1024); /* As a blind fallback we hope this will be large enough. */
+
+          mkcl_ensure_call_stack(env, (bufsize * sizeof(char)) + sizeof(int));
 	  {
 	    char buf[bufsize]; /* a VLA. */
 	    int status;

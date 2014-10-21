@@ -77,30 +77,21 @@ void mkcl_safe_close(MKCL, int fd, mkcl_object stream)
 #endif
 }
 
-#if 0
-void mkcl_safe_fclose(MKCL, FILE * s, mkcl_object stream)
-#else
 void mkcl_safe_fclose(MKCL, void * vs, mkcl_object stream)
-#endif
 {
   FILE * s = vs;
-#if __linux
   int status = 0;
-  mkcl_interrupt_status old_intr;
 
-  mkcl_get_interrupt_status(env, &old_intr);
-  mkcl_disable_interrupts(env);
-  while ((status = fclose(s)) == EOF)
-    if ((errno != EINTR) && (errno != EAGAIN) && (errno != EWOULDBLOCK)) break;
-  mkcl_set_interrupt_status(env, &old_intr);
+  MKCL_LIBC_NO_INTR(env, (status = fclose(s)));
 
-  if (status)
+#if __linux
+  if (status == EOF)
     mkcl_FElibc_stream_error(env, stream, "mkcl_safe_fclose() failed.", 0);
 #elif defined(MKCL_WINDOWS)
-  if (fclose(s) == EOF)
+  if (status == EOF)
     mkcl_FEwin32_stream_error(env, stream, "mkcl_safe_fclose() failed.", 0);
 #else
-#error "Don't know how to implement mkcl_safe_fclose()!"
+#error "Don't know how to report failure of mkcl_safe_fclose()!"
 #endif
 }
 

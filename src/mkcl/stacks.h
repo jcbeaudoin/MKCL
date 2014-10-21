@@ -207,8 +207,8 @@ extern "C" {
 	    if (v != MKCL_END_OF_BDS_CHAIN)
 	      return env->specials[index] = value;
 	  }
-	return s->symbol.value = value;
       }
+    return s->symbol.value = value;
   }
 
 
@@ -376,7 +376,7 @@ extern "C" {
 #define mkcl_va_start(e,a,p,n,k) {					\
     a[0].narg = (n)-(k);						\
     va_start(a[0].args,p);						\
-    a[0].sp = ((n) <= MKCL_C_ARGUMENTS_LIMIT) ? 0 : _mkcl_va_sp(e, a[0].narg); \
+    a[0].sp = ((n) < MKCL_C_ARGUMENTS_LIMIT) ? 0 : _mkcl_va_sp(e, a[0].narg); \
   }
 
 #define mkcl_va_arg(a)							\
