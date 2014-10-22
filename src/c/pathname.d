@@ -717,7 +717,7 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
 		{ /* This is the local drive form of prefix. */
 		  device = mk_cl_make_string(env, 3, MKCL_MAKE_FIXNUM(1), @':initial-element', MKCL_CODE_CHAR(ch));
 		  host = mkcl_core.localhost_string;
-		  *ep = start = head + 2;
+		  *ep = /* start = */ head + 2;
 		  goto done_device_and_host;
 		}
 	    }

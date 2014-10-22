@@ -590,7 +590,7 @@ mk_si_make_pure_array(MKCL, mkcl_object etype, mkcl_object dims, mkcl_object adj
     return mk_si_make_vector(env, etype, dims, adj, fillp, displ, disploff);
   }
   r = mkcl_length(env, dims);
-  if (r >= MKCL_ARANKLIM) {
+  if (r > MKCL_ARANKLIM) {
     mkcl_FEerror(env, "The array rank, ~R, is too large.", 1, MKCL_MAKE_FIXNUM(r));
   } else if (r == 1) {
     return mk_si_make_vector(env, etype, MKCL_CONS_CAR(dims), adj, fillp, displ, disploff);

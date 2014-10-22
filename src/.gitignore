@@ -15,3 +15,5 @@ ext-dir-exists
 bin/
 test/
 asdf-stage-dir-exists
+cov-int/
+mkcl-cov-build*

@@ -3697,7 +3697,7 @@ io_stream_clear_input(MKCL, mkcl_object strm)
   }
 #endif
   while (flisten(env, fp) == MKCL_LISTEN_AVAILABLE) {
-    MKCL_LIBC_NO_INTR(env, getc(fp));
+    MKCL_LIBC_NO_INTR(env, (void) getc(fp));
   }
   if (ferror(fp))
     {

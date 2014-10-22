@@ -306,6 +306,7 @@ case "${host_os}" in
 		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
 		SHAREDPREFIX=''
 		SHAREDEXT='dll'
+		SONAME="libmkcl.SOVERSION.${SHAREDEXT}"
 		PICFLAG=''
 		INSTALL_TARGET='flatinstall'
 		TCP_LIBS='-lws2_32'

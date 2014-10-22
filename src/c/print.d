@@ -934,6 +934,7 @@ write_array(MKCL, mkcl_object x, mkcl_object stream)
 
   adims = x->array.dims;
   n = x->array.rank;
+  if (n > MKCL_ARANKLIM) n = MKCL_ARANKLIM; /* limit risks of array overflow. should we signal an error? */
 
   if (readably) {
     print_length = MKCL_MOST_POSITIVE_FIXNUM;
