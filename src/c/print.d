@@ -239,14 +239,19 @@ static void
 write_addr(MKCL, mkcl_object x, mkcl_object stream)
 {
   mkcl_word i, j;
+  bool lead_zero = TRUE;
 
   i = (mkcl_index)x;
   for (j = sizeof(i)*8-4;  j >= 0;  j -= 4) {
     int k = (i>>j) & 0xf;
-    if (k < 10)
-      mkcl_write_char(env, '0' + k, stream);
-    else
-      mkcl_write_char(env, 'a' + k - 10, stream);
+    if (!(k == 0 && lead_zero))
+      {
+        lead_zero = FALSE;
+        if (k < 10)
+          mkcl_write_char(env, '0' + k, stream);
+        else
+          mkcl_write_char(env, 'a' + k - 10, stream);
+      }
   }
 }
 
@@ -1637,7 +1642,11 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
     {
       char buf[20];
 
+#ifdef MKCL_WINDOWS
+      sprintf(buf, "0x%p", x->thread.thread);
+#else
       sprintf(buf, "0x%lx", x->thread.thread);
+#endif
       write_str(env, buf, stream);
     }
     mkcl_write_char(env, ' ', stream);

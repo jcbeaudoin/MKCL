@@ -162,9 +162,9 @@ mk_cl_sleep(MKCL, mkcl_object z)
   /* INV: mkcl_minusp() makes sure `z' is real */
   if (mkcl_minusp(env, z))
     mk_cl_error(env, 9, @'simple-type-error', @':format-control',
-	     mkcl_make_simple_base_string(env, "Not a non-negative number ~S"),
-	     @':format-arguments', mk_cl_list(env, 1, z),
-	     @':expected-type', @'real', @':datum', z);
+                mkcl_make_simple_base_string(env, "Not a non-negative number ~S"),
+                @':format-arguments', mk_cl_list(env, 1, z),
+                @':expected-type', @'real', @':datum', z);
 
   if (fe_inexact_on)
     fedisableexcept(FE_INEXACT);
@@ -343,24 +343,42 @@ mk_cl_get_universal_time(MKCL)
 mkcl_object
 mk_si_get_local_time_zone(MKCL)
 {
-  mkcl_word mw;
-  struct tm ltm, gtm;
-  time_t when = 0L;
-
+  int zone_bias_in_minutes;
+  
   mkcl_call_stack_check(env);
-  MKCL_LIBC_NO_INTR(env, ltm = *localtime(&when));
-  MKCL_LIBC_NO_INTR(env, gtm = *gmtime(&when));
+  {
+#ifdef MKCL_WINDOWS
+    TIME_ZONE_INFORMATION tzi;
+    DWORD dwRet;
+ 
+    MKCL_LIBC_NO_INTR(env, dwRet = GetTimeZoneInformation(&tzi));
 
-  mw = (gtm.tm_min + 60 * gtm.tm_hour) - (ltm.tm_min + 60 * ltm.tm_hour);
+    if (dwRet == TIME_ZONE_ID_INVALID)
+      mkcl_FEwin32_error(env, "GetTimeZoneInformation() failed", 0);
 
-  if ((gtm.tm_wday + 1) % 7 == ltm.tm_wday)
-    mw -= 24*60;
-  else if (gtm.tm_wday == (ltm.tm_wday + 1) % 7)
-    mw += 24*60;
+    zone_bias_in_minutes = tzi.Bias;
+#else
+    struct tm ltm, gtm;
+    const time_t when = 0L;
+    void * ok_p = NULL;
 
-  @(return mkcl_make_ratio(env, MKCL_MAKE_FIXNUM(mw),MKCL_MAKE_FIXNUM(60)));
+    MKCL_LIBC_NO_INTR(env, ok_p = localtime_r(&when, &ltm));
+    if (ok_p == NULL)
+      mkcl_FElibc_error(env, "mk_si_get_local_time_zone() failed on localtime_r()", 0);
+    MKCL_LIBC_NO_INTR(env, ok_p = gmtime_r(&when, &gtm));
+    if (ok_p == NULL)
+      mkcl_FElibc_error(env, "mk_si_get_local_time_zone() failed on gmtime_r()", 0);
+
+    zone_bias_in_minutes = (gtm.tm_min + 60 * gtm.tm_hour) - (ltm.tm_min + 60 * ltm.tm_hour);
+
+    if ((gtm.tm_wday + 1) % 7 == ltm.tm_wday)
+      zone_bias_in_minutes -= 24*60;
+    else if (gtm.tm_wday == (ltm.tm_wday + 1) % 7)
+      zone_bias_in_minutes += 24*60;
+#endif
+  }
+  @(return mkcl_make_ratio(env, MKCL_MAKE_FIXNUM(zone_bias_in_minutes), MKCL_MAKE_FIXNUM(60)));
 }
-
 
 
 void
