@@ -951,7 +951,7 @@ extern "C" {
   struct mkcl_instance {/*  instance header  */
     MKCL_HEADER1(isgf);
     struct mkcl_function_entry_points f;
-    mkcl_index length;	/*  instance length  */
+    mkcl_index length;	/*  instance length, in number of slots  */
     mkcl_object clas;	/*  instance class  */
     mkcl_object sig;	/*  generation signature  */
     mkcl_object *slots;	/*  instance slots  */
