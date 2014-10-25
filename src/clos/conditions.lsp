@@ -556,13 +556,13 @@ memory limits before executing the program again."))))
 		     (class-name (class-of (unbound-slot-instance condition)))))))
 
 (define-condition mkcl:invalid-slot (cell-error)
-  ((instance :INITARG :INSTANCE :READER unbound-slot-instance))
+  ((instance :INITARG :INSTANCE :READER invalid-slot-instance))
   (:REPORT (lambda (condition stream)
 	     (format stream
 		     "The index ~S (max: ~S) is not a valid slot index in the object ~S."
 		     (cell-error-name condition)
-		     (1- (si:instance-length (unbound-slot-instance condition)))
-		     (unbound-slot-instance condition)))))
+		     (1- (si:instance-length (invalid-slot-instance condition)))
+		     (invalid-slot-instance condition)))))
 
 (define-condition undefined-function (cell-error)
   ()
