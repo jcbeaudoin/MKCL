@@ -206,6 +206,9 @@
 	   (error "Effective slot definition lacks a valid location:~%~A" slotd))))
   instance)
 
+(defmethod slot-exists-p-using-class ((class class) self slotd)
+  (and slotd T))
+
 ;;;
 ;;; 1) Functional interface
 ;;;
@@ -246,7 +249,9 @@
     self))
 
 (defun slot-exists-p (self slot-name)
-  (and (find-effective-slot-definition (class-of self) slot-name) T))
+  (let* ((class (class-of self))
+	 (slotd (find-effective-slot-definition class slot-name)))
+    (slot-exists-p-using-class class self slotd)))
 
 ;;;
 ;;; For the next accessor we define a method.
