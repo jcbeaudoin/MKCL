@@ -255,7 +255,7 @@
 			 spec-str "_"
 			 (cond ((null spec) "nil")
 			       ((consp spec) "eql")
-			       ((si::instancep spec) (symbol-name (class-name spec)))
+			       ((classp spec) (symbol-name (class-name spec)))
 			       (t (symbol-name spec)))))
       )
     (setq mangled name-str)

@@ -264,7 +264,7 @@
 	   ((not (fboundp name))
 	    (setf (fdefinition (or traced name))
 		  (apply #'ensure-generic-function-using-class gfun name args)))
-	   ((si::instancep (or gfun (setf gfun (fdefinition name))))
+	   ((si::generic-function-p (or gfun (setf gfun (fdefinition name))))
 	    (apply #'ensure-generic-function-using-class gfun name args))
 	   ((special-operator-p name)
 	    (simple-program-error "The special operator ~A is not a valid name ~
