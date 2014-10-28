@@ -207,6 +207,7 @@
   instance)
 
 (defmethod slot-exists-p-using-class ((class class) self slotd)
+  (declare (ignore self))
   (and slotd T))
 
 ;;;
