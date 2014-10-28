@@ -1131,7 +1131,7 @@ The top-level loop of MKCL. It is called by default when MKCL is invoked."
 
 (defun get-fname (function)
   (cond ((symbolp function) function)
-	((si:instancep function) (slot-value function 'name))
+	((si:generic-function-p function) (slot-value function 'clos::name))
 	((compiled-function-p function)
 	 (or (compiled-function-name function) 'lambda))
 	(t :zombi)))
