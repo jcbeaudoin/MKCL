@@ -167,11 +167,9 @@ makefile.depend: $(DCFILES) cinit.c all_symbols.c ../mkcl/*.h
 	  case $$i in \
 	  *.h) ;; \
 	  *) \
-	    $(CC) -MM -MF makefile.depend.tmp $(CFLAGS) $$i; \
-	    cat makefile.depend.tmp >> makefile.depend;; \
+	    $(CC) -MM $(CFLAGS) $$i >> makefile.depend;; \
 	  esac; \
 	done
-	$(RM) makefile.depend.tmp
 
 
 GNUmakefile: Makefile makefile.depend

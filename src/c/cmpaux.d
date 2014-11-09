@@ -241,7 +241,7 @@ static mkcl_object convert_cmp_lexical_info(MKCL, mkcl_object cmp_env)
 	  mkcl_object var_name = mkcl_make_simple_base_string(env, (char *) var_desc[i].name);
 #else
 	  size_t var_name_len = strlen(var_desc[i].name);
-	  mkcl_UTF_8_object_sized(var_name_obj, (char *) var_desc[i].name, var_name_len);
+	  mkcl_UTF_8_object_sized(var_name_obj, (mkcl_char8 *) var_desc[i].name, var_name_len);
 	  mkcl_object var_name = mkcl_utf_8_to_string(env, (mkcl_object) &var_name_obj);
 #endif
 	  mkcl_object var_value;

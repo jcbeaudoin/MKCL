@@ -403,6 +403,8 @@ mkcl_alloc_raw_instance(MKCL, mkcl_index nb_slots)
 
   i->instance.slots = MKCL_GC_MALLOC_IGNORE_OFF_PAGE(env, sizeof(mkcl_object) * nb_slots);
   i->instance.length = nb_slots;
+
+  i->instance.clas = mk_cl_Cnil; /* dummy */
   i->instance.sig = mk_cl_Ct; /* sure to never be a valid signature since it cannot be a list. */
 
   i->instance.f.entry = mkcl_FEnot_funcallable_vararg;
@@ -972,7 +974,7 @@ mkcl_init_alloc(void)
   {
     int rc;
 
-    if (rc = pthread_mutex_init(&oom_handler_lock, NULL))
+    if ((rc = pthread_mutex_init(&oom_handler_lock, NULL)))
       return rc;
   }
 #endif
@@ -1015,13 +1017,13 @@ mkcl_init_alloc(void)
 #ifdef MKCL_WINDOWS
   EnterCriticalSection(&oom_handler_lock);
 #else
-  { int rc; if (rc = pthread_mutex_lock(&oom_handler_lock)) return rc; }
+  { int rc; if ((rc = pthread_mutex_lock(&oom_handler_lock))) return rc; }
 #endif
   MK_GC_set_max_heap_size(mkcl_core.max_heap_size = mkcl_get_option(MKCL_OPT_HEAP_SIZE));
 #ifdef MKCL_WINDOWS
   LeaveCriticalSection(&oom_handler_lock);
 #else
-  { int rc; if (rc = pthread_mutex_unlock(&oom_handler_lock)) return rc; }
+  { int rc; if ((rc = pthread_mutex_unlock(&oom_handler_lock))) return rc; }
 #endif
   /* Save some memory in case we get tight. */
   if (mkcl_core.max_heap_size == 0) {

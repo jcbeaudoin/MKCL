@@ -294,7 +294,7 @@ void mkcl_resume_signal_handler(int sig, siginfo_t * info, void * aux)
   show_sigmask();
 #endif
 
-  if ( info->si_code != SI_TKILL && info->si_code != SI_USER
+  if ( (info->si_code != SI_TKILL && info->si_code != SI_USER)
        || (info->si_pid != mkcl_pid && info->si_pid != mkcl_debugged_by_process_id))
     { /* This is a rogue signal! */
       bark_about_signal(info, "\nMKCL: received an invalid resume signal");
@@ -343,7 +343,7 @@ void mkcl_interrupt_signal_handler(int sig, siginfo_t *info, void *aux)
   show_sigmask();
 #endif
 
-  if ( info->si_code != SI_TKILL && info->si_code != SI_USER
+  if ( (info->si_code != SI_TKILL && info->si_code != SI_USER)
        || (info->si_pid != mkcl_pid && info->si_pid != mkcl_debugged_by_process_id))
     { /* This is a rogue signal! */
       bark_about_signal(info, "\nMKCL: received an invalid interrupt signal");

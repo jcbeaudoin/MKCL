@@ -272,7 +272,7 @@ mkcl_object mkcl_copy_string(MKCL, mkcl_object s)
       len = s->string.fillp;
       new = mkcl_alloc_simple_character_string(env, len);
       if (len)
-	mkcl_wmemcpy(new->string.self, s->string.self, len + 1);
+	(void) mkcl_wmemcpy(new->string.self, s->string.self, len + 1);
     }
   else
     {
@@ -807,6 +807,7 @@ compare_base(unsigned char *s1, mkcl_index l1, unsigned char *s2, mkcl_index l2,
 	if (string1->string.self[s1++] != string2->base_string.self[s2++])
 	  { @(return mk_cl_Cnil); }
       @(return mk_cl_Ct);
+    default: break; /* a useless no-op to please clang. */
     }
     break;
   case mkcl_t_base_string:
@@ -821,8 +822,10 @@ compare_base(unsigned char *s1, mkcl_index l1, unsigned char *s2, mkcl_index l2,
 	if (string1->base_string.self[s1++] != string2->base_string.self[s2++])
 	  { @(return mk_cl_Cnil); }
       @(return mk_cl_Ct);
+    default: break; /* a useless no-op to please clang. */
     }
     break;
+  default: break; /* a useless no-op to please clang. */
   }
   @(return mk_cl_Ct);
 @)
@@ -1177,6 +1180,7 @@ string_case(MKCL, mkcl_narg narg, mkcl_casefun casefun, mkcl_va_list ARGS)
     for (i = s;  i < e;  i++)
       conv->base_string.self[i] = (*casefun)(conv->base_string.self[i], &b);
     break;
+  default: break; /* a useless no-op to please clang. */
   }
   mkcl_va_end(ARGS); 
   @(return conv);
@@ -1374,7 +1378,7 @@ mkcl_object mkcl_concatenate_3_base_strings(MKCL, mkcl_object str1, mkcl_object 
       mkcl_object s = MKCL_TEMP_STACK_POP_UNSAFE(env);
       size_t bytes = s->string.fillp;
       l -= bytes;
-      mkcl_wmemcpy((output->string.self + l), s->string.self, bytes);
+      (void) mkcl_wmemcpy((output->string.self + l), s->string.self, bytes);
     }
   }
   mkcl_va_end(args);
@@ -1394,8 +1398,8 @@ mkcl_object mkcl_concatenate_2_strings(MKCL, mkcl_object str1, mkcl_object str2)
 
   mkcl_object new = mkcl_alloc_simple_character_string(env, len1 + len2);
 
-  mkcl_wmemcpy(new->string.self, str1->string.self, len1);
-  mkcl_wmemcpy(&(new->string.self[len1]), str2->string.self, len2);
+  (void) mkcl_wmemcpy(new->string.self, str1->string.self, len1);
+  (void) mkcl_wmemcpy(&(new->string.self[len1]), str2->string.self, len2);
   return new;
 }
 
@@ -1415,9 +1419,9 @@ mkcl_object mkcl_concatenate_3_strings(MKCL, mkcl_object str1, mkcl_object str2,
 
   mkcl_object new = mkcl_alloc_simple_character_string(env, len1 + len2 + len3);
 
-  mkcl_wmemcpy(new->string.self, str1->string.self, len1);
-  mkcl_wmemcpy(&(new->string.self[len1]), str2->string.self, len2);
-  mkcl_wmemcpy(&(new->string.self[len1 + len2]), str3->string.self, len3);
+  (void) mkcl_wmemcpy(new->string.self, str1->string.self, len1);
+  (void) mkcl_wmemcpy(&(new->string.self[len1]), str2->string.self, len2);
+  (void) mkcl_wmemcpy(&(new->string.self[len1 + len2]), str3->string.self, len3);
   return new;
 }
 
@@ -1463,7 +1467,7 @@ mkcl_character * mkcl_extend_string(MKCL, mkcl_object s)
     new_length = MKCL_ADIMLIM;
 
   other = mkcl_alloc_adjustable_character_string(env, new_length);
-  if (fillp) mkcl_wmemcpy(other->string.self, s->string.self, fillp);
+  if (fillp) (void) mkcl_wmemcpy(other->string.self, s->string.self, fillp);
   other->string.fillp = fillp;
   s = mk_si_replace_array(env, s, other);
 
@@ -1592,7 +1596,7 @@ mkcl_fill_string(MKCL, mkcl_object str, mkcl_character ch)
     {
       end = str->string.fillp;
       if (end)
-	mkcl_wmemset(&(str->string.self[start]), ch, end);
+	(void) mkcl_wmemset(&(str->string.self[start]), ch, end);
     }
   else
     {
@@ -1620,7 +1624,7 @@ mkcl_fill_string_k(MKCL, mkcl_object str, mkcl_character ch, mkcl_index start, m
   if (str->string.t == mkcl_t_string)
     {
       if (end)
-	mkcl_wmemset(&(str->string.self[start]), ch, end);
+	(void) mkcl_wmemset(&(str->string.self[start]), ch, end);
     }
   else
     {
@@ -1798,12 +1802,12 @@ mkcl_object mkcl_replace_in_string(MKCL, mkcl_object str1, mkcl_object str2)
   if (len1 != 0 && len2 != 0)
     if (len1 < len2)
       if (str1->string.t == mkcl_t_string)
-	mkcl_wmemmove(&(str1->string.self[start1]), &(str2->string.self[start2]), len1);
+	(void) mkcl_wmemmove(&(str1->string.self[start1]), &(str2->string.self[start2]), len1);
       else
 	memmove(&(str1->base_string.self[start1]), &(str2->base_string.self[start2]), len1);
     else
       if (str1->string.t == mkcl_t_string)
-	mkcl_wmemmove(&(str1->string.self[start1]), &(str2->string.self[start2]), len2);
+	(void) mkcl_wmemmove(&(str1->string.self[start1]), &(str2->string.self[start2]), len2);
       else
 	memmove(&(str1->base_string.self[start1]), &(str2->base_string.self[start2]), len2);
 
@@ -1843,12 +1847,12 @@ mkcl_object mkcl_replace_in_string_k(MKCL, mkcl_object str1, mkcl_object str2,
   if (len1 != 0 && len2 != 0)
     if (len1 < len2)
       if (str1->string.t == mkcl_t_string)
-	mkcl_wmemmove(&(str1->string.self[start1]), &(str2->string.self[start2]), len1);
+	(void) mkcl_wmemmove(&(str1->string.self[start1]), &(str2->string.self[start2]), len1);
       else
 	memmove(&(str1->base_string.self[start1]), &(str2->base_string.self[start2]), len1);
     else
       if (str1->string.t == mkcl_t_string)
-	mkcl_wmemmove(&(str1->string.self[start1]), &(str2->string.self[start2]), len2);
+	(void) mkcl_wmemmove(&(str1->string.self[start1]), &(str2->string.self[start2]), len2);
       else
 	memmove(&(str1->base_string.self[start1]), &(str2->base_string.self[start2]), len2);
   
@@ -2334,7 +2338,7 @@ mkcl_object mkcl_utf_8_to_string(MKCL, mkcl_object utf_8)
  
     mkcl_object new = mkcl_alloc_adjustable_character_string(env, fillp);
     if (fillp)
-      mkcl_wmemcpy(new->string.self, data, fillp + 1);
+      (void) mkcl_wmemcpy(new->string.self, data, fillp + 1);
     new->string.fillp = fillp;
     @(return new (invalid ? mk_cl_Ct : mk_cl_Cnil));
   }
@@ -2815,7 +2819,7 @@ mkcl_object mkcl_utf_16_to_string(MKCL, mkcl_object utf_16)
  
     mkcl_object new = mkcl_alloc_adjustable_character_string(env, fillp);
     if (fillp)
-      mkcl_wmemcpy(new->string.self, data, fillp + 1);
+      (void) mkcl_wmemcpy(new->string.self, data, fillp + 1);
     new->string.fillp = fillp;
     @(return new (invalid ? mk_cl_Ct : mk_cl_Cnil));
   }
@@ -2997,7 +3001,7 @@ mkcl_object mkcl_cstring_copy_to_utf_8(MKCL, const char * str)
 mkcl_object mkcl_cstring_to_utf_16(MKCL, const char * str)
 {
   const size_t len = (str ? strlen(str) : 0);
-  mkcl_UTF_8_object_sized(utf_8_obj, (char *) str, len);
+  mkcl_UTF_8_object_sized(utf_8_obj, (mkcl_char8 *) str, len);
   return mk_si_utf_16(env, (mkcl_object) &utf_8_obj);
 }
 
@@ -3083,7 +3087,7 @@ mkcl_object mkcl_cstring_to_string(MKCL, char * str)
   if (external_format == @':UTF-8')
     {
       const size_t len = (str ? strlen(str) : 0);
-      mkcl_UTF_8_object_sized(utf_8_obj, str, len);
+      mkcl_UTF_8_object_sized(utf_8_obj, (mkcl_char8 *) str, len);
       return mkcl_utf_8_to_string(env, (mkcl_object) &utf_8_obj);
     }
   else
@@ -3381,7 +3385,7 @@ mkcl_object mkcl_OSstring_nconc_cstring(MKCL, mkcl_object base, char * new)
   
   if (MKCL_UTF_8_P(base))
     {
-      mkcl_UTF_8_object_sized(new_utf_8_obj, new, new_len);
+      mkcl_UTF_8_object_sized(new_utf_8_obj, (mkcl_char8 *) new, new_len);
       return mkcl_utf_8_nconc(env, base, (mkcl_object) &new_utf_8_obj);
     }
   else

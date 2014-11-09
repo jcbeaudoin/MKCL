@@ -1787,6 +1787,9 @@ extern "C" {
   extern MKCL_API mkcl_object mkcl_princ(MKCL, mkcl_object obj, mkcl_object strm);
   extern MKCL_API mkcl_object mkcl_prin1(MKCL, mkcl_object obj, mkcl_object strm);
   extern MKCL_API mkcl_object mkcl_print(MKCL, mkcl_object obj, mkcl_object strm);
+  extern MKCL_API mkcl_object mkcl_println(MKCL, mkcl_object obj, mkcl_object strm);
+  extern MKCL_API mkcl_object mkcl_println_T(MKCL, mkcl_object obj);
+  extern MKCL_API mkcl_object mkcl_prin1ln_T(MKCL, mkcl_object obj);
   extern MKCL_API mkcl_object mkcl_terpri(MKCL, mkcl_object strm);
   extern MKCL_API void mkcl_write_string(MKCL, mkcl_object strng, mkcl_object strm);
   extern MKCL_API void mkcl_princ_str(MKCL, const char *s, mkcl_object sym);
@@ -2038,7 +2041,7 @@ extern "C" {
     
     return (MKCL_UTF_8_P(str) ? mkcl_utf_8_last(env, str, &invalid) : mkcl_base_string_last(env, str));
   }
-#define mkcl_rawOSstring_to_string(env, str) mkcl_cstring_to_string(env, str)
+#define mkcl_rawOSstring_to_string(env, str) mkcl_cstring_to_string(env, ((char *) str))
 
   typedef mkcl_char8 * mkcl_OSstring_raw_type;
 #define MKCL_OSSTRINGP(str) (MKCL_UTF_8_P(str) || MKCL_BASE_STRING_P(str))

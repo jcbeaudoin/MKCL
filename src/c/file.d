@@ -5000,7 +5000,7 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
 #ifdef MKCL_WINDOWS
 	  MKCL_LIBC_NO_INTR(env, f = _wopen(mkcl_OSstring_self(os_filename), O_WRONLY|O_CREAT|_O_BINARY, mode));
 #else
-	  MKCL_LIBC_NO_INTR(env, f = open(mkcl_OSstring_self(os_filename), O_WRONLY|O_CREAT, mode));
+	  MKCL_LIBC_NO_INTR(env, f = open((char *) mkcl_OSstring_self(os_filename), O_WRONLY|O_CREAT, mode));
 #endif
 	  if (f < 0) mkcl_FEcannot_open(env, fn);
 	  mkcl_safe_close(env, f, mk_cl_Cnil);
@@ -5013,7 +5013,7 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
 #ifdef MKCL_WINDOWS
     MKCL_LIBC_NO_INTR(env, f = _wopen(mkcl_OSstring_self(os_filename), O_RDONLY|_O_BINARY, mode));
 #else
-    MKCL_LIBC_NO_INTR(env, f = open(mkcl_OSstring_self(os_filename), O_RDONLY, mode));
+    MKCL_LIBC_NO_INTR(env, f = open((char *) mkcl_OSstring_self(os_filename), O_RDONLY, mode));
 #endif
     if (f < 0) mkcl_FEcannot_open(env, fn);
   } else if (smm == mkcl_smm_output || smm == mkcl_smm_output_file || smm == mkcl_smm_io || smm == mkcl_smm_io_file) {
@@ -5036,14 +5036,14 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
 #ifdef MKCL_WINDOWS
 	MKCL_LIBC_NO_INTR(env, f = _wopen(mkcl_OSstring_self(os_filename), base|O_TRUNC, mode));
 #else
-	MKCL_LIBC_NO_INTR(env, f = open(mkcl_OSstring_self(os_filename), base|O_TRUNC, mode));
+	MKCL_LIBC_NO_INTR(env, f = open((char *) mkcl_OSstring_self(os_filename), base|O_TRUNC, mode));
 #endif
 	if (f < 0) mkcl_FEcannot_open(env, fn);
       } else if (if_exists == @':overwrite' || if_exists == @':append') {
 #ifdef MKCL_WINDOWS
 	MKCL_LIBC_NO_INTR(env, f = _wopen(mkcl_OSstring_self(os_filename), base, mode));
 #else
-	MKCL_LIBC_NO_INTR(env, f = open(mkcl_OSstring_self(os_filename), base, mode));
+	MKCL_LIBC_NO_INTR(env, f = open((char *) mkcl_OSstring_self(os_filename), base, mode));
 #endif
 	if (f < 0) mkcl_FEcannot_open(env, fn);
 	appending = (if_exists == @':append');
@@ -5060,7 +5060,7 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
 #ifdef MKCL_WINDOWS
 	MKCL_LIBC_NO_INTR(env, f = _wopen(mkcl_OSstring_self(os_filename), base | O_CREAT | O_TRUNC, mode));
 #else
-	MKCL_LIBC_NO_INTR(env, f = open(mkcl_OSstring_self(os_filename), base | O_CREAT | O_TRUNC, mode));
+	MKCL_LIBC_NO_INTR(env, f = open((char *) mkcl_OSstring_self(os_filename), base | O_CREAT | O_TRUNC, mode));
 #endif
 	if (f < 0) mkcl_FEcannot_open(env, fn);
       } else if (mkcl_Null(if_does_not_exist)) {

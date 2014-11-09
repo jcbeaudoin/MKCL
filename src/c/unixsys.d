@@ -392,7 +392,7 @@ static int my_exec_command(mkcl_char8 * cmd_real_name, mkcl_char8 * cmd_line)
   int last_arg_index = 0;
 
   for (i = 0; cmd_line[i] == ' '; i++); /* swallow leading blanks. */
-  for (; ch = cmd_line[i]; i++)
+  for (; (ch = cmd_line[i]); i++)
     {
       if (ch == ' ')
 	{
@@ -405,7 +405,7 @@ static int my_exec_command(mkcl_char8 * cmd_real_name, mkcl_char8 * cmd_line)
       else if (ch == '"')
 	{
 	  cmd_line[i] = ' '; /* quotes become spaces */
-	  for (; ch = cmd_line[i+1]; i++)
+	  for (; (ch = cmd_line[i+1]); i++)
 	    {
 	      if (ch == '"')
 		{
@@ -422,17 +422,17 @@ static int my_exec_command(mkcl_char8 * cmd_real_name, mkcl_char8 * cmd_line)
     }
   cmd_line_end = i;
   {
-    mkcl_char8 * argv[argc + 1]; /* a VLA. */
+    char * argv[argc + 1]; /* a VLA. */
     int j = 1;
 
     for (i = 0; cmd_line[i] == ' '; i++);
-    argv[0] = &cmd_line[i];
+    argv[0] = (char *) &cmd_line[i];
 
     for (i = 0; i < last_arg_index; i++)
       if ((cmd_line[i] == '\0') && (j < argc))
 	{
 	  for (i++; cmd_line[i] == ' '; i++);
-	  argv[j++] = &cmd_line[i];
+	  argv[j++] = (char *) &cmd_line[i];
 	} 
     argv[argc] = NULL;
 
@@ -463,7 +463,7 @@ static int my_exec_command(mkcl_char8 * cmd_real_name, mkcl_char8 * cmd_line)
   mkcl_dynamic_extent_OSstring(env, os_new_directory, directory);
   mkcl_dynamic_extent_OSstring(env, os_cmd_real_name, real_name_proxy);  
 #endif
-  char * os_raw_new_directory = mkcl_OSstring_self(os_new_directory);
+  char * os_raw_new_directory = (char *) mkcl_OSstring_self(os_new_directory);
 
   if (mkcl_OSstring_size(os_cmd) >= mkcl_core.arg_max)
     mkcl_FEerror(env, "Too long command line: ~S.", 1, cmd_string);
@@ -620,7 +620,7 @@ mkcl_object mk_mkcl_system (MKCL, mkcl_object cmd_string)
        blocking SIGCHLD and ignoring both SIGINT and SIGQUIT! JCB */
     /* It also shares, between parent and child, all file descriptors
        (among others: stdin, stdout, stderr). JCB */
-    int code = system(mkcl_OSstring_self(os_cmd));
+    int code = system((char *) mkcl_OSstring_self(os_cmd));
 #endif
 
     if (code == -1)
@@ -1136,7 +1136,7 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
     if (!mkcl_Null(directory))
       {
 	os_new_directory = mkcl_string_to_OSstring(env, directory);
-	os_raw_new_directory = mkcl_OSstring_self(os_new_directory);
+	os_raw_new_directory = (char *) mkcl_OSstring_self(os_new_directory);
       }
     
     child_pid = fork();
@@ -1174,7 +1174,7 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
 	  if (mkcl_Null(arg)) {
 	    exec_argv[j] = NULL;
 	  } else {
-	    exec_argv[j] = mkcl_OSstring_self(arg);
+	    exec_argv[j] = (char *) mkcl_OSstring_self(arg);
 	  }
 	}
 
@@ -1185,9 +1185,9 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
 	else 
 	  {
 	    if (mkcl_Null(search))
-	      execv(mkcl_OSstring_self(os_command), exec_argv);
+	      execv((char *) mkcl_OSstring_self(os_command), exec_argv);
 	    else
-	      execvp(mkcl_OSstring_self(os_command), exec_argv);
+	      execvp((char *) mkcl_OSstring_self(os_command), exec_argv);
 	    fprintf(stderr, "\nMKCL: mkcl::run-command: %s: ", mkcl_OSstring_self(os_command));
 	  }
 	/* at this point exec has failed */

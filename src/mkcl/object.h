@@ -1198,17 +1198,17 @@ extern "C" {
 
 #define mkcl_UTF_8_object(name, data_array)				\
   struct mkcl_UTF_8 name = { (int8_t)mkcl_t_UTF_8, 0, 0, 0,		\
-			     (sizeof(data_array)-1), (sizeof(data_array)-1), (data_array) }
+			     (sizeof(data_array)-1), (sizeof(data_array)-1), ((mkcl_char8 *) (data_array)) }
 
 #define mkcl_UTF_8_object_sized(name, data_ptr, dim)			\
-  struct mkcl_UTF_8 name = { (int8_t)mkcl_t_UTF_8, 0, 0, 0, (dim), (dim), (data_ptr) }
+  struct mkcl_UTF_8 name = { (int8_t)mkcl_t_UTF_8, 0, 0, 0, (dim), (dim), ((mkcl_char8 *) (data_ptr)) }
 
 #define mkcl_UTF_16_object(name, data_array)				\
   struct mkcl_UTF_16 name = { (int8_t)mkcl_t_UTF_16, 0, 0, 0,		\
-			      (sizeof(data_array)-1), (sizeof(data_array)-1), (data_array) }
+			      (sizeof(data_array)-1), (sizeof(data_array)-1), ((mkcl_char16 *) (data_array)) }
 
 #define mkcl_UTF_16_object_sized(name, data_ptr, dim)		\
-  struct mkcl_UTF_16 name = { (int8_t)mkcl_t_UTF_16, 0, 0, 0, (dim), (dim), (data_ptr) }
+  struct mkcl_UTF_16 name = { (int8_t)mkcl_t_UTF_16, 0, 0, 0, (dim), (dim), ((mkcl_char16 *) (data_ptr)) }
 
 
 #define MKCL_MAXIMUM_DYNAMIC_OBJECT_SIZE (16 * 1024)

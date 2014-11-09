@@ -79,7 +79,7 @@ enum mkcl_locative_type {
 };
 
 struct mkcl_lex_var_info {
-  const char const * name;
+  const char * const name;
   enum mkcl_locative_type type;
 };
 

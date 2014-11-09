@@ -86,7 +86,7 @@ mkcl_set_thread_env(MKCL)
  */
 
 
-inline mkcl_object
+static inline mkcl_object
 mkcl_current_thread(MKCL)
 {
   return env->own_thread;
@@ -1199,9 +1199,9 @@ static mkcl_object pop_from_imported_thread_pool(mkcl_thread_import_failure_hand
   bool pool_locked = FALSE;
 
 #ifdef MKCL_WINDOWS
-    EnterCriticalSection(&mkcl_imported_thread_pool_lock);
+  EnterCriticalSection(&mkcl_imported_thread_pool_lock);
 #else
-  if (rc = pthread_mutex_lock(&mkcl_imported_thread_pool_lock))
+  if ((rc = pthread_mutex_lock(&mkcl_imported_thread_pool_lock)))
     { os_error = "pop_from_imported_thread_pool failed on pthread_mutex_lock"; goto LOSE; }
 #endif
   pool_locked = TRUE;
@@ -1261,7 +1261,7 @@ static mkcl_object pop_from_imported_thread_pool(mkcl_thread_import_failure_hand
 #ifdef MKCL_WINDOWS
   LeaveCriticalSection(&mkcl_imported_thread_pool_lock);
 #else
-  if (rc = pthread_mutex_unlock(&mkcl_imported_thread_pool_lock))
+  if ((rc = pthread_mutex_unlock(&mkcl_imported_thread_pool_lock)))
     { os_error = "pop_from_imported_thread_pool failed on pthread_mutex_unlock"; goto LOSE; }
 #endif
   
@@ -1278,7 +1278,7 @@ static mkcl_object pop_from_imported_thread_pool(mkcl_thread_import_failure_hand
     char * os_error2 = NULL;
 
     if (pool_locked)
-      if (rc2 = pthread_mutex_unlock(&mkcl_imported_thread_pool_lock))
+      if ((rc2 = pthread_mutex_unlock(&mkcl_imported_thread_pool_lock)))
         { os_error2 = "pop_from_imported_thread_pool failed on pthread_mutex_unlock"; }
     if (handler)
       (*handler)(handler_data, rc, os_error);
@@ -1523,7 +1523,7 @@ static thread_value_t CALL_CONV finalization_thread_entry_point(void * arg)
       }
 
 #if __unix
-    if (pthread_mutext_unlock(&mutex))
+    if (pthread_mutex_unlock(&mutex))
       {
         /* status = (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR; */
         thread->thread.result_value = mk_cl_Cnil;
@@ -1738,7 +1738,7 @@ mk_mt_block_signals(MKCL)
 
       sigfillset(&all_signals); /* block everything! */
 
-      if (rc = pthread_sigmask(SIG_SETMASK, &all_signals, &(this_thread->thread.saved_sigmask)))
+      if ((rc = pthread_sigmask(SIG_SETMASK, &all_signals, &(this_thread->thread.saved_sigmask))))
 	{ errno = rc; mkcl_FElibc_error(env, "mk_mt_block_signals failed on pthread_sigmask", 0); }
       
       this_thread->thread.sigmask_frs_marker = this_thread->thread.env->frs_top;
@@ -1757,7 +1757,7 @@ mk_mt_unblock_signals(MKCL)
   if ( this_thread->thread.sigmask_frs_marker >= this_thread->thread.env->frs_top )
     {
       int rc;
-      if (rc = pthread_sigmask(SIG_SETMASK, &(this_thread->thread.saved_sigmask), NULL))
+      if ((rc = pthread_sigmask(SIG_SETMASK, &(this_thread->thread.saved_sigmask), NULL)))
 	{ errno = rc; mkcl_FElibc_error(env, "mk_mt_unblock_signals failed on pthread_sigmask", 0); }
 
       this_thread->thread.sigmask_frs_marker = NULL;

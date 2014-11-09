@@ -91,7 +91,7 @@ static mkcl_index mangled_length(mkcl_object str)
 
   if (MKCL_BASE_STRING_P(str))
     {
-      char * src = str->base_string.self;
+      char * src = (char *) str->base_string.self;
       mkcl_index fillp = str->base_string.fillp;
       mkcl_index i;
 
@@ -173,7 +173,7 @@ static mkcl_base_char * push_mangled_string(mkcl_object str, mkcl_base_char * de
   
   if (MKCL_BASE_STRING_P(str))
     {
-      char * src = str->base_string.self;
+      char * src = (char *) str->base_string.self;
 
       len = str->base_string.fillp;
       for (i = 0; i < len; i++)

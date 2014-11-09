@@ -171,7 +171,7 @@ safe_chdir(MKCL, mkcl_object path)
 #ifdef MKCL_WINDOWS
   MKCL_LIBC_NO_INTR(env, output = _wchdir(mkcl_OSstring_self(os_path)));
 #else
-  MKCL_LIBC_NO_INTR(env, output = chdir(mkcl_OSstring_self(os_path)));
+  MKCL_LIBC_NO_INTR(env, output = chdir((char *) mkcl_OSstring_self(os_path)));
 #endif
   return output;
 }
@@ -189,7 +189,7 @@ safe_stat(MKCL, mkcl_object path, os_file_stat *sb)
   mkcl_dynamic_extent_OSstring(env, os_path, path);
   int output;
 
-  MKCL_LIBC_NO_INTR(env, output = stat(mkcl_OSstring_self(os_path), sb));
+  MKCL_LIBC_NO_INTR(env, output = stat((char *) mkcl_OSstring_self(os_path), sb));
   return output;
 }
 #endif /* def __unix */
@@ -205,7 +205,7 @@ safe_lstat(MKCL, mkcl_object path, struct stat *sb)
 #endif
   int output;
 
-  MKCL_LIBC_NO_INTR(env, output = lstat(mkcl_OSstring_self(os_path), sb));
+  MKCL_LIBC_NO_INTR(env, output = lstat((char *) mkcl_OSstring_self(os_path), sb));
   return output;
 }
 #endif
@@ -221,7 +221,7 @@ static mkcl_object safe_realpath(MKCL, mkcl_object orig_pathname, mkcl_object pa
 #endif
   char * output;
 
-  MKCL_LIBC_NO_INTR(env, output = realpath(os_raw_path, NULL));
+  MKCL_LIBC_NO_INTR(env, output = realpath((char *) os_raw_path, NULL));
   if (output == NULL)
     {
       /* errno could be: EACCES, EINVAL, EIO, ELOOP, ENAMETOOLONG, ENOENT, ENOTDIR. */
@@ -358,12 +358,12 @@ current_dir(MKCL)
 
   do {
     output = mkcl_alloc_OSstring(env, size);
-    MKCL_LIBC_NO_INTR(env, ok = getcwd(mkcl_OSstring_self(output), size));
+    MKCL_LIBC_NO_INTR(env, ok = getcwd((char *) mkcl_OSstring_self(output), size));
     size += 256;
   } while (ok == NULL && errno == ERANGE);
   if (ok == NULL)
     mkcl_FElibc_error(env, "current_dir() failed on getcwd()", 0);
-  size = strlen(mkcl_OSstring_self(output)); /* Unix only! */
+  size = strlen((char *) mkcl_OSstring_self(output)); /* Unix only! */
   mkcl_OSstring_set_fillp(output, size);
 #endif
 
@@ -402,7 +402,7 @@ file_kind(MKCL, mkcl_object os_filename, bool follow_links)
   int rc;
 
 # ifdef HAVE_LSTAT
-  MKCL_LIBC_NO_INTR(env, rc = (follow_links ? stat : lstat)(mkcl_OSstring_self(os_filename), &buf));
+  MKCL_LIBC_NO_INTR(env, rc = (follow_links ? stat : lstat)((char *) mkcl_OSstring_self(os_filename), &buf));
 # else
   MKCL_LIBC_NO_INTR(env, rc = stat(mkcl_OSstring_self(os_filename), &buf));
 # endif
@@ -525,7 +525,7 @@ mkcl_backup_open(MKCL, mkcl_object filename, int option, int mode)
 #ifdef MKCL_WINDOWS
   MKCL_LIBC_NO_INTR(env, error = _wrename(mkcl_OSstring_self(os_filename), mkcl_OSstring_self(backupfilename)));
 #else
-  MKCL_LIBC_NO_INTR(env, error = rename(mkcl_OSstring_self(os_filename), mkcl_OSstring_self(backupfilename)));
+  MKCL_LIBC_NO_INTR(env, error = rename((char *) mkcl_OSstring_self(os_filename), (char *) mkcl_OSstring_self(backupfilename)));
 #endif
   if (error) {
     mkcl_object f = filename;
@@ -535,7 +535,7 @@ mkcl_backup_open(MKCL, mkcl_object filename, int option, int mode)
 #ifdef MKCL_WINDOWS
   MKCL_LIBC_NO_INTR(env, fd = _wopen(mkcl_OSstring_self(os_filename), option, mode));
 #else
-  MKCL_LIBC_NO_INTR(env, fd = open(mkcl_OSstring_self(os_filename), option, mode));
+  MKCL_LIBC_NO_INTR(env, fd = open((char *) mkcl_OSstring_self(os_filename), option, mode));
 #endif
   /* error value of fd must be handled by caller. */
   /* mkcl_dealloc(env, backupfilename); */
@@ -636,8 +636,8 @@ mkcl_object mk_cl_rename_file(MKCL, mkcl_object old_filespec, mkcl_object new_na
       }
     /* fall through */
 #else /* def MKCL_WINDOWS */
-    if (rename(mkcl_OSstring_self(old_os_filename), /* FIXME, This will not work across filesystems. JCB */
-	       mkcl_OSstring_self(new_os_filename)) == 0) {
+    if (rename((char *) mkcl_OSstring_self(old_os_filename), /* FIXME, This will not work across filesystems. JCB */
+	       (char *) mkcl_OSstring_self(new_os_filename)) == 0) {
       goto SUCCESS;
     }
     /* fall through */
@@ -671,7 +671,7 @@ mk_cl_delete_file(MKCL, mkcl_object file)
 #ifdef MKCL_WINDOWS
   MKCL_LIBC_NO_INTR(env, ok = _wunlink(mkcl_OSstring_self(os_filename)));
 #else
-  MKCL_LIBC_NO_INTR(env, ok = unlink(mkcl_OSstring_self(os_filename)));
+  MKCL_LIBC_NO_INTR(env, ok = unlink((char *) mkcl_OSstring_self(os_filename)));
 #endif
 
   if (ok == -1)
@@ -716,7 +716,7 @@ bool mkcl_probe_file(MKCL, mkcl_object os_filename, bool follow_links)
   int rc;
 
 # ifdef HAVE_LSTAT
-  MKCL_LIBC_NO_INTR(env, rc = (follow_links ? stat : lstat)(mkcl_OSstring_self(os_filename), &buf));
+  MKCL_LIBC_NO_INTR(env, rc = (follow_links ? stat : lstat)((char *) mkcl_OSstring_self(os_filename), &buf));
 # else
   MKCL_LIBC_NO_INTR(env, rc = stat(mkcl_OSstring_self(os_filename), &buf));
 # endif
@@ -979,7 +979,7 @@ mkcl_homedir_pathname(MKCL, mkcl_object user)
 	    char buf[bufsize]; /* a VLA. */
 	    int status;
 
-	    MKCL_LIBC_NO_INTR(env, status = getpwnam_r(raw_os_user, &pwd, buf, bufsize, &result));
+	    MKCL_LIBC_NO_INTR(env, status = getpwnam_r((char *) raw_os_user, &pwd, buf, bufsize, &result));
 	    if (result == NULL)
 	      {
 		if (status)
@@ -1263,10 +1263,10 @@ list_directory(MKCL, struct OSpath * wd_path, mkcl_object mask, bool only_dir)
     { /* 'path' is empty we assume we want the current directory. */
       mkcl_OSstring_push_extend(env, os_path, '.');
       mkcl_OSstring_push_extend(env, os_path, '/');
-      MKCL_LIBC_NO_INTR(env, dir = opendir(mkcl_OSstring_self(os_path)));
+      MKCL_LIBC_NO_INTR(env, dir = opendir((char *) mkcl_OSstring_self(os_path)));
     }
   else
-    { MKCL_LIBC_NO_INTR(env, dir = opendir(mkcl_OSstring_self(os_path))); }
+    { MKCL_LIBC_NO_INTR(env, dir = opendir((char *) mkcl_OSstring_self(os_path))); }
   if (dir == NULL) {
     /* opendir failed, errno should say why.
        One of EACCES, EBADF, EMFILE, ENFILE, ENOENT, ENOMEM, ENOTDIR.
@@ -1284,7 +1284,7 @@ list_directory(MKCL, struct OSpath * wd_path, mkcl_object mask, bool only_dir)
 	(entry_text[1] == '\0' ||
 	 (entry_text[1] == '.' && entry_text[2] == '\0')))
       goto CONTINUE_WITH_NEXT_ENTRY;
-    if (!mkcl_Null(mask) && !string_match(env, entry_text, mask /*raw_os_mask*/))
+    if (!mkcl_Null(mask) && !string_match(env, (mkcl_OSstring_raw_type) entry_text, mask /*raw_os_mask*/))
       goto CONTINUE_WITH_NEXT_ENTRY;
     if (only_dir && entry->d_type != DT_DIR)
       {
@@ -1778,7 +1778,7 @@ mk_mkcl_mkdir(MKCL, mkcl_object directory, mkcl_object mode)
 #ifdef MKCL_WINDOWS
   MKCL_LIBC_NO_INTR(env, ok = _wmkdir(mkcl_OSstring_self(os_filename)));
 #else
-  MKCL_LIBC_NO_INTR(env, ok = mkdir(mkcl_OSstring_self(os_filename), modeint));
+  MKCL_LIBC_NO_INTR(env, ok = mkdir((char *) mkcl_OSstring_self(os_filename), modeint));
 #endif
 
   if (ok < 0)
@@ -1864,7 +1864,7 @@ mk_mkcl_mkdir(MKCL, mkcl_object directory, mkcl_object mode)
     for (i = 0; i < 6; i++)
       mkcl_OSstring_push_extend(env, os_template, 'X'); /* add "XXXXXX" to the end of the template. */
 
-    MKCL_LIBC_NO_INTR(env, fd = mkstemp(mkcl_OSstring_self(os_template)));
+    MKCL_LIBC_NO_INTR(env, fd = mkstemp((char *) mkcl_OSstring_self(os_template)));
 
     if (fd == -1) {
       @(return mk_cl_Cnil mk_cl_Cnil MKCL_MAKE_FIXNUM(errno));
@@ -1894,7 +1894,7 @@ mk_mkcl_rmdir(MKCL, mkcl_object directory)
 #ifdef MKCL_WINDOWS
   MKCL_LIBC_NO_INTR(env, code = _wrmdir(mkcl_OSstring_self(os_directory)));
 #else
-  MKCL_LIBC_NO_INTR(env, code = rmdir(mkcl_OSstring_self(os_directory)));
+  MKCL_LIBC_NO_INTR(env, code = rmdir((char *) mkcl_OSstring_self(os_directory)));
 #endif
   if (code != 0)
     mkcl_FElibc_file_error(env, directory, "Can't remove directory: ~S.", 1, directory);
@@ -1942,7 +1942,7 @@ mk_mkcl_copy_file(MKCL, mkcl_object orig, mkcl_object dest)
 #ifdef MKCL_WINDOWS
 	in = _wfopen(mkcl_OSstring_self(os_orig), L"rbS");
 #else
-	in = fopen(mkcl_OSstring_self(os_orig), "rb");
+	in = fopen((char *) mkcl_OSstring_self(os_orig), "rb");
 #endif
       }
       if (in == NULL)
@@ -1987,7 +1987,7 @@ mk_mkcl_copy_file(MKCL, mkcl_object orig, mkcl_object dest)
 #ifdef MKCL_WINDOWS
 	out = _wfopen(mkcl_OSstring_self(os_dest), L"wbS");
 #else
-	out = fopen(mkcl_OSstring_self(os_dest), "wb");
+	out = fopen((char *) mkcl_OSstring_self(os_dest), "wb");
 #endif
       }
       if (out == NULL)

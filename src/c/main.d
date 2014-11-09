@@ -126,7 +126,11 @@ mkcl_get_option(mkcl_option option)
 int
 mkcl_set_option(mkcl_option option, mkcl_word value)
 {
-  if (option >= MKCL_OPT_MAXIMUM || option < 0)
+  if (option >= MKCL_OPT_MAXIMUM
+#ifndef __clang__
+      || option < 0
+#endif
+      )
     return MKCL_BAD_OPTION;
   else if (option < MKCL_OPT_BOOTED && option_values[MKCL_OPT_BOOTED])
     return MKCL_IMMUTABLE_OPTION;
@@ -400,7 +404,7 @@ static void _mkcl_boot_inner(MKCL)
     MKCL_SET(@'si::*os-string-format*', os_external_format);
     mkcl_core.default_default_external_format = os_external_format;
   }
-  setlocale(LC_ALL, saved_locale->base_string.self); /* Puts locale back to its previous settings. */
+  setlocale(LC_ALL, (char *) saved_locale->base_string.self); /* Puts locale back to its previous settings. */
 #endif
   MKCL_SET(@'si::*default-external-format*', mkcl_core.default_default_external_format);
 
@@ -667,7 +671,7 @@ mkcl_boot(int argc, char **argv, struct mkcl_thread_init_parameters * params)
     if (InterlockedCompareExchange(&mkcl_boot_gate, TRUE, FALSE))
       { errno = EAGAIN; return NULL; }
 #else
-    if (rc = pthread_mutex_lock(&mkcl_boot_gate))
+    if ((rc = pthread_mutex_lock(&mkcl_boot_gate)))
       { errno = rc; return NULL; }
 #endif
     already_booting_p = inside_mkcl_boot_p;
@@ -679,7 +683,7 @@ mkcl_boot(int argc, char **argv, struct mkcl_thread_init_parameters * params)
 #ifdef MKCL_WINDOWS
     InterlockedExchange(&mkcl_boot_gate, FALSE);
 #else
-    if (rc = pthread_mutex_unlock(&mkcl_boot_gate))
+    if ((rc = pthread_mutex_unlock(&mkcl_boot_gate)))
       { inside_mkcl_boot_p = FALSE; errno = rc; return NULL; }
 #endif
 
@@ -707,7 +711,7 @@ mkcl_boot(int argc, char **argv, struct mkcl_thread_init_parameters * params)
     }
   else
     {
-      if (errno = mkcl_setjmp(mkcl_early_boot_error_handler))
+      if ((errno = mkcl_setjmp(mkcl_early_boot_error_handler)))
 	{ inside_mkcl_boot_p = FALSE; return NULL; } /* something went wrong with env initialization. */
       else
 	{
@@ -1084,7 +1088,7 @@ mkcl_object mkcl_getenv(MKCL, mkcl_object var)
 #ifdef MKCL_WINDOWS
   raw_os_value = _wgetenv(mkcl_OSstring_self(os_var));
 #else
-  raw_os_value = getenv((char *) mkcl_OSstring_self(os_var));
+  raw_os_value = (mkcl_OSstring_raw_type) getenv((char *) mkcl_OSstring_self(os_var));
 #endif
   if (unlocker) unlocker();
 

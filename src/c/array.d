@@ -791,7 +791,11 @@ mkcl_array_allocself(MKCL, mkcl_object x)
     break;
   case mkcl_aet_nil: break;
   default:
-    if (t < 0 || t >= MKCL_NB_ELEMS(mkcl_aet_size))
+    if (
+#ifndef __clang__
+        t < 0 ||
+#endif
+        t >= MKCL_NB_ELEMS(mkcl_aet_size))
       mkcl_lose(env, "Out of bounds access to array mkcl_aet_size[].");
     else
       {
@@ -1283,7 +1287,12 @@ mkcl_copy_subarray(MKCL, mkcl_object dest, mkcl_index i0, mkcl_object orig,
     while (l--) {
       mkcl_aset_index(env, dest, i0++, mkcl_aref_index(env, orig, i1++));
     }
-  } else if (t >= 0 && t <= mkcl_aet_last_type) {
+  } else if (
+#ifndef __clang__
+             t >= 0 &&
+#endif
+             t <= mkcl_aet_last_type
+             ) {
     mkcl_index elt_size = mkcl_aet_size[t];
     memcpy(dest->array.self.bc + i0 * elt_size,
 	   orig->array.self.bc + i1 * elt_size,

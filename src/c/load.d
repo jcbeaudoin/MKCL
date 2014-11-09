@@ -186,7 +186,7 @@ mkcl_library_open(MKCL, mkcl_object filename, bool force_reload)
 #endif
 
 #ifdef HAVE_DLFCN_H
-  MKCL_LIBC_NO_INTR(env, block->cblock.handle = dlopen(mkcl_OSstring_self(os_filename), RTLD_NOW|RTLD_GLOBAL));
+  MKCL_LIBC_NO_INTR(env, block->cblock.handle = dlopen((char *) mkcl_OSstring_self(os_filename), RTLD_NOW|RTLD_GLOBAL));
   if (block->cblock.handle == NULL)
     return block;
 #elif defined(MKCL_WINDOWS)
@@ -390,7 +390,7 @@ bool mkcl_library_close(MKCL, mkcl_object block)
       if (verbose) {
 	fprintf(stderr, ";;; Removing library file %s\n", mkcl_OSstring_self(os_block_name));
       }
-      if (unlink(mkcl_OSstring_self(os_block_name)) && verbose)
+      if (unlink((char *) mkcl_OSstring_self(os_block_name)) && verbose)
 	perror(";;;*** Removal of library file failed");
 #endif
     }
