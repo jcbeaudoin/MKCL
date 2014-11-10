@@ -143,7 +143,7 @@ typedef unsigned @CL_FIXNUM_TYPE@ mkcl_hashkey;
  * In general, any of these limits must fit in a "mkcl_word".
  */
 /*	Maximum number of function arguments (arbitrary)		*/
-#define MKCL_CALL_ARGUMENTS_LIMIT MKCL_MOST_POSITIVE_FIXNUM  /* Used to be 65536. JCB */
+#define MKCL_CALL_ARGUMENTS_LIMIT MKCL_MOST_POSITIVE_FIXNUM_RAW  /* Used to be 65536. JCB */
 
 /*	Maximum number of required arguments				*/
 #define MKCL_LAMBDA_PARAMETERS_LIMIT MKCL_CALL_ARGUMENTS_LIMIT

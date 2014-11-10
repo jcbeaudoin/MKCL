@@ -2507,16 +2507,12 @@ mk_si_process_lambda(MKCL, mkcl_object lambda)
 mkcl_object
 mk_si_process_lambda_list(MKCL, mkcl_object org_lambda_list, mkcl_object context)
 {
-#define AT_REQUIREDS	0
-#define AT_OPTIONALS	1
-#define AT_REST		2
-#define AT_KEYS		3
-#define AT_OTHER_KEYS	4
-#define AT_AUXS		5
+  const mkcl_index max_params = MKCL_LAMBDA_PARAMETERS_LIMIT;
 
   mkcl_object v, key, init, spp, lambda_list = org_lambda_list;
   mkcl_object reqs = mk_cl_Cnil, opts = mk_cl_Cnil, keys = mk_cl_Cnil, rest = mk_cl_Cnil, auxs = mk_cl_Cnil;
-  int nreq = 0, nopt = 0, nkey = 0, naux = 0, stage = 0;
+  mkcl_index nreq = 0, nopt = 0, nsopt = 0, nkey = 0, nskey = 0, naux = 0;
+  enum { AT_REQUIREDS, AT_OPTIONALS, AT_REST, AT_KEYS, AT_OTHER_KEYS, AT_AUXS } stage = 0;
   mkcl_object allow_other_keys = mk_cl_Cnil;
   mkcl_object key_flag = mk_cl_Cnil;
 
@@ -2578,6 +2574,7 @@ mk_si_process_lambda_list(MKCL, mkcl_object org_lambda_list, mkcl_object context
   switch (stage) {
   case AT_REQUIREDS:
     nreq++;
+    if (nreq > max_params) goto TOO_LONG_LAMBDA;
     push_var(env, v, reqs);
     break;
   case AT_OPTIONALS:
@@ -2598,9 +2595,12 @@ mk_si_process_lambda_list(MKCL, mkcl_object org_lambda_list, mkcl_object context
       }
     }
     nopt++;
+    if (nopt > max_params) goto TOO_LONG_LAMBDA;
     push_var(env, v, opts);
     push(env, init, opts);
     if (spp != mk_cl_Cnil) {
+      nsopt++;
+      if (nsopt > max_params) goto TOO_LONG_LAMBDA;
       push_var(env, spp, opts);
     } else {
       push(env, mk_cl_Cnil, opts);
@@ -2642,12 +2642,15 @@ mk_si_process_lambda_list(MKCL, mkcl_object org_lambda_list, mkcl_object context
 			&intern_flag);
     }
     nkey++;
+    if (nkey > max_params) goto TOO_LONG_LAMBDA;
     push(env, key, keys);
     push_var(env, v, keys);
     push(env, init, keys);
     if (mkcl_Null(spp)) {
       push(env, mk_cl_Cnil, keys);
     } else {
+      nskey++;
+      if (nskey > max_params) goto TOO_LONG_LAMBDA;
       push_var(env, spp, keys);
     }
     break;
@@ -2667,8 +2670,14 @@ mk_si_process_lambda_list(MKCL, mkcl_object org_lambda_list, mkcl_object context
   goto LOOP;
 
  OUTPUT:
-  if ((nreq+nopt+(!mkcl_Null(rest))+nkey) >= MKCL_CALL_ARGUMENTS_LIMIT)
-    mkcl_FEprogram_error(env, "LAMBDA: Argument list ist too long, ~S.", 1, org_lambda_list);
+  if (!((max_params >= nreq)
+        && ((max_params - nreq) >= nopt)
+        && ((max_params - (nreq + nopt)) >= nsopt)
+        && (mkcl_Null(rest) || ((max_params - (nreq + nopt)) >= 1))
+        && ((max_params - (nreq + nopt + (mkcl_Null(rest) ? 0 : 1))) >= nkey)
+        && ((max_params - (nreq + nopt + (mkcl_Null(rest) ? 0 : 1) + nkey)) >= nskey)
+        ))
+    goto TOO_LONG_LAMBDA;
 
   @(return
     mk_cl_nreverse(env, reqs)
@@ -2685,6 +2694,9 @@ mk_si_process_lambda_list(MKCL, mkcl_object org_lambda_list, mkcl_object context
 
  ILLEGAL_LAMBDA:
   mkcl_FEprogram_error(env, "LAMBDA: Illegal lambda list ~S.", 1, org_lambda_list);
+
+ TOO_LONG_LAMBDA:
+  mkcl_FEprogram_error(env, "LAMBDA: Argument list is too long, ~S.", 1, org_lambda_list);
 }
 
 static void
