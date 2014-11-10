@@ -108,7 +108,7 @@ static char * ltoad(long val, char * str)
 static int stderr_fd;
 
 static
-void sig_print(const char const * msg)
+void sig_print(const char * const msg)
 {
   /* This call may fail and it is just too bad. We do not want to do anything about it. */
   ssize_t count = write(stderr_fd, msg, strlen(msg));
@@ -204,7 +204,7 @@ void sig_perror(char * msg)
   sig_print("\n");
 }
 
-static void bark_about_signal(siginfo_t *info, const char const * msg)
+static void bark_about_signal(siginfo_t *info, const char * const msg)
 {
   char buf[24];
 
@@ -699,10 +699,12 @@ void mkcl_sigsegv_handler(int sig, siginfo_t *info, void *aux)
       maybe_lose("MKCL: mkcl_sigsegv_handler called outside a lisp thread!");
 
       if (old->sa_handler != SIG_IGN && old->sa_handler != SIG_DFL)
-	if (old->sa_flags & SA_SIGINFO )
-	  (old->sa_sigaction)(sig, info, aux);
-	else
-	  (old->sa_handler)(sig);
+	{
+	  if (old->sa_flags & SA_SIGINFO )
+	    (old->sa_sigaction)(sig, info, aux);
+	  else
+	    (old->sa_handler)(sig);
+	}
       
     }
   else
@@ -1767,7 +1769,7 @@ struct mkcl_signal_disposition
                                T means a lisp handler specific to the C handler will be called.
 			       A symbol names the lisp handler function to be called. 
 			    */
-} const c_signal_disposition[NSIG] = {
+} c_signal_disposition[NSIG] = {
   /* Linux signal ordering */
   /*  0 SIG0 */      { NULL, mk_cl_Cnil }, /* does not exist. */
   /*  1 SIGHUP */    { mkcl_generic_signal_handler, @'si::sighup-handler' },

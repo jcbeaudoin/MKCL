@@ -699,7 +699,8 @@ mk_si_sch_frs_base(MKCL, mkcl_object fr, mkcl_object ihs)
 
   for (x = get_frame_ptr(env, fr); 
        x <= env->frs_top && x->frs_ihs->index < y;
-       x++);
+       x++)
+    ; /* This ; is all alone on its own line in order to please clang, and convince it of our intent. */
   @(return ((x > env->frs_top) ? mk_cl_Cnil : MKCL_MAKE_FIXNUM(x - env->frs_org)));
 }
 

@@ -229,7 +229,7 @@ mpz_b_c2_op(mkcl_object i, mkcl_object j)
 typedef mkcl_word (*bit_operator)(mkcl_word, mkcl_word);
 typedef void (*bignum_bit_operator)(mkcl_object, mkcl_object);
 
-static const bit_operator const fixnum_operations[16] = {
+static const bit_operator fixnum_operations[16] = {
   b_clr_op,
   and_op,
   andc2_op,
@@ -245,25 +245,27 @@ static const bit_operator const fixnum_operations[16] = {
   b_c1_op,
   orc1_op,
   nand_op,
-  b_set_op};
+  b_set_op
+};
 
-static const bignum_bit_operator const bignum_operations[16] = {
-	mpz_b_clr_op,
-	mpz_and_op,
-	mpz_andc2_op,
-	mpz_b_1_op,
-	mpz_andc1_op,
-	mpz_b_2_op,
-	mpz_xor_op,
-	mpz_ior_op,
-	mpz_nor_op,
-	mpz_eqv_op,
-	mpz_b_c2_op,
-	mpz_orc2_op,
-	mpz_b_c1_op,
-	mpz_orc1_op,
-	mpz_nand_op,
-	mpz_b_set_op};
+static const bignum_bit_operator bignum_operations[16] = {
+  mpz_b_clr_op,
+  mpz_and_op,
+  mpz_andc2_op,
+  mpz_b_1_op,
+  mpz_andc1_op,
+  mpz_b_2_op,
+  mpz_xor_op,
+  mpz_ior_op,
+  mpz_nor_op,
+  mpz_eqv_op,
+  mpz_b_c2_op,
+  mpz_orc2_op,
+  mpz_b_c1_op,
+  mpz_orc1_op,
+  mpz_nand_op,
+  mpz_b_set_op
+};
 
 
 static mkcl_object

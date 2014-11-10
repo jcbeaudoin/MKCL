@@ -1077,16 +1077,18 @@ mkcl_object mkcl_fun_ref_fdefinition(MKCL, const mkcl_object * const fun_refs, m
 
 
 	    if (mkcl_Null(cached_fun_ref = closure_aux_var[0]))
-	      if (mkcl_Null(mk_cl_fboundp(env, fname))) /* fname is not fboundp. */
-		{
-		  /* mkcl_FEundefined_function(env, fname); */
-                  cached_fun_ref = mk_cl_Cnil;
-		}
-	      else
-		{
-		  cached_fun_ref = mkcl_fdefinition(env, fname);
-		  closure_aux_var[0] = cached_fun_ref;
-		}
+	      {
+		if (mkcl_Null(mk_cl_fboundp(env, fname))) /* fname is not fboundp. */
+		  {
+		    /* mkcl_FEundefined_function(env, fname); */
+		    cached_fun_ref = mk_cl_Cnil;
+		  }
+		else
+		  {
+		    cached_fun_ref = mkcl_fdefinition(env, fname);
+		    closure_aux_var[0] = cached_fun_ref;
+		  }
+	      }
 	  } MKCL_UNWIND_PROTECT_EXIT {
 	    if (!mkcl_Null(locked)) mk_mt_giveup_lock(env, f_r_lock);
 	  } MKCL_UNWIND_PROTECT_END;

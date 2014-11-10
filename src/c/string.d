@@ -1727,22 +1727,24 @@ mkcl_search_in_string(MKCL, mkcl_object str1, mkcl_object str2)
 
 mkcl_object mkcl_replace_in_base_string(MKCL, mkcl_object str1, mkcl_object str2)
 {
-  mkcl_index start1 = 0;
-  mkcl_index start2 = 0;
+  const mkcl_index start1 = 0;
+  const mkcl_index start2 = 0;
 
   if (mkcl_unlikely(!MKCL_BASE_STRING_P(str1))) mkcl_FEtype_error_base_string(env, str1);
   if (mkcl_unlikely(!MKCL_BASE_STRING_P(str2))) mkcl_FEtype_error_base_string(env, str2);
 
-  mkcl_index end1 = str1->base_string.fillp;
-  mkcl_index end2 = str2->base_string.fillp;
-  mkcl_index len1 = end1 - start1;
-  mkcl_index len2 = end2 - start2;
+  const mkcl_index end1 = str1->base_string.fillp;
+  const mkcl_index end2 = str2->base_string.fillp;
+  const mkcl_index len1 = end1 - start1;
+  const mkcl_index len2 = end2 - start2;
 
   if (len1 != 0 && len2 != 0)
-    if (len1 < len2)
-      memmove(&(str1->base_string.self[start1]), &(str2->base_string.self[start2]), len1);
-    else
-      memmove(&(str1->base_string.self[start1]), &(str2->base_string.self[start2]), len2);
+    {
+      if (len1 < len2)
+	memmove(&(str1->base_string.self[start1]), &(str2->base_string.self[start2]), len1);
+      else
+	memmove(&(str1->base_string.self[start1]), &(str2->base_string.self[start2]), len2);
+    }
 
   return str1;
 }
@@ -1766,22 +1768,24 @@ mkcl_object mkcl_replace_in_base_string_k(MKCL, mkcl_object str1, mkcl_object st
     mkcl_FEerror(env, "~S and ~S are invalid as :START and :END~%for the string sequence ~S.",
 		 3, mkcl_make_unsigned_integer(env, start2), mkcl_make_unsigned_integer(env, end2), str2);
 
-  mkcl_index len1 = end1 - start1;
-  mkcl_index len2 = end2 - start2;
+  const mkcl_index len1 = end1 - start1;
+  const mkcl_index len2 = end2 - start2;
 
   if (len1 != 0 && len2 != 0)
-    if (len1 < len2)
-      memmove(&(str1->base_string.self[start1]), &(str2->base_string.self[start2]), len1);
-    else
-      memmove(&(str1->base_string.self[start1]), &(str2->base_string.self[start2]), len2);
+    {
+      if (len1 < len2)
+	memmove(&(str1->base_string.self[start1]), &(str2->base_string.self[start2]), len1);
+      else
+	memmove(&(str1->base_string.self[start1]), &(str2->base_string.self[start2]), len2);
+    }
 
   return str1;
 }
 
 mkcl_object mkcl_replace_in_string(MKCL, mkcl_object str1, mkcl_object str2)
 {
-  mkcl_index start1 = 0;
-  mkcl_index start2 = 0;
+  const mkcl_index start1 = 0;
+  const mkcl_index start2 = 0;
 
   if (mkcl_unlikely(!MKCL_STRINGP(str1))) mkcl_FEtype_error_string(env, str1);
   if (mkcl_unlikely(!MKCL_STRINGP(str2))) mkcl_FEtype_error_string(env, str2);
@@ -1794,22 +1798,28 @@ mkcl_object mkcl_replace_in_string(MKCL, mkcl_object str1, mkcl_object str2)
 	str2 = mk_si_coerce_to_base_string(env, str2);
     }
 
-  mkcl_index end1 = str1->string.fillp;
-  mkcl_index end2 = str2->string.fillp;
-  mkcl_index len1 = end1 - start1;
-  mkcl_index len2 = end2 - start2;
+  const mkcl_index end1 = str1->string.fillp;
+  const mkcl_index end2 = str2->string.fillp;
+  const mkcl_index len1 = end1 - start1;
+  const mkcl_index len2 = end2 - start2;
 
   if (len1 != 0 && len2 != 0)
-    if (len1 < len2)
-      if (str1->string.t == mkcl_t_string)
-	(void) mkcl_wmemmove(&(str1->string.self[start1]), &(str2->string.self[start2]), len1);
+    {
+      if (len1 < len2)
+	{
+	  if (str1->string.t == mkcl_t_string)
+	    (void) mkcl_wmemmove(&(str1->string.self[start1]), &(str2->string.self[start2]), len1);
+	  else
+	    memmove(&(str1->base_string.self[start1]), &(str2->base_string.self[start2]), len1);
+	}
       else
-	memmove(&(str1->base_string.self[start1]), &(str2->base_string.self[start2]), len1);
-    else
-      if (str1->string.t == mkcl_t_string)
-	(void) mkcl_wmemmove(&(str1->string.self[start1]), &(str2->string.self[start2]), len2);
-      else
-	memmove(&(str1->base_string.self[start1]), &(str2->base_string.self[start2]), len2);
+	{
+	  if (str1->string.t == mkcl_t_string)
+	    (void) mkcl_wmemmove(&(str1->string.self[start1]), &(str2->string.self[start2]), len2);
+	  else
+	    memmove(&(str1->base_string.self[start1]), &(str2->base_string.self[start2]), len2);
+	}
+    }
 
   return str1;
 }
@@ -1841,20 +1851,26 @@ mkcl_object mkcl_replace_in_string_k(MKCL, mkcl_object str1, mkcl_object str2,
     mkcl_FEerror(env, "~S and ~S are invalid as :START and :END~%for the string sequence ~S.",
 		 3, mkcl_make_unsigned_integer(env, start2), mkcl_make_unsigned_integer(env, end2), str2);
 
-  mkcl_index len1 = end1 - start1;
-  mkcl_index len2 = end2 - start2;
+  const mkcl_index len1 = end1 - start1;
+  const mkcl_index len2 = end2 - start2;
 
   if (len1 != 0 && len2 != 0)
-    if (len1 < len2)
-      if (str1->string.t == mkcl_t_string)
-	(void) mkcl_wmemmove(&(str1->string.self[start1]), &(str2->string.self[start2]), len1);
+    {
+      if (len1 < len2)
+	{
+	  if (str1->string.t == mkcl_t_string)
+	    (void) mkcl_wmemmove(&(str1->string.self[start1]), &(str2->string.self[start2]), len1);
+	  else
+	    memmove(&(str1->base_string.self[start1]), &(str2->base_string.self[start2]), len1);
+	}
       else
-	memmove(&(str1->base_string.self[start1]), &(str2->base_string.self[start2]), len1);
-    else
-      if (str1->string.t == mkcl_t_string)
-	(void) mkcl_wmemmove(&(str1->string.self[start1]), &(str2->string.self[start2]), len2);
-      else
-	memmove(&(str1->base_string.self[start1]), &(str2->base_string.self[start2]), len2);
+	{
+	  if (str1->string.t == mkcl_t_string)
+	    (void) mkcl_wmemmove(&(str1->string.self[start1]), &(str2->string.self[start2]), len2);
+	  else
+	    memmove(&(str1->base_string.self[start1]), &(str2->base_string.self[start2]), len2);
+	}
+    }
   
   return str1;
 }

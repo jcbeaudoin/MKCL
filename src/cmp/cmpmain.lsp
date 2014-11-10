@@ -334,7 +334,7 @@ extern \"C\"
 void ~A(MKCL, mkcl_object cblock, mkcl_object fasl_filename)
 {
 	static mkcl_object Cblock = mk_cl_Cnil; /* root for GC. */
-        if (cblock != mk_cl_Cnil)
+        if (cblock != mk_cl_Cnil) {
                 if (MKCL_REF_P(cblock)) {
                         if (cblock->cblock.t != mkcl_t_codeblock)
                                 mkcl_FEnot_codeblock_type(env, cblock);
@@ -344,7 +344,7 @@ void ~A(MKCL, mkcl_object cblock, mkcl_object fasl_filename)
 		        cblock->cblock.data_size = VM;
 		        return;
 	        } else mkcl_FEnot_codeblock_type(env, cblock);
-
+        }
         if ((Cblock == mk_cl_Cnil) || !MKCL_REF_P(Cblock) || (Cblock->cblock.t != mkcl_t_codeblock))
                 mkcl_FEnot_codeblock_type(env, Cblock);
 

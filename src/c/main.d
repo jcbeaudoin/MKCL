@@ -188,7 +188,7 @@ mkcl_object mk_si_self_truename(MKCL)
   @(return mkcl_core.self_truename);
 }
 
-static const mkcl_object const initial_thread_bindings[] =
+static const mkcl_object initial_thread_bindings[] =
   {
     @'*break-on-signals*',
     @'*compile-print*',

@@ -336,7 +336,7 @@ mkcl_dynamic_callback_make(MKCL, mkcl_object data, enum mkcl_ffi_calling_convent
 {
   char *buf = mkcl_alloc_pages(env, 1); /* An entire page (usually 4096 bytes) for a single callback!
                                          * That is quite some waist. FIXME. JCB */
-  unsigned char * ip = buf; /* the instruction pointer (ip) */
+  unsigned char * ip = (unsigned char *) buf; /* the instruction pointer (ip) */
   union { unsigned char b[4]; void * p; unsigned long l; unsigned short s; } imm; /* a staging buffer for immediate data */
 
 #define i(byte) *(ip++) = (byte)

@@ -443,9 +443,11 @@ interrupt_thread_entry_point(void *arg)
       rc = sem_timedwait(mkcl_run_interrupt_function, &timeout);
     } while ( rc && errno == EINTR );
     if ( rc )
-      if ( errno == ETIMEDOUT )
-	{ fputs("\n;; MKCL internal error: interrupt synchronization timedout!\n", stderr); }
-      else mkcl_C_lose(env, "mk_mt_interrupt_thread failed on sem_timedwait");
+      {
+	if ( errno == ETIMEDOUT )
+	  { fputs("\n;; MKCL internal error: interrupt synchronization timedout!\n", stderr); }
+	else mkcl_C_lose(env, "mk_mt_interrupt_thread failed on sem_timedwait");
+      }
   }
 #else
   do {
@@ -2310,8 +2312,10 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
 		    MKCL_LIBC_NO_INTR(env, rc = sem_timedwait(mkcl_interrupted_thread_suspended, &timeout));
 		  } while ( rc && errno == EINTR );
 		  if ( rc )
-		    if ( errno == ETIMEDOUT ) mkcl_interrupt_refused = TRUE;
-		    else mkcl_C_lose(env, "mk_mt_interrupt_thread failed on sem_wait");
+		    {
+		      if ( errno == ETIMEDOUT ) mkcl_interrupt_refused = TRUE;
+		      else mkcl_C_lose(env, "mk_mt_interrupt_thread failed on sem_wait");
+		    }
 #else
 		  do { /* should this be timed? What if the interruptee dies on us? JCB */
 		    MKCL_LIBC_NO_INTR(env, rc = sem_wait(mkcl_interrupted_thread_suspended));
