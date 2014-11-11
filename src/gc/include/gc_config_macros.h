@@ -239,13 +239,22 @@
 # endif
 #endif
 
+
+#ifdef __clang__
+# ifndef __has_attribute        /* Optional of course. */
+#  define __has_attribute(x) 0  /* Compatibility with earlier clang compilers. */
+# endif
+# define __clang_has_attribute(x) __has_attribute(x)
+#else
+# define __clang_has_attribute(x) 0  /* Compatibility with non-clang compilers. */
+#endif
+
 #ifndef MK_GC_ATTR_ALLOC_SIZE
   /* 'alloc_size' attribute improves __builtin_object_size correctness. */
   /* Only single-argument form of 'alloc_size' attribute is used.       */
 # if defined(__GNUC__) && (__GNUC__ > 4 \
-        || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3 && !defined(__ICC)) \
-        || __clang_major__ > 3 \
-        || (__clang_major__ == 3 && __clang_minor__ >= 2))
+                           || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3 && !defined(__ICC)) \
+                           || __clang_has_attribute(__alloc_size__))
 #   define MK_GC_ATTR_ALLOC_SIZE(argnum) __attribute__((__alloc_size__(argnum)))
 # else
 #   define MK_GC_ATTR_ALLOC_SIZE(argnum)
