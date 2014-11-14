@@ -707,6 +707,13 @@ void mkcl_sigsegv_handler(int sig, siginfo_t *info, void *aux)
 	}
       
     }
+  else if (env->disable_interrupts >= 2)
+    { /* The risk of reentering a locked region in the GC is just too high. */
+      maybe_lose("MKCL: mkcl_sigsegv_handler called inside uninterruptable foreign code. Cannot re-enter lisp!");
+
+      (void) sigaction(sig, &(mkcl_signals[sig].old_action), NULL);
+      (void) kill(getpid(), sig); /* resending since we do not know what to do else! */
+    }
   else
     {
       if (!mkcl_get_option(MKCL_OPT_BOOTED)) {
