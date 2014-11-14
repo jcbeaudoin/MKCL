@@ -2670,12 +2670,12 @@ mk_si_process_lambda_list(MKCL, mkcl_object org_lambda_list, mkcl_object context
   goto LOOP;
 
  OUTPUT:
-  if (!((max_params >= nreq)
-        && ((max_params - nreq) >= nopt)
+  if (!((max_params >= nreq) /* Here we are trying to avoid any integer overflow. */
+        && ((max_params - nreq) >= nopt)  /* Each relational test is a guard to the next. */
         && ((max_params - (nreq + nopt)) >= nsopt)
-        && (mkcl_Null(rest) || ((max_params - (nreq + nopt)) >= 1))
-        && ((max_params - (nreq + nopt + (mkcl_Null(rest) ? 0 : 1))) >= nkey)
-        && ((max_params - (nreq + nopt + (mkcl_Null(rest) ? 0 : 1) + nkey)) >= nskey)
+        && (mkcl_Null(rest) || ((max_params - (nreq + nopt + nsopt)) >= 1))
+        && ((max_params - (nreq + nopt + nsopt + (mkcl_Null(rest) ? 0 : 1))) >= nkey)
+        && ((max_params - (nreq + nopt + nsopt + (mkcl_Null(rest) ? 0 : 1) + nkey)) >= nskey)
         ))
     goto TOO_LONG_LAMBDA;
 
