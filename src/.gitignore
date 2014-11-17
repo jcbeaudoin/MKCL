@@ -17,3 +17,4 @@ test/
 asdf-stage-dir-exists
 cov-int/
 mkcl-cov-build*
+receipe_for_GC
