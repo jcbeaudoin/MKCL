@@ -39,7 +39,7 @@ gc_cflags=""
 
 # gc_use_mmap   Set to "yes" on platforms where mmap should be used instead
 #               of sbrk. This will define USE_MMAP.
-gc_use_mmap=""
+gc_use_mmap="yes"
 
 # We should set -fexceptions if we are using gcc and might be used
 # inside something like gcj.  This is the zeroth approximation:

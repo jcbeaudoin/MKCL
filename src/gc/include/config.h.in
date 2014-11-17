@@ -24,6 +24,58 @@
 /* Define to enable alternative finalization interface. */
 #undef ENABLE_DISCLAIM
 
+/* Define to install pthread_atfork() handlers by default. */
+#undef HANDLE_FORK
+
+/* Define to use 'dladdr' function. */
+#undef HAVE_DLADDR
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* See doc/README.macros. */
+#undef JAVA_FINALIZATION
+
+/* Define to save back-pointers in debugging headers. */
+#undef KEEP_BACK_PTRS
+
+/* Define to optimize for large heaps or root sets. */
+#undef LARGE_CONFIG
+
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#undef LT_OBJDIR
+
+/* See doc/README.macros. */
+#undef MAKE_BACK_GRAPH
+
 /* Define to support IBM AIX threads. */
 #undef MK_GC_AIX_THREADS
 
@@ -104,58 +156,6 @@
 
 /* Define to support Win32 threads. */
 #undef MK_GC_WIN32_THREADS
-
-/* Define to install pthread_atfork() handlers by default. */
-#undef HANDLE_FORK
-
-/* Define to use 'dladdr' function. */
-#undef HAVE_DLADDR
-
-/* Define to 1 if you have the <dlfcn.h> header file. */
-#undef HAVE_DLFCN_H
-
-/* Define to 1 if you have the <inttypes.h> header file. */
-#undef HAVE_INTTYPES_H
-
-/* Define to 1 if you have the <memory.h> header file. */
-#undef HAVE_MEMORY_H
-
-/* Define to 1 if you have the <stdint.h> header file. */
-#undef HAVE_STDINT_H
-
-/* Define to 1 if you have the <stdlib.h> header file. */
-#undef HAVE_STDLIB_H
-
-/* Define to 1 if you have the <strings.h> header file. */
-#undef HAVE_STRINGS_H
-
-/* Define to 1 if you have the <string.h> header file. */
-#undef HAVE_STRING_H
-
-/* Define to 1 if you have the <sys/stat.h> header file. */
-#undef HAVE_SYS_STAT_H
-
-/* Define to 1 if you have the <sys/types.h> header file. */
-#undef HAVE_SYS_TYPES_H
-
-/* Define to 1 if you have the <unistd.h> header file. */
-#undef HAVE_UNISTD_H
-
-/* See doc/README.macros. */
-#undef JAVA_FINALIZATION
-
-/* Define to save back-pointers in debugging headers. */
-#undef KEEP_BACK_PTRS
-
-/* Define to optimize for large heaps or root sets. */
-#undef LARGE_CONFIG
-
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
-#undef LT_OBJDIR
-
-/* See doc/README.macros. */
-#undef MAKE_BACK_GRAPH
 
 /* Number of GC cycles to wait before unmapping an unused block. */
 #undef MUNMAP_THRESHOLD
