@@ -2151,6 +2151,10 @@ STATIC ptr_t MK_GC_unix_sbrk_get_mem(word bytes)
 
 ptr_t MK_GC_unix_get_mem(word bytes)
 {
+#if __linux && defined(THREADS)
+#error "BDWGC will use sbrk() on Linux which is almost surely wrong since it is NOT thread-safe " \
+       "and most likely to clash with malloc() et al!"
+#endif
 # if defined(MMAP_SUPPORTED)
     /* By default, we try both sbrk and mmap, in that order.    */
     static MK_GC_bool sbrk_failed = FALSE;
