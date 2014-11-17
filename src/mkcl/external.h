@@ -278,6 +278,7 @@ extern "C" {
   /* alloc.c / alloc_2.c */
 
   extern MKCL_API void * mkcl_alloc_pages(MKCL, mkcl_index nb_pages);
+  extern MKCL_API void * mkcl_alloc_callback_block(MKCL);
   extern MKCL_API mkcl_object mkcl_alloc_cdisplay(MKCL, mkcl_index nb_levels);
   extern MKCL_API mkcl_object mkcl_alloc_clevel_block(MKCL, mkcl_object producer, const union mkcl_lispunion * const outer, const mkcl_index nb_vars);
   extern MKCL_API mkcl_object mkcl_alloc_raw_instance(MKCL, mkcl_index nb_slots);

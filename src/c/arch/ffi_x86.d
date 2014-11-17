@@ -334,8 +334,12 @@ mkcl_dynamic_callback_execute(mkcl_object cbk_info, char *arg_buffer)
 void *
 mkcl_dynamic_callback_make(MKCL, mkcl_object data, enum mkcl_ffi_calling_convention cc_type)
 {
+#if 0
   char *buf = mkcl_alloc_pages(env, 1); /* An entire page (usually 4096 bytes) for a single callback!
                                          * That is quite some waist. FIXME. JCB */
+#else
+  char *buf = mkcl_alloc_callback_block(env);
+#endif
   unsigned char * ip = (unsigned char *) buf; /* the instruction pointer (ip) */
   union { unsigned char b[4]; void * p; unsigned long l; unsigned short s; } imm; /* a staging buffer for immediate data */
 
@@ -393,6 +397,16 @@ mkcl_dynamic_callback_make(MKCL, mkcl_object data, enum mkcl_ffi_calling_convent
   int rc = mprotect(buf, mkcl_core.pagesize, PROT_READ | /* PROT_WRITE | */ PROT_EXEC);
   if (rc)
     mkcl_FElibc_error(env, "mkcl_dynamic_callback_make() failed on mprotect()", 0);
+#elif defined(MKCL_WINDOWS)
+  { /* By default on Win64 data is PAGE_READWRITE only and we would get
+       an ACCESS_VIOLATION if we didn't set it to EXECUTE. */
+    /* Not really needed on Win32 but we do it for uniformity with other platforms. */
+    DWORD old_protection_flags;
+    BOOL ok = VirtualProtect(buf, mkcl_core.pagesize, PAGE_EXECUTE_READ, &old_protection_flags);
+    
+    if (!ok)
+      mkcl_FEwin32_error(env, "mkcl_dynamic_callback_make() failed on VirtualProtect()", 0);
+  }
 #endif
 
 #if 0

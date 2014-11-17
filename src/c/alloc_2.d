@@ -18,6 +18,7 @@
 #include <mkcl/mkcl.h>
 #include <mkcl/mkcl-gc.h>
 #include <mkcl/mkcl-inl.h>
+#include <sys/mman.h>
 #include <mkcl/internal.h>
 
 #include <stdlib.h> /* for access to native malloc */
@@ -294,6 +295,49 @@ void * mkcl_alloc_pages(MKCL, mkcl_index nb_pages)
   long pagesize = mkcl_core.pagesize;
 
   return MKCL_GC_MEMALIGN(env, pagesize, nb_pages * pagesize);
+}
+
+static void restore_block_access_permissions(void * obj, void * client_data)
+{
+#if __unix
+  int rc = mprotect(obj, mkcl_core.pagesize, PROT_READ | PROT_WRITE);
+  if (rc)
+    {
+      mkcl_env env = MKCL_ENV();
+
+      if (env)
+        mkcl_FElibc_error(env, "restore_block_access_permissions() failed on mprotect()", 0);
+    }
+#elif defined(MKCL_WINDOWS)
+  { /* By default on Win64 data is PAGE_READWRITE only and we would get
+       an ACCESS_VIOLATION if we didn't set it to EXECUTE. */
+    DWORD old_protection_flags;
+    BOOL ok = VirtualProtect(buf, mkcl_core.pagesize, PAGE_READWRITE, &old_protection_flags);
+    
+    if (!ok)
+      {
+        mkcl_env env = MKCL_ENV();
+        
+        if (env)
+          mkcl_FEwin32_error(env, "mkcl_dynamic_callback_make() failed on VirtualProtect()", 0);
+      }
+  }
+#else
+#error "Function restore_block_access_permissions() for callback blocks is not implemented properly."
+#endif
+
+#if 0 /* debug */
+  printf("\n!!! Ran restore_block_access_permissions() for a callback block!\n"); fflush(NULL);
+#endif
+}
+
+void * mkcl_alloc_callback_block(MKCL)
+{ /* An entire page (usually 4096 bytes) for a single callback! That is quite some waste. FIXME. JCB */
+  long pagesize = mkcl_core.pagesize;
+  void * block = MKCL_GC_MEMALIGN(env, pagesize, pagesize);
+
+  MK_GC_register_finalizer_no_order(block, restore_block_access_permissions, NULL, NULL, NULL);
+  return block;
 }
 
 /****************************************************/
