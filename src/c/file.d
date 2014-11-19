@@ -2941,7 +2941,7 @@ io_file_clear_input(MKCL, mkcl_object strm)
   }
 #endif
   while (file_listen(env, f) == MKCL_LISTEN_AVAILABLE) {
-    eformat_read_char(env, strm);
+    if (EOF == eformat_read_char(env, strm)) return;
   }
 }
 
