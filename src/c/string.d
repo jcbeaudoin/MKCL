@@ -314,28 +314,34 @@ mkcl_fits_in_base_string(MKCL, mkcl_object s)
   }
 }
 
-mkcl_object
-mkcl_coerce_list_to_base_string(MKCL, mkcl_object l)
+static mkcl_object
+mkcl_coerce_list_to_simple_base_string(MKCL, mkcl_object l)
 {
-  mkcl_object s = mkcl_alloc_adjustable_base_string(env, 10);
+  const mkcl_index len = mkcl_length(env, l);
+  mkcl_object s = mkcl_alloc_simple_base_string(env, len);
+  mkcl_base_char * elems = s->base_string.self;
+
   mkcl_loop_for_in(env, l) {
     mkcl_object maybe_char = MKCL_CAR(l);
     if (MKCL_BASE_CHAR_P(maybe_char))
-      mkcl_base_string_push_extend(env, s, MKCL_CHAR_CODE(maybe_char));
+      *(elems++) = MKCL_CHAR_CODE(maybe_char);
     else
       mkcl_FEtype_error_base_char(env, maybe_char);
   } mkcl_end_loop_for_in;
   return s;
 }
 
-mkcl_object
-mkcl_coerce_list_to_string(MKCL, mkcl_object l)
+static mkcl_object
+mkcl_coerce_list_to_simple_string(MKCL, mkcl_object l)
 {
-  mkcl_object s = mkcl_alloc_adjustable_character_string(env, 10);
+  const mkcl_index len = mkcl_length(env, l);
+  mkcl_object s = mkcl_alloc_simple_character_string(env, len);
+  mkcl_character * elems = s->string.self;
+
   mkcl_loop_for_in(env, l) {
     mkcl_object maybe_char = MKCL_CAR(l);
     if (MKCL_CHARACTERP(maybe_char))
-      mkcl_string_push_extend(env, s, MKCL_CHAR_CODE(maybe_char));
+      *(elems++) = MKCL_CHAR_CODE(maybe_char);
     else
       mkcl_FEtype_error_character(env, maybe_char);
   } mkcl_end_loop_for_in;
@@ -376,7 +382,7 @@ mk_si_copy_to_simple_base_string(MKCL, mkcl_object x)
     }
     break;
   case mkcl_t_cons:
-    y = mkcl_coerce_list_to_base_string(env, x);
+    y = mkcl_coerce_list_to_simple_base_string(env, x);
     break;
   case mkcl_t_null:
     x = mk_cl_Cnil_symbol->symbol.name;
@@ -388,11 +394,76 @@ mk_si_copy_to_simple_base_string(MKCL, mkcl_object x)
   @(return y);
 }
 
+mkcl_object
+mkcl_coerce_to_simple_base_string(MKCL, mkcl_object x) /* This one always returns a fresh base_string. */
+{
+  mkcl_object y;
+
+  mkcl_call_stack_check(env);
+ AGAIN:
+  switch(mkcl_type_of(x)) {
+  case mkcl_t_null: /* like cl::coerce */
+    y = mkcl_core.empty_base_string;
+    break;
+  case mkcl_t_symbol: /* almost like cl::string */
+    if (x != mk_cl_Cnil_symbol)
+      {
+        x = x->symbol.name;
+        goto AGAIN;
+      }
+    else
+      y = mkcl_core.empty_base_string;
+    break;
+  case mkcl_t_character: /* like cl::string */
+    x = mk_cl_string(env, x);
+    goto AGAIN;
+  case mkcl_t_string:
+    {
+      mkcl_index index, length = x->string.fillp;
+      y = mkcl_alloc_simple_base_string(env, length);
+      for (index=0; index < length; index++) {
+	mkcl_character c = x->string.self[index];
+	if (!MKCL_BASE_CHAR_CODE_P(c))
+	  mkcl_FEerror(env, "Cannot coerce string ~A to a base-string", 1, x);
+	y->base_string.self[index] = c;
+      }
+    }
+    break;
+  case mkcl_t_base_string:
+    {
+      mkcl_index length = x->base_string.fillp;
+      y = mkcl_alloc_simple_base_string(env, length);
+      memcpy(y->base_string.self, x->base_string.self, length + 1);
+    }
+    break;
+  case mkcl_t_vector:
+    {
+      const mkcl_index fp = x->vector.fillp;
+      mkcl_index i = 0;
+
+      y = mkcl_alloc_simple_base_string(env, fp);
+      for (; i < fp; i++)
+        {
+          mkcl_object elem = mkcl_vref_index(env, x, i);
+          y->base_string.self[i] = mkcl_base_char_code(env, elem);
+        }
+    }
+    break;
+  case mkcl_t_cons:
+    y = mkcl_coerce_list_to_simple_base_string(env, x);
+    break;
+  default:
+    x = mkcl_type_error(env, @'si::coerce-to-base-string', "", x, @'string');
+    goto AGAIN;
+  }
+  @(return y);
+}
+
 mkcl_object mkcl_coerce_to_adjustable_base_string(MKCL, mkcl_object x)
 { 
   if ((mkcl_type_of(x) != mkcl_t_base_string) || !x->base_string.adjustable)
     {
-      x = mk_si_copy_to_simple_base_string(env, x);
+      x = mkcl_coerce_to_simple_base_string(env, x);
       make_base_string_adjustable(env, x);
     }
   return x;
@@ -420,7 +491,7 @@ mk_si_copy_to_simple_string(MKCL, mkcl_object x)
 
       y = mkcl_alloc_simple_character_string(env, length);
       to = y->string.self;
-      for (index=0; index < length; index++)
+      for (index = 0; index < length; index++)
 	to[index] = from[index];
       to[index] = 0;
     }
@@ -439,7 +510,7 @@ mk_si_copy_to_simple_string(MKCL, mkcl_object x)
     }
     break;
   case mkcl_t_cons:
-    y = mkcl_coerce_list_to_string(env, x);
+    y = mkcl_coerce_list_to_simple_string(env, x);
     break;
   case mkcl_t_null:
     x = mk_cl_Cnil_symbol->symbol.name;
@@ -455,7 +526,7 @@ mkcl_object mkcl_coerce_to_adjustable_string(MKCL, mkcl_object x)
 { 
   if ((mkcl_type_of(x) != mkcl_t_string) || !x->string.adjustable)
     {
-      x = mk_si_copy_to_simple_string(env, x);
+      x = mkcl_coerce_to_simple_character_string(env, x);
       make_string_adjustable(env, x);
     }
   return x;
@@ -520,7 +591,7 @@ mk_si_coerce_to_base_string(MKCL, mkcl_object x)
 
 
 mkcl_object
-mk_si_coerce_to_character_string(MKCL, mkcl_object x)
+mkcl_coerce_to_simple_character_string(MKCL, mkcl_object x) /* This one always returns a fresh string. */
 {
   mkcl_object y;
 
@@ -530,34 +601,78 @@ mk_si_coerce_to_character_string(MKCL, mkcl_object x)
     {
     case mkcl_t_base_string:
       {
-	mkcl_index index; const mkcl_index len = x->base_string.fillp;
-	y = mkcl_alloc_simple_character_string(env, len);
-	for(index=0; index < len; index++) {
-	  y->string.self[index] = x->base_string.self[index];
+        const mkcl_index length = x->base_string.fillp;
+        y = mkcl_alloc_simple_character_string(env, length);
+        {
+          mkcl_base_char * from = x->base_string.self;
+          mkcl_character * to = y->string.self;
+          mkcl_index index;
+          
+          for (index = 0; index < length; index++)
+            to[index] = from[index];
 	}
-	y->string.fillp = len;
       }
       break;
     case mkcl_t_string:
-      y = x;
+      {
+        const mkcl_index length = x->string.fillp;
+        y = mkcl_alloc_simple_character_string(env, length);
+        {
+          mkcl_character * from = x->string.self;
+          mkcl_character * to = y->string.self;
+          mkcl_index index;
+          
+          for (index = 0; index < length; index++)
+            to[index] = from[index];
+        }
+      }
       break;
     case mkcl_t_character:
       y = mkcl_alloc_simple_character_string(env, 1);
       y->string.self[0] = MKCL_CHAR_CODE(x);
       break;
     case mkcl_t_symbol:
-      x = x->symbol.name;
+      if (x == mk_cl_Cnil_symbol)
+        x = mkcl_core.empty_string;
+      else
+        x = x->symbol.name;
       goto AGAIN;
     case mkcl_t_null:
-      x = mk_cl_Cnil_symbol->symbol.name;
+      x = mkcl_core.empty_string;
       goto AGAIN;
+    case mkcl_t_vector:
+      {
+        const mkcl_index fp = x->vector.fillp;
+        mkcl_index i = 0;
+        
+        y = mkcl_alloc_simple_character_string(env, fp);
+        for (; i < fp; i++)
+          {
+            mkcl_object elem = mkcl_vref_index(env, x, i);
+            y->string.self[i] = mkcl_char_code(env, elem);
+          }
+      }
+      break;
     case mkcl_t_cons:
-      y = mkcl_coerce_list_to_string(env, x);
+      y = mkcl_coerce_list_to_simple_string(env, x);
       break;
     default:
-      x = mkcl_type_error(env, @'si::coerce-to-character-string',"",x,@'string');
+      x = mkcl_type_error(env, @'si::coerce-to-character-string', "", x, @'string');
       goto AGAIN;
     }
+  @(return y);
+}
+
+mkcl_object
+mk_si_coerce_to_character_string(MKCL, mkcl_object x)
+{
+  mkcl_object y;
+
+  mkcl_call_stack_check(env);
+  if (mkcl_type_of(x) != mkcl_t_string)
+    y = mkcl_coerce_to_simple_character_string(env, x);
+  else
+    y = x;
   @(return y);
 }
 
@@ -723,7 +838,7 @@ compare_strings(MKCL, mkcl_object string1, mkcl_index s1, mkcl_index e1,
 		mkcl_object string2, mkcl_index s2, mkcl_index e2,
 		int case_sensitive, mkcl_index *m)
 {
-  mkcl_index c1, c2;
+  mkcl_character c1, c2;
   for (; s1 < e1; s1++, s2++) {
     if (s2 >= e2) { /* s1 is longer than s2, therefore s2 < s1 */
       *m = s1;
@@ -755,7 +870,9 @@ static int
 compare_base(unsigned char *s1, mkcl_index l1, unsigned char *s2, mkcl_index l2,
 	     int case_sensitive, mkcl_index *m)
 {
-  mkcl_index l, c1, c2;
+  mkcl_index l;
+  mkcl_character c1, c2;
+
   for (l = 0; l < l1; l++, s1++, s2++) {
     if (l == l2) { /* s1 is longer than s2, therefore s2 < s1 */
       *m = l;
@@ -1069,17 +1186,40 @@ mkcl_member_char(MKCL, mkcl_character c, mkcl_object char_bag)
   case mkcl_t_cons:
     mkcl_loop_for_in(env, char_bag) {
       mkcl_object other = MKCL_CAR(char_bag);
-      if (MKCL_CHARACTERP(other) && c == MKCL_CHAR_CODE(other))
+      while (!MKCL_CHARACTERP(other))
+        other = mkcl_type_error(env, @'member', "", other, @'character');
+      if (c == MKCL_CHAR_CODE(other))
 	return(TRUE);
     } mkcl_end_loop_for_in;
     return(FALSE);
   case mkcl_t_vector:
-    for (i = 0, f = char_bag->vector.fillp;  i < f;  i++) {
-      mkcl_object other = char_bag->vector.self.t[i];
-      if (MKCL_CHARACTERP(other) && c == MKCL_CHAR_CODE(other))
-	return(TRUE);
-    }
-    return(FALSE);
+    switch (char_bag->vector.elttype)
+      {
+      case mkcl_aet_object:
+        for (i = 0, f = char_bag->vector.fillp;  i < f;  i++) {
+          mkcl_object other = char_bag->vector.self.t[i];
+          while (!MKCL_CHARACTERP(other))
+            other = mkcl_type_error(env, @'member', "", other, @'character');
+          if (c == MKCL_CHAR_CODE(other))
+            return(TRUE);
+        }
+        return(FALSE);
+      case mkcl_aet_ch:
+        for (i = 0, f = char_bag->vector.fillp;  i < f;  i++) {
+          if (c == char_bag->vector.self.c[i])
+            return(TRUE);
+        }
+        return(FALSE);
+      case mkcl_aet_bc:
+        for (i = 0, f = char_bag->vector.fillp;  i < f;  i++) {
+          if (c == char_bag->vector.self.bc[i])
+            return(TRUE);
+        }
+        return(FALSE);
+      default:
+        char_bag = mkcl_type_error(env, @'member', "", char_bag, @'sequence');
+        goto AGAIN;
+      }
   case mkcl_t_string:
     for (i = 0, f = char_bag->string.fillp;  i < f;  i++) {
       if (c == char_bag->string.self[i])
@@ -1110,14 +1250,14 @@ string_trim0(MKCL, bool left_trim, bool right_trim, mkcl_object char_bag, mkcl_o
   j = mkcl_length(env, strng);
   if (left_trim) {
     for (;  i < j;  i++) {
-      mkcl_index c = mkcl_char(env, strng, i);
+      mkcl_character c = mkcl_char(env, strng, i);
       if (!mkcl_member_char(env, c, char_bag))
 	break;
     }
   }
   if (right_trim) {
     for (; j > i; j--) {
-      mkcl_index c = mkcl_char(env, strng, j-1);
+      mkcl_character c = mkcl_char(env, strng, j-1);
       if (!mkcl_member_char(env, c, char_bag)) {
 	break;
       }
@@ -1285,21 +1425,37 @@ nstring_case(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_casefun casefun, mkcl_v
 @)
 
 @(defun si::concatenate_base_strings (&rest args)
-  mkcl_index l;
-  int i;
   mkcl_object output;
 @
   if (narg == 1) {
-    mkcl_object s = mkcl_va_arg(args);
+    mkcl_object arg = mkcl_va_arg(args);
     
-    if (MKCL_BASE_STRING_P(s))
-      output = mkcl_copy_base_string(env, s);
+    if (MKCL_BASE_STRING_P(arg))
+      output = mkcl_copy_base_string(env, arg);
+    else if (mkcl_Null(arg))
+      output = mkcl_core.empty_base_string;
+    else if (MKCL_STRINGP(arg) || MKCL_CONSP(arg) || MKCL_VECTORP(arg))
+      output = mkcl_coerce_to_simple_base_string(env, arg);
     else
-      output = mk_si_coerce_to_base_string(env, s);
+      mkcl_FEtype_error_sequence(env, arg);
   } else {
+    mkcl_index l;
+    mkcl_narg i;
+
     /* Compute final size and store NONEMPTY coerced strings. */
     for (i = 0, l = 0; i < narg; i++) {
-      mkcl_object s = mk_si_coerce_to_base_string(env, mkcl_va_arg(args));
+      mkcl_object arg = mkcl_va_arg(args);
+      mkcl_object s;
+
+      if (MKCL_BASE_STRING_P(arg))
+        s = arg;
+      else if (mkcl_Null(arg))
+        s = mkcl_core.empty_base_string;
+      else if (MKCL_STRINGP(arg) || MKCL_CONSP(arg) || MKCL_VECTORP(arg))
+        s = mkcl_coerce_to_simple_base_string(env, arg);
+      else
+        mkcl_FEtype_error_sequence(env, arg);
+
       if (s->base_string.fillp) {
 	MKCL_TEMP_STACK_PUSH(env, s);
 	l += s->base_string.fillp;
@@ -1352,21 +1508,37 @@ mkcl_object mkcl_concatenate_3_base_strings(MKCL, mkcl_object str1, mkcl_object 
 }
 
 @(defun si::concatenate_strings (&rest args)
-  mkcl_index l;
-  int i;
   mkcl_object output;
 @
   if (narg == 1) {
-    mkcl_object s = mkcl_va_arg(args);
+    mkcl_object arg = mkcl_va_arg(args);
     
-    if (MKCL_CHARACTER_STRING_P(s))
-      output = mkcl_copy_string(env, s);
+    if (MKCL_CHARACTER_STRING_P(arg))
+      output = mkcl_copy_string(env, arg);
+    else if (mkcl_Null(arg))
+      output = mkcl_core.empty_string;
+    else if (MKCL_BASE_STRING_P(arg) || MKCL_CONSP(arg) || MKCL_VECTORP(arg))
+      output = mkcl_coerce_to_simple_character_string(env, arg);
     else
-      output = mk_si_coerce_to_character_string(env, s);
+      mkcl_FEtype_error_sequence(env, arg);
   } else {
+    mkcl_index l;
+    mkcl_narg i;
+
     /* Compute final size and store NONEMPTY coerced strings. */
     for (i = 0, l = 0; i < narg; i++) {
-      mkcl_object s = mk_si_coerce_to_character_string(env, mkcl_va_arg(args));
+      mkcl_object arg = mkcl_va_arg(args);
+      mkcl_object s;
+
+      if (MKCL_CHARACTER_STRING_P(arg))
+        s = arg;
+      else if (mkcl_Null(arg))
+        s = mkcl_core.empty_string;
+      else if (MKCL_BASE_STRING_P(arg) || MKCL_CONSP(arg) || MKCL_VECTORP(arg))
+        s = mkcl_coerce_to_simple_character_string(env, arg);
+      else
+        mkcl_FEtype_error_sequence(env, arg);
+
       if (s->string.fillp) {
 	MKCL_TEMP_STACK_PUSH(env, s);
 	l += s->string.fillp;
@@ -1390,8 +1562,8 @@ mkcl_object mkcl_concatenate_2_strings(MKCL, mkcl_object str1, mkcl_object str2)
   if (mkcl_unlikely(!MKCL_STRINGP(str1))) mkcl_FEtype_error_string(env, str1);
   if (mkcl_unlikely(!MKCL_STRINGP(str2))) mkcl_FEtype_error_string(env, str2);
 
-  if (str1->d.t == mkcl_t_base_string) str1 = mk_si_coerce_to_character_string(env, str1);
-  if (str2->d.t == mkcl_t_base_string) str2 = mk_si_coerce_to_character_string(env, str2);
+  if (str1->d.t == mkcl_t_base_string) str1 = mkcl_coerce_to_simple_character_string(env, str1);
+  if (str2->d.t == mkcl_t_base_string) str2 = mkcl_coerce_to_simple_character_string(env, str2);
 
   mkcl_index len1 = str1->string.fillp;
   mkcl_index len2 = str2->string.fillp;
@@ -1409,9 +1581,9 @@ mkcl_object mkcl_concatenate_3_strings(MKCL, mkcl_object str1, mkcl_object str2,
   if (mkcl_unlikely(!MKCL_STRINGP(str2))) mkcl_FEtype_error_string(env, str2);
   if (mkcl_unlikely(!MKCL_STRINGP(str3))) mkcl_FEtype_error_string(env, str3);
 
-  if (str1->d.t == mkcl_t_base_string) str1 = mk_si_coerce_to_character_string(env, str1);
-  if (str2->d.t == mkcl_t_base_string) str2 = mk_si_coerce_to_character_string(env, str2);
-  if (str3->d.t == mkcl_t_base_string) str3 = mk_si_coerce_to_character_string(env, str3);
+  if (str1->d.t == mkcl_t_base_string) str1 = mkcl_coerce_to_simple_character_string(env, str1);
+  if (str2->d.t == mkcl_t_base_string) str2 = mkcl_coerce_to_simple_character_string(env, str2);
+  if (str3->d.t == mkcl_t_base_string) str3 = mkcl_coerce_to_simple_character_string(env, str3);
 
   mkcl_index len1 = str1->string.fillp;
   mkcl_index len2 = str2->string.fillp;
@@ -1686,7 +1858,7 @@ mkcl_search_in_string(MKCL, mkcl_object str1, mkcl_object str2)
   if (str2->string.t == mkcl_t_base_string)
     {
       if (str1->string.t == mkcl_t_string)
-	str1 = mk_si_coerce_to_base_string(env, str1);
+	str1 = mkcl_coerce_to_base_string(env, str1);
       return mkcl_search_in_base_string(env, str1, str2);
     }
 
@@ -1795,7 +1967,7 @@ mkcl_object mkcl_replace_in_string(MKCL, mkcl_object str1, mkcl_object str2)
       if (str1->string.t == mkcl_t_string)
 	str2 = mk_si_coerce_to_character_string(env, str2);
       else
-	str2 = mk_si_coerce_to_base_string(env, str2);
+	str2 = mkcl_coerce_to_base_string(env, str2);
     }
 
   const mkcl_index end1 = str1->string.fillp;
@@ -1836,7 +2008,7 @@ mkcl_object mkcl_replace_in_string_k(MKCL, mkcl_object str1, mkcl_object str2,
       if (str1->string.t == mkcl_t_string)
 	str2 = mk_si_coerce_to_character_string(env, str2);
       else
-	str2 = mk_si_coerce_to_base_string(env, str2);
+	str2 = mkcl_coerce_to_base_string(env, str2);
     }
 
   if (end1 == -1) end1 = str1->string.fillp;

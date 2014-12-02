@@ -205,6 +205,9 @@ into the structure at their position.  For example,
 (deftype proper-list ()
   '(OR (CONS T PROPER-LIST) NULL))
 
+(deftype proper-sequence ()
+  '(OR PROPER-LIST VECTOR))
+
 (deftype property-list ()
   '(OR (CONS T (CONS T PROPERTY-LIST)) NULL))
 

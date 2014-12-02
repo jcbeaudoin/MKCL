@@ -437,7 +437,7 @@ parse_word(MKCL, mkcl_object s, delim_fn delim, int flags,
     case 0:
       if (flags & WORD_EMPTY_IS_NIL)
         return mk_cl_Cnil;
-      return mkcl_core.empty_string;
+      return mkcl_core.empty_base_string;
     case 1:
       if ((mkcl_char(env, s,j) == '*') && (specificity == mkcl_may_be_wild_namestring))
         return @':wild';
@@ -491,7 +491,7 @@ parse_directories(MKCL, mkcl_object s, int flags,
     mkcl_object part = parse_word(env, s, delim, flags, j, end, &i, specificity);
     if (part == @':error' || part == mk_cl_Cnil)
       break;
-    if (part == mkcl_core.empty_string) {  /* "/", ";" */
+    if (part == mkcl_core.empty_base_string) {  /* "/", ";" */
       if (j != start) {
 	if (flags & WORD_LOGICAL)
 	  return @':error';
@@ -780,7 +780,7 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
 	type = parse_word(env, s, is_null, WORD_ALLOW_ASTERISK, *ep, end, ep, specificity);
 	if (type == @':error')
 	  return mk_cl_Cnil;
-	if (!mkcl_Null(mk_cl_stringE(env, 2, type, mkcl_core.empty_string))
+	if (!mkcl_Null(mk_cl_stringE(env, 2, type, mkcl_core.empty_base_string))
 	    && !mkcl_Null(mk_cl_stringE(env, 2, name, mkcl_core.dot_string)))
 	  {
 	    if (mkcl_Null(dir))
@@ -1642,7 +1642,7 @@ mk_cl_host_namestring(MKCL, mkcl_object pname)
   pname = mk_cl_pathname(env, pname);
   pname = pname->pathname.host;
   if (mkcl_Null(pname) || pname == @':wild')
-    pname = mkcl_core.empty_string;
+    pname = mkcl_core.empty_base_string;
   @(return pname);
 }
 

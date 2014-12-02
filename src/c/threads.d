@@ -3070,7 +3070,7 @@ mk_mt_thread_whostate(MKCL, mkcl_object thread)
 {
   mkcl_call_stack_check(env);
   mkcl_assert_type_thread(env, thread);
-  @(return (mkcl_core.empty_string));
+  @(return (mkcl_core.empty_base_string));
 }
 #endif
 

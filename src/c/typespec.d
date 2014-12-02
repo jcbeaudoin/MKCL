@@ -145,6 +145,15 @@ mkcl_FEtype_error_sequence(MKCL, mkcl_object x) {
 }
 
 void
+mkcl_FEtype_error_proper_sequence(MKCL, mkcl_object x) {
+  mk_cl_error(env, 9, @'simple-type-error',
+	      @':format-control', mkcl_make_simple_base_string(env, "Not a proper sequence ~D"),
+	      @':format-arguments', mk_cl_list(env, 1, x),
+	      @':expected-type', mkcl_fast_read_from_cstring(env, "si::proper-sequence"),
+	      @':datum', x);
+}
+
+void
 mkcl_FEtype_error_array(MKCL, mkcl_object x) {
   mkcl_FEwrong_type_argument(env, @'array', x);
 }

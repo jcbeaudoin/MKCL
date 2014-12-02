@@ -26,7 +26,7 @@
 	 (read-only (nth 3 slot-descr))
 	 (offset (nth 4 slot-descr))
 	 (access-function (if conc-name
-			      (intern (concatenate-base-strings conc-name slot-name))
+			      (intern (concatenate-base-strings (string conc-name) (string slot-name)))
 			      slot-name)))
     (if (eql access-function (sixth slot-descr))
 	(return-from make-access-function nil)
@@ -355,10 +355,10 @@ as a STRUCTURE doc and can be retrieved by (documentation 'NAME 'structure)."
   (let*((slot-descriptions slots)
 	(name (if (consp name&opts) (first name&opts) name&opts))
         (options (when (consp name&opts) (rest name&opts)))
-        (conc-name (concatenate-base-strings name "-"))
-	(default-constructor (intern (concatenate-base-strings "MAKE-" name)))
-	(copier (intern (concatenate-base-strings "COPY-" name)))
-	(predicate (intern (concatenate-base-strings name "-P")))
+        (conc-name (concatenate-base-strings (string name) "-"))
+	(default-constructor (intern (concatenate-base-strings "MAKE-" (string name))))
+	(copier (intern (concatenate-base-strings "COPY-" (string name))))
+	(predicate (intern (concatenate-base-strings (string name) "-P")))
         constructors no-constructor
         predicate-specified
         include

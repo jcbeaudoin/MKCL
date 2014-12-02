@@ -1714,7 +1714,7 @@ mk_si_room_report(MKCL, mkcl_object label)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(label) == mkcl_t_string)
-    label = mk_si_coerce_to_base_string(env, label);
+    label = mkcl_coerce_to_base_string(env, label);
   if (mkcl_type_of(label) == mkcl_t_base_string)
       fprintf(stderr, "\n%s:\n", label->base_string.self);
   

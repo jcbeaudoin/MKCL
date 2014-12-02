@@ -369,7 +369,8 @@ static void _mkcl_boot_inner(MKCL)
   mkcl_core.gc_fast_counter = 0;
   mkcl_core.gc_stats = FALSE;
 
-  mkcl_core.empty_string = mkcl_make_simple_base_string(env, "");
+  mkcl_core.empty_base_string = mkcl_make_simple_base_string(env, "");
+  mkcl_core.empty_string = mk_si_coerce_to_character_string(env, mkcl_core.empty_base_string);
   mkcl_core.dot_string = mkcl_make_simple_base_string(env, ".");
   mkcl_core.dot_dot_string = mkcl_make_simple_base_string(env, "..");
   mkcl_core.localhost_string = mkcl_make_simple_base_string(env, "localhost");
@@ -1129,7 +1130,7 @@ mkcl_setenv(MKCL, mkcl_object var, mkcl_object value)
     unsetenv((char*)mkcl_OSstring_self(os_var));
 # else
 #  ifdef MKCL_WINDOWS
-    mkcl_setenv(env, var, mkcl_core.empty_string);
+    mkcl_setenv(env, var, mkcl_core.empty_base_string);
 #  else
     putenv((char*)mkcl_OSstring_self(os_var));
 #  endif

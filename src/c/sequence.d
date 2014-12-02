@@ -119,7 +119,7 @@ mkcl_elt_set(MKCL, mkcl_object seq, mkcl_word index, mkcl_object val)
       if (index >= seq->base_string.fillp)
 	goto E;
       /* INV: mkcl_char_code() checks the type of `val' */
-      seq->base_string.self[index] = mkcl_char_code(env, val);
+      seq->base_string.self[index] = mkcl_base_char_code(env, val);
       return(val);
 
     default:
@@ -230,20 +230,36 @@ mk_cl_length(MKCL, mkcl_object x)
 mkcl_index
 mkcl_length(MKCL, mkcl_object x)
 {
-  mkcl_word i;
-
   if ( mkcl_Null(x) ) return(0);
   else
     switch (mkcl_type_of(x))
       {
-      case mkcl_t_cons:
-	/* INV: A list's length always fits in a fixnum */
-	i = 0;
-	mkcl_loop_for_in(env, x) {
+      case mkcl_t_cons: {
+	register mkcl_index i = 0; /* INV: A list's length always fits in a fixnum */
+
+#if 0 
+	mkcl_loop_for_in(env, x) { /* This is the unsafe version (on circular list). JCB */
 	  i++;
 	} mkcl_end_loop_for_in;
-	return(i);
-
+#else
+        {
+          register mkcl_object fast, slow;
+          
+          fast = slow = x;
+          for (i = 0; !mkcl_Null(fast); i++, fast = MKCL_CONS_CDR(fast)) {
+            if (!MKCL_CONSP(fast)) {
+              mkcl_FEtype_error_proper_sequence(env, x);
+            }
+            if (slow == fast && i != 0)
+              mkcl_FEtype_error_proper_sequence(env, x); /* Circular list! */
+            if (i & 1) { /* move only on odd beat. */
+              slow = MKCL_CONS_CDR(slow);
+            }
+          }
+        }
+#endif
+        return(i);
+      }
       case mkcl_t_string:
 	return(x->string.fillp);
       case mkcl_t_base_string:

@@ -810,7 +810,7 @@ double_quote_reader(MKCL, mkcl_object in, mkcl_object c)
     mkcl_string_push_extend(env, token, c);
   }
   if (mkcl_fits_in_base_string(env, token))
-    output = mk_si_coerce_to_base_string(env, token);
+    output = mkcl_coerce_to_base_string(env, token);
   else
     output = mk_cl_copy_seq(env, token);
   mk_si_put_buffer_string(env, token);

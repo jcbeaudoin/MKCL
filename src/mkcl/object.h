@@ -175,10 +175,10 @@ extern "C" {
 #define MKCL_CHARACTER_TAG	  mkcl_t_character
 #define MKCL_CHARACTERP(o)	  (MKCL_IMMEDIATE(o) == mkcl_t_character)
 
-# define MKCL_BASE_CHAR_P(c)      (MKCL_CHARACTER_TAG == (((mkcl_word)(c)) & 0xffff0003))
-# define MKCL_BASE_CHAR_CODE_P(x) (((mkcl_word)(x)) <= 255)
-# define MKCL_CODE_CHAR(c)	  ((mkcl_object) ((((mkcl_word) (c)) << 8) | MKCL_CHARACTER_TAG))
-# define MKCL_CHAR_CODE(obje)	  (((mkcl_word)(obje)) >> 8)
+# define MKCL_BASE_CHAR_P(c)      (MKCL_CHARACTER_TAG == (((mkcl_index)(c)) & 0xffff0003))
+# define MKCL_BASE_CHAR_CODE_P(x) (((mkcl_index)(x)) <= 255)
+# define MKCL_CODE_CHAR(c)	  ((mkcl_object) ((((mkcl_index) (c)) << 8) | MKCL_CHARACTER_TAG))
+# define MKCL_CHAR_CODE(obje)	  (((mkcl_index)(obje)) >> 8)
 
 
 #define MKCL_CHAR_CODE_RETURN	13   /* This is ASCII character CR. */

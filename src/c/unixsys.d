@@ -141,7 +141,7 @@ static mkcl_object read_command_output(MKCL, HANDLE child_stdout_read)
 @(defun mkcl::run-command (command directory &key real_name)
 @
   mkcl_dynamic_extent_OSstring(env, os_command, command);
-  mkcl_dynamic_extent_OSstring(env, os_new_directory, (mkcl_Null(directory) ? mkcl_core.empty_string : directory));
+  mkcl_dynamic_extent_OSstring(env, os_new_directory, (mkcl_Null(directory) ? mkcl_core.empty_base_string : directory));
   wchar_t * os_raw_new_directory = NULL;
   mkcl_object output;
   STARTUPINFOW StartUp;
