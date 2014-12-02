@@ -379,9 +379,8 @@ mk_cl_list_length(MKCL, mkcl_object x)
     if (!MKCL_LISTP(fast)) {
       mkcl_FEtype_error_list(env, fast);
     }
-    if (slow == fast && n != 0) { @(return mk_cl_Cnil); }
-    if (n & 1) {
-      /* Circular list? */
+    if (slow == fast && n != 0) { @(return mk_cl_Cnil); } /* Circular list! */
+    if (n & 1) { /* move only on odd beat. */
       slow = MKCL_CONS_CDR(slow);
     }
   }
