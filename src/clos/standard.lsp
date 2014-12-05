@@ -715,10 +715,6 @@
   (multiple-value-bind (metaclass direct-superclasses options)
       (apply #'help-ensure-class rest)
     (declare (ignore direct-superclasses))
-    (cond #+(or) ((forward-referenced-class-p class)
-		  (change-class class metaclass))
-	  ((not (eq (class-of class) metaclass))
-	   (error "When redefining a class, the metaclass can not change.")))
     (when (member :class *warn-on-redefinition*)
       (warn 'mkcl::simple-style-warning
 	    :format-control "~&Redefining class ~A.~%   ~
@@ -730,7 +726,10 @@
     (return-from ensure-class-using-class class) ;; No redefinition during bootstrap. JCB
 
     (if *redefine-class-in-place*
-	(apply #'reinitialize-instance class :name name options)
+        (progn
+          (unless (eq (class-of class) metaclass)
+            (change-class class metaclass))
+          (apply #'reinitialize-instance class :name name options))
       (let ((new-class (apply #'make-instance metaclass
 			      :name name :previous class
 			      :version (1+ (class-version class))
@@ -739,9 +738,7 @@
 	  (redefine-subclasses class new-class))
 	(when *migrate-methods-on-class-redefinition*
 	  (migrate-spec-users class new-class))
-	new-class
-	)
-      )))
+	new-class))))
 
 (defun coerce-to-class (class-or-symbol &optional (fail nil) &key options)
   (cond ((si:instancep class-or-symbol) class-or-symbol)
