@@ -728,7 +728,14 @@
     (if *redefine-class-in-place*
         (progn
           (unless (eq (class-of class) metaclass)
-            (change-class class metaclass))
+            ;; AMOP p.193 end of second paragraph says that we should signal an error here.
+            ;; But this prohibition really matters only if there is existing instances
+            ;; of the 'class' to be changed in the image such that an 'instance update'
+            ;; could be triggered on them.
+            ;; Otherwise this prohibition is an exaggeration and a general PITA.
+            ;; As of this date (2014/12/05), even SBCL does not believe in it. So don't we.
+            ;;(error "When redefining a class, the metaclass can not change.")
+            (apply #'change-class class metaclass :name name options))
           (apply #'reinitialize-instance class :name name options))
       (let ((new-class (apply #'make-instance metaclass
 			      :name name :previous class
