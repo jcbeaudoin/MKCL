@@ -429,25 +429,26 @@ search_method_hash(MKCL, mkcl_object keys)
 static mkcl_object
 get_spec_vector(MKCL, mkcl_object frame, mkcl_object gf)
 {
-  mkcl_object *args = frame->frame.base;
-  mkcl_index narg = frame->frame.size;
+  mkcl_object * const args = frame->frame.base;
+  mkcl_index const narg = frame->frame.size;
   mkcl_object spec_how_list = MKCL_GFUN_SPEC(gf);
   mkcl_object vector = env->method_spec_vector;
   mkcl_object *argtype = vector->vector.self.t;
-  int spec_no = 1;
+  mkcl_index spec_no = 1;
+
   argtype[0] = gf;
   mkcl_loop_for_on_unsafe(spec_how_list) {
     mkcl_object spec_how = MKCL_CONS_CAR(spec_how_list);
     mkcl_object spec_type = MKCL_CONS_CAR(spec_how);
-    int spec_position = mkcl_fixnum_to_word(MKCL_CONS_CDR(spec_how));
+    mkcl_narg spec_position = mkcl_fixnum_to_word(MKCL_CONS_CDR(spec_how));
+    if (spec_no >= vector->vector.dim)
+      return MKCL_OBJNULL; /* cache key size overflow. JCB */
     if (spec_position >= narg)
       mkcl_FEwrong_num_arguments(env, gf);
     argtype[spec_no++] =
       (MKCL_ATOM(spec_type) || mkcl_Null(mkcl_memql(env, args[spec_position], spec_type)))
       ? mk_cl_class_of(env, args[spec_position])
       : args[spec_position];
-    if (spec_no > vector->vector.dim)
-      return MKCL_OBJNULL; /* cache key size overflow. JCB */
   } mkcl_end_loop_for_on;
   vector->vector.fillp = spec_no;
   return vector;
