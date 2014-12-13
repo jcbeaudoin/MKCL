@@ -445,10 +445,19 @@ get_spec_vector(MKCL, mkcl_object frame, mkcl_object gf)
       return MKCL_OBJNULL; /* cache key size overflow. JCB */
     if (spec_position >= narg)
       mkcl_FEwrong_num_arguments(env, gf);
-    argtype[spec_no++] =
-      (MKCL_ATOM(spec_type) || mkcl_Null(mkcl_memql(env, args[spec_position], spec_type)))
-      ? mk_cl_class_of(env, args[spec_position])
-      : args[spec_position];
+
+    {
+      const mkcl_object arg = args[spec_position];
+
+      if (MKCL_ATOM(spec_type))
+        argtype[spec_no++] = mk_cl_class_of(env, arg);
+      else
+        {
+          const mkcl_object pseudo_eql_spec = mkcl_memql(env, arg, spec_type);
+          
+          argtype[spec_no++] = (mkcl_Null(pseudo_eql_spec) ? mk_cl_class_of(env, arg) : pseudo_eql_spec);
+        }
+    }
   } mkcl_end_loop_for_on;
   vector->vector.fillp = spec_no;
   return vector;
