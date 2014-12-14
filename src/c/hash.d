@@ -1362,16 +1362,20 @@ mkcl_object
 mk_si_copy_hash_table(MKCL, mkcl_object orig)
 {
   mkcl_object hash;
-  long i, size;
 
   mkcl_call_stack_check(env);
   hash = mk_cl__make_hash_table(env, mk_cl_hash_table_test(env, orig),
 				mk_cl_hash_table_size(env, orig),
 				mk_cl_hash_table_rehash_size(env, orig),
 				mk_cl_hash_table_rehash_threshold(env, orig));
-  size = orig->hash.size;
-  for (i = 0; i < size; i++)
-    hash->hash.data[i] = copy_hash_table_chain(env, orig->hash.data[i]);
+
+  {
+    const mkcl_index size = orig->hash.size;
+    mkcl_index i;
+    
+    for (i = 0; i < size; i++)
+      hash->hash.data[i] = copy_hash_table_chain(env, orig->hash.data[i]);
+  }
   hash->hash.entries = orig->hash.entries;
 
   @(return hash);
