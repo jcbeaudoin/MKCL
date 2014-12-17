@@ -96,12 +96,12 @@ _hash_equal(int depth, mkcl_hashkey h, mkcl_object x)
   case mkcl_t_string:
     return hash_full_string(x->string.self, x->string.fillp, h);
   case mkcl_t_pathname:
-    h = _hash_equal(0, h, x->pathname.directory);
-    h = _hash_equal(0, h, x->pathname.name);
-    h = _hash_equal(0, h, x->pathname.type);
-    h = _hash_equal(0, h, x->pathname.host);
-    h = _hash_equal(0, h, x->pathname.device);
-    return _hash_equal(0, h, x->pathname.version);
+    h = _hash_equal(2, h, x->pathname.directory);
+    h = _hash_equal(2, h, x->pathname.name);
+    h = _hash_equal(2, h, x->pathname.type);
+    h = _hash_equal(2, h, x->pathname.host);
+    h = _hash_equal(2, h, x->pathname.device);
+    return _hash_equal(2, h, x->pathname.version);
   case mkcl_t_bitvector:
     /* Notice that we may round out some bits. We must do this
      * because the fill pointer may be set in the middle of a byte.
@@ -110,7 +110,7 @@ _hash_equal(int depth, mkcl_hashkey h, mkcl_object x)
      * have different hash keys. */
     return hash_string(h, x->vector.self.bc, x->vector.fillp / 8);
   case mkcl_t_random:
-    return _hash_equal(0, h, x->random.value);
+    return _hash_equal(1, h, x->random.value);
 #ifdef MKCL_SIGNED_ZERO
   case mkcl_t_singlefloat: {
     float f = mkcl_single_float(x);
@@ -188,11 +188,11 @@ _hash_equalp(MKCL, int depth, mkcl_hashkey h, mkcl_object x)
     /* FIXME! We should be more precise here! */
     return _hash_equal(depth, h, x);
   case mkcl_t_ratio:
-    h = _hash_equalp(env, 0, h, x->ratio.num);
-    return _hash_equalp(env, 0, h, x->ratio.den);
+    h = _hash_equalp(env, 1, h, x->ratio.num);
+    return _hash_equalp(env, 1, h, x->ratio.den);
   case mkcl_t_complex:
-    h = _hash_equalp(env, 0, h, x->_complex.real);
-    return _hash_equalp(env, 0, h, x->_complex.imag);
+    h = _hash_equalp(env, 1, h, x->_complex.real);
+    return _hash_equalp(env, 1, h, x->_complex.imag);
   case mkcl_t_instance:
   case mkcl_t_hashtable:
     /* FIXME! We should be more precise here! */
