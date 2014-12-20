@@ -323,17 +323,18 @@ mk_si_clear_gfun_cache(MKCL, mkcl_object what)
 static mkcl_index
 vector_hash_key(mkcl_object keys)
 {
+  mkcl_object * const t = keys->vector.self.t;
   mkcl_index c, n, a = GOLDEN_RATIO, b = GOLDEN_RATIO;
-  for (c = 0, n = keys->vector.fillp; n >= 3; ) {
-    c += keys->vector.self.index[--n];
-    b += keys->vector.self.index[--n];
-    a += keys->vector.self.index[--n];
+  for (c = 0, n = keys->vector.fillp; n >= 3; n -= 3) {
+    c += ((mkcl_index) t[n - 1]);
+    b += ((mkcl_index) t[n - 2]);
+    a += ((mkcl_index) t[n - 3]);
     mix(a, b, c);
   }
   switch (n) {
-  case 2:	b += keys->vector.self.index[--n];
-  case 1:	a += keys->vector.self.index[--n];
-    c += keys->vector.dim;
+  case 2:	b += ((mkcl_index) t[1]);
+  case 1:	a += ((mkcl_index) t[0]);
+    c += keys->vector.fillp;
     mix(a,b,c);
   }
   return c;
