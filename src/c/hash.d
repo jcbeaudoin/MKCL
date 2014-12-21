@@ -1307,16 +1307,26 @@ mk_cl_sxhash(MKCL, mkcl_object key)
 mkcl_object
 mk_cl_maphash(MKCL, mkcl_object fun, mkcl_object ht)
 {
-  mkcl_index i;
-
   mkcl_call_stack_check(env);
   mkcl_assert_type_hash_table(env, ht);
-  for (i = 0;  i < ht->hash.size;  i++) {
-    struct mkcl_hashtable_entry * e = ht->hash.data[i];
 
-    for (; e != NULL; e = e->next)
-      if(e->key != MKCL_OBJNULL)
-	mkcl_funcall2(env, fun, e->key, e->value);
+  struct mkcl_hashtable_entry ** const data = ht->hash.data;
+  const mkcl_index hsize = ht->hash.size;
+  mkcl_index i;
+
+  for (i = 0;  i < hsize;  i++) {
+    struct mkcl_hashtable_entry * e = data[i];
+
+    while (e != NULL)
+      if(e->key == MKCL_OBJNULL)
+        e = e->next;
+      else
+        {
+          struct mkcl_hashtable_entry * const next = e->next; /* we sample since fun may call remhash on entry. */
+
+          mkcl_funcall2(env, fun, e->key, e->value);
+          e = next;
+        }
   }
   @(return mk_cl_Cnil);
 }
