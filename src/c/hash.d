@@ -1185,38 +1185,48 @@ mk_cl_hash_table_count(MKCL, mkcl_object ht)
 }
 
 static mkcl_object
-mk_si_hash_table_iterate(MKCL, mkcl_narg narg)
+mkcl_hash_table_iterate(MKCL, mkcl_narg narg)
 {
-  mkcl_object closure_display = env->function->cclosure.cenv;
-  mkcl_object chain_index = closure_display->display.level[0]->lblock.var[2];
-  mkcl_object index = closure_display->display.level[0]->lblock.var[1];
-  mkcl_object ht = closure_display->display.level[0]->lblock.var[0];
+  mkcl_object const closure_display = env->function->cclosure.cenv;
+  mkcl_object const next_wrapper = closure_display->display.level[0]->lblock.var[1];
+  struct mkcl_hashtable_entry * const next = mkcl_foreign_raw_pointer(env, next_wrapper);
+  mkcl_object const ht = closure_display->display.level[0]->lblock.var[0];
+  mkcl_index bucket_index = mkcl_fixnum_to_word(closure_display->display.level[0]->lblock.var[2]);
+  const mkcl_index hsize = ht->hash.size;
 
   mkcl_call_stack_check(env);
-  if (!mkcl_Null(chain_index)) {
-    mkcl_word i = mkcl_fixnum_to_word(chain_index);
-    mkcl_word j = mkcl_fixnum_to_word(index);
-	  
-    if (i < 0)
-      { i = 0; }
 
-    for (; i < ht->hash.size; i++, j = -1) {
-      mkcl_word k = 0;
-      struct mkcl_hashtable_entry * e = ht->hash.data[i];
-	    
-      for (; k <= j && e != NULL; k++, e = e->next);
-	    
-      for (; e != NULL; k++, e = e->next)
-	if (e->key != MKCL_OBJNULL) {
-	  mkcl_object chain_ndx = MKCL_MAKE_FIXNUM(i);
-	  mkcl_object ndx = MKCL_MAKE_FIXNUM(k);
-	  closure_display->display.level[0]->lblock.var[2] = chain_ndx;
-	  closure_display->display.level[0]->lblock.var[1] = ndx;
-	  @(return mk_cl_Ct e->key e->value);
-	}
+  if (next)
+    { /* We have a bucket to scan. */
+      struct mkcl_hashtable_entry * e = next;
+
+      for (; e != NULL; e = e->next)
+	if (e->key != MKCL_OBJNULL) { /* next in bucket. Pop and return it. */
+          /* bucket_index has not changed. */
+          next_wrapper->foreign.data = (void *) e->next;
+          @(return mk_cl_Ct e->key e->value);
+        }      
     }
-    closure_display->display.level[0]->lblock.var[2] = mk_cl_Cnil;
-  }
+  else if (bucket_index < hsize)
+    bucket_index++;
+
+  for (; bucket_index < hsize; bucket_index++) {
+    struct mkcl_hashtable_entry * e = ht->hash.data[bucket_index];
+    
+    if (e)
+      { /* The bucket has some entries. Scan them. */
+        for (; e != NULL; e = e->next)
+          if (e->key != MKCL_OBJNULL) {
+            const mkcl_object _bucket_index = MKCL_MAKE_FIXNUM(bucket_index);
+            closure_display->display.level[0]->lblock.var[2] = _bucket_index;
+            next_wrapper->foreign.data = (void *) e->next;
+            @(return mk_cl_Ct e->key e->value);
+          }      
+      }
+  }     
+  /* If we reach here then the iteration is complete. */
+  closure_display->display.level[0]->lblock.var[2] = MKCL_MAKE_FIXNUM(bucket_index);
+  next_wrapper->foreign.data = NULL;
   @(return mk_cl_Cnil mk_cl_Cnil mk_cl_Cnil);
 }
 
@@ -1232,15 +1242,17 @@ mk_si_hash_table_iterator(MKCL, mkcl_object ht)
 
     closure_block->lblock.producer = mk_cl_Cnil;
     closure_block->lblock.var[0] = ht;
-    closure_block->lblock.var[1] = MKCL_MAKE_FIXNUM(-1);
-    closure_block->lblock.var[2] = MKCL_MAKE_FIXNUM(-1);
+    closure_block->lblock.var[1] = mkcl_make_foreign(env, mk_cl_Cnil,
+                                                     sizeof(struct mkcl_hashtable_entry), 
+                                                     ht->hash.data[0]);
+    closure_block->lblock.var[2] = MKCL_MAKE_FIXNUM(0);
 
     closure_syms_block->lblock.producer = mk_cl_Cnil;
     closure_syms_block->lblock.var[0] = mkcl_make_simple_base_string(env, "si::htable");
-    closure_syms_block->lblock.var[1] = mkcl_make_simple_base_string(env, "si::bin-nth");
-    closure_syms_block->lblock.var[2] = mkcl_make_simple_base_string(env, "si::index");
+    closure_syms_block->lblock.var[1] = mkcl_make_simple_base_string(env, "si::next-wrapper");
+    closure_syms_block->lblock.var[2] = mkcl_make_simple_base_string(env, "si::bucket-index");
 
-    @(return mkcl_make_cclosure_va(env, mk_cl_Cnil, (mkcl_objectfn)mk_si_hash_table_iterate, 1,
+    @(return mkcl_make_cclosure_va(env, mk_cl_Cnil, (mkcl_objectfn)mkcl_hash_table_iterate, 1,
 				   closure_syms_block, closure_block,
 				   @'si::hash-table-iterator', -1));
   }
