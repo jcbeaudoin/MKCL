@@ -1,7 +1,7 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: CLOS -*-
 ;;;;
 ;;;;  Copyright (c) 1992, Giuseppe Attardi.
-;;;;  Copyright (c) 2010-2014, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2015, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -747,20 +747,23 @@
 	  (migrate-spec-users class new-class))
 	new-class))))
 
-(defun coerce-to-class (class-or-symbol &optional (fail nil) &key options)
+(defvar *warn-on-forward-referenced-class* nil)
+
+(defun coerce-to-class (class-or-symbol &optional (fail nil))
   (cond ((si:instancep class-or-symbol) class-or-symbol)
 	((not (symbolp class-or-symbol))
 	 (error "~a is not a valid class specifier." class-or-symbol))
 	((find-class class-or-symbol fail))
 	(t
-	 (warn 'mkcl::simple-style-warning
-	       :format-control "Class ~A has been forward referenced."
-	       :format-arguments (list class-or-symbol))
+         (when *warn-on-forward-referenced-class*
+           (warn 'mkcl::simple-style-warning
+                 :format-control "Class ~A has been forward referenced."
+                 :format-arguments (list class-or-symbol)))
 	 (ensure-class class-or-symbol
 		       :metaclass 'forward-referenced-class
 		       :direct-superclasses (list (find-class 'standard-object))
-		       :direct-slots '()
-		       :source (getf options :source)))))
+		       ;;:direct-slots '() ;; too much info! JCB
+                       ))))
 
 (defun help-ensure-class (&rest options
 			  &key (metaclass 'standard-class) direct-superclasses
@@ -768,7 +771,7 @@
   (remf options :metaclass)
   (remf options :direct-superclasses)
   (setf metaclass (coerce-to-class metaclass t)
-	direct-superclasses (mapcar #'(lambda (x) (coerce-to-class x nil :options options))
+	direct-superclasses (mapcar #'(lambda (x) (coerce-to-class x nil))
 				    direct-superclasses))
   (values metaclass direct-superclasses
 	  (list* :direct-superclasses direct-superclasses options)))
