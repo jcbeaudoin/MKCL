@@ -3,7 +3,7 @@
 ;;;;  top.lsp -- Top-level loop, break loop, and error handlers
 ;;;;
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
-;;;;  Copyright (c) 2010-2014, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2015, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -389,7 +389,7 @@ rebinds this variable to NIL when control enters a break loop.")
   (format stream "~%Copyright (C) 1984 Taiichi Yuasa and Masami Hagiya~@
                      Copyright (C) 1993 Giuseppe Attardi~@
                      Copyright (C) 2000 Juan J. Garcia-Ripoll~@
-                     Copyright (C) 2010-2014 Jean-Claude Beaudoin~%~@
+                     Copyright (C) 2010-2015 Jean-Claude Beaudoin~%~@
                      ManKai Common Lisp (MKCL) is free software,~@
                      and you are welcome to redistribute and/or~@
                      modify it under the terms of the GNU LGPL.~@
