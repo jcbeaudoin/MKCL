@@ -640,6 +640,7 @@ mk_si_load_source(MKCL, mkcl_object source, mkcl_object verbose, mkcl_object pri
   mkcl_bds_bind(env, @'*readtable*', mkcl_symbol_value(env, @'*readtable*'));
   mkcl_bds_bind(env, @'*load-pathname*', not_a_filename ? mk_cl_Cnil : source);
   mkcl_bds_bind(env, @'*load-truename*', mk_cl_Cnil);
+  mkcl_bds_push(env, @'si::*dynamic-cons-stack*');
   mkcl_bds_push(env, @'*default-pathname-defaults*');
   mkcl_bds_push(env, @'clos::*redefine-class-in-place*');
   MKCL_SETQ(env, @'*load-truename*', (not_a_filename ? mk_cl_Cnil : (filename = mk_cl_truename(env, filename))));
@@ -668,7 +669,7 @@ mk_si_load_source(MKCL, mkcl_object source, mkcl_object verbose, mkcl_object pri
     if (!mkcl_Null(ok))
       ok = mk_si_load_source(env, filename, verbose, print, external_format);
   }
-  mkcl_bds_unwind_n(env, 6);
+  mkcl_bds_unwind_n(env, 7);
 
   if (!mkcl_Null(ok))
     mkcl_FEerror(env, "LOAD: Could not load file ~S (Error: ~S)", 2, filename, ok);

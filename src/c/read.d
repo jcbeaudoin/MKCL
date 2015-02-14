@@ -2390,6 +2390,7 @@ mkcl_read_VV(MKCL,
 
   in = MKCL_OBJNULL;
   MKCL_UNWIND_PROTECT_BEGIN(env) {
+    mkcl_bds_push(env, @'si::*dynamic-cons-stack*'); /* prevent dynamic-extent leak outside block init context. */
     mkcl_bds_bind(env, @'si::*cblock*', block);
 
     /* Communicate the library which Cblock we are using, and get
@@ -2521,7 +2522,8 @@ mkcl_read_VV(MKCL,
       block->cblock.temp_data_size = 0;
       mkcl_dealloc(env, VVtemp);
     }
-    mkcl_bds_unwind1(env);
+    mkcl_bds_unwind1(env); /* si::*cblock* */
+    mkcl_bds_unwind1(env); /* si::*dynamic-cons-stack* */
   } MKCL_UNWIND_PROTECT_EXIT {
     if (in != MKCL_OBJNULL)
       mk_cl_close(env, 1,in);
