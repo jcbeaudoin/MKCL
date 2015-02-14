@@ -2,7 +2,7 @@
 ;;;;
 ;;;  CMPSYSFUN   Database for system functions.
 ;;;
-;;;  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+;;;  Copyright (c) 2010-2015, Jean-Claude Beaudoin.
 ;;;  Copyright (c) 2003, Juan Jose Garcia Ripoll.
 ;;;  Copyright (c) 1991, Giuseppe Attardi. All rights reserved.
 ;;;
@@ -1283,7 +1283,7 @@
     (proclaim-function rassoc (t list *) list)
     (proclaim-function rassoc-if (t list *) list)
     (proclaim-function rassoc-if-not (t list *) list)
-    (proclaim-function si:memq (t t t) t)
+    (proclaim-function si:memq (t t) t)
 
     ;; file macros.d
 
