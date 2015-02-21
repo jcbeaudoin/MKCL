@@ -344,14 +344,23 @@
 ;;; ----------------------------------------------------------------------
 ;;; Error messages
 
+(defmethod no-applicable-primary-method (gf &rest args)
+  (cerror "Retry call to generic function ~A"
+          "Generic function: ~A. No applicable primary method given arguments: ~S"
+          (or (ignore-errors (generic-function-name gf)) "#<generic function name unreachable>") args)
+  (apply gf args))
+
 (defmethod no-applicable-method (gf &rest args)
-  ;;(declare (ignore args))
-  (error "Generic function: ~A. No applicable method given arguments: ~S"
-	 (generic-function-name gf) args))
+  (cerror "Retry call to generic function ~A"
+          "Generic function: ~A. No applicable method given arguments: ~S"
+          (or (ignore-errors (generic-function-name gf)) "#<generic function name unreachable>") args)
+  (apply gf args))
 
 (defmethod no-next-method (gf method &rest args)
-  (declare (ignore gf))
-  (error "In method ~A. No next method given arguments: ~S" method args))
+  (cerror "Retry call to generic function ~*~A"
+          "In method ~A for generic-function ~S. No next method given arguments: ~S"
+          method (or (ignore-errors (generic-function-name gf)) "#<generic function name unreachable>") args)
+  (apply gf args))
 
 
 

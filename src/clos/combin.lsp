@@ -141,7 +141,7 @@
       (return-from standard-compute-effective-method
 	#'(lambda (args next-methods)
 	    (declare (ignore next-methods))
-	    (apply #'no-applicable-method gf args)
+	    (apply #'no-applicable-primary-method gf args)
 	    )))
     ;; PRIMARY, BEFORE and AROUND are reversed because they have to
     ;; be on most-specific-first order (ANSI 7.6.6.2), while AFTER
@@ -301,10 +301,13 @@
 
 (defun compute-effective-method-for-cache (gf args)
   (with-metadata-lock
-   (compute-effective-method gf
-			     (generic-function-method-combination gf)
-			     (compute-applicable-methods gf args)))
-  )
+   (let ((applicable-methods (compute-applicable-methods gf args)))
+     (if applicable-methods
+         (compute-effective-method gf (generic-function-method-combination gf) applicable-methods)
+       #'(lambda (args next-methods)
+	    (declare (ignore next-methods))
+           (apply #'no-applicable-method gf args))
+       ))))
 
 ;;
 ;; These method combinations are bytecompiled, for simplicity.
