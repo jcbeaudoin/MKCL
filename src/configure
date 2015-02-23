@@ -6488,30 +6488,37 @@ else
 /* end confdefs.h.  */
 
 #include <stdio.h>
+/* This code is in antique K&R style, deliberately. */
 
 #if __GNUC__ >= 4
-int f2(char * mark) __attribute__((noinline));
+int f2() __attribute__((noinline));
 #else
-int f2(char * mark);
+int f2();
 #endif
 
 int f1() {
+  extern int (* f_ptr)(); /* Try really hard to prevent inlining of next call. */
   char d = 0;
-  return f2(&d);
+  return f_ptr(&d);
 }
 
-int f2(char * mark) {
+int f2(mark)
+  char * mark;
+{
   char c = 0;
   /* The purpose of this printf call is to prevent the compiler
      from inlining this function (like gcc 4.7.0 does).
      This is hoped to be portable, otherwise compiler specific
      pragmas or attributes would be needed. (like gcc __attribute__((noinline)))
    */
-  printf("callee frame = %p, caller frame = %p, ", &c, mark);
+  printf("callee frame = 0x%lx, caller frame = 0x%lx, ", (unsigned long) &c, (unsigned long) mark);
   return &c - mark;
 }
 
+int (* f_ptr)() = NULL;
+
 int main() {
+  f_ptr = f2;
   if (f1() > 0)
     return 1;
   else
