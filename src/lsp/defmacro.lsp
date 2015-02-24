@@ -2,7 +2,7 @@
 ;;;;
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
-;;;;  Copyright (c) 2010-2012, Jean-Claude Beaudoin
+;;;;  Copyright (c) 2010-2015, Jean-Claude Beaudoin
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -72,44 +72,41 @@
 	((eq (car list) key) (cadr list))
 	(t (search-keyword (cddr list) key))))
 
-(defun check-keyword (name key-arg-list keywords 
-			   &optional (allow-other-keys nil aok-flag))
-  (let ((tail key-arg-list))
-    (do (head
-	 arg
-	 (err nil))
-	((null tail)
-	 (when (and err (not allow-other-keys))
-	   (if name 
-	       (error "The key ~s is not allowed in call to macro ~A." err name)
-	     (error "The key ~s is not allowed in destructuring-bind form." err))))
-	(if (atom tail)
-	    (if name
-		(error "In call to macro ~A, keyword list is not properly formed. Keyword list is: ~S" name key-arg-list)
-	      (error "Keyword list is not properly formed in destructuring-bind. Keyword list is: ~S" key-arg-list))
-	  (setq head (car tail) tail (cdr tail)))
-	(if (atom tail)
-	    (if name
-		(error "In call to macro ~A, keyword list is not properly formed. Keyword list is: ~S" name key-arg-list)
-	      (error "Keyword list is not properly formed in destructuring-bind. Keyword list is: ~S" key-arg-list))
-	  (setq arg (car tail) tail (cdr tail)))
-	(cond ((eq head :allow-other-keys)
-	       (when (not aok-flag)
-		 (setq allow-other-keys tail aok-flag t)))
-	      ((not (member head keywords))
-	       (setq err head))))))
+(defun check-keyword (name key-arg-list keywords &optional (allow-other-keys nil aok-flag))
+  (do ((tail key-arg-list)
+       head
+       arg
+       (err 42)) ;; The 42 here is simply a value that is not a symbol and can never be one.
+      ((null tail)
+       (unless (or (eql 42 err) allow-other-keys)
+         (simple-program-error
+          "The key ~s is not allowed in this call to macro ~A. Expected one of: ~S" err name keywords)))
+    (if (atom tail)
+        (simple-program-error
+         "In call to macro ~A, keyword list is not properly formed. Keyword list is: ~S" name key-arg-list)
+      (setq head (car tail) tail (cdr tail)))
+    (if (atom tail)
+        (simple-program-error
+         "In call to macro ~A, keyword list is not properly formed. Keyword list is: ~S" name key-arg-list)
+      (setq arg (car tail) tail (cdr tail)))
+    (cond ((eq head :allow-other-keys)
+           (when (not aok-flag)
+             (setq allow-other-keys tail aok-flag t)))
+          ((not (symbolp head))
+           (simple-program-error
+            "In keyword list, element ~S is not a symbol as required. Keyword list is: ~S" head key-arg-list))
+          ((not (member head keywords)) ;; FIXME: this reports only the last unknown keyword.
+           (setq err head)))))
 
 (defun check-arg-length (name list max-length)
   (when (> (length list) max-length)
-    (if name
-	(error "Too many arguments supplied in call to macro ~A." name)
-      (error "Too many arguments supplied to a destructuring-bind form."))))
+    (simple-program-error "Too many arguments supplied in call to macro ~A." name)))
 
 (defun dm-bad-key (key)
-  (error "Defmacro-lambda-list contains illegal use of ~s." key))
+  (simple-program-error "Defmacro-lambda-list contains illegal use of ~s." key))
 
 (defun dm-too-few-arguments ()
-  (error "Too few arguments supplied to a macro or a destructuring-bind form."))
+  (simple-program-error "Too few arguments supplied to a macro or a destructuring-bind form."))
 
 (defun sys::destructure (vl macro)
   (labels ((dm-vl (vl whole macro)
@@ -161,11 +158,11 @@
 			  (init (second l)))
 		     (dm-v v init)))
 		 (cond (key-flag
-			(push `(check-keyword ',macro ,rest ',all-keywords
+			(push `(check-keyword ',(or macro 'destructuring-bind) ,rest ',all-keywords
 				,@(if allow-other-keys '(t) '()))
 			      *key-check*))
 		       ((not no-check)
-			(push `(check-arg-length ',macro ,whole ,n) *arg-check*))))
+			(push `(check-arg-length ',(or macro 'destructuring-bind) ,whole ,n) *arg-check*))))
 	       ppn))
 
 	   (dm-v (v init)

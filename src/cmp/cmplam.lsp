@@ -2,6 +2,7 @@
 ;;;;
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
+;;;;  Copyright (c) 2010-2015, Jean-Claude Beaudoin
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -556,15 +557,17 @@ The function thus belongs to the type of functions that mkcl_make_cfun accepts."
 
 (defun optimize-funcall/apply-lambda (lambda-form arguments apply-p
 				      &aux body apply-list apply-var
-				      let-vars extra-stmts all-keys)
-  (multiple-value-bind (requireds nb_reqs optionals nb_opts rest key-flag keywords nb_keys
+				      let-vars extra-stmts all-keys
+                                      (nb-fixed-args 0))
+  (multiple-value-bind (requireds nb-reqs optionals nb-opts rest key-flag keywords nb-keys
 				  allow-other-keys aux-vars)
       (si::process-lambda-list (car lambda-form) 'function)
-    (declare (ignore nb_reqs nb_opts nb_keys))
+    (declare (ignore nb-keys))
     (when apply-p
       (setf apply-list (first (last arguments))
 	    apply-var (gensym)
 	    arguments (butlast arguments)))
+    (setq nb-fixed-args (length arguments))
     (setf arguments (copy-list arguments))
     (do ((scan arguments (cdr scan)))
 	((endp scan))
@@ -636,7 +639,13 @@ The function thus belongs to the type of functions that mkcl_make_cfun accepts."
 	  (push `(setf ,key-flag (not (eq ,key-flag 'si::failed)))
 		extra-stmts))))
     (when (and key-flag (not allow-other-keys))
-      (push `(si::check-keyword ,rest ',all-keys) extra-stmts))
+      (push `(si::check-keyword 'lambda ,rest ',all-keys) extra-stmts))
+    (unless (or rest key-flag)
+      (let ((max-params (+ nb-reqs nb-opts)))
+        (when (> nb-fixed-args max-params)
+          (too-many-args 'lambda max-params nb-fixed-args))
+        (when apply-p
+          (push `(si::check-arg-length 'lambda ,apply-var ,(- max-params nb-fixed-args)) extra-stmts))))
     (loop while aux-vars
        do (push (list (pop aux-vars) (pop aux-vars)) let-vars))
     `(let* ,(nreverse (delete-if-not #'first let-vars))
