@@ -270,11 +270,10 @@
           (*buffer-start-position* position)
           (*buffer-string* string))
       (with-input-from-string (s string)
-        (when position (file-position position))
         (compile-from-stream s)))))
 
 (defun compile-from-stream (stream)
-  (let ((file (mkcl:mkstemp "TMP:MKCL-SWANK-TMPXXXXXX"))
+  (let ((file (mkcl:mkstemp "TMP:MKCL-SWANK-TMP"))
         output-truename
         warnings-p
         failure-p
@@ -286,7 +285,12 @@
     (unwind-protect
         (progn
           (multiple-value-setq (output-truename warnings-p failure-p)
-               (compile-file file))
+            (let (;;(compiler::*c-file* t) (compiler::*h-file* t) (compiler::*data-file* t) ;; help debug MKCL. JCB
+                  ;;(compiler::*trace-cc* t) ;; show gcc activity
+                  ;;(*compile-verbose* t)
+                  ;;(*compile-print* t)
+                  )
+               (compile-file file)))
           (and (not failure-p) (load output-truename)))
       (when (probe-file file) (delete-file file))
       (when (probe-file output-truename) (delete-file output-truename)))))
