@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2013, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2015, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -260,19 +260,6 @@ not_output_finish_output(MKCL, mkcl_object strm)
   not_an_output_stream(env, strm);
 }
 
-static mkcl_object
-not_implemented_get_position(MKCL, mkcl_object strm)
-{
-  mkcl_FEerror(env, "file-position not implemented for stream ~S", 1, strm);
-  return mk_cl_Cnil;
-}
-
-static mkcl_object
-not_implemented_set_position(MKCL, mkcl_object strm, mkcl_object pos)
-{
-  mkcl_FEerror(env, "file-position not implemented for stream ~S", 1, strm);
-  return mk_cl_Cnil;
-}
 
 /**********************************************************************
  * CLOSED STREAM OPS
@@ -1459,7 +1446,6 @@ static bool
 mk_clos_stream_interactive_p(MKCL, mkcl_object strm)
 {
   return !mkcl_Null(mkcl_funcall1(env, @+'gray::stream-interactive-p', strm));
-
 }
 
 static mkcl_object
@@ -1469,8 +1455,16 @@ mk_clos_stream_element_type(MKCL, mkcl_object strm)
 }
 
 #define mk_clos_stream_length not_a_file_stream
-#define mk_clos_stream_get_position not_implemented_get_position
-#define mk_clos_stream_set_position not_implemented_set_position
+static mkcl_object mk_clos_stream_get_position(MKCL, mkcl_object strm)
+{
+  return mkcl_funcall1(env, @+'gray::stream-file-position', strm);
+}
+
+static mkcl_object mk_clos_stream_set_position(MKCL, mkcl_object strm, mkcl_object pos)
+{
+  return mkcl_funcall2(env, @+'gray::stream-file-position', strm, pos);
+}
+
 
 static int
 mk_clos_stream_column(MKCL, mkcl_object strm)
@@ -4866,6 +4860,9 @@ mkcl_object
 mk_cl_open_stream_p(MKCL, mkcl_object strm)
 {
   mkcl_call_stack_check(env);
+  if (MKCL_INSTANCEP(strm)) {
+    return mkcl_funcall1(env, @+'gray::open-stream-p', strm);
+  }
   if (mkcl_type_of(strm) != mkcl_t_stream)
     mkcl_FEwrong_type_argument(env, @'stream', strm);
   @(return (strm->stream.closed ? mk_cl_Cnil : mk_cl_Ct));
