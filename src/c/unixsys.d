@@ -738,7 +738,7 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
   mkcl_object stream_write;
   mkcl_object stream_read;
   mkcl_object stream_error;
-  mkcl_object subprocess = mkcl_alloc_raw_process(env);
+  const mkcl_object subprocess = mkcl_alloc_raw_process(env);
   mkcl_object exit_status = mk_cl_Cnil;
 @
   /* 'environment' is the last keyword argument that we need to add. FIXME soon. */
