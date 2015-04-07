@@ -146,7 +146,7 @@
 		;; uninitialized slots.
 		(unless (eq 'T slot-type)
 		  (push `(unless (typep ,var-name ',slot-type)
-			   (structure-type-error ,var-name ',slot-type ',name ',slot-name))
+			   (si::structure-type-error ,var-name ',slot-type ',name ',slot-name))
 			assertions))
 		var-name)))
        slot-names))
