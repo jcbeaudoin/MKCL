@@ -229,7 +229,7 @@
 	      (label (next-label)))
 	  (wt-nl "if (" nr "--<=0) ") (wt-go label)
 	  (push label labels)
-	  (if use-bind (bind loc v) (set-var loc v))))
+	  (if use-bind (bind loc v :no-closure-debug-info t) (set-var loc v))))
       ;;
       ;; Loop for setting default values when there are less output than vars.
       ;;
@@ -240,7 +240,7 @@
 	(dolist (v vars)
 	  (when labels (wt-label (pop labels)))
 	  (if use-bind
-	      (bind '(C-INLINE (:object) "mk_cl_Cnil" () t nil) v)
+	      (bind '(C-INLINE (:object) "mk_cl_Cnil" () t nil) v :no-closure-debug-info t)
 	      (set-var '(C-INLINE (:object) "mk_cl_Cnil" () t nil) v)))
 	(when labels (wt-label label))))
     output))
@@ -281,27 +281,19 @@
   )
 
 (defun c2multiple-value-bind (vars init-form body)
-  ;; 0) Compile the form which is going to give us the values
-  (let ((*destination* 'VALUES)) (c2expr* init-form))
 
-  (let* ((*unwind-exit* *unwind-exit*)
+  (let ((*unwind-exit* *unwind-exit*)
 	 (*env-lvl* *env-lvl*)
 	 (*closure-levels* *closure-levels*)
 	 closure-block-id
 	 (*env* *env*)
 	 (*lcl* *lcl*)
-	 (labels nil)
-	 (env-grows nil)
-	 (nr (make-lcl-var :type :int))
-	 min-values max-values)
-    (declare (ignore nr))
-    ;; 1) Retrieve the number of output values
-    (wt-nl "{")
-    (multiple-value-setq (min-values max-values)
-      (c1form-values-number init-form))
+	 (env-grows nil))
 
-    ;; 2) For all variables which are not special and do not belong to
-    ;;    a closure, make a local C variable.
+    (wt-nl "{")
+
+    ;; For all variables which are not special and do not belong to
+    ;; a closure, make a local C variable.
     (dolist (var vars)
       (declare (type (or null var) var))
       (let ((kind (local var)))
@@ -312,7 +304,7 @@
 	    (wt-comment (var-name var)))
 	  (unless env-grows (setq env-grows (var-ref-ccb var))))))
 
-    ;; 3) If there are closure variables, set up an environment.
+    ;; If there are closure variables, set up an environment.
     (when (setq env-grows (env-grows env-grows))
       (push 0 *closure-levels*)
       (setq closure-block-id (incf *closure-block-id*) *cenv0-used* t)
@@ -322,24 +314,43 @@
 	       (if *written-function* "this_func" "mk_cl_Cnil")
 	       ", cenv" env-lvl ", "
 	       (written-function-cname) "_cblock_" closure-block-id ");")
+        (dolist (var vars)
+          (when (eq 'CLOSURE (var-kind var))
+            (let ((var-loc (var-loc var)))
+              (unless (mkcl:fixnump var-loc)
+                ;; first binding: assign location
+                (setq var-loc (next-env))
+                (setf (var-loc var) var-loc)
+                (setf (var-cloc var) (cons (length *closure-levels*) (car *closure-levels*)))
+                ))))
+
 	(when (>= *debug-fun* 2)
 	  (wt-nl "mkcl_object syms_cenv" *env-lvl* " = mkcl_alloc_clevel_block(env, "
 		 (if *written-function* "this_func" "mk_cl_Cnil")
 		 ", syms_cenv" env-lvl ", "
 		 (written-function-cname) "_cblock_" closure-block-id ");")
-	  )
-	)
-      )
+          (dolist (var vars)
+            (when (eq 'CLOSURE (var-kind var))
+              (wt-nl "{")
+              (wt-nl "mkcl_UTF_8_object(raw_var_name_obj, \"" (print-full-name (var-name var)) "\");")
+              (wt-nl "syms_cenv" *env-lvl* "->lblock.var[" (1- (cdr (var-cloc var))) "] = "
+                     "mkcl_utf_8_to_string(env, (mkcl_object) &raw_var_name_obj);")
+              (wt-nl "}"))))))
 
-    ;; 4) Assign the values to the variables
-    (do-m-v-setq-any min-values max-values vars t)
+    ;; Compile the form which is going to give us the values
+    (let ((*destination* 'VALUES)) (c2expr* init-form))
+    ;; Retrieve the number of output values
+    (multiple-value-bind (min-values max-values)
+        (c1form-values-number init-form)
+      ;; Assign the values to the variables
+      (do-m-v-setq-any min-values max-values vars t))
 
     (when (>= *debug-fun* 3)
       (build-debug-lexical-env (reverse vars))
       )
 
-    ;; 5) Compile the body. If there are bindings of special variables,
-    ;;    these bindings are undone here.
+    ;; Compile the body. If there are bindings of special variables,
+    ;; these bindings are undone here.
     (c2expr body)
 
     (when closure-block-id
@@ -347,7 +358,7 @@
 	       (first *closure-levels*))
       )
 
-    ;; 6) Close the C block.
+    ;; Close the C block.
     (wt "}"))
   )
 

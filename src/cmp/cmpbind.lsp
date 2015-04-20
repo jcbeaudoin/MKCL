@@ -22,7 +22,7 @@
   (let ((*package* keyword-package))
     (prin1-to-string var-name)))
 
-(defun bind (loc var)
+(defun bind (loc var &key no-closure-debug-info)
   ;; loc can be either (LCL n), 'VA-ARGS, (KEYVARS n), (CAR n),
   ;; a constant, or (VAR var) from a let binding. ; ccb
   (declare (type var var))
@@ -41,15 +41,13 @@
        (wt-coerce-loc :object loc) (wt ";")
 
        (wt-comment (var-name var))
-       (when (>= *debug-fun* 2)
-	 ;; (wt-nl "syms_cenv" *env-lvl* "->lblock.var[" (1- (cdr (var-cloc var))) "] = "
-	 ;; 	"mkcl_make_simple_base_string(env, \"" (print-full-name (var-name var)) "\");")
-	 (wt-nl "{")
-	 (wt-nl "mkcl_UTF_8_object(raw_var_name_obj, \"" (print-full-name (var-name var)) "\");")
-	 (wt-nl "syms_cenv" *env-lvl* "->lblock.var[" (1- (cdr (var-cloc var))) "] = "
-		"mkcl_utf_8_to_string(env, (mkcl_object) &raw_var_name_obj);")
-	 (wt-nl "}")
-	 )
+       (unless no-closure-debug-info
+         (when (>= *debug-fun* 2)
+           (wt-nl "{")
+           (wt-nl "mkcl_UTF_8_object(raw_var_name_obj, \"" (print-full-name (var-name var)) "\");")
+           (wt-nl "syms_cenv" *env-lvl* "->lblock.var[" (1- (cdr (var-cloc var))) "] = "
+                  "mkcl_utf_8_to_string(env, (mkcl_object) &raw_var_name_obj);")
+           (wt-nl "}")))
        )
      )
     (LEXICAL

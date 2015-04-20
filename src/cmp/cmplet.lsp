@@ -216,6 +216,9 @@
 	  (setq env-grows (var-ref-ccb var))))
       (when (eq (var-kind var) 'SPECIAL) (push (var-name var) prev-ss)))))
 
+  (setq bindings (nreverse bindings))
+  (setq initials (nreverse initials))
+
   (when (env-grows env-grows)
     (unless block-p
       (wt-nl "{ ") (setq block-p t))
@@ -237,12 +240,12 @@
     )
 
   ;; eval INITFORM's and bind variables
-  (dolist (init (nreverse initials))
+  (dolist (init initials)
     (let ((*destination* (car init))
 	  (*lcl* *lcl*))
       (c2expr* (cdr init))))
   ;; bind LET variables
-  (dolist (binding (nreverse bindings))
+  (dolist (binding bindings)
     (bind (cdr binding) (car binding)))
 
   (if (and *debug-fun* (>= *debug-fun* 3))
