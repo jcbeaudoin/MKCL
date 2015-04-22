@@ -682,9 +682,8 @@ mk_cl_delete_file(MKCL, mkcl_object file)
 
 bool mkcl_probe_file(MKCL, mkcl_object os_filename, bool follow_links)
 {
-  mkcl_OSstring_raw_type raw_os_filename = mkcl_OSstring_self(os_filename);
-  mkcl_object output;
 #ifdef MKCL_WINDOWS
+  mkcl_OSstring_raw_type raw_os_filename = mkcl_OSstring_self(os_filename);
   DWORD dw;
   MKCL_LIBC_NO_INTR(env, dw = GetFileAttributesW( raw_os_filename ));
   if (dw == INVALID_FILE_ATTRIBUTES)
@@ -699,16 +698,12 @@ bool mkcl_probe_file(MKCL, mkcl_object os_filename, bool follow_links)
 	  return FALSE;
 	}
     }
-#if 0
-# ifdef FILE_ATTRIBUTE_REPARSE_POINT
+# if 0
+#  ifdef FILE_ATTRIBUTE_REPARSE_POINT
   else if ( dw & FILE_ATTRIBUTE_REPARSE_POINT )
     return TRUE;
+#  endif
 # endif
-#endif
-  else if ( dw & FILE_ATTRIBUTE_DIRECTORY )
-    return TRUE;
-  else if ( dw & FILE_ATTRIBUTE_DEVICE )
-    return FALSE;
   else
     return TRUE;
 #else /* !defined(MKCL_WINDOWS) */
@@ -725,7 +720,6 @@ bool mkcl_probe_file(MKCL, mkcl_object os_filename, bool follow_links)
     {
       int this_errno = errno;
 
-      output = mk_cl_Cnil;
       switch (this_errno)
 	{
 	default: /* should be one of: EACCES, EBADF, EFAULT, ELOOP, ENAMETOOLONG, ENOMEM, EOVERFLOW. */
@@ -735,20 +729,8 @@ bool mkcl_probe_file(MKCL, mkcl_object os_filename, bool follow_links)
 	  return FALSE;
 	}
     }
-  else if (S_ISDIR(buf.st_mode))
-    return TRUE;
-  else if (S_ISREG(buf.st_mode))
-    return TRUE;
-# ifdef HAVE_LSTAT
-  else if (S_ISLNK(buf.st_mode))
-    return TRUE;
-# endif
-  else if (S_ISCHR(buf.st_mode))
-    return FALSE;
-  else if (S_ISBLK(buf.st_mode))
-    return FALSE;
   else
-    return FALSE;
+    return TRUE;
 #endif /* !defined(MKCL_WINDOWS) */
 }
 
