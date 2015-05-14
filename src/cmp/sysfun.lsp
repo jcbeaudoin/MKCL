@@ -880,7 +880,7 @@
     (proclaim-function set (symbol t) t)
     (proclaim-function si:fset ((or symbol (cons (member setf) (cons symbol null))) t &optional t t) t)
     (proclaim-function makunbound (symbol) t)
-    (proclaim-function fmakunbound (symbol) t)
+    ;;(proclaim-function fmakunbound (symbol) t)
     (proclaim-function si:clear-compiler-properties (*) t)
 
     ;; file cfun.d
