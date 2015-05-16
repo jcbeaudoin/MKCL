@@ -412,6 +412,10 @@ values of the last FORM.  If no FORM is given, returns NIL."
 	   ,(si:register-with-pde whole)
 	   ',symbol))))
 
+(defun undefine-symbol-macro (symbol)
+  (rem-sysprop symbol 'si::symbol-macro))
+
+
 (defmacro nth-value (n expr)
   `(nth ,n (multiple-value-list ,expr)))
 
