@@ -294,8 +294,8 @@
 		       nil))		; for initial offset slots
 	       slot-descriptions)
 	     (:source ,source)
-	     ,(unless *defstruct-as-defclass*
-		`(:metaclass structure-class))))
+	     ,@(unless *defstruct-as-defclass*
+                 `((:metaclass structure-class)))))
     (when *defstruct-as-defclass*
       (eval `(defmethod print-object ((obj ,name) stream)
 	       (clos::print-object-as-struct obj stream))))
