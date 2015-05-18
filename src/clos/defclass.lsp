@@ -90,7 +90,8 @@
 		 (setf option-name :direct-default-initargs)
 		 (parse-default-initargs (rest option)))
 		(otherwise
-		 (si:maybe-quote (rest option)))))
+                 (let ((maybe-value (rest option)))
+                   (si:maybe-quote (if (rest maybe-value) maybe-value (first maybe-value)))))))
 	(setf options (list* (si:maybe-quote option-name) option-value options))))
     (unless (member :source options)
       (setf options (list* :source (list 'quote (copy-list si:*source-location*)) options)))
