@@ -108,13 +108,13 @@
   (let ((x (assoc fname *function-declarations*)))
     (if x
 	(values (second x) t)
-	(get-sysprop fname 'PROCLAIMED-ARG-TYPES))))
+	(get-sysprop fname 'SI::PROCLAIMED-ARG-TYPES))))
 
 (defun get-return-type (fname)
   (let ((x (assoc fname *function-declarations*)))
     (if x
 	(values (third x) t)
-	(get-sysprop fname 'PROCLAIMED-RETURN-TYPE))))
+	(get-sysprop fname 'SI::PROCLAIMED-RETURN-TYPE))))
 
 (defun get-local-arg-types (fun &aux x)
   (if (setq x (assoc fun *function-declarations*))

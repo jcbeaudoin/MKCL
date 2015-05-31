@@ -80,14 +80,14 @@
 (defmacro proclaim-function (name arg-types return-type
 			     &key no-sp-change predicate no-side-effects)
   (unless (equal arg-types '(*))
-    (put-sysprop name 'proclaimed-arg-types
+    (put-sysprop name 'SI::PROCLAIMED-ARG-TYPES
 		 (mapcar #'(lambda (x) 
 			     (if (member x '(* &optional &rest &key &allow-other-keys))
 				 x 
 			       (si::type-filter x)))
 			 arg-types)))
   (when (and return-type (not (eq 'T return-type)))
-    (put-sysprop name 'proclaimed-return-type
+    (put-sysprop name 'SI::PROCLAIMED-RETURN-TYPE
 		 (if (eql return-type '*) '* (si::type-filter return-type t))))
   (when no-sp-change
     (put-sysprop name 'no-sp-change t))
