@@ -30,11 +30,11 @@
 	   (let ((*print-length* 3)
 		 (*print-level* 2)
 		 )
-	     (format stream "~A: in file ~A, end position ~D,~%   and form: ~A~%"
+	     (format stream "~A: in file ~A, end position ~D,~%    and form: ~A~%"
 		     (compiler-message-prefix c)
 		     (compiler-message-file c) position (compiler-message-form c)))
 	   (format stream "~A: " (compiler-message-prefix c)))
-       (format stream "~?"
+       (format stream "  ~?"
 	       (simple-condition-format-control c)
 	       (simple-condition-format-arguments c))))))
 
