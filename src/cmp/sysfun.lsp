@@ -1946,6 +1946,9 @@
     (proclaim-function search (sequence sequence *) t)
     (def-inline search :always (base-string base-string) t "mkcl_search_in_base_string(env, #0, #1)")
 
+    (proclaim-function map (t t t *) t)
+    (proclaim-function map-into (t t *) t)
+
     ;; file character.d
 
     (proclaim-function char (string fixnum) character :no-side-effects t)
@@ -2155,6 +2158,7 @@
     ;; file typeof.d
 
     (proclaim-function type-of (t) t)
+    (proclaim-function typep (t t &optional t) t)
 
     ;; AKCL addition
 
