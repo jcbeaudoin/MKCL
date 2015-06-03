@@ -67,7 +67,7 @@ Example:
 	(apply #'asdf:operate (find-operation operation-name)
                system-name keyword-args)
         t)
-    (asdf:compile-error () nil)))
+    ((or asdf:compile-error #+asdf3 asdf/lisp-build:compile-file-error) () nil)))
 
 (defun asdf-central-registry ()
   (append asdf:*central-registry*
