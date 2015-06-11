@@ -1032,3 +1032,31 @@ where CREATED is true only if we succeeded on creating all directories."
 
 
 ;;;
+
+
+(defun file-character-position (stream)
+  (nth-value 1 (file-position stream)))
+
+(defun reassert-file-character-position (stream)
+  (let ((old-position (file-position stream))
+        character-position
+        position)
+    (unwind-protect
+        (handler-case
+         (progn
+           (file-position stream 0) ;; rewind
+           (loop
+            (let ((ch (read-char stream nil :eof)))
+              (when (eq ch :eof) (setq character-position nil) (return)) ;; Hit the end prematurely.
+              (multiple-value-setq (position character-position) (file-position stream))
+              (when (or (null character-position) (<= old-position position))
+                (unless (= old-position position) (setq character-position nil)) ;; over shot.
+                (return)))))
+         (stream-decoding-error (c) (setq character-position nil)))
+      (unless character-position ;; scan failed. restore old position
+        (file-position stream old-position)))
+    character-position))
+
+
+(export '(file-character-position reassert-file-character-position))
+

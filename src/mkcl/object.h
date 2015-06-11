@@ -681,6 +681,7 @@ extern "C" {
     mkcl_object format_table;
     int flags;		        /*  character table, flags, etc  */
     mkcl_object buffering_mode;
+    mkcl_object character_position;
   };
 
   struct mkcl_random {

@@ -65,7 +65,7 @@ typedef int SOCKET;
 # define mkcl_fseeko fseeko64
 # define mkcl_ftello ftello64
 #else
-# define mkcl_off_t int
+# define mkcl_off_t mkcl_int64_t
 # define mkcl_fseeko fseek
 # define mkcl_ftello ftell
 #endif
@@ -673,6 +673,12 @@ eformat_unread_char(MKCL, mkcl_object strm, mkcl_character c)
     strm->stream.byte_stack = mkcl_nconc(env, strm->stream.byte_stack, l);
     strm->stream.last_char = EOF;
   }
+  {
+    mkcl_object char_pos = strm->stream.character_position;
+    
+    if (!mkcl_Null(char_pos))
+      strm->stream.character_position = mkcl_one_minus(env, char_pos);
+  }
 }
 
 static mkcl_character
@@ -683,6 +689,12 @@ eformat_read_char(MKCL, mkcl_object strm)
     strm->stream.last_char = c;
     strm->stream.last_code[0] = c;
     strm->stream.last_code[1] = EOF;
+    {
+      mkcl_object char_pos = strm->stream.character_position;
+
+      if (!mkcl_Null(char_pos))
+        strm->stream.character_position = mkcl_one_plus(env, char_pos);
+    }
   }
   return c;
 }
@@ -695,7 +707,15 @@ eformat_write_char(MKCL, mkcl_object strm, mkcl_character c)
   if (nbytes == 0) {
     character_size_overflow(env, strm, c);
   }
+
   strm->stream.ops->write_octet(env, strm, buffer, nbytes);
+
+  {
+    mkcl_object char_pos = strm->stream.character_position;
+
+    if (!mkcl_Null(char_pos))
+      strm->stream.character_position = mkcl_one_plus(env, char_pos);
+  }
   if (c == '\n')
     MKCL_IO_STREAM_COLUMN(strm) = 0;
   else if (c == '\t')
@@ -1561,7 +1581,8 @@ str_out_element_type(MKCL, mkcl_object strm)
 static mkcl_object
 str_out_get_position(MKCL, mkcl_object strm)
 {
-  return mkcl_make_unsigned_integer(env, MKCL_STRING_OUTPUT_STREAM_STRING(strm)->base_string.fillp);
+  mkcl_object pos = mkcl_make_unsigned_integer(env, MKCL_STRING_OUTPUT_STREAM_STRING(strm)->base_string.fillp);
+  @(return pos pos);
 }
 
 static mkcl_object
@@ -1818,7 +1839,8 @@ str_in_element_type(MKCL, mkcl_object strm)
 static mkcl_object
 str_in_get_position(MKCL, mkcl_object strm)
 {
-  return mkcl_make_unsigned_integer(env, MKCL_STRING_INPUT_STREAM_POSITION(strm));
+  mkcl_object pos = mkcl_make_unsigned_integer(env, MKCL_STRING_INPUT_STREAM_POSITION(strm));
+  @(return pos pos);
 }
 
 static mkcl_object
@@ -3005,28 +3027,40 @@ io_file_get_position(MKCL, mkcl_object strm)
   if (strm->stream.byte_size != 8) {
     output = mkcl_floor2(env, output, MKCL_MAKE_FIXNUM(strm->stream.byte_size / 8));
   }
-  return output;
+  @(return output strm->stream.character_position);
 }
 
 static mkcl_object
 io_file_set_position(MKCL, mkcl_object strm, mkcl_object large_disp)
 {
+  mkcl_object new_character_position = mk_cl_Cnil; /* the "unknown" position */
+  mkcl_object result = mk_cl_Cnil;
   int f = MKCL_IO_FILE_DESCRIPTOR(strm);
-  mkcl_off_t disp;
-  int mode;
+  mkcl_off_t disp, status;
+  int whence;
+
   if (mkcl_Null(large_disp)) {
     disp = 0;
-    mode = SEEK_END;
+    whence = SEEK_END;
   } else {
     if (strm->stream.byte_size != 8) {
       large_disp = mkcl_times(env, large_disp,
 			      MKCL_MAKE_FIXNUM(strm->stream.byte_size / 8));
     }
     disp = mkcl_integer_to_off_t(env, large_disp);
-    mode = SEEK_SET;
+    whence = SEEK_SET;
+    if ((disp == 0) && ((strm->stream.flags & MKCL_STREAM_FORMAT_MASK) == MKCL_STREAM_TEXT))
+      new_character_position = MKCL_MAKE_FIXNUM(0); /* The only one we can know right away. */
   }
-  disp = lseek(f, disp, mode);
-  return (disp == (mkcl_off_t)-1)? mk_cl_Cnil : mk_cl_Ct;
+  MKCL_LIBC_NO_INTR(env, status = lseek(f, disp, whence));
+  if ((mkcl_off_t)-1 == status)
+    result = mk_cl_Cnil; /* seek failed */
+  else
+    {
+      strm->stream.character_position = new_character_position;
+      result = mk_cl_Ct;
+    }
+  return result;
 }
 
 static int
@@ -3642,7 +3676,10 @@ io_stream_write_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n)
     if (!mkcl_Null(aux))
       mkcl_file_position_set(env, strm, aux);
   } else if (strm->stream.last_op > 0) {
-    mkcl_fseeko(MKCL_IO_STREAM_FILE(strm), 0, SEEK_CUR);
+    int status;
+    MKCL_LIBC_NO_INTR(env, status = mkcl_fseeko(MKCL_IO_STREAM_FILE(strm), 0, SEEK_CUR));
+    if (status != 0)
+      mkcl_FElibc_error(env, "fseeko() returned an error value", 0);
   }
   strm->stream.last_op = -1;
   return output_stream_write_octet(env, strm, c, n);
@@ -3764,28 +3801,40 @@ io_stream_get_position(MKCL, mkcl_object strm)
   if (strm->stream.byte_size != 8) {
     output = mkcl_floor2(env, output, MKCL_MAKE_FIXNUM(strm->stream.byte_size / 8));
   }
-  return output;
+  @(return output strm->stream.character_position);
 }
 
 static mkcl_object
 io_stream_set_position(MKCL, mkcl_object strm, mkcl_object large_disp)
 {
+  mkcl_object new_character_position = mk_cl_Cnil; /* the "unknown" position */
+  mkcl_object result = mk_cl_Cnil;
   FILE *f = MKCL_IO_STREAM_FILE(strm);
   mkcl_off_t disp;
-  int mode;
+  int whence, status;
+
   if (mkcl_Null(large_disp)) {
     disp = 0;
-    mode = SEEK_END;
+    whence = SEEK_END;
   } else {
     if (strm->stream.byte_size != 8) {
       large_disp = mkcl_times(env, large_disp,
 			      MKCL_MAKE_FIXNUM(strm->stream.byte_size / 8));
     }
     disp = mkcl_integer_to_off_t(env, large_disp);
-    mode = SEEK_SET;
+    whence = SEEK_SET;
+    if ((disp == 0) && ((strm->stream.flags & MKCL_STREAM_FORMAT_MASK) == MKCL_STREAM_TEXT))
+      new_character_position = MKCL_MAKE_FIXNUM(0); /* The only one we can know right away. */
   }
-  MKCL_LIBC_NO_INTR(env, mode = mkcl_fseeko(f, disp, mode));
-  return mode ? mk_cl_Cnil : mk_cl_Ct;
+  MKCL_LIBC_NO_INTR(env, status = mkcl_fseeko(f, disp, whence));
+  if (status)
+    result = mk_cl_Cnil; /* seek failed */
+  else
+    {
+      strm->stream.character_position = new_character_position;
+      result = mk_cl_Ct;
+    }
+  return result;
 }
 
 static int
@@ -4819,11 +4868,15 @@ mk_cl_file_length(MKCL, mkcl_object strm)
   @(return mkcl_file_length(env, strm));
 }
 
+
 @(defun file-position (file_stream &o position)
   mkcl_object output;
 @
+  mkcl_object character_position = mk_cl_Cnil;
+
   if (mkcl_Null(position)) {
     output = mkcl_file_position(env, file_stream);
+    character_position = MKCL_VALUES(1);
   } else {
     if (position == @':start') {
       position = MKCL_MAKE_FIXNUM(0);
@@ -4832,7 +4885,7 @@ mk_cl_file_length(MKCL, mkcl_object strm)
     }
     output = mkcl_file_position_set(env, file_stream, position);
   }
-  @(return output);
+  @(return output character_position);
 @)
 
 mkcl_object
@@ -4884,7 +4937,7 @@ mk_cl_stream_external_format(MKCL, mkcl_object strm)
   mkcl_call_stack_check(env);
  AGAIN:
   t= mkcl_type_of(strm);
-  if (t == mkcl_t_instance)
+  if (t == mkcl_t_instance) /* FIXME: not strong/restrictive enough. JCB */
     { @(return @':default'); }
   else
     if (t != mkcl_t_stream)
@@ -5322,12 +5375,22 @@ flisten(MKCL, FILE *fp)
      It will fail on non-seekable streams. */
   {
     /* regular file */
-    mkcl_off_t old_pos = mkcl_ftello(fp), end_pos;
-    if (mkcl_fseeko(fp, 0, SEEK_END) != 0)
-      mkcl_FElibc_error(env, "fseek() returned an error value", 0);
-    end_pos = mkcl_ftello(fp);
-    if (mkcl_fseeko(fp, old_pos, SEEK_SET) != 0)
-      mkcl_FElibc_error(env, "fseek() returned an error value", 0);
+    mkcl_off_t old_pos, end_pos;
+    int status;
+
+    MKCL_LIBC_NO_INTR(env, old_pos = mkcl_ftello(fp));
+    if (old_pos == -1)
+      mkcl_FElibc_error(env, "ftello() returned an error value", 0);
+
+    MKCL_LIBC_NO_INTR(env, status = mkcl_fseeko(fp, 0, SEEK_END));
+    if (status != 0)
+      mkcl_FElibc_error(env, "fseeko() returned an error value", 0);
+    MKCL_LIBC_NO_INTR(env, end_pos = mkcl_ftello(fp));
+    if (end_pos == -1)
+      mkcl_FElibc_error(env, "ftello() returned an error value", 0);
+    MKCL_LIBC_NO_INTR(env, status = mkcl_fseeko(fp, old_pos, SEEK_SET));
+    if (status != 0)
+      mkcl_FElibc_error(env, "fseeko() returned an error value", 0);
     return (end_pos > old_pos ? MKCL_LISTEN_AVAILABLE : MKCL_LISTEN_EOF);
   }
   return MKCL_LISTEN_ERROR; /* This is normally never reached. JCB */

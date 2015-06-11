@@ -814,7 +814,7 @@ filesystem or in the database of ASDF modules."
 		  #'(lambda (condition)
 		      (format t "~&;;; MKCL Compiler Read Error: in file ~S, near position ~S,~@
                                    ;;; MKCL Compiler Read Error: ~A~%"
-			      (pathname input) (file-position input) condition)
+			      (pathname input) (mkcl::file-character-position input) condition)
 		      (handle-warning/error condition)
 		      nil))
 		 )
@@ -977,7 +977,8 @@ compiled successfully, returns the pathname of the compiled file."
 	  (*compiler-input* input-file #|:direction :input|# :external-format external-format)
 	  (do* ((si:*source-location* (cons *compile-file-pathname* 0))
 		(form (read-safely *compiler-input* eof) (read-safely *compiler-input* eof))
-		(*compile-file-end-position* (file-position *compiler-input*) (file-position *compiler-input*))
+		(*compile-file-end-position* (mkcl::file-character-position *compiler-input*)
+                                             (mkcl::file-character-position *compiler-input*))
 		)
 	       ((eq form eof))
 	       (when form
