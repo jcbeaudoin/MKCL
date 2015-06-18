@@ -1585,8 +1585,9 @@ package."
 	         (mt:interrupt-thread thread #'mt::terminate-thread)
 		 )
 	       (mt::interrupt-error (cond)
-		 (format t "~&;; MKCL shutdown: Thread refused to be interrupted: ~A.~%" #|thread|# cond)
-		 (finish-output)
+                 (when verbose
+                   (format t "~&;; MKCL shutdown: Thread refused to be interrupted: ~A.~%" cond)
+                   (finish-output))
 		 )
 	       (mkcl::segmentation-violation (cond)
 		 (format t "~&;; MKCL shutdown: Terminating thread ~S produced this condition: ~S, ~:*~A.~%" thread cond)
@@ -1646,7 +1647,7 @@ package."
 	      (handler-case
 	       (if (mt:thread-active-p thread)
 		   (progn
-		     (when t ;;verbose
+		     (when verbose
 		       (format t "~&;; MKCL shutdown: Killing thread ~S.~%" thread) (finish-output))
 		     (mt:thread-kill thread) ;; we may be a bit too quick on the kill...
 		     )
@@ -1664,8 +1665,9 @@ package."
 		 (finish-output)
 		 )
 	       (mt::interrupt-error (cond)
-		 (format t "~&;; MKCL shutdown: Thread refused to be killed: ~S, ~:*~A.~%" #|thread|# cond)
-		 (finish-output)
+                 (when verbose
+                   (format t "~&;; MKCL shutdown: Thread refused to be killed: ~A.~%" cond)
+                   (finish-output))
 		 )
 	       (mt:invalid-thread (cond)
 		 (when (mt:thread-active-p thread)	  
@@ -1693,7 +1695,7 @@ package."
 	    (mt:thread-yield)
 	    )
 	  )
-	(progn ;; debug JCB
+	(when verbose ;;progn ;; debug JCB
 	  (format t "~&MKCL: Remaining threads: ~S.~%" threads)
 	  (format t "~&MKCL: Incomplete shutdown!~%") (finish-output)
 	  (sleep 1))
