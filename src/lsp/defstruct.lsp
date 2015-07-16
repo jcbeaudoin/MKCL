@@ -327,7 +327,7 @@
 	 (not (eql (car x) 'TYPED-STRUCTURE-NAME))
 	 (funcall #'make-access-function name conc-name type named x)))
   (when copier
-    (fset copier #'copy-structure))
+    (fset copier (if type #'copy-seq #'copy-structure)))
   (unless type
     (find-class name)))
 
