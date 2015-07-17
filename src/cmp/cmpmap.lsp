@@ -2,6 +2,7 @@
 ;;;;
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
+;;;;  Copyright (c) 2015, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -50,10 +51,20 @@
 	    do (let ((var (gensym)))
 		 (setf iterators (cons var iterators)
 		       for-statements (list* :for var in-or-on arg for-statements))))
-      `(loop ,@list-1-form
-	     ,@for-statements
-	     ,do-or-collect (funcall ,function ,@iterators)
-	     ,@finally-form))))
+      (if (and (consp function)
+               (eq 'FUNCTION (car function))
+               (consp (cadr function))
+               (eq 'LAMBDA (caadr function)))
+          `(loop ,@list-1-form
+                 ,@for-statements
+                 ,do-or-collect (,(cadr function) ,@iterators) ;; transform into a "lambda form". JCB
+                 ,@finally-form)
+        (let ((fun-var (gensym)))
+          `(let ((,fun-var ,function)) ;; evaluate functional argument only once. JCB
+             (loop ,@list-1-form
+                   ,@for-statements
+                   ,do-or-collect (funcall ,fun-var ,@iterators)
+                   ,@finally-form)))))))
 
 (define-compiler-macro mapcar (&whole whole &rest r)
   (declare (ignore r))
