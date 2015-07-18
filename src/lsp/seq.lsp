@@ -64,13 +64,16 @@
        (setq elt-type 'BIT
 	     length (if (endp args) '* (first args))))
       ((ARRAY SIMPLE-ARRAY)
-       (when (or (endp (rest args))
-		 (atom (setq length (second args)))
-		 (endp length)
-		 (not (endp (rest length))))
+       (setq length '*) ;; by default.
+       (when (or (not (consp args)) ;; we don't really care about the element-type but it must be there.
+                 (not (consp (cdr args))) ;; we need an explicit dimension-spec.
+                 (let ((dimension-spec (second args))) ;; make sure we're of rank 1 in either forms of dimension-spec.
+                   (if (consp dimension-spec)
+                       (progn (setq length (first dimension-spec)) ;; this form gives an explicit length.
+                              (rest dimension-spec)) ;; if we have more than one dimension we're not a sequence.
+                     (unless (eql 1 dimension-spec) :error))))
 	 (error-sequence-type type))
-       (setq elt-type (upgraded-array-element-type (first args))
-	     length (first (second args))))
+       (setq elt-type (upgraded-array-element-type (first args))))
       (t
        ;; We arrive here when the sequence type is not easy to parse.
        ;; We give up trying to guess the length of the sequence.
