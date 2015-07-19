@@ -62,7 +62,7 @@ mkcl_FEtype_error_list(MKCL, mkcl_object x) {
 void
 mkcl_FEtype_error_proper_list(MKCL, mkcl_object x) {
   mk_cl_error(env, 9, @'simple-type-error',
-	      @':format-control', mkcl_make_simple_base_string(env, "Not a proper list ~D"),
+	      @':format-control', mkcl_make_simple_base_string(env, "Not a proper list: ~S"),
 	      @':format-arguments', mk_cl_list(env, 1, x),
 	      @':expected-type', mkcl_fast_read_from_cstring(env, "si::proper-list"),
 	      @':datum', x);
@@ -72,7 +72,7 @@ void
 mkcl_FEtype_error_alist(MKCL, mkcl_object x)
 {
   mk_cl_error(env, 9, @'simple-type-error',
-	      @':format-control', mkcl_make_simple_base_string(env, "Not a valid association list ~D"),
+	      @':format-control', mkcl_make_simple_base_string(env, "Not a valid association list: ~S"),
 	      @':format-arguments', mk_cl_list(env, 1, x),
 	      @':expected-type', @'list',
 	      @':datum', x);
@@ -83,7 +83,7 @@ mkcl_FEcircular_list(MKCL, mkcl_object x)
 {
   mkcl_bds_bind(env, @'*print-circle*', mk_cl_Ct);
   mk_cl_error(env, 9, @'simple-type-error',
-	      @':format-control', mkcl_make_simple_base_string(env, "Circular list ~D"),
+	      @':format-control', mkcl_make_simple_base_string(env, "Circular list: ~S"),
 	      @':format-arguments', mk_cl_list(env, 1, x),
 	      @':expected-type', @'list',
 	      @':datum', x);
@@ -147,7 +147,7 @@ mkcl_FEtype_error_sequence(MKCL, mkcl_object x) {
 void
 mkcl_FEtype_error_proper_sequence(MKCL, mkcl_object x) {
   mk_cl_error(env, 9, @'simple-type-error',
-	      @':format-control', mkcl_make_simple_base_string(env, "Not a proper sequence ~D"),
+	      @':format-control', mkcl_make_simple_base_string(env, "Not a proper sequence: ~S"),
 	      @':format-arguments', mk_cl_list(env, 1, x),
 	      @':expected-type', mkcl_fast_read_from_cstring(env, "si::proper-sequence"),
 	      @':datum', x);
