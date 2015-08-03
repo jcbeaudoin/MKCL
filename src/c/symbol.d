@@ -126,6 +126,8 @@ mk_cl_make_symbol(MKCL, mkcl_object str)
   x->symbol.plist = mk_cl_Cnil;
   x->symbol.hpack = mk_cl_Cnil;
   x->symbol.stype = mkcl_stp_ordinary;
+  x->symbol.sys_plist = mk_cl_Cnil;
+  x->symbol.properly_named_class = mk_cl_Cnil;
 
   @(return x);
 }
