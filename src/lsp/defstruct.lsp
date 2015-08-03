@@ -215,7 +215,7 @@
 		     ((= i 0) (and (consp y) (eq (car y) name)))
 		   (declare (fixnum i))
 		   (unless (consp y) (return nil))))))
-        ((error "~S is an illegal structure type."))))
+        (t (error "~S is an illegal structure type." type))))
 
 
 ;;; PARSE-SLOT-DESCRIPTION parses the given slot-description
@@ -492,12 +492,6 @@ as a STRUCTURE doc and can be retrieved by (documentation 'NAME 'structure)."
     (when (and print-function type)
       (error "An print function is supplied to a typed structure."))
 
-    ;;
-    ;; The constructors rely on knowing the structure class. For toplevel
-    ;; forms we can use LOAD-TIME-VALUE. For non-toplevel forms, we can not
-    ;; as the class might be defined _after_ the system decides to evaluate
-    ;; LOAD-TIME-VALUE.
-    ;;
     (let ((core `(define-structure ',name ',conc-name ',type ',named ',slots
 		   ',slot-descriptions ',copier ',include
 		   ',print-function ',print-object ',constructors
@@ -513,8 +507,7 @@ as a STRUCTURE doc and can be retrieved by (documentation 'NAME 'structure)."
          (define-when (:compile-toplevel :load-toplevel :execute)
            ,core)
 	 ,(si::register-with-pde whole)
-	 ,@(subst `(load-time-value (find-class ',name))
-		  '.structure-constructor-class.
-		  constructors)
+         (let ,(unless type (when constructors `((.structure-constructor-class. (find-class ',name)))))
+           ,@constructors)
 	 ',name)
       )))
