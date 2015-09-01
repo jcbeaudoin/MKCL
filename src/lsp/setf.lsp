@@ -2,6 +2,7 @@
 ;;;;
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
+;;;;  Copyright (c) 2015, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -294,17 +295,18 @@ Does not check if the third gang is a single-element list."
   (multiple-value-bind (vars vals stores store-form access-form)
       (get-setf-expansion place env)
     (declare (ignore access-form))
-    (let ((declaration `(declare (:read-only ,@(append vars stores)))))
+    (let ((declaration `(declare (:read-only ,@vars))))
       (if (= (length stores) 1)
-	`(let* ,(mapcar #'list
-			(append vars stores)
-			(append vals (list newvalue)))
-	  ,declaration
-	  ,store-form)
+          `(let* ,(mapcar #'list vars vals)
+             ,declaration
+             (let ((,(car stores) ,newvalue))
+               (declare (:read-only ,(car stores)))
+               ,store-form))
 	`(let* ,(mapcar #'list vars vals)
-	  (multiple-value-bind ,stores ,newvalue
-	    ,declaration
-	    ,store-form))))))
+           ,declaration
+           (multiple-value-bind ,stores ,newvalue
+             (declare (:read-only ,@stores))
+             ,store-form))))))
 
 (defun setf-structure-access (struct type index newvalue)
   (cond
@@ -316,7 +318,7 @@ Does not check if the third gang is a single-element list."
 
 (defun setf-expand (l env)
   (cond ((endp l) nil)
-        ((endp (cdr l)) (error "~S is an illegal SETF form." l))
+        ((endp (cdr l)) (simple-program-error "~S is an incomplete SETF argument list." l))
         (t
          (cons (setf-expand-1 (car l) (cadr l) env)
                (setf-expand (cddr l) env)))))
@@ -346,97 +348,107 @@ Each PLACE may be any one of the following:
   * any form for which a DEFSETF or DEFINE-SETF-EXPANDER declaration has been
     made."
   (cond ((endp rest) nil)
-        ((endp (cdr rest)) (error "~S is an illegal SETF form." rest))
+        ((endp (cdr rest)) (simple-program-error "~S is an incomplete SETF argument list." rest))
         ((endp (cddr rest)) (setf-expand-1 (car rest) (cadr rest) env))
         (t (cons 'progn (setf-expand rest env)))))
 
 ;;; PSETF macro.
 
-(defmacro psetf (&environment env &rest rest)
+(defmacro psetf (&environment env &rest top-place-newvalue-pairs)
   "Syntax: (psetf {place form}*)
 Similar to SETF, but evaluates all FORMs first, and then assigns each value to
 the corresponding PLACE.  Returns NIL."
-  (cond ((endp rest) nil)
-        ((endp (cdr rest)) (error "~S is an illegal PSETF form." rest))
-        ((endp (cddr rest))
-         `(progn ,(setf-expand-1 (car rest) (cadr rest) env)
+  (cond ((endp top-place-newvalue-pairs) nil)
+        ((endp (cdr top-place-newvalue-pairs))
+         (simple-program-error "~S is an incomplete PSETF argument list." top-place-newvalue-pairs))
+        ((endp (cddr top-place-newvalue-pairs))
+         `(progn ,(setf-expand-1 (car top-place-newvalue-pairs) (cadr top-place-newvalue-pairs) env)
                  nil))
         (t
-	 (do ((r rest (cddr r))
-	      (pairs nil)
-	      (store-forms nil))
-	     ((endp r)
-	      `(let* ,pairs
-		 ,@(nreverse store-forms)
-		 nil))
-	   (when (endp (cdr r)) (error "~S is an illegal PSETF form." rest))
-	   (multiple-value-bind (vars vals stores store-form access-form)
-	       (get-setf-expansion (car r) env)
-             (declare (ignore access-form))
-	     (setq store-forms (cons store-form store-forms))
-	     (setq pairs
-		   (nconc pairs
-			  (mapcar #'list
-				  (append vars stores)
-				  (append vals (list (cadr r)))))))))))
+         (labels ((psetf-expand (store-forms place-newvalue-pairs env)
+                    (if place-newvalue-pairs
+                        (let ((place (car place-newvalue-pairs))
+                              (newvalue (if (consp (cdr place-newvalue-pairs))
+                                            (cadr place-newvalue-pairs)
+                                          (simple-program-error "~S is an incomplete PSETF argument list."
+                                                                top-place-newvalue-pairs))))
+                          (multiple-value-bind (vars vals stores store-form access-form)
+                              (get-setf-expansion place env)
+                            (declare (ignore access-form))
+                            (let ((declaration `(declare (:read-only ,@vars))))
+                              (if (= (length stores) 1)
+                                  `(let* ,(mapcar #'list vars vals)
+                                     ,declaration
+                                     (let ((,(car stores) ,newvalue))
+                                       (declare (:read-only ,(car stores)))
+                                       ,(psetf-expand (cons store-form store-forms) (cddr place-newvalue-pairs) env)
+                                       )
+                                     )
+                                `(let* ,(mapcar #'list vars vals)
+                                   ,declaration
+                                   (multiple-value-bind ,stores ,newvalue
+                                     (declare (:read-only ,@stores))
+                                     ,(psetf-expand (cons store-form store-forms) (cddr place-newvalue-pairs) env)
+                                     ))))))
+                      `(progn ,@(reverse store-forms)))))
+           `(progn ,(psetf-expand nil top-place-newvalue-pairs env) nil)))))
 
 
 ;;; SHIFTF macro.
-(defmacro shiftf (&environment env &rest rest)
+(defmacro shiftf (&whole shiftf-form &environment env &rest places+newvalue)
   "Syntax: (shiftf {place}+ form)
 Saves the values of PLACE and FORM, and then assigns the value of each PLACE
 to the PLACE on its left.  The rightmost PLACE gets the value of FORM.
 Returns the original value of the leftmost PLACE."
-  (do ((r rest (cdr r))
-       (pairs nil)
-       (stores nil)
-       (store-forms nil)
-       (g (gensym))
-       (access-forms nil))
-      ((endp (cdr r))
-       (setq stores (nreverse stores))
-       (setq store-forms (nreverse store-forms))
-       (setq access-forms (nreverse access-forms))
-       `(let* ,(nconc pairs
-		      (list (list g (car access-forms)))
-		      (mapcar #'list stores (cdr access-forms))
-		      (list (list (car (last stores)) (car r))))
-	    ,@store-forms
-	    ,g))
-    (multiple-value-bind (vars vals stores1 store-form access-form)
-	(get-setf-expansion (car r) env)
-      (setq pairs (nconc pairs (mapcar #'list vars vals)))
-      (setq stores (cons (car stores1) stores))
-      (setq store-forms (cons store-form store-forms))
-      (setq access-forms (cons access-form access-forms)))))
+  (unless (and (consp places+newvalue) (consp (cdr places+newvalue)))
+    (simple-program-error "SHIFTF: too few or improper arguments: ~S" shiftf-form))
+  (let (var-val-pairs-list stores-list store-forms access-forms)
+    (destructuring-bind (newvalue . rplaces) (nreverse places+newvalue)
+      (dolist (place rplaces)
+        (multiple-value-bind (vars vals stores1 store-form access-form)
+            (get-setf-expansion place env)
+          (push (mapcar #'list vars vals) var-val-pairs-list)
+          (push stores1 stores-list)
+          (push store-form store-forms)
+          (push access-form access-forms)))
+      `(let* ,(car var-val-pairs-list)
+         (multiple-value-prog1 ,(car access-forms)
+           ,(labels ((shiftf-expand (var-val-pairs-list stores-list access-forms store-forms)
+                       (if access-forms
+                           `(let* ,(car var-val-pairs-list)
+                              (multiple-value-bind ,(car stores-list) ,(car access-forms)
+                                ,(shiftf-expand (cdr var-val-pairs-list) (cdr stores-list) (cdr access-forms) store-forms)))
+                         `(multiple-value-bind ,(car stores-list) ,newvalue
+                            ,@store-forms))))
+              (shiftf-expand (cdr var-val-pairs-list) stores-list (cdr access-forms) store-forms)))))))
 
 
 ;;; ROTATEF macro.
-(defmacro rotatef (&environment env &rest rest)
+(defmacro rotatef (&environment env &rest places)
   "Syntax: (rotatef {place}*)
 Saves the values of PLACEs, and then assigns to each PLACE the saved value of
 the PLACE to its right.  The rightmost PLACE gets the value of the leftmost
 PLACE.  Returns NIL."
-  (do ((r rest (cdr r))
-       (pairs nil)
-       (stores nil)
-       (store-forms nil)
-       (access-forms nil))
-      ((endp r)
-       (setq stores (nreverse stores))
-       (setq store-forms (nreverse store-forms))
-       (setq access-forms (nreverse access-forms))
-       `(let* ,(nconc pairs
-		      (mapcar #'list stores (cdr access-forms))
-		      (list (list (car (last stores)) (car access-forms))))
-	    ,@store-forms
-	    nil))
-    (multiple-value-bind (vars vals stores1 store-form access-form)
-	(get-setf-expansion (car r) env)
-      (setq pairs (nconc pairs (mapcar #'list vars vals)))
-      (setq stores (cons (car stores1) stores))
-      (setq store-forms (cons store-form store-forms))
-      (setq access-forms (cons access-form access-forms)))))
+  (let (var-val-pairs-list stores-list store-forms access-forms
+        (last-stores 0)) ;; 0 is not a valid list of store variables and marks it as such until replacement.
+    (dolist (place (nreverse places))
+      (multiple-value-bind (vars vals stores store-form access-form)
+          (get-setf-expansion place env)
+        (push (mapcar #'list vars vals) var-val-pairs-list)
+        (when (eql 0 last-stores) (setq last-stores stores))
+        (push stores stores-list)
+        (push store-form store-forms)
+        (push access-form access-forms)))
+    `(let* ,(car var-val-pairs-list)
+       (multiple-value-bind ,last-stores ,(car access-forms)
+         ,(labels ((rotatef-expand (var-val-pairs-list stores-list access-forms store-forms)
+                     (if access-forms
+                         `(let* ,(car var-val-pairs-list)
+                            (multiple-value-bind ,(car stores-list) ,(car access-forms)
+                              ,(rotatef-expand (cdr var-val-pairs-list) (cdr stores-list) (cdr access-forms) store-forms)))
+                       `(progn ,@store-forms))))
+            (rotatef-expand (cdr var-val-pairs-list) stores-list (cdr access-forms) store-forms)))
+       nil)))
 
 
 ;;; DEFINE-MODIFY-MACRO macro, by Bruno Haible.
