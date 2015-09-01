@@ -2081,7 +2081,7 @@
     (proclaim-function nstring-upcase (string *) string)
     (proclaim-function nstring-downcase (string *) string)
     (proclaim-function nstring-capitalize (string *) string)
-    (proclaim-function string (t) string :predicate t)
+    (proclaim-function string (t) string)
     (proclaim-function si:concatenate-strings (*) string)
     #+unicode
     (def-inline si:concatenate-strings :always (string) t "mkcl_copy_string(env, #0)")
