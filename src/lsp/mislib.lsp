@@ -235,12 +235,6 @@ hash table; otherwise it signals that we have reached the end of the hash table.
     (macrolet ((,iterator () (list 'funcall ',iterator)))
       ,@body)))
 
-(defun sharp-!-reader (stream subchar arg)
-  (declare (ignore subchar arg))
-  (read-line stream)
-  (values))
-
-(set-dispatch-macro-character #\# #\! 'sharp-!-reader)
 
 (defun si::simple-program-error (message &rest datum)
   ;;(apply #'error 'simple-program-error :format-control message :format-arguments (car datum) (cdr datum))

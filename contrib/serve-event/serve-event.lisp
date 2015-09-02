@@ -76,7 +76,7 @@
 
 
 (defvar *descriptor-handlers* nil
-  #!+sb-doc
+  ;;#!+sb-doc
   "List of all the currently active handlers for file descriptors")
 
 
@@ -94,7 +94,7 @@
 
 ;;; Remove an old handler from *descriptor-handlers*.
 (defun remove-fd-handler (handler)
-  #!+sb-doc
+  ;;#!+sb-doc
   "Removes HANDLER from the list of active handlers."
   (setf *descriptor-handlers*
         (delete handler *descriptor-handlers*)))
