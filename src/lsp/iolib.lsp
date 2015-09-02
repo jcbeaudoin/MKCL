@@ -179,7 +179,7 @@ printed.  If FORMAT-STRING is NIL, however, no prompt will appear."
 
 (defun sharp-a-reader (stream subchar arg)
   (declare (ignore subchar))
-  (let ((initial-contents (read-preserving-whitespace stream nil nil t)))
+  (let ((initial-contents (read-preserving-whitespace stream t nil t)))
     (cond
       (*read-suppress* nil)
       ((null arg)
@@ -203,7 +203,7 @@ printed.  If FORMAT-STRING is NIL, however, no prompt will appear."
   (declare (ignore subchar))
   (when (and arg (null *read-suppress*))
         (error "~S is an extra argument for the #s readmacro." arg))
-  (let ((l (read-preserving-whitespace stream)))
+  (let ((l (read-preserving-whitespace stream t nil t)))
     (when *read-suppress*
       (return-from sharp-s-reader nil))
     (unless (get-sysprop (car l) 'is-a-structure)
