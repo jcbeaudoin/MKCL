@@ -848,6 +848,7 @@ mkcl_shadowing_import(MKCL, mkcl_object s, mkcl_object p)
     }
     p->pack.shadowings = MKCL_CONS(env, s, p->pack.shadowings);
     mkcl_sethash(env, name, p->pack.internal, s);
+    symbol_add_package(s, p);
   OUTPUT:;
   } MKCL_UNWIND_PROTECT_EXIT {
     if (locked) MKCL_PACKAGE_UNLOCK(p);
