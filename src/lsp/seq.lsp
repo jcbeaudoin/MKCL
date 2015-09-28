@@ -22,12 +22,11 @@
 	 :format-control "~S does not specify a sequence type"
 	 :format-arguments (list type)))
 
-(defun error-sequence-length (object type size)
+(defun error-sequence-length (type size)
   (error 'simple-type-error
 	 :format-control "Cannot create a sequence of size ~S which matches type ~S."
 	 :format-arguments (list size type)
-	 :expected-type type
-	 :datum object))
+	 :expected-type type))
 
 (defun closest-sequence-type (type)
   (let (elt-type length name args)
@@ -129,12 +128,14 @@ default value of INITIAL-ELEMENT depends on TYPE."
   (multiple-value-bind (element-type length)
       (closest-sequence-type type)
     (cond ((eq element-type 'LIST)
-	   (setq sequence (make-list size :initial-element initial-element))
 	   (unless (subtypep 'LIST type)
 	     (when (or (and (subtypep type 'NULL) (plusp size))
 		       (and (subtypep type 'CONS) (zerop size)))
-	       (error-sequence-length (make-list size :initial-element initial-element) type 0))))
+	       (error-sequence-length type size)))
+	   (setq sequence (make-list size :initial-element initial-element)))
 	  (t
+	   (unless (or (eql length '*) (eql length size))
+	     (error-sequence-length type size))
 	   (setq sequence (sys:make-vector (if (eq element-type '*) T element-type)
 					   size nil nil nil nil))
 	   (when iesp
@@ -142,9 +143,7 @@ default value of INITIAL-ELEMENT depends on TYPE."
 		  (size size))
 		 ((>= i size))
 	       (declare (fixnum i size))
-	       (setf (elt sequence i) initial-element)))
-	   (unless (or (eql length '*) (eql length size))
-	     (error-sequence-length sequence type size))))
+	       (setf (elt sequence i) initial-element)))))
     sequence))
 
 (defun make-seq-iterator (sequence &optional (start 0))
