@@ -46,8 +46,8 @@ struct mkcl_core_struct mkcl_core;
 
 /************************ GLOBAL INITIALIZATION ***********************/
 
-static mkcl_index ARGC;
-static char **ARGV;
+static mkcl_index ARGC = 0;
+static char **ARGV = NULL;
 
 static mkcl_word option_values[MKCL_OPT_MAXIMUM] = {
   FALSE,	/* MKCL_OPT_INCREMENTAL_GC, a boolean flag */
@@ -983,18 +983,21 @@ mkcl_argv(MKCL, mkcl_index index)
 #endif
     }
   else
-    mkcl_FEerror(env, "Out of range command line argument index: ~S. Must be between 0 and ~D inclusively.",
-		 2, index, MKCL_MAKE_FIXNUM(ARGC - 1));    
+    mkcl_FEerror(env, "Out of range command line argument index: ~D. Must be between 0 and ~D inclusively.",
+		 2, mkcl_make_unsigned_integer(env, index), mkcl_make_unsigned_integer(env, ARGC - 1));
 }
 
 mkcl_object
 mk_mkcl_argv(MKCL, mkcl_object index)
 {
   mkcl_call_stack_check(env);
-  if (MKCL_FIXNUMP(index)) {
-    @(return mkcl_argv(env, mkcl_fixnum_to_word(index)));
+  if (MKCL_FIXNUMP(index) && MKCL_FIXNUM_PLUSP(index)) {
+    mkcl_index _ndx = mkcl_fixnum_to_word(index);
+    mkcl_object it = mkcl_argv(env, _ndx);
+    @(return it);
   }
-  mkcl_FEerror(env, "Invalid type for command line argument index: ~S. Must be a positive integer.", 1, index);
+  else
+    mkcl_FEerror(env, "Invalid type for command line argument index: ~S. Must be a positive integer.", 1, index);
 }
 
 #ifdef MKCL_WINDOWS
