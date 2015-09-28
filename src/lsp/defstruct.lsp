@@ -402,7 +402,7 @@ as a STRUCTURE doc and can be retrieved by (documentation 'NAME 'structure)."
              (case o
                (:CONSTRUCTOR
                 (setq constructors
-                      (cons default-constructor constructors)))
+                      (adjoin default-constructor constructors)))
 	       (:CONC-NAME
 		(setq conc-name nil))
                ((:COPIER :PREDICATE :PRINT-FUNCTION :PRINT-OBJECT))
