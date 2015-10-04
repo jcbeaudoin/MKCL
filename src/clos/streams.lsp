@@ -76,7 +76,7 @@
 (defgeneric input-stream-p (stream)
   (:documentation "Can STREAM perform input operations?"))
 
-(defgeneric stream-p (stream)
+(defgeneric streamp (stream)
   (:documentation "Is this object a STREAM?"))
 
 (defgeneric stream-interactive-p (stream)
@@ -534,7 +534,7 @@
   (declare (ignore stream position))
   nil)
 
-;; STREAM-P
+;; STREAMP
 
 (defmethod streamp ((stream stream))
   t)
