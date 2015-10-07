@@ -456,7 +456,7 @@
 (defmethod stream-unread-char ((stream ansi-stream) character)
   (cl:unread-char character stream))
 
-(defmethod stream-unread-char ((stream ansi-stream) character)
+(defmethod stream-unread-char ((stream t) character)
   (declare (ignore character))
   (bug-or-error stream 'stream-unread-char))
 
