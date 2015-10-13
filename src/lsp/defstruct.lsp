@@ -273,6 +273,10 @@
                   (sixth new-slot) (sixth old-slot))))
       (push new-slot output))))
 
+(defun structure-default-print-function (obj stream level)
+  (declare (ignore level))
+  (clos::print-object-as-struct obj stream))
+
 (defun define-structure (name conc-name type named slots slot-descriptions
 			 copier include print-function print-object constructors
 			 offset name-offset documentation predicate source)
@@ -405,7 +409,9 @@ as a STRUCTURE doc and can be retrieved by (documentation 'NAME 'structure)."
                       (adjoin default-constructor constructors)))
 	       (:CONC-NAME
 		(setq conc-name nil))
-               ((:COPIER :PREDICATE :PRINT-FUNCTION :PRINT-OBJECT))
+               ((:COPIER :PREDICATE))
+               (:PRINT-FUNCTION (setq print-function 'structure-default-print-function))
+               (:PRINT-OBJECT (setq print-object 'clos::print-object-as-struct))
                (:NAMED (setq named t))
                (t (error "~S is an illegal defstruct option." o))))))
 
@@ -489,7 +495,7 @@ as a STRUCTURE doc and can be retrieved by (documentation 'NAME 'structure)."
     (when include (setq include (car include)))
 
     ;; Check the print-function.
-    (when (and print-function type)
+    (when (and (or print-function print-object) type)
       (error "An print function is supplied to a typed structure."))
 
     (let ((core `(define-structure ',name ',conc-name ',type ',named ',slots

@@ -1492,7 +1492,7 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
 	/* structure_to_list conses slot names and values into a list to be printed.
 	 * print shouldn't allocate memory - Beppe
 	 */
-	x = structure_to_list(x); /* Broken! JCB */
+	x = structure_to_list(x); /* Broken! since at least 1993 AFAICT. JCB */
 	mk_si_write_object(x, stream);
       } else {
 #if 0
