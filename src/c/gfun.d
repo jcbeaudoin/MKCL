@@ -451,12 +451,14 @@ get_spec_vector(MKCL, mkcl_object frame, mkcl_object gf)
       const mkcl_object arg = args[spec_position];
 
       if (MKCL_ATOM(spec_type))
-        argtype[spec_no++] = mk_cl_class_of(env, arg);
+        argtype[spec_no++] = MKCL_CLASS_CPL(mk_cl_class_of(env, arg));
       else
         {
           const mkcl_object pseudo_eql_spec = mkcl_memql(env, arg, spec_type);
           
-          argtype[spec_no++] = (mkcl_Null(pseudo_eql_spec) ? mk_cl_class_of(env, arg) : pseudo_eql_spec);
+          argtype[spec_no++] = (mkcl_Null(pseudo_eql_spec) 
+                                ? MKCL_CLASS_CPL(mk_cl_class_of(env, arg))
+                                : pseudo_eql_spec);
         }
     }
   } mkcl_end_loop_for_on;
