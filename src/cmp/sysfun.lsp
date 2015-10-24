@@ -2242,16 +2242,18 @@
 
     (proclaim-function si:sl-makunbound (t fixnum) t :predicate t)
 
-    (proclaim-function standard-instance-access (standard-object fixnum) t :no-side-effects t)
-    (def-inline standard-instance-access :always (t fixnum) t "mkcl_instance_ref(env, (#0),(#1))")
-    (def-inline standard-instance-access :unsafe (standard-object fixnum) t "(#0)->instance.slots[#1]")
+#|
+    (proclaim-function clos::standard-instance-access (standard-object fixnum) t :no-side-effects t)
+    (def-inline clos::standard-instance-access :always (t fixnum) t "mkcl_instance_ref(env, (#0),(#1))")
+    (def-inline clos::standard-instance-access :unsafe (standard-object fixnum) t "(#0)->instance.slots[#1]")
 
-    (proclaim-function funcallable-standard-instance-access (funcallable-standard-object fixnum) t :no-side-effects t)
-    (def-inline funcallable-standard-instance-access :always (t fixnum) t "mkcl_instance_ref(env, (#0),(#1))")
-    (def-inline funcallable-standard-instance-access :unsafe (funcallable-standard-object fixnum) t
+    (proclaim-function clos::funcallable-standard-instance-access (funcallable-standard-object fixnum) t :no-side-effects t)
+    (def-inline clos::funcallable-standard-instance-access :always (t fixnum) t "mkcl_instance_ref(env, (#0),(#1))")
+    (def-inline clos::funcallable-standard-instance-access :unsafe (funcallable-standard-object fixnum) t
       "(#0)->instance.slots[#1]")
+|#
 
-    (proclaim-function associate-methods-to-gfun (generic-function *) generic-function)
+    (proclaim-function clos::associate-methods-to-gfun (generic-function *) generic-function)
     (proclaim-function si:of-class-p (t t) t)
 
     (proclaim-function clos::class-slots (class) list)
