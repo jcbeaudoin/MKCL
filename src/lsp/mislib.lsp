@@ -15,6 +15,9 @@
 ;;;
 
 
+(in-package "SYSTEM")
+
+
 (defun do-time (closure)
   (let* (real-start
 	 run-start
