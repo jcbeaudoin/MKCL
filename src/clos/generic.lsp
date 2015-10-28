@@ -132,11 +132,16 @@
   (when a-o-p
     (unless l-l-p
       (simple-program-error "Supplied :argument-precedence-order, but :lambda-list is missing"))
-    (dolist (l (lambda-list-required-arguments lambda-list))
-      (unless (= (count l argument-precedence-order) 1)
-	(simple-program-error "The required argument ~A does not appear ~
-                               exactly once in the ARGUMENT-PRECEDENCE-ORDER list ~A"
-			      l argument-precedence-order))))
+    (let ((reqs (lambda-list-required-arguments lambda-list)))
+      (dolist (l reqs)
+        (unless (= (count l argument-precedence-order) 1)
+          (si::simple-program-error "The required argument ~A does not appear ~
+                                     exactly once in the ARGUMENT-PRECEDENCE-ORDER list ~A"
+                                    l argument-precedence-order)))
+      (unless (= (length reqs) (length argument-precedence-order))
+        (si::simple-program-error "Unknown argument(s) ~A in the ARGUMENT-PRECEDENCE-ORDER list ~A"
+                                  (set-difference argument-precedence-order reqs) argument-precedence-order))
+      ))
   (unless (every #'valid-declaration-p declarations)
     (simple-program-error "Not a valid declaration list: ~A" declarations))
   (unless (or (null documentation) (stringp documentation))
