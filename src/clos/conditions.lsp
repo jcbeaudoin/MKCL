@@ -200,7 +200,9 @@
 		 (name (first expression2)))
 	    (case name
 	      (SIGNAL
-	       (setq condition-form (second expression2)))
+	       (setq condition-form `(coerce-to-condition ,(second expression2)
+                                      (list ,@(cddr expression2))
+                                      'SIMPLE-CONDITION 'SIGNAL)))
 	      (ERROR
 	       (setq condition-form `(coerce-to-condition ,(second expression2)
 				      (list ,@(cddr expression2))
