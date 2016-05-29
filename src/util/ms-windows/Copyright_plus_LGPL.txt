@@ -1,6 +1,6 @@
 ---- BEGINNING OF COPYRIGHT FOR THE MKCL CORE ENVIRONMENT ------------
 
-  Copyright (c) 2010-2014, Jean-Claude Beaudoin
+  Copyright (c) 2010-2016, Jean-Claude Beaudoin
   Copyright (c) 2000, Juan Jose Garcia Ripoll
   Copyright (c) 1990, 1991, 1993 Giuseppe Attardi
   Copyright (c) 1984 Taiichi Yuasa and Masami Hagiya
@@ -9,7 +9,7 @@
   ManKai Common Lisp (MKCL) is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License as
   published by the Free Software Foundation; either version 3 of the License,
-  or (at your option) any later version; see file 'Copying'.
+  or (at your option) any later version.
 
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,9 +26,10 @@
 	src/lsp/loop3.lsp	; Symbolic's LOOP macro
 	src/lsp/pprint.lsp	; CMUCL's pretty printer
 	src/lsp/format.lsp	; CMUCL's format
-  and the directories
+  and the directories  (along with the files and subdirectories
+  they recursively contain)
 	contrib/		; User contributed extensions
-  Look the precise copyright of these extensions in the corresponding
+  Look for the precise copyright of these extensions in the corresponding
   files.
 
 
