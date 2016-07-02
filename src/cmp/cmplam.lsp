@@ -2,7 +2,7 @@
 ;;;;
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
-;;;;  Copyright (c) 2010-2015, Jean-Claude Beaudoin
+;;;;  Copyright (c) 2010-2016, Jean-Claude Beaudoin
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -629,15 +629,15 @@ The function thus belongs to the type of functions that mkcl_make_cfun accepts."
       (let ((keyword (first scan))
 	    (key-var (second scan))
 	    (key-value (third scan))
-	    (key-flag (or (fourth scan) (gensym))))
+	    (key-p-flag (or (fourth scan) (gensym))))
 	(push keyword all-keys)
 	(setf let-vars
 	      (list*
-	       `(,key-var (if (eq ,key-flag 'si::failed) ,key-value ,key-flag))
-	       `(,key-flag (si::search-keyword ,rest ,keyword))
+	       `(,key-var (if (eq ,key-p-flag 'si::failed) ,key-value ,key-p-flag))
+	       `(,key-p-flag (si::search-keyword ,rest ,keyword))
 	       let-vars))
 	(when (fourth scan)
-	  (push `(setf ,key-flag (not (eq ,key-flag 'si::failed)))
+	  (push `(setf ,key-p-flag (not (eq ,key-p-flag 'si::failed)))
 		extra-stmts))))
     (when (and key-flag (not allow-other-keys))
       (push `(si::check-keyword 'lambda ,rest ',all-keys) extra-stmts))
