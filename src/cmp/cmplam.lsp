@@ -316,13 +316,14 @@ The function thus belongs to the type of functions that mkcl_make_cfun accepts."
 		 (optionals (second lambda-list))
 		 (rest (third lambda-list))
 		 rest-loc
+		 (key-flag (fourth lambda-list))
 		 (keywords (fifth lambda-list))
 		 (allow-other-keys (sixth lambda-list))
 		 vars-for-debug
 		 (nreq (length requireds))
 		 (nopt (/ (length optionals) 3))
 		 (nkey (/ (length keywords) 4))
-		 (varargs (or optionals rest keywords allow-other-keys))
+		 (varargs (or optionals rest key-flag))
 		 simple-varargs
 		 (*permanent-data* t)
 		 (*unwind-exit* *unwind-exit*)
@@ -332,12 +333,12 @@ The function thus belongs to the type of functions that mkcl_make_cfun accepts."
 
   (if (and fname ;; named function
 	   ;; no required appears in closure,
-	   (dolist (var (car lambda-list) t)
+	   (dolist (var requireds t)
 	     (declare (type (or null var) var))
 	     (when (var-ref-ccb var) (return nil)))
-	   (null (second lambda-list))	;; no optionals,
-	   (null (third lambda-list))	;; no rest parameter, and
-	   (null (fourth lambda-list)))	;; no keywords.
+	   (null optionals) ;; no optionals,
+	   (null rest)	    ;; no rest parameter, and
+	   (null key-flag)) ;; no keywords.
       (setf *tail-recursion-info* (cons *tail-recursion-info* (car lambda-list)))
     (setf *tail-recursion-info* nil))
 
@@ -356,7 +357,7 @@ The function thus belongs to the type of functions that mkcl_make_cfun accepts."
 	  (when requireds
 	    (wt-nl "if(narg<" nreq ") "
                    (if fname "mkcl_FEwrong_num_arguments(env, this_func);" "mkcl_FEwrong_num_arguments_anonym(env);")))
-	  (unless (or rest keywords allow-other-keys)
+	  (unless (or rest key-flag)
 	    (wt-nl "if(narg>" (+ nreq nopt) ") "
                    (if fname "mkcl_FEwrong_num_arguments(env, this_func);" "mkcl_FEwrong_num_arguments_anonym(env);")))))
     (wt-nl "{"))
@@ -416,7 +417,7 @@ The function thus belongs to the type of functions that mkcl_make_cfun accepts."
 			     (t "narg"))))
 	(wt-nl
 	  (format nil
-	     (if (setq simple-varargs (and (not (or rest keywords allow-other-keys))
+	     (if (setq simple-varargs (and (not (or rest key-flag))
 					   (< (+ nreq nopt) 30)))
 		 "va_list args; va_start(args,~a);"
 		 "mkcl_va_list args; mkcl_va_start(env, args,~a,narg,~d);")
@@ -465,7 +466,7 @@ The function thus belongs to the type of functions that mkcl_make_cfun accepts."
       (wt "}"))
     )
 
-  (when (or rest keywords allow-other-keys)
+  (when (or rest key-flag)
     (let ((rest-is-dynamic nil))
       (when (and rest (eq 'DYNAMIC (var-extent rest)))
 	(if (eq 'CLOSURE (var-kind rest))
@@ -476,7 +477,7 @@ The function thus belongs to the type of functions that mkcl_make_cfun accepts."
 	    )
 	  )
 	)
-      (cond ((not (or keywords allow-other-keys))
+      (cond ((not key-flag)
 	     (wt-nl rest-loc "=mkcl_grab_rest_args(env, args, " (if rest-is-dynamic "TRUE);" "FALSE);")))
 	    (t
 	     (cond (keywords
