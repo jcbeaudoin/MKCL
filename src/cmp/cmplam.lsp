@@ -329,7 +329,7 @@ The function thus belongs to the type of functions that mkcl_make_cfun accepts."
 		 (*unwind-exit* *unwind-exit*)
 		 (*env* *env*)
 		 (last-arg))
-  (declare (fixnum nreq nkey))
+  (declare (fixnum nreq nopt nkey))
 
   (if (and fname ;; named function
 	   ;; no required appears in closure,
@@ -489,7 +489,7 @@ The function thus belongs to the type of functions that mkcl_make_cfun accepts."
 	     ;; declaration on some variables.
 	     (if rest (wt ",(mkcl_object*)&" rest-loc) (wt ",NULL"))
 	     (wt (if allow-other-keys ",TRUE," ",FALSE,")
-		 (if rest-is-dynamic "TRUE);" "FALSE);")))))
+                 (if rest-is-dynamic "TRUE);" "FALSE);")))))
     (when rest (bind rest-loc rest)))
 
   (when varargs

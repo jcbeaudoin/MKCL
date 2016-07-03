@@ -2,7 +2,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2014, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -670,7 +670,10 @@ extern "C" {
   extern MKCL_API void mkcl_throw(MKCL, mkcl_object tag) mkcl_noreturn;
   extern MKCL_API void mkcl_return_from(MKCL, mkcl_object block_id, mkcl_object block_name) mkcl_noreturn;
   extern MKCL_API void mkcl_go(MKCL, mkcl_object tag_id, mkcl_index label_index) mkcl_noreturn;
-  extern MKCL_API void mkcl_parse_key(MKCL, mkcl_va_list args, int nkey, mkcl_object *keys, mkcl_object *vars, mkcl_object *rest, bool allow_other_keys, bool dynamic);
+  extern MKCL_API void mkcl_parse_key(MKCL, mkcl_va_list args,
+                                      const mkcl_word nkey, const mkcl_object * const keys,
+                                      mkcl_object * const vars, mkcl_object * rest,
+                                      const bool allow_other_keys, const bool dynamic);
   extern MKCL_API mkcl_object mkcl_grab_rest_args(MKCL, mkcl_va_list args, bool dynamic);
   extern MKCL_API mkcl_object mk_si_convert_cmp_lexical_info(MKCL, mkcl_object cmp_env);
 

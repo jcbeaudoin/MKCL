@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -168,16 +168,16 @@ mkcl_grab_rest_args(MKCL, mkcl_va_list args, bool dynamic)
 
 void
 mkcl_parse_key(MKCL,
-		mkcl_va_list args,	/* actual args */
-		int nkey,		/* number of keywords */
-		mkcl_object *keys,	/* keywords for the function */
-		mkcl_object *vars,	/* where to put values (vars[0..nkey-1])
-					   and suppliedp (vars[nkey..2*nkey-1]) */
-		mkcl_object *rest,	/* if rest != NULL, where to collect rest values */
-		bool allow_other_keys,	/* whether other key are allowed */
-		bool dynamic)
+               mkcl_va_list args,       /* actual args */
+               const mkcl_word nkey,	/* number of keywords */
+               const mkcl_object * const keys, /* keywords for the function */
+               mkcl_object * const vars, /* where to put values (vars[0..nkey-1])
+                                           and suppliedp (vars[nkey..2*nkey-1]) */
+               mkcl_object * rest, /* if rest != NULL, where to collect rest values */
+               const bool allow_other_keys, /* whether other key are allowed */
+               const bool dynamic)      /* is rest declared to be of dynamic-extent? */
 {
-  int i;
+  mkcl_word i;
   mkcl_object supplied_allow_other_keys = MKCL_OBJNULL;
   mkcl_object unknown_keyword = MKCL_OBJNULL;
   mkcl_object (*conser)(MKCL, mkcl_object, mkcl_object) = (dynamic ? mk_si_dyn_cons : mkcl_cons);
