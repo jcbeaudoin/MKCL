@@ -5,7 +5,7 @@
 /*
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
-    Copyright (c) 2010-2014, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -62,7 +62,6 @@ typedef SRWLOCK mkcl_os_rwlock_ref; /* MingW does not support this yet it seems.
 typedef HANDLE mkcl_os_rwlock_ref;
 # endif
 #else /* def MKCL_WINDOWS */
-# include <alloca.h> /* for alloca() */
 # include <semaphore.h>
 typedef pthread_t mkcl_os_thread_t;
 typedef pthread_mutex_t * mkcl_os_mutex_ref;
