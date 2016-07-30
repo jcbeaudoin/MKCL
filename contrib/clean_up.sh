@@ -9,4 +9,4 @@ find . -name "*.a" -print -exec rm {} \;
 find . -name "MKCLINIT*" -print -exec rm {} \;
 find . -name "MKC*.c" -print -exec rm {} \;
 find . -name "MKC*.tmp" -print -exec rm {} \;
-(cd asdf; make clean)
+(cd asdf; ${MAKE:-make} clean)
