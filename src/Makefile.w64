@@ -510,7 +510,7 @@ clean: clean_lisp clean_contribs
 
 clean_contribs:
 	$(RM) -r ext ext-dir-exists asdf-stage asdf-stage-dir-exists
-	cd ../contrib; sh ./clean_up.sh
+	cd ../contrib; MAKE=$(MAKE) sh ./clean_up.sh
 	$(RM) asdf.fasb asdf2.fasb $(CONTRIB_FASLS) $(CONTRIB_FASLS:%.fasb=%.asd) $(CONTRIB_FASLS:%.fasb=%.as2)
 
 clean_lisp:
