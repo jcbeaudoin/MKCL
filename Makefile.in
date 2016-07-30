@@ -144,7 +144,7 @@ TAR_DIR=mkcl-$(VERSION)
 
 doc: src/doc/index.html
 	-mkdir doc
-	(cd src/doc; make html); cp src/doc/*.html doc
+	(cd src/doc; $(MAKE) html); cp src/doc/*.html doc
 src/doc/index.html:
 	cd src/doc; $(MAKE)
 
