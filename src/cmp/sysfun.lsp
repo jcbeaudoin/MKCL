@@ -1891,8 +1891,8 @@
     (def-inline boundp :always (symbol) :bool
       "@0;(mkcl_likely(MKCL_SYMBOLP(#0)) ? (MKCL_SYM_VAL(env,#0)!=MKCL_OBJNULL) : (mkcl_FEtype_error_symbol(env, #0), FALSE))")
 
-    (proclaim-function macro-function (symbol) t)
-    (proclaim-function special-operator-p (symbol) t :predicate t)
+    (proclaim-function macro-function (t &optional t) t)
+    (proclaim-function special-operator-p (t) t :predicate t)
 
     ;; file unixsys.d
 
