@@ -1518,7 +1518,7 @@ mkcl_object mk_mkcl_process_exit_code(MKCL, mkcl_object proc)
 
 mkcl_object mk_mkcl_process_p(MKCL, mkcl_object proc)
 {
-  @(return ((mkcl_type_of(proc) != mkcl_t_process) ? mk_cl_Ct : mk_cl_Cnil));
+  @(return ((mkcl_type_of(proc) == mkcl_t_process) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object mk_mkcl_process_plist(MKCL, mkcl_object proc)
