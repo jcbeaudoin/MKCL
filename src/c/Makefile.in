@@ -22,9 +22,9 @@ VPATH	= @srcdir@
 TRUE_CC = @CC@
 CC	= @CC@
 ifeq (@thehost@,mingw32)
-CFLAGS	= -I../ -DMKCL_API @CPPFLAGS@ @CFLAGS@ @MKCL_CFLAGS@
+CFLAGS	= -I$$PWD/../ -DMKCL_API @CPPFLAGS@ @CFLAGS@ @MKCL_CFLAGS@
 else
-CFLAGS	= -I../ @CPPFLAGS@ @CFLAGS@ @MKCL_CFLAGS@
+CFLAGS	= -I$$PWD/../ @CPPFLAGS@ @CFLAGS@ @MKCL_CFLAGS@
 endif
 
 SHELL	= /bin/sh
