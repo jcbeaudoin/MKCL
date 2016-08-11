@@ -3,7 +3,7 @@
 */
 /*
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -15,6 +15,17 @@
 
 #ifndef MKCL_INTERNAL_H
 #define MKCL_INTERNAL_H
+
+#if __unix || __MINGW32__ || cygwin
+# include <unistd.h>
+#endif
+
+#if _POSIX_VERSION >= 200112L
+# define MKCL_UNIX TRUE /* This is Unix enough for MKCL. */
+# if _POSIX_THREADS >= 200112L
+#  define MKCL_PTHREADS TRUE
+# endif
+#endif
 
 #include <errno.h>
 #include <stdio.h>
@@ -119,28 +130,28 @@ extern "C" {
   mkcl_object name = mkcl_temp_stack_frame_open(env, (mkcl_object)&frame, 0);
 
 #ifdef MKCL_USE_VARARG_AS_POINTER
-#define MKCL_TEMP_STACK_FRAME_FROM_VA_LIST(e,f,va) do {	\
-    const mkcl_object __frame = (f);			\
-    __frame->frame.t = mkcl_t_temp_stack_frame;		\
-    __frame->frame.stack = 0;				\
-    __frame->frame.env = (e);				\
-    __frame->frame.size = va[0].narg;			\
-    __frame->frame.base = va[0].sp? va[0].sp :		\
-      (mkcl_object*)va[0].args;				\
+# define MKCL_TEMP_STACK_FRAME_FROM_VA_LIST(e,f,va) do {        \
+    const mkcl_object __frame = (f);                            \
+    __frame->frame.t = mkcl_t_temp_stack_frame;                 \
+    __frame->frame.stack = 0;                                   \
+    __frame->frame.env = (e);                                   \
+    __frame->frame.size = va[0].narg;                           \
+    __frame->frame.base = va[0].sp? va[0].sp :                  \
+      (mkcl_object*)va[0].args;                                 \
   } while(0)
 #else
-#define MKCL_TEMP_STACK_FRAME_FROM_VA_LIST(e,f,va) do {	\
-    const mkcl_object __frame = (f);			\
-    mkcl_index i, __nargs = va[0].narg;			\
-    mkcl_temp_stack_frame_open((e), __frame, __nargs);	\
-    for (i = 0; i < __nargs; i++) {			\
-      __frame->frame.base[i] = mkcl_va_arg(va);		\
-    }							\
+# define MKCL_TEMP_STACK_FRAME_FROM_VA_LIST(e,f,va) do {	\
+    const mkcl_object __frame = (f);                            \
+    mkcl_index i, __nargs = va[0].narg;                         \
+    mkcl_temp_stack_frame_open((e), __frame, __nargs);          \
+    for (i = 0; i < __nargs; i++) {                             \
+      __frame->frame.base[i] = mkcl_va_arg(va);                 \
+    }                                                           \
   } while (0)
 #endif
 
 #ifdef MKCL_USE_VARARG_AS_POINTER
-#define MKCL_TEMP_STACK_FRAME_VARARGS_BEGIN(env, narg,lastarg,frame)	\
+# define MKCL_TEMP_STACK_FRAME_VARARGS_BEGIN(env, narg,lastarg,frame)	\
   struct mkcl_temp_stack_frame __mkcl_frame;				\
   const mkcl_object frame = (mkcl_object)&__mkcl_frame;			\
   frame->frame.t = mkcl_t_temp_stack_frame;				\
@@ -155,10 +166,10 @@ extern "C" {
   } else {								\
     frame->frame.base = env->temp_stack_top - narg;/* underflow? */	\
   }
-#define MKCL_TEMP_STACK_FRAME_VARARGS_END(frame)	\
+# define MKCL_TEMP_STACK_FRAME_VARARGS_END(frame)	\
   /* No stack consumed, no need to close frame */
 #else
-#define MKCL_TEMP_STACK_FRAME_VARARGS_BEGIN(env,narg,lastarg,frame)	\
+# define MKCL_TEMP_STACK_FRAME_VARARGS_BEGIN(env,narg,lastarg,frame)	\
   struct mkcl_temp_stack_frame __mkcl_frame;				\
   const mkcl_object frame = (mkcl_object)&__mkcl_frame;			\
   frame->frame.t = mkcl_t_temp_stack_frame;				\
@@ -179,7 +190,7 @@ extern "C" {
     frame->frame.base = env->temp_stack_top - narg;/* underflow? */	\
     frame->frame.stack = 0;						\
   }
-#define MKCL_TEMP_STACK_FRAME_VARARGS_END(frame)	\
+# define MKCL_TEMP_STACK_FRAME_VARARGS_END(frame)	\
   /* No stack consumed, no need to close frame */
 #endif
 
@@ -202,9 +213,6 @@ extern "C" {
   /* ffi.d */
 
 
-#if 0
-#define MKCL_FFICALL_LIMIT 2048
-#endif
  /* These two fficall parameters are in bytes and should be multiples of 16. */
 #define MKCL_FFICALL_ARGS_STAGING_AREA_INITIAL_SIZE 32
 #define MKCL_FFICALL_ARGS_STAGING_AREA_GROWTH_INCREMENT 512 /* Exponential growth up to it, linear afterward. */
@@ -252,11 +260,7 @@ extern "C" {
     union mkcl_ffi_values output;
     enum mkcl_ffi_calling_convention cc;
     struct mkcl_fficall_reg *registers;
-#if 0
-    char buffer[MKCL_FFICALL_LIMIT];
-#else
     char * buffer;
-#endif
     /* mkcl_object cstring; */
   };
 
@@ -352,7 +356,7 @@ extern "C" {
 
   /* global locks */
 
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
 
 # define MKCL_THREAD_LIST_LOCK() EnterCriticalSection(&mkcl_core.thread_list_lock)
 # define MKCL_THREAD_LIST_UNLOCK() LeaveCriticalSection(&mkcl_core.thread_list_lock)
@@ -363,7 +367,7 @@ extern "C" {
 # define MKCL_PACKAGE_LOCK(p) EnterCriticalSection(&(p)->pack.lock)
 # define MKCL_PACKAGE_UNLOCK(p) LeaveCriticalSection(&(p)->pack.lock)
 
-#else
+#elif MKCL_PTHREADS
 
 # include <pthread.h>
 
@@ -388,6 +392,8 @@ extern "C" {
   (pthread_mutex_unlock(&(p)->pack.lock)			\
    && (mkcl_lose(env, "Failed in MKCL_PACKAGE_UNLOCK()"), 0))
 
+#else
+# error Incomplete thread support for this OS.
 #endif
 
 
@@ -397,12 +403,12 @@ extern "C" {
 
   /* time.d */
 
-#if defined(MKCL_WINDOWS)
-#define MKCL_UTC_time_to_universal_time(e, x)			\
-  mkcl_plus(e, mkcl_make_int64_t(e, x), mkcl_core.Jan1st1970UT)
+#if MKCL_WINDOWS
+# define MKCL_UTC_time_to_universal_time(e, x)			\
+   mkcl_plus(e, mkcl_make_int64_t(e, x), mkcl_core.Jan1st1970UT)
 #else
-#define MKCL_UTC_time_to_universal_time(e, x)			\
-  mkcl_plus(e, mkcl_make_integer(e, x), mkcl_core.Jan1st1970UT)
+# define MKCL_UTC_time_to_universal_time(e, x)			\
+   mkcl_plus(e, mkcl_make_integer(e, x), mkcl_core.Jan1st1970UT)
 #endif
 
   /* backq.d */
@@ -410,7 +416,7 @@ extern "C" {
   extern int _mkcl_backq_car(MKCL, mkcl_object *px);
 
 
-#ifdef __linux
+#if MKCL_PTHREADS
 
   /* threads.d */
 
@@ -439,17 +445,13 @@ extern "C" {
     int chainable; /* for chaining */
     sem_t sem_obj;
     sem_t * sem;
-#if 0
-    mkcl_os_thread_t thread;
-    mkcl_object lisp_thread;
-#endif
   };
 
   extern struct mkcl_signal_control mkcl_signals[NSIG];
 
   extern void mkcl_create_signal_servicing_thread(MKCL, char * thread_cname, int sig, mkcl_object func_designator);
 
-#endif /* __linux */
+#endif /* MKCL_PTHREADS */
 
 
 
@@ -461,10 +463,6 @@ extern "C" {
 #define MKCL_PI2_L 1.57079632679489661923132169163975144l
 
   void mkcl_deliver_fpe(MKCL);
-
-#if 0
-  void mkcl_initial_thread_cancelled(void * aux);
-#endif
 
 #ifdef __cplusplus
 }

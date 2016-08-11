@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2012, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -396,9 +396,9 @@ mk_cl_symbol_name(MKCL, mkcl_object x)
  }
 @)
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 static CRITICAL_SECTION gentemp_lock;
-#else
+#elif MKCL_PTHREADS
 static pthread_mutex_t gentemp_lock;
 #endif
 
@@ -422,9 +422,9 @@ ONCE_MORE:
     volatile bool locked = false;
 
     MKCL_UNWIND_PROTECT_BEGIN(env) {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
       EnterCriticalSection(&gentemp_lock);
-#else
+#elif MKCL_PTHREADS
       MKCL_LIBC_NO_INTR(env, not_ok = pthread_mutex_lock(&gentemp_lock));
       if (not_ok)
 	mkcl_lose(env, "Failed to acquire lock in mk_cl_gentemp().");
@@ -433,10 +433,10 @@ ONCE_MORE:
       mk_si_write_ugly_object(env, mkcl_core.gentemp_counter, output);
       mkcl_core.gentemp_counter = mkcl_one_plus(env, mkcl_core.gentemp_counter);
     } MKCL_UNWIND_PROTECT_EXIT {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
       if (locked)
 	LeaveCriticalSection(&gentemp_lock);
-#else
+#elif MKCL_PTHREADS
       if (locked)
 	if (pthread_mutex_unlock(&gentemp_lock))
 	  mkcl_lose(env, "Failed to release lock in mk_cl_gentemp()");
@@ -540,7 +540,7 @@ mkcl_object
 void
 mkcl_init_gentemp(MKCL)
 {
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
 #if 0
   gentemp_lock = CreateMutex(NULL, FALSE, mkcl_handle_debug_name(env, "gentemp lock"));
   if ( gentemp_lock == NULL )
@@ -548,22 +548,26 @@ mkcl_init_gentemp(MKCL)
 #else
   InitializeCriticalSection(&gentemp_lock);
 #endif
-#else
+#elif MKCL_PTHREADS
   {
     const pthread_mutexattr_t * const mutexattr = mkcl_normal_mutexattr;
 
     if (pthread_mutex_init(&gentemp_lock, mutexattr))
       mkcl_lose(env, "mkcl_init_read failed on pthread_mutex_init.");
   }
+#else
+# error Incomplete mkcl_init_gentemp().
 #endif
 }
 
 void mkcl_clean_up_gentemp(MKCL)
 { /* Best effort only. We cannot raise an exception from here. */
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   DeleteCriticalSection(&gentemp_lock);
-#else
+#elif MKCL_PTHREADS
   (void) pthread_mutex_destroy(&gentemp_lock);
+#else
+# error Incomplete mkcl_clean_up_gentemp().
 #endif
 }
 

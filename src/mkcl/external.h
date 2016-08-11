@@ -222,7 +222,7 @@ extern "C" {
     mkcl_object system_properties;
 
     mkcl_index top_special_index;  /* should this really be public? JCB */
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
     CRITICAL_SECTION special_index_lock;  /* should this really be public? JCB */
 #else
     pthread_mutex_t special_index_lock;  /* should this really be public? JCB */
@@ -236,7 +236,7 @@ extern "C" {
     mkcl_object shutdown_gate;
     mkcl_object imported_thread_pool;
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
     CRITICAL_SECTION thread_list_lock;  /* should this really be public? JCB */
     CRITICAL_SECTION package_list_lock;  /* should this really be public? JCB */
 #else
@@ -753,7 +753,7 @@ extern "C" {
   extern MKCL_API void mkcl_FElibc_error(MKCL, const char *msg, int narg, ...) mkcl_noreturn;
   extern MKCL_API void mkcl_FElibc_file_error(MKCL, mkcl_object pathname, const char *msg, int narg, ...) mkcl_noreturn;
   extern MKCL_API void mkcl_FElibc_stream_error(MKCL, mkcl_object stream, const char *msg, int narg, ...) mkcl_noreturn;
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   extern MKCL_API void mkcl_FEwin32_error(MKCL, const char *msg, int narg, ...) mkcl_noreturn;
   extern MKCL_API void mkcl_FEwin32_file_error(MKCL, mkcl_object pathname, const char *msg, int narg, ...) mkcl_noreturn;
   extern MKCL_API void mkcl_FEwin32_stream_error(MKCL, mkcl_object stream, const char *msg, int narg, ...) mkcl_noreturn;
@@ -1163,7 +1163,7 @@ extern "C" {
   extern MKCL_API mkcl_object mk_mkcl_argc(MKCL);
   extern MKCL_API mkcl_object mkcl_argv(MKCL, mkcl_index index);
   extern MKCL_API mkcl_object mk_mkcl_argv(MKCL, mkcl_object index);
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   extern MKCL_API void mkcl_get_commandline_args_from_Windows(int * argc_ref, char *** argv_ref);
   extern MKCL_API bool mkcl_has_console(void);
 #endif
@@ -2000,7 +2000,7 @@ extern "C" {
   extern MKCL_API mkcl_object mkcl_cstring_to_string(MKCL, char * str);
   extern MKCL_API mkcl_object mkcl_cstring16_to_string(MKCL, mkcl_char16 * str);
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 #define mkcl_alloc_OSstring mkcl_alloc_utf_16
 #define mkcl_string_to_OSstring mk_si_utf_16
 #define mkcl_cstring_to_OSstring mkcl_cstring_to_utf_16
@@ -3792,7 +3792,7 @@ extern "C" {
 
   /*********************************/
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   extern MKCL_API char * mkcl_handle_debug_name(MKCL, char * prefix);
 #endif
 

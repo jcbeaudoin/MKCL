@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2012, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under thep terms of the GNU Lesser General Public
@@ -21,15 +21,7 @@
 #include <string.h>
 #include <mkcl/mkcl-inl.h>
 
-#ifndef MKCL_WINDOWS
-# include <wchar.h>
-
-# define mkcl_wmemcpy(d,s,l) ((mkcl_character *) wmemcpy((wchar_t *) d, (wchar_t *) s, l))
-# define mkcl_wmemmove(d,s,l) ((mkcl_character *) wmemmove((wchar_t *) d, (wchar_t *) s, l))
-# define mkcl_wmemchr(p,v,l) ((mkcl_character *) wmemchr((wchar_t *) p, (wchar_t) v, l))
-# define mkcl_wmemset(p,v,l) ((mkcl_character *) wmemset((wchar_t *) p, (wchar_t) v, l))
-# define mkcl_wmemcmp(p1,p2,l) wmemcmp((wchar_t *) p1, (wchar_t *) p2, l)
-#else
+#if MKCL_WINDOWS
 static inline mkcl_character * mkcl_wmemcpy(mkcl_character * dest, const mkcl_character * src, size_t len)
 {
   size_t i = 0;
@@ -84,7 +76,15 @@ static inline int mkcl_wmemcmp(const mkcl_character * ptr1, const mkcl_character
   
   return 0;
 }
-#endif /* MKCL_WINDOWS */
+#else /* !MKCL_WINDOWS */
+# include <wchar.h>
+
+# define mkcl_wmemcpy(d,s,l) ((mkcl_character *) wmemcpy((wchar_t *) d, (wchar_t *) s, l))
+# define mkcl_wmemmove(d,s,l) ((mkcl_character *) wmemmove((wchar_t *) d, (wchar_t *) s, l))
+# define mkcl_wmemchr(p,v,l) ((mkcl_character *) wmemchr((wchar_t *) p, (wchar_t) v, l))
+# define mkcl_wmemset(p,v,l) ((mkcl_character *) wmemset((wchar_t *) p, (wchar_t) v, l))
+# define mkcl_wmemcmp(p1,p2,l) wmemcmp((wchar_t *) p1, (wchar_t *) p2, l)
+#endif /* !MKCL_WINDOWS */
 
 typedef mkcl_character (*mkcl_casefun)(mkcl_character, bool *);
 

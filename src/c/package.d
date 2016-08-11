@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2014, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -150,7 +150,7 @@ mkcl_object _mkcl_alloc_package(MKCL, mkcl_object name)
 
   x->pack.internal = make_package_hashtable(env);
   x->pack.external = make_package_hashtable(env);
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
 #if 0
   x->pack.lock = CreateMutex(NULL, FALSE, mkcl_handle_debug_name(env, "package lock")); /* FIXME! return status of this? JCB */
 #else
@@ -162,7 +162,7 @@ mkcl_object _mkcl_alloc_package(MKCL, mkcl_object name)
 
     pthread_mutex_init(&x->pack.lock, mutexattr);  /* FIXME! return status of this? JCB */
   }
-#endif /* defined(MKCL_WINDOWS) */
+#endif /* MKCL_WINDOWS */
 
   x->pack.name = name;
   x->pack.nicknames = mk_cl_Cnil;

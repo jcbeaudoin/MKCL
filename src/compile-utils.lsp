@@ -18,7 +18,7 @@
 ;;;
 ;;(proclaim '(optimize (debug 1))) ;; faster, no debug info.
 (proclaim '(optimize (debug 0))) ;; faster, no debug info.
-#-(and)
+#+(and)
 (progn
   ;;(setq compiler::*compiler-break-enable* t) ;; enter debugger on compiler internal error
   (setq compiler::*delete-compiler-internal-files* nil)

@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,8 @@
 
 #include <mkcl/mkcl.h>
 #include <mkcl/mkcl-math.h>
+#include <mkcl/internal.h>
+
 #include <time.h>
 #include <errno.h>
 #ifdef HAVE_TIMES
@@ -30,10 +32,6 @@
 #ifdef HAVE_GETTIMEOFDAY
 # include <sys/time.h>
 #endif
-#ifndef _MSC_VER
-# include <unistd.h>
-#endif
-#include <mkcl/internal.h>
 
 #include <stdlib.h>
 
@@ -41,7 +39,7 @@
 #undef HAVE_NANOSLEEP
 #endif
 
-#if defined(MKCL_WINDOWS) && !defined(__MINGW64_VERSION_MAJOR)
+#if MKCL_WINDOWS && !defined(__MINGW64_VERSION_MAJOR)
 struct timespec {
   time_t tv_sec;
   long tv_nsec;
@@ -53,14 +51,14 @@ static struct timespec beginning;
 static void
 get_real_time(MKCL, struct timespec *ts)
 {
-#if __linux
+#if MKCL_UNIX
   int rc;
 
   MKCL_LIBC_NO_INTR(env, rc = clock_gettime(CLOCK_REALTIME, ts));
   if (rc)
     mkcl_FElibc_error(env, "get_real_time() failed on clock_gettime()", 0);
 
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
   /* This version will not wrap-around before year 30827 and has 100 nanoseconds resolution! */
   FILETIME system_time;
   ULARGE_INTEGER uli_system_time;
@@ -105,7 +103,7 @@ get_run_time(MKCL, struct timespec *ts)
   if (rc)
     mkcl_FElibc_error(env, "get_run_time() failed on clock_gettime()", 0);
 
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
   FILETIME creation_time;
   FILETIME exit_time;
   FILETIME kernel_time;
@@ -196,7 +194,7 @@ mk_cl_sleep(MKCL, mkcl_object z)
 	mkcl_FElibc_error(env, "mk_cl_sleep() failed on nanosleep().", 0);
     }
   }
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
   {
     double r = mkcl_to_double(env, z) * 1000;
 #if 0
@@ -347,7 +345,7 @@ mk_si_get_local_time_zone(MKCL)
   
   mkcl_call_stack_check(env);
   {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
     TIME_ZONE_INFORMATION tzi;
     DWORD dwRet;
  

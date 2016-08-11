@@ -4,7 +4,7 @@
 */
 /*
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2012, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -16,16 +16,17 @@
 
 
 #include <mkcl/mkcl.h>
+#include <mkcl/internal.h>
 #include <mkcl/mkcl-gc.h>
 #include <mkcl/mkcl-inl.h>
-#include <sys/mman.h>
-#include <mkcl/internal.h>
+
+#if MKCL_UNIX
+# include <sys/mman.h> /* For mprotect() */
+#endif
 
 #include <stdlib.h> /* for access to native malloc */
 
-#if defined(MKCL_WINDOWS)
-# include <winsock2.h>
-#endif
+
 
 #define MKCL_STATS 1 /* Hardcoded just for now. JCB */
 
@@ -80,16 +81,18 @@ struct mkcl_alloc_stats
 
 static void mkcl_count_GC_collections(void);
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 static CRITICAL_SECTION oom_handler_lock;
 
 #define OUT_OF_MEMORY_LOCK() EnterCriticalSection(&oom_handler_lock)
 #define OUT_OF_MEMORY_UNLOCK() LeaveCriticalSection(&oom_handler_lock)
-#else
+#elif MKCL_PTHREADS
 static pthread_mutex_t oom_handler_lock;
 
 #define OUT_OF_MEMORY_LOCK() if (pthread_mutex_lock(&oom_handler_lock)) mkcl_lose(env, "Failed in OUT_OF_MEMORY_LOCK()")
 #define OUT_OF_MEMORY_UNLOCK() if (pthread_mutex_unlock(&oom_handler_lock)) mkcl_lose(env, "Failed in OUT_OF_MEMORY_UNLOCK()")
+#else
+# error Incomplete definition of OUT_OF_MEMORY_LOCK().
 #endif
 
 
@@ -299,7 +302,7 @@ void * mkcl_alloc_pages(MKCL, mkcl_index nb_pages)
 
 static void restore_block_access_permissions(void * obj, void * client_data)
 {
-#if __unix
+#if MKCL_UNIX
   int rc = mprotect(obj, mkcl_core.pagesize, PROT_READ | PROT_WRITE);
   if (rc)
     {
@@ -308,22 +311,22 @@ static void restore_block_access_permissions(void * obj, void * client_data)
       if (env)
         mkcl_FElibc_error(env, "restore_block_access_permissions() failed on mprotect()", 0);
     }
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
   { /* By default on Win64 data is PAGE_READWRITE only and we would get
        an ACCESS_VIOLATION if we didn't set it to EXECUTE. */
     DWORD old_protection_flags;
-    BOOL ok = VirtualProtect(buf, mkcl_core.pagesize, PAGE_READWRITE, &old_protection_flags);
+    BOOL ok = VirtualProtect(obj, mkcl_core.pagesize, PAGE_READWRITE, &old_protection_flags);
     
     if (!ok)
       {
         mkcl_env env = MKCL_ENV();
         
         if (env)
-          mkcl_FEwin32_error(env, "mkcl_dynamic_callback_make() failed on VirtualProtect()", 0);
+          mkcl_FEwin32_error(env, "restore_block_access_permissions() failed on VirtualProtect()", 0);
       }
   }
 #else
-#error "Function restore_block_access_permissions() for callback blocks is not implemented properly."
+# error "Function restore_block_access_permissions() for callback blocks is not implemented properly."
 #endif
 
 #if 0 /* debug */
@@ -993,13 +996,13 @@ static void * customize_GC(void * client_data)
 
 static int alloc_initialized = FALSE;
 
-#if __linux
+#if MKCL_PTHREADS
 # define DEFAULT_GC_THREAD_SUSPEND_SIGNAL SIGRTMIN + 5
 # define DEFAULT_GC_THREAD_RESTART_SIGNAL SIGRTMIN + 4
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
 #else
-#error Default GC signals!
-#endif /* __linux */
+# error Default GC signals!
+#endif /* MKCL_PTHREADS */
 
 int
 mkcl_init_alloc(void)
@@ -1012,9 +1015,9 @@ mkcl_init_alloc(void)
    */
   if (alloc_initialized) return 0; /* Not really thread-safe. */  /* 0 indicates success, sort of. */
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   InitializeCriticalSection(&oom_handler_lock);
-#else
+#elif MKCL_PTHREADS
   {
     int rc;
 
@@ -1034,7 +1037,7 @@ mkcl_init_alloc(void)
   MK_GC_set_all_interior_pointers(0);
   MK_GC_set_time_limit(MK_GC_TIME_UNLIMITED);
 
-#if __linux
+#if MKCL_PTHREADS
   int gc_thread_suspend_sig = mkcl_get_option(MKCL_OPT_GC_THREAD_SUSPEND_SIGNAL);
   if (gc_thread_suspend_sig == 0) {
     gc_thread_suspend_sig = DEFAULT_GC_THREAD_SUSPEND_SIGNAL;
@@ -1052,22 +1055,26 @@ mkcl_init_alloc(void)
 #else
   MK_GC_set_thr_restart_signal(gc_thread_restart_sig);
 #endif
-#endif /* __linux */
+#endif /* MKCL_PTHREADS */
 
   MK_GC_init();
 
   MK_GC_disable();
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   EnterCriticalSection(&oom_handler_lock);
-#else
+#elif MKCL_PTHREADS
   { int rc; if ((rc = pthread_mutex_lock(&oom_handler_lock))) return rc; }
+#else
+# error Incomplete mkcl_init_alloc().
 #endif
   MK_GC_set_max_heap_size(mkcl_core.max_heap_size = mkcl_get_option(MKCL_OPT_HEAP_SIZE));
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   LeaveCriticalSection(&oom_handler_lock);
-#else
+#elif MKCL_PTHREADS
   { int rc; if ((rc = pthread_mutex_unlock(&oom_handler_lock))) return rc; }
+#else
+# error Incomplete mkcl_init_alloc().
 #endif
   /* Save some memory in case we get tight. */
   if (mkcl_core.max_heap_size == 0) {
@@ -1090,10 +1097,12 @@ mkcl_init_alloc(void)
 
 void mkcl_clean_up_alloc(MKCL)
 { /* Best effort only. We cannot raise an exception from here. */
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   DeleteCriticalSection(&oom_handler_lock);
-#else
+#elif MKCL_PTHREADS
   (void) pthread_mutex_destroy(&oom_handler_lock);
+#else
+# error Incomplete mkcl_clean_up_alloc().
 #endif
 }
 
@@ -1127,66 +1136,76 @@ standard_finalizer(MKCL, mkcl_object o)
     case mkcl_t_lock:
       {
 	say_what_final("lock");
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
 	if (o->lock.mutex)
 	  {
 	    MKCL_LIBC_NO_INTR(env, CloseHandle(o->lock.mutex));  /* FIXME! return status? JCB */
 	    o->lock.mutex = NULL;
 	  }
-#else
+#elif MKCL_PTHREADS
 	MKCL_LIBC_NO_INTR(env, pthread_mutex_destroy(o->lock.mutex));  /* FIXME! return status? JCB */
+#else
+# error Incomplete standard_finalizer().
 #endif
       }
       break;
     case mkcl_t_rwlock:
       {
       say_what_final("rwlock");
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
 	if (o->rwlock.rwlock)
 	  {
 	    MKCL_LIBC_NO_INTR(env, CloseHandle(o->rwlock.rwlock));  /* FIXME! return status? JCB */
 	    o->rwlock.rwlock = NULL;
 	  }
-#else
+#elif MKCL_PTHREADS
 	MKCL_LIBC_NO_INTR(env, pthread_rwlock_destroy(o->rwlock.rwlock));  /* FIXME! return status? JCB */
+#else
+# error Incomplete standard_finalizer().
 #endif
       }
       break;
     case mkcl_t_semaphore:
       {
       say_what_final("semaphore");
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
 	if (o->semaphore.sem)
 	  {
 	    MKCL_LIBC_NO_INTR(env, CloseHandle(o->semaphore.sem));  /* FIXME! return status? JCB */
 	    o->semaphore.sem = NULL;
 	  }
-#else
+#elif MKCL_PTHREADS
 	MKCL_LIBC_NO_INTR(env, sem_destroy(o->semaphore.sem));  /* FIXME! return status? JCB */
+#else
+# error Incomplete standard_finalizer().
 #endif
       }
       break;
     case mkcl_t_condition_variable:
       {
 	say_what_final("condition variable");
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
 	if (o->condition_variable.event)
 	  {
 	    MKCL_LIBC_NO_INTR(env, CloseHandle(o->condition_variable.event));  /* FIXME! return status? JCB */
 	    o->condition_variable.event = NULL;
 	  }
-#else
+#elif MKCL_PTHREADS
 	MKCL_LIBC_NO_INTR(env, pthread_cond_destroy(&o->condition_variable.cv));  /* FIXME! return status? JCB */
+#else
+# error Incomplete standard_finalizer().
 #endif
       }
       break;
     case mkcl_t_readtable:
       {
 	say_what_final("readtable");
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
 	MKCL_LIBC_NO_INTR(env, DeleteCriticalSection(&o->readtable.lock));
-#else
+#elif MKCL_PTHREADS
 	MKCL_LIBC_NO_INTR(env, pthread_mutex_destroy(&o->readtable.lock));  /* FIXME! return status? JCB */
+#else
+# error Incomplete standard_finalizer().
 #endif
       }
       break;
@@ -1197,14 +1216,14 @@ standard_finalizer(MKCL, mkcl_object o)
     case mkcl_t_thread:
       {
 	say_what_final("thread");
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
 	if (o->thread.thread)
 	  {
 	    o->thread.tid = 0;
 	    MKCL_LIBC_NO_INTR(env, CloseHandle(o->thread.thread));  /* FIXME! return status? JCB */
 	    o->thread.base_thread = o->thread.thread = NULL;
 	  }
-#else
+#elif MKCL_PTHREADS
 	if (o->thread.thread)
 	  {
 	    o->thread.tid = 0;
@@ -1217,16 +1236,20 @@ standard_finalizer(MKCL, mkcl_object o)
 	    pthread_mutex_destroy(o->thread.running_lock);
 	    o->thread.running_lock = NULL;
 	  }
+#else
+# error Incomplete standard_finalizer().
 #endif
       }
       break;
     case mkcl_t_package:
       {
 	say_what_final("package");
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
 	DeleteCriticalSection(&(o->pack.lock));
-#else
+#elif MKCL_PTHREADS
 	MKCL_LIBC_NO_INTR(env, pthread_mutex_destroy(&o->pack.lock));  /* FIXME! return status? JCB */
+#else
+# error Incomplete standard_finalizer().
 #endif
       }
       break;

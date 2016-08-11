@@ -4,7 +4,7 @@
 */
 /*
     Copyright (c) 2005, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2013, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -15,11 +15,11 @@
 */
 
 #include <mkcl/mkcl.h>
+#include <mkcl/internal.h>
 #include <string.h>
-#if __unix
+#if MKCL_UNIX
 #include <sys/mman.h>
 #endif
-#include <mkcl/internal.h>
 
 struct mkcl_fficall_reg *
 mkcl_fficall_prepare_extra(MKCL, struct mkcl_fficall_reg *registers)
@@ -353,9 +353,9 @@ mkcl_dynamic_callback_make(MKCL, mkcl_object data, enum mkcl_ffi_calling_convent
   /* call   *%eax          */  i(0xff); i(0xd0);                    /* call mkcl_dynamic_callback_execute() */
   /* addl   $16, %esp      */  i(0x83); i(0xc4); i(0x10);           /* cleanup arg list of previous call, 16 bytes. */
   /* leave                 */  i(0xc9);                             /* undo stack frame */
-#ifndef MKCL_WINDOWS
+#if MKCL_UNIX
   /* ret                   */  i(0xc3);                             /* return */
-#else
+#elif MKCL_WINDOWS
   if (cc_type == MKCL_FFI_CC_CDECL) {
     /* ret                 */  i(0xc3);                             /* return */
   } else { /* This would be MKCL_FFI_CC_STDCALL. JCB */
@@ -380,6 +380,8 @@ mkcl_dynamic_callback_make(MKCL, mkcl_object data, enum mkcl_ffi_calling_convent
 	/* ret <immed16> */ i(0xc2); immed16(arg_list_byte_size);   /* return and pop byte_size bytes. */
       }
   }
+#else
+# error Incomplete mkcl_dynamic_callback_make().
 #endif
   /* nop                   */  i(0x90);  /* Fill with nop until end of I-cache line (multiple of 16 bytes). */
   /* nop                   */  i(0x90);
@@ -388,11 +390,11 @@ mkcl_dynamic_callback_make(MKCL, mkcl_object data, enum mkcl_ffi_calling_convent
   /* nop                   */  i(0x90);
   /* nop                   */  i(0x90);
 
-#if __unix
+#if MKCL_UNIX
   int rc = mprotect(buf, mkcl_core.pagesize, PROT_READ | /* PROT_WRITE | */ PROT_EXEC);
   if (rc)
     mkcl_FElibc_error(env, "mkcl_dynamic_callback_make() failed on mprotect()", 0);
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
   { /* By default on Win64 data is PAGE_READWRITE only and we would get
        an ACCESS_VIOLATION if we didn't set it to EXECUTE. */
     /* Not really needed on Win32 but we do it for uniformity with other platforms. */

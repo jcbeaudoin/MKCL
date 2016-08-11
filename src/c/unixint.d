@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyrignt (c) 2010-2013, Jean-Claude Beaudoin. (Completely rewritten 2010)
+    Copyrignt (c) 2010-2016, Jean-Claude Beaudoin. (Completely rewritten 2010)
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -15,11 +15,8 @@
 
     See file '../../Copyright' for full details.
 */
-#ifdef MKCL_WINDOWS
-# include <malloc.h> /* for _resetstkoflw(). */
-#endif
-
 #include <mkcl/mkcl.h>
+#include <mkcl/internal.h>
 #include <mkcl/mkcl-gc.h>
 
 #include <errno.h>
@@ -28,27 +25,26 @@
 
 #include <signal.h>
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
+# include <malloc.h> /* for _resetstkoflw(). */
 # include <windows.h>
 #endif
 
-#if defined(__linux)
-# include <unistd.h>
+#if MKCL_UNIX
 # include <dlfcn.h>
 # include <wait.h>
 # include <ucontext.h>
 #endif
 
-#include <mkcl/internal.h>
 #include <mkcl/mkcl-fenv.h>
 #include <mkcl/mkcl-inl.h>
 
-#if defined(__linux)
+#if MKCL_UNIX
 typedef void (*mkcl_sighandler_t)(int, siginfo_t *, void *);
 #endif
 
 
-#ifdef __linux
+#if MKCL_PTHREADS
 # if MKCL_GC_7_2d
 #  define MK_GC_SIG_SUSPEND MK_GC_suspend_signal()
 #  define MK_GC_SIG_THR_RESTART MK_GC_thread_restart_signal()
@@ -73,7 +69,7 @@ static pid_t mkcl_pid;
 /******************************* ------- ******************************/
 
 
-#ifdef __linux
+#if MKCL_UNIX
 static char * ltoad(long val, char * str)
 {
   int i = 0, j = 0;
@@ -97,13 +93,13 @@ static char * ltoad(long val, char * str)
   str[j] = '\0';
   return(str);
 }
-#endif /* __linux */
+#endif /* MKCL_UNIX */
 
 /******************************* ------- ******************************/
 
 /* New fully POSIX compliant signal processing. JCB */
 
-#if defined(__linux)
+#if MKCL_UNIX
 
 static int stderr_fd;
 
@@ -518,12 +514,12 @@ install_lisp_terminal_signal_handler(MKCL)
 }
 
 /* End of new fully POSIX compliant signal code */
-#endif /* defined(__linux) */
+#endif /* MKCL_UNIX */
 
 @(defun si::setup-for-gdb (&o pid)
 @
   {
-#ifdef __linux
+#if MKCL_UNIX
     if (mkcl_Null(pid))
       { @(return MKCL_MAKE_FIXNUM(mkcl_debugged_by_process_id = getppid())); }
     else
@@ -539,7 +535,7 @@ install_lisp_terminal_signal_handler(MKCL)
 /******************************* ------- ******************************/
 
 
-#ifdef __linux    /* Posix (linux) synchronous signal handlers.*/
+#if MKCL_UNIX    /* Posix (linux) synchronous signal handlers.*/
 
 static void
 maybe_lose(char * msg)
@@ -976,7 +972,7 @@ void mkcl_sigpipe_handler(int sig, siginfo_t *info, void *aux)
 
 #endif /* __linux */
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 
 static volatile BOOL console_ctrl_event = FALSE;
 
@@ -1286,7 +1282,7 @@ static BOOL WINAPI W32_console_ctrl_handler(DWORD type)
 
 #endif  /* MKCL_WINDOWS */
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 int mkcl_feenableexcept(int excepts)
 {
   unsigned int cw = _controlfp(0,0);
@@ -1622,7 +1618,7 @@ mk_si_clear_all_fpe(MKCL)
   @(return mk_cl_Cnil);
 }
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 static VOID CALLBACK dummy_apc_func(ULONG_PTR dwParam)
 {
   /* This function is deliberately empty. */
@@ -1657,7 +1653,7 @@ mk_mt_try_to_wake_up_thread(MKCL, mkcl_object thread)
       fprintf(stderr, "\n;; MKCL: Tried to wake up [%s] on I/O!\n", thread->thread.name->base_string.self);
       fflush(stderr);
 #endif
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
       if (thread->thread.thread)
 	{
 	  DWORD ok;
@@ -1755,7 +1751,7 @@ mk_mt_try_to_wake_up_thread(MKCL, mkcl_object thread)
 }
 
 
-#ifdef __linux
+#if MKCL_UNIX
 
 static void * signal_servicing_loop(void * arg)
 {
@@ -1861,7 +1857,7 @@ struct mkcl_signal_disposition
 
 void mkcl_init_early_unixint(MKCL)
 {
-#if defined(__linux)
+#if MKCL_PTHREADS
   int i;
   stderr_fd = fileno(stderr);
 
@@ -1915,13 +1911,13 @@ void mkcl_init_early_unixint(MKCL)
       if (sem_init(mkcl_signals[i].sem, 0, 0))
 	mkcl_C_lose(env, "mkcl_init_early_unixint failed on sem_init.");
     }
-#elif defined(MKCL_WINDOWS)
-#endif /* defined(__linux) */
+#elif MKCL_WINDOWS
+#endif /* MKCL_UNIX */
 }
 
 void mkcl_init_late_unixint(MKCL)
 {
-#if defined(__linux)
+#if MKCL_UNIX
 #if MKCL_GC_7_2d
   int gc_thread_suspend_sig = MK_GC_suspend_signal();
   int gc_thread_restart_sig = MK_GC_thread_restart_signal();
@@ -1983,7 +1979,7 @@ void mkcl_init_late_unixint(MKCL)
 	  }
       }
 
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
   SetUnhandledExceptionFilter(W32_exception_filter);
   SetConsoleCtrlHandler(W32_console_ctrl_handler, TRUE);
 #endif
@@ -1996,8 +1992,8 @@ void mkcl_init_late_unixint(MKCL)
 
 void mkcl_clean_up_unixint(MKCL)
 { /* Best effort only. We cannot raise an exception from here. */
-#ifdef MKCL_WINDOWS
-#else
+#if MKCL_WINDOWS
+#elif MKCL_PTHREADS
   int i;
 
   (void) pthread_cancel(signal_servicing_thread);
@@ -2016,7 +2012,7 @@ void mkcl_clean_up_unixint(MKCL)
 mkcl_object mkcl_unix_signal_name(MKCL, int signum)
 {
   int intern_flag;
-#ifdef __linux
+#if MKCL_UNIX
   const char * const sig_name_C_string = (signum < NSIG) ? signal_names[signum] : "unknown-signal";
 #else
   const char * const sig_name_C_string = "unknown-signal";
@@ -2042,7 +2038,7 @@ mkcl_object mk_si_objnull(MKCL)
   @(return MKCL_OBJNULL);
 }
 
-#ifdef __linux
+#if MKCL_UNIX
 
 static void _mkcl_display_signal_dispositions(void)
 {
@@ -2091,9 +2087,9 @@ static void _mkcl_display_signal_dispositions(void)
   fflush(stdout);
 }
 
-#else /* __linux */
+#else /* !MKCL_UNIX */
 static void _mkcl_display_signal_dispositions() { }
-#endif /* __linux */
+#endif /* !MKCL_UNIX */
 
 mkcl_object
 mk_si_display_signal_dispositions(MKCL)
@@ -2103,7 +2099,7 @@ mk_si_display_signal_dispositions(MKCL)
   @(return mk_cl_Cnil);
 }
 
-#ifdef __linux
+#if MKCL_UNIX
 
 static struct sigaction foreign_sigsegv_sigaction;
 
@@ -2159,7 +2155,7 @@ mkcl_sigsegv_monitor(int sig, siginfo_t *info, void *aux)
 mkcl_object mk_si_install_sigsegv_monitor(MKCL)
 {
   mkcl_call_stack_check(env);
-#ifdef __linux
+#if MKCL_UNIX
   if (sigaction(SIGSEGV, NULL, &foreign_sigsegv_sigaction))
     perror("Failed on first sigaction in mk_si_install_sigsegv_monitor.");
 

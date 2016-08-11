@@ -19,6 +19,10 @@
 #ifndef MKCL_MATH_H
 #define MKCL_MATH_H
 
+#ifndef MKCL_CONFIG_H
+# error File <mkcl/config.h> must be included at some point before mkcl-math.h
+#endif
+
 #include <math.h>
 #ifdef _MSC_VER
 # define signbit(x) (copysign(1.0,(x)))

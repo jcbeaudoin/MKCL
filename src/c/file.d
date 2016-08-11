@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2015, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -34,33 +34,31 @@
 #include <mkcl/mkcl-inl.h>
 #include <mkcl/internal.h>
 
-#ifdef __unix
+#if MKCL_UNIX
 # include <sys/socket.h>
-# include <unistd.h>
 # include <sys/select.h>
 typedef int SOCKET;
 # define INVALID_SOCKET ((SOCKET)(~0)) /* a Windowsism */
 # define SOCKET_ERROR (-1)
-#elif defined(MKCL_WINDOWS)
-# if 0
-#  include <winsock2.h> /* Had to be included before windows.h */
-# endif
+#elif MKCL_WINDOWS
 # include <sys/stat.h>
 # define STDIN_FILENO 0
 # define STDOUT_FILENO 1
 # define STDERR_FILENO 2
-# define HAVE_SELECT
+#if 0
+# define HAVE_SELECT /* This one seems useless and dubious. */
+#endif
 #elif defined(HAVE_SYS_IOCTL_H) && !defined(cygwin)
 # include <sys/ioctl.h>
 #endif
 
 #include <sys/stat.h>
 
-#ifdef HAVE_FSEEKO
+#if HAVE_FSEEKO
 # define mkcl_off_t off_t
 # define mkcl_fseeko fseeko
 # define mkcl_ftello ftello
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
 # define mkcl_off_t off64_t
 # define mkcl_fseeko fseeko64
 # define mkcl_ftello ftello64
@@ -106,7 +104,7 @@ static mkcl_character decoding_error(MKCL, mkcl_object stream, unsigned char *bu
 
 static void socket_error(MKCL, const char *err_msg, mkcl_object strm);
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 static BOOL is_a_console(MKCL, HANDLE hnd);
 static BOOL should_try_to_read_again(MKCL, int fd);
 #endif
@@ -2850,7 +2848,7 @@ io_file_read_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n)
       ssize_t nread;
 
       do {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 	/* Synchronous read cannot be interrupted in MS-Windows. */
 	MKCL_LIBC_NO_INTR(env, nread = read(f, (c + out), sizeof(char)*(n - out)));
 #else
@@ -2858,7 +2856,7 @@ io_file_read_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n)
 #endif
 	if (nread > 0) out += nread;
       } while (((nread < 0) && restartable_io_error(env, strm, NULL))
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 	       /* MS-Windows produces false EOF on consoles
 		  if there is a console control event. JCB
 	       */
@@ -2943,7 +2941,7 @@ static void
 io_file_clear_input(MKCL, mkcl_object strm)
 {
   int f = MKCL_IO_FILE_DESCRIPTOR(strm);
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   BOOL good;
   int igood;
 
@@ -3296,7 +3294,7 @@ set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_str
 
       read_char = eformat_read_char;
       write_char = eformat_write_char;
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
       line_termination = @':CRLF'; /* default line termination */
 #else
       line_termination = @':LF'; /* default line termination */
@@ -3628,7 +3626,7 @@ input_stream_read_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n)
       FILE * f = MKCL_IO_STREAM_FILE(strm);
 
       do {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 	/* Synchronous read cannot be interrupted in MS-Windows. */
 	MKCL_LIBC_NO_INTR(env, out += fread((c + out), sizeof(char), (n - out), f));
 #else
@@ -3637,7 +3635,7 @@ input_stream_read_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n)
       } while ((out < n)
 	       && ((ferror(f) && restartable_io_error(env, strm, NULL))
 		   || !feof(f) /* incomplete fread? */
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 		   || (feof(f) && should_try_to_read_again(env, fileno(f)))
 #endif	     
 		   ));
@@ -3712,7 +3710,7 @@ static void
 io_stream_clear_input(MKCL, mkcl_object strm)
 {
   FILE *fp = MKCL_IO_STREAM_FILE(strm);
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   int f = fileno(fp);
   int igood;
 
@@ -3972,7 +3970,7 @@ static const struct mkcl_file_ops input_stream_ops = {
 #define socket_stream_element_type io_file_element_type
 
 
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
 /* These callbacks are used as IO completion routine by WSARecv() and WSASend() here below. */
 static void CALLBACK _mkcl_socket_recv_io_done(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags)
 {
@@ -4006,7 +4004,7 @@ socket_stream_read_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n)
     if (INVALID_SOCKET == s) {
       wrong_file_handler(env, strm);
     } else {
-#if __unix
+#if MKCL_UNIX
       ssize_t len = 0;
 
       MKCL_LIBC_Zzz(env, @':io', len = recv(s, (char *) c, n, MSG_WAITALL));
@@ -4018,7 +4016,7 @@ socket_stream_read_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n)
       mk_mt_test_for_thread_shutdown(env);
       out += len;
 
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
       int rc;
       BOOL ok;
       mkcl_index len = 0;
@@ -4074,7 +4072,7 @@ socket_stream_read_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n)
       fflush(stderr);
 #endif
 #else
-#error "Don't know how to read from a socket."
+# error "Don't know how to read from a socket."
 #endif
     }
   }
@@ -4092,7 +4090,7 @@ socket_stream_write_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n
   if(INVALID_SOCKET == s) {
     wrong_file_handler(env, strm);
   } else {
-#if __unix
+#if MKCL_UNIX
     do {
       ssize_t res;
 
@@ -4106,7 +4104,7 @@ socket_stream_write_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n
       }
       mk_mt_test_for_thread_shutdown(env);
     } while (n > 0);
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
       int rc;
       BOOL ok; 
       WSABUF DataBuf = { n, c };
@@ -4160,7 +4158,7 @@ socket_stream_write_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n
       fflush(stderr);
 #endif
 #else
-#error "Don't know how to write to a socket."
+# error "Don't know how to write to a socket."
 #endif
   }
   return out;
@@ -4204,7 +4202,7 @@ socket_stream_close(MKCL, mkcl_object strm)
   SOCKET s = (SOCKET) MKCL_IO_FILE_DESCRIPTOR(strm);
   int failed;
 
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
   MKCL_LIBC_NO_INTR(env, failed = closesocket(s));
   if (failed == SOCKET_ERROR)
     socket_error(env, "Cannot close socket", strm);
@@ -4424,7 +4422,7 @@ make_stream_from_FILE(MKCL, mkcl_object fname, FILE *f, enum mkcl_smmode smm,
    * Otherwise, it would be complicated to implement file-position and
    * seek operations.
    */
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 #define OPEN_R	L"rb"
 #define OPEN_W	L"wb"
 #define OPEN_RW	L"w+b"
@@ -4448,7 +4446,7 @@ mkcl_make_stream_from_fd(MKCL, mkcl_object fname, mkcl_index fd, enum mkcl_smmod
 
   if (smm == mkcl_smm_input || smm == mkcl_smm_output || smm == mkcl_smm_io) /* C stdio based */
     {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
       const wchar_t *mode;	/* file open mode */
 #else
       const char *mode;		/* file open mode */
@@ -4463,7 +4461,7 @@ mkcl_make_stream_from_fd(MKCL, mkcl_object fname, mkcl_index fd, enum mkcl_smmod
 	mkcl_FEerror(env, "mkcl_make_stream_from_fd(): wrong mode", 0);
       }
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
       MKCL_LIBC_NO_INTR(env, (fp = _wfdopen(fd, mode)));
 #else
       MKCL_LIBC_NO_INTR(env, (fp = fdopen(fd, mode)));
@@ -5031,7 +5029,7 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
   mkcl_word byte_size;
   mkcl_object x;
   int f;
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
   int mode = _S_IREAD | _S_IWRITE;
 #else
   mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
@@ -5047,7 +5045,7 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
 	if (if_does_not_exist == @':error') {
 	  mkcl_FEcannot_open(env, fn);
 	} else if (if_does_not_exist == @':create') {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 	  MKCL_LIBC_NO_INTR(env, f = _wopen(mkcl_OSstring_self(os_filename), O_WRONLY|O_CREAT|_O_BINARY, mode));
 #else
 	  MKCL_LIBC_NO_INTR(env, f = open((char *) mkcl_OSstring_self(os_filename), O_WRONLY|O_CREAT, mode));
@@ -5060,7 +5058,7 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
 	  mkcl_FEerror(env, "Invalid value op option ~A: ~A", 2, @':if-does-not-exist', if_does_not_exist);
 	}
       }
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
     MKCL_LIBC_NO_INTR(env, f = _wopen(mkcl_OSstring_self(os_filename), O_RDONLY|_O_BINARY, mode));
 #else
     MKCL_LIBC_NO_INTR(env, f = open((char *) mkcl_OSstring_self(os_filename), O_RDONLY, mode));
@@ -5068,7 +5066,7 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
     if (f < 0) mkcl_FEcannot_open(env, fn);
   } else if (smm == mkcl_smm_output || smm == mkcl_smm_output_file || smm == mkcl_smm_io || smm == mkcl_smm_io_file) {
     int base = (smm == mkcl_smm_output || smm == mkcl_smm_output_file) ? O_WRONLY : O_RDWR;
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
     base |= _O_BINARY; /* On Windows we force open into binary mode since the default is _O_TEXT. */
 #endif
     if (if_exists == @':new_version' && if_does_not_exist == @':create')
@@ -5083,14 +5081,14 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
       } else if (if_exists == @':rename_and_delete' ||
 		 if_exists == @':new_version' ||
 		 if_exists == @':supersede') {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 	MKCL_LIBC_NO_INTR(env, f = _wopen(mkcl_OSstring_self(os_filename), base|O_TRUNC, mode));
 #else
 	MKCL_LIBC_NO_INTR(env, f = open((char *) mkcl_OSstring_self(os_filename), base|O_TRUNC, mode));
 #endif
 	if (f < 0) mkcl_FEcannot_open(env, fn);
       } else if (if_exists == @':overwrite' || if_exists == @':append') {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 	MKCL_LIBC_NO_INTR(env, f = _wopen(mkcl_OSstring_self(os_filename), base, mode));
 #else
 	MKCL_LIBC_NO_INTR(env, f = open((char *) mkcl_OSstring_self(os_filename), base, mode));
@@ -5107,7 +5105,7 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
 	mkcl_FEcannot_open(env, fn);
       } else if (if_does_not_exist == @':create') {
       /* CREATE:	 */
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 	MKCL_LIBC_NO_INTR(env, f = _wopen(mkcl_OSstring_self(os_filename), base | O_CREAT | O_TRUNC, mode));
 #else
 	MKCL_LIBC_NO_INTR(env, f = open((char *) mkcl_OSstring_self(os_filename), base | O_CREAT | O_TRUNC, mode));
@@ -5140,7 +5138,7 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
 
       switch (smm) {
       case mkcl_smm_input:
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 	MKCL_LIBC_NO_INTR(env, fp = _wfdopen(f, OPEN_R));
 #else
 	MKCL_LIBC_NO_INTR(env, fp = fdopen(f, OPEN_R));
@@ -5148,7 +5146,7 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
 	if (fp == NULL) mkcl_FEcannot_open(env, fn);
 	break;
       case mkcl_smm_output:
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 	MKCL_LIBC_NO_INTR(env, fp = _wfdopen(f, (appending ? OPEN_A : OPEN_W)));
 #else
 	MKCL_LIBC_NO_INTR(env, fp = fdopen(f, (appending ? OPEN_A : OPEN_W)));
@@ -5156,7 +5154,7 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
 	if (fp == NULL) mkcl_FEcannot_open(env, fn);
 	break;
       case mkcl_smm_io:
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 	MKCL_LIBC_NO_INTR(env, fp = _wfdopen(f, (appending ? OPEN_RA : OPEN_RW)));
 #else
 	MKCL_LIBC_NO_INTR(env, fp = fdopen(f, (appending ? OPEN_RA : OPEN_RW)));
@@ -5256,8 +5254,8 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
 static int
 file_listen(MKCL, int fileno)
 {
-#ifndef MKCL_WINDOWS
-# if defined(HAVE_SELECT)
+#if MKCL_UNIX
+# if HAVE_SELECT
   fd_set fds;
   int retv;
   do {
@@ -5283,8 +5281,10 @@ file_listen(MKCL, int fileno)
       mkcl_FElibc_error(env, "ioctl() failed in file_listen()", 0);
     return (c > 0) ? MKCL_LISTEN_AVAILABLE : MKCL_LISTEN_NO_CHAR;
   }
+# else
+#  error Incomplete file_listen().
 # endif /* FIONREAD */
-#else /* ndef MKCL_WINDOWS */
+#elif MKCL_WINDOWS
   HANDLE hnd;
   DWORD f_type;
   BOOL good;
@@ -5352,7 +5352,9 @@ file_listen(MKCL, int fileno)
     mkcl_FEerror(env, "Unsupported Windows file type: ~A", 1, MKCL_MAKE_FIXNUM(GetFileType(hnd)));
     break;
   }
-#endif /* not MKCL_WINDOWS */
+#else
+# error Incomplete file_listen().
+#endif /* MKCL_WINDOWS */
   return MKCL_LISTEN_ERROR;
 }
 
@@ -5364,7 +5366,7 @@ flisten(MKCL, FILE *fp)
     return MKCL_LISTEN_EOF;
   else if (ferror(fp))
     return MKCL_LISTEN_ERROR;
-#ifdef FILE_CNT
+#if FILE_CNT
   if (FILE_CNT(fp) > 0)
     return MKCL_LISTEN_AVAILABLE;
 #endif
@@ -5621,7 +5623,7 @@ static mkcl_object stream_decoding_error_boot_stub(MKCL, mkcl_object stream, mkc
 static void
 socket_error(MKCL, const char *err_msg, mkcl_object strm)
 {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   DWORD error_code = WSAGetLastError();
   mkcl_object win_msg_obj;
   wchar_t *win_msg;
@@ -5652,7 +5654,7 @@ socket_error(MKCL, const char *err_msg, mkcl_object strm)
 }
 
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 
 extern BOOL mkcl_saw_console_ctrl_event(void);
 
@@ -5794,7 +5796,7 @@ mkcl_init_file(MKCL)
   mkcl_object standard_output;
   mkcl_object error_output;
   mkcl_object null_stream;
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   WSADATA wsadata;
 
   if (WSAStartup(MAKEWORD(2,2), &wsadata) != NO_ERROR) /* We demand WinSock 2.2 */
@@ -5810,7 +5812,7 @@ mkcl_init_file(MKCL)
   null_stream = mk_cl_make_two_way_stream(env, null_stream, mk_cl_make_broadcast_stream(env, 0));
   mkcl_core.null_stream = null_stream;
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   if (mkcl_has_console())
 #endif
     {
@@ -5827,7 +5829,7 @@ mkcl_init_file(MKCL)
 					      STDERR_FILENO, mkcl_smm_output_file,
 					      0, external_format);
     }
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   else
     {
       standard_input = null_stream;
@@ -5862,7 +5864,7 @@ mkcl_init_file(MKCL)
 void
 mkcl_init_late_file(MKCL)
 {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   if (mkcl_has_console() && mk_cl_fboundp(env, @'si::make-encoding'))
     {
       mkcl_object external_format = mkcl_external_format_from_codepage(env, GetACP());

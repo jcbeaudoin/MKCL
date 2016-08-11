@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -19,10 +19,12 @@
 #define _FILE_OFFSET_BITS 64
 
 #include <mkcl/mkcl.h>
+#include <mkcl/mkcl-inl.h>
+#include <mkcl/internal.h>
+
 #include <string.h>
 #include <stdio.h>
-#ifdef __unix
-# include <unistd.h>
+#if MKCL_UNIX
 # include <pwd.h>
 #elif defined(_MSC_VER)
 # include <io.h>
@@ -31,11 +33,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdlib.h>
-#include <mkcl/mkcl-inl.h>
-#include <mkcl/internal.h>
 #include <dirent.h>
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 # include <windows.h>
 # include <direct.h>
 # include <ctype.h>
@@ -168,7 +168,7 @@ safe_chdir(MKCL, mkcl_object path)
 #endif
   int output;
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   MKCL_LIBC_NO_INTR(env, output = _wchdir(mkcl_OSstring_self(os_path)));
 #else
   MKCL_LIBC_NO_INTR(env, output = chdir((char *) mkcl_OSstring_self(os_path)));
@@ -176,13 +176,13 @@ safe_chdir(MKCL, mkcl_object path)
   return output;
 }
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 typedef struct __stat64 os_file_stat;
 #else
 typedef struct stat os_file_stat;
 #endif
 
-#ifdef __unix
+#if MKCL_UNIX
 static int
 safe_stat(MKCL, mkcl_object path, os_file_stat *sb)
 {
@@ -192,7 +192,7 @@ safe_stat(MKCL, mkcl_object path, os_file_stat *sb)
   MKCL_LIBC_NO_INTR(env, output = stat((char *) mkcl_OSstring_self(os_path), sb));
   return output;
 }
-#endif /* def __unix */
+#endif /* MKCL_UNIX */
 
 #ifdef HAVE_LSTAT
 static int
@@ -210,7 +210,7 @@ safe_lstat(MKCL, mkcl_object path, struct stat *sb)
 }
 #endif
 
-#ifdef __unix
+#if MKCL_UNIX
 static mkcl_object safe_realpath(MKCL, mkcl_object orig_pathname, mkcl_object path)
 {
 #if 0
@@ -237,7 +237,7 @@ static mkcl_object safe_realpath(MKCL, mkcl_object orig_pathname, mkcl_object pa
     }
 }
 
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
 
 static mkcl_object safe_realpath(MKCL, mkcl_object orig_pathname, mkcl_object path)
 {
@@ -285,7 +285,7 @@ static mkcl_object safe_realpath(MKCL, mkcl_object orig_pathname, mkcl_object pa
 #endif
 
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 /*
  * Finds current directory by using _getdcwd() with an adjustable
  * string which grows until it can host the whole path.
@@ -320,7 +320,7 @@ current_dir_on_drive(MKCL, int drive)
     mkcl_OSstring_push_extend(env, output, '/');
   return mkcl_OSstring_to_string(env, output);
 }
-#endif /* defined(MKCL_WINDOWS) */
+#endif /* MKCL_WINDOWS */
 
 /*
  * Finds current directory by using getcwd() with an adjustable
@@ -330,7 +330,7 @@ static mkcl_object
 current_dir(MKCL)
 {
   mkcl_object output;
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   const wchar_t *ok;
   mkcl_index size = 256;
 
@@ -352,7 +352,7 @@ current_dir(MKCL)
 	*c = '/';
   }
 # endif
-#else /* def MKCL_WINDOWS */
+#else /*  MKCL_WINDOWS */
   const char *ok;
   mkcl_index size = 256;
 
@@ -381,7 +381,7 @@ file_kind(MKCL, mkcl_object os_filename, bool follow_links)
 {
   mkcl_OSstring_raw_type raw_os_filename = mkcl_OSstring_self(os_filename);
   mkcl_object output;
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   DWORD dw;
   MKCL_LIBC_NO_INTR(env, dw = GetFileAttributesW( raw_os_filename ));
   if (dw == INVALID_FILE_ATTRIBUTES)
@@ -397,7 +397,7 @@ file_kind(MKCL, mkcl_object os_filename, bool follow_links)
     output = @':device';
   else
     output = @':file';
-#else /* !defined(MKCL_WINDOWS) */
+#else /* !MKCL_WINDOWS */
   struct stat buf;
   int rc;
 
@@ -427,7 +427,7 @@ file_kind(MKCL, mkcl_object os_filename, bool follow_links)
     output = @':device';
   else
     output = @':special';
-#endif /* !defined(MKCL_WINDOWS) */
+#endif /* !MKCL_WINDOWS */
   return output;
 }
 
@@ -453,7 +453,7 @@ mk_si_file_kind(MKCL, mkcl_object filename, mkcl_object follow_links) {
 
   if (mkcl_Null(kind) && !mkcl_Null(signal_error))
     {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
       mkcl_FEwin32_file_error(env, os_filename, "GetFileAttributes() failed in file_kind()", 0);
 #else
       mkcl_FElibc_file_error(env, os_filename, "stat() failed in file_kind()", 0);
@@ -513,7 +513,7 @@ mkcl_backup_open(MKCL, mkcl_object filename, int option, int mode)
   mkcl_OSstring_nconc(env, backupfilename, os_filename);
   mkcl_OSstring_nconc(env, backupfilename, os_back_ext);
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   /* MS-Windows rename doesn't remove an existing file */
   MKCL_LIBC_NO_INTR(env, error = (_waccess(mkcl_OSstring_self(backupfilename), F_OK) == 0
 				  && _wunlink(mkcl_OSstring_self(backupfilename))));
@@ -522,7 +522,7 @@ mkcl_backup_open(MKCL, mkcl_object filename, int option, int mode)
     mkcl_FElibc_file_error(env, f, "Cannot remove the file ~S", 1, f);
   }
 #endif
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   MKCL_LIBC_NO_INTR(env, error = _wrename(mkcl_OSstring_self(os_filename), mkcl_OSstring_self(backupfilename)));
 #else
   MKCL_LIBC_NO_INTR(env, error = rename((char *) mkcl_OSstring_self(os_filename), (char *) mkcl_OSstring_self(backupfilename)));
@@ -532,7 +532,7 @@ mkcl_backup_open(MKCL, mkcl_object filename, int option, int mode)
     mkcl_FElibc_file_error(env, f, "Cannot rename the file ~S to ~S.",
 			   2, f, mkcl_OSstring_to_string(env, backupfilename));
   }
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   MKCL_LIBC_NO_INTR(env, fd = _wopen(mkcl_OSstring_self(os_filename), option, mode));
 #else
   MKCL_LIBC_NO_INTR(env, fd = open((char *) mkcl_OSstring_self(os_filename), option, mode));
@@ -548,7 +548,7 @@ mkcl_file_len(MKCL, int f)
   os_file_stat filestatus;
   int not_ok;
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   MKCL_LIBC_NO_INTR(env, not_ok = _fstat64(f, &filestatus));
 #else
   MKCL_LIBC_NO_INTR(env, not_ok = fstat(f, &filestatus));
@@ -591,7 +591,7 @@ mkcl_object mk_cl_rename_file(MKCL, mkcl_object old_filespec, mkcl_object new_na
   mkcl_get_interrupt_status(env, &old_intr);
   mkcl_disable_interrupts(env);
   {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
     int error_mode = SetErrorMode(0);
 
     if (MoveFileW(mkcl_OSstring_self(old_os_filename),
@@ -635,17 +635,17 @@ mkcl_object mk_cl_rename_file(MKCL, mkcl_object old_filespec, mkcl_object new_na
 	goto SUCCESS;
       }
     /* fall through */
-#else /* def MKCL_WINDOWS */
+#else /*  MKCL_WINDOWS */
     if (rename((char *) mkcl_OSstring_self(old_os_filename), /* FIXME, This will not work across filesystems. JCB */
 	       (char *) mkcl_OSstring_self(new_os_filename)) == 0) {
       goto SUCCESS;
     }
     /* fall through */
-#endif /* def MKCL_WINDOWS */
+#endif /*  MKCL_WINDOWS */
   }
  FAILURE_CLOBBER:
   mkcl_set_interrupt_status(env, &old_intr);
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   mkcl_FEwin32_file_error(env, old_filespec, "Cannot rename the file ~S to ~S.", 2, old_filespec, new_name);
 #else
   mkcl_FElibc_file_error(env, old_filespec, "Cannot rename the file ~S to ~S.", 2, old_filespec, new_name);
@@ -668,7 +668,7 @@ mk_cl_delete_file(MKCL, mkcl_object file)
 #endif
   int ok;
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   MKCL_LIBC_NO_INTR(env, ok = _wunlink(mkcl_OSstring_self(os_filename)));
 #else
   MKCL_LIBC_NO_INTR(env, ok = unlink((char *) mkcl_OSstring_self(os_filename)));
@@ -682,7 +682,7 @@ mk_cl_delete_file(MKCL, mkcl_object file)
 
 bool mkcl_probe_file(MKCL, mkcl_object os_filename, bool follow_links)
 {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   mkcl_OSstring_raw_type raw_os_filename = mkcl_OSstring_self(os_filename);
   DWORD dw;
   MKCL_LIBC_NO_INTR(env, dw = GetFileAttributesW( raw_os_filename ));
@@ -706,7 +706,7 @@ bool mkcl_probe_file(MKCL, mkcl_object os_filename, bool follow_links)
 # endif
   else
     return TRUE;
-#else /* !defined(MKCL_WINDOWS) */
+#else /* !MKCL_WINDOWS */
   struct stat buf;
   int rc;
 
@@ -731,7 +731,7 @@ bool mkcl_probe_file(MKCL, mkcl_object os_filename, bool follow_links)
     }
   else
     return TRUE;
-#endif /* !defined(MKCL_WINDOWS) */
+#endif /* !MKCL_WINDOWS */
 }
 
 mkcl_object
@@ -815,7 +815,7 @@ mk_mkcl_probe_file_p(MKCL, mkcl_object filename)
   }
 }
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 static mkcl_object mkcl_FILETIME_to_universal_time(MKCL, FILETIME file_time)
 {
   ULARGE_INTEGER large_file_time;
@@ -840,7 +840,7 @@ static mkcl_object mkcl_FILETIME_to_universal_time(MKCL, FILETIME file_time)
   __time64_t universal_time = (large_file_time.QuadPart - large_jan1st1900_ft.QuadPart) / (10 * 1000 * 1000);
   return mkcl_make_int64_t(env, universal_time);
 }
-#endif /* def MKCL_WINDOWS */
+#endif /*  MKCL_WINDOWS */
 
 mkcl_object
 mk_cl_file_write_date(MKCL, mkcl_object file)
@@ -848,14 +848,14 @@ mk_cl_file_write_date(MKCL, mkcl_object file)
   mkcl_call_stack_check(env);
   mkcl_object time, filename = mk_si_coerce_to_filename(env, file);
 
-#ifdef __unix
+#if MKCL_UNIX
   os_file_stat filestatus;
 
   if (safe_stat(env, filename, &filestatus) < 0)
     mk_cl_error(env, 3, @'file-error', @':pathname', file);
   else
     time = MKCL_UTC_time_to_universal_time(env, filestatus.st_mtime);
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
   FILETIME ftWrite;
   HANDLE file_handle;
   BOOL ok;
@@ -877,7 +877,7 @@ mk_cl_file_write_date(MKCL, mkcl_object file)
   time = mkcl_FILETIME_to_universal_time(env, ftWrite);
 #else
 #error mk_cl_file_write_date() not implemented on this platform.
-#endif /* elif defined(MKCL_WINDOWS) */
+#endif /* elif MKCL_WINDOWS */
   @(return time);
 }
 
@@ -885,7 +885,7 @@ mkcl_object
 mk_cl_file_author(MKCL, mkcl_object file)
 {
   mkcl_call_stack_check(env);
-#ifdef __unix
+#if MKCL_UNIX
   mkcl_object filename = mk_si_coerce_to_filename(env, file);
   mkcl_object output = mk_cl_Cnil;
   struct stat filestatus;
@@ -914,13 +914,13 @@ mk_cl_file_author(MKCL, mkcl_object file)
 
   /* Beware that this is the file owner not its author. */
   @(return output);
-#else /* def __unix */
+#else /* MKCL_UNIX */
   /* If we want to duplicate the unix behavior on MS-Windows
      we could call GetFileSecurity() then do GetSecurityDescriptorOnwer()
      and finally LookupAccountSid to get the name of the file owner.
    */
   @(return mk_cl_Cnil);
-#endif /* def __unix */
+#endif /* MKCL_UNIX */
 }
 
 mkcl_object
@@ -948,7 +948,7 @@ mkcl_homedir_pathname(MKCL, mkcl_object user)
 	return mkcl_homedir_pathname(env, mk_cl_Cnil);
       else
 	{
-#ifdef __unix
+#if MKCL_UNIX
 	  struct passwd pwd;
 	  struct passwd *result;
 	  long bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
@@ -974,9 +974,9 @@ mkcl_homedir_pathname(MKCL, mkcl_object user)
 	      }
 	  }
 	  namestring = mkcl_cstring_to_string(env, result->pw_dir);
-#else /* def __unix */
+#else /* MKCL_UNIX */
 	  return mk_cl_Cnil;
-#endif /* def __unix */
+#endif /* MKCL_UNIX */
 	}
     }
   else
@@ -987,7 +987,7 @@ mkcl_homedir_pathname(MKCL, mkcl_object user)
 
       if (mkcl_Null(namestring))
 	{
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 	  static const mkcl_base_string_object(homepath_string_obj, "HOMEPATH");
 	  static const mkcl_base_string_object(homedrive_string_obj, "HOMEDRIVE");
 	  mkcl_object homepath = mkcl_getenv(env, (mkcl_object)&homepath_string_obj);
@@ -1003,7 +1003,7 @@ mkcl_homedir_pathname(MKCL, mkcl_object user)
 	  
 #else
 	  namestring = mkcl_make_simple_base_string(env, "/");
-#endif /* def MKCL_WINDOWS */
+#endif /*  MKCL_WINDOWS */
 	}
     }
 
@@ -1024,14 +1024,14 @@ mkcl_homedir_pathname(MKCL, mkcl_object user)
   @(return mkcl_homedir_pathname(env, mk_cl_Cnil));
 @)
 
-#ifdef __unix
+#if MKCL_UNIX
 #define not_eq_ch(c1, c2) ((c1) != (c2))
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
 static inline bool not_eq_ch(wchar_t c1, wchar_t c2)
 {
   return(towupper(c1) != towupper(c2)); /* towupper */
 }
-#endif /* def MKCL_WINDOWS */
+#endif /* MKCL_WINDOWS */
 /*
  * Take two C strings and check if the first one matches
  * against the pattern given by the second one. The pattern
@@ -1165,7 +1165,7 @@ string_match(MKCL, mkcl_OSstring_raw_type s, mkcl_object mask)
  * a propert which is checked by following the symlinks.
  */
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 
 static mkcl_object
 list_directory(MKCL, struct OSpath * wd_path, mkcl_object mask, bool only_dir)
@@ -1220,13 +1220,13 @@ list_directory(MKCL, struct OSpath * wd_path, mkcl_object mask, bool only_dir)
   return mk_cl_nreverse(env, out);
 }
 
-#elif __unix
+#elif MKCL_UNIX
 
 static mkcl_object
 list_directory(MKCL, struct OSpath * wd_path, mkcl_object mask, bool only_dir)
 {
   mkcl_object out = mk_cl_Cnil;
-#if __linux
+#if HAVE_DIRENT_H
   union {
     struct dirent dirent; /* struct dirent may be an incomplete type with a flexible array member at its end. */
     char buffer[sizeof(struct dirent) + ((((NAME_MAX + 1) * 10) < 4096) ? 4096 : ((NAME_MAX + 1) * 10))];
@@ -1297,7 +1297,7 @@ list_directory(MKCL, struct OSpath * wd_path, mkcl_object mask, bool only_dir)
   return mkcl_nreverse_proper_list(env, out);
 }
 
-#endif /* elif __unix */
+#endif /* elif MKCL_UNIX */
 
 static mkcl_object list_all_in_directory(MKCL, struct OSpath * wd_path, mkcl_object mask)
 {
@@ -1382,7 +1382,7 @@ dir_files(MKCL, bool follow_symlinks, struct OSpath * wd_path, mkcl_object paths
 #if 0
 	  return mk_cl_Cnil; /* This here should be throwing a file-error of some kind! */
 #else
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 	  mkcl_FEwin32_file_error(env, wd_path_os_namestring, "GetFileAttributes() failed in file_kind()", 0);
 #else
 	  mkcl_FElibc_file_error(env, wd_path_os_namestring, "stat() failed in file_kind()", 0);
@@ -1609,7 +1609,7 @@ dir_recursive(MKCL, bool follow_symlinks, struct OSpath * wd_path, mkcl_object p
     MKCL_SETQ(env, @'*default-pathname-defaults*', output);
   }
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   {
     mkcl_object all_cwd = mk_cl_Cnil;
     ULONG uDriveMask = _getdrives();
@@ -1634,9 +1634,9 @@ dir_recursive(MKCL, bool follow_symlinks, struct OSpath * wd_path, mkcl_object p
 
     @(return output mk_cl_nreverse(env, all_cwd));
   }
-#else /* def MKCL_WINDOWS */
+#else /*  MKCL_WINDOWS */
   @(return output);
-#endif /* def MKCL_WINDOWS */
+#endif /*  MKCL_WINDOWS */
 @)
 
 static void warn_early(MKCL, char * msg)
@@ -1687,7 +1687,7 @@ mk_si_get_SYS_library_pathname(MKCL)
 	  if (mkcl_Null(mk_mkcl_probe_file_p(env, lib_pathname)))
 	    {
 	      int i;
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 	      char os_dir0[] = "c:\\Program Files\\MKCL " MKCL_VERSION_STRING "\\lib\\mkcl-" MKCL_VERSION_STRING "\\";
 	      char os_dir1[] = "c:\\Program Files\\MKCL " MKCL_MAJOR_VERSION_STRING "." MKCL_MINOR_VERSION_STRING
 		                 "\\lib\\mkcl-" MKCL_VERSION_STRING "\\";
@@ -1753,11 +1753,11 @@ mk_mkcl_mkdir(MKCL, mkcl_object directory, mkcl_object mode)
 #else
   mkcl_dynamic_extent_OSstring(env, os_filename, filename);
 #endif
-#ifdef __unix
+#if MKCL_UNIX
   mkcl_index modeint = mkcl_fixnum_in_range(env, @'mkcl::mkdir', "mode", mode, 0, 0777);
 #endif
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   MKCL_LIBC_NO_INTR(env, ok = _wmkdir(mkcl_OSstring_self(os_filename)));
 #else
   MKCL_LIBC_NO_INTR(env, ok = mkdir((char *) mkcl_OSstring_self(os_filename), modeint));
@@ -1775,7 +1775,7 @@ mk_mkcl_mkdir(MKCL, mkcl_object directory, mkcl_object mode)
     mkcl_object tmp_stream;
     mkcl_object tmp_filename;
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
     mkcl_object phys, dir, file;
     mkcl_char16 strTempDir[MAX_PATH];
     mkcl_char16 strTempFileName[MAX_PATH];
@@ -1835,7 +1835,7 @@ mk_mkcl_mkdir(MKCL, mkcl_object directory, mkcl_object mode)
 # endif
       }
     }
-#else /* def MKCL_WINDOWS */
+#else /*  MKCL_WINDOWS */
     int fd;
     int i;
 
@@ -1854,7 +1854,7 @@ mk_mkcl_mkdir(MKCL, mkcl_object directory, mkcl_object mode)
       tmp_filename = mkcl_OSstring_to_string(env, os_template);
       tmp_stream = mkcl_make_stream_from_fd(env, tmp_filename, fd, mkcl_smm_io, element_type, external_format);
     }
-#endif /* else def MKCL_WINDOWS */
+#endif /* else  MKCL_WINDOWS */
 
     @(return tmp_stream tmp_filename);
   }
@@ -1873,7 +1873,7 @@ mk_mkcl_rmdir(MKCL, mkcl_object directory)
   mkcl_dynamic_extent_OSstring(env, os_directory, directory);
 #endif
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   MKCL_LIBC_NO_INTR(env, code = _wrmdir(mkcl_OSstring_self(os_directory)));
 #else
   MKCL_LIBC_NO_INTR(env, code = rmdir((char *) mkcl_OSstring_self(os_directory)));
@@ -1921,7 +1921,7 @@ mk_mkcl_copy_file(MKCL, mkcl_object orig, mkcl_object dest)
       {
 	mkcl_dynamic_extent_OSstring(env, os_orig, orig);
     
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 	in = _wfopen(mkcl_OSstring_self(os_orig), L"rbS");
 #else
 	in = fopen((char *) mkcl_OSstring_self(os_orig), "rb");
@@ -1966,7 +1966,7 @@ mk_mkcl_copy_file(MKCL, mkcl_object orig, mkcl_object dest)
       {
 	mkcl_dynamic_extent_OSstring(env, os_dest, dest);
 	
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 	out = _wfopen(mkcl_OSstring_self(os_dest), L"wbS");
 #else
 	out = fopen((char *) mkcl_OSstring_self(os_dest), "wb");

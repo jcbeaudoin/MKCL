@@ -323,7 +323,7 @@ extern "C" {
 
 #define mkcl_frs_push(env,val)  mkcl_setjmp(_mkcl_frs_push(env,val)->frs_jmpbuf)
 
-#if 0 /* def MKCL_WINDOWS */ /* Will use it if we go back to hardware detection */
+#if 0 /* MKCL_WINDOWS */ /* Will use it if we go back to hardware detection */
 # define mkcl_maybe_reset_call_stack_overflow(env)			\
   if (mkcl_unlikely((env)->cs_has_overflowed))				\
     if (!_resetstkoflw())						\
@@ -528,7 +528,7 @@ extern "C" {
   /* if (frs_top != (__the_env)->frs_top) mkcl_frs_stack_botch(__the_env); */ \
 } while (0)
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 # define MKCL_CATCH_ALL_BEGIN(the_env) do {				\
   const mkcl_env __the_env = (the_env);					\
   /* struct mkcl_frame * const frs_top = __the_env->frs_top; */		\
@@ -542,7 +542,7 @@ extern "C" {
     mkcl_frs_pop(__the_env);						\
     /* if (frs_top != (__the_env)->frs_top) mkcl_frs_stack_botch(__the_env); */ \
 } while(0)
-#else/* def MKCL_WINDOWS */
+#else /* !MKCL_WINDOWS */
 # define MKCL_CATCH_ALL_BEGIN(the_env) do {				\
   const mkcl_env __the_env = (the_env);					\
   int __old_cancel_state;						\
@@ -559,7 +559,7 @@ extern "C" {
     pthread_setcancelstate(__old_cancel_state, &__old_cancel_state);	\
     /* if (frs_top != (__the_env)->frs_top) mkcl_frs_stack_botch(__the_env); */ \
 } while(0)
-#endif /* else def MKCL_WINDOWS */
+#endif /* !MKCL_WINDOWS */
 
 #define MKCL_SETUP_CALL_STACK_ROOT_GUARD(env) (*((env)->frs_org) = *((env)->frs_top))
 

@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2014, Jean-Claude Beaudoin
+    Copyright (c) 2010-2016, Jean-Claude Beaudoin
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -656,7 +656,7 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
        * we even try? JCB
        */
       logical = FALSE;
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
       if ((start+1 <= end) && is_slash(mkcl_char(env, s, start))) {
 	device = mk_cl_Cnil;
 	goto maybe_parse_host;
@@ -737,7 +737,7 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
       else
 	host = mkcl_core.localhost_string;
 
-#else /* defined(MKCL_WINDOWS) */
+#elif MKCL_UNIX
       host = mkcl_core.localhost_string;
       device = @':unspecific';       /* Files have no effective device on Unix. */
       {
@@ -749,7 +749,9 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
 	else if (maybe_host != @':error')
 	  host = maybe_host;
       }
-#endif /* else defined(MKCL_WINDOWS) */
+#else
+# error Incomplete mkcl_parse_namestring().
+#endif /* elif MKCL_UNIX */
 
       
     done_device_and_host:
@@ -999,7 +1001,7 @@ mk_si_coerce_to_filename(MKCL, mkcl_object pathname_orig)
   return namestring;
 }
 
-#if __unix
+#if MKCL_UNIX
 #define default_device(host) @':unspecific'
 #else
 #define default_device(host) mk_cl_Cnil
@@ -1222,7 +1224,7 @@ mkcl_namestring(MKCL, mkcl_object x, int truncate_if_unreadable)
       mkcl_write_cstr(env, ":", buffer);
     }
   } else {
-#ifdef __unix
+#if MKCL_UNIX
     /* Physical "device" is a nonsense on Unix. JCB */
     if (((y = x->pathname.device) != mk_cl_Cnil) && (y != @':unspecific')) {
       mk_si_do_write_sequence(env, y, buffer, MKCL_MAKE_FIXNUM(0), mk_cl_Cnil);
@@ -1234,7 +1236,7 @@ mkcl_namestring(MKCL, mkcl_object x, int truncate_if_unreadable)
       mk_si_do_write_sequence(env, host, buffer, MKCL_MAKE_FIXNUM(0), mk_cl_Cnil);
       mkcl_write_cstr(env, ":", buffer);
     }
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
     if ((host != mk_cl_Cnil)
 	&& (host != @':unspecific')
 	&& !mkcl_string_E(env, host, mkcl_core.localhost_string))
@@ -1251,6 +1253,8 @@ mkcl_namestring(MKCL, mkcl_object x, int truncate_if_unreadable)
 	mk_si_do_write_sequence(env, y, buffer, MKCL_MAKE_FIXNUM(0), mk_cl_Cnil);
 	mkcl_write_cstr(env, ":", buffer);
       }
+#else
+# error Incomplete mkcl_namestring().
 #endif
   }
   l = x->pathname.directory;
@@ -1337,7 +1341,7 @@ mkcl_namestring(MKCL, mkcl_object x, int truncate_if_unreadable)
     }
   } else if (!truncate_if_unreadable) {
     /* Namestrings of physical pathnames have restrictions... */
-#if !(defined(__unix) || defined(MKCL_WINDOWS))
+#if !(MKCL_UNIX || MKCL_WINDOWS)
     /*
       Either version matters and we do this or
       it does not matter (as stated in merge-pathnames!)
@@ -1359,7 +1363,7 @@ mkcl_namestring(MKCL, mkcl_object x, int truncate_if_unreadable)
   {
     mkcl_object str = mk_cl_get_output_stream_string(env, buffer);
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
     if (!logical && (mkcl_string_length(env, str) >= mkcl_core.path_max) && is_strictly_absolute_pathname(env, x))
       {
 	static mkcl_character raw_prefix[] = { '\\', '\\', '?', '\\', 0 };
@@ -1803,7 +1807,7 @@ mk_cl_pathname_match_p(MKCL, mkcl_object path, mkcl_object wildcard)
   if (!mkcl_Null(wildcard->pathname.type)
       && !path_item_match(env, path->pathname.type, wildcard->pathname.type))
     { @(return mk_cl_Cnil); }
-#if (defined(__unix) || defined(MKCL_WINDOWS)) /* physical pathname version is meaningless on Unix or MS-Windows */
+#if (MKCL_UNIX || MKCL_WINDOWS) /* physical pathname version is meaningless on Unix or MS-Windows */
   if (wildcard->pathname.logical)
 #endif
     if (!(mkcl_Null(wildcard->pathname.version)
@@ -2070,7 +2074,7 @@ copy_list_wildcards(MKCL, mkcl_object *wilds, mkcl_object to)
   out = mkcl_alloc_raw_pathname(env);
   out->pathname.namestring = mk_cl_Cnil;
   out->pathname.logical = to->pathname.logical;
-#if __unix || defined(MKCL_WINDOWS)
+#if MKCL_UNIX || MKCL_WINDOWS
  /* The customary case of filenames on Unix is usually lowercase so we force it.
     MS-Windows is usually case indifferent so we do the same in case it may matter. */
   if (from->pathname.logical && !(to->pathname.logical)) case_mapping = to_lowercase;

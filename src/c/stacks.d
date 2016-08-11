@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -17,8 +17,7 @@
 */
 
 #include <mkcl/mkcl.h>
-
-#include <unistd.h>
+#include <mkcl/internal.h>
 
 #include <errno.h>
 #include <signal.h>
@@ -27,7 +26,7 @@
 # include <sys/time.h>
 # include <sys/resource.h>
 #endif
-#include <mkcl/internal.h>
+
 
 
 mkcl_object mk_si_disable_interrupts(MKCL)
@@ -191,7 +190,7 @@ mkcl_index mkcl_alloc_new_special_index(MKCL, mkcl_object sym)
 
   mkcl_get_interrupt_status(env, &old_intr);
   mkcl_disable_interrupts(env);
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   EnterCriticalSection(&mkcl_core.special_index_lock);
 #else
   if (pthread_mutex_lock(&mkcl_core.special_index_lock))
@@ -205,7 +204,7 @@ mkcl_index mkcl_alloc_new_special_index(MKCL, mkcl_object sym)
 
   mkcl_core.top_special_index = index + 1;
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   LeaveCriticalSection(&mkcl_core.special_index_lock);
 #else
   if (pthread_mutex_unlock(&mkcl_core.special_index_lock))
@@ -801,12 +800,16 @@ mk_si_get_lisp_temp_stack_limit(MKCL)
 void mkcl_init_call_stack_overflow_area(MKCL, char * const stack_mark_address)
 {
   env->cs_overflowing = FALSE;
-#if __unix
+#if MKCL_PTHREADS
   pthread_attr_t attr_obj;
   pthread_attr_t * attr = &attr_obj;
 
   /* For MacOS X we will have to use pthread_get_stackaddr_np() and pthread_get_stacksizse_np(). */
+# if __linux
   int rc = pthread_getattr_np(pthread_self(), attr); /* Linux specific */
+# elif __FreeBSD__
+  int rc = pthread_attr_get_np(pthread_self(), attr); /* Linux specific */
+# endif
 
   {
     size_t stack_size;
@@ -896,7 +899,7 @@ void mkcl_init_call_stack_overflow_area(MKCL, char * const stack_mark_address)
     fflush(NULL);
   }
 # endif
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
   {
     mkcl_index a_var = 0;
     MEMORY_BASIC_INFORMATION mbi;

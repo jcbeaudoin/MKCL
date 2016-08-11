@@ -5,7 +5,7 @@
 /*
     Copyright (c) 1990, Giuseppe Attardi and William F. Schelter.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2012, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -16,32 +16,24 @@
 */
 
 #include <mkcl/mkcl.h>
+#include <mkcl/internal.h>
 #include <string.h>
 #include <stdio.h>
 
-#ifdef HAVE_DLFCN_H
+#if MKCL_UNIX && HAVE_DLFCN_H
 # include <dlfcn.h>
 # define INIT_PREFIX "mkcl_init_fas_"
 #endif
 
-#if 0
-#ifdef HAVE_LINK_H
-# include <link.h>
-#endif
-#endif
-
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
 # include <windows.h>
 # include <windef.h>
 # include <winbase.h>
 # include <tlhelp32.h>
 # define INIT_PREFIX "mkcl_init_fas_"
-#else
-# include <unistd.h>
 #endif
 
 #include <mkcl/mkcl-inl.h>
-#include <mkcl/internal.h>
 
 
 static mkcl_object
@@ -70,7 +62,7 @@ copy_object_file(MKCL, mkcl_object original)
    * file again, or we want to retain the possibility of overwriting later on the
    * object file we loaded (case of Windows, which locks files that are loaded).
    */
-#if 0 /* defined(MKCL_WINDOWS) */ /* #'si:copy-file is as fast now. */
+#if 0 /* MKCL_WINDOWS */ /* #'si:copy-file is as fast now. */
   {
     int err;
     mkcl_dynamic_extent_OSstring(env, os_copy_filename, copy_filename);
@@ -147,7 +139,7 @@ mkcl_library_open(MKCL, mkcl_object filename, bool force_reload)
      * _always_ made because otherwise it cannot be
      * overwritten. In Unix we need only do that when the
      * file has been previously loaded. */
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
     filename = copy_object_file(env, filename);
     self_destruct = TRUE;
 #else
@@ -185,11 +177,11 @@ mkcl_library_open(MKCL, mkcl_object filename, bool force_reload)
   mkcl_dynamic_extent_OSstring(env, os_filename, filename);
 #endif
 
-#ifdef HAVE_DLFCN_H
+#if MKCL_UNIX
   MKCL_LIBC_NO_INTR(env, block->cblock.handle = dlopen((char *) mkcl_OSstring_self(os_filename), RTLD_NOW|RTLD_GLOBAL));
   if (block->cblock.handle == NULL)
     return block;
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
   {
     mkcl_interrupt_status old_intr;
 
@@ -244,7 +236,7 @@ mkcl_library_symbol(MKCL, mkcl_object block, const char *symbol, bool lock) /* m
 	p = mkcl_library_symbol(env, block, symbol, lock);
 	if (p) return p;
       }
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
       {
 	mkcl_interrupt_status old_intr;
 
@@ -271,19 +263,19 @@ mkcl_library_symbol(MKCL, mkcl_object block, const char *symbol, bool lock) /* m
 	p = (void*)hnd;
 	mkcl_set_interrupt_status(env, &old_intr);
       }
-#elif defined(HAVE_DLFCN_H)
+#elif MKCL_UNIX
       /* Is this a valid call? 0 looks suspicious. JCB */
       MKCL_LIBC_NO_INTR(env, (dlerror(), p = dlsym(0, symbol)));
-#else /* !defined(MKCL_WINDOWS) && !defined(HAVE_DLFCN_H) */
+#else /* !MKCL_WINDOWS && !MKCL_UNIX */
 # error "mkcl_library_symbol is imcomplete on this platform."
       p = NULL;
 #endif
     }
   else
     {
-#ifdef HAVE_DLFCN_H
+#if MKCL_UNIX
       MKCL_LIBC_NO_INTR(env, (dlerror(), p = dlsym(block->cblock.handle, symbol)));
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
       {
 	HMODULE h = (HMODULE)(block->cblock.handle);
 	MKCL_LIBC_NO_INTR(env, p = GetProcAddress(h, symbol));
@@ -305,9 +297,9 @@ mkcl_object
 mkcl_library_error(MKCL, mkcl_object block) 
 {
   mkcl_object output;
-#ifdef HAVE_DLFCN_H
+#if MKCL_UNIX
   MKCL_LIBC_NO_INTR(env, output = mkcl_cstring_to_string(env, dlerror()));
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
   {
     mkcl_interrupt_status old_intr;
     void * message;
@@ -362,15 +354,15 @@ bool mkcl_library_close(MKCL, mkcl_object block)
   if (block->cblock.handle != NULL)
     {
       if (verbose) {
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
 	fwprintf(stderr, L";;; Freeing library %s\n", mkcl_OSstring_self(os_block_name));
 #else
 	fprintf(stderr, ";;; Freeing library %s\n", mkcl_OSstring_self(os_block_name));
 #endif
       }
-#ifdef HAVE_DLFCN_H
+#if MKCL_UNIX
       MKCL_LIBC_NO_INTR(env, error = dlclose(block->cblock.handle));
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
       MKCL_LIBC_NO_INTR(env, error = !FreeLibrary(block->cblock.handle));
 #else
 # error "mkcl_library_close is incomplete on this platform."
@@ -380,7 +372,7 @@ bool mkcl_library_close(MKCL, mkcl_object block)
     }
   if (block->cblock.self_destruct)
     {
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
       if (verbose) 
 	fwprintf(stderr, L";;; Removing library file %s\n", mkcl_OSstring_self(os_block_name));
       

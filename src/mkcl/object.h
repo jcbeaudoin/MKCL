@@ -311,7 +311,7 @@ extern "C" {
     mkcl_object usedby;	        /*  used-by-list of packages  */
     mkcl_object internal;	/*  hashtable for internal symbols  */
     mkcl_object external;	/*  hashtable for external symbols  */
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
     CRITICAL_SECTION lock;	/*  thread safe packages  */
 #else
     pthread_mutex_t lock;	/*  thread safe packages  */
@@ -715,7 +715,7 @@ extern "C" {
     enum mkcl_readtable_case read_case; /*  readtable-case  */
     struct mkcl_readtable_entry *table; /*  read table itself  */
     mkcl_object hash;		        /*  hash for values outside base-char range */
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
     CRITICAL_SECTION lock;	        /*  thread safe readtable  */
 #else
     pthread_mutex_t lock;	        /*  thread safe readtable  */
@@ -1070,7 +1070,7 @@ extern "C" {
     mkcl_object name;
     mkcl_word count;
     mkcl_word max_count;
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
     HANDLE sem;
 #else
     sem_t sem_obj;
@@ -1081,7 +1081,7 @@ extern "C" {
   struct mkcl_condition_variable {
     MKCL_HEADER;
     mkcl_object name;
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
     volatile bool event_needs_reset;
     HANDLE event;
 #else
@@ -1220,7 +1220,7 @@ extern "C" {
   = ((__##name##_sizeof__ <= MKCL_MAXIMUM_DYNAMIC_OBJECT_SIZE)		\
      ? alloca(__##name##_sizeof__) : mkcl_alloc(_env, __##name##_sizeof__));
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 # define mkcl_UTF_buffer(_env, name, dim)				\
   /* mkcl_char16 name##_utf_16_raw_data[((dim) * 2) + 1]; */ /* VLA */	\
   mkcl_VLA(_env, mkcl_char16, name##_utf_16_raw_data, ((dim) * 2) + 1);	\
@@ -1234,7 +1234,7 @@ extern "C" {
   mkcl_object name = (mkcl_object) &(name##_utf_8_obj);
 #endif
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 # define mkcl_dynamic_extent_OSstring(_env, name, str)			\
   const size_t name##_raw_len = (mkcl_string_length(_env, str) * 2);	\
   /* mkcl_char16 name##_buf_raw_data[name##_raw_len + 1]; */ /* VLA */	\

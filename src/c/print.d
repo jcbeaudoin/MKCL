@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2012, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -23,9 +23,6 @@
 #include <errno.h>
 #include <stdio.h>
 #include <float.h>
-#ifndef _MSC_VER
-#include <unistd.h>
-#endif
 #include <mkcl/internal.h>
 #include <mkcl/mkcl-fenv.h>
 #include <mkcl/bytecode.h>
@@ -1642,7 +1639,7 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
     {
       char buf[20];
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
       sprintf(buf, "0x%p", x->thread.thread);
 #else
       sprintf(buf, "0x%lx", x->thread.thread);

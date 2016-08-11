@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2013, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -19,16 +19,15 @@
 /******************************** GLOBALS *****************************/
 
 #include <mkcl/mkcl.h>
+#include <mkcl/internal.h>
 
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
 # include <windows.h>
 # include <shellapi.h>
 # include <winbase.h>
 #endif
 
-#include <unistd.h>
-
-#ifdef __unix
+#if MKCL_UNIX
 # include <langinfo.h>
 # include <locale.h>
 #endif
@@ -36,7 +35,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <mkcl/internal.h>
 
 
 /******************************* EXPORTS ******************************/
@@ -99,6 +97,9 @@ static const char * const feature_names[] = {
 #ifdef __linux
         "LINUX",
 #endif
+#if __FreeBSD__
+        "FREEBSD",
+#endif
 #ifdef __MINGW32__
 	"WINDOWS",
 # ifdef __MINGW64__
@@ -150,17 +151,10 @@ static mkcl_object mkcl_true_self(MKCL)
   mkcl_object self_truename;
 
 #ifdef __linux
-  {
-    /* The value of 3 here is a rough upper bound of the number of decimal
-       digits needed to print the value of 8 binary bits. A more precise
-       value would have been 2.409 but we needed an integer. */
-    static char buf[sizeof("/proc//exe") + (3 * sizeof(pid_t))];
-
-    sprintf(buf, "/proc/%d/exe", getpid());
-
-    self_truename = mkcl_make_base_string_copy(env, buf);
-  }
-#elif defined(MKCL_WINDOWS)
+  self_truename = mkcl_make_base_string_copy(env, "/proc/self/exe");
+#elif __FreeBSD__
+   self_truename = mkcl_make_base_string_copy(env,"/proc/curproc/file");
+#elif MKCL_WINDOWS
   {
     wchar_t buf[48 * 1024]; /* UNC paths are said in MS documentation to be more or less 32k long maximum. */
     DWORD nSize = MKCL_NB_ELEMS(buf);
@@ -387,10 +381,10 @@ static void _mkcl_boot_inner(MKCL)
 
   mkcl_init_error(env);
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   MKCL_SET(@'si::*os-string-format*', @':UTF-16LE'); /* This is in fact an immutable constant. */
   mkcl_core.default_default_external_format = @':ASCII'; /* Bootstrap value */
-#else
+#elif MKCL_UNIX
   mkcl_object saved_locale = mkcl_make_base_string_copy(env, setlocale(LC_ALL, NULL));
   setlocale(LC_ALL, ""); /* Imports locale settings from environment. */
   {
@@ -406,6 +400,8 @@ static void _mkcl_boot_inner(MKCL)
     mkcl_core.default_default_external_format = os_external_format;
   }
   setlocale(LC_ALL, (char *) saved_locale->base_string.self); /* Puts locale back to its previous settings. */
+#else
+# error Incomplete _mkcl_boot_inner().
 #endif
   MKCL_SET(@'si::*default-external-format*', mkcl_core.default_default_external_format);
 
@@ -589,15 +585,13 @@ static void get_basic_OS_params(void)
 #ifdef _PC_PATH_MAX
   mkcl_core.path_max = pathconf(".", _PC_PATH_MAX);
   mkcl_core.name_max = pathconf(".", _PC_NAME_MAX);
-#else
-# ifdef MKCL_WINDOWS
+#elif MKCL_WINDOWS
   mkcl_core.path_max = PATH_MAX;
 # else
   mkcl_core.path_max = MAXPATHLEN;
-# endif
 #endif
 
-#ifdef __unix
+#if MKCL_PTHREADS
   {
     mkcl_index stack_addr = sysconf(_SC_THREAD_ATTR_STACKADDR);
     mkcl_index stack_size = sysconf(_SC_THREAD_ATTR_STACKSIZE);
@@ -620,9 +614,9 @@ static void get_basic_OS_params(void)
     rc = pthread_attr_getstack(&main_attr, &stack_addr, &stack_size_2);
     rc = pthread_attr_getguardsize(&main_attr, &guard_size);
 
-    usleep(1);
+    /* usleep(1); */
   }
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
 {
    SYSTEM_INFO siSysInfo;
   
@@ -642,13 +636,15 @@ static void get_basic_OS_params(void)
    mkcl_core.pagesize = siSysInfo.dwPageSize;
 }
 
+#else
+# error Incomplete get_basic_OS_params().
 #endif
 }
 
 static bool inside_mkcl_boot_p = FALSE;
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 static LONG volatile mkcl_boot_gate = FALSE;
-#else
+#elif MKCL_PTHREADS
 static pthread_mutex_t mkcl_boot_gate = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
@@ -668,12 +664,14 @@ mkcl_boot(int argc, char **argv, struct mkcl_thread_init_parameters * params)
     bool booted = FALSE;
     int rc;
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
     if (InterlockedCompareExchange(&mkcl_boot_gate, TRUE, FALSE))
       { errno = EAGAIN; return NULL; }
-#else
+#elif MKCL_PTHREADS
     if ((rc = pthread_mutex_lock(&mkcl_boot_gate)))
       { errno = rc; return NULL; }
+#else
+# error Incomplete mkcl_boot().
 #endif
     already_booting_p = inside_mkcl_boot_p;
     if (!already_booting_p)
@@ -681,11 +679,13 @@ mkcl_boot(int argc, char **argv, struct mkcl_thread_init_parameters * params)
 	inside_mkcl_boot_p = TRUE;
 	booted = option_values[MKCL_OPT_BOOTED];
       }
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
     InterlockedExchange(&mkcl_boot_gate, FALSE);
-#else
+#elif MKCL_PTHREADS
     if ((rc = pthread_mutex_unlock(&mkcl_boot_gate)))
       { inside_mkcl_boot_p = FALSE; errno = rc; return NULL; }
+#else
+# error Incomplete mkcl_boot().
 #endif
 
     if (already_booting_p)
@@ -751,10 +751,12 @@ mkcl_boot(int argc, char **argv, struct mkcl_thread_init_parameters * params)
 
 static void _mkcl_final_clean_up(MKCL)
 {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   while (InterlockedCompareExchange(&mkcl_boot_gate, TRUE, FALSE));
-#else
+#elif MKCL_PTHREADS
   (void) pthread_mutex_lock(&mkcl_boot_gate);
+#else
+# error Incomplete _mkcl_final_clean_up().
 #endif
 
   /* Here we clean up everything that is out of reach of the GC finalization. */
@@ -769,10 +771,12 @@ static void _mkcl_final_clean_up(MKCL)
 
   mkcl_early_boot = TRUE;
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   InterlockedExchange(&mkcl_boot_gate, FALSE);
-#else
+#elif MKCL_PTHREADS
   (void) pthread_mutex_unlock(&mkcl_boot_gate);
+#else
+# error Incomplete _mkcl_final_clean_up().
 #endif
 }
 
@@ -837,13 +841,13 @@ static mkcl_object join_thread(MKCL, mkcl_object shutdown_thread)
 {
   mkcl_os_thread_t os_thread = shutdown_thread->thread.thread;
   mkcl_object result_value = mk_cl_Cnil;
-#if __unix
+#if MKCL_UNIX
   void * status;
   int rc = 0;
   
   rc = pthread_join(os_thread, &status);  /* GC redirect */
   if (rc) { errno = rc; mkcl_FElibc_error(env, "mk_mt_thread_join failed on pthread_join", 0); }
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
   DWORD exitCode;
   BOOL ok;
   DWORD wait_val;
@@ -861,6 +865,8 @@ static mkcl_object join_thread(MKCL, mkcl_object shutdown_thread)
   ok = GetExitCodeThread(os_thread, &exitCode);
   if (!ok)
     mkcl_FEwin32_error(env, "mk_mt_thread_join failed on GetExitCodeThread", 0);
+#else
+# error Incomplete join_thread().
 #endif
 
   mkcl_remove_thread_from_global_thread_list(env, shutdown_thread);
@@ -869,7 +875,7 @@ static mkcl_object join_thread(MKCL, mkcl_object shutdown_thread)
   if (result_value == MKCL_OBJNULL)
     result_value = @':invalid-value';
 
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
   CloseHandle(os_thread);
   /* Make sure we do not close the handle again in the finalizer. */
   shutdown_thread->thread.base_thread = shutdown_thread->thread.thread = NULL;
@@ -972,7 +978,7 @@ mkcl_argv(MKCL, mkcl_index index)
 {
   if (index < ARGC)
     {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
       char * const str = ARGV[index];
       const size_t len = strlen(str);
       mkcl_UTF_8_object_sized(utf_8_obj, str, len);
@@ -1000,7 +1006,7 @@ mk_mkcl_argv(MKCL, mkcl_object index)
     mkcl_FEerror(env, "Invalid type for command line argument index: ~S. Must be a positive integer.", 1, index);
 }
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 void mkcl_get_commandline_args_from_Windows(int * argc_ref, char *** argv_ref)
 {
   LPWSTR *wArgs;
@@ -1089,10 +1095,12 @@ mkcl_object mkcl_getenv(MKCL, mkcl_object var)
   mkcl_dynamic_extent_OSstring(env, os_var, var);
 
   if (process_lock_unlock_callback) unlocker = process_lock_unlock_callback();
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   raw_os_value = _wgetenv(mkcl_OSstring_self(os_var));
-#else
+#elif MKCL_UNIX
   raw_os_value = (mkcl_OSstring_raw_type) getenv((char *) mkcl_OSstring_self(os_var));
+#else
+# error Incomplete mkcl_getenv().
 #endif
   if (unlocker) unlocker();
 
@@ -1132,7 +1140,7 @@ mkcl_setenv(MKCL, mkcl_object var, mkcl_object value)
      * the right thing. */
     unsetenv((char*)mkcl_OSstring_self(os_var));
 # else
-#  ifdef MKCL_WINDOWS
+#  if MKCL_WINDOWS
     mkcl_setenv(env, var, mkcl_core.empty_base_string);
 #  else
     putenv((char*)mkcl_OSstring_self(os_var));
@@ -1146,7 +1154,7 @@ mkcl_setenv(MKCL, mkcl_object var, mkcl_object value)
 # else
     mkcl_OSstring_push_extend(env, os_var, '=');
     mkcl_OSstring_nconc(env, os_var, os_value);
-#  ifdef MKCL_WINDOWS
+#  if MKCL_WINDOWS
     ret_val = _wputenv((wchar_t *) mkcl_OSstring_self(os_var));
 #  else
     ret_val = putenv((char*)mkcl_OSstring_self(os_var));

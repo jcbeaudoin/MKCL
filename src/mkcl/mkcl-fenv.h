@@ -17,7 +17,11 @@
 #ifndef MKCL_FENV_H
 #define MKCL_FENV_H
 
-#if defined(MKCL_WINDOWS)
+#ifndef MKCL_CONFIG_H
+# error File <mkcl/config.h> must be included at some point before mkcl-fenv.h
+#endif
+
+#if MKCL_WINDOWS
 # define HAVE_FEENABLEEXCEPT
 # include <float.h>
 # define FE_DIVBYZERO _EM_ZERODIVIDE
@@ -47,18 +51,18 @@ int mkcl_fetestexcept(int excepts);
 int mkcl_feclearexcept(int excepts);
 
 #else /* !MKCL_WINDOWS */
-# ifndef HAVE_FENV_H
+# if HAVE_FENV_H
+#  include <fenv.h>
+#  if __STDC__ && !__clang__
+#   pragma STDC FENV_ACCESS ON
+#  endif
+# else /* !HAVE_FENV_H */
 #  define FE_INVALID 1
 #  define FE_DIVBYZERO 2
 #  define FE_INEXACT 0
 #  define FE_OVERFLOW 0
 #  define FE_UNDERFLOW 0
 #  define FE_ALL_EXCEPT FE_DIVBYZERO | FE_OVERFLOW | FE_UNDERFLOW | FE_INVALID | FE_INEXACT
-# else
-#  include <fenv.h>
-#  if __STDC__ && !__clang__
-#   pragma STDC FENV_ACCESS ON
-#  endif
 # endif /* !HAVE_FENV_H */
 #endif /* !MKCL_WINDOWS */
 

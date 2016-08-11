@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -20,12 +20,12 @@
 #include <mkcl/internal.h>
 #include <string.h>
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 #define SYSTEM_PROPERTIES_LOCK() EnterCriticalSection(&system_properties_lock)
 #define SYSTEM_PROPERTIES_UNLOCK() LeaveCriticalSection(&system_properties_lock)
 
 static CRITICAL_SECTION system_properties_lock;
-#else
+#elif MKCL_PTHREADS
 #define SYSTEM_PROPERTIES_LOCK()				\
   if (pthread_mutex_lock(&system_properties_lock))		\
     mkcl_lose(env, "Failed in SYSTEM_PROPERTIES_LOCK()")
@@ -34,6 +34,8 @@ static CRITICAL_SECTION system_properties_lock;
     mkcl_lose(env, "Failed in SYSTEM_PROPERTIES_UNLOCK()")
 
 static pthread_mutex_t system_properties_lock;
+#else
+# error Incomplete definition of SYSTEM_PROPERTIES_LOCK().
 #endif
 
 mkcl_object
@@ -260,7 +262,7 @@ void mkcl_init_system_properties(MKCL)
 			   mkcl_make_singlefloat(env, 1.5f), /* rehash-size */
 			   mkcl_make_singlefloat(env, 0.75f)); /* rehash-threshold */
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 #if 0
   system_properties_lock = CreateMutex(NULL, FALSE, mkcl_handle_debug_name(env, "system properties lock"));
   if ( system_properties_lock == NULL )
@@ -269,22 +271,26 @@ void mkcl_init_system_properties(MKCL)
   InitializeCriticalSection(&system_properties_lock);
 #endif
 
-#else
+#elif MKCL_PTHREADS
   {
     const pthread_mutexattr_t * const mutexattr = mkcl_normal_mutexattr;
 
     if (pthread_mutex_init(&system_properties_lock, mutexattr))
       mkcl_lose(env, "mkcl_init_system_properties failed on pthread_mutex_init.");
   }
+#else
+# error Incomplete mkcl_init_system_properties().
 #endif
 }
 
 void mkcl_clean_up_system_properties(MKCL)
 { /* Best effort only. We cannot raise an exception from here. */
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   DeleteCriticalSection(&system_properties_lock);
-#else
+#elif MKCL_PTHREADS
   (void) pthread_mutex_destroy(&system_properties_lock);
+#else
+# error Incomplete mkcl_clean_up_system_properties().
 #endif
 }
 

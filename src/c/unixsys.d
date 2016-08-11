@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -24,23 +24,26 @@
 #include <mkcl/internal.h>
 #include <mkcl/mkcl-inl.h>
 
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
 # include <windows.h>
 #endif
 
+#if 0
 #ifdef HAVE_UNISTD_H
-# include <sys/types.h>
-# include <unistd.h>
-# ifdef __linux
-#  include <sys/syscall.h>
-# endif
+# include <sys/types.h> /* What is that for? */
+# include <unistd.h> /* done in internal.h now */
+#endif
+#endif
+
+#if __linux
+# include <sys/syscall.h>
 #endif
 
 #ifdef HAVE_SYS_WAIT_H
 # include <sys/wait.h>
 #endif
 
-#ifdef __unix
+#if MKCL_PTHREADS
 static pthread_mutex_t children_list_lock;
 
 static inline void CHILDREN_LIST_LOCK(MKCL)
@@ -58,7 +61,7 @@ static inline void CHILDREN_LIST_UNLOCK(MKCL)
 
 void mkcl_safe_close(MKCL, int fd, mkcl_object stream)
 {
-#if __linux
+#if MKCL_UNIX
   int status = 0;
   mkcl_interrupt_status old_intr;
 
@@ -69,7 +72,7 @@ void mkcl_safe_close(MKCL, int fd, mkcl_object stream)
   mkcl_set_interrupt_status(env, &old_intr);
   if (status)
     mkcl_FElibc_stream_error(env, stream, "mkcl_safe_close failed.", 0);
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
   if (_close(fd))
     mkcl_FEwin32_stream_error(env, stream, "mkcl_safe_close failed.", 0);
 #else
@@ -84,10 +87,10 @@ void mkcl_safe_fclose(MKCL, void * vs, mkcl_object stream)
 
   MKCL_LIBC_NO_INTR(env, (status = fclose(s)));
 
-#if __linux
+#if MKCL_UNIX
   if (status == EOF)
     mkcl_FElibc_stream_error(env, stream, "mkcl_safe_fclose() failed.", 0);
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
   if (status == EOF)
     mkcl_FEwin32_stream_error(env, stream, "mkcl_safe_fclose() failed.", 0);
 #else
@@ -95,7 +98,7 @@ void mkcl_safe_fclose(MKCL, void * vs, mkcl_object stream)
 #endif
 }
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 
 static mkcl_object read_command_output(MKCL, HANDLE child_stdout_read)
 {
@@ -280,7 +283,7 @@ static mkcl_object read_command_output(MKCL, HANDLE child_stdout_read)
 @)
 
 
-#elif defined(__unix)  /* MKCL_WINDOWS */
+#elif MKCL_UNIX  /* MKCL_WINDOWS */
 
 static void delete_pid_from_children(MKCL, pid_t pid)
 {
@@ -597,7 +600,7 @@ static int my_exec_command(mkcl_char8 * cmd_real_name, mkcl_char8 * cmd_line)
     { @(return mk_cl_Cnil output); }
 @)
 
-#endif /* defined(__unix) */
+#endif /* MKCL_UNIX */
 
 mkcl_object mk_mkcl_system (MKCL, mkcl_object cmd_string)
 {
@@ -607,34 +610,38 @@ mkcl_object mk_mkcl_system (MKCL, mkcl_object cmd_string)
    */
   mkcl_dynamic_extent_OSstring(env, os_cmd, cmd_string);
 
-#ifdef __unix
+#if MKCL_UNIX
   if (mkcl_OSstring_size(os_cmd) >= mkcl_core.arg_max)
     mkcl_FEerror(env, "Too long command line: ~S.", 1, cmd_string);
 #endif
 
   {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
     int code = _wsystem(mkcl_OSstring_self(os_cmd));
-#else
+#elif MKCL_UNIX
     /* This call to 'system' has the side-effect, for its duration, of
        blocking SIGCHLD and ignoring both SIGINT and SIGQUIT! JCB */
     /* It also shares, between parent and child, all file descriptors
        (among others: stdin, stdout, stderr). JCB */
     int code = system((char *) mkcl_OSstring_self(os_cmd));
+#else
+# error Incomplete mk_mkcl_system().
 #endif
 
     if (code == -1)
       mkcl_FElibc_error(env, "si::system unable to fork subprocess to execute command: ~A", 1, cmd_string);
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
     { @(return MKCL_MAKE_FIXNUM(code)); }
-#else
+#elif MKCL_UNIX
     if (WIFEXITED(code))
       { @(return MKCL_MAKE_FIXNUM(WEXITSTATUS(code))); }
     else if (WIFSIGNALED(code))
       { @(return mkcl_unix_signal_name(env, WTERMSIG(code))); }
     else
       { @(return mk_cl_Cnil); }
+#else
+    { @(return mk_cl_Cnil); }
 #endif
   }
 }
@@ -651,7 +658,7 @@ pid_t mkcl_gettid(void)
 {
 #ifdef __linux
   return syscall(SYS_gettid);
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
   return GetCurrentThreadId();
 #else
   return getpid();
@@ -669,11 +676,13 @@ mkcl_object
 mk_mkcl_getuid(MKCL)
 {
   mkcl_call_stack_check(env);
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
   /* GetUserName() followed by LookupAccountName(). JCB */
   @(return MKCL_MAKE_FIXNUM(0));
-#else
+#elif MKCL_UNIX
   @(return mkcl_make_integer(env, getuid()));
+#else
+  @(return MKCL_MAKE_FIXNUM(0));
 #endif
 }
 
@@ -682,9 +691,9 @@ mk_mkcl_make_pipe(MKCL) /* Any user of this? JCB */ /* Without :element-type or 
 {
   mkcl_object output;
   int fds[2], ret;
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
   ret = _pipe(fds, 4096, _O_BINARY);
-#else
+#elif MKCL_UNIX
   ret = pipe(fds);
 #endif
   if (ret < 0) {
@@ -754,7 +763,7 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
   subprocess->process.output = mk_cl_Cnil;
   subprocess->process.error = mk_cl_Cnil;  
   mk_si_set_finalizer(env, subprocess, mk_cl_Ct);
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
   {
     mkcl_object command_line;
     BOOL ok;
@@ -1033,7 +1042,7 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
       mkcl_FEerror(env, "mkcl:run-program could not spawn subprocess to run ~S.", 1, command);
     }
   }
-#else /* def MKCL_WINDOWS */
+#elif MKCL_UNIX /* MKCL_WINDOWS */
   {
     pid_t child_pid;
     int rc;
@@ -1319,7 +1328,7 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
 	mkcl_FElibc_error(env, "mkcl:run-program ould not spawn subprocess to run ~S.", 1, command);
       }
   }
-#endif  /* def MKCL_WINDOWS */
+#endif  /* MKCL_UNIX */
   if (parent_write > 0) {
     stream_write = mkcl_make_stream_from_fd(env, command, parent_write,
 					    mkcl_smm_output, mk_cl_Cnil,
@@ -1361,9 +1370,9 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
 void mkcl_finalize_process(MKCL, mkcl_object proc)
 {
   mk_mkcl_process_status(env, proc);
-#if __unix
+#if MKCL_UNIX
   delete_pid_from_children(env, proc->process.ident);
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
   if (proc->process.ident)
     {
       CloseHandle(proc->process.ident);
@@ -1397,7 +1406,7 @@ mkcl_object mk_mkcl_process_id(MKCL, mkcl_object proc)
   else if (proc->process.detached)
     { @(return @':detached'); }
 
-#if defined(MKCL_WINDOWS) 
+#if MKCL_WINDOWS
 # if defined(__MINGW32__) && !(_WIN32_WINNT >= 0x0501) /* Requires WinXP SP1 or later. */
   @(return mk_cl_Cnil);
 # else
@@ -1441,7 +1450,7 @@ mkcl_object mk_mkcl_process_status(MKCL, mkcl_object proc)
   else if (proc->process.detached)
     { @(return @':detached'); }
 
-#if __unix
+#if MKCL_UNIX
   if (proc->process.status != @':exited')
     {
       int status, rc;
@@ -1460,7 +1469,7 @@ mkcl_object mk_mkcl_process_status(MKCL, mkcl_object proc)
 	  proc->process.exit_code = status;
 	}
     }
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
   if (proc->process.status != @':exited')
     {
       DWORD exitcode;
@@ -1495,7 +1504,7 @@ mkcl_object mk_mkcl_process_exit_code(MKCL, mkcl_object proc)
 
   exit_code = proc->process.exit_code;
 
-#if __unix
+#if MKCL_UNIX
   if (WIFEXITED(exit_code))
     { @(return MKCL_MAKE_FIXNUM(WEXITSTATUS(exit_code))); }
   else if (WIFSIGNALED(exit_code))
@@ -1541,7 +1550,7 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
   else if (proc->process.detached)
     { @(return @':detached'); }
 
-#if __unix
+#if MKCL_UNIX
   mkcl_os_process_t pid = proc->process.ident;
   mkcl_exit_code_t exit_code;
 
@@ -1566,7 +1575,7 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
   else
     { @(return mk_cl_Cnil); }
 
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
   mkcl_os_process_t pid = proc->process.ident;
   mkcl_exit_code_t exit_code;
 
@@ -1614,7 +1623,7 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
   if (proc->process.status == @':exited' /* || proc->process.detached */)
     { @(return mk_cl_Cnil); }
 
-#if __unix
+#if MKCL_UNIX
   if (mkcl_Null(force))
     {
       if (kill(proc->process.ident, SIGTERM))
@@ -1624,7 +1633,7 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
     if (kill(proc->process.ident, SIGKILL))
       mkcl_FElibc_error(env, "mkcl:terminate-process failed on kill().", 0);
 
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
   if (!TerminateProcess(proc->process.ident, -1))
     mkcl_FEwin32_error(env, "mkcl:terminate-process failed on TerminateProcess()", 0);
 #endif
@@ -1637,7 +1646,7 @@ mkcl_object mk_mkcl_detach_process(MKCL, mkcl_object proc)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
     mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
-#if __unix
+#if MKCL_UNIX
   mkcl_os_process_t id = proc->process.ident;
 
   {
@@ -1675,16 +1684,16 @@ mkcl_object mk_si_list_all_children(MKCL) /* debug JCB */
 }
 
 
-#ifndef MKCL_WINDOWS
+#if MKCL_UNIX
 # include <sys/utsname.h>
 #endif
 
 mkcl_object mk_si_uname(MKCL)
 {
   mkcl_call_stack_check(env);
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   @(return);
-#else
+#elif MKCL_UNIX
   mkcl_object output;
   struct utsname aux;
   int rc;
@@ -1704,13 +1713,15 @@ mkcl_object mk_si_uname(MKCL)
 	mkcl_make_base_string_copy(env, aux.version)
 	mkcl_make_base_string_copy(env, aux.machine));
     }
+#else
+# error Incomplete mk_si_uname().
 #endif
 }
 
 
 void mkcl_init_unixsys(MKCL)
 {
-#ifdef __unix
+#if MKCL_PTHREADS
   const pthread_mutexattr_t * const mutexattr = mkcl_normal_mutexattr;
 
   if (pthread_mutex_init(&children_list_lock, mutexattr))
@@ -1720,7 +1731,7 @@ void mkcl_init_unixsys(MKCL)
 
 void mkcl_clean_up_unixsys(MKCL)
 { /* Best effort only. We cannot raise an exception from here. */
-#ifdef __unix
+#if MKCL_PTHREADS
   (void) pthread_mutex_destroy(&children_list_lock);
 #endif
 }

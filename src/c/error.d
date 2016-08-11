@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2014, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -17,15 +17,15 @@
 */
 
 #include <mkcl/mkcl.h>
+#include <mkcl/internal.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <signal.h>
 #include <stdlib.h>
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
 #include <windows.h>
 #endif
-#include <mkcl/internal.h>
 
 void
 mkcl_internal_C_error(MKCL, const char * const s, const char * const file, const int lineno)
@@ -40,7 +40,7 @@ mkcl_internal_C_error(MKCL, const char * const s, const char * const file, const
 
   if (mkcl_saved_errno)
     {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 #if 0
       wchar_t * _wcserror(int);  /* Do we need to go to __MSVCRT_VERSION__ >= 0x0700 ? */
       wchar_t * error_msg = _wcserror(mkcl_saved_errno);
@@ -319,7 +319,7 @@ mkcl_libc_error_string(MKCL, mkcl_word errno_value)
 {
   mkcl_object errno_msg;
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   {
 #if 0
     wchar_t * _wcserror(int);  /* Do we need to go to __MSVCRT_VERSION__ >= 0x0700 ? */
@@ -446,7 +446,7 @@ mkcl_FElibc_stream_error(MKCL, mkcl_object stream, const char *msg, int narg, ..
 	      );
 }
 
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
 void
 mkcl_FEwin32_error(MKCL, const char *msg, int narg, ...)
 {

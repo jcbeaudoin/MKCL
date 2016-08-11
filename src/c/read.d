@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -27,10 +27,10 @@
 #include <mkcl/bytecode.h>
 
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 #define READTABLE_LOCK(r) EnterCriticalSection(&(r)->readtable.lock)
 #define READTABLE_UNLOCK(r) LeaveCriticalSection(&(r)->readtable.lock)
-#else
+#elif MKCL_PTHREADS
 #define READTABLE_LOCK(r)				\
   if (pthread_mutex_lock(&(r)->readtable.lock))		\
     mkcl_lose(env, "Failed in READTABLE_LOCK()")
@@ -1489,7 +1489,7 @@ mkcl_copy_readtable(MKCL, mkcl_object from, mkcl_object to)
     {
       mkcl_interrupt_status old_intr;
       mkcl_object __restrict__ output = mkcl_alloc_raw_readtable(env);
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
 #if 0
       output->readtable.lock = CreateMutex(NULL, FALSE, mkcl_handle_debug_name(env, "readtable lock"));
       if ( output->readtable.lock == NULL )
@@ -1497,11 +1497,13 @@ mkcl_copy_readtable(MKCL, mkcl_object from, mkcl_object to)
 #else
       InitializeCriticalSection(&(output->readtable.lock));
 #endif
-#else
+#elif MKCL_PTHREADS
       const pthread_mutexattr_t * const mutexattr = mkcl_normal_mutexattr;
 
       if (pthread_mutex_init(&(output->readtable.lock), mutexattr))
 	mkcl_C_lose(env, "mkcl_copy_readtable failed on pthread_mutex_init.");
+#else
+# error Incomplete mkcl_copy_readtable().
 #endif
       mk_si_set_finalizer(env, output, mk_cl_Ct); /* The mutex needs to be deallocated at some point. */
 
@@ -2224,7 +2226,7 @@ mkcl_init_read(MKCL)
   r->readtable.read_case = mkcl_case_upcase;
 #endif
 
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
 #if 0
   r->readtable.lock = CreateMutex(NULL, FALSE, mkcl_handle_debug_name(env, "standard readtable lock"));
   if ( r->readtable.lock == NULL )
@@ -2232,13 +2234,15 @@ mkcl_init_read(MKCL)
 #else
   InitializeCriticalSection(&(r->readtable.lock));
 #endif
-#else
+#elif MKCL_PTHREADS
   {
     const pthread_mutexattr_t * const mutexattr = mkcl_normal_mutexattr;
 
     if (pthread_mutex_init(&(r->readtable.lock), mutexattr))
       mkcl_lose(env, "mkcl_init_read failed on pthread_mutex_init.");
   }
+#else
+# error Incomplete mkcl_init_read().
 #endif
 
   /* Someone really paranoid would lock the readtable during its initialization... */

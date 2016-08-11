@@ -4,7 +4,7 @@
 */
 /*
     Copyright (c) 2003, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2013, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -33,15 +33,15 @@
 # include <sched.h>
 #endif
 
-#ifdef __linux
+#if MKCL_PTHREADS
 /* This _true_pthread_join gives you direct access to the real pthread_join, not the Boehm's GC wrapped one. */
 static int _true_pthread_join(pthread_t thread, void ** retval);
-#endif /* __linux */
+#endif /* MKCL_PTHREADS */
 
 static void setup_thread_bindings(MKCL, mkcl_object initial_bindings);
 
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 char * mkcl_handle_debug_name(MKCL, char * prefix)
 {
   static unsigned long count = 0;
@@ -54,7 +54,7 @@ char * mkcl_handle_debug_name(MKCL, char * prefix)
 }
 #endif
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 static DWORD cl_env_key;
 #else
 static pthread_key_t cl_env_key;
@@ -62,7 +62,7 @@ static pthread_key_t cl_env_key;
 
 const mkcl_env mkcl_thread_env(void)
 {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   return TlsGetValue(cl_env_key);
 #else
   return pthread_getspecific(cl_env_key);
@@ -72,7 +72,7 @@ const mkcl_env mkcl_thread_env(void)
 static void
 mkcl_set_thread_env(MKCL)
 {
-#if defined(MKCL_WINDOWS)
+#if MKCL_WINDOWS
   if (!TlsSetValue(cl_env_key, env))
     mkcl_FEwin32_error(env, "mkcl_set_thread_env failed on TlsSetValue", 0);
 #else
@@ -169,7 +169,7 @@ thread_final_cleanup(MKCL, mkcl_object thread)
   }
 }
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 # if 0
 /* For use with direct call to CreateThread */
 typedef DWORD thread_value_t;
@@ -179,7 +179,7 @@ typedef DWORD thread_value_t;
 typedef unsigned thread_value_t;
 #  define CALL_CONV __stdcall
 # endif
-#elif defined(__linux)
+#elif MKCL_PTHREADS
 typedef void * thread_value_t;
 # define CALL_CONV
 #endif
@@ -274,7 +274,7 @@ static thread_value_t CALL_CONV thread_entry_point(void *arg)
 
   if (env->own_thread != thread) return (thread_value_t) MKCL_THREAD_ABORTED;
 
-#ifndef MKCL_WINDOWS
+#if MKCL_PTHREADS
   if (pthread_mutex_lock(thread->thread.running_lock)) return (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR;
   /* Insert some private os-level thread initialization here */
   if (pthread_mutex_unlock(thread->thread.running_lock)) return (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR;
@@ -319,7 +319,7 @@ static thread_value_t CALL_CONV thread_entry_point(void *arg)
   return status;
 }
 
-#ifdef __linux
+#if MKCL_PTHREADS
 
 static void * signal_servicing_thread_entry_point(void *arg)
 {
@@ -398,17 +398,17 @@ static void * signal_servicing_thread_entry_point(void *arg)
   return NULL;
 }
 
-#endif /* __linux */
+#endif /* MKCL_PTHREADS */
 
-#ifdef __linux
+#if MKCL_PTHREADS
 static pthread_mutex_t mkcl_interrupt_thread_lock;
 static sigset_t mkcl_standard_sigmask;
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
 static HANDLE mkcl_interrupt_thread_lock;
 #endif
 
 
-#ifdef __linux
+#if MKCL_PTHREADS
 
 static sem_t mkcl_run_interrupt_function_sem_obj;
 static sem_t * mkcl_run_interrupt_function = &mkcl_run_interrupt_function_sem_obj;
@@ -553,7 +553,7 @@ interrupt_thread_entry_point(void *arg)
   return NULL;
 }
 
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
 
 static void resume_thread_unwinding(void)
 { /* This function is never called through normal means.
@@ -689,7 +689,7 @@ static thread_value_t CALL_CONV interrupt_thread_entry_point(void * arg)
   return 0;
 }
 
-#endif /* defined(MKCL_WINDOWS) */
+#endif /* MKCL_WINDOWS */
 
 
 
@@ -956,7 +956,7 @@ mkcl_make_thread(MKCL, mkcl_object name, mkcl_object initial_bindings, struct mk
   return thread;
 }
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 static CRITICAL_SECTION mkcl_imported_thread_pool_lock;
 static HANDLE mkcl_imported_thread_pool_empty; /* Semaphore */
 static HANDLE mkcl_imported_thread_pool_full; /* Semaphore */
@@ -981,7 +981,7 @@ static void fill_imported_thread_pool(MKCL)
 
     mkcl_get_interrupt_status(env, &old_intr);
     mkcl_disable_interrupts(env);
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
     EnterCriticalSection(&mkcl_imported_thread_pool_lock);
 #else
     if (pthread_mutex_lock(&mkcl_imported_thread_pool_lock))
@@ -996,7 +996,7 @@ static void fill_imported_thread_pool(MKCL)
     mkcl_core.imported_thread_pool = head;
 
   } MKCL_UNWIND_PROTECT_EXIT {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
     if (locked)
       LeaveCriticalSection(&mkcl_imported_thread_pool_lock);
 #else
@@ -1014,7 +1014,7 @@ static thread_value_t CALL_CONV imported_thread_pool_filler(void * arg)
   const mkcl_env env = thread->thread.env;
   thread_value_t status = (thread_value_t) MKCL_THREAD_NORMAL_EXIT;
 
-#ifndef MKCL_WINDOWS
+#if MKCL_PTHREADS
   if (pthread_mutex_lock(thread->thread.running_lock)) return (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR;
   /* Insert some private thread initialization here */
   if (pthread_mutex_unlock(thread->thread.running_lock)) return (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR;
@@ -1046,7 +1046,7 @@ static thread_value_t CALL_CONV imported_thread_pool_filler(void * arg)
 
     for (;;) /* forever until we're killed. */
       {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 	BOOL ok;
 	DWORD wait_val;
 
@@ -1116,7 +1116,7 @@ static void mkcl_create_imported_thread_pool_filler_thread(MKCL)
   thread->thread.function = mk_cl_Cnil;
   thread->thread.args = mk_cl_Cnil;
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   {
     unsigned threadId;
     uintptr_t code;
@@ -1170,7 +1170,7 @@ static void push_in_imported_thread_pool(MKCL, mkcl_object thread)
 
     mkcl_get_interrupt_status(env, &old_intr);
     mkcl_disable_interrupts(env);
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
     EnterCriticalSection(&mkcl_imported_thread_pool_lock);
 #else
     if (pthread_mutex_lock(&mkcl_imported_thread_pool_lock))
@@ -1181,7 +1181,7 @@ static void push_in_imported_thread_pool(MKCL, mkcl_object thread)
 
     mkcl_core.imported_thread_pool = MKCL_CONS(env, thread, mkcl_core.imported_thread_pool);
   } MKCL_UNWIND_PROTECT_EXIT {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
     if (locked)
       LeaveCriticalSection(&mkcl_imported_thread_pool_lock);
 #else
@@ -1200,7 +1200,7 @@ static mkcl_object pop_from_imported_thread_pool(mkcl_thread_import_failure_hand
   int rc = 0;
   bool pool_locked = FALSE;
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   EnterCriticalSection(&mkcl_imported_thread_pool_lock);
 #else
   if ((rc = pthread_mutex_lock(&mkcl_imported_thread_pool_lock)))
@@ -1211,7 +1211,7 @@ static mkcl_object pop_from_imported_thread_pool(mkcl_thread_import_failure_hand
 
   if (mkcl_Null(pool))
     { /* the pool is empty. */
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
       DWORD wait_val;
 
       if (!ReleaseSemaphore(mkcl_imported_thread_pool_empty, 1, NULL))
@@ -1260,7 +1260,7 @@ static mkcl_object pop_from_imported_thread_pool(mkcl_thread_import_failure_hand
      so we cannot wrap the lock/unlock in an unwind-protect.
      Hopefully the body of this function cannot raise any exception. JCB
    */
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   LeaveCriticalSection(&mkcl_imported_thread_pool_lock);
 #else
   if ((rc = pthread_mutex_unlock(&mkcl_imported_thread_pool_lock)))
@@ -1270,7 +1270,7 @@ static mkcl_object pop_from_imported_thread_pool(mkcl_thread_import_failure_hand
   return(thread);
 
  LOSE:
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   LeaveCriticalSection(&mkcl_imported_thread_pool_lock);
   if (handler)
     (*handler)(handler_data, rc, os_error);
@@ -1320,7 +1320,7 @@ mkcl_import_current_thread(mkcl_object name, mkcl_object bindings, mkcl_thread_i
   mkcl_object l;
   mkcl_os_thread_t current;
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 # define pthread_equal(a,b) ((a)==(b))
 # define _close_handle(h) CloseHandle(h)
   DuplicateHandle(GetCurrentProcess(),
@@ -1346,7 +1346,7 @@ mkcl_import_current_thread(mkcl_object name, mkcl_object bindings, mkcl_thread_i
       if (pthread_equal(current, p->thread.interrupted_threads[i].thread_ident))
 	{ _close_handle(current); errno = EEXIST; return(NULL); }
   }
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 # if 0
   _close_handle(current); /* This is too early since it will be used in the thread object. */
 # endif
@@ -1409,7 +1409,7 @@ mkcl_release_current_thread(MKCL)
 
 /*************************************************************/
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 static HANDLE mkcl_finalization_requested; /* an Event object */
 #else
 static mkcl_object mkcl_finalization_requested; /* a condition variable */
@@ -1424,7 +1424,7 @@ static thread_value_t CALL_CONV finalization_thread_entry_point(void * arg)
 
   if (env->own_thread != thread) return (thread_value_t) MKCL_THREAD_ABORTED;
 
-#ifndef MKCL_WINDOWS
+#if MKCL_PTHREADS
   if (pthread_mutex_lock(thread->thread.running_lock)) return (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR;
   /* Insert some private thread initialization here */
   if (pthread_mutex_unlock(thread->thread.running_lock)) return (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR;
@@ -1468,7 +1468,7 @@ static thread_value_t CALL_CONV finalization_thread_entry_point(void * arg)
 
     for (;;) /* forever until we're shutdown. */
       {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 	BOOL ok;
 	DWORD wait_val;
 
@@ -1554,7 +1554,7 @@ static thread_value_t CALL_CONV finalization_thread_entry_point(void * arg)
   fflush(stderr);
 #endif
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   {
     HANDLE hnd = mkcl_finalization_requested;
 
@@ -1569,7 +1569,7 @@ static thread_value_t CALL_CONV finalization_thread_entry_point(void * arg)
 
 static void request_finalization(void)
 {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   HANDLE hnd = mkcl_finalization_requested;
   if (hnd)
     SetEvent(hnd);
@@ -1589,7 +1589,7 @@ static void mkcl_create_finalization_thread(MKCL)
   thread->thread.function = mk_cl_Cnil;
   thread->thread.args = mk_cl_Cnil;
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   {
     unsigned threadId;
     uintptr_t code;
@@ -1610,7 +1610,7 @@ static void mkcl_create_finalization_thread(MKCL)
     if (old_suspend_count != 1) /* 1 is the only right answer here, everything else is an error of some kind. */
       mkcl_FEwin32_error(env, "mkcl_create_finalization_thread failed on ResumeThead for thread ~A", 1, thread);    
   }
-#else /* def MKCL_WINDOWS */
+#else /*  MKCL_WINDOWS */
   int result;
 
   mkcl_finalization_requested = mk_mt_make_condition_variable(env);
@@ -1627,7 +1627,7 @@ static void mkcl_create_finalization_thread(MKCL)
 
   if ( result != 0 )
     { errno = result; mkcl_FElibc_error(env, "Cannot create imported thread pool filler thread", 0); }
-#endif /* else def MKCL_WINDOWS */
+#endif /* else  MKCL_WINDOWS */
 
   MK_GC_finalizer_notifier_proc old_notifier;
 
@@ -1678,7 +1678,7 @@ static void mkcl_create_finalization_thread(MKCL)
   @(return thread);
 @)
 
-#ifdef __linux
+#if MKCL_PTHREADS
 static void print_sig_mask(sigset_t * set)
 {
   int i;
@@ -1698,12 +1698,12 @@ static void print_thread_sig_mask(void)
   pthread_sigmask(SIG_BLOCK, NULL, &blocked);
   print_sig_mask(&blocked);
 }
-#endif /* __linux */
+#endif /* MKCL_PTHREADS */
 
 mkcl_object
 mk_mt_show_sigmask(MKCL)
 {
-#ifdef __linux
+#if MKCL_PTHREADS
   mkcl_call_stack_check(env);
   print_thread_sig_mask();
 #endif
@@ -1713,7 +1713,7 @@ mk_mt_show_sigmask(MKCL)
 mkcl_object
 mk_mt_reset_sigmask(MKCL)
 {
-#ifdef __linux
+#if MKCL_PTHREADS
   sigset_t all_signals;
 
   mkcl_call_stack_check(env);
@@ -1729,7 +1729,7 @@ mk_mt_reset_sigmask(MKCL)
 mkcl_object
 mk_mt_block_signals(MKCL)
 {
-#ifdef __linux
+#if MKCL_PTHREADS
   mkcl_object this_thread = mkcl_current_thread(env);
 
   mkcl_call_stack_check(env);
@@ -1752,7 +1752,7 @@ mk_mt_block_signals(MKCL)
 mkcl_object
 mk_mt_unblock_signals(MKCL)
 {
-#ifdef __linux
+#if MKCL_PTHREADS
   mkcl_object this_thread = mkcl_current_thread(env);
 
   mkcl_call_stack_check(env);
@@ -1807,7 +1807,7 @@ mk_mt_thread_preset(MKCL, mkcl_narg narg, mkcl_object thread, mkcl_object functi
   @(return thread);
 }
 
-#ifdef __linux
+#if MKCL_PTHREADS
 void mkcl_create_signal_servicing_thread(MKCL,
 					 char * thread_cname, 
 					 int sig,
@@ -1847,11 +1847,11 @@ void mkcl_create_signal_servicing_thread(MKCL,
   if ( result != 0 )
     { errno = result; mkcl_FElibc_error(env, "Cannot create signal servicing thread", 0); }
 }
-#endif /* __linux */
+#endif /* MKCL_PTHREADS */
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 static HANDLE mkcl_sleeping_thread_interrupted; /* Event */
-#elif defined(__linux)
+#elif MKCL_PTHREADS
 mkcl_env mkcl_interrupted_thread_env = NULL;
 bool mkcl_interrupt_refused;
 bool mkcl_interrupt_forcefully;
@@ -1861,11 +1861,11 @@ static sem_t mkcl_interrupted_thread_suspended_sem_obj;
 sem_t * mkcl_interrupted_thread_suspended = &mkcl_interrupted_thread_suspended_sem_obj;
 static sem_t mkcl_interrupted_thread_resumed_sem_obj;
 sem_t * mkcl_interrupted_thread_resumed = &mkcl_interrupted_thread_resumed_sem_obj;
-#endif /* __linux */
+#endif /* MKCL_PTHREADS */
 
 #define MAX_INTERRUPT_RETRIES 50
 
-#ifdef __linux
+#if MKCL_PTHREADS
 static void create_interrupt_thread(MKCL, mkcl_object thread, mkcl_index os_call_stack_size)
 {
   int result;
@@ -1897,7 +1897,7 @@ static void create_interrupt_thread(MKCL, mkcl_object thread, mkcl_index os_call
     mkcl_FElibc_error(env, "create_interrupt_thread failed on sem_post", 0);
 }
 
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
 
 static void create_interrupt_thread(MKCL, mkcl_object thread, mkcl_index os_call_stack_size)
 {
@@ -1923,7 +1923,7 @@ static void create_interrupt_thread(MKCL, mkcl_object thread, mkcl_index os_call
 }
 #endif
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 
 /* interrupt_thread_internal() is to be run with interrupts disabled. */
 static mkcl_object
@@ -2156,7 +2156,7 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
   return mk_cl_Ct;
 }
 
-#elif defined(__linux)
+#elif MKCL_PTHREADS
 
 static void clear_semaphore(MKCL, sem_t * sem)
 {
@@ -2429,7 +2429,7 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
   return mk_cl_Ct;
 }
 
-#endif /* defined(__linux) */
+#endif /* MKCL_PTHREADS */
 
 @(defun mt::interrupt-thread (thread function &key (force mk_cl_Cnil) call_stack_size)
 @
@@ -2489,8 +2489,8 @@ mkcl_object mk_mt_thread_detach(MKCL, mkcl_object thread)
     { @(return mk_cl_Cnil); }
   else
     {
-#ifdef __linux
-#if 0 /* Disabled for the following reason: */
+#if MKCL_PTHREADS
+# if 0 /* Disabled for the following reason: */
       /*
 	In Pthreads the concept of thread ID seems to be severely under-specified,
 	mainly when it comes to the "extent" of a thread ID when the said thread
@@ -2540,8 +2540,8 @@ mkcl_object mk_mt_thread_detach(MKCL, mkcl_object thread)
 	  if ((rc = pthread_mutex_unlock(&mkcl_interrupt_thread_lock)))
 	    mkcl_lose(env, "mk_mt_thread_detach failed on pthread_mutex_unlock");
       } MKCL_UNWIND_PROTECT_END;
-#endif
-#elif defined(MKCL_WINDOWS)
+# endif
+#elif MKCL_WINDOWS
 #endif
       thread->thread.detached = TRUE;
     }
@@ -2552,7 +2552,7 @@ mkcl_object mk_mt_thread_detach(MKCL, mkcl_object thread)
   @(return mk_cl_Ct);
 }
 
-#ifdef __linux
+#if MKCL_PTHREADS
 
 mkcl_object
 mk_mt_thread_join(MKCL, mkcl_object thread)
@@ -2618,7 +2618,7 @@ mk_mt_thread_join(MKCL, mkcl_object thread)
   @(return result_value);
 }
 
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
 
 mkcl_object
 mk_mt_thread_join(MKCL, mkcl_object thread)
@@ -2711,14 +2711,14 @@ mk_mt_thread_join(MKCL, mkcl_object thread)
   @(return result_value);
 }
 
-#endif /* defined(MKCL_WINDOWS) */
+#endif /* MKCL_WINDOWS */
 
 mkcl_object
 mk_mt_thread_yield(MKCL)
 {
 #ifdef HAVE_SCHED_YIELD
   MKCL_LIBC_NO_INTR(env, sched_yield());
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
   MKCL_LIBC_NO_INTR(env, SwitchToThread());
 #else
   MKCL_LIBC_NO_INTR(env, sleep(0)); /* Use sleep(0) to yield to a >= priority thread */
@@ -2726,7 +2726,7 @@ mk_mt_thread_yield(MKCL)
   @(return);
 }
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 mkcl_object
 mk_mt_thread_enable(MKCL, mkcl_object thread)
 {
@@ -2770,7 +2770,7 @@ mk_mt_thread_enable(MKCL, mkcl_object thread)
   @(return output);
 }
 
-#elif defined(__linux) /* MKCL_WINDOWS */
+#elif MKCL_PTHREADS
 
 mkcl_object
 mk_mt_thread_enable(MKCL, mkcl_object thread)
@@ -2891,7 +2891,7 @@ mk_mt_thread_enable(MKCL, mkcl_object thread)
     }
   @(return output);
 }
-#endif /* __linux */
+#endif /* MKCL_PTHREADS */
 
 mkcl_object mk_mt_abandon_thread(MKCL, mkcl_object result_value)
 {
@@ -2919,9 +2919,9 @@ mkcl_object mk_mt_abandon_thread(MKCL, mkcl_object result_value)
   for (; i; --i)
     { /* These system calls here are strictly "fire and forget".
 	 Testing for return status could send us into an infinite recursion. */
-#ifdef __linux
+#if MKCL_PTHREADS
       pthread_cancel(env->own_thread->thread.interrupted_threads[i-1].thread_ident);
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
       HANDLE handle = env->own_thread->thread.interrupted_threads[i-1].thread_ident;
 
       if (handle)
@@ -2968,10 +2968,10 @@ mk_mt_exit_thread(MKCL, mkcl_object result_value)
   for (; i; --i)
     { /* These system calls here are strictly "fire and forget".
 	 Testing for return status could send us into an infinite recursion. */
-#ifdef __linux
+#if MKCL_PTHREADS
       pthread_detach(env->own_thread->thread.interrupted_threads[i-1].thread_ident);
       pthread_cancel(env->own_thread->thread.interrupted_threads[i-1].thread_ident);
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
       HANDLE handle = env->own_thread->thread.interrupted_threads[i-1].thread_ident;
       if (handle)
 	{
@@ -3020,10 +3020,10 @@ mkcl_object mk_mt_scuttle_thread(MKCL)
   for (; i; --i)
     { /* These system calls here are strictly "fire and forget".
 	 Testing for return status could send us into an infinite recursion. */
-#ifdef __linux
+#if MKCL_PTHREADS
       pthread_detach(env->own_thread->thread.interrupted_threads[i-1].thread_ident);
       pthread_cancel(env->own_thread->thread.interrupted_threads[i-1].thread_ident);
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
       HANDLE handle = env->own_thread->thread.interrupted_threads[i-1].thread_ident;
       if (handle)
 	{
@@ -3134,7 +3134,7 @@ mk_mt_thread_run_function(MKCL, mkcl_narg narg, mkcl_object name, mkcl_object fu
 @(defun mt::make-lock (&key name ((:recursive recursive) mk_cl_Cnil) fast)
   mkcl_object output;
 @
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   HANDLE mutex;
 
   MKCL_LIBC_NO_INTR(env, mutex = CreateMutex(NULL, FALSE, mkcl_handle_debug_name(env, "mutex")));
@@ -3219,7 +3219,7 @@ mk_mt_giveup_lock(MKCL, mkcl_object lock)
     lock->lock.holder = mk_cl_Cnil;
   }
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   int rc;
 
   MKCL_LIBC_NO_INTR(env, rc = ReleaseMutex(lock->lock.mutex));
@@ -3234,7 +3234,7 @@ mk_mt_giveup_lock(MKCL, mkcl_object lock)
 	lock->lock.holder = lock_holder;
 	mkcl_FEwin32_error(env, "giveup-lock: Unable to release Win32 Mutex: ~S", 1, lock);
       }
-#else
+#elif MKCL_PTHREADS
   int rc;
 
   MKCL_LIBC_NO_INTR(env, rc = pthread_mutex_unlock(lock->lock.mutex));
@@ -3263,6 +3263,8 @@ mk_mt_giveup_lock(MKCL, mkcl_object lock)
       break;
     case 0: break;
     }
+#else
+# error Incomplete mk_mt_giveup_lock().
 #endif
   @(return mk_cl_Ct);
 }
@@ -3281,7 +3283,7 @@ static const mkcl_object timeout_format_control_string = (mkcl_object) &timeout_
     @(return mk_cl_Ct);
   }
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   {
     mkcl_object output = mk_cl_Cnil;
     DWORD delai = INFINITE;
@@ -3339,7 +3341,7 @@ static const mkcl_object timeout_format_control_string = (mkcl_object) &timeout_
 
     @(return output);
   }
-#else /* MKCL_WINDOWS */
+#elif MKCL_PTHREADS
   int rc;
 
   if (mkcl_Null(timeout) || (MKCL_MAKE_FIXNUM(0) == timeout))
@@ -3405,6 +3407,8 @@ static const mkcl_object timeout_format_control_string = (mkcl_object) &timeout_
       break;
     }
   @(return mk_cl_Ct);
+#else
+# error Incomplete mt::get-lock 
 #endif /* MKCL_WINDOWS */
 @)
 
@@ -3419,13 +3423,13 @@ mkcl_object mk_mt_make_rwlock(MKCL)
   
   mkcl_call_stack_check(env);
   output->rwlock.name = mk_cl_Cnil;
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 # if defined(_MSC_VER) && (defined(WinVista) || defined(Win7))
   MKCL_LIBC_NO_INTR(env, InitializeSRWLock(&output->rwlock.rwlock));
 # else
   mkcl_FEerror(env, "RWLocks are supported under Windows Vista and successors", 0);
 # endif
-#else
+#elif MKCL_PTHREADS
   int rc;
 
   output->rwlock.rwlock = &output->rwlock.rwlock_obj;
@@ -3442,6 +3446,8 @@ mkcl_object mk_mt_make_rwlock(MKCL)
     case 0: break;
     }
   mk_si_set_finalizer(env, output, mk_cl_Ct);
+#else
+# error Incomplete mk_mt_make_rwlock().
 #endif
   @(return output);
 }
@@ -3452,7 +3458,7 @@ mkcl_object mk_mt_make_rwlock(MKCL)
     if (mkcl_type_of(rwlock) != mkcl_t_rwlock)
       mkcl_FEwrong_type_argument(env, @'mt::rwlock', rwlock);
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 # if defined(_MSC_VER) && (defined(WinVista) || defined(Win7))
     if (MKCL_EQ(read_or_write, @':read'))
       { MKCL_LIBC_NO_INTR(env, ReleaseSRWLockShared(&rwlock->rwlock.rwlock)); }
@@ -3463,7 +3469,7 @@ mkcl_object mk_mt_make_rwlock(MKCL)
 # else
     mkcl_FEerror(env, "RWLocks are supported under Windows Vista and successors", 0);
 # endif
-#else
+#elif MKCL_PTHREADS
     int rc;
 
     MKCL_LIBC_NO_INTR(env, rc = pthread_rwlock_unlock(rwlock->rwlock.rwlock));
@@ -3474,6 +3480,8 @@ mkcl_object mk_mt_make_rwlock(MKCL)
       default: mkcl_lose(env, "mk_mt_giveup_rwlock failed on pthread_rwlock_unlock"); break;
       case 0: break;
       }
+#else
+# error Incomplete mt::giveup-rwlock.
 #endif
     @(return mk_cl_Ct);
   }
@@ -3485,13 +3493,13 @@ mkcl_object mk_mt_make_rwlock(MKCL)
   if (mkcl_type_of(rwlock) != mkcl_t_rwlock)
     mkcl_FEwrong_type_argument(env, @'mt::rwlock', rwlock);
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 # if defined(_MSC_VER) && (defined(WinVista) || defined(Win7))
   MKCL_LIBC_NO_INTR(env, AcquireSRWLockShared(&rwlock->rwlock.rwlock));
 # else
   mkcl_FEerror(env, "RWLocks are supported under Windows Vista and successors", 0);
 # endif
-#else
+#elif MKCL_PTHREADS
   int rc;
 
   if (mkcl_Null(timeout) || (MKCL_MAKE_FIXNUM(0) == timeout))
@@ -3552,6 +3560,8 @@ mkcl_object mk_mt_make_rwlock(MKCL)
     default: mkcl_lose(env, "mk_mt_get_read_rwlock failed on pthread_rwlock_rdlock"); break;
     case 0: break;
     }
+#else
+# error Incomplete mt::get-read-rwlock.
 #endif
   @(return mk_cl_Ct);
 @)
@@ -3561,13 +3571,13 @@ mkcl_object mk_mt_make_rwlock(MKCL)
   if (mkcl_type_of(rwlock) != mkcl_t_rwlock)
     mkcl_FEwrong_type_argument(env, @'mt::rwlock', rwlock);
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 # if defined(_MSC_VER) && (defined(WinVista) || defined(Win7))
   MKCL_LIBC_NO_INTR(env, AcquireSRWLockExclusive(&rwlock->rwlock.rwlock));
 # else
   mkcl_FEerror(env, "RWLocks are supported under Windows Vista and successors", 0);
 # endif
-#else
+#elif MKCL_PTHREADS
   int rc;
 
   if (mkcl_Null(timeout) || (MKCL_MAKE_FIXNUM(0) == timeout))
@@ -3628,6 +3638,8 @@ mkcl_object mk_mt_make_rwlock(MKCL)
     default: mkcl_lose(env, "mk_mt_get_write_rwlock failed on pthread_rwlock_wrlock"); break;
     case 0: break;
     }
+#else
+# error Incomplete mt::get-write-rwlock.
 #endif
   @(return mk_cl_Ct);
 @)
@@ -3650,7 +3662,7 @@ mkcl_object mk_mt_make_rwlock(MKCL)
       value = mkcl_fixnum_to_word(count);
     }
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   {
     HANDLE sem;
 
@@ -3663,7 +3675,7 @@ mkcl_object mk_mt_make_rwlock(MKCL)
     output->semaphore.count = value;
     output->semaphore.max_count = LONG_MAX;
   }
-#else
+#elif MKCL_PTHREADS
   int rc;
 
   output->semaphore.sem = &output->semaphore.sem_obj;
@@ -3673,6 +3685,8 @@ mkcl_object mk_mt_make_rwlock(MKCL)
   output->semaphore.name = mk_cl_Cnil;
   output->semaphore.count = value;
   output->semaphore.max_count = SEM_VALUE_MAX;
+#else
+# error Incomplete mt::make-semaphore.
 #endif
 
   mk_si_set_finalizer(env, output, mk_cl_Ct);
@@ -3687,7 +3701,7 @@ mkcl_object mk_mt_semaphore_count(MKCL, mkcl_object sem)
     mkcl_FEwrong_type_argument(env, @'mt::semaphore', sem);
   
   {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
     long count;
     DWORD wait_val;
     BOOL ok;
@@ -3707,12 +3721,14 @@ mkcl_object mk_mt_semaphore_count(MKCL, mkcl_object sem)
       default:
 	mkcl_FEwin32_error(env, "mk_mt_semaphore_count failed on WaitForSingleObject", 0);
       }
-#else
+#elif MKCL_PTHREADS
     int rc, count;
 
     MKCL_LIBC_NO_INTR(env, rc = sem_getvalue(sem->semaphore.sem, &count));
     if (rc)
       mkcl_FElibc_error(env, "mk_mt_semaphore_count failed, invalid semaphore", 0);
+#else
+# error Incomplete mk_mt_semaphore_count.
 #endif
     sem->semaphore.count = count;
     @(return mkcl_make_integer(env, count));
@@ -3734,7 +3750,7 @@ mkcl_object mk_mt_semaphore_count(MKCL, mkcl_object sem)
 		@':format-arguments', mkcl_list1(env, count),
 		@':expected-type', @'integer', @':datum', count);
   
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   {
     BOOL ok;
     long prev_count;
@@ -3744,7 +3760,7 @@ mkcl_object mk_mt_semaphore_count(MKCL, mkcl_object sem)
       mkcl_FEwin32_error(env, "mk_mt_semaphore_count failed on ReleaseSemaphore", 0);
     sem->semaphore.count = prev_count;
   }
-#else
+#elif MKCL_PTHREADS
   int i;
 
   for (i = 0; i < c_count; i++)
@@ -3755,6 +3771,8 @@ mkcl_object mk_mt_semaphore_count(MKCL, mkcl_object sem)
       if (rc)
 	mkcl_FElibc_error(env, "mk_mt_semaphore_signal failed, invalid semaphore", 0);
     }
+#else
+# error Incomplete mt::semaphore-signal.
 #endif
   sem->semaphore.count += c_count;
   @(return mk_cl_Ct);
@@ -3765,7 +3783,7 @@ mkcl_object mk_mt_semaphore_count(MKCL, mkcl_object sem)
   if (mkcl_type_of(sem) != mkcl_t_semaphore)
     mkcl_FEwrong_type_argument(env, @'mt::semaphore', sem);
   
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   {
     DWORD milliSeconds;
     DWORD wait_val;
@@ -3803,7 +3821,7 @@ mkcl_object mk_mt_semaphore_count(MKCL, mkcl_object sem)
       }
     mk_mt_test_for_thread_shutdown(env);
   }
-#else  
+#elif MKCL_PTHREADS
   int rc;
 
   if (mkcl_Null(timeout) || (MKCL_MAKE_FIXNUM(0) == timeout))
@@ -3864,6 +3882,8 @@ mkcl_object mk_mt_semaphore_count(MKCL, mkcl_object sem)
       case EINVAL: mkcl_FEerror(env, "Invalid semaphore", 0); break;
       default: mkcl_C_lose(env, "mk_mt_semaphore_wait failed on sem_wait"); break;
       }
+#else
+# error Incomplete mt::semaphore-wait.
 #endif
 
   @(return mk_cl_Ct);
@@ -3879,10 +3899,10 @@ mkcl_object
 mk_mt_make_condition_variable(MKCL)
 {
   mkcl_call_stack_check(env);
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   mkcl_FEerror(env, "Condition variables are not supported under Windows", 0);
   @(return mk_cl_Cnil);
-#else
+#elif MKCL_PTHREADS
   mkcl_object output = mkcl_alloc_raw_condition_variable(env);
 
   output->condition_variable.name = mk_cl_Cnil;
@@ -3897,15 +3917,17 @@ mk_mt_make_condition_variable(MKCL)
 
   mk_si_set_finalizer(env, output, mk_cl_Ct);
   @(return output);
+#else
+# error Incomplete mt::semaphore-wait().
 #endif
 }
 
 @(defun mt::condition-wait (cv lock &optional (timeout mk_cl_Ct))
 @
 {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   mkcl_FEerror(env, "Condition variables are not supported under Windows", 0);
-#else
+#elif MKCL_PTHREADS
   int rc;
 
   if (mkcl_type_of(cv) != mkcl_t_condition_variable)
@@ -3965,6 +3987,8 @@ mk_mt_make_condition_variable(MKCL)
     default: mkcl_lose(env, "mk_mt_condition_wait failed on pthread_cond_wait"); break;
     case 0: break;
     }
+#else
+# error Incomplete mt::semaphore-wait.
 #endif
   @(return mk_cl_Ct);
 }
@@ -3974,9 +3998,9 @@ mkcl_object
 mk_mt_condition_signal(MKCL, mkcl_object cv)
 {
   mkcl_call_stack_check(env);
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   mkcl_FEerror(env, "Condition variables are not supported under Windows", 0);
-#else
+#elif MKCL_PTHREADS
   int rc;
 
   if (mkcl_type_of(cv) != mkcl_t_condition_variable)
@@ -3989,6 +4013,8 @@ mk_mt_condition_signal(MKCL, mkcl_object cv)
     default: mkcl_lose(env, "mk_mt_condition_signal failed on pthread_cond_signal"); break;
     case 0: break;
     }
+#else
+# error Incomplete mk_mt_condition_signal().
 #endif
   @(return mk_cl_Ct);
 }
@@ -3997,9 +4023,9 @@ mkcl_object
 mk_mt_condition_broadcast(MKCL, mkcl_object cv)
 {
   mkcl_call_stack_check(env);
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   mkcl_FEerror(env, "Condition variables are not supported under Windows", 0);
-#else
+#elif MKCL_PTHREADS
   int rc;
 
   if (mkcl_type_of(cv) != mkcl_t_condition_variable)
@@ -4012,6 +4038,8 @@ mk_mt_condition_broadcast(MKCL, mkcl_object cv)
     default: mkcl_lose(env, "mk_mt_condition_broadcast failed on pthread_cond_broadcast"); break;
     case 0: break;
     }
+#else
+# error Incomplete mk_mt_condition_broadcast().
 #endif
   @(return mk_cl_Ct);
 }
@@ -4020,7 +4048,7 @@ mk_mt_condition_broadcast(MKCL, mkcl_object cv)
  * INITIALIZATION
  */
 
-#if __unix
+#if MKCL_PTHREADS
 static pthread_mutexattr_t recursive_mutexattr;
 static pthread_mutexattr_t errorcheck_mutexattr;
 static pthread_mutexattr_t normal_mutexattr;
@@ -4036,7 +4064,7 @@ mkcl_init_early_threads(MKCL)
   mkcl_object thread;
   mkcl_os_thread_t main_thread;
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 #if 0
   mkcl_core.global_lock = CreateMutex(NULL, FALSE, mkcl_handle_debug_name(env, "global lock"));
   if ( mkcl_core.global_lock == NULL )
@@ -4079,7 +4107,7 @@ mkcl_init_early_threads(MKCL)
   mkcl_core.imported_thread_pool = mk_cl_Cnil;
   LeaveCriticalSection(&mkcl_imported_thread_pool_lock);
 
-#else /* def MKCL_WINDOWS */
+#elif MKCL_PTHREADS /*  MKCL_WINDOWS */
 
     if (pthread_mutexattr_init(&recursive_mutexattr))
       mkcl_lose(env, "mkcl_init_early_threads failed on pthread_mutexattr_init");
@@ -4122,12 +4150,14 @@ mkcl_init_early_threads(MKCL)
       if (pthread_mutex_unlock(&mkcl_imported_thread_pool_lock))
         mkcl_lose(env, "fill_imported_thread_pool failed on pthread_mutex_unlock");
     }
-#endif /* def MKCL_WINDOWS */
+#else
+# error Incomplete mkcl_init_early_threads().
+#endif /*  MKCL_WINDOWS */
 
   mkcl_core.threads = MKCL_OBJNULL;
   mkcl_core.top_special_index = 0;
 
-#ifdef __linux
+#if MKCL_PTHREADS
   pthread_sigmask(SIG_SETMASK, NULL, &mkcl_standard_sigmask);
 
   if (sem_init(mkcl_sleeping_thread_interrupted, 0, 0))
@@ -4149,7 +4179,7 @@ mkcl_init_early_threads(MKCL)
     if (pthread_mutex_init(&mkcl_interrupt_thread_lock, mutexattr))
       mkcl_lose(env, "mkcl_init_early_threads failed on pthread_mutex_init");
   }
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
   mkcl_sleeping_thread_interrupted = CreateEvent(NULL, TRUE, FALSE, mkcl_handle_debug_name(env, "sleeping thread interrupted event"));
   if (mkcl_sleeping_thread_interrupted == NULL)
     mkcl_FEwin32_error(env, "mkcl_init_thread failed to create thread interrupted event", 0);
@@ -4165,19 +4195,19 @@ mkcl_init_early_threads(MKCL)
   mkcl_interrupt_thread_lock = CreateMutex(NULL, FALSE, mkcl_handle_debug_name(env, "interrupt thread lock"));
   if ( mkcl_interrupt_thread_lock == NULL )
     mkcl_FEwin32_error(env, "mkcl_init_thread failed to create interrupt thread lock", 0);
-#endif /* __linux */
+#endif /* MKCL_PTHREADS */
 
   /* We have to set the environment before any allocation takes place,
    * so that the interrupt handling code works. */
-# if defined(MKCL_WINDOWS)
+# if MKCL_WINDOWS
   cl_env_key = TlsAlloc(); /* handle error? JCB */
-# else
+# elif MKCL_PTHREADS
   pthread_key_create(&cl_env_key, NULL); /* handle error? JCB */
 # endif
 
   mkcl_set_thread_env(env);
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   DuplicateHandle(GetCurrentProcess(),
  		  GetCurrentThread(),
  		  GetCurrentProcess(),
@@ -4185,7 +4215,7 @@ mkcl_init_early_threads(MKCL)
  		  0,
  		  FALSE,
  		  DUPLICATE_SAME_ACCESS);
-#else
+#elif MKCL_PTHREADS
   main_thread = pthread_self();
 #endif
   thread = mkcl_alloc_raw_thread(env);
@@ -4203,7 +4233,7 @@ mkcl_init_early_threads(MKCL)
   thread->thread.plist = mk_cl_Cnil;
   thread->thread.initial_bindings = mk_cl_Cnil;
   thread->thread.sigmask_frs_marker = NULL;
-#if __unix
+#if MKCL_UNIX
   thread->thread.running_lock = NULL;
   sigemptyset(&thread->thread.saved_sigmask);
 #endif
@@ -4231,7 +4261,7 @@ mkcl_init_late_threads(MKCL)
 
 void mkcl_clean_up_threads(MKCL)
 { /* Best effort only. We cannot raise an exception from here. */
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
   (void) TlsSetValue(cl_env_key, NULL);
   (void) TlsFree(cl_env_key);
   (void) CloseHandle(mkcl_interrupt_thread_lock);
@@ -4242,7 +4272,7 @@ void mkcl_clean_up_threads(MKCL)
   DeleteCriticalSection(&mkcl_core.special_index_lock);
   DeleteCriticalSection(&mkcl_core.thread_list_lock);
   DeleteCriticalSection(&mkcl_core.package_list_lock);
-#else /* def MKCL_WINDOWS */
+#elif MKCL_PTHREADS /*  MKCL_WINDOWS */
   (void) pthread_setspecific(cl_env_key, NULL);
   (void) pthread_key_delete(cl_env_key);
   (void) pthread_mutex_destroy(&mkcl_interrupt_thread_lock);
@@ -4262,7 +4292,9 @@ void mkcl_clean_up_threads(MKCL)
   mkcl_errorcheck_mutexattr = NULL;
   (void) pthread_mutexattr_destroy(&recursive_mutexattr);
   mkcl_recursive_mutexattr = NULL;
-#endif  /* else def MKCL_WINDOWS */
+#else
+# error Incomplete mkcl_init_early_threads().
+#endif  /* elif MKCL_PTHREADS */
 
 }
 
@@ -4280,9 +4312,9 @@ void mkcl_thread_exit(MKCL, long status_code)
       env->disable_interrupts = 2; /* This prevents any interrupts, even forced. */
     }
 
-#if defined(__linux)
+#if MKCL_PTHREADS
   pthread_exit((void *) status_code);
-#elif defined(MKCL_WINDOWS)
+#elif MKCL_WINDOWS
   _endthreadex(status_code);
 #else
 # error "Missing implementation for mkcl_thread_exit()"
@@ -4292,13 +4324,13 @@ void mkcl_thread_exit(MKCL, long status_code)
 /* This here is to work around the wrapping Boehm's GC puts around pthread_join
    and thus get direct access to the real pthread version.
  */
-#ifdef __linux
+#if MKCL_PTHREADS
 #undef pthread_join
 static int _true_pthread_join(pthread_t thread, void ** retval)
 {
   return pthread_join(thread, retval);
 }
-#endif /* __linux */
+#endif /* MKCL_PTHREADS */
 
 
 mkcl_object mk_mt_thread_plist(MKCL, mkcl_object thread)
@@ -4343,18 +4375,20 @@ mkcl_object mk_mt_test_for_thread_shutdown(MKCL)
       thread->thread.interrupt = mk_cl_Cnil; /* We do not want to handle the same interrupt twice. */
 
       {
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 	BOOL ok;
 
 	MKCL_LIBC_NO_INTR(env, (ok = SetEvent(mkcl_sleeping_thread_interrupted)));
 	if (!ok)
 	  mkcl_FEwin32_error(env, "mk_mt_test_for_thread_shutdown failed on sem_post", 0);
-#else
+#elif MKCL_PTHREADS
 	int rc;
 
 	MKCL_LIBC_NO_INTR(env, (rc = sem_post(mkcl_sleeping_thread_interrupted)));
 	if (rc)
 	  mkcl_FElibc_error(env, "mk_mt_test_for_thread_shutdown failed on sem_post", 0);
+#else
+# error Incomplete mk_mt_test_for_thread_shutdown().
 #endif
       }
 

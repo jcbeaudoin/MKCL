@@ -41,7 +41,7 @@
 
 #include <mkcl/config.h>
 
-#ifdef MKCL_WINDOWS
+#if MKCL_WINDOWS
 # define WIN32_LEAN_AND_MEAN 1 /* Do not include winsock.h */
 # ifndef WINVER
 #  define WINVER 0x0502 /* We require at least Windows XP_SP2 or later. */
@@ -61,14 +61,14 @@ typedef SRWLOCK mkcl_os_rwlock_ref; /* MingW does not support this yet it seems.
 # else
 typedef HANDLE mkcl_os_rwlock_ref;
 # endif
-#else /* def MKCL_WINDOWS */
+#else /* !MKCL_WINDOWS */
 # include <semaphore.h>
 typedef pthread_t mkcl_os_thread_t;
 typedef pthread_mutex_t * mkcl_os_mutex_ref;
 typedef pthread_rwlock_t * mkcl_os_rwlock_ref;
 typedef pid_t mkcl_os_process_t;
 typedef int mkcl_exit_code_t;
-#endif /* else def MKCL_WINDOWS */
+#endif /* !MKCL_WINDOWS */
 
 #ifndef __GNUC__
 # define mkcl_likely(expr) (expr)
