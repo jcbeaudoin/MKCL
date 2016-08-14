@@ -1684,7 +1684,7 @@ static void print_sig_mask(sigset_t * set)
   int i;
 
   fprintf(stderr, "Blocked: ");
-  for (i = 1; i < NSIG; i++) {
+  for (i = 1; i <= MKCL_SIGMAX; i++) {
     if (sigismember(set, i)) { fprintf(stderr, "%d ", i); }
   }
   fprintf(stderr, "\n");

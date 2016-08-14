@@ -31,8 +31,9 @@
 #endif
 
 #if MKCL_UNIX
+# include <sys/types.h>
+# include <sys/wait.h>
 # include <dlfcn.h>
-# include <wait.h>
 # include <ucontext.h>
 #endif
 
@@ -112,7 +113,7 @@ void sig_print(const char * const msg)
 
 #define signal_name(sig) #sig 
 
-static const char * const signal_names[NSIG] =
+static const char * const signal_names[MKCL_BASE_SIGMAX + 1] =
   {
     "",
     signal_name(SIGHUP),
@@ -145,46 +146,12 @@ static const char * const signal_names[NSIG] =
     signal_name(SIGWINCH),
     signal_name(SIGIO),
     signal_name(SIGPWR),
-    signal_name(SIGUNUSED),
-    "SIG32",
-    "SIG33",
-    "SIG34",
-    "SIG35",
-    "SIG36",
-    "SIG37",
-    "SIG38",
-    "SIG39",
-    "SIG40",
-    "SIG41",
-    "SIG42",
-    "SIG43",
-    "SIG44",
-    "SIG45",
-    "SIG46",
-    "SIG47",
-    "SIG48",
-    "SIG49",
-    "SIG50",
-    "SIG51",
-    "SIG52",
-    "SIG53",
-    "SIG54",
-    "SIG55",
-    "SIG56",
-    "SIG57",
-    "SIG58",
-    "SIG59",
-    "SIG60",
-    "SIG61",
-    "SIG62",
-    "SIG63",
-    "SIG64"
+    signal_name(SIGSYS)
   };
 
-#define NB_TRADITIONAL_SIGNALS ((&signal_names[SIGUNUSED + 1] - &signal_names[0])/sizeof(char *))
 
 
-struct mkcl_signal_control mkcl_signals[NSIG] = { { FALSE } };
+struct mkcl_signal_control mkcl_signals[MKCL_SIGMAX + 1] = { { FALSE } };
 
 volatile int mkcl_terminal_signal_number = -1;
 
@@ -223,7 +190,7 @@ static void sig_print_sigmask(sigset_t * set)
     char sig_num[24];
 
     sig_print("Blocked: ");
-    for (i = 1; i < NSIG; i++) {
+    for (i = 1; i <= MKCL_SIGMAX; i++) {
       if (sigismember(set, i))
 	{ sig_print(ltoad(i, sig_num)); sig_print(" "); }
     }
@@ -280,6 +247,11 @@ void posix_signal(MKCL, int sig, void (*handler)(int, siginfo_t *, void *))
 
 static pid_t mkcl_debugged_by_process_id = 0; /* 0 is never a valid process id. */
 
+#ifndef SI_TKILL
+# ifdef SI_LWP
+#  define SI_TKILL SI_LWP
+# endif
+#endif
 
 void mkcl_resume_signal_handler(int sig, siginfo_t * info, void * aux)
 {
@@ -493,15 +465,18 @@ static void install_interrupt_signal_handler(MKCL, int sig)
 }
 
 static void 
-install_lisp_signal_handler(MKCL, int sig, mkcl_object func_designator)
+install_lisp_signal_handler(MKCL, int signum, mkcl_object func_designator)
 {
   /* Create the signal servicing thread */
   char sig_thread_name[128];
-  const char * const sig_name = signal_names[sig];
 
-  sprintf(sig_thread_name, "%s handling daemon", sig_name);
+  if (signum <= MKCL_BASE_SIGMAX)
+    sprintf(sig_thread_name, "%s handling daemon", signal_names[signum]);
+  else
+    sprintf(sig_thread_name, "SIG%d handling daemon", signum);
 
-  mkcl_create_signal_servicing_thread(env, sig_thread_name, sig, func_designator);
+
+  mkcl_create_signal_servicing_thread(env, sig_thread_name, signum, func_designator);
 }
 
 static void 
@@ -1772,7 +1747,7 @@ struct mkcl_signal_disposition
                                T means a lisp handler specific to the C handler will be called.
 			       A symbol names the lisp handler function to be called. 
 			    */
-} c_signal_disposition[NSIG] = {
+} c_signal_disposition[MKCL_SIGMAX + 1] = {
   /* Linux signal ordering */
   /*  0 SIG0 */      { NULL, mk_cl_Cnil }, /* does not exist. */
   /*  1 SIGHUP */    { mkcl_generic_signal_handler, @'si::sighup-handler' },
@@ -1817,7 +1792,7 @@ struct mkcl_signal_disposition
 #else
   /* 30 SIGPWR */    { mkcl_terminal_signal_handler, mk_cl_Ct },
 #endif
-  /* 31 SIGUNUSED */ { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* 31 SIGSYS */    { mkcl_terminal_signal_handler, mk_cl_Ct },
   /* SIG32 */        { NULL, mk_cl_Cnil }, /* reserved by linux */
   /* SIG33 */        { NULL, mk_cl_Cnil }, /* reserved by linux */
   /* SIG34 */        { mkcl_terminal_signal_handler, mk_cl_Ct }, /* LinuxThreads: reserved */
@@ -1905,7 +1880,7 @@ void mkcl_init_early_unixint(MKCL)
     mkcl_signals[SIGFPE].chainable = TRUE;
   }
 
-  for (i = 0; i < NSIG; i++)
+  for (i = 0; i <= MKCL_SIGMAX; i++)
     {
       mkcl_signals[i].sem = &mkcl_signals[i].sem_obj;
       if (sem_init(mkcl_signals[i].sem, 0, 0))
@@ -1947,7 +1922,7 @@ void mkcl_init_late_unixint(MKCL)
   c_signal_disposition[interrupt_sig].lisp_handler = mk_cl_Cnil;
 #endif
   
-  for (i = 1; i <= SIGUNUSED; i++)
+  for (i = 1; i <= MKCL_SIGMAX; i++)
     if (!(i == wake_up_sig || i == resume_sig || i == interrupt_sig
 	  || i == gc_thread_suspend_sig || i == gc_thread_restart_sig))
       {
@@ -1963,6 +1938,7 @@ void mkcl_init_late_unixint(MKCL)
 	  }
       }
 
+#if 0
   for (i = SIGRTMIN; i < NSIG; i++)
     if (!(i == wake_up_sig || i == resume_sig || i == interrupt_sig
 	  || i == gc_thread_suspend_sig || i == gc_thread_restart_sig))
@@ -1978,6 +1954,7 @@ void mkcl_init_late_unixint(MKCL)
 	    install_lisp_signal_handler(env, i, c_signal_disposition[i].lisp_handler);
 	  }
       }
+#endif
 
 #elif MKCL_WINDOWS
   SetUnhandledExceptionFilter(W32_exception_filter);
@@ -1998,7 +1975,7 @@ void mkcl_clean_up_unixint(MKCL)
 
   (void) pthread_cancel(signal_servicing_thread);
   /* We uninstall our signal handlers. */
-  for (i = 0; i < NSIG; i++)
+  for (i = 1; i <= MKCL_SIGMAX; i++)
     {
       if (mkcl_signals[i].installed)
 	(void) sigaction(i, &(mkcl_signals[i].old_action), NULL);
@@ -2013,7 +1990,7 @@ mkcl_object mkcl_unix_signal_name(MKCL, int signum)
 {
   int intern_flag;
 #if MKCL_UNIX
-  const char * const sig_name_C_string = (signum < NSIG) ? signal_names[signum] : "unknown-signal";
+  const char * const sig_name_C_string = (signum <= MKCL_BASE_SIGMAX) ? signal_names[signum] : "unknown-signal";
 #else
   const char * const sig_name_C_string = "unknown-signal";
 #endif
@@ -2043,45 +2020,48 @@ mkcl_object mk_si_objnull(MKCL)
 static void _mkcl_display_signal_dispositions(void)
 {
   int i;
-  for (i = 1; i < NSIG; i++)
-    if ( i > SIGUNUSED && i < SIGRTMIN)
-      printf("\nsignal %s: action = RESERVED", signal_names[i]);
-    else
-      {
-	struct sigaction act;
+  for (i = 1; i < MKCL_SIGMAX; i++)
+    {
+      struct sigaction act;
 
-	if (sigaction(i, NULL, &act))
-	  {
-	    fflush(NULL);
-	    fprintf(stderr, "\nFor signal (%d)\n", i);
-	    perror("_mkcl_display_signal_dispositions failed on sigaction.");
-	  }
+      if (sigaction(i, NULL, &act))
+        {
+          const int errno_for_sigaction = errno;
+          fflush(NULL);
+          fprintf(stderr, "\nFor signal (%d): error = %d\n", i, errno_for_sigaction);
+          perror("_mkcl_display_signal_dispositions failed on sigaction.");
+        }
+      else
+        {
+          if (i <= MKCL_BASE_SIGMAX)
+            printf("\nsignal %s: action = ", signal_names[i]);
+          else
+            printf("\nsignal SIG%d: action = ", i);
 
-	printf("\nsignal %s: action = ", signal_names[i]);
+          if ( act.sa_handler == SIG_DFL )
+            printf("SIG_DFL");
+          else if ( act.sa_handler == SIG_IGN )
+            printf("SIG_IGN");
+          else if ( act.sa_handler == SIG_HOLD )
+            printf("SIG_HOLD");
+          else if ( act.sa_handler == SIG_ERR )
+            printf("SIG_ERR");
+          else
+            {
+              Dl_info info;
 
-	if ( act.sa_handler == SIG_DFL )
-	  printf("SIG_DFL");
-	else if ( act.sa_handler == SIG_IGN )
-	  printf("SIG_IGN");
-	else if ( act.sa_handler == SIG_HOLD )
-	  printf("SIG_HOLD");
-	else if ( act.sa_handler == SIG_ERR )
-	  printf("SIG_ERR");
-	else
-	  {
-	    Dl_info info;
-
-	    if ( dladdr(act.sa_handler, &info) )
-	      {
-		printf("%p, %s from %s",
-		       act.sa_handler,
-		       info.dli_sname,
-		       info.dli_fname);
-	      }
-	    else
-	      printf("%p", act.sa_handler);
-	  }
-      }
+              if ( dladdr(act.sa_handler, &info) )
+                {
+                  printf("%p, %s from %s",
+                         act.sa_handler,
+                         info.dli_sname,
+                         info.dli_fname);
+                }
+              else
+                printf("%p", act.sa_handler);
+            }
+        }
+    }
 
   printf("\n");
   fflush(stdout);
