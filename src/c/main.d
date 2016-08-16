@@ -591,7 +591,7 @@ static void get_basic_OS_params(void)
   mkcl_core.name_max = pathconf(".", _PC_NAME_MAX);
 #elif MKCL_WINDOWS
   mkcl_core.path_max = PATH_MAX;
-# else
+#else
   mkcl_core.path_max = MAXPATHLEN;
 #endif
 
@@ -614,13 +614,13 @@ static void get_basic_OS_params(void)
     int rc;
 
     rc = pthread_attr_init(&main_attr);
-#if __linux
+# if __linux
     rc = pthread_getattr_np(pthread_self(), &main_attr);
-#elif __FreeBSD__
+# elif __FreeBSD__
     rc = pthread_attr_get_np(pthread_self(), &main_attr);
-#else
-#error Don't know how to query for stack size.
-#endif
+# else
+#  error Do not know how to query for stack size.
+# endif
     rc = pthread_attr_getstacksize(&main_attr, &stack_size);
     rc = pthread_attr_getstack(&main_attr, &stack_addr, &stack_size_2);
     rc = pthread_attr_getguardsize(&main_attr, &guard_size);
