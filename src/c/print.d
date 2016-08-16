@@ -1639,7 +1639,7 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
     {
       char buf[20];
 
-#if MKCL_WINDOWS
+#if MKCL_WINDOWS || __FreeBSD__
       sprintf(buf, "0x%p", x->thread.thread);
 #else
       sprintf(buf, "0x%lx", x->thread.thread);

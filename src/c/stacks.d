@@ -27,6 +27,9 @@
 # include <sys/resource.h>
 #endif
 
+#if __FreeBSD__
+# include <pthread_np.h>
+#endif
 
 
 mkcl_object mk_si_disable_interrupts(MKCL)
@@ -804,11 +807,13 @@ void mkcl_init_call_stack_overflow_area(MKCL, char * const stack_mark_address)
   pthread_attr_t attr_obj;
   pthread_attr_t * attr = &attr_obj;
 
+  int rc = pthread_attr_init(attr);
+
   /* For MacOS X we will have to use pthread_get_stackaddr_np() and pthread_get_stacksizse_np(). */
 # if __linux
-  int rc = pthread_getattr_np(pthread_self(), attr); /* Linux specific */
+  rc = pthread_getattr_np(pthread_self(), attr); /* Linux specific */
 # elif __FreeBSD__
-  int rc = pthread_attr_get_np(pthread_self(), attr); /* Linux specific */
+  rc = pthread_attr_get_np(pthread_self(), attr); /* Linux specific */
 # endif
 
   {
@@ -852,6 +857,8 @@ void mkcl_init_call_stack_overflow_area(MKCL, char * const stack_mark_address)
     fflush(NULL);
 #endif
   }
+  rc = pthread_attr_destroy(attr);
+
 
 # if 0
     {

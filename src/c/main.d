@@ -32,6 +32,10 @@
 # include <locale.h>
 #endif
 
+#if __FreeBSD__
+# include <pthread_np.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -609,10 +613,18 @@ static void get_basic_OS_params(void)
     void * stack_addr;
     int rc;
 
+    rc = pthread_attr_init(&main_attr);
+#if __linux
     rc = pthread_getattr_np(pthread_self(), &main_attr);
+#elif __FreeBSD__
+    rc = pthread_attr_get_np(pthread_self(), &main_attr);
+#else
+#error Don't know how to query for stack size.
+#endif
     rc = pthread_attr_getstacksize(&main_attr, &stack_size);
     rc = pthread_attr_getstack(&main_attr, &stack_addr, &stack_size_2);
     rc = pthread_attr_getguardsize(&main_attr, &guard_size);
+    rc = pthread_attr_destroy(&main_attr);
 
     /* usleep(1); */
   }
