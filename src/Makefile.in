@@ -516,7 +516,8 @@ clean_contribs:
 
 clean_lisp:
 	for i in lsp cmp clos; \
-	do $(RM) $$i.{a,fasb,asd,as2} $$i/?*.{o,data,c,sdat,h,fasb,fas}; done
+	do $(RM) $$i.a $$i.fasb $$i.asd $$i.as2 \
+	         $$i/*.o $$i/*.data $$i/*.c $$i/*.sdat $$i/*.h $$i/*.fasb $$i/*.fas; done
 	$(RM) lsp/config.lsp cmp/cmpdefs.lsp
 	$(RM) help.doc
 
