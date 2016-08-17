@@ -113,6 +113,7 @@ void sig_print(const char * const msg)
 
 #define signal_name(sig) #sig 
 
+# if __linux
 static const char * const signal_names[MKCL_BASE_SIGMAX + 1] =
   {
     "",
@@ -146,8 +147,45 @@ static const char * const signal_names[MKCL_BASE_SIGMAX + 1] =
     signal_name(SIGWINCH),
     signal_name(SIGIO),
     signal_name(SIGPWR),
-    signal_name(SIGSYS)
+    signal_name(SIGSYS),
   };
+# elif __FreeBSD__
+static const char * const signal_names[MKCL_BASE_SIGMAX + 1] =
+  {
+    "",
+    signal_name(SIGHUP),
+    signal_name(SIGINT),
+    signal_name(SIGQUIT),
+    signal_name(SIGILL),
+    signal_name(SIGTRAP),
+    signal_name(SIGABRT),
+    signal_name(SIGEMT),
+    signal_name(SIGFPE),
+    signal_name(SIGKILL),
+    signal_name(SIGBUS),
+    signal_name(SIGSEGV),
+    signal_name(SIGSYS),
+    signal_name(SIGPIPE),
+    signal_name(SIGALRM),
+    signal_name(SIGTERM),
+    signal_name(SIGURG),
+    signal_name(SIGSTOP),
+    signal_name(SIGTSTP),
+    signal_name(SIGCONT),
+    signal_name(SIGCHLD),
+    signal_name(SIGTTIN),
+    signal_name(SIGTTOU),
+    signal_name(SIGIO),
+    signal_name(SIGXCPU),
+    signal_name(SIGXFSZ),
+    signal_name(SIGVTALRM),
+    signal_name(SIGPROF),
+    signal_name(SIGWINCH),
+    signal_name(SIGINFO),
+    signal_name(SIGUSR1),
+    signal_name(SIGUSR2),
+  };
+# endif
 
 
 
@@ -1739,7 +1777,6 @@ static void * signal_servicing_loop(void * arg)
 static mkcl_os_thread_t signal_servicing_thread;
 
 
-static const 
 struct mkcl_signal_disposition
 {
   mkcl_sighandler_t c_handler; /* NULL or an apropriate C function pointer. */
@@ -1747,7 +1784,11 @@ struct mkcl_signal_disposition
                                T means a lisp handler specific to the C handler will be called.
 			       A symbol names the lisp handler function to be called. 
 			    */
-} c_signal_disposition[MKCL_SIGMAX + 1] = {
+};
+
+
+# if __linux
+static const struct mkcl_signal_disposition c_signal_disposition[MKCL_SIGMAX + 1] = {
   /* Linux signal ordering */
   /*  0 SIG0 */      { NULL, mk_cl_Cnil }, /* does not exist. */
   /*  1 SIGHUP */    { mkcl_generic_signal_handler, @'si::sighup-handler' },
@@ -1773,25 +1814,13 @@ struct mkcl_signal_disposition
   /* 21 SIGTTIN */   { NULL, mk_cl_Cnil }, /* stop by default */
   /* 22 SIGTTOU */   { NULL, mk_cl_Cnil }, /* stop by default */
   /* 23 SIGURG */    { NULL, mk_cl_Cnil }, /* ignored by default */
-#if 0
-  /* 24 SIGXCPU */   { NULL, mk_cl_Cnil }, /* used by Boehm's GC */
-#else
   /* 24 SIGXCPU */   { mkcl_terminal_signal_handler, mk_cl_Ct },
-#endif
   /* 25 SIGXFSZ */   { mkcl_terminal_signal_handler, mk_cl_Ct },
   /* 26 SIGVTALRM */ { mkcl_terminal_signal_handler, mk_cl_Ct },
-#if 0
-  /* 27 SIGPROF */   { mkcl_terminal_signal_handler, mk_cl_Ct }, /* should chain? */
-#else
   /* 27 SIGPROF */   { NULL, mk_cl_Cnil }, /* used by gprof profiling. */
-#endif
   /* 28 SIGWINCH */  { NULL, mk_cl_Cnil }, /* ignored by default */
   /* 29 SIGIO */     { mkcl_terminal_signal_handler, mk_cl_Ct },
-#if 0
-  /* 30 SIGPWR */    { NULL, mk_cl_Cnil }, /* used by Boehm's GC */
-#else
   /* 30 SIGPWR */    { mkcl_terminal_signal_handler, mk_cl_Ct },
-#endif
   /* 31 SIGSYS */    { mkcl_terminal_signal_handler, mk_cl_Ct },
   /* SIG32 */        { NULL, mk_cl_Cnil }, /* reserved by linux */
   /* SIG33 */        { NULL, mk_cl_Cnil }, /* reserved by linux */
@@ -1828,7 +1857,146 @@ struct mkcl_signal_disposition
   /* SIG64 */        { mkcl_terminal_signal_handler, mk_cl_Ct }
 };
 
-#endif /* __linux */
+# elif __FreeBSD__
+
+static const struct mkcl_signal_disposition c_signal_disposition[MKCL_SIGMAX + 1] = {
+  /* FreeBSD signal ordering */
+  /*  0 SIG0 */      { NULL, mk_cl_Cnil }, /* does not exist. */
+  /*  1 SIGHUP */    { mkcl_generic_signal_handler, @'si::sighup-handler' },
+  /*  2 SIGINT */    { mkcl_generic_signal_handler,  @'si::sigint-handler' },
+  /*  3 SIGQUIT */   { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /*  4 SIGILL */    { mkcl_synchronous_signal_handler, mk_cl_Cnil },
+  /*  5 SIGTRAP */   { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /*  6 SIGABRT */   { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /*  7 SIGEMT */    { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /*  8 SIGFPE */    { mkcl_sigfpe_handler, mk_cl_Cnil },
+  /*  9 SIGKILL */   { NULL, mk_cl_Cnil }, /* cannot be handled! */
+  /* 10 SIGBUS */    { mkcl_sigbus_handler, mk_cl_Cnil },
+  /* 11 SIGSEGV */   { mkcl_sigsegv_handler, mk_cl_Cnil },
+  /* 12 SIGSYS */    { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* 13 SIGPIPE */   { mkcl_sigpipe_handler, mk_cl_Cnil },
+  /* 14 SIGALRM */   { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* 15 SIGTERM */   { mkcl_generic_signal_handler, @'si::sigterm-handler' },
+  /* 16 SIGURG */    { NULL, mk_cl_Cnil }, /* ignored by default */
+  /* 17 SIGSTOP */   { NULL, mk_cl_Cnil }, /* cannot be redefined! */
+  /* 18 SIGTSTP */   { NULL, mk_cl_Cnil }, /* stop by default */
+  /* 19 SIGCONT */   { NULL, mk_cl_Cnil }, /* continue by default */
+  /* 20 SIGCHLD */   { mkcl_sigchld_handler, mk_cl_Cnil },
+  /* 21 SIGTTIN */   { NULL, mk_cl_Cnil }, /* stop by default */
+  /* 22 SIGTTOU */   { NULL, mk_cl_Cnil }, /* stop by default */
+  /* 23 SIGIO */     { NULL, mk_cl_Cnil }, /* ignored by default */
+  /* 24 SIGXCPU */   { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* 25 SIGXFSZ */   { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* 26 SIGVTALRM */ { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* 27 SIGPROF */   { mkcl_terminal_signal_handler, mk_cl_Ct }, /* used by gprof profiling. */
+  /* 28 SIGWINCH */  { NULL, mk_cl_Cnil }, /* ignored by default */
+  /* 29 SIGINFO */   { NULL, mk_cl_Cnil }, /* ignored by default */
+  /* 30 SIGUSR1 */   { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* 31 SIGUSR2 */   { mkcl_terminal_signal_handler, mk_cl_Ct },
+
+  /* 32 SIGTHR */    { NULL, mk_cl_Cnil }, /* reserved by FreeBSD, terminal? */
+  /* 33 SIGLIBRT */  { NULL, mk_cl_Cnil }, /* reserved by FreeBSD, terminal? */
+
+  /* SIG34 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG35 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG36 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG37 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG38 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG39 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG40 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG41 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG42 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG43 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG44 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG45 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG46 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG47 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG48 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG49 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG50 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG51 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG52 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG53 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG54 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG55 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG56 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG57 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG58 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG59 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG60 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG61 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG62 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG63 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG64 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+
+  /* SIG65 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG66 */        { mkcl_terminal_signal_handler, mk_cl_Ct }, /* (default) resume */
+  /* SIG67 */        { mkcl_terminal_signal_handler, mk_cl_Ct }, /* (default) interrupt */
+  /* SIG68 */        { mkcl_terminal_signal_handler, mk_cl_Ct }, /* (default) wake-up */
+  /* SIG69 */        { mkcl_terminal_signal_handler, mk_cl_Ct }, /* used by Boehm's GC */
+  /* SIG70 */        { mkcl_terminal_signal_handler, mk_cl_Ct }, /* used by Boehm's GC */
+  /* SIG71 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG72 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG73 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG74 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG75 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG76 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG77 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG78 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG79 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG80 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG81 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG82 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG83 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG84 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG85 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG86 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG87 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG88 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG89 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG90 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG91 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG92 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG93 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG94 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG95 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG96 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG97 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG98 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG99 */        { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG100 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG101 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG102 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG103 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG104 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG105 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG106 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG107 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG108 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG109 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG110 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG111 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG112 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG113 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG114 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG115 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG116 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG117 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG118 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG119 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG120 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG121 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG122 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG123 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG124 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG125 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG126 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG127 */       { mkcl_terminal_signal_handler, mk_cl_Ct },
+  /* SIG128 */       { mkcl_terminal_signal_handler, mk_cl_Ct }
+};
+# endif /* __FreeBSD__ */
+
+#endif /* MKCL_UNIX */
 
 void mkcl_init_early_unixint(MKCL)
 {
@@ -1843,13 +2011,10 @@ void mkcl_init_early_unixint(MKCL)
   if (pthread_create(&signal_servicing_thread, NULL, signal_servicing_loop, NULL))
     mkcl_lose(env, "mkcl_init_unixint failed on pthread_create.");
 
-# define DEFAULT_THREAD_INTERRUPT_SIGNAL SIGRTMIN + 2
 # define DEFAULT_THREAD_RESUME_SIGNAL SIGRTMIN + 1
-# if 0
-#  define DEFAULT_THREAD_WAKE_UP_SIGNAL SIGCONT
-# else
-#  define DEFAULT_THREAD_WAKE_UP_SIGNAL SIGRTMIN + 3
-# endif
+# define DEFAULT_THREAD_INTERRUPT_SIGNAL SIGRTMIN + 2
+# define DEFAULT_THREAD_WAKE_UP_SIGNAL SIGRTMIN + 3
+
 
   wake_up_sig = mkcl_get_option(MKCL_OPT_THREAD_WAKE_UP_SIGNAL);
   if (wake_up_sig == 0) {
