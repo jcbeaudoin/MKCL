@@ -223,7 +223,10 @@
 			       stream) ;; JCB
 	     (wt-filtered-data (stringify ;; OS family
 				#+linux :linux
+				#+FreeBSD :FreeBSD
 				#+windows :Microsoft-Windows
+				#-(or linux FreeBSD Windows)
+				#.(error "Incomplete function compiler::data-dump.")
 				) 
 			       stream) ;; JCB
 	     (wt-filtered-data (stringify ;; OS specific version

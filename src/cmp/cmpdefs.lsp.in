@@ -500,7 +500,9 @@ coprocessor).")
 (defvar *bundle-ld-flags* "@BUNDLE_LDFLAGS@")
 (defvar *program-ld-flags*
   #+linux "-rdynamic -Wl,--enable-new-dtags -Wl,-rpath,$ORIGIN/../lib"
-  #-linux "")
+  #+FreeBSD "-rdynamic -Wl,--enable-new-dtags -Wl,-rpath,$ORIGIN/../lib"
+  #+Windows ""
+  #-(or linux FreeBSD Windows) (error "Missing initial value for compiler::*program-ld-flags*"))
 
 (defvar +shared-library-prefix+ "@SHAREDPREFIX@")
 (defvar +shared-library-extension+ "@SHAREDEXT@")
