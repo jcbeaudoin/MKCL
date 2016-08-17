@@ -2185,7 +2185,7 @@ mkcl_object mk_si_objnull(MKCL)
 static void _mkcl_display_signal_dispositions(void)
 {
   int i;
-  for (i = 1; i < MKCL_SIGMAX; i++)
+  for (i = 1; i <= MKCL_SIGMAX; i++)
     {
       struct sigaction act;
 
@@ -2200,7 +2200,9 @@ static void _mkcl_display_signal_dispositions(void)
         {
           if (i <= MKCL_BASE_SIGMAX)
             printf("\nsignal %s: action = ", signal_names[i]);
-          else
+          else if (SIGRTMIN <= i && i <= SIGRTMAX)
+            printf("\nsignal SIG%d: (REALTIME) action = ", i);
+	  else
             printf("\nsignal SIG%d: action = ", i);
 
           if ( act.sa_handler == SIG_DFL )
