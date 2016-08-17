@@ -787,12 +787,13 @@ static void fill_inet_sockaddr(struct sockaddr_in *sockaddr, int port,
 			       (aref (first address) 2)
 			       (aref (first address) 3)
                                :io
-			       oob eor dontroute dontwait nosignal #+linux confirm
+			       oob eor dontroute dontwait nosignal
+			       #+linux confirm #-linux nil
 			       )
 		     (:int :object :int
 			   :int :int :int :int :int
                            :object
-			   :bool :bool :bool :bool :bool #+linux :bool
+			   :bool :bool :bool :bool :bool :bool
                            )
 		     :long
 		     "
@@ -832,9 +833,10 @@ static void fill_inet_sockaddr(struct sockaddr_in *sockaddr, int port,
 "
 		     :one-liner nil))
 	       (c-inline (fd buffer length :io
-			     oob eor dontroute dontwait nosignal #+linux confirm)
+			     oob eor dontroute dontwait nosignal
+			     #+linux confirm #-linux nil)
 		     (:int :object :int :object
-			   :bool :bool :bool :bool :bool #+linux :bool)
+			   :bool :bool :bool :bool :bool :bool)
 		     :long
 		     "
 {
