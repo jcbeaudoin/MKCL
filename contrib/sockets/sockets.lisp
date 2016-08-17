@@ -768,7 +768,7 @@ static void fill_inet_sockaddr(struct sockaddr_in *sockaddr, int port,
 
 #-:windows
 (defmethod socket-send ((socket socket) buffer length
-			   &key address external-format oob eor dontroute dontwait nosignal confirm more)
+			   &key address external-format oob eor dontroute dontwait nosignal #+linux confirm more)
   (declare (ignore external-format more))
   (assert (or (stringp buffer)
 		(typep buffer 'vector)))
@@ -786,21 +786,26 @@ static void fill_inet_sockaddr(struct sockaddr_in *sockaddr, int port,
 			       (aref (first address) 1)
 			       (aref (first address) 2)
 			       (aref (first address) 3)
-			       oob eor dontroute dontwait nosignal confirm
-			       :io)
+                               :io
+			       oob eor dontroute dontwait nosignal #+linux confirm
+			       )
 		     (:int :object :int
 			   :int :int :int :int :int
-			   :bool :bool :bool :bool :bool :bool
-                           :object)
+                           :object
+			   :bool :bool :bool :bool :bool #+linux :bool
+                           )
 		     :long
 		     "
 {
-        int flags = ( #8 ? MSG_OOB : 0 )  |
-                    ( #9 ? MSG_EOR : 0 ) |
-                    ( #a ? MSG_DONTROUTE : 0 ) |
-                    ( #b ? MSG_DONTWAIT : 0 ) |
-                    ( #c ? MSG_NOSIGNAL : 0 ) |
-                    ( #d ? MSG_CONFIRM : 0 );
+        int flags = ( #9 ? MSG_OOB : 0 )  |
+                    ( #a ? MSG_EOR : 0 ) |
+                    ( #b ? MSG_DONTROUTE : 0 ) |
+                    ( #c ? MSG_DONTWAIT : 0 ) |
+                    ( #d ? MSG_NOSIGNAL : 0 )
+#if __linux
+                    | ( #e ? MSG_CONFIRM : 0 )
+#endif
+                    ;
         mkcl_type type = mkcl_type_of(#1);
         struct sockaddr_in sockaddr;
 	ssize_t len = 0;
@@ -811,7 +816,7 @@ static void fill_inet_sockaddr(struct sockaddr_in *sockaddr, int port,
         do {
           mkcl_index res;
 
-          MKCL_LIBC_Zzz(env, #e, (res = sendto(#0, buf + len, n, flags, (struct sockaddr*)&sockaddr, sizeof(struct sockaddr_in))));
+          MKCL_LIBC_Zzz(env, #8, (res = sendto(#0, buf + len, n, flags, (struct sockaddr*)&sockaddr, sizeof(struct sockaddr_in))));
           if ((res == -1) && (errno != EINTR)) {
             len = -1;
             break; /* stop writing */
@@ -826,19 +831,22 @@ static void fill_inet_sockaddr(struct sockaddr_in *sockaddr, int port,
 }
 "
 		     :one-liner nil))
-	       (c-inline (fd buffer length 
-			     oob eor dontroute dontwait nosignal confirm :io)
-		     (:int :object :int
-			   :bool :bool :bool :bool :bool :bool :object)
+	       (c-inline (fd buffer length :io
+			     oob eor dontroute dontwait nosignal #+linux confirm)
+		     (:int :object :int :object
+			   :bool :bool :bool :bool :bool #+linux :bool)
 		     :long
 		     "
 {
-        int flags = ( #3 ? MSG_OOB : 0 )  |
-                    ( #4 ? MSG_EOR : 0 ) |
-                    ( #5 ? MSG_DONTROUTE : 0 ) |
-                    ( #6 ? MSG_DONTWAIT : 0 ) |
-                    ( #7 ? MSG_NOSIGNAL : 0 ) |
-                    ( #8 ? MSG_CONFIRM : 0 );
+        int flags = ( #4 ? MSG_OOB : 0 )  |
+                    ( #5 ? MSG_EOR : 0 ) |
+                    ( #6 ? MSG_DONTROUTE : 0 ) |
+                    ( #7 ? MSG_DONTWAIT : 0 ) |
+                    ( #8 ? MSG_NOSIGNAL : 0 )
+#if __linux
+                    | ( #9 ? MSG_CONFIRM : 0 )
+#endif
+                    ;
         mkcl_type type = mkcl_type_of(#1);
         ssize_t len = 0;
         mkcl_index n = #2;
@@ -847,7 +855,7 @@ static void fill_inet_sockaddr(struct sockaddr_in *sockaddr, int port,
         do {
           mkcl_index res;
 
-          MKCL_LIBC_Zzz(env, #9, (res = send(#0, buf + len, n, flags)));
+          MKCL_LIBC_Zzz(env, #3, (res = send(#0, buf + len, n, flags)));
           if ((res == -1) && (errno != EINTR)) {
             len = -1;
             break; /* stop writing */
