@@ -55,7 +55,7 @@ mkcl_internal_C_error(MKCL, const char * const s, const char * const file, const
       char * error_msg;
       char buf[2048];
 
-# if _GNU_SOURCE
+# if __GLIBC__
       error_msg = strerror_r(mkcl_saved_errno, buf, sizeof(buf)); /* GNU-specific version */
 # else
       if (strerror_r(mkcl_saved_errno, buf, sizeof(buf))) buf[0] = '\0';
@@ -333,7 +333,7 @@ mkcl_libc_error_string(MKCL, mkcl_word errno_value)
     char * errno_msg_os_str;
     char buf[2048];
 
-# if _GNU_SOURCE
+# if __GLIBC__
     errno_msg_os_str = strerror_r(errno_value, buf, sizeof(buf)); /* GNU-specific version */
 # else
     if (strerror_r(errno_value, buf, sizeof(buf))) buf[0] = '\0';
