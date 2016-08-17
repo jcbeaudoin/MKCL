@@ -12,9 +12,11 @@ compile.pre
 config.log
 config.status
 ext-dir-exists
+ext/
 bin/
 test/
 asdf-stage-dir-exists
+asdf-stage/
 cov-int/
 mkcl-cov-build*
 receipe_for_GC

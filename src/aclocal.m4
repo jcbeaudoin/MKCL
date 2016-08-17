@@ -247,11 +247,13 @@ case "${host_os}" in
 		;;
 	freebsd*)
 		thehost='freebsd'
+		THREAD_CFLAGS='-pthread'
 		THREAD_LIBS='-lpthread'
 		SHARED_LDFLAGS="-shared ${LDFLAGS}"
 		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
 		LDRPATH="-Wl,--rpath,~A"
 		clibs=""
+		CFLAGS="-D_GNU_SOURCE -fno-strict-aliasing ${CFLAGS}"
 		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
