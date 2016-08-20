@@ -231,7 +231,9 @@ The function thus belongs to the type of functions that mkcl_make_cfun accepts."
       (when (setq ss (set-difference ss new-variable-names))
 	(push `(special ,@ss) declarations))
       (when (setq is (set-difference is new-variable-names))
-	(push `(ignorable ,@is) declarations))
+	(push `(ignore ,@is) declarations))
+      (when (setq iables (set-difference iables new-variable-names))
+	(push `(ignorable ,@iables) declarations))
       (loop for (var . type) in ts
 	    unless (member var new-variable-names)
 	    do (push `(type ,type ,var) declarations))
