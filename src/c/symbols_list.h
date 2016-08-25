@@ -2,7 +2,7 @@
 /*
     Copyright (c) 1990, Giuseppe Attardi and William F. Schelter.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -1900,7 +1900,13 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
   {{MKCL_EXT_ "PROCESS-OUTPUT", MKCL_EXT_ORDINARY, mk_mkcl_process_output, 1, MKCL_OBJNULL}},
   {{MKCL_EXT_ "PROCESS-ERROR", MKCL_EXT_ORDINARY, mk_mkcl_process_error, 1, MKCL_OBJNULL}},
   {{MKCL_EXT_ "PROCESS-PLIST", MKCL_EXT_ORDINARY, mk_mkcl_process_plist, 1, MKCL_OBJNULL}},
+  {{MKCL_EXT_ "PROCESS-TO-WORKER", MKCL_EXT_ORDINARY, mk_mkcl_process_to_worker, 1, MKCL_OBJNULL}},
+  {{MKCL_EXT_ "PROCESS-FROM-WORKER", MKCL_EXT_ORDINARY, mk_mkcl_process_from_worker, 1, MKCL_OBJNULL}},
+  {{MKCL_EXT_ "PROCESS-ERROR-FROM-WORKER", MKCL_EXT_ORDINARY, mk_mkcl_process_error_from_worker, 1, MKCL_OBJNULL}},
   {{MKCL_EXT_ "SET-PROCESS-PLIST", MKCL_EXT_ORDINARY, mk_mkcl_set_process_plist, 2, MKCL_OBJNULL}},
+  {{MKCL_EXT_ "SET-PROCESS-TO-WORKER", MKCL_EXT_ORDINARY, mk_mkcl_set_process_to_worker, 2, MKCL_OBJNULL}},
+  {{MKCL_EXT_ "SET-PROCESS-FROM-WORKER", MKCL_EXT_ORDINARY, mk_mkcl_set_process_from_worker, 2, MKCL_OBJNULL}},
+  {{MKCL_EXT_ "SET-PROCESS-ERROR-FROM-WORKER", MKCL_EXT_ORDINARY, mk_mkcl_set_process_error_from_worker, 2, MKCL_OBJNULL}},
   {{MKCL_EXT_ "PROCESS-STATUS", MKCL_EXT_ORDINARY, mk_mkcl_process_status, 1, MKCL_OBJNULL}},
   {{MKCL_EXT_ "PROCESS-EXIT-CODE", MKCL_EXT_ORDINARY, mk_mkcl_process_exit_code, 1, MKCL_OBJNULL}},
   {{MKCL_EXT_ "PROCESS-COMMAND", MKCL_EXT_ORDINARY, mk_mkcl_process_command, 1, MKCL_OBJNULL}},

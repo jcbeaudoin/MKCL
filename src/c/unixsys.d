@@ -761,7 +761,10 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
   subprocess->process.status = mk_cl_Cnil;
   subprocess->process.input = mk_cl_Cnil;
   subprocess->process.output = mk_cl_Cnil;
-  subprocess->process.error = mk_cl_Cnil;  
+  subprocess->process.error = mk_cl_Cnil;
+  subprocess->process.to_worker = mk_cl_Cnil;
+  subprocess->process.from_worker = mk_cl_Cnil;
+  subprocess->process.error_from_worker = mk_cl_Cnil;
   mk_si_set_finalizer(env, subprocess, mk_cl_Ct);
 #if MKCL_WINDOWS
   {
@@ -1537,10 +1540,77 @@ mkcl_object mk_mkcl_set_process_plist(MKCL, mkcl_object proc, mkcl_object plist)
   @(return (proc->process.plist = plist));
 }
 
+mkcl_object mk_mkcl_process_to_worker(MKCL, mkcl_object proc)
+{
+  mkcl_call_stack_check(env);
+  if (mkcl_type_of(proc) != mkcl_t_process)
+    mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
+  @(return proc->process.to_worker);
+}
 
+mkcl_object mk_mkcl_set_process_to_worker(MKCL, mkcl_object proc, mkcl_object to_worker)
+{
+  mkcl_call_stack_check(env);
+  if (mkcl_type_of(proc) != mkcl_t_process)
+    mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
+  @(return (proc->process.to_worker = to_worker));
+}
+
+mkcl_object mk_mkcl_process_from_worker(MKCL, mkcl_object proc)
+{
+  mkcl_call_stack_check(env);
+  if (mkcl_type_of(proc) != mkcl_t_process)
+    mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
+  @(return proc->process.from_worker);
+}
+
+mkcl_object mk_mkcl_set_process_from_worker(MKCL, mkcl_object proc, mkcl_object from_worker)
+{
+  mkcl_call_stack_check(env);
+  if (mkcl_type_of(proc) != mkcl_t_process)
+    mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
+  @(return (proc->process.from_worker = from_worker));
+}
+
+mkcl_object mk_mkcl_process_error_from_worker(MKCL, mkcl_object proc)
+{
+  mkcl_call_stack_check(env);
+  if (mkcl_type_of(proc) != mkcl_t_process)
+    mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
+  @(return proc->process.error_from_worker);
+}
+
+mkcl_object mk_mkcl_set_process_error_from_worker(MKCL, mkcl_object proc, mkcl_object error_from_worker)
+{
+  mkcl_call_stack_check(env);
+  if (mkcl_type_of(proc) != mkcl_t_process)
+    mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
+  @(return (proc->process.error_from_worker = error_from_worker));
+}
+
+
+static void join_worker(MKCL, mkcl_object worker)
+{
+  if (!mkcl_Null(worker))
+    {
+      mkcl_object worker_status = mk_mt_thread_join(env, worker);
+      if (!(mkcl_Null(worker_status) || (worker_status == @':done')))
+        {
+          mkcl_object out = MKCL_SYM_VAL(env, @'*error-output*');
+          mkcl_base_string_object(prefix_obj, "run-program: to-worker subprocess status = ");
+
+          mkcl_terpri(env, out);
+          mkcl_write_string(env, (mkcl_object) &prefix_obj, out);
+          mkcl_princ(env, worker_status, out);
+          mkcl_force_output(env, out);
+        }
+    }
+}
 
 mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
 {
+  mkcl_exit_code_t exit_code;
+
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
     mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
@@ -1552,7 +1622,6 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
 
 #if MKCL_UNIX
   mkcl_os_process_t pid = proc->process.ident;
-  mkcl_exit_code_t exit_code;
 
   for (;;)
     {
@@ -1568,12 +1637,7 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
   delete_pid_from_children(env, pid);
   proc->process.status = @':exited';
   proc->process.exit_code = exit_code;
-  if (WIFEXITED(exit_code))
-    { @(return MKCL_MAKE_FIXNUM(WEXITSTATUS(exit_code))); }
-  else if (WIFSIGNALED(exit_code))
-    { @(return mkcl_unix_signal_name(env, WTERMSIG(exit_code))); }
-  else
-    { @(return mk_cl_Cnil); }
+
 
 #elif MKCL_WINDOWS
   mkcl_os_process_t pid = proc->process.ident;
@@ -1609,9 +1673,22 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
       goto WAIT_AGAIN;
   } else mkcl_FEwin32_error(env, "mkcl:join-process failed on GetExitCodeProcess()", 0);
 
-  @(return mkcl_make_integer(env, proc->process.exit_code));
 #endif
 
+  join_worker(env, proc->process.to_worker);
+  join_worker(env, proc->process.from_worker);
+  join_worker(env, proc->process.error_from_worker);
+
+#if MKCL_UNIX
+  if (WIFEXITED(exit_code))
+    { @(return MKCL_MAKE_FIXNUM(WEXITSTATUS(exit_code))); }
+  else if (WIFSIGNALED(exit_code))
+    { @(return mkcl_unix_signal_name(env, WTERMSIG(exit_code))); }
+  else
+    { @(return mk_cl_Cnil); }
+#elif MKCL_WINDOWS
+  @(return mkcl_make_integer(env, proc->process.exit_code));
+#endif
 }
 
 
@@ -1641,6 +1718,11 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
   @(return mk_cl_Cnil);  
 @)
 
+static void detach_worker(MKCL, mkcl_object worker)
+{
+  if (!mkcl_Null(worker)) mk_mt_thread_detach(env, worker);
+}
+
 mkcl_object mk_mkcl_detach_process(MKCL, mkcl_object proc)
 {
   mkcl_call_stack_check(env);
@@ -1665,6 +1747,9 @@ mkcl_object mk_mkcl_detach_process(MKCL, mkcl_object proc)
   delete_pid_from_children(env, id);
 
 #endif
+  detach_worker(env, proc->process.to_worker);
+  detach_worker(env, proc->process.from_worker);
+  detach_worker(env, proc->process.error_from_worker);
   proc->process.detached = TRUE;
   @(return proc);
 }

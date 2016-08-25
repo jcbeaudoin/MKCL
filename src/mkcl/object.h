@@ -5,7 +5,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2014, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -991,6 +991,9 @@ extern "C" {
     mkcl_exit_code_t exit_code;
     mkcl_object status;
     mkcl_object plist;
+    mkcl_object to_worker;
+    mkcl_object from_worker;
+    mkcl_object error_from_worker;
   };
 
   enum {

@@ -2362,7 +2362,13 @@ extern "C" {
   extern MKCL_API mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc);
   extern MKCL_API mkcl_object mk_mkcl_terminate_process(MKCL, mkcl_narg narg, mkcl_object proc, ...);
   extern MKCL_API mkcl_object mk_mkcl_process_plist(MKCL, mkcl_object proc);
+  extern MKCL_API mkcl_object mk_mkcl_process_to_worker(MKCL, mkcl_object proc);
+  extern MKCL_API mkcl_object mk_mkcl_process_from_worker(MKCL, mkcl_object proc);
+  extern MKCL_API mkcl_object mk_mkcl_process_error_from_worker(MKCL, mkcl_object proc);
   extern MKCL_API mkcl_object mk_mkcl_set_process_plist(MKCL, mkcl_object proc, mkcl_object plist);
+  extern MKCL_API mkcl_object mk_mkcl_set_process_to_worker(MKCL, mkcl_object proc, mkcl_object to_worker);
+  extern MKCL_API mkcl_object mk_mkcl_set_process_from_worker(MKCL, mkcl_object proc, mkcl_object from_worker);
+  extern MKCL_API mkcl_object mk_mkcl_set_process_error_from_worker(MKCL, mkcl_object proc, mkcl_object error_from_worker);
   extern MKCL_API mkcl_object mk_mkcl_detach_process(MKCL, mkcl_object proc);
   extern MKCL_API mkcl_object mk_mkcl_process_detached_p(MKCL, mkcl_object proc);
   extern MKCL_API void mkcl_finalize_process(MKCL, mkcl_object proc);

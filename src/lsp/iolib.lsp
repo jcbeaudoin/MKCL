@@ -2,7 +2,7 @@
 ;;;;
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
-;;;;  Copyright (c) 2011-2014, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2011-2016, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -891,6 +891,9 @@ where CREATED is true only if we succeeded on creating all directories."
 ;;;;;;;;;;;;;;;;
 
 (defsetf process-plist set-process-plist)
+(defsetf process-to-worker set-process-to-worker)
+(defsetf process-from-worker set-process-from-worker)
+(defsetf process-error-from-worker set-process-error-from-worker)
 
 ;; to-subprocess-worker
 
@@ -899,16 +902,19 @@ where CREATED is true only if we succeeded on creating all directories."
          (mt:thread-run-function
           (format nil "to-subprocess-worker (pid: ~S)" (process-id subprocess))
           #'(lambda ()
-              (mt:thread-detach nil)
+              ;(mt:thread-detach nil)
               (unwind-protect
-                  (loop (let ((byte (read-byte input nil :eof)))
-                          (when (eq byte :eof) (return))
-                          (write-byte byte (process-input subprocess))
-                          )
-                        )
+                  (if (subtypep (stream-element-type input) 'character)
+                      (loop (let ((byte (read-char input nil :eof)))
+                              (when (eq byte :eof) (return :done))
+                              (write-char byte (process-input subprocess))))
+                    (loop (let ((byte (read-byte input nil :eof)))
+                            (when (eq byte :eof) (return :done))
+                            (write-byte byte (process-input subprocess)))))
                 (ignore-errors (close input))
                 (ignore-errors (close (process-input subprocess))))))))
-    (setf (getf (process-plist subprocess) :to-subprocess-worker) worker)
+    ;;(setf (getf (process-plist subprocess) :to-subprocess-worker) worker)
+    (setf (process-to-worker subprocess) worker)
     )
   )
 
@@ -919,16 +925,25 @@ where CREATED is true only if we succeeded on creating all directories."
          (mt:thread-run-function
           (format nil "from-subprocess-worker (pid: ~S)" (process-id subprocess))
           #'(lambda ()
-              (mt:thread-detach nil)
-              (unwind-protect
-                  (loop (let ((byte (read-byte (process-output subprocess) nil :eof)))
-                          (when (eq byte :eof) (return))
-                          (write-byte byte output)
-                          )
-                        )
-                (ignore-errors (close (process-output subprocess)))
-                (ignore-errors (close output)))))))
-    (setf (getf (process-plist subprocess) :from-subprocess-worker) worker)
+              ;(mt:thread-detach nil)
+              (handler-case
+                 (unwind-protect
+                     (if (subtypep (stream-element-type output) 'character)
+                         (loop (let ((byte (read-char (process-output subprocess) nil :eof)))
+                                 (when (eq byte :eof) (return :done))
+                                 (write-char byte output)))
+                       (loop (let ((byte (read-byte (process-output subprocess) nil :eof)))
+                               (when (eq byte :eof) (return :done))
+                               (write-byte byte output))))
+                   (ignore-errors (close (process-output subprocess)))
+                   (ignore-errors (close output)))
+               (condition (a-condition) ;; This is a universal muffler on anything that may have gone wrong.
+                 ;; Here we should log something to the Central Thread Logging facility.
+                 (format *error-output* "~&Thread ~S just blew up! Condition: ~S~%" mt:*thread* a-condition) ;;; Debug JCB.
+                 (finish-output)
+                 a-condition))))))
+    ;;(setf (getf (process-plist subprocess) :from-subprocess-worker) worker)
+    (setf (process-from-worker subprocess) worker)
     )
   )
 
@@ -937,16 +952,19 @@ where CREATED is true only if we succeeded on creating all directories."
          (mt:thread-run-function
           (format nil "error-from-subprocess-worker (pid: ~S)" (process-id subprocess))
           #'(lambda ()
-              (mt:thread-detach nil)
+              ;(mt:thread-detach nil)
               (unwind-protect
-                  (loop (let ((byte (read-byte (process-error subprocess) nil :eof)))
-                          (when (eq byte :eof) (return))
-                          (write-byte byte err-output)
-                          )
-                        )
+                  (if (subtypep (stream-element-type err-output) 'character)
+                      (loop (let ((byte (read-char (process-error subprocess) nil :eof)))
+                              (when (eq byte :eof) (return :done))
+                              (write-char byte err-output)))
+                    (loop (let ((byte (read-byte (process-error subprocess) nil :eof)))
+                            (when (eq byte :eof) (return :done))
+                            (write-byte byte err-output))))
                 (ignore-errors (close (process-error subprocess)))
                 (ignore-errors (close err-output)))))))
-    (setf (getf (process-plist subprocess) :error-from-subprocess-worker) worker)
+    ;;(setf (getf (process-plist subprocess) :error-from-subprocess-worker) worker)
+    (setf (process-error-from-worker subprocess) worker)
     )
   )
 
@@ -971,7 +989,7 @@ where CREATED is true only if we succeeded on creating all directories."
   (remf keys :if-output-exists)
   (remf keys :error)
   (remf keys :if-error-exists)
-  (let ((sub-wait wait)
+  (let ((sub-wait (unless detached wait))
         (sub-input input)
         (sub-output output)
         (sub-error error)
@@ -1016,16 +1034,49 @@ where CREATED is true only if we succeeded on creating all directories."
                  must be of type (or null (member t :stream :output) pathname-designator)." error))
       )
 
-    (multiple-value-bind (io subprocess status) 
-        (apply #'run-program-1 command args :wait sub-wait :input sub-input :output sub-output :error sub-error keys)
+    (when (or to-worker from-worker error-from-worker) (setq sub-wait nil))
 
-      (when to-worker (setq to-worker (launch-to-subprocess-worker input subprocess)))
-      (when from-worker (setq from-worker (launch-from-subprocess-worker output subprocess)))
-      (when error-from-worker (setq error-from-worker (launch-error-from-subprocess-worker error subprocess)))
+    (multiple-value-bind (sub-io subprocess status) 
+        (apply #'run-program-1 command args :wait nil #|sub-wait|# :input sub-input :output sub-output :error sub-error keys)
 
-      (when (and wait (not sub-wait))
-        (setq status (join-process subprocess)))
-      (values io subprocess status)
+      (when to-worker
+        (setq to-worker (launch-to-subprocess-worker input subprocess))
+        (when detached (mt:thread-detach to-worker)))
+      (when from-worker
+        (setq from-worker (launch-from-subprocess-worker output subprocess))
+        (when detached (mt:thread-detach from-worker)))
+      (when error-from-worker
+        (setq error-from-worker (launch-error-from-subprocess-worker error subprocess))
+        (when detached (mt:thread-detach error-from-worker)))
+
+      (unless detached
+        (when wait
+          (setq status (join-process subprocess))
+
+          #-(and)
+          (let (worker-status)
+            (when to-worker
+              (setq worker-status (mt:join-thread to-worker))
+              (format *error-output* "run-program: to-worker subprocess status = ~S~%" worker-status) ;; Debug JCB
+              (finish-output) ;; Debug JCB
+              )
+            (when from-worker
+              (setq worker-status (mt:join-thread from-worker))
+              (format *error-output* "run-program: from-worker subprocess status = ~S~%" worker-status) ;; Debug JCB
+              (finish-output) ;; Debug JCB
+              )
+            (when error-from-worker
+              (setq worker-status (mt:join-thread error-from-worker))
+              (format *error-output* "run-program: error-from-worker subprocess status = ~S~%" worker-status) ;; Debug JCB
+              (finish-output) ;; Debug JCB
+              )
+            )
+          ))
+
+      (let ((io nil))
+        (when (or (eq input :stream) (eq output :stream))
+          (setq io sub-io))
+        (values io subprocess status))
       )
     )
   )

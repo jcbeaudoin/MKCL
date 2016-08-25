@@ -1703,6 +1703,8 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
     write_str(env, "#<process ", stream);
     mk_si_write_ugly_object(env, x->process.command, stream);
     mkcl_write_char(env, ' ', stream);
+    mk_si_write_ugly_object(env, mk_mkcl_process_id(env, x), stream);
+    mkcl_write_char(env, ' ', stream);
     write_addr(env, x, stream);
     mkcl_write_char(env, '>', stream);
     break;
