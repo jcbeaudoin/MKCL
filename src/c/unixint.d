@@ -2151,18 +2151,44 @@ void mkcl_clean_up_unixint(MKCL)
 
 
 
-mkcl_object mkcl_unix_signal_name(MKCL, int signum)
+mkcl_object mkcl_signum_to_signal_name(MKCL, mkcl_word signum)
 {
-  int intern_flag;
-#if MKCL_UNIX
-  const char * const sig_name_C_string = (signum <= MKCL_BASE_SIGMAX) ? signal_names[signum] : "unknown-signal";
-#else
-  const char * const sig_name_C_string = "unknown-signal";
-#endif
-  mkcl_object sig_name_string = mkcl_make_simple_base_string(env, (char *) sig_name_C_string);
+  if (signum > MKCL_SIGMAX)
+    return mk_cl_Cnil;
+  else
+    {
+      //int intern_flag;
+      mkcl_object sig_name_string;
 
-  return mkcl_intern(env, sig_name_string, mkcl_core.keyword_package, &intern_flag);
+      if (signum > MKCL_BASE_SIGMAX)
+        {
+          const char format[] = "SIG%d";
+          char sig_name_C_string_buffer[sizeof(format) + 5];
+
+          snprintf(sig_name_C_string_buffer, sizeof(sig_name_C_string_buffer), format, (int) signum);
+          sig_name_string = mkcl_make_base_string_copy(env, sig_name_C_string_buffer);
+        }
+      else
+        sig_name_string = mkcl_make_base_string_copy(env, signal_names[signum]);
+
+      //return mkcl_intern(env, sig_name_string, mkcl_core.keyword_package, &intern_flag);
+      return sig_name_string;
+    }
 }
+
+mkcl_object mk_si_signum_to_signal_name(MKCL, mkcl_object _signum)
+{
+  if (!MKCL_FIXNUMP(_signum))
+    mkcl_FEtype_error_integer(env, _signum);
+  else
+    {
+      mkcl_word signum = mkcl_fixnum_to_word(_signum);
+
+      @(return mkcl_signum_to_signal_name(env, signum));
+    }
+}
+
+
 
 /* Testing tool only. */
 mkcl_object mk_si_do_sigsegv(MKCL)

@@ -459,7 +459,10 @@ extern "C" {
 
   extern void mkcl_create_signal_servicing_thread(MKCL, char * thread_cname, int sig, mkcl_object func_designator);
 
-#endif /* MKCL_PTHREADS */
+#elif MKCL_WINDOWS
+# define MKCL_SIGMAX 0
+# define MKCL_BASE_SIGMAX 0
+#endif 
 
 
 

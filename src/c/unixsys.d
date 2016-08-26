@@ -595,7 +595,7 @@ static int my_exec_command(mkcl_char8 * cmd_real_name, mkcl_char8 * cmd_line)
   if (WIFEXITED(status))
     { @(return MKCL_MAKE_FIXNUM(WEXITSTATUS(status)) output); }
   else if (WIFSIGNALED(status))
-    { @(return mkcl_unix_signal_name(env, WTERMSIG(status))); }
+    { @(return mkcl_signum_to_signal_name(env, WTERMSIG(status))); }
   else
     { @(return mk_cl_Cnil output); }
 @)
@@ -637,7 +637,7 @@ mkcl_object mk_mkcl_system (MKCL, mkcl_object cmd_string)
     if (WIFEXITED(code))
       { @(return MKCL_MAKE_FIXNUM(WEXITSTATUS(code))); }
     else if (WIFSIGNALED(code))
-      { @(return mkcl_unix_signal_name(env, WTERMSIG(code))); }
+      { @(return mkcl_signum_to_signal_name(env, WTERMSIG(code))); }
     else
       { @(return mk_cl_Cnil); }
 #else
@@ -1249,7 +1249,7 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
 	      else if (WIFEXITED(status))
 		exit_status = MKCL_MAKE_FIXNUM(WEXITSTATUS(status));
 	      else if (WIFSIGNALED(status))
-		exit_status = mkcl_unix_signal_name(env, WTERMSIG(status));
+		exit_status = mkcl_signum_to_signal_name(env, WTERMSIG(status));
 	      else
 		exit_status = mk_cl_Cnil;
 	      
@@ -1277,7 +1277,7 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
 	      if (WIFEXITED(status))
 		exit_status = MKCL_MAKE_FIXNUM(WEXITSTATUS(status));
 	      else if (WIFSIGNALED(status))
-		exit_status = mkcl_unix_signal_name(env, WTERMSIG(status));
+		exit_status = mkcl_signum_to_signal_name(env, WTERMSIG(status));
 	      else
 		exit_status = mk_cl_Cnil;
 #endif	  
@@ -1511,7 +1511,7 @@ mkcl_object mk_mkcl_process_exit_code(MKCL, mkcl_object proc)
   if (WIFEXITED(exit_code))
     { @(return MKCL_MAKE_FIXNUM(WEXITSTATUS(exit_code))); }
   else if (WIFSIGNALED(exit_code))
-    { @(return mkcl_unix_signal_name(env, WTERMSIG(exit_code))); }
+    { @(return mkcl_signum_to_signal_name(env, WTERMSIG(exit_code))); }
   else
     { @(return mk_cl_Cnil); }
 #else
@@ -1683,7 +1683,7 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
   if (WIFEXITED(exit_code))
     { @(return MKCL_MAKE_FIXNUM(WEXITSTATUS(exit_code))); }
   else if (WIFSIGNALED(exit_code))
-    { @(return mkcl_unix_signal_name(env, WTERMSIG(exit_code))); }
+    { @(return mkcl_signum_to_signal_name(env, WTERMSIG(exit_code))); }
   else
     { @(return mk_cl_Cnil); }
 #elif MKCL_WINDOWS

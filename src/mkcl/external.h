@@ -2332,7 +2332,8 @@ extern "C" {
   extern MKCL_API void mkcl_clear_fpe(MKCL, int except);
   extern MKCL_API void mkcl_reactivate_fpe_set(MKCL);
 
-  extern MKCL_API mkcl_object mkcl_unix_signal_name(MKCL, int signum);
+  extern MKCL_API mkcl_object mkcl_signum_to_signal_name(MKCL, mkcl_word signum);
+  extern MKCL_API mkcl_object mk_si_signum_to_signal_name(MKCL, mkcl_object signum);
   extern MKCL_API mkcl_object mk_si_do_sigsegv(MKCL);
   extern MKCL_API mkcl_object mk_si_objnull(MKCL);
 

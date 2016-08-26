@@ -2103,6 +2103,10 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
   {{MKCL_EXT_ "RUN-PROGRAM", MKCL_EXT_ORDINARY, MKCL_IN_LISP(mk_mkcl_run_program), -1, MKCL_OBJNULL}},
   {{KEY_ "ENVIRONMENT", KEYWORD, NULL, -1, MKCL_OBJNULL}},
 
+  {{SYS_ "SIGNUM-TO-SIGNAL-NAME", SI_ORDINARY, mk_si_signum_to_signal_name, 1, MKCL_OBJNULL}},
+  {{SYS_ "NAMED-SIGNAL-LIMIT", SI_CONSTANT, NULL, -1, MKCL_MAKE_FIXNUM(MKCL_BASE_SIGMAX)}},
+  {{SYS_ "SIGNAL-LIMIT", SI_CONSTANT, NULL, -1, MKCL_MAKE_FIXNUM(MKCL_SIGMAX)}},
+
   /* Tag for end of list!
      This entry, with a first field of NULL value,
      must be the very last of this array.
