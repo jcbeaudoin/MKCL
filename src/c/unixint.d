@@ -2153,7 +2153,7 @@ void mkcl_clean_up_unixint(MKCL)
 
 mkcl_object mkcl_signum_to_signal_name(MKCL, mkcl_word signum)
 {
-  if (signum > MKCL_SIGMAX)
+  if (signum <= 0 || MKCL_SIGMAX < signum)
     return mk_cl_Cnil;
   else
     {
@@ -2179,7 +2179,7 @@ mkcl_object mkcl_signum_to_signal_name(MKCL, mkcl_word signum)
 mkcl_object mk_si_signum_to_signal_name(MKCL, mkcl_object _signum)
 {
   if (!MKCL_FIXNUMP(_signum))
-    mkcl_FEtype_error_integer(env, _signum);
+    mkcl_FEwrong_type_argument(env, @'fixnum', _signum);
   else
     {
       mkcl_word signum = mkcl_fixnum_to_word(_signum);
