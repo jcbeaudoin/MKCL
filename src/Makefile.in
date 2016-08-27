@@ -81,6 +81,7 @@ CONTRIB_FASLS = \
                 profile.fasb \
                 rt.fasb \
                 serve-event.fasb \
+                mk-unix.fasb \
                 sockets.fasb \
                 walker.fasb \
                 trivial-features.fasb \
@@ -94,7 +95,7 @@ CONTRIB_FASLS = \
 
 CONTRIB_STATIC_LIBS = asdf.a asdf2.a $(CONTRIB_FASLS:%.fasb=%.a)
 
-BUILTINS = asdf profile rt serve-event sockets
+BUILTINS = asdf profile rt serve-event sockets mk-unix
 
 MKCL_STATIC_PARTS = mkcltop.@LIBEXT@ lsp.a mkclmin.@LIBEXT@
 
@@ -157,6 +158,9 @@ profile.fasb profile.a: bin/mkcl-small$(EXE) ext-dir-exists build-profile.lsp cm
 
 sockets.fasb sockets.a: bin/mkcl-small$(EXE) ext-dir-exists build-sockets.lsp cmp.fasb compile-utils.lsp ../contrib/sockets/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-sockets.lsp
+
+mk-unix.fasb mk-unix.a: bin/mkcl-small$(EXE) ext-dir-exists build-mk-unix.lsp cmp.fasb compile-utils.lsp ../contrib/mk-unix/*.lsp
+	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-mk-unix.lsp
 
 serve-event.fasb serve-event.a: bin/mkcl-small$(EXE) ext-dir-exists build-serve-event.lsp cmp.fasb compile-utils.lsp ../contrib/serve-event/serve-event.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-serve-event.lsp
