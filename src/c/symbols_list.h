@@ -2107,6 +2107,8 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
   {{SYS_ "NAMED-SIGNAL-LIMIT", SI_CONSTANT, NULL, -1, MKCL_MAKE_FIXNUM(MKCL_BASE_SIGMAX)}},
   {{SYS_ "SIGNAL-LIMIT", SI_CONSTANT, NULL, -1, MKCL_MAKE_FIXNUM(MKCL_SIGMAX)}},
 
+  {{KEY_ "STOPPED", KEYWORD, NULL, -1, MKCL_OBJNULL}},
+
   /* Tag for end of list!
      This entry, with a first field of NULL value,
      must be the very last of this array.

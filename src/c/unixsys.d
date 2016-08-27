@@ -1460,17 +1460,24 @@ mkcl_object mk_mkcl_process_status(MKCL, mkcl_object proc)
       mkcl_os_process_t child_pid = proc->process.ident;
 
       do
-	{ MKCL_LIBC_Zzz(env, @':io', rc = waitpid(child_pid, &status, WNOHANG|WUNTRACED)); }
+	{ MKCL_LIBC_Zzz(env, @':io', rc = waitpid(child_pid, &status, WNOHANG|WUNTRACED|WCONTINUED)); }
       while ((rc == -1) && (errno == EINTR));
       mk_mt_test_for_thread_shutdown(env);
       if (rc == -1)
 	mkcl_FElibc_error(env, "si:process-status failed on waitpid().", 0);
-      else if ((rc == child_pid) && (WIFEXITED(status) || WIFSIGNALED(status)))
-	{
-	  delete_pid_from_children(env, child_pid);
-	  proc->process.status = @':exited';
-	  proc->process.exit_code = status;
-	}
+      else if (rc == child_pid)
+        {
+          proc->process.exit_code = status; /* we keep it raw for mk_mkcl_process_exit_code(). */
+          if (WIFEXITED(status) || WIFSIGNALED(status))
+            {
+              delete_pid_from_children(env, child_pid);
+              proc->process.status = @':exited';
+            }
+          else if (WIFSTOPPED(status))
+            proc->process.status = @':stopped';
+          else if (WIFCONTINUED(status))
+            proc->process.status = @':running';
+        }
     }
 #elif MKCL_WINDOWS
   if (proc->process.status != @':exited')
@@ -1512,6 +1519,10 @@ mkcl_object mk_mkcl_process_exit_code(MKCL, mkcl_object proc)
     { @(return MKCL_MAKE_FIXNUM(WEXITSTATUS(exit_code))); }
   else if (WIFSIGNALED(exit_code))
     { @(return mkcl_signum_to_signal_name(env, WTERMSIG(exit_code))); }
+  else if (WIFSTOPPED(exit_code))
+    { @(return mkcl_signum_to_signal_name(env, WSTOPSIG(exit_code))); }
+  else if (WIFCONTINUED(exit_code))
+    { @(return mkcl_signum_to_signal_name(env, SIGCONT)); }
   else
     { @(return mk_cl_Cnil); }
 #else
