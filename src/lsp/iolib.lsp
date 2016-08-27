@@ -983,8 +983,7 @@ where CREATED is true only if we succeeded on creating all directories."
   (remf keys :if-output-exists)
   (remf keys :error)
   (remf keys :if-error-exists)
-  (let ((sub-wait (unless detached wait))
-        (sub-input input)
+  (let ((sub-input input)
         (sub-output output)
         (sub-error error)
         to-worker
@@ -1028,10 +1027,8 @@ where CREATED is true only if we succeeded on creating all directories."
                  must be of type (or null (member t :stream :output) pathname-designator)." error))
       )
 
-    (when (or to-worker from-worker error-from-worker) (setq sub-wait nil))
-
     (multiple-value-bind (sub-io subprocess status) 
-        (apply #'run-program-1 command args :wait nil #|sub-wait|# :input sub-input :output sub-output :error sub-error keys)
+        (apply #'run-program-1 command args :wait nil :input sub-input :output sub-output :error sub-error keys)
 
       (when to-worker
         (setq to-worker (launch-to-subprocess-worker input subprocess))
@@ -1045,35 +1042,12 @@ where CREATED is true only if we succeeded on creating all directories."
 
       (unless detached
         (when wait
-          (setq status (join-process subprocess))
-
-          #-(and)
-          (let (worker-status)
-            (when to-worker
-              (setq worker-status (mt:join-thread to-worker))
-              (format *error-output* "run-program: to-worker subprocess status = ~S~%" worker-status) ;; Debug JCB
-              (finish-output) ;; Debug JCB
-              )
-            (when from-worker
-              (setq worker-status (mt:join-thread from-worker))
-              (format *error-output* "run-program: from-worker subprocess status = ~S~%" worker-status) ;; Debug JCB
-              (finish-output) ;; Debug JCB
-              )
-            (when error-from-worker
-              (setq worker-status (mt:join-thread error-from-worker))
-              (format *error-output* "run-program: error-from-worker subprocess status = ~S~%" worker-status) ;; Debug JCB
-              (finish-output) ;; Debug JCB
-              )
-            )
-          ))
+          (setq status (join-process subprocess))))
 
       (let ((io nil))
         (when (or (eq input :stream) (eq output :stream))
           (setq io sub-io))
-        (values io subprocess status))
-      )
-    )
-  )
+        (values io subprocess status)))))
 
 
 ;;;
