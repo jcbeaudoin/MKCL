@@ -173,6 +173,7 @@ walker.fasb walker.a: bin/mkcl-small$(EXE) ext-dir-exists build-walker.lsp cmp.f
 	if [ "$${LOCALAPPDATA}" ]; then (cd "$${LOCALAPPDATA}"; rm -rf ./common-lisp/cache/mkcl-*); elif [ "$${APPDATA}" ]; then (cd "$${APPDATA}"; rm -rf ./common-lisp/cache/mkcl-*); else rm -rf $$HOME/.cache/common-lisp/mkcl-*/$$(cd ..;pwd -P)/contrib/asdf2-bundle; fi
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf2-bundle.lsp
 
+
 trivial-features.fasb trivial-features.a: bin/mkcl-small$(EXE) asdf-stage-dir-exists build-asdf-contrib*.lsp $(ASDF_FASLS) $(ASDF2_FASLS) ../contrib/trivial-features*/src/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- trivial-features ../contrib/trivial-features*/
 	cp ./asdf-stage/trivial-features*/trivial-features.fasb .
@@ -338,9 +339,6 @@ mkcl/mkcl-cmp.h: mkcl/mkcl.h c/symbols_list.h
 mkcl/mkcl.h: $(MKCL_HFILES)
 	touch $@
 
-mkcl/config-install.h: mkcl/config.h
-	sed '/-CUT-/,$$d' ./mkcl/config.h > ./mkcl/config-install.h
-
 
 BUILD-STAMP: config.status
 	echo "#" `uname -a` > $@
@@ -349,7 +347,7 @@ BUILD-STAMP: config.status
 install: install-base install-contribs
 #	cd doc; $(MAKE) prefix=$(prefix) install
 
-install-base: all mkcl/config-install.h
+install-base: all
 	$(mkinstalldirs) $(bindir) $(libdir) \
 	  $(mkcldir) $(includedir) $(includedir)/mkcl
 	$(INSTALL_DATA) ../Copyright ../LGPL $(mkcldir)
@@ -369,7 +367,7 @@ install-base: all mkcl/config-install.h
 	  $(INSTALL_DATA) ./mkcl/gc/*.h $(includedir)/mkcl/gc; \
 	fi
 	rm $(includedir)/mkcl/config.h
-	mv $(includedir)/mkcl/config-install.h $(includedir)/mkcl/config.h
+	sed '/-CUT-/,$$d' ./mkcl/config.h > $(includedir)/mkcl/config.h
 	$(INSTALL_SCRIPT) bin/mkcl-config $(bindir)
 	for i in BUILD-STAMP help.doc ; do \
 	  $(INSTALL_DATA) $$i $(mkcldir); \
@@ -421,7 +419,7 @@ install-contribs: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS)
 
 install-local: install-base-local install-contribs-local
 
-install-base-local: all mkcl/config-install.h
+install-base-local: all
 	$(mkinstalldirs) ./lib/ \
 	  $(localmkcldir) ./include/ ./include//mkcl
 	$(INSTALL_DATA) ../Copyright ../LGPL $(localmkcldir)
@@ -438,7 +436,7 @@ install-base-local: all mkcl/config-install.h
 	  $(INSTALL_DATA) ./mkcl/gc/*.h ./include//mkcl/gc; \
 	fi
 	rm ./include//mkcl/config.h
-	mv ./include//mkcl/config-install.h ./include//mkcl/config.h
+	sed '/-CUT-/,$$d' ./mkcl/config.h > ./include//mkcl/config.h
 	for i in BUILD-STAMP help.doc ; do \
 	  $(INSTALL_DATA) $$i $(localmkcldir); \
 	done
@@ -500,7 +498,7 @@ doc: $(TARGETS)
 
 clean: clean_lisp clean_contribs
 	cd c; $(MAKE) clean
-	$(RM) depend compile.lsp bin/mkcl-config BUILD-STAMP mkcl/config-install.h
+	$(RM) depend compile.lsp bin/mkcl-config BUILD-STAMP
 	$(RM) mkcl_min$(EXE) bin/mkcl$(EXE) bin/mkcl-dyn bin/mkcl-small$(EXE) bin/mkcl-full$(EXE)
 	$(RM) MKCLINIT* bin/MKCLINIT*
 	$(RM) MKC*.c MKC*.tmp bin/MKC*.c bin/MKC*.tmp
