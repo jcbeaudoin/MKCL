@@ -3226,7 +3226,7 @@ bool mkcl_os_string_format_is_utf_8_p(MKCL)
 }
 
 
-#ifdef __unix
+#ifndef mkcl_alloc_OSstring
 mkcl_object mkcl_alloc_OSstring(MKCL, mkcl_index size)
 {
   mkcl_object external_format = mkcl_symbol_value(env, @'si::*os-string-format*');
@@ -3282,7 +3282,7 @@ mkcl_object mkcl_cstring_to_string(MKCL, char * str)
     return mkcl_make_adjustable_base_string_copy(env, str);
 }
 
-#else
+#else /* def mkcl_alloc_OSstring */
 
 mkcl_object mkcl_cstring_to_string(MKCL, char * str)
 {
@@ -3291,7 +3291,7 @@ mkcl_object mkcl_cstring_to_string(MKCL, char * str)
   return mkcl_utf_8_to_string(env, (mkcl_object) &utf_8_obj);
 }
 
-#endif /* __unix */
+#endif /* def mkcl_alloc_OSstring */
 
 mkcl_object mkcl_cstring16_to_string(MKCL, mkcl_char16 * str)
 {
@@ -3558,7 +3558,7 @@ mkcl_object mkcl_base_string_nconc(MKCL, mkcl_object base, mkcl_object new)
   return base;
 }
 
-#ifdef __unix
+#ifndef mkcl_OSstring_nconc
 mkcl_object mkcl_OSstring_nconc(MKCL, mkcl_object base, mkcl_object new)
 {
   if (MKCL_UTF_8_P(base))
@@ -3590,7 +3590,7 @@ mkcl_index mkcl_OSstring_push_extend(MKCL, mkcl_object str, mkcl_character ch)
   else
     return mkcl_base_string_push_extend(env, str, ch);
 }
-#endif /* __unix */
+#endif /* ndef mkcl_OSstring_nconc */
 
 
 mkcl_object

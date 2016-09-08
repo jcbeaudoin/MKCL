@@ -28,15 +28,10 @@
 # include <windows.h>
 #endif
 
-#if 0
-#ifdef HAVE_UNISTD_H
-# include <sys/types.h> /* What is that for? */
-# include <unistd.h> /* done in internal.h now */
-#endif
-#endif
-
 #if __linux
 # include <sys/syscall.h>
+#elif __FreeBSD__
+# include <pthread_np.h>
 #endif
 
 #ifdef HAVE_SYS_WAIT_H
@@ -658,6 +653,8 @@ pid_t mkcl_gettid(void)
 {
 #ifdef __linux
   return syscall(SYS_gettid);
+#elif __FreeBSD__
+  return pthread_getthreadid_np();
 #elif MKCL_WINDOWS
   return GetCurrentThreadId();
 #else
@@ -1652,7 +1649,6 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
 
 #elif MKCL_WINDOWS
   mkcl_os_process_t pid = proc->process.ident;
-  mkcl_exit_code_t exit_code;
 
  WAIT_AGAIN:
   {
@@ -1684,6 +1680,8 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
       goto WAIT_AGAIN;
   } else mkcl_FEwin32_error(env, "mkcl:join-process failed on GetExitCodeProcess()", 0);
 
+#else
+# error Incomplete implementation of mk_mkcl_join_process().
 #endif
 
   join_worker(env, proc->process.to_worker);
@@ -1699,6 +1697,8 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
     { @(return mk_cl_Cnil); }
 #elif MKCL_WINDOWS
   @(return mkcl_make_integer(env, proc->process.exit_code));
+#else
+# error Incomplete implementation of mk_mkcl_join_process().
 #endif
 }
 
@@ -1724,6 +1724,8 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
 #elif MKCL_WINDOWS
   if (!TerminateProcess(proc->process.ident, -1))
     mkcl_FEwin32_error(env, "mkcl:terminate-process failed on TerminateProcess()", 0);
+#else
+# error Incomplete implementation of mk_mkcl_terminate_process().
 #endif
 
   @(return mk_cl_Cnil);  
@@ -1822,6 +1824,9 @@ void mkcl_init_unixsys(MKCL)
 
   if (pthread_mutex_init(&children_list_lock, mutexattr))
     mkcl_FElibc_error(env, "mkcl_init_unixsys failed on pthread_mutex_init of children list lock.", 0);
+#elif MKCL_WINDOWS
+#else
+# error Incomplete implementation of mkcl_init_unixsys().
 #endif
 }
 
@@ -1829,6 +1834,9 @@ void mkcl_clean_up_unixsys(MKCL)
 { /* Best effort only. We cannot raise an exception from here. */
 #if MKCL_PTHREADS
   (void) pthread_mutex_destroy(&children_list_lock);
+#elif MKCL_WINDOWS
+#else
+# error Incomplete implementation of mkcl_clean_up_unixsys().
 #endif
 }
 

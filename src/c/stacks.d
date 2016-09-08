@@ -195,9 +195,11 @@ mkcl_index mkcl_alloc_new_special_index(MKCL, mkcl_object sym)
   mkcl_disable_interrupts(env);
 #if MKCL_WINDOWS
   EnterCriticalSection(&mkcl_core.special_index_lock);
-#else
+#elif MKCL_PTHREADS
   if (pthread_mutex_lock(&mkcl_core.special_index_lock))
     mkcl_lose(env, "mkcl_alloc_new_special_index failed on pthread_mutex_lock().");
+#else
+# error Incomplete implementation of mkcl_alloc_new_special_index().
 #endif
 
   index = mkcl_core.top_special_index;
@@ -209,9 +211,11 @@ mkcl_index mkcl_alloc_new_special_index(MKCL, mkcl_object sym)
 
 #if MKCL_WINDOWS
   LeaveCriticalSection(&mkcl_core.special_index_lock);
-#else
+#elif MKCL_PTHREADS
   if (pthread_mutex_unlock(&mkcl_core.special_index_lock))
     mkcl_lose(env, "mkcl_alloc_new_special_index failed on pthread_mutex_unlock().");
+#else
+# error Incomplete implementation of mkcl_alloc_new_special_index().
 #endif
   mkcl_set_interrupt_status(env, &old_intr);
 
@@ -814,6 +818,8 @@ void mkcl_init_call_stack_overflow_area(MKCL, char * const stack_mark_address)
   rc = pthread_getattr_np(pthread_self(), attr); /* Linux specific */
 # elif __FreeBSD__
   rc = pthread_attr_get_np(pthread_self(), attr); /* Linux specific */
+# else
+#  error Do not know how to access thread attributes!
 # endif
 
   {
@@ -941,7 +947,7 @@ void mkcl_init_call_stack_overflow_area(MKCL, char * const stack_mark_address)
 
   }
 #else
-#error Do not know how to find call stack address and size!
+# error Do not know how to find call stack address and size!
 #endif
 }
 

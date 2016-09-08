@@ -447,13 +447,13 @@ extern "C" {
     sem_t * sem;
   };
 
-#if __linux
-# define MKCL_SIGMAX 64 /* SIGRTMAX */
-# define MKCL_BASE_SIGMAX 31
-#elif __FreeBSD__
-# define MKCL_SIGMAX 128 /* _SIG_MAXSIG ? */
-# define MKCL_BASE_SIGMAX 31
-#endif
+# if __linux
+#  define MKCL_SIGMAX 64 /* SIGRTMAX */
+#  define MKCL_BASE_SIGMAX 31
+# elif __FreeBSD__
+#  define MKCL_SIGMAX 128 /* _SIG_MAXSIG ? */
+#  define MKCL_BASE_SIGMAX 31
+# endif
 
   extern struct mkcl_signal_control mkcl_signals[MKCL_SIGMAX + 1];
 

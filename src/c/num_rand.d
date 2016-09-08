@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2012, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2016, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -17,11 +17,12 @@
 */
 
 #include <mkcl/mkcl.h>
+#include <mkcl/internal.h>
+
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <mkcl/internal.h>
 
 /*
  * Mersenne-Twister random number generator
@@ -43,7 +44,7 @@ mkcl_init_random_state(MKCL)
   mkcl_object a = mkcl_alloc_simple_base_string(env, bytes);
   ulong *mt = (ulong*)a->base_string.self;
   int j;
-#if defined(__unix)
+#if MKCL_UNIX
   static const char random_path[] = "/dev/urandom";
   static const mkcl_base_string_object(random_source_obj, random_path);
   static const mkcl_object random_source = (mkcl_object) &random_source_obj;

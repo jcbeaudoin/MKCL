@@ -135,7 +135,7 @@ thread_final_cleanup(MKCL, mkcl_object thread)
       mkcl_remove_thread_from_global_thread_list(env, thread);
     }
 
-#if __unix
+#if MKCL_PTHREADS
   if (thread->thread.running_lock) /* should not be here */
     {
       pthread_mutex_destroy(thread->thread.running_lock);
@@ -908,7 +908,7 @@ mkcl_make_thread(MKCL, mkcl_object name, mkcl_object initial_bindings, struct mk
   thread->thread.shutdown_requested = false;
   thread->thread.env = new_env;
 
-#if __unix
+#if MKCL_PTHREADS
   thread->thread.running_lock = NULL;
   sigemptyset(&thread->thread.saved_sigmask);
 #endif
@@ -1139,7 +1139,7 @@ static void mkcl_create_imported_thread_pool_filler_thread(MKCL)
   MKCL_LIBC_NO_INTR(env, ok = ReleaseSemaphore(mkcl_imported_thread_pool_empty, 1, NULL));
   if (!ok)
     mkcl_FEwin32_error(env, "mkcl_create_imported_thread_pool_filler failed on ReleaseSemaphore", 0);
-#else
+#elif MKCL_PTHREADS
   int result;
 
   thread->thread.running_lock = mkcl_alloc_atomic(env, sizeof(pthread_mutex_t));
@@ -1159,6 +1159,8 @@ static void mkcl_create_imported_thread_pool_filler_thread(MKCL)
   MKCL_LIBC_NO_INTR(env, result = sem_post(mkcl_imported_thread_pool_empty));
   if (result)
     mkcl_FElibc_error(env, "mkcl_create_imported_thread_pool_filler_thread failed on sem_post", 0);
+#else
+# error Incomplete implementation of mkcl_create_imported_thread_pool_filler_thread().
 #endif
 }
 
@@ -1411,7 +1413,7 @@ mkcl_release_current_thread(MKCL)
 
 #if MKCL_WINDOWS
 static HANDLE mkcl_finalization_requested; /* an Event object */
-#else
+#elif MKCL_PTHREADS
 static mkcl_object mkcl_finalization_requested; /* a condition variable */
 #endif
 
@@ -1454,7 +1456,7 @@ static thread_value_t CALL_CONV finalization_thread_entry_point(void * arg)
     mk_mt_thread_detach(env, thread);
     mkcl_enable_interrupts(env);
 
-#if __unix
+#if MKCL_PTHREADS
     pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
     /* pthread_mutex_init(&mutex, NULL); */
@@ -1497,7 +1499,7 @@ static thread_value_t CALL_CONV finalization_thread_entry_point(void * arg)
 	fflush(stderr);
 #endif
 
-#else
+#elif MKCL_PTHREADS
 	int rc;
 
 	do {
@@ -1521,16 +1523,18 @@ static thread_value_t CALL_CONV finalization_thread_entry_point(void * arg)
 	fprintf(stderr, "\n;; MKCL: Called MK_GC_invoke_finalizers() for a count of %d.\n", count);
 	fflush(stderr);
 #endif
+#else
+# error Incomplete implementation of finalization_thread_entry_point().
 #endif
       }
 
-#if __unix
+#if MKCL_PTHREADS
     if (pthread_mutex_unlock(&mutex))
       {
         /* status = (thread_value_t) MKCL_THREAD_UNKNOWN_ERROR; */
         thread->thread.result_value = mk_cl_Cnil;
       }
-#endif /* __unix */
+#endif /* MKCL_PTHREADS */
 
   CLEAN_UP_MUTEX_UNLOCKED:
 #if 1
@@ -1610,7 +1614,7 @@ static void mkcl_create_finalization_thread(MKCL)
     if (old_suspend_count != 1) /* 1 is the only right answer here, everything else is an error of some kind. */
       mkcl_FEwin32_error(env, "mkcl_create_finalization_thread failed on ResumeThead for thread ~A", 1, thread);    
   }
-#else /*  MKCL_WINDOWS */
+#elif MKCL_PTHREADS
   int result;
 
   mkcl_finalization_requested = mk_mt_make_condition_variable(env);
@@ -1627,7 +1631,9 @@ static void mkcl_create_finalization_thread(MKCL)
 
   if ( result != 0 )
     { errno = result; mkcl_FElibc_error(env, "Cannot create imported thread pool filler thread", 0); }
-#endif /* else  MKCL_WINDOWS */
+#else
+# error Incomplete implementation of mkcl_create_finalization_thread().
+#endif /* MKCL_PTHREADS */
 
   MK_GC_finalizer_notifier_proc old_notifier;
 
@@ -4233,7 +4239,7 @@ mkcl_init_early_threads(MKCL)
   thread->thread.plist = mk_cl_Cnil;
   thread->thread.initial_bindings = mk_cl_Cnil;
   thread->thread.sigmask_frs_marker = NULL;
-#if MKCL_UNIX
+#if MKCL_PTHREADS
   thread->thread.running_lock = NULL;
   sigemptyset(&thread->thread.saved_sigmask);
 #endif
