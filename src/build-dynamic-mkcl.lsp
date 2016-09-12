@@ -15,7 +15,7 @@
 ;;(setq compiler::*trace-cc* t)
 
 ;;(load "cmp/load.lsp" :external-format '(:ascii :lf))
-(load "cmp.fasb")
+(load "cmp/cmp.fasb")
 
 (setq compiler::*mkcl-include-directory* (truename (pathname ".")) ;; truename is needed by MS-Windows
       compiler::*mkcl-library-directory* (truename (pathname "."))

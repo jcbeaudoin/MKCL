@@ -13,7 +13,7 @@
 ;;;
 (push :mkcl-bootstrap *features*)
 
-;;(load "cmp.fasb")
+;;(load "cmp/cmp.fasb")
 (load "cmp/load.lsp" :external-format '(:ascii :lf))
 
 ;;(proclaim '(optimize (debug 1))) ;; faster, no debug info.
@@ -40,7 +40,7 @@
 #+unix
 (unless (compiler::build-program
 	 "bin/mkcl"
-	 :lisp-object-files '( "cmp.a" ) ;; list of pre-loads.
+	 :lisp-object-files '( "cmp/cmp.a" ) ;; list of pre-loads.
 	 :use-mkcl-shared-libraries nil ;; force static linking
 	 ;;:extra-ld-flags "-pg"  ;; for profiling
 	 )
@@ -50,7 +50,7 @@
 #+windows
 (unless (compiler::build-program
 	 "bin/mkcl"
-	 :lisp-object-files '( "cmp.a" ) ;; list of pre-loads.
+	 :lisp-object-files '( "cmp/cmp.a" ) ;; list of pre-loads.
 ;;	 :extra-ld-flags "-Wl,--stack,0x800000" ;; Stack of 8MB. ;; behaves badly on MinGW64. 
 #|
 	 :epilogue-code '(PROGN (UNLESS (IGNORE-ERRORS (REQUIRE "CMP"))

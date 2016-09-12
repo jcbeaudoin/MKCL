@@ -15,7 +15,7 @@
 
 (si::pathname-translations "CONTRIB" `(("**;*.*.*" ,(merge-pathnames "./../contrib/**/*.*" (mkcl:getcwd)))))
 
-(load "cmp.fasb")
+(load "cmp/cmp.fasb")
 
 (load "compile-utils" :external-format '(:ascii :lf))
 

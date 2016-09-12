@@ -12,7 +12,7 @@
 ;;;
 ;;;
 
-(load "cmp.fasb")
+(load "cmp/cmp.fasb")
 
 (load "compile-utils" :external-format '(:ascii :lf))
 

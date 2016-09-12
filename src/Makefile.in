@@ -131,45 +131,45 @@ asdf-stage-dir-exists:
 	mkdir ./asdf-stage
 	touch asdf-stage-dir-exists
 
-asdf2.fasb asdf2.a: bin/mkcl-small$(EXE) ext-dir-exists build-asdf2.lsp cmp.fasb compile-utils.lsp ../contrib/asdf2/*.lisp
+asdf2.fasb asdf2.a: bin/mkcl-small$(EXE) ext-dir-exists build-asdf2.lsp cmp/cmp.fasb compile-utils.lsp ../contrib/asdf2/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf2.lsp
 
-asdf.fasb asdf.a: bin/mkcl-small$(EXE) ext-dir-exists build-asdf.lsp cmp.fasb compile-utils.lsp ../contrib/asdf/*.lisp
+asdf.fasb asdf.a: bin/mkcl-small$(EXE) ext-dir-exists build-asdf.lsp cmp/cmp.fasb compile-utils.lsp ../contrib/asdf/*.lisp
 	(cd ../contrib/asdf/; $(MAKE) build/asdf.lisp)
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf.lsp
 
-uiop.fasb uiop.a: bin/mkcl-small$(EXE) asdf-stage-dir-exists build-uiop.lsp cmp.fasb compile-utils.lsp asdf.fasb ../contrib/asdf/uiop/*.lisp
+uiop.fasb uiop.a: bin/mkcl-small$(EXE) asdf-stage-dir-exists build-uiop.lsp cmp/cmp.fasb compile-utils.lsp asdf.fasb ../contrib/asdf/uiop/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-uiop.lsp
 	cp ./asdf-stage/asdf/uiop/uiop.fasb .
 	cp ./asdf-stage/asdf/uiop/uiop.a .
 	cp ./asdf-stage/asdf/uiop/uiop.asd .
 
-bytecmp.fasb bytecmp.a: bin/mkcl-small$(EXE) ext-dir-exists build-bytecmp.lsp cmp.fasb compile-utils.lsp ../contrib/bytecmp/bytecmp.lsp
+bytecmp.fasb bytecmp.a: bin/mkcl-small$(EXE) ext-dir-exists build-bytecmp.lsp cmp/cmp.fasb compile-utils.lsp ../contrib/bytecmp/bytecmp.lsp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-bytecmp.lsp
 
-defsystem.fasb defsystem.a: bin/mkcl-small$(EXE) ext-dir-exists build-defsystem.lsp cmp.fasb compile-utils.lsp ../contrib/defsystem/defsystem.lisp
+defsystem.fasb defsystem.a: bin/mkcl-small$(EXE) ext-dir-exists build-defsystem.lsp cmp/cmp.fasb compile-utils.lsp ../contrib/defsystem/defsystem.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-defsystem.lsp
 
-profile.fasb profile.a: bin/mkcl-small$(EXE) ext-dir-exists build-profile.lsp cmp.fasb compile-utils.lsp ../contrib/profile/profile.lisp
+profile.fasb profile.a: bin/mkcl-small$(EXE) ext-dir-exists build-profile.lsp cmp/cmp.fasb compile-utils.lsp ../contrib/profile/profile.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-profile.lsp
 
 ../contrib/sockets/package.lisp: ../contrib/sockets/sockets.lisp
 	touch ../contrib/sockets/package.lisp
 
-sockets.fasb sockets.a: bin/mkcl-small$(EXE) ext-dir-exists build-sockets.lsp cmp.fasb compile-utils.lsp ../contrib/sockets/*.lisp
+sockets.fasb sockets.a: bin/mkcl-small$(EXE) ext-dir-exists build-sockets.lsp cmp/cmp.fasb compile-utils.lsp ../contrib/sockets/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-sockets.lsp
 
-mk-unix.fasb mk-unix.a: bin/mkcl-small$(EXE) ext-dir-exists build-mk-unix.lsp cmp.fasb compile-utils.lsp ../contrib/mk-unix/*.lsp
+mk-unix.fasb mk-unix.a: bin/mkcl-small$(EXE) ext-dir-exists build-mk-unix.lsp cmp/cmp.fasb compile-utils.lsp ../contrib/mk-unix/*.lsp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-mk-unix.lsp
 
-serve-event.fasb serve-event.a: bin/mkcl-small$(EXE) ext-dir-exists build-serve-event.lsp cmp.fasb compile-utils.lsp ../contrib/serve-event/serve-event.lisp
+serve-event.fasb serve-event.a: bin/mkcl-small$(EXE) ext-dir-exists build-serve-event.lsp cmp/cmp.fasb compile-utils.lsp ../contrib/serve-event/serve-event.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-serve-event.lsp
 
-walker.fasb walker.a: bin/mkcl-small$(EXE) ext-dir-exists build-walker.lsp cmp.fasb compile-utils.lsp ../contrib/walker/walk.lsp
+walker.fasb walker.a: bin/mkcl-small$(EXE) ext-dir-exists build-walker.lsp cmp/cmp.fasb compile-utils.lsp ../contrib/walker/walk.lsp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-walker.lsp
 
 
-../contrib/asdf2-bundle/asdf2-bundle.fas: bin/mkcl-small$(EXE) build-asdf2-bundle.lsp cmp.fasb compile-utils.lsp asdf2.fasb ../contrib/asdf2-bundle/*.lisp
+../contrib/asdf2-bundle/asdf2-bundle.fas: bin/mkcl-small$(EXE) build-asdf2-bundle.lsp cmp/cmp.fasb compile-utils.lsp asdf2.fasb ../contrib/asdf2-bundle/*.lisp
 	if [ "$${LOCALAPPDATA}" ]; then (cd "$${LOCALAPPDATA}"; rm -rf ./common-lisp/cache/mkcl-*); elif [ "$${APPDATA}" ]; then (cd "$${APPDATA}"; rm -rf ./common-lisp/cache/mkcl-*); else rm -rf $$HOME/.cache/common-lisp/mkcl-*/$$(cd ..;pwd -P)/contrib/asdf2-bundle; fi
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf2-bundle.lsp
 
@@ -238,13 +238,13 @@ rt.fasb rt.a: bin/mkcl-small$(EXE) asdf-stage-dir-exists build-asdf-contrib*.lsp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- rt ../contrib/rt*/
 
 
-cmp.fasb cmp.a: bin/mkcl-small$(EXE) cmp/*.lsp build-cmp.lsp
+cmp/cmp.fasb cmp/cmp.a: bin/mkcl-small$(EXE) cmp/*.lsp build-cmp.lsp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-cmp.lsp
 
-bin/mkcl-dyn: bin/mkcl-small$(EXE) cmp.fasb build-dynamic-mkcl.lsp
+bin/mkcl-dyn: bin/mkcl-small$(EXE) cmp/cmp.fasb build-dynamic-mkcl.lsp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-dynamic-mkcl.lsp
 
-bin/mkcl$(EXE): bin/mkcl-small$(EXE) cmp.fasb build-mkcl.lsp
+bin/mkcl$(EXE): bin/mkcl-small$(EXE) cmp/cmp.fasb build-mkcl.lsp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-mkcl.lsp
 
 ifeq (@thehost@,mingw32)
@@ -395,9 +395,9 @@ install-base: all
 	done
 	$(INSTALL_DATA) c/dpp$(EXE) $(mkcldir)
 	$(INSTALL_DATA) mkcl_min$(EXE) $(mkcldir)
-	$(INSTALL_DATA) cmp.asd $(mkcldir)
-	if [ -f cmp.a ] ; then $(INSTALL_DATA) cmp.a $(mkcldir); fi
-	$(INSTALL_PROGRAM) cmp.fasb $(mkcldir)
+	$(INSTALL_DATA) cmp/cmp.asd cmp/cmp.as2 $(mkcldir)
+	if [ -f cmp/cmp.a ] ; then $(INSTALL_DATA) cmp/cmp.a $(mkcldir); fi
+	$(INSTALL_PROGRAM) cmp/cmp.fasb $(mkcldir)
 
 install-contribs: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS)
 	$(mkinstalldirs) $(mkcldir)/contrib/
@@ -463,9 +463,9 @@ install-base-local: all
 	done
 	$(INSTALL_DATA) c/dpp$(EXE) $(localmkcldir)
 	$(INSTALL_DATA) mkcl_min$(EXE) $(localmkcldir)
-	$(INSTALL_DATA) cmp.asd $(localmkcldir)
-	if [ -f cmp.a ] ; then $(INSTALL_DATA) cmp.a $(localmkcldir); fi
-	$(INSTALL_PROGRAM) cmp.fasb $(localmkcldir)
+	$(INSTALL_DATA) cmp/cmp.asd cmp/cmp.as2 $(localmkcldir)
+	if [ -f cmp/cmp.a ] ; then $(INSTALL_DATA) cmp/cmp.a $(localmkcldir); fi
+	$(INSTALL_PROGRAM) cmp/cmp.fasb $(localmkcldir)
 
 install-contribs-local: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS)
 	$(mkinstalldirs) $(localmkcldir)/contrib/
@@ -517,9 +517,10 @@ clean_contribs:
 	$(RM) asdf.fasb asdf2.fasb $(CONTRIB_FASLS) $(CONTRIB_FASLS:%.fasb=%.asd) $(CONTRIB_FASLS:%.fasb=%.as2)
 
 clean_lisp:
-	for i in lsp cmp clos; \
-	do $(RM) $$i.a $$i.fasb $$i.asd $$i.as2 \
-	         $$i/*.o $$i/*.data $$i/*.c $$i/*.sdat $$i/*.h $$i/*.fasb $$i/*.fas; done
+	$(RM) lsp.a
+	(cd lsp; $(RM) *.o *.data *.c *.sdat *.h *.a *.fasb *.fas *.asd *.as2)
+	(cd clos; $(RM) *.o *.data *.c *.sdat *.h *.a *.fasb *.fas *.asd *.as2)
+	(cd cmp; $(RM) *.o *.data *.c *.sdat *.h *.a *.fasb *.fas *.asd *.as2)
 	$(RM) lsp/config.lsp cmp/cmpdefs.lsp
 	$(RM) help.doc
 

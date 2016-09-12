@@ -30,7 +30,7 @@
 
 (unless (compiler::build-program
 	 "bin/mkcl-full"
-	 :lisp-object-files (list* "libcmp.a" *modules*) ;; list of built-ins.
+	 :lisp-object-files (list* "cmp/cmp.a" *modules*) ;; list of built-ins.
 	 :use-mkcl-shared-libraries nil ;; force static linking
 	 )
   (mkcl:quit :exit-code 1))
