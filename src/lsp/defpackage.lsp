@@ -226,7 +226,7 @@
   (multiple-value-bind (symbol found)
       (find-symbol name package)
     (unless found
-      (cerror 'simple-package-error "INTERN it."
+      (cerror "INTERN it." 'simple-package-error
 	      :format-control "Cannot find symbol ~S in package ~S"
 	      :format-arguments (list name package)
 	      :package package)
