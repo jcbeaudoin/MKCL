@@ -2109,6 +2109,8 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
 
   {{KEY_ "STOPPED", KEYWORD, NULL, -1, MKCL_OBJNULL}},
 
+  {{MKCL_EXT_ "DEFAULT-MODULE-PROVIDER", MKCL_EXT_ORDINARY, NULL, -1, MKCL_OBJNULL}},
+
   /* Tag for end of list!
      This entry, with a first field of NULL value,
      must be the very last of this array.
