@@ -2,7 +2,7 @@
 ;;;;
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
-;;;;  Copyright (c) 2012, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2012-2016, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -13,7 +13,7 @@
 
 ;;;;	module routines
 
-;; This is taken from SBCL's code/module.lisp which is in the public
+;; Parts of this were originally taken from SBCL's code/module.lisp which is in the public
 ;; domain.
 
 (in-package "SYSTEM")
@@ -75,19 +75,22 @@ module."
 	       )))
       (set-difference *modules* saved-modules))))
 
-(pushnew #'(lambda (module)
-	     (flet ((try-load (path)
-		      (handler-case
-		       (load path :if-does-not-exist nil)
-		       ((and condition (not warning)) (condition)
-			 (error "Error loading file: ~A, Condition: ~A" path condition)))))
-	       (let* ((sysdir (translate-logical-pathname #P"SYS:"))
-		      (contribdir (translate-logical-pathname #P"CONTRIB:"))
-		      (module (string module)))
-		 (or
-		  (try-load (merge-pathnames (make-pathname :name module) sysdir))
-		  (try-load (merge-pathnames (make-pathname :name (string-downcase module)) sysdir))
-		  (try-load (merge-pathnames (make-pathname :name module) contribdir))
-		  (try-load (merge-pathnames (make-pathname :name (string-downcase module)) contribdir))
-		  ))))
-	 mkcl:*module-provider-functions*)
+
+(defun mkcl:default-module-provider (module)
+  (flet ((try-load (path)
+                   (handler-case
+                    (load path :if-does-not-exist nil)
+                    ((and condition (not warning)) (condition)
+                     (error "Error loading file: ~A, Condition: ~A" path condition)))))
+    (let* ((sysdir (translate-logical-pathname #P"SYS:"))
+           (contribdir (translate-logical-pathname #P"CONTRIB:"))
+           (module (string module)))
+      (or
+       (try-load (merge-pathnames (make-pathname :name module) sysdir))
+       (try-load (merge-pathnames (make-pathname :name (string-downcase module)) sysdir))
+       (try-load (merge-pathnames (make-pathname :name module) contribdir))
+       (try-load (merge-pathnames (make-pathname :name (string-downcase module)) contribdir))
+       ))))
+
+(pushnew #'mkcl:default-module-provider mkcl:*module-provider-functions*)
+
