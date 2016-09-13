@@ -24,7 +24,7 @@
 ;;;
 (build-module "bytecmp"
               '("../contrib/bytecmp/bytecmp.lsp")
-              :dir "./ext/" #|:prefix "EXT"|#
+              :destdir "./ext/" #|:prefix "EXT"|#
 	      )
 
 ;;;
@@ -32,7 +32,7 @@
 ;;;
 (build-module "defsystem"
               '("../contrib/defsystem/defsystem.lisp")
-              :dir "./ext/" #|:prefix "EXT"|#
+              :destdir "./ext/" #|:prefix "EXT"|#
 	      )
 
 ;;;
@@ -41,7 +41,7 @@
 (build-module "asdf"
               '("../contrib/asdf/asdf.lisp"
 		"../contrib/asdf/asdf-mkcl.lisp")
-              :dir "./ext/" #|:prefix "EXT"|#
+              :destdir "./ext/" #|:prefix "EXT"|#
 	      )
 
 ;;;
@@ -49,7 +49,7 @@
 ;;;
 (build-module "profile"
               '("../contrib/profile/profile.lisp")
-              :dir "./ext/" #|:prefix "EXT"|#
+              :destdir "./ext/" #|:prefix "EXT"|#
 	      )
 
 ;;;
@@ -58,17 +58,17 @@
 (build-module "sockets"
 	      '("../contrib/sockets/package.lisp"
 		"../contrib/sockets/sockets.lisp")
-	      :dir "./ext/" #|:prefix "EXT"|#
+	      :destdir "./ext/" #|:prefix "EXT"|#
 	      )
 
 (build-module "serve-event"
 	      '("../contrib/serve-event/serve-event.lisp")
-	      :dir "./ext/" #|:prefix "EXT"|#
+	      :destdir "./ext/" #|:prefix "EXT"|#
 	      )
 
 ;;;
 ;;; * Test suite
 ;;;
-(build-module "rt" '("../contrib/rt/rt.lisp") :dir "./ext/" #|:prefix "EXT"|#)
+(build-module "rt" '("../contrib/rt/rt.lisp") :destdir "./ext/" #|:prefix "EXT"|#)
 
 (mkcl:quit :exit-code 0) ;; signal to "make" that all is well.

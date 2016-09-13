@@ -20,7 +20,7 @@
 
 ;;(setq compiler::*trace-cc* t)
 
-(load "asdf.fasb")
+(load "ext/asdf.fasb")
 
 #+asdf2
 (let* ((current-dir (mkcl:getcwd))

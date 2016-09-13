@@ -23,7 +23,7 @@
 
 ;;(setq compiler::*trace-cc* t)
 
-(load "asdf2.fasb") ;; load the local ASDF 2.
+(load "ext/asdf2.fasb") ;; load the local ASDF 2.
 
 ;; Let's get rid of the compiler output cache!
 (asdf:disable-output-translations)

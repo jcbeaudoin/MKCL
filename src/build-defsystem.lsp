@@ -25,7 +25,7 @@
 ;;;
 (build-module "defsystem"
               '("../contrib/defsystem/defsystem.lisp")
-              :dir "./ext/" #|:prefix "EXT"|#
+              :destdir "./ext/" #|:prefix "EXT"|#
 	      )
 
 

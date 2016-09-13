@@ -22,7 +22,7 @@
 
 (build-module "serve-event"
 	      '("../contrib/serve-event/serve-event.lisp")
-	      :dir "./ext/" #|:prefix "EXT"|#
+	      :destdir "./ext/" #|:prefix "EXT"|#
 	      )
 
 (mkcl:quit :exit-code 0) ;; signal to "make" that all is well.

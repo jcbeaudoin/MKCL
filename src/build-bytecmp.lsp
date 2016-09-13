@@ -26,7 +26,7 @@
 ;;;
 (build-module "bytecmp"
               '("../contrib/bytecmp/bytecmp.lsp")
-              :dir "./ext/" #|:prefix "EXT"|#
+              :destdir "./ext/" #|:prefix "EXT"|#
 	      )
 
 

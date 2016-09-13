@@ -21,7 +21,7 @@
 ;;;
 ;;; * Test suite
 ;;;
-(build-module "rt" '("../contrib/rt/rt.lisp") :dir "./ext/" #|:prefix "EXT"|#)
+(build-module "rt" '("../contrib/rt/rt.lisp") :destdir "./ext/" #|:prefix "EXT"|#)
 
 (mkcl:quit :exit-code 0) ;; signal to "make" that all is well.
 

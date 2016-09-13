@@ -18,8 +18,8 @@
 
 (load "compile-utils" :external-format '(:ascii :lf))
 
-(build-module "cmp/cmp" +cmp-module-files+ 
-	      :dir (pathname "./cmp/")
+(build-module "cmp" +cmp-module-files+ 
+	      :destdir (pathname "./cmp/")
 	      )
 
 (mkcl:quit :exit-code 0) ;; signal to "make" that all is well.

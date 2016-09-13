@@ -35,7 +35,7 @@
 (mkcl:setenv "ASDF_OUTPUT_TRANSLATIONS" nil)
 (mkcl:setenv "CL_SOURCE_REGISTRY" nil)
 
-(load "asdf.fasb") ;; load the local one.
+(load "ext/asdf.fasb") ;; load the local one.
 
 ;;(push '(mkcl:getcwd) asdf:*central-registry*) ;; ASDF 1 old style
 
@@ -53,7 +53,7 @@
 
   (asdf::clear-source-registry)
   (asdf::initialize-source-registry `(:source-registry (:directory ,(namestring sys-dir))
-                                                       (:directory ,(namestring current-dir))
+                                                       (:directory ,(namestring target-dir))
                                                        :ignore-inherited-configuration))
   (asdf::clear-output-translations)
   (asdf::initialize-output-translations `(:output-translations
