@@ -286,6 +286,19 @@ cmp/cmpdefs.lsp: cmp/cmpdefs.pre
 cmp/cmpdefs.pre: cmp/cmpdefs.lsp.in config.status
 	./config.status
 
+lsp/git_describe.lsp: FORCE
+	@./git_describe_this_mkcl.sh >lsp/git_describe.lsp.new
+	@if [ ! -f lsp/git_describe.lsp ]; then \
+	     echo Created a new lsp/git_describe.lsp; \
+             mv lsp/git_describe.lsp.new lsp/git_describe.lsp; \
+	elif ! cmp -s lsp/git_describe.lsp.new lsp/git_describe.lsp; then \
+	     echo Updated lsp/git_describe.lsp; \
+	     mv lsp/git_describe.lsp.new lsp/git_describe.lsp; \
+	else rm lsp/git_describe.lsp.new; fi
+
+FORCE:
+
+
 compile.lsp: compile.pre bare.lsp lsp/load.lsp clos/load.lsp cmp/load.lsp
 	sed -e 's,@mkcldir\\@,$(mkcldir),g' \
 	    -e 's,@libdir\\@,$(libdir),g' < compile.pre > compile.lsp

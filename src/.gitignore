@@ -25,3 +25,4 @@ encodings/
 include/
 lib/
 .gdbinit
+lsp/git_describe.lsp

@@ -121,6 +121,7 @@
   "./lsp/mp.lsp"
   "./lsp/config.lsp"
   "./lsp/cmdline.lsp"
+  "./lsp/git_describe.lsp"
 ))
 
 (mapc #'(lambda (x)
