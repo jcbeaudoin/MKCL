@@ -19,33 +19,19 @@
 
 (load "compile-utils" :external-format '(:ascii :lf))
 
-(setq cl:*compile-verbose* t cl:*load-verbose* t)
+;;(setq cl:*compile-verbose* t cl:*load-verbose* t)
 
 ;;(setq compiler::*trace-cc* t)
 
-(load "ext/asdf2.fasb") ;; load the local ASDF 2.
-
-;; Let's get rid of the compiler output cache!
-(asdf:disable-output-translations)
-
-(setq asdf::*asdf-verbose* nil)
-;; If you want to watch ASDF 2 activity uncomment this.
-;;(setq asdf::*verbose-out* t)
-
-
-(let ((asdf:*central-registry* (cons (make-pathname :directory '(:relative "asdf2-bundle")
-						    :defaults (translate-logical-pathname #P"CONTRIB:"))
-				     asdf:*central-registry*)))
-  (asdf::clear-system :asdf2-bundle) ;; we hope to force a reload.
-  (multiple-value-bind (result bundling-error)
-      (ignore-errors (asdf:oos 'asdf:compile-op :asdf2-bundle :force t))
-    (unless result
-      (format *error-output*
-	      "~&ASDF failed to load package asdf2-bundle! Reason is: ~S ~A.~%"
-	      bundling-error
-	      bundling-error)
-      (mkcl:quit :exit-code 1)
-      )))
+(multiple-value-bind (result bundling-error)
+    (ignore-errors (load "ext/asdf2.fasb")) ;; load the local ASDF 2 which in turn load/build asdf2-bundle.
+  (unless result
+    (format *error-output*
+            "~&ASDF failed to load package asdf2-bundle! Reason is: ~S ~A.~%"
+            bundling-error
+            bundling-error)
+    (mkcl:quit :exit-code 1)
+    ))
 
 (mkcl:quit :exit-code 0)
 

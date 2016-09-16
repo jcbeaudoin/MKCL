@@ -4522,7 +4522,9 @@ with a different configuration, so the configuration would be re-read then."
 
 #+mkcl
 (handler-case
-    (progn
+    (let ((*output-translations-parameter* *output-translations-parameter*)
+          (*output-translations* *output-translations*))
+      (disable-output-translations)
       (load-sysdef "asdf2-bundle"
                    (subpathname (translate-logical-pathname #P"CONTRIB:")
                                 "asdf2-bundle/asdf2-bundle.asd"))
