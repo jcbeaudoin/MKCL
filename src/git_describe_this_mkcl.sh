@@ -1,7 +1,9 @@
 #!/bin/sh
 
 #
-# The original parts of this script came from SBCL 1.3.9 and is believed to be in the public domain.
+# The original parts of this script came from 
+# script generate-version.sh of SBCL 1.3.9
+# and is believed to be in the public domain.
 #
 
 #set -x # debug
@@ -18,7 +20,7 @@ git_available_p() {
 
 if [ -z "$(git_available_p)" ]
 then
-    # Relase tarball.
+    # Release tarball.
     echo "(defun mkcl::git-describe-this-mkcl () nil)"
     exit 0
 fi
@@ -46,7 +48,10 @@ else
 fi
 version_base=`git rev-parse "$version_root"`
 version_tag=`git describe --tags --match="v*" --abbrev=0 $version_base`
-version_release=`echo $version_tag | sed -e 's/v//' | sed -e 's/_/\./g'`
+
+# Original SBCL code: version_release=`echo $version_tag | sed -e 's/v//' | sed -e 's/_/\./g'`
+version_release=${version_tag#v}; #version_release=${version_release//_/.}
+
 # Using wc -l instead of --count argument to rev-list because
 # pre-1.7.2 Gits are still common out in the wilderness.
 version_n_root=`git rev-list $version_base --not $version_tag | wc -l | sed -e 's/[ \t]//g'`
