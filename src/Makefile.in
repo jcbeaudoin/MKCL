@@ -111,7 +111,7 @@ mkcl/config.h: mkcl/config.h.in config.status
 	touch mkcl/config.h
 
 
-bin/mkcl-small$(EXE) lsp.a $(LSP_LIBRARIES) encodings: compile.lsp lsp/config.lsp cmp/cmpdefs.lsp lsp/*.lsp clos/*.lsp cmp/*.lsp mkcl/mkcl-cmp.h mkcl/config.h BUILD-STAMP mkcl_min$(EXE) mkcltop.@LIBEXT@
+bin/mkcl-small$(EXE) lsp.a $(LSP_LIBRARIES) encodings: lsp/git_describe.lsp compile.lsp lsp/config.lsp cmp/cmpdefs.lsp lsp/*.lsp clos/*.lsp cmp/*.lsp mkcl/mkcl-cmp.h mkcl/config.h BUILD-STAMP mkcl_min$(EXE) mkcltop.@LIBEXT@
 	./mkcl_min$(EXE) compile
 	for i in $(LSP_LIBRARIES) ; do \
 	  if test -s $$i ; then \
