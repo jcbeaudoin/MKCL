@@ -170,6 +170,7 @@ ext/walker.fasb ext/walker.a: bin/mkcl-small$(EXE) ext-dir-exists build-walker.l
 
 
 ../contrib/asdf2-bundle/asdf2-bundle.fas: bin/mkcl-small$(EXE) build-asdf2-bundle.lsp cmp/cmp.fasb compile-utils.lsp ext/asdf2.fasb ../contrib/asdf2-bundle/*.lisp
+	$(RM) ../contrib/asdf2-bundle/asdf2-bundle.fas # something said it had to be remade but ASDF may not agree, so force it.
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf2-bundle.lsp
 
 
@@ -327,9 +328,11 @@ bin/mkcl-config.pre: util/mkcl-config config.status
 
 mkclmin.@LIBEXT@: depend c/*.d mkcl/*.h c/arch/*.d
 	cd c; $(MAKE) ../mkclmin.@LIBEXT@
+	touch $@
 
 mkcltop.@LIBEXT@: depend c/main.d c/all_symbols.d c/symbols_list.h
 	cd c; $(MAKE) ../mkcltop.@LIBEXT@
+	touch $@
 
 gc/.libs/@LIBPREFIX@gc.@LIBEXT@: gc/*.c gc/include/*.h gc/include/*/*.h
 	cd gc; $(MAKE)
