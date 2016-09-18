@@ -145,7 +145,7 @@ the function name it precedes."
 	   (declare (ignore c))
 	   (case kind
 	     (:object "")
-             (:program "exe_")
+             ((:program :static-program) "exe_")
 	     ((:fasl :fas) "fas_")
 	     ((:library :shared-library :dll :static-library :lib) "lib_")
 	     (otherwise (error "Not a valid argument to INIT-FUNCTION-NAME: kind = ~S"
