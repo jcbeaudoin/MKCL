@@ -21,7 +21,7 @@ srcdir	= @srcdir@
 
 @SET_MAKE@
 CC	= @MKCL_CC@
-LIBS	= @TCP_LIBS@ @LIBS@
+LIBS	= @LIBS@ @TCP_LIBS@ @CORE_OS_LIBS@
 LDFLAGS	= @LDFLAGS@
 RM	= @RM@
 LN_S	= @LN_S@

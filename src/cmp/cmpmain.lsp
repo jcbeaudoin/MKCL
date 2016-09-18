@@ -79,12 +79,12 @@
     (case target-type
       ((:fasl :fas) (setq format "~a.fas" extension "fas"))
       (:fasb (setq format "~a.fasb" extension "fasb"))
-      (:program (setq format +executable-file-format+ extension #+unix "" #+windows "exe"))
+      ((:program :static-program) (setq format +executable-file-format+ extension #+unix "" #+windows "exe"))
       ((:shared-library :dll) (setq format +shared-library-format+ extension +shared-library-extension+))
       ((:static-library :library :lib) (setq format +static-library-format+ extension +static-library-extension+))
       #+msvc
       (:import-library (setq format "~a.implib" extension "implib"))
-      (t (error "In builder-internal-pathname. Do not know how to handler file type: ~S" type))
+      (t (error "In builder-internal-pathname. Do not know how to handle target type: ~S" target-type))
       )
     (if (or #+unix (string= type extension) #+windows (string-equal type extension))
 	pathspec
@@ -154,15 +154,46 @@
     #-mkcl-bootstrap
     (unless mkcl-shared (setq mkcl-libdir (mkcl:bstr+ mkcl-libdir "mkcl-" (si:mkcl-version) "/")))
     (dolist (lib mkcl-libraries)
-      (push (mkcl:bstr+ "\"" mkcl-libdir lib "\" ") out)
-      )
-    (unless external-shared
-      (push "-Wl,-Bstatic " out)
-      )
-    (push *external-ld-flags* out)
-    (apply #'concatenate 'base-string (nreverse out))
-    )
-  )
+      (push (mkcl:bstr+ "\"" mkcl-libdir lib "\" ") out))
+
+    (if external-shared
+        (push *syslibs-&-ld-flags-tail* out)
+      ;;(push "-Wl,-Bstatic -lgmp -lrt -lm -Wl,-Bdynamic -pthread -ldl " out)
+      (push *static-syslibs-&-ld-flags-tail* out))
+
+    (apply #'concatenate 'base-string (nreverse out))))
+
+(defun libs-ld-flags-for-static-program (libraries)
+  (let (out)
+    (dolist (lib-set (si:dyn-list libraries ffi::*referenced-libraries*))
+      (dolist (lib-spec lib-set)
+	(if (pathnamep lib-spec)
+	    (push (mkcl:str+ (namestring lib-spec) " ") out)
+	  (let ((lib-spec-as-path (pathname lib-spec)))
+	    (if (or (pathname-directory lib-spec-as-path) (pathname-type lib-spec-as-path))
+		(push (mkcl:str+ (namestring lib-spec-as-path) " ") out)
+	      (push (mkcl:str+ "-l" lib-spec " ") out))))))
+
+    (let ((mkcl-libdir (namestring (mkcl-library-directory))))
+      (setq mkcl-libdir (mkcl:bstr+ mkcl-libdir "mkcl-" (si:mkcl-version) "/"))
+      (dolist (lib *mkcl-static-libs*)
+        (push (mkcl:bstr+ "\"" mkcl-libdir lib "\" ") out)))
+
+    (push *static-program-ld-flags-tail* out)
+
+    (apply #'concatenate 'base-string (nreverse out))))
+
+(defun link-static-program (out-pathname extra-ld-flags o-files libraries &optional (working-directory "."))
+  (run-command (format nil
+		       *ld-format*
+		       *ld*
+		       out-pathname
+		       (or extra-ld-flags "")
+		       o-files
+		       *static-program-ld-flags*
+		       (libs-ld-flags-for-static-program libraries)
+		       )
+	       (namestring working-directory)))
 
 (defun link-program (out-pathname extra-ld-flags o-files libraries mkcl-shared external-shared &optional (working-directory "."))
   (run-command (format nil
@@ -578,7 +609,7 @@ filesystem or in the database of ASDF modules."
 
 (defvar *builder-default-libraries* nil)
 
-(defun builder (target output-name
+(defun builder (target output-name &rest key-args
 		       &key
 		       lisp-object-files
 		       object-files
@@ -589,7 +620,9 @@ filesystem or in the database of ASDF modules."
 		       (use-external-shared-libraries t)
 		       #+windows (subsystem :console) ;; only for :program target on :windows
 		       (prologue-code "" prologue-p)
-		       (epilogue-code (when (and (eq target :program) #+windows (eq subsystem :console)) '(SI::TOP-LEVEL)))
+		       (epilogue-code (when (and (or (eq target :program) (eq target :static-program))
+                                                 #+windows (eq subsystem :console))
+                                        '(SI::TOP-LEVEL)))
 		       &aux
 		       (*builder-to-delete* nil)
 		       output-internal-name
@@ -598,8 +631,9 @@ filesystem or in the database of ASDF modules."
 		       (cwd mkcl:*current-working-directory*)
 		       (*suppress-compiler-messages* (or *suppress-compiler-messages*
 							 (not *compile-verbose*))))
-
-;;(format t "~&In compiler::builder: target= ~S, output-name= ~S, lisp-object-files= ~S, object-files= ~S, extra-ld-flags= ~S.~%" target output-name lisp-object-files object-files extra-ld-flags)
+  (declare (ignorable key-args))
+  ;;(format t "~&In compiler::builder: target= ~S,~%  output-name= ~S,~%  key-args= ~S.~%" target output-name key-args) ;; debug
+  ;;(finish-output) ;; debug JCB
 
   (when *suppress-compiler-notes*
     (setf *suppress-compiler-messages*
@@ -614,7 +648,8 @@ filesystem or in the database of ASDF modules."
   ;; clean up, and the lisp form is stored in a text representation,
   ;; to avoid using the compiler.
   ;;
-  (multiple-value-setq (epilogue-code epilogue-p) (build-full-epilogue epilogue-code (eq target :program)))
+  (multiple-value-setq (epilogue-code epilogue-p)
+    (build-full-epilogue epilogue-code (or (eq target :program) (eq target :static-program))))
   (when (null prologue-code) (setq prologue-code "" prologue-p nil))
   (unless (stringp prologue-code)
     (error ";;; MKCL In compiler::builder, Keyword argument :prologue-code is not a string, invalid value is: ~S" prologue-code))
@@ -671,12 +706,12 @@ filesystem or in the database of ASDF modules."
 	  (multiple-value-setq (submodules object-files)
 	    (collect-submodule-initializers lisp-object-files object-files))
 	  
-	  (if (or (eq target :program) prologue-p epilogue-p) 
+	  (if (or (eq target :program) (eq target :static-program) prologue-p epilogue-p) 
 	      (build-init-c-file-header :full c-file output-internal-name submodules)
 	    (build-init-c-file-header :fast c-file output-internal-name submodules))
 	  
 	  (ecase target
-	    (:program
+	    ((:program :static-program)
 	     (format c-file +lisp-program-init+ init-name "" submodules "")
 	     (format c-file #+windows (ecase subsystem
                                              (:console +lisp-program-main+)
@@ -690,8 +725,13 @@ filesystem or in the database of ASDF modules."
 	     (ecase subsystem
 		    (:console (push "-mconsole" object-files))
 		    (:windows (push "-mwindows" object-files)))
-	     (link-program output-internal-name extra-ld-flags (cons (namestring o-pathname) object-files)
-			   libraries use-mkcl-shared-libraries use-external-shared-libraries cwd))
+             (if (eq target :static-program)
+                 (link-static-program output-internal-name extra-ld-flags
+                                      (cons (namestring o-pathname) object-files)
+                                      libraries cwd)
+               (link-program output-internal-name extra-ld-flags
+                             (cons (namestring o-pathname) object-files)
+                             libraries use-mkcl-shared-libraries use-external-shared-libraries cwd)))
 	    ((:static-library :library :lib)
 	     (let ((output-filename output-internal-name))
 	       (format c-file +lisp-program-init+ init-name prologue-code submodules epilogue-code)
@@ -764,15 +804,18 @@ filesystem or in the database of ASDF modules."
 		      (return-from build-bundle))))
    (apply #'builder :fasb args)))
 
-(defun build-program (&rest args)
+(defun build-program (output-name &rest args &key (all-static-program nil a-s-p-p) &allow-other-keys)
   (declare (dynamic-extent args))
+  (when a-s-p-p (remf args :all-static-program)) ;; handle here, don't pass down.
   (handler-bind (((and condition (not style-warning))
 		  #'(lambda (condition)
 		      (format t "~&build-program failed: ~A~%" condition)
 		      (when *compiler-break-enable*
 			(invoke-debugger condition))
 		      (return-from build-program))))
-   (apply #'builder :program args)))
+   (if all-static-program
+       (apply #'builder :static-program output-name args)
+     (apply #'builder :program output-name args))))
 
 (defun build-static-library (&rest args)
   (declare (dynamic-extent args))

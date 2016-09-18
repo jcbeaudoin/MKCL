@@ -168,7 +168,7 @@ the function name it precedes."
        (init-function-name (remove-prefix +static-library-prefix+ filename) :kind :lib))
       ((:shared-library :dll)
        (init-function-name (remove-prefix +shared-library-prefix+ filename) :kind :dll))
-      ((:program)
+      ((:program :static-program)
        "mkcl_init_PROGRAM")
       (otherwise
        (error "COMPILER::BUILDER cannot accept files of kind ~s" kind)))))

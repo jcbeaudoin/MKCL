@@ -295,6 +295,7 @@ AC_SUBST(LSP_LIBRARIES)         dnl Libraries produced by lisp translator
 dnl AC_SUBST(LSP_FEATURES, ['*features*']) dnl Symbols to add to *FEATURES* for conditional compilation
 AC_SUBST(LSP_FEATURES, [])      dnl Symbols to add to *FEATURES* for conditional compilation
 AC_SUBST(TCP_LIBS)
+AC_SUBST(CORE_OS_LIBS)
 
 
 dnl -----------------------------------------------------------------------
@@ -338,7 +339,7 @@ fi
 dnl =====================================================================
 dnl Checks for libraries
 
-LIBS="${LIBS} -lm"
+LIBS="-lm ${LIBS}"
 AC_CHECK_LIB(sun, getpwnam)         # on IRIX adds -lsun
 AC_ISC_POSIX
 
@@ -361,7 +362,7 @@ if test "${enable_threads}" = "yes" ; then
     boehm_configure_flags="${boehm_configure_flags} ${THREAD_GC_FLAGS}"
     boehm_configure_flags="${boehm_configure_flags} --enable-parallel-mark"
     EXTRA_OBJS="${EXTRA_OBJS} ${THREAD_OBJ}.${OBJEXT}"
-    LIBS="${THREAD_LIBS} ${LIBS}"
+    LIBS="${LIBS} ${THREAD_LIBS}"
     CFLAGS="${CFLAGS} ${THREAD_CFLAGS}"
     AC_DEFINE( [MKCL_THREADS], [1], [Userland threads?])
     if test "${with___thread}" = "auto"; then

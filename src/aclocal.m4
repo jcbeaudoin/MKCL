@@ -204,7 +204,8 @@ THREAD_LIBS=''
 THREAD_GC_FLAGS='--enable-threads=posix'
 INSTALL_TARGET='install'
 THREAD_OBJ='threads'
-clibs=''
+#clibs=''
+CORE_OS_LIBS=''
 SONAME=''
 SONAME_LDFLAGS=''
 case "${host_os}" in
@@ -212,11 +213,12 @@ case "${host_os}" in
 	linux*)
 		thehost='linux'
 		THREAD_CFLAGS='-pthread'
-		THREAD_LIBS='-pthread -lrt'
+		THREAD_LIBS='-lrt'
 		SHARED_LDFLAGS="-shared ${LDFLAGS}"
 		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
 		LDRPATH='-Wl,--rpath,~A'
-		clibs="-ldl"
+		#clibs="-ldl"
+		CORE_OS_LIBS="-pthread -ldl"
 		CFLAGS="-D_GNU_SOURCE -fno-strict-aliasing ${CFLAGS}"
 		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
@@ -228,7 +230,8 @@ case "${host_os}" in
 		SHARED_LDFLAGS="-shared ${LDFLAGS}"
 		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
 		LDRPATH='-Wl,--rpath,~A'
-		clibs="-ldl"
+		#clibs="-ldl"
+		CORE_OS_LIBS="-pthread -ldl"
 		CFLAGS="-D_GNU_SOURCE ${CFLAGS}"
 		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
@@ -240,7 +243,8 @@ case "${host_os}" in
 		SHARED_LDFLAGS="-shared ${LDFLAGS}"
 		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
 		LDRPATH='-Wl,--rpath,~A'
-		clibs="-ldl"
+		#clibs="-ldl"
+		CORE_OS_LIBS="-pthread -ldl"
 		CFLAGS="-D_GNU_SOURCE ${CFLAGS}"
 		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
@@ -253,6 +257,7 @@ case "${host_os}" in
 		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
 		LDRPATH="-Wl,--rpath,~A"
 		clibs=""
+                CORE_OS_LIBS="-pthread"
 		CFLAGS="-D_GNU_SOURCE -fno-strict-aliasing ${CFLAGS}"
 		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
@@ -263,7 +268,8 @@ case "${host_os}" in
 		SHARED_LDFLAGS="-shared ${LDFLAGS}"
 		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
 		LDRPATH="-Wl,--rpath,~A"
-		clibs=""
+		#clibs=""
+                CORE_OS_LIBS=""
 		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
@@ -274,7 +280,8 @@ case "${host_os}" in
 		SHARED_LDFLAGS="-shared ${LDFLAGS}"
 		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
 		LDRPATH="-Wl,--rpath,~A"
-		clibs=""
+		#clibs=""
+                CORE_OS_LIBS=""
 		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
@@ -284,7 +291,8 @@ case "${host_os}" in
 		BUNDLE_LDFLAGS="-dy -G ${LDFLAGS}"
 		LDRPATH='-Wl,-R,~A'
 		TCP_LIBS='-lsocket -lnsl -lintl'
-		clibs='-ldl'
+		#clibs='-ldl'
+		CORE_OS_LIBS='-ldl'
 		;;
 	cygwin*)
 		thehost='cygwin'
@@ -299,7 +307,8 @@ case "${host_os}" in
 		;;
 	mingw*)
 		thehost='mingw32'
-		clibs=''
+		#clibs=''
+		CORE_OS_LIBS=''
 		shared='yes'
 		CFLAGS="-fno-strict-aliasing ${CFLAGS}"
 		THREAD_CFLAGS='-mthreads -D_MT'
@@ -354,7 +363,8 @@ case "${host_os}" in
 		SHARED_LDFLAGS="-shared ${LDFLAGS}"
 		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
 		LDRPATH='-Wld=\"-rld_l ~A\"'
-		clibs="-Wld=-lrld"
+		#clibs="-Wld=-lrld"
+		CORE_OS_LIBS="-Wld=-lrld"
 		;;
 	*)
 		thehost="$host_os"
@@ -379,9 +389,10 @@ else
 shared="no";
 AC_MSG_RESULT(cannot build)
 fi
-LIBS="${clibs} ${LIBS}"
+#LIBS="${clibs} ${LIBS}"
 AC_MSG_CHECKING(for required libraries)
-AC_MSG_RESULT([${clibs}])
+#AC_MSG_RESULT([${clibs}])
+AC_MSG_RESULT([${CORE_OS_LIBS}])
 AC_MSG_CHECKING(for architecture)
 ARCHITECTURE=`echo "${host_cpu}" | tr a-z A-Z` # i386 -> I386
 AC_MSG_RESULT([${ARCHITECTURE}])
