@@ -158,7 +158,6 @@
 
     (if external-shared
         (push *syslibs-&-ld-flags-tail* out)
-      ;;(push "-Wl,-Bstatic -lgmp -lrt -lm -Wl,-Bdynamic -pthread -ldl " out)
       (push *static-syslibs-&-ld-flags-tail* out))
 
     (apply #'concatenate 'base-string (nreverse out))))

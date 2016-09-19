@@ -496,8 +496,7 @@ coprocessor).")
 (defvar *mkcl-static-libs* (list* "mkcltop.a" "lsp.a" "mkclmin.a" *support-libraries*))
 
 (defvar *syslibs-&-ld-flags-tail* "@LDFLAGS@ @LIBS@ @TCP_LIBS@ @CORE_OS_LIBS@ ")
-(defvar *static-syslibs-&-ld-flags-tail* "-Wl,-Bstatic -lgmp -lm -lrt -Wl,-Bdynamic -pthread -ldl "
-  #-(and) "@LDFLAGS@ -Wl,-Bstatic @LIBS@ @TCP_LIBS@ -Wl,-Bdynamic @CORE_OS_LIBS@ ")
+(defvar *static-syslibs-&-ld-flags-tail* "@LDFLAGS@ -Wl,-Bstatic @LIBS@ @TCP_LIBS@ -Wl,-Bdynamic @CORE_OS_LIBS@ ")
 (defvar *static-program-ld-flags-tail* "@LDFLAGS@ @LIBS@ @TCP_LIBS@ @CORE_OS_LIBS@")
 
 (defvar *shared-ld-flags* "@SHARED_LDFLAGS@")
