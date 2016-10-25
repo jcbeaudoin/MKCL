@@ -250,14 +250,17 @@
   )
 
 (defun compiler-cc (c-pathname o-pathname &optional (working-directory "."))
-  (run-command (format nil
-		       *cc-format*
-		       *cc* *cc-flags* (>= (cmp-env-optimization 'speed) 2) *cc-optimize*
-		       (preserve-escapes (namestring (mkcl-include-directory)))
-		       c-pathname
-		       o-pathname
-		       )
-	       (namestring working-directory)))
+  (let* ((fast-compile-p (>= (cmp-env-optimization 'compilation-speed) 3))
+	 (cc (if fast-compile-p *fast-compile-cc* *cc*))
+	 (cc-flags (if fast-compile-p *fast-compile-cc-flags* *cc-flags*)))
+    (run-command (format nil
+			 *cc-format*
+			 cc cc-flags (>= (cmp-env-optimization 'speed) 2) *cc-optimize*
+			 (preserve-escapes (namestring (mkcl-include-directory)))
+			 c-pathname
+			 o-pathname
+			 )
+		 (namestring working-directory))))
 
 
 (defconstant +lisp-program-full-header+ "~

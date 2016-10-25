@@ -344,7 +344,7 @@ typedef unsigned @CL_FIXNUM_TYPE@ mkcl_hashkey;
 #elif defined(__i386) || defined(__x86_64)
 # ifdef _MSC_VER
 #  define mkcl_detect_fpe() __asm fwait
-# elif defined(__GNUC__)
+# elif defined(__GNUC__) || defined(__TINYC__)
 #  define mkcl_detect_fpe() asm("fwait")
 # else
 #  error "Macro mkcl_detect_fpe() is not defined for this architecture."

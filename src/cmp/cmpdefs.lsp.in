@@ -462,6 +462,8 @@ One can set the variable appropriately adding for instance flags which the
 C compiler may need to exploit special hardware features (e.g. a floating point
 coprocessor).")
 
+(defvar *fast-compile-cc* "tcc")
+
 (defvar *ld* (or #+(or mingw32 mingw64)
 		 (let ((cc-path #P"@MKCL_CC@"))
 		   (if (pathname-directory cc-path)
@@ -479,6 +481,8 @@ coprocessor).")
 "This variable controls the library conditioner which is used by MKCL.")
 
 (defvar *cc-flags* "@CPPFLAGS@ @CFLAGS@ @MKCL_CFLAGS@ ")
+
+(defvar *fast-compile-cc-flags* *cc-flags*)
 
 (defvar *cc-optimize* #-msvc ""
                       #+msvc "@CFLAGS_OPTIMIZE@")

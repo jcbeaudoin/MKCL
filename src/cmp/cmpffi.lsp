@@ -469,22 +469,35 @@
 (defun produce-inline-loc (inlined-arguments arg-types output-rep-type
 			   c-expression side-effects one-liner)
   (let* (args-to-be-saved
-	 coerced-arguments)
+	 coerced-arguments
+	 (max-ndx (length c-expression)))
     ;; If the expression begins with @[0-9a-z]*, this means we are
     ;; saving some variables.
     (when (and (> (length c-expression) 1)
-	       (eq (char c-expression 0) #\@))
+	       (char= (char c-expression 0) #\@))
+      ;;(format t "~&  In produce-inline-loc: about to scan c-expression: ~S~%" c-expression) ;; debug JCB
       (do ((ndx 1 (1+ ndx)))
-	  ((>= ndx (length c-expression)))
+	  ((>= ndx max-ndx))
 	(let ((c (char c-expression ndx)))
-	  (when (eq c #\;)
+	  (declare (notinline alphanumericp))
+	  ;;(format t "~&  In produce-inline-loc: found ~S at ndx = ~S~%" c ndx) ;; debug JCB
+	  (when (char= c #\;)
 	    (setf c-expression (subseq c-expression (1+ ndx)))
 	    (return))
+	  #+(and)
 	  (unless (alphanumericp c)
+	    (format t "~&  In produce-inline-loc: alphanumericp fails on ~S at ndx = ~S~%" c ndx) ;; debug JCB
+	    (finish-output)
 	    (setf args-to-be-saved nil)
 	    (return))
 	  (push (- (char-code c) (char-code #\0))
-		args-to-be-saved))))
+		args-to-be-saved)))
+
+      ;;(format t "~&  In produce-inline-loc after scan: args-to-be-saved ~S c-expression: ~S~%"
+      ;;      args-to-be-saved c-expression) ;; debug JCB
+      ;;(finish-output)
+
+      )
 
     (setf coerced-arguments (coerce-locs inlined-arguments arg-types args-to-be-saved))
 
@@ -601,6 +614,8 @@
 			  (cmperr "Used @(RETURN ~D) in a C-INLINE form with ~D output values"
 				  ndx l)))))
 		 (t
+                  ;;(format t "~&  In wt-c-inline-loc: using @ option on object ~S with c-code: ~S" object c-expression) ;; debug JCB
+                  ;;(finish-output)
 		  (when (and (consp object) (eq (first object) 'QUOTE))
 		    (setq object (second object)))
 		  (wt (add-object object :permanent t))))))

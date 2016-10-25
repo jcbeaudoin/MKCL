@@ -359,7 +359,6 @@ make_this_symbol(MKCL, int i, mkcl_object s, int code, const char *name,
   default: mkcl_lose(env, "Unknown package in make_this_symbol");
   }
   s->symbol.t = mkcl_t_symbol;
-  s->symbol.dynamic = 0;
   s->symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;
   MKCL_SET(s, MKCL_OBJNULL);
   MKCL_SYM_FUN(s) = mk_cl_Cnil;

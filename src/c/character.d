@@ -152,7 +152,7 @@ mk_cl_alphanumericp(MKCL, mkcl_object c)
 {
   mkcl_call_stack_check(env);
   /* INV: mkcl_char_code() checks type of `c' */
-  mkcl_word i = mkcl_char_code(env, c);
+  mkcl_character i = mkcl_char_code(env, c);
   @(return (mkcl_alphanumericp(i) ? mk_cl_Ct : mk_cl_Cnil));
 }
 

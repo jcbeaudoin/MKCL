@@ -289,7 +289,7 @@ extern "C" {
 #define MKCL_NOT_A_SPECIAL_INDEX (~((mkcl_index)0))
 
   struct mkcl_symbol {
-    MKCL_HEADER4(stype, mflag, isform, dynamic); /* symbol type and whether it names a macro */
+    MKCL_HEADER1(stype); /* symbol type, see enum mkcl_stype just here above. */
     mkcl_object value;	               /* global value of the symbol */
     mkcl_object gfdef;	               /* global function definition */
                                        /* For a macro, its expansion function is to be stored. */

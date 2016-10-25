@@ -119,7 +119,6 @@ mk_cl_make_symbol(MKCL, mkcl_object str)
   }
   x = mkcl_alloc_raw_symbol(env);
   x->symbol.name = str;
-  x->symbol.dynamic = 0;
   x->symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;
   MKCL_SET(x,MKCL_OBJNULL);
   MKCL_SYM_FUN(x) = mk_cl_Cnil;
@@ -347,7 +346,6 @@ mk_cl_symbol_name(MKCL, mkcl_object x)
     sym = mk_cl_Cnil_symbol;
   x = mk_cl_make_symbol(env, mkcl_symbol_name(env, sym));
   if (!mkcl_Null(cp)) {
-    x->symbol.dynamic = 0;
     x->symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;
     x->symbol.stype = sym->symbol.stype;
     x->symbol.value = sym->symbol.value;

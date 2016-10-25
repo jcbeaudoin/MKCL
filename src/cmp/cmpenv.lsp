@@ -262,7 +262,7 @@
     (safety si::*safety*)
     (space si::*space*)
     (debug si::*debug*)
-    (compilaton-speed si::*compilation-speed*)))
+    (compilation-speed si::*compilation-speed*)))
 
 (defun search-optimization-quality (declarations what)
   (dolist (i (reverse declarations) (cmp-env-optimization what))
@@ -294,7 +294,7 @@
 	       (SAFETY (setf (second optimizations) value))
 	       (SPACE (setf (third optimizations) value))
 	       (SPEED (setf (fourth optimizations) value))
-	       (COMPILATION-SPEED)
+	       (COMPILATION-SPEED (setf (fifth optimizations) value))
 	       (t (cmpwarn "The OPTIMIZE quality ~s is unknown." (car x))))))))
       (FTYPE
        (if (atom (rest decl))
@@ -499,7 +499,7 @@
 	       (eq (first i) :declare)
 	       (eq (second i) 'optimize))
      do (return (cddr i))
-     finally (return (list si::*debug* si::*safety* si::*space* si::*speed*))))
+     finally (return (list si::*debug* si::*safety* si::*space* si::*speed* si::*compilation-speed*))))
 
 (defun cmp-env-optimization (property &optional (env *cmp-env*))
   (let ((x (cmp-env-all-optimizations env)))
@@ -507,7 +507,8 @@
       (debug (first x))
       (safety (second x))
       (space (third x))
-      (speed (fourth x)))))
+      (speed (fourth x))
+      (compilation-speed (fifth x)))))
 
 (defun policy-assume-right-type (&optional (env *cmp-env*)) ;; used in funcall optimization
   (< (cmp-env-optimization 'safety env) 2))

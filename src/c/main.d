@@ -270,7 +270,6 @@ static void _mkcl_boot_inner(MKCL)
    */
 
   mk_cl_Cnil_symbol->symbol.t = mkcl_t_symbol;
-  mk_cl_Cnil_symbol->symbol.dynamic = 0;
   mk_cl_Cnil_symbol->symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;
   mk_cl_Cnil_symbol->symbol.value = mk_cl_Cnil;
   mk_cl_Cnil_symbol->symbol.name = mkcl_make_simple_base_string(env, "NIL");
@@ -282,7 +281,6 @@ static void _mkcl_boot_inner(MKCL)
   mk_cl_Cnil_symbol->symbol.stype = mkcl_stp_constant;
 
   mk_cl_Ct->symbol.t = mkcl_t_symbol;
-  mk_cl_Ct->symbol.dynamic = 0;
   mk_cl_Ct->symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;
   mk_cl_Ct->symbol.value = mk_cl_Ct;
   mk_cl_Ct->symbol.name = mkcl_make_simple_base_string(env, "T");
