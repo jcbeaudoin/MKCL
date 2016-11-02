@@ -24,6 +24,7 @@
   (setq compiler::*delete-compiler-internal-files* nil)
   (setq *compile-extra-options* '(:c-file t :data-file t :h-file t))
   (proclaim '(optimize (debug 3) (speed 1) (compilation-speed 3))) ;; full debug info
+  ;;(proclaim '(optimize (debug 3) (speed 1))) ;; full debug info
   ;;(proclaim '(optimize (safety 3))) ;; full safety checks
   (setq compiler::*trace-cc* t)
   )

@@ -70,13 +70,13 @@
   (format t "~&;;About to build shared library mkcl_~A.@SHAREDEXT@~%" (si:mkcl-version))
   (unless (compiler:build-shared-library (mkcl:bstr+ "mkcl_" (si:mkcl-version) ".@SHAREDEXT@")
 					 :extra-ld-flags extra-ld-flags
-					 :object-files (list "c/all_symbols2.@OBJEXT@"
-							     "lsp.@LIBEXT@"
-							     "mkclmin.@LIBEXT@"
-							     "@LIBRARIES@"
-							     #+mingw64
-							     "c:/Users/Jean-Claude/GNU2/mingw64/lib/libgmp.a"
-							     )
+					 :object-files `("c/all_symbols2.@OBJEXT@"
+                                                         "lsp.@LIBEXT@"
+                                                         "mkclmin.@LIBEXT@"
+                                                         ,@(mkcl:split-string "@LIBRARIES@" #\space)
+                                                         #+mingw64
+                                                         "c:/Users/Jean-Claude/GNU2/mingw64/lib/libgmp.a"
+                                                         )
 					 )
     (mkcl:quit :exit-code 1))
   (format t "~&;;Done building shared library mkcl_~A.@SHAREDEXT@!~%" (si:mkcl-version))

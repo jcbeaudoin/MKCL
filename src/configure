@@ -4658,6 +4658,10 @@ fi
   fi
 fi
 
+LIBRARIES="${LIBRARIES} libmkcc1.${LIBEXT}"
+
+
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for soname flags" >&5
 $as_echo_n "checking for soname flags... " >&6; }
 PACKAGE_MAJOR=`echo ${PACKAGE_VERSION} | sed -e 's,\([0-9]*\)\..*\..*,\1,g'`
@@ -7979,6 +7983,13 @@ $as_echo "#define WITH_GMP 1" >>confdefs.h
   EXTRA_OBJS="${EXTRA_OBJS} big.o"
   MKCL_GMP_HEADER='gmp.h'
 fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: Configuring TCC, the Tiny C Compiler:" >&5
+$as_echo "$as_me: Configuring TCC, the Tiny C Compiler:" >&6;}
+echo "cd ../contrib/tinycc; ./configure --prefix=${prefix}"
+(cd ../contrib/tinycc; ./configure --prefix=${prefix})
+{ $as_echo "$as_me:${as_lineno-$LINENO}: Done with TCC." >&5
+$as_echo "$as_me: Done with TCC." >&6;}
 
 
 ac_config_files="$ac_config_files bare.lsp lsp/load.lsp clos/load.lsp cmp/load.lsp ../Makefile Makefile c/Makefile doc/Makefile doc/mkcl.man doc/mkcl-config.man mkcl/mkcl-gc.h mkcl/configpre.h:mkcl/config.h.in bin/mkcl-config.pre:util/mkcl-config lsp/config.pre:lsp/config.lsp.in compile.pre:compile.lsp.in cmp/cmpdefs.pre:cmp/cmpdefs.lsp.in"

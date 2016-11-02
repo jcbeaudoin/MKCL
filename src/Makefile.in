@@ -100,7 +100,7 @@ BUILTINS = asdf profile rt serve-event sockets mk-unix
 MKCL_STATIC_PARTS = mkcltop.@LIBEXT@ lsp.a mkclmin.@LIBEXT@
 
 
-all: bin/mkcl-config $(TARGETS) $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) help.doc
+all: bin/mkcc$(EXE) bin/mkcl-config $(TARGETS) $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) help.doc
 .PHONY:	all
 
 Makefile: Makefile.in config.status
@@ -326,6 +326,20 @@ bin/mkcl-config.pre: util/mkcl-config config.status
 	./config.status
 
 
+bin/mkcc$(EXE): ../contrib/tinycc/mkcc$(EXE)
+	cp ../contrib/tinycc/mkcc$(EXE) bin/mkcc$(EXE)
+	mkdir -p lib/mkcc/include
+	cp ../contrib/tinycc/include/*.h lib/mkcc/include
+
+../contrib/tinycc/mkcc$(EXE):  ../contrib/tinycc/*.[ch]
+	cd ../contrib/tinycc; $(MAKE)
+
+libmkcc1.@LIBEXT@: ../contrib/tinycc/libmkcc1.a
+	cp ../contrib/tinycc/libmkcc1.a libmkcc1.@LIBEXT@
+
+../contrib/tinycc/libmkcc1.a: ../contrib/tinycc/*.[ch] ../contrib/tinycc/lib/*.c
+	cd ../contrib/tinycc; $(MAKE)
+
 mkclmin.@LIBEXT@: depend c/*.d mkcl/*.h c/arch/*.d
 	cd c; $(MAKE) ../mkclmin.@LIBEXT@
 	touch $@
@@ -414,8 +428,11 @@ install-base: all
 	if [ -f cmp/cmp.a ] ; then $(INSTALL_DATA) cmp/cmp.a $(mkcldir); fi
 	$(INSTALL_PROGRAM) cmp/cmp.fasb $(mkcldir)
 
-install-contribs: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS)
-	$(mkinstalldirs) $(mkcldir)/contrib/
+install-contribs: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) libmkcc1.@LIBEXT@
+	$(mkinstalldirs) $(mkcldir)/contrib/ $(libdir)/mkcc/include $(libdir)/mkcc/@build_cpu@
+	$(INSTALL_PROGRAM) bin/mkcc$(EXE) $(bindir)
+	$(INSTALL_DATA) ../contrib/tinycc/include/*.h $(libdir)/mkcc/include
+	$(INSTALL_LIBRARY) libmkcc1.@LIBEXT@ $(libdir)/mkcc/@build_cpu@
 	for i in ext/*.as2 ext/*.asd; do $(INSTALL_DATA) $${i} $(mkcldir)/contrib/; done
 	for i in asdf-stage/*.as2 asdf-stage/*.asd; do $(INSTALL_DATA) $${i} $(mkcldir)/contrib/; done
 	for i in ext/asdf.fasb ext/asdf2.fasb $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
@@ -483,8 +500,9 @@ install-base-local: all
 	if [ -f cmp/cmp.a ] ; then $(INSTALL_DATA) cmp/cmp.a $(localmkcldir); fi
 	$(INSTALL_PROGRAM) cmp/cmp.fasb $(localmkcldir)
 
-install-contribs-local: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS)
-	$(mkinstalldirs) $(localmkcldir)/contrib/
+install-contribs-local: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) libmkcc1.@LIBEXT@
+	$(mkinstalldirs) $(localmkcldir)/contrib/ ./lib/mkcc/include ./lib/mkcc/@build_cpu@
+	$(INSTALL_LIBRARY) libmkcc1.@LIBEXT@ ./lib/mkcc/@build_cpu@
 	for i in ext/*.as2 ext/*.asd; do $(INSTALL_DATA) $${i} $(localmkcldir)/contrib/; done
 	for i in asdf-stage/*.as2 asdf-stage/*.asd; do $(INSTALL_DATA) $${i} $(localmkcldir)/contrib/; done
 	for i in ext/asdf.fasb ext/asdf2.fasb $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
@@ -500,7 +518,9 @@ install-contribs-local: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS)
 
 uninstall:
 	for i in $(TARGETS) mkcl-config; do $(RM) $(bindir)/$$(basename $$i); done
+	$(RM) $(bindir)/mkcc$(EXE)
 	$(RM) -r $(includedir)/mkcl $(mkcldir)
+	$(RM) -r $(libdir)/mkcc
 	for i in $(LSP_LIBRARIES); do \
 	  case $$i in \
 	    *.dll) $(RM) $(libdir)/$$i || : ; $(RM) $(bindir)/$$i || : ;; \
@@ -515,7 +535,7 @@ doc: $(TARGETS)
 
 clean: clean_lisp clean_contribs
 	cd c; $(MAKE) clean
-	$(RM) depend compile.lsp bin/mkcl-config BUILD-STAMP
+	$(RM) depend compile.lsp bin/mkcc$(EXE) bin/mkcl-config BUILD-STAMP
 	$(RM) mkcl_min$(EXE) bin/mkcl$(EXE) bin/mkcl-dyn bin/mkcl-small$(EXE) bin/mkcl-full$(EXE)
 	$(RM) MKCLINIT* bin/MKCLINIT*
 	$(RM) MKC*.c MKC*.tmp bin/MKC*.c bin/MKC*.tmp
@@ -529,6 +549,7 @@ clean: clean_lisp clean_contribs
 	$(RM) -r lib include
 
 clean_contribs:
+	$(RM) -r lib/mkcc/@build_cpu@
 	$(RM) -r ext ext-dir-exists asdf-stage asdf-stage-dir-exists
 	cd ../contrib; MAKE=$(MAKE) sh ./clean_up.sh
 

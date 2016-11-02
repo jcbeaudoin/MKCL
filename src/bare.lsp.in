@@ -53,6 +53,7 @@
 (princ ";;; About to load cmp/load.lsp")
 
 (load "cmp/load.lsp" :external-format '(:ascii :lf))
+(setq compiler::*fast-compile-cc* (namestring (merge-pathnames "bin/mkcc" (si::self-truename))))
 
 ;;;
 ;;; * Go back to build directory to start compiling

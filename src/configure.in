@@ -452,6 +452,13 @@ dnl dnl    fi
 fi
 
 dnl ----------------------------------------------------------------------
+dnl		Bundled fast compile C compiler support
+dnl ${host_os} ${host_cpu} ???
+LIBRARIES="${LIBRARIES} libmkcc1.${LIBEXT}"
+
+
+
+dnl ----------------------------------------------------------------------
 dnl SONAME is only active when SONAME_LDFLAGS and SONAME are non nil
 dnl
 AC_MSG_CHECKING(for soname flags)
@@ -827,6 +834,11 @@ dnl         --libdir=${destdir} --build=${gmp_build} --host=${host_alias} $with_
 dnl dnl    fi
 dnl   fi
 fi
+
+AC_MSG_NOTICE([Configuring TCC, the Tiny C Compiler:])
+echo "cd ../contrib/tinycc; ./configure --prefix=${prefix}"
+(cd ../contrib/tinycc; ./configure --prefix=${prefix})
+AC_MSG_NOTICE([Done with TCC.])
 
 
 AC_CONFIG_FILES([
