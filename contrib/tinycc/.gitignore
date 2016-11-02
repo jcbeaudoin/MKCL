@@ -69,4 +69,4 @@ tiny_libmaker
 *~
 \#*
 .#*
-win32/*
+#win32/*
