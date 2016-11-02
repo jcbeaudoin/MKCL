@@ -197,9 +197,7 @@ An excerpt of the rules used by MKCL:
 	       (if *break-enable*
 		   (invoke-debugger c)
 		 (progn
-		   (format *error-output*
-			   "~&Error during processing of configuration file: ~A~%~A.~%"
-			   file c)
+		   (format *error-output* "~&Error during processing of configuration file: ~A~%~A.~%" file c)
 		   (return)
 		   ))))
 	  ((and condition (not warning))
@@ -213,19 +211,14 @@ An excerpt of the rules used by MKCL:
 		   (return)
 		   )))))
 	 (when (load file :if-does-not-exist nil :search-list nil :verbose nil)
-	   (return))
-	 )
-	)
-      )
+	   (return)))))
     (handler-bind 
      ((error
        #'(lambda (c)
 	   (if *break-enable*
 	       (invoke-debugger c)
 	     (progn
-	       (format *error-output*
-		       "~&Error during command line arguments processing:~%~A.~%"
-		       c)
+	       (format *error-output* "~&Error during command line arguments processing:~%~A.~%" c)
 	       (mkcl:quit :exit-code 1)
 	       ))))
       ((and condition (not warning))
@@ -238,8 +231,5 @@ An excerpt of the rules used by MKCL:
 		       c)
 	       (mkcl:quit :exit-code 1)
 	       )))))
-     (eval commands)
-     )
-    )
-  )
+     (eval commands))))
 
