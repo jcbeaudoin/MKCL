@@ -4,7 +4,7 @@ a.out
 *.exe
 *.log
 mkcc_g
-mkcc
+/mkcc
 /*-mkcc
 tc2.c
 doc
@@ -63,7 +63,8 @@ lib/i386-win32
 lib/arm
 lib/arm64
 mkcc-doc.info
-conftest*
+conftest
+conftest.exe
 tiny_libmaker
 *.dSYM
 *~
