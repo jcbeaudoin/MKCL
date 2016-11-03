@@ -1,10 +1,10 @@
 \input texinfo @c -*- texinfo -*-
 @c %**start of header
-@setfilename tcc-doc.info
+@setfilename mkcc-doc.info
 @settitle Tiny C Compiler Reference Documentation
 @dircategory Software development
 @direntry
-* TCC: (tcc-doc).               The Tiny C Compiler.
+* MKCC: (mkcc-doc).               The Tiny C Compiler.
 @end direntry
 @c %**end of header
 
@@ -28,13 +28,13 @@
 This manual documents version @value{VERSION} of the Tiny C Compiler.
 
 @menu
-* Introduction::                Introduction to tcc.
-* Invoke::                      Invocation of tcc (command line, options).
+* Introduction::                Introduction to mkcc.
+* Invoke::                      Invocation of mkcc (command line, options).
 * Clang::                       ANSI C and extensions.
 * asm::                         Assembler syntax.
 * linker::                      Output file generation and supported targets.
 * Bounds::                      Automatic bounds-checking of C code.
-* Libtcc::                      The libtcc library.
+* Libmkcc::                      The libmkcc library.
 * devel::                       Guide for Developers.
 @end menu
 
@@ -42,33 +42,33 @@ This manual documents version @value{VERSION} of the Tiny C Compiler.
 @node Introduction
 @chapter Introduction
 
-TinyCC (aka TCC) is a small but hyper fast C compiler. Unlike other C
+TinyCC (aka MKCC) is a small but hyper fast C compiler. Unlike other C
 compilers, it is meant to be self-relying: you do not need an
-external assembler or linker because TCC does that for you.
+external assembler or linker because MKCC does that for you.
 
-TCC compiles so @emph{fast} that even for big projects @code{Makefile}s may
+MKCC compiles so @emph{fast} that even for big projects @code{Makefile}s may
 not be necessary.
 
-TCC not only supports ANSI C, but also most of the new ISO C99
+MKCC not only supports ANSI C, but also most of the new ISO C99
 standard and many GNUC extensions including inline assembly.
 
-TCC can also be used to make @emph{C scripts}, i.e. pieces of C source
+MKCC can also be used to make @emph{C scripts}, i.e. pieces of C source
 that you run as a Perl or Python script. Compilation is so fast that
 your script will be as fast as if it was an executable.
 
-TCC can also automatically generate memory and bound checks
-(@pxref{Bounds}) while allowing all C pointers operations. TCC can do
+MKCC can also automatically generate memory and bound checks
+(@pxref{Bounds}) while allowing all C pointers operations. MKCC can do
 these checks even if non patched libraries are used.
 
-With @code{libtcc}, you can use TCC as a backend for dynamic code
-generation (@pxref{Libtcc}).
+With @code{libmkcc}, you can use MKCC as a backend for dynamic code
+generation (@pxref{Libmkcc}).
 
-TCC mainly supports the i386 target on Linux and Windows. There are alpha
-ports for the ARM (@code{arm-tcc}) and the TMS320C67xx targets
-(@code{c67-tcc}). More information about the ARM port is available at
+MKCC mainly supports the i386 target on Linux and Windows. There are alpha
+ports for the ARM (@code{arm-mkcc}) and the TMS320C67xx targets
+(@code{c67-mkcc}). More information about the ARM port is available at
 @url{http://lists.gnu.org/archive/html/tinycc-devel/2003-10/msg00044.html}.
 
-For usage on Windows, see also @url{tcc-win32.txt}.
+For usage on Windows, see also @url{mkcc-win32.txt}.
 
 @node Invoke
 @chapter Command line invocation
@@ -77,63 +77,63 @@ For usage on Windows, see also @url{tcc-win32.txt}.
 
 @example
 @c man begin SYNOPSIS
-usage: tcc [options] [@var{infile1} @var{infile2}@dots{}] [@option{-run} @var{infile} @var{args}@dots{}]
+usage: mkcc [options] [@var{infile1} @var{infile2}@dots{}] [@option{-run} @var{infile} @var{args}@dots{}]
 @c man end
 @end example
 
 @noindent
 @c man begin DESCRIPTION
-TCC options are a very much like gcc options. The main difference is that TCC
+MKCC options are a very much like gcc options. The main difference is that MKCC
 can also execute directly the resulting program and give it runtime
 arguments.
 
 Here are some examples to understand the logic:
 
 @table @code
-@item @samp{tcc -run a.c}
+@item @samp{mkcc -run a.c}
 Compile @file{a.c} and execute it directly
 
-@item @samp{tcc -run a.c arg1}
+@item @samp{mkcc -run a.c arg1}
 Compile a.c and execute it directly. arg1 is given as first argument to
 the @code{main()} of a.c.
 
-@item @samp{tcc a.c -run b.c arg1}
+@item @samp{mkcc a.c -run b.c arg1}
 Compile @file{a.c} and @file{b.c}, link them together and execute them. arg1 is given
 as first argument to the @code{main()} of the resulting program. 
 @ignore 
 Because multiple C files are specified, @option{--} are necessary to clearly 
-separate the program arguments from the TCC options.
+separate the program arguments from the MKCC options.
 @end ignore
 
-@item @samp{tcc -o myprog a.c b.c}
+@item @samp{mkcc -o myprog a.c b.c}
 Compile @file{a.c} and @file{b.c}, link them and generate the executable @file{myprog}.
 
-@item @samp{tcc -o myprog a.o b.o}
+@item @samp{mkcc -o myprog a.o b.o}
 link @file{a.o} and @file{b.o} together and generate the executable @file{myprog}.
 
-@item @samp{tcc -c a.c}
+@item @samp{mkcc -c a.c}
 Compile @file{a.c} and generate object file @file{a.o}.
 
-@item @samp{tcc -c asmfile.S}
+@item @samp{mkcc -c asmfile.S}
 Preprocess with C preprocess and assemble @file{asmfile.S} and generate
 object file @file{asmfile.o}.
 
-@item @samp{tcc -c asmfile.s}
+@item @samp{mkcc -c asmfile.s}
 Assemble (but not preprocess) @file{asmfile.s} and generate object file
 @file{asmfile.o}.
 
-@item @samp{tcc -r -o ab.o a.c b.c}
+@item @samp{mkcc -r -o ab.o a.c b.c}
 Compile @file{a.c} and @file{b.c}, link them together and generate the object file @file{ab.o}.
 
 @end table
 
 Scripting:
 
-TCC can be invoked from @emph{scripts}, just as shell scripts. You just
-need to add @code{#!/usr/local/bin/tcc -run} at the start of your C source:
+MKCC can be invoked from @emph{scripts}, just as shell scripts. You just
+need to add @code{#!/usr/local/bin/mkcc -run} at the start of your C source:
 
 @example
-#!/usr/local/bin/tcc -run
+#!/usr/local/bin/mkcc -run
 #include <stdio.h>
 
 int main() 
@@ -143,11 +143,11 @@ int main()
 @}
 @end example
 
-TCC can read C source code from @emph{standard input} when @option{-} is used in 
+MKCC can read C source code from @emph{standard input} when @option{-} is used in 
 place of @option{infile}. Example:
 
 @example
-echo 'main()@{puts("hello");@}' | tcc -run -
+echo 'main()@{puts("hello");@}' | mkcc -run -
 @end example
 @c man end
 
@@ -166,14 +166,14 @@ Put object file, executable, or dll into output file @file{outfile}.
 @item -run source [args...]
 Compile file @var{source} and run it with the command line arguments
 @var{args}. In order to be able to give more than one argument to a
-script, several TCC options can be given @emph{after} the
+script, several MKCC options can be given @emph{after} the
 @option{-run} option, separated by spaces:
 @example
-tcc "-run -L/usr/X11R6/lib -lX11" ex4.c
+mkcc "-run -L/usr/X11R6/lib -lX11" ex4.c
 @end example
 In a script, it gives the following header:
 @example
-#!/usr/local/bin/tcc -run -L/usr/X11R6/lib -lX11
+#!/usr/local/bin/mkcc -run -L/usr/X11R6/lib -lX11
 @end example
 
 @item -mfloat-abi (ARM only)
@@ -183,7 +183,7 @@ Select the float ABI. Possible values: @code{softfp} and @code{hard}
 Print only the compiler version and nothing else.
 
 @item -v
-Display TCC version.
+Display MKCC version.
 
 @item -vv
 Show included files.  As sole argument, print search dirs (as below).
@@ -193,7 +193,7 @@ Display compilation statistics.
 
 @item -print-search-dirs
 Print the configured installation directory and a list of library
-and include directories tcc will search.
+and include directories mkcc will search.
 
 @end table
 
@@ -206,7 +206,7 @@ order they are specified.
 
 System include paths are always searched after. The default system
 include paths are: @file{/usr/local/include}, @file{/usr/include}
-and @file{PREFIX/lib/tcc/include}. (@file{PREFIX} is usually
+and @file{PREFIX/lib/mkcc/include}. (@file{PREFIX} is usually
 @file{/usr} or @file{/usr/local}).
 
 @item -Dsym[=val]
@@ -266,7 +266,7 @@ Note: each of the following warning options has a negative form beginning with
 Warn about implicit function declaration.
 
 @item -Wunsupported
-Warn about unsupported GCC features that are ignored by TCC.
+Warn about unsupported GCC features that are ignored by MKCC.
 
 @item -Wwrite-strings
 Make string constants be of type @code{const char *} instead of @code{char
@@ -294,8 +294,8 @@ libxxx.a. The library is searched in the paths specified by the
 @option{-L} option and @env{LIBRARY_PATH} variable.
 
 @item -Bdir
-Set the path where the tcc internal libraries (and include files) can be
-found (default is @file{PREFIX/lib/tcc}).
+Set the path where the mkcc internal libraries (and include files) can be
+found (default is @file{PREFIX/lib/mkcc}).
 
 @item -shared
 Generate a shared library instead of an executable.
@@ -361,7 +361,7 @@ Generate additional support code to check
 memory allocations and array/pointer bounds. @option{-g} is implied. Note
 that the generated code is slower and bigger in this case.
 
-Note: @option{-b} is only available on i386 when using libtcc for the moment.
+Note: @option{-b} is only available on i386 when using libmkcc for the moment.
 
 @item -bt N
 Display N callers in stack traces. This is useful with @option{-g} or
@@ -385,7 +385,7 @@ ignored.
 @c man end
 
 @c man begin ENVIRONMENT
-Environment variables that affect how tcc operates.
+Environment variables that affect how mkcc operates.
 
 @table @option
 
@@ -404,7 +404,7 @@ A colon-separated list of directories searched for libraries for the
 
 @ignore
 
-@setfilename tcc
+@setfilename mkcc
 @settitle Tiny C Compiler
 
 @c man begin SEEALSO
@@ -423,13 +423,13 @@ Fabrice Bellard
 
 @section ANSI C
 
-TCC implements all the ANSI C standard, including structure bit fields
+MKCC implements all the ANSI C standard, including structure bit fields
 and floating point numbers (@code{long double}, @code{double}, and
 @code{float} fully supported).
 
 @section ISOC99 extensions
 
-TCC implements many features of the new C standard: ISO C99. Currently
+MKCC implements many features of the new C standard: ISO C99. Currently
 missing items are: complex and imaginary numbers.
 
 Currently implemented ISOC99 features:
@@ -489,7 +489,7 @@ is the same as writing
 
 @section GNU C extensions
 
-TCC implements some GNU C extensions:
+MKCC implements some GNU C extensions:
 
 @itemize
 
@@ -624,7 +624,7 @@ return (to);
 
 @noindent
 @cindex gas
-TCC includes its own x86 inline assembler with a @code{gas}-like (GNU
+MKCC includes its own x86 inline assembler with a @code{gas}-like (GNU
 assembler) syntax. No intermediate files are generated. GCC 3.x named
 operands are supported.
 
@@ -639,7 +639,7 @@ are supported.
 
 @itemize
 
-@item @code{__TINYC__} is a predefined macro to indicate that you use TCC.
+@item @code{__TINYC__} is a predefined macro to indicate that you use MKCC.
 
 @item @code{#!} at the start of a line is ignored to allow scripting.
 
@@ -787,31 +787,31 @@ Currently, MMX opcodes are supported but not SSE ones.
 @section ELF file generation
 @cindex ELF
 
-TCC can directly output relocatable ELF files (object files),
+MKCC can directly output relocatable ELF files (object files),
 executable ELF files and dynamic ELF libraries without relying on an
 external linker.
 
 Dynamic ELF libraries can be output but the C compiler does not generate
 position independent code (PIC). It means that the dynamic library
-code generated by TCC cannot be factorized among processes yet.
+code generated by MKCC cannot be factorized among processes yet.
 
-TCC linker eliminates unreferenced object code in libraries. A single pass is
+MKCC linker eliminates unreferenced object code in libraries. A single pass is
 done on the object and library list, so the order in which object files and
 libraries are specified is important (same constraint as GNU ld). No grouping
 options (@option{--start-group} and @option{--end-group}) are supported.
 
 @section ELF file loader
 
-TCC can load ELF object files, archives (.a files) and dynamic
+MKCC can load ELF object files, archives (.a files) and dynamic
 libraries (.so).
 
 @section PE-i386 file generation
 @cindex PE-i386
 
-TCC for Windows supports the native Win32 executable file format (PE-i386).  It
+MKCC for Windows supports the native Win32 executable file format (PE-i386).  It
 generates EXE files (console and gui) and DLL files.
 
-For usage on Windows, see also tcc-win32.txt.
+For usage on Windows, see also mkcc-win32.txt.
 
 @section GNU Linker Scripts
 @cindex scripts, linker
@@ -823,7 +823,7 @@ For usage on Windows, see also tcc-win32.txt.
 
 Because on many Linux systems some dynamic libraries (such as
 @file{/usr/lib/libc.so}) are in fact GNU ld link scripts (horrible!),
-the TCC linker also supports a subset of GNU ld scripts.
+the MKCC linker also supports a subset of GNU ld scripts.
 
 The @code{GROUP} and @code{FILE} commands are supported. @code{OUTPUT_FORMAT}
 and @code{TARGET} are ignored.
@@ -909,30 +909,30 @@ Here are some examples of caught errors:
 
 @end table
 
-@node Libtcc
-@chapter The @code{libtcc} library
+@node Libmkcc
+@chapter The @code{libmkcc} library
 
-The @code{libtcc} library enables you to use TCC as a backend for
+The @code{libmkcc} library enables you to use MKCC as a backend for
 dynamic code generation. 
 
-Read the @file{libtcc.h} to have an overview of the API. Read
-@file{libtcc_test.c} to have a very simple example.
+Read the @file{libmkcc.h} to have an overview of the API. Read
+@file{libmkcc_test.c} to have a very simple example.
 
 The idea consists in giving a C string containing the program you want
-to compile directly to @code{libtcc}. Then you can access to any global
+to compile directly to @code{libmkcc}. Then you can access to any global
 symbol (function or variable) defined.
 
 @node devel
 @chapter Developer's guide
 
-This chapter gives some hints to understand how TCC works. You can skip
-it if you do not intend to modify the TCC code.
+This chapter gives some hints to understand how MKCC works. You can skip
+it if you do not intend to modify the MKCC code.
 
 @section File reading
 
 The @code{BufferedFile} structure contains the context needed to read a
-file, including the current line number. @code{tcc_open()} opens a new
-file and @code{tcc_close()} closes it. @code{inp()} returns the next
+file, including the current line number. @code{mkcc_open()} opens a new
+file and @code{mkcc_close()} closes it. @code{inp()} returns the next
 character.
 
 @section Lexer
@@ -964,7 +964,7 @@ reverse order, a first pass is done to reverse the argument order.
 @section Types
 
 The types are stored in a single 'int' variable. It was chosen in the
-first stages of development when tcc was much simpler. Now, it may not
+first stages of development when mkcc was much simpler. Now, it may not
 be the best solution.
 
 @example
@@ -1113,12 +1113,12 @@ contain the exported symbols (currently only used for debugging).
 
 @subsection Introduction
 
-The TCC code generator directly generates linked binary code in one
+The MKCC code generator directly generates linked binary code in one
 pass. It is rather unusual these days (see gcc for example which
 generates text assembly), but it can be very fast and surprisingly
 little complicated.
 
-The TCC code generator is register based. Optimization is only done at
+The MKCC code generator is register based. Optimization is only done at
 the expression level. No intermediate representation of expression is
 kept except the current values stored in the @emph{value stack}.
 
@@ -1191,7 +1191,7 @@ an assignment). It means that the value stored is actually a pointer to
 the wanted value. 
 
 Understanding the use @code{VT_LVAL} is very important if you want to
-understand how TCC works.
+understand how MKCC works.
 
 @item VT_LVAL_BYTE
 @itemx VT_LVAL_SHORT

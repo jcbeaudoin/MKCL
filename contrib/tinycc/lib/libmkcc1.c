@@ -112,8 +112,8 @@ union float_long {
 #if !defined(MKCC_TARGET_X86_64) && !defined(MKCC_TARGET_ARM)
 
 /* XXX: use gcc/mkcc intrinsic ? */
-#if defined(MKCC_TARGET_I386)
-#define sub_ddmmss(sh, sl, ah, al, bh, bl) \
+# if defined(MKCC_TARGET_I386)
+#  define sub_ddmmss(sh, sl, ah, al, bh, bl) \
   __asm__ ("subl %5,%1\n\tsbbl %3,%0"					\
 	   : "=r" ((USItype) (sh)),					\
 	     "=&r" ((USItype) (sl))					\
@@ -121,29 +121,29 @@ union float_long {
 	     "g" ((USItype) (bh)),					\
 	     "1" ((USItype) (al)),					\
 	     "g" ((USItype) (bl)))
-#define umul_ppmm(w1, w0, u, v) \
+#  define umul_ppmm(w1, w0, u, v) \
   __asm__ ("mull %3"							\
 	   : "=a" ((USItype) (w0)),					\
 	     "=d" ((USItype) (w1))					\
 	   : "%0" ((USItype) (u)),					\
 	     "rm" ((USItype) (v)))
-#define udiv_qrnnd(q, r, n1, n0, dv) \
+#  define udiv_qrnnd(q, r, n1, n0, dv) \
   __asm__ ("divl %4"							\
 	   : "=a" ((USItype) (q)),					\
 	     "=d" ((USItype) (r))					\
 	   : "0" ((USItype) (n0)),					\
 	     "1" ((USItype) (n1)),					\
 	     "rm" ((USItype) (dv)))
-#define count_leading_zeros(count, x) \
+#  define count_leading_zeros(count, x) \
   do {									\
     USItype __cbtmp;							\
     __asm__ ("bsrl %1,%0"						\
 	     : "=r" (__cbtmp) : "rm" ((USItype) (x)));			\
     (count) = __cbtmp ^ 31;						\
   } while (0)
-#else
-#error unsupported CPU type
-#endif
+# else
+#  error unsupported CPU type
+# endif
 
 /* most of this code is taken from libgcc2.c from gcc */
 
@@ -164,7 +164,7 @@ static UDWtype __udivmoddi4 (UDWtype n, UDWtype d, UDWtype *rp)
   n0 = nn.s.low;
   n1 = nn.s.high;
 
-#if !defined(UDIV_NEEDS_NORMALIZATION)
+# if !defined(UDIV_NEEDS_NORMALIZATION)
   if (d1 == 0)
     {
       if (d0 > n1)
@@ -197,7 +197,7 @@ static UDWtype __udivmoddi4 (UDWtype n, UDWtype d, UDWtype *rp)
 	}
     }
 
-#else /* UDIV_NEEDS_NORMALIZATION */
+# else /* UDIV_NEEDS_NORMALIZATION */
 
   if (d1 == 0)
     {
@@ -271,7 +271,7 @@ static UDWtype __udivmoddi4 (UDWtype n, UDWtype d, UDWtype *rp)
 	  *rp = rr.ll;
 	}
     }
-#endif /* UDIV_NEEDS_NORMALIZATION */
+# endif /* UDIV_NEEDS_NORMALIZATION */
 
   else
     {
@@ -363,9 +363,9 @@ static UDWtype __udivmoddi4 (UDWtype n, UDWtype d, UDWtype *rp)
   return ww.ll;
 }
 
-#define __negdi2(a) (-(a))
+# define __negdi2(a) (-(a))
 
-long long __divdi3(long long u, long long v)
+long long __mkcl_divdi3(long long u, long long v)
 {
     int c = 0;
     DWunion uu, vv;
@@ -388,7 +388,7 @@ long long __divdi3(long long u, long long v)
     return w;
 }
 
-long long __moddi3(long long u, long long v)
+long long __mkcl_moddi3(long long u, long long v)
 {
     int c = 0;
     DWunion uu, vv;
@@ -410,12 +410,12 @@ long long __moddi3(long long u, long long v)
     return w;
 }
 
-unsigned long long __udivdi3(unsigned long long u, unsigned long long v)
+unsigned long long __mkcl_udivdi3(unsigned long long u, unsigned long long v)
 {
     return __udivmoddi4 (u, v, (UDWtype *) 0);
 }
 
-unsigned long long __umoddi3(unsigned long long u, unsigned long long v)
+unsigned long long __mkcl_umoddi3(unsigned long long u, unsigned long long v)
 {
     UDWtype w;
     
@@ -424,9 +424,9 @@ unsigned long long __umoddi3(unsigned long long u, unsigned long long v)
 }
 
 /* XXX: fix mkcc's code generator to do this instead */
-long long __ashrdi3(long long a, int b)
+long long __mkcl_ashrdi3(long long a, int b)
 {
-#ifdef __TINYC__
+# ifdef __TINYC__
     DWunion u;
     u.ll = a;
     if (b >= 32) {
@@ -437,15 +437,15 @@ long long __ashrdi3(long long a, int b)
         u.s.high = u.s.high >> b;
     }
     return u.ll;
-#else
+# else
     return a >> b;
-#endif
+# endif
 }
 
 /* XXX: fix mkcc's code generator to do this instead */
-unsigned long long __lshrdi3(unsigned long long a, int b)
+unsigned long long __mkcl_lshrdi3(unsigned long long a, int b)
 {
-#ifdef __TINYC__
+# ifdef __TINYC__
     DWunion u;
     u.ll = a;
     if (b >= 32) {
@@ -456,15 +456,15 @@ unsigned long long __lshrdi3(unsigned long long a, int b)
         u.s.high = (unsigned)u.s.high >> b;
     }
     return u.ll;
-#else
+# else
     return a >> b;
-#endif
+# endif
 }
 
 /* XXX: fix mkcc's code generator to do this instead */
-long long __ashldi3(long long a, int b)
+long long __mkcl_ashldi3(long long a, int b)
 {
-#ifdef __TINYC__
+# ifdef __TINYC__
     DWunion u;
     u.ll = a;
     if (b >= 32) {
@@ -475,12 +475,12 @@ long long __ashldi3(long long a, int b)
         u.s.low = (unsigned)u.s.low << b;
     }
     return u.ll;
-#else
+# else
     return a << b;
-#endif
+# endif
 }
 
-#ifndef COMMIT_4ad186c5ef61_IS_FIXED
+# ifndef COMMIT_4ad186c5ef61_IS_FIXED
 long long __mkcc_cvt_ftol(long double x)
 {
     unsigned c0, c1;
@@ -492,9 +492,9 @@ long long __mkcc_cvt_ftol(long double x)
     __asm__ __volatile__ ("fldcw %0" : : "m" (c0));
     return ret;
 }
-#endif
+# endif
 
-#endif /* !__x86_64__ */
+#endif /* !defined(MKCC_TARGET_X86_64) && !defined(MKCC_TARGET_ARM) */
 
 /* XXX: fix mkcc's code generator to do this instead */
 float __mkcc_floatundisf(unsigned long long a)
@@ -637,19 +637,19 @@ long long __mkcc_fixxfdi (long double a1)
 
 #if defined(MKCC_TARGET_X86_64) && !defined(_WIN64)
 
-#ifndef __TINYC__
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#else
+# ifndef __TINYC__
+#  include <stdlib.h>
+#  include <stdio.h>
+#  include <string.h>
+# else
 /* Avoid including stdlib.h because it is not easily available when
    cross compiling */
-#include <stddef.h> /* size_t definition is needed for a x86_64-mkcc to parse memset() */
+#  include <stddef.h> /* size_t definition is needed for a x86_64-mkcc to parse memset() */
 extern void *malloc(unsigned long long);
 extern void *memset(void *s, int c, size_t n);
 extern void free(void*);
 extern void abort(void);
-#endif
+# endif
 
 enum __va_arg_type {
     __va_gen_reg, __va_float_reg, __va_stack
@@ -732,27 +732,27 @@ void __mkcc_clear_cache(void *beginning, void *end)
 
 #elif defined(MKCC_TARGET_ARM)
 
-#define _GNU_SOURCE
-#include <unistd.h>
-#include <sys/syscall.h>
-#include <stdio.h>
+# define _GNU_SOURCE
+# include <unistd.h>
+# include <sys/syscall.h>
+# include <stdio.h>
 
 void __mkcc_clear_cache(void *beginning, void *end)
 {
 /* __ARM_NR_cacheflush is kernel private and should not be used in user space.
  * However, there is no ARM asm parser in mkcc so we use it for now */
-#if 1
+# if 1
     syscall(__ARM_NR_cacheflush, beginning, end, 0);
-#else
+# else
     __asm__ ("push {r7}\n\t"
              "mov r7, #0xf0002\n\t"
              "mov r2, #0\n\t"
              "swi 0\n\t"
              "pop {r7}\n\t"
              "ret");
-#endif
+# endif
 }
 
 #else
-#warning __mkcc_clear_cache not defined for this architecture, avoid using mkcc -run
+# warning __mkcc_clear_cache not defined for this architecture, avoid using mkcc -run
 #endif
