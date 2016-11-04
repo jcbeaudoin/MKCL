@@ -34,7 +34,12 @@ ifndef TARGET # native library
  endif
 endif
 
-BCHECK_O = bcheck.o
+ifeq ($(ADD_BCHECK),yes)
+ BCHECK_O = bcheck.o
+else
+ BCHECK_O =
+endif
+
 DIR = $(TARGET)
 
 native : ../libmkcc1.a
@@ -43,8 +48,13 @@ cross : $(DIR)/libmkcc1.a
 native : MKCC = $(TOP)/mkcc$(EXESUF)
 cross : MKCC = $(TOP)/$(TARGET)-mkcc$(EXESUF)
 
-I386_O = libmkcc1.o alloca86.o alloca86-bt.o $(BCHECK_O)
-X86_64_O = libmkcc1.o alloca86_64.o alloca86_64-bt.o $(BCHECK_O)
+ifeq ($(ADD_BCHECK),yes)
+ I386_O = libmkcc1.o alloca86.o alloca86-bt.o $(BCHECK_O)
+ X86_64_O = libmkcc1.o alloca86_64.o alloca86_64-bt.o $(BCHECK_O)
+else
+ I386_O = libmkcc1.o alloca86.o
+ X86_64_O = libmkcc1.o alloca86_64.o
+endif
 ARM_O = libmkcc1.o armeabi.o alloca-arm.o
 WIN32_O = $(I386_O) crt1.o wincrt1.o dllcrt1.o dllmain.o chkstk.o
 WIN64_O = $(X86_64_O) crt1.o wincrt1.o dllcrt1.o dllmain.o chkstk.o
