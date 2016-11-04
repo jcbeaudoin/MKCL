@@ -29,8 +29,8 @@
 #include <malloc.h>
 
 static char *get_export_names(int fd);
-#define tcc_free free
-#define tcc_realloc realloc
+#define mkcc_free free
+#define mkcc_realloc realloc
 
 /* extract the basename of a file */
 static char *file_basename(const char *name)
@@ -158,11 +158,11 @@ int read_mem(int fd, unsigned offset, void *buffer, unsigned len)
 
 /* -------------------------------------------------------------- */
 
-#if defined TCC_TARGET_X86_64
+#if defined MKCC_TARGET_X86_64
 # define IMAGE_FILE_MACHINE 0x8664
-#elif defined TCC_TARGET_ARM
+#elif defined MKCC_TARGET_ARM
 # define IMAGE_FILE_MACHINE 0x01C0
-#elif 1 /* defined TCC_TARGET_I386 */
+#elif 1 /* defined MKCC_TARGET_I386 */
 # define IMAGE_FILE_MACHINE 0x014C
 #endif
 
@@ -179,7 +179,7 @@ static char *get_export_names(int fd)
     IMAGE_DOS_HEADER dh;
     IMAGE_FILE_HEADER ih;
     DWORD sig, ref, addr, ptr, namep;
-#ifdef TCC_TARGET_X86_64
+#ifdef MKCC_TARGET_X86_64
     IMAGE_OPTIONAL_HEADER64 oh;
 #else
     IMAGE_OPTIONAL_HEADER32 oh;
@@ -231,9 +231,9 @@ found:
         namep += sizeof ptr;
         for (l = 0;;) {
             if (n+1 >= n0)
-                p = tcc_realloc(p, n0 = n0 ? n0 * 2 : 256);
+                p = mkcc_realloc(p, n0 = n0 ? n0 * 2 : 256);
             if (!read_mem(fd, ptr - ref + l++, p + n, 1)) {
-                tcc_free(p), p = NULL;
+                mkcc_free(p), p = NULL;
                 goto the_end;
             }
             if (p[n++] == 0)

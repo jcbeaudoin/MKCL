@@ -1,5 +1,5 @@
 /*
- * This program is for making libtcc1.a without ar
+ * This program is for making libmkcc1.a without ar
  * tiny_libmaker - tiny elf lib maker
  * usage: tiny_libmaker [lib] files...
  * Copyright (c) 2007 Timppa
@@ -23,7 +23,7 @@
 #include <string.h>
 #include "../../elf.h"
 
-#ifdef TCC_TARGET_X86_64
+#ifdef MKCC_TARGET_X86_64
 # define ELFCLASSW ELFCLASS64
 # define ElfW(type) Elf##64##_##type
 # define ELFW(type) ELF##64##_##type

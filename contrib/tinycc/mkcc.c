@@ -261,6 +261,7 @@ static void set_whole_archive(MKCCState* s, int on)
 }
 
 #if _WIN32
+# undef PATH_MAX /* MinGW is known to define this in limits.h. */
 # define PATH_MAX (32 * 1024)  /* MS says that UNC paths are 32k max. */
 #endif
 static char self_include[PATH_MAX + 1];
@@ -296,11 +297,14 @@ void mkcc_set_self_context(MKCCState *s)
 #else
   char * true_self = realpath(os_self, NULL);
 #endif
-  char * true_self_dir = dirname(mkcc_strdup(true_self));
-  strncat(self_include, true_self_dir, PATH_MAX);
-  strncat(self_include, "/../lib/mkcc/include", PATH_MAX);
-  strncat(self_lib, true_self_dir, PATH_MAX);
-  strncat(self_lib, lib_suffix, PATH_MAX);
+  {
+    char * true_self_dir = dirname(mkcc_strdup(true_self));
+
+    strncat(self_include, true_self_dir, PATH_MAX);
+    strncat(self_include, "/../lib/mkcc/include", PATH_MAX);
+    strncat(self_lib, true_self_dir, PATH_MAX);
+    strncat(self_lib, lib_suffix, PATH_MAX);
+  }
 
   mkcc_add_sysinclude_path(s, self_include);
   mkcc_add_library_path(s, self_lib);
