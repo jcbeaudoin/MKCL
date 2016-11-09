@@ -987,6 +987,8 @@ void mkcl_sigpipe_handler(int sig, siginfo_t *info, void *aux)
 
 #if MKCL_WINDOWS
 
+static const char * const signal_names[MKCL_BASE_SIGMAX + 1] = { NULL };
+
 static volatile BOOL console_ctrl_event = FALSE;
 
 BOOL mkcl_saw_console_ctrl_event(void)
