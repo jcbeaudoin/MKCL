@@ -1592,7 +1592,7 @@ ST_FUNC void mkcc_add_bcheck(MKCCState *s1)
     *ptr = 0;
     add_elf_sym(symtab_section, 0, 0,
                 ELFW(ST_INFO)(STB_GLOBAL, STT_NOTYPE), 0,
-                bounds_section->sh_num, "__bounds_start");
+                bounds_section->sh_num, "__mkcc_bounds_start");
     if (s1->output_type != MKCC_OUTPUT_MEMORY) {
         /* add 'call __mkcc_bound_init()' in .init section */
 

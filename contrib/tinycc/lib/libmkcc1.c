@@ -365,7 +365,7 @@ static UDWtype __udivmoddi4 (UDWtype n, UDWtype d, UDWtype *rp)
 
 # define __negdi2(a) (-(a))
 
-long long __mkcl_divdi3(long long u, long long v)
+long long __mkcc_divdi3(long long u, long long v)
 {
     int c = 0;
     DWunion uu, vv;
@@ -388,7 +388,7 @@ long long __mkcl_divdi3(long long u, long long v)
     return w;
 }
 
-long long __mkcl_moddi3(long long u, long long v)
+long long __mkcc_moddi3(long long u, long long v)
 {
     int c = 0;
     DWunion uu, vv;
@@ -410,12 +410,12 @@ long long __mkcl_moddi3(long long u, long long v)
     return w;
 }
 
-unsigned long long __mkcl_udivdi3(unsigned long long u, unsigned long long v)
+unsigned long long __mkcc_udivdi3(unsigned long long u, unsigned long long v)
 {
     return __udivmoddi4 (u, v, (UDWtype *) 0);
 }
 
-unsigned long long __mkcl_umoddi3(unsigned long long u, unsigned long long v)
+unsigned long long __mkcc_umoddi3(unsigned long long u, unsigned long long v)
 {
     UDWtype w;
     
@@ -424,7 +424,7 @@ unsigned long long __mkcl_umoddi3(unsigned long long u, unsigned long long v)
 }
 
 /* XXX: fix mkcc's code generator to do this instead */
-long long __mkcl_ashrdi3(long long a, int b)
+long long __mkcc_ashrdi3(long long a, int b)
 {
 # ifdef __TINYC__
     DWunion u;
@@ -443,7 +443,7 @@ long long __mkcl_ashrdi3(long long a, int b)
 }
 
 /* XXX: fix mkcc's code generator to do this instead */
-unsigned long long __mkcl_lshrdi3(unsigned long long a, int b)
+unsigned long long __mkcc_lshrdi3(unsigned long long a, int b)
 {
 # ifdef __TINYC__
     DWunion u;
@@ -462,7 +462,7 @@ unsigned long long __mkcl_lshrdi3(unsigned long long a, int b)
 }
 
 /* XXX: fix mkcc's code generator to do this instead */
-long long __mkcl_ashldi3(long long a, int b)
+long long __mkcc_ashldi3(long long a, int b)
 {
 # ifdef __TINYC__
     DWunion u;

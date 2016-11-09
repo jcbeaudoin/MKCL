@@ -109,7 +109,7 @@ static void *saved_memalign_hook;
 #endif
 
 /* MKCC definitions */
-extern char __bounds_start; /* start of static bounds table */
+char __mkcc_bounds_start = 0; /* start of static bounds table */
 /* error message, just for MKCC */
 const char *__mkcc_bound_error_msg;
 
