@@ -535,7 +535,7 @@ doc: $(TARGETS)
 
 clean: clean_lisp clean_contribs
 	cd c; $(MAKE) clean
-	$(RM) depend compile.lsp bin/mkcc$(EXE) bin/mkcl-config BUILD-STAMP
+	$(RM) depend compile.lsp bin/mkcc$(EXE) bin/mkcl-config BUILD-STAMP lsp/git_describe.lsp
 	$(RM) mkcl_min$(EXE) bin/mkcl$(EXE) bin/mkcl-dyn bin/mkcl-small$(EXE) bin/mkcl-full$(EXE)
 	$(RM) MKCLINIT* bin/MKCLINIT*
 	$(RM) MKC*.c MKC*.tmp bin/MKC*.c bin/MKC*.tmp
