@@ -442,7 +442,7 @@ void __mkcc_bound_init(void)
 #endif
 
     /* add all static bound check values */
-    p = (size_t *)&__bounds_start;
+    p = (size_t *)&__mkcc_bounds_start;
     while (p[0] != 0) {
         __mkcc_bound_new_region((void *)p[0], p[1]);
         p += 2;

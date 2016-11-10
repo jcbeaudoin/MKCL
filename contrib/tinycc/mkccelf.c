@@ -501,6 +501,7 @@ ST_FUNC void relocate_section(MKCCState *s1, Section *s)
 #endif
 
     for_each_elem(sr, 0, rel, ElfW_Rel) {
+      /* section_ptr_add(s, 8); */ /* Someone suggested this to fix a malloc corruption. JCB */
         ptr = s->data + rel->r_offset;
 
         sym_index = ELFW(R_SYM)(rel->r_info);
@@ -594,7 +595,7 @@ ST_FUNC void relocate_section(MKCCState *s1, Section *s)
             {
                 int x, is_thumb, is_call, h, blx_avail, is_bl, th_ko;
                 x = (*(int *) ptr) & 0xffffff;
-		if (sym->st_shndx == SHN_UNDEF)
+		if (sym->st_shndx == SHN_UNDEF || s1->output_type == TCC_OUTPUT_MEMORY)
 	            val = s1->plt->sh_addr;
 #ifdef DEBUG_RELOC
 		printf ("reloc %d: x=0x%x val=0x%x ", type, x, val);
@@ -1331,7 +1332,7 @@ ST_FUNC void build_got_entries(MKCCState *s1)
                 sym_index = ELFW(R_SYM)(rel->r_info);
                 sym = &((ElfW(Sym) *)symtab_section->data)[sym_index];
 		if (type != R_ARM_GOTOFF && type != R_ARM_GOTPC
-		    && sym->st_shndx == SHN_UNDEF) {
+		    && (sym->st_shndx == SHN_UNDEF || s1->output_type == TCC_OUTPUT_MEMORY)) {
                     unsigned long ofs;
                     /* look at the symbol got offset. If none, then add one */
                     if (type == R_ARM_GOT32)
