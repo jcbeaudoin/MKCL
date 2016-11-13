@@ -25,6 +25,7 @@
 #endif
 
 #include <stdlib.h> /* for access to native malloc */
+#include <stdio.h> /* mainly to support debug messages. */
 
 
 

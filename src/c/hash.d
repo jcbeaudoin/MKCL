@@ -990,7 +990,7 @@ mk_si_hash_tables_statistics(MKCL)
   printf("\nHash tables of type PACKAGE:\n");
   print_stats_for_hset(mkcl_core.hashtables[mkcl_htt_package]);
 #else
-  printf("\nThere is no hashtable statistics!\n");
+  mkcl_princ_str(env, "\nThere is no hashtable statistics!\n", mk_cl_Ct);
 #endif
   @(return mk_cl_Cnil);
 }

@@ -18,6 +18,9 @@
 
 #include <mkcl/mkcl.h>
 #include <mkcl/internal.h>
+#if 0
+# include <stdio.h>
+#endif
 
 #include "cfun_dispatch.d"
 
@@ -159,14 +162,18 @@ mkcl_build_cdisplay(MKCL, mkcl_object producer, mkcl_object cenv, mkcl_index dep
 		}
 	      else
 		{
+#if 0
 		  printf("\nError in closure creation, producer expected depth = %d, producer effective depth = %d.\n",
 			 (int) i, (int) outer_env->display.nb_levels);
+#endif
 		  mkcl_lose(env, "Closure environment botch! Invalid producer depth.");
 		}
 	    }
 	  else
 	    {
+#if 0
 	      printf("\n+++ Closure environment is too short (%d) for depth %d\n", (int) i, (int) depth);
+#endif
 	      mkcl_lose(env, "Closure environment botch! Too few levels.");
 	    }
 	  break;
@@ -178,7 +185,9 @@ mkcl_build_cdisplay(MKCL, mkcl_object producer, mkcl_object cenv, mkcl_index dep
     }
   if (!mkcl_Null(this) || ((i == 0) && !mkcl_Null(producer) && (mkcl_type_of(producer) == mkcl_t_cclosure)))
     {
+#if 0
       printf("\n+++ Closure environment is too long (%d) for depth %d\n", (int) i, (int) depth);
+#endif
       mkcl_lose(env, "Closure environment botch! Too many levels.");
     }
   return dis;

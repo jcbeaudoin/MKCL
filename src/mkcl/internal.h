@@ -27,9 +27,6 @@
 # endif
 #endif
 
-#include <errno.h>
-#include <stdio.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
