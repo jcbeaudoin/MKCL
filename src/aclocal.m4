@@ -14,6 +14,7 @@ else
 fi
 if test $ac_cv_c_long_long = yes; then
   AC_RUN_IFELSE([AC_LANG_SOURCE([[#include <stdio.h>
+#include <stdlib.h>
 int main() {
   const char *int_type;
   int bits;
@@ -664,9 +665,11 @@ AC_SUBST(CL_FIXNUM_MAX)
 AC_SUBST(CL_FIXNUM_MIN)
 AC_SUBST(CL_INT_BITS)
 AC_SUBST(CL_LONG_BITS)
-AC_MSG_CHECKING(appropiate type for fixnums)
+AC_MSG_CHECKING(appropriate type for fixnums)
 if test -z "${CL_FIXNUM_TYPE}" ; then
   AC_RUN_IFELSE([AC_LANG_SOURCE([[#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
 int main() {
   const char *int_type;
   int bits;
@@ -678,28 +681,24 @@ int main() {
     int_type="int";
     for (bits=1; ((t << 1) >> 1) == t; bits++, t <<= 1);
     l = (~l) << (bits - 3);
-#if 1
     fprintf(f,"CL_FIXNUM_MIN='%d';",l);
     fprintf(f,"CL_FIXNUM_MAX='%d';",-(l+1));
-#else
-    l++;
-    fprintf(f,"CL_FIXNUM_MIN='%d';",l);
-    fprintf(f,"CL_FIXNUM_MAX='%d';",-l);
-#endif
   } else if (sizeof(long) >= sizeof(void*)) {
     unsigned long int t = 1;
     signed long int l = 0;
     int_type="long int";
     for (bits=1; ((t << 1) >> 1) == t; bits++, t <<= 1);
     l = (~l) << (bits - 3);
-#if 1
     fprintf(f,"CL_FIXNUM_MIN='%ld';",l);
     fprintf(f,"CL_FIXNUM_MAX='%ld';",-(l+1));
-#else
-    l++;
-    fprintf(f,"CL_FIXNUM_MIN='%ld';",l);
-    fprintf(f,"CL_FIXNUM_MAX='%ld';",-l);
-#endif
+  } else if (sizeof(long long) >= sizeof(void*)) {
+    unsigned long long int t = 1;
+    signed long long int l = 0;
+    int_type="long long int";
+    for (bits=1; ((t << 1) >> 1) == t; bits++, t <<= 1);
+    l = (~l) << (bits - 3);
+    fprintf(f,"CL_FIXNUM_MIN='%lldLL';",l);
+    fprintf(f,"CL_FIXNUM_MAX='%lldLL';",-(l+1));
   } else
     exit(1);
   fprintf(f,"CL_FIXNUM_TYPE='%s';",int_type);
@@ -722,7 +721,7 @@ int main() {
 }]])],[eval "`cat conftestval`"],[],[])
 fi
 if test -z "${CL_FIXNUM_TYPE}" ; then
-AC_MSG_ERROR(There is no appropiate integer type for the cl_fixnum type)
+AC_MSG_ERROR(There is no appropriate integer type for the cl_fixnum type)
 fi
 AC_MSG_RESULT([${CL_FIXNUM_TYPE}])])
 
@@ -735,6 +734,7 @@ AC_DEFUN(MKCL_LINEFEED_MODE,[
 AC_MSG_CHECKING(character sequence for end of line)
 if test -z "${MKCL_NEWLINE}" ; then
 AC_RUN_IFELSE([AC_LANG_SOURCE([[#include <stdio.h>
+#include <stdlib.h>
 int main() {
   FILE *f = fopen("conftestval","w");
   int c1, c2;

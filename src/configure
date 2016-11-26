@@ -5660,6 +5660,7 @@ else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <stdio.h>
+#include <stdlib.h>
 int main() {
   const char *int_type;
   int bits;
@@ -5934,8 +5935,8 @@ $as_echo "#define AC_APPLE_UNIVERSAL_BUILD 1" >>confdefs.h
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking appropiate type for fixnums" >&5
-$as_echo_n "checking appropiate type for fixnums... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking appropriate type for fixnums" >&5
+$as_echo_n "checking appropriate type for fixnums... " >&6; }
 if test -z "${CL_FIXNUM_TYPE}" ; then
   if test "$cross_compiling" = yes; then :
   { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
@@ -5946,6 +5947,8 @@ else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
 int main() {
   const char *int_type;
   int bits;
@@ -5957,28 +5960,24 @@ int main() {
     int_type="int";
     for (bits=1; ((t << 1) >> 1) == t; bits++, t <<= 1);
     l = (~l) << (bits - 3);
-#if 1
     fprintf(f,"CL_FIXNUM_MIN='%d';",l);
     fprintf(f,"CL_FIXNUM_MAX='%d';",-(l+1));
-#else
-    l++;
-    fprintf(f,"CL_FIXNUM_MIN='%d';",l);
-    fprintf(f,"CL_FIXNUM_MAX='%d';",-l);
-#endif
   } else if (sizeof(long) >= sizeof(void*)) {
     unsigned long int t = 1;
     signed long int l = 0;
     int_type="long int";
     for (bits=1; ((t << 1) >> 1) == t; bits++, t <<= 1);
     l = (~l) << (bits - 3);
-#if 1
     fprintf(f,"CL_FIXNUM_MIN='%ld';",l);
     fprintf(f,"CL_FIXNUM_MAX='%ld';",-(l+1));
-#else
-    l++;
-    fprintf(f,"CL_FIXNUM_MIN='%ld';",l);
-    fprintf(f,"CL_FIXNUM_MAX='%ld';",-l);
-#endif
+  } else if (sizeof(long long) >= sizeof(void*)) {
+    unsigned long long int t = 1;
+    signed long long int l = 0;
+    int_type="long long int";
+    for (bits=1; ((t << 1) >> 1) == t; bits++, t <<= 1);
+    l = (~l) << (bits - 3);
+    fprintf(f,"CL_FIXNUM_MIN='%lldLL';",l);
+    fprintf(f,"CL_FIXNUM_MAX='%lldLL';",-(l+1));
   } else
     exit(1);
   fprintf(f,"CL_FIXNUM_TYPE='%s';",int_type);
@@ -6009,7 +6008,7 @@ fi
 
 fi
 if test -z "${CL_FIXNUM_TYPE}" ; then
-as_fn_error $? "There is no appropiate integer type for the cl_fixnum type" "$LINENO" 5
+as_fn_error $? "There is no appropriate integer type for the cl_fixnum type" "$LINENO" 5
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${CL_FIXNUM_TYPE}" >&5
 $as_echo "${CL_FIXNUM_TYPE}" >&6; }
@@ -6287,6 +6286,7 @@ else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <stdio.h>
+#include <stdlib.h>
 int main() {
   FILE *f = fopen("conftestval","w");
   int c1, c2;
