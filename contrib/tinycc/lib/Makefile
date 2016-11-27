@@ -56,8 +56,7 @@ else
  X86_64_O = libmkcc1.o alloca86_64.o
 endif
 ARM_O = libmkcc1.o armeabi.o alloca-arm.o
-WIN32_O = $(I386_O) crt1.o wincrt1.o dllcrt1.o dllmain.o chkstk.o
-WIN64_O = $(X86_64_O) crt1.o wincrt1.o dllcrt1.o dllmain.o chkstk.o
+WIN_CRT_O = crt1.o wincrt1.o dllcrt1.o dllmain.o chkstk.o
 ARM64_O = lib-arm64.o
 
 # build MKCC runtime library to contain PIC code, so it can be linked
@@ -69,14 +68,16 @@ PICFLAGS = -fPIC
 CFLAGS := $(filter-out -fstack-protector-strong,$(CFLAGS))
 
 ifeq "$(TARGET)" "i386-win"
- OBJ = $(addprefix $(DIR)/,$(WIN32_O))
+ OBJ_CRT = $(addprefix $(DIR)/,$(WIN_CRT_O))
+ OBJ = $(addprefix $(DIR)/,$(I386_O))
  TGT = -DMKCC_TARGET_I386 -DMKCC_TARGET_PE
  XCC ?= $(MKCC) -B$(top_srcdir)/win32 -I$(top_srcdir)/include
  XAR ?= $(DIR)/tiny_libmaker$(EXESUF)
  PICFLAGS =
 else
 ifeq "$(TARGET)" "x86_64-win"
- OBJ = $(addprefix $(DIR)/,$(WIN64_O))
+ OBJ_CRT = $(addprefix $(DIR)/,$(WIN_CRT_O))
+ OBJ = $(addprefix $(DIR)/,$(X86_64_O))
  TGT = -DMKCC_TARGET_X86_64 -DMKCC_TARGET_PE
  XCC ?= $(MKCC) -B$(top_srcdir)/win32 -I$(top_srcdir)/include
  XAR ?= $(DIR)/tiny_libmaker$(EXESUF)
