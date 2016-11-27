@@ -95,6 +95,9 @@ ffi_x86.c: arch/ffi_x86.d $(DPP)
 ffi_x86_64.c: arch/ffi_x86_64.d $(DPP)
 	$(DPP) $< $@
 
+ffi_x86_64_w64.c: arch/ffi_x86_64_w64.d $(DPP)
+	$(DPP) $< $@
+
 ../mkclmin.a: $(OBJS)
 	$(RM) $@
 	$(AR) cr $@ $(OBJS)
