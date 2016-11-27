@@ -835,7 +835,14 @@ case "${host_cpu}" in
         if test "${CL_FIXNUM_BITS}" = 32 ; then
 	  EXTRA_OBJS="${EXTRA_OBJS} ffi_x86.o"
 	else
-	  EXTRA_OBJS="${EXTRA_OBJS} ffi_x86_64.o"
+            case "${host_os}" in
+                mingw*)
+	            EXTRA_OBJS="${EXTRA_OBJS} ffi_x86_64_w64.o"
+                    ;;
+                *)
+	            EXTRA_OBJS="${EXTRA_OBJS} ffi_x86_64.o"
+                    ;;
+            esac
 	fi
 	dynamic_ffi=yes
 	;;

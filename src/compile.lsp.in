@@ -74,8 +74,7 @@
                                                          "lsp.@LIBEXT@"
                                                          "mkclmin.@LIBEXT@"
                                                          ,@(mkcl:split-string "@LIBRARIES@" #\space)
-                                                         #+mingw64
-                                                         "c:/Users/Jean-Claude/GNU2/mingw64/lib/libgmp.a"
+                                                         ;;#+mingw64 "c:/Users/Jean-Claude/GNU2/mingw64/lib/libgmp.a"
                                                          )
 					 )
     (mkcl:quit :exit-code 1))
