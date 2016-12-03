@@ -67,12 +67,15 @@
 
 ;; This stuff was needed by ASDF 2.
 ;; handler-bind could be better than ignore-errors here. JCB
-(unless (setq sys (ignore-errors (asdf:find-system sys-name)))
-  (format t "~%asdf:find-system failed to find system: ~S~%" sys-name)
-  (format t "asdf:*central-registry* = ~S~%" asdf:*central-registry*)
-  (finish-output)
-  (mkcl:quit :exit-code 1)
-  )
+(multiple-value-bind (result bundling-error)
+    (ignore-errors (asdf:find-system sys-name))
+  (unless result
+    (format t "~%asdf:find-system failed to find system: ~S! Reason is: ~S ~A.~%"
+            sys-name bundling-error bundling-error)
+    (format t "asdf:*central-registry* = ~S~%" asdf:*central-registry*)
+    (finish-output)
+    (mkcl:quit :exit-code 1))
+  (setq sys result))
 
 ;;(format t "~&Done with asdf:find-system.")(finish-output)
 

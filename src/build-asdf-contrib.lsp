@@ -73,11 +73,12 @@
 
 (setq si::*default-external-format* '(:utf-8 :lf))
 
-(unless (ignore-errors (asdf:bundle-system sys-name))
-  (format t "~%asdf:bundle-system failed.~%")
-  (finish-output)
-  (mkcl:quit :exit-code 1)
-  )
+(multiple-value-bind (result bundling-error)
+    (ignore-errors (asdf:bundle-system sys-name))
+  (unless result
+    (format t "~%asdf:bundle-system for ~S failed! Reason is: ~S ~A.~%" sys-name bundling-error bundling-error)
+    (finish-output)
+    (mkcl:quit :exit-code 1)))
 
 (mkcl:quit :exit-code 0)
 
