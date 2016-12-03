@@ -100,7 +100,7 @@ BUILTINS = asdf profile rt serve-event sockets mk-unix
 MKCL_STATIC_PARTS = mkcltop.@LIBEXT@ lsp.a mkclmin.@LIBEXT@
 
 
-all: bin/mkcc$(EXE) bin/mkcl-config $(TARGETS) $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) help.doc
+all: depend bin/mkcc$(EXE) bin/mkcl-config $(TARGETS) $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) help.doc
 .PHONY:	all
 
 Makefile: Makefile.in config.status
