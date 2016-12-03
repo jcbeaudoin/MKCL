@@ -50,11 +50,12 @@
 (setq si::*default-external-format* '(:utf-8 :lf))
 
 (format t "~&About to build UIOP.~%")(finish-output)
-(unless (ignore-errors (asdf:bundle-system "uiop"))
-  (format t "~%asdf:bundle-system failed.~%")
-  (finish-output)
-  (mkcl:quit :exit-code 1)
-  )
+(multiple-value-bind (result bundling-error)
+    (ignore-errors (asdf:bundle-system "uiop"))
+  (unless result
+    (format t "~%asdf:bundle-system failed! Reason is: ~S ~A.~%" bundling-error bundling-error)
+    (finish-output)
+    (mkcl:quit :exit-code 1)))
 
 (mkcl:quit :exit-code 0) ;; signal to "make" that all is well.
 
