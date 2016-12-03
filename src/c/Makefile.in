@@ -44,11 +44,19 @@ includedir=@includedir@
 
 # Files
 
-HDIR	= ../mkcl
-HFILES	= $(HDIR)/config.h $(HDIR)/mkcl.h $(HDIR)/mkcl-cmp.h\
-	$(HDIR)/object.h $(HDIR)/stacks.h\
-	$(HDIR)/external.h $(HDIR)/eval.h\
-	$(HDIR)/number.h $(HDIR)/mkcl-inl.h
+MKCL_HFILES = ../mkcl/config.h \
+              ../mkcl/list.h \
+              ../mkcl/external.h \
+              ../mkcl/internal.h \
+              ../mkcl/mkcl-fenv.h \
+              ../mkcl/mkcl-gc.h \
+              ../mkcl/mkcl-inl.h \
+              ../mkcl/mkcl-math.h \
+              ../mkcl/mkcl-unicode.h \
+              ../mkcl/number.h \
+              ../mkcl/object.h \
+              ../mkcl/stacks.h
+
 
 
 OBJS	= main.o symbol.o package.o list.o \
@@ -67,7 +75,6 @@ OBJS	= main.o symbol.o package.o list.o \
 	ffi.o @EXTRA_OBJS@
 
 DCFILES = $(OBJS:%.o=%.c)
-DHFILES = $(OBJS:%.o=%.h)
 
 .SUFFIXES: .c .o .d
 .PHONY: all
@@ -109,7 +116,7 @@ ffi_x86_64_w64.c: arch/ffi_x86_64_w64.d $(DPP)
 	$(RANLIB) $@
 
 clean:
-	$(RM) $(DPP) $(DCFILES) $(DHFILES) $(OBJS) all_symbols.c all_symbols.o all_symbols2.o main2.o cinit.c cinit.o core core.* a.out
+	$(RM) $(DPP) $(DCFILES) $(OBJS) all_symbols.c all_symbols.o all_symbols2.o main2.o cinit.c cinit.o core core.* a.out
 	$(RM) GNUmakefile makefile.depend
 
 distclean: clean
@@ -145,7 +152,7 @@ ffi_x86.o: ffi_x86.c
 all_symbols.o: all_symbols.c
 	$(CC) $(CFLAGS) -c all_symbols.c -o $@
 
-all_symbols2.o: all_symbols.o
+all_symbols2.o: all_symbols.c
 	$(CC) $(CFLAGS) -DMKCL_FINAL -c all_symbols.c -o $@
 
 main2.o: main.o
@@ -164,7 +171,7 @@ Makefile: Makefile.in ../config.status
 depend:
 	$(MAKE) GNUmakefile
 
-makefile.depend: $(DCFILES) cinit.c all_symbols.c ../mkcl/*.h
+makefile.depend: $(DCFILES) cinit.c all_symbols.c ../mkcl/mkcl.h $(MKCL_HFILES)
 	$(RM) makefile.depend
 	for i in $^; do \
 	  case $$i in \

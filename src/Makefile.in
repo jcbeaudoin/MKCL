@@ -340,7 +340,7 @@ libmkcc1.@LIBEXT@: ../contrib/tinycc/libmkcc1.a
 ../contrib/tinycc/libmkcc1.a: ../contrib/tinycc/*.[ch] ../contrib/tinycc/lib/*.c
 	cd ../contrib/tinycc; $(MAKE)
 
-mkclmin.@LIBEXT@: depend c/*.d mkcl/*.h c/arch/*.d
+mkclmin.@LIBEXT@: mkcl/mkcl.h $(MKCL_HFILES) c/*.d c/arch/*.d depend
 	cd c; $(MAKE) ../mkclmin.@LIBEXT@
 	touch $@
 
@@ -588,10 +588,10 @@ TAGS: lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre c/*.d c/*.h 
 
 
 
-depend: c/GNUmakefile
+depend: c/makefile.depend
 	touch depend
 
-c/GNUmakefile:
+c/makefile.depend: mkcl/mkcl.h $(MKCL_HFILES)
 	cd c; $(MAKE) depend
 
 
