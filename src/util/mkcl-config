@@ -32,7 +32,7 @@ for i in $*; do
 done
 
 if test "$echo_cflags" = "yes"; then
-  echo "@MKCL_CFLAGS@ @GMP_CFLAGS@ @DEBUG_CFLAGS@ -I@includedir\@"
+  echo "@MKCL_CFLAGS@ @MKCL_OPTIM_CFLAGS@ @GMP_CFLAGS@ @DEBUG_CFLAGS@ -I@includedir\@"
 fi
 
 if test "$echo_ldflags" = "yes"; then

@@ -480,7 +480,7 @@ coprocessor).")
 		     "ranlib")
 "This variable controls the library conditioner which is used by MKCL.")
 
-(defvar *cc-flags* "@CPPFLAGS@ @CFLAGS@ @MKCL_CFLAGS@ ")
+(defvar *cc-flags* "@CPPFLAGS@ @CFLAGS@ @MKCL_CFLAGS@ @MKCL_OPTIM_CFLAGS@ ")
 
 (defvar *fast-compile-cc-flags* *cc-flags*)
 

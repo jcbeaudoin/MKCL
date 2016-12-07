@@ -194,6 +194,7 @@ AC_SUBST(OBJEXT)dnl	These are set by autoconf
 AC_SUBST(EXEEXT)
 AC_SUBST(INSTALL_TARGET)dnl Which type of installation: flat directory or unix like.
 AC_SUBST(thehost)
+CFLAGS=''
 LDRPATH='~*'
 SHAREDEXT='so'
 SHAREDPREFIX='lib'
@@ -220,7 +221,7 @@ case "${host_os}" in
 		LDRPATH='-Wl,--rpath,~A'
 		#clibs="-ldl"
 		CORE_OS_LIBS="-pthread -ldl"
-		CFLAGS="-D_GNU_SOURCE -fno-strict-aliasing ${CFLAGS}"
+		MKCL_CFLAGS="-D_GNU_SOURCE -fno-strict-aliasing"
 		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
@@ -233,7 +234,7 @@ case "${host_os}" in
 		LDRPATH='-Wl,--rpath,~A'
 		#clibs="-ldl"
 		CORE_OS_LIBS="-pthread -ldl"
-		CFLAGS="-D_GNU_SOURCE ${CFLAGS}"
+		MKCL_CFLAGS="-D_GNU_SOURCE"
 		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
@@ -246,7 +247,7 @@ case "${host_os}" in
 		LDRPATH='-Wl,--rpath,~A'
 		#clibs="-ldl"
 		CORE_OS_LIBS="-pthread -ldl"
-		CFLAGS="-D_GNU_SOURCE ${CFLAGS}"
+		MKCL_CFLAGS="-D_GNU_SOURCE"
 		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
@@ -259,7 +260,7 @@ case "${host_os}" in
 		LDRPATH="-Wl,--rpath,~A"
 		clibs=""
                 CORE_OS_LIBS="-pthread"
-		CFLAGS="-D_GNU_SOURCE -fno-strict-aliasing ${CFLAGS}"
+		MKCL_CFLAGS="-D_GNU_SOURCE -fno-strict-aliasing"
 		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
@@ -311,7 +312,7 @@ case "${host_os}" in
 		#clibs=''
 		CORE_OS_LIBS=''
 		shared='yes'
-		CFLAGS="-fno-strict-aliasing ${CFLAGS}"
+		MKCL_CFLAGS="-fno-strict-aliasing"
 		THREAD_CFLAGS='-mthreads -D_MT'
 		THREAD_GC_FLAGS='--enable-threads=win32'
 		SHARED_LDFLAGS="-shared ${LDFLAGS}"
@@ -381,11 +382,16 @@ case "${WINVER}" in
      WinNT|Win2000|WinXP|WinVista|Win7)
       MKCL_CFLAGS="${MKCL_CFLAGS} -D${WINVER}";;
      *) ;;
-esac			
+esac
+if test "${enable_debug+set}" = set; then
+MKCL_OPTIM_CFLAGS="${DEBUG_CFLAGS}"
+else
+MKCL_OPTIM_CFLAGS="-O2"
+fi
 AC_MSG_CHECKING(for ld flags when building shared libraries)
 if test "${enable_shared}" = "yes"; then
 AC_MSG_RESULT([${SHARED_LDFLAGS}])
-CFLAGS="${CFLAGS} ${PICFLAG}"
+MKCL_CFLAGS="${MKCL_CFLAGS} ${PICFLAG}"
 else
 shared="no";
 AC_MSG_RESULT(cannot build)

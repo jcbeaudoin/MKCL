@@ -278,6 +278,7 @@ boehm_configure_flags=""
 AC_EXEEXT                       dnl Guess whether .exe is needed for executables
 AC_SUBST(buildir)               dnl For top-level Makefile.in
 AC_SUBST(MKCL_CFLAGS)           dnl Similar, but specific to MKCL (see src/util/mkcl-config)
+AC_SUBST(MKCL_OPTIM_CFLAGS)           dnl Similar, but specific to MKCL (see src/util/mkcl-config)
 AC_SUBST(DEBUG_CFLAGS)		dnl Additional flags when debugging
 AC_SUBST(GMP_CFLAGS)		dnl CFLAGS needed for compiling with system GMP library
 AC_SUBST(GMP_LDFLAGS)		dnl LDFLAGS needed for compiling with system GMP library
@@ -773,12 +774,12 @@ case "${enable_boehm}" in
 dnl    test -d gc && rm -rf gc
 dnl    if mkdir gc; then
       echo "(destdir=`${PWDCMD}`; cd gc; \
-      CC="${CC} ${PICFLAG}" CFLAGS="-DMK_GC_BUILD ${CFLAGS}" LDFLAGS="${LDFLAGS}" \
+      CC="${CC} ${PICFLAG}" CFLAGS="-DMK_GC_BUILD ${MKCL_CFLAGS} ${MKCL_OPTIM_CFLAGS}" LDFLAGS="${LDFLAGS}" \
         $srcdir/gc/configure --disable-shared --prefix=${destdir} \
 	--includedir=${destdir}/mkcl/ --libdir=${destdir} --build=${build_alias} \
 	--host=${host_alias} --enable-large-config --with-libatomic-ops=no ${boehm_configure_flags})"
      (destdir=`${PWDCMD}`; cd gc; \
-      CC="${CC} ${PICFLAG}" CFLAGS="-DMK_GC_BUILD ${CFLAGS}" LDFLAGS="${LDFLAGS}" \
+      CC="${CC} ${PICFLAG}" CFLAGS="-DMK_GC_BUILD ${MKCL_CFLAGS} ${MKCL_OPTIM_CFLAGS}" LDFLAGS="${LDFLAGS}" \
         $srcdir/gc/configure --disable-shared --prefix=${destdir} \
 	--includedir=${destdir}/mkcl/ --libdir=${destdir} --build=${build_alias} \
 	--host=${host_alias} --enable-large-config --with-libatomic-ops=no ${boehm_configure_flags})

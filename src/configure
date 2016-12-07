@@ -711,6 +711,7 @@ FASL_LIBS
 GMP_LDFLAGS
 GMP_CFLAGS
 DEBUG_CFLAGS
+MKCL_OPTIM_CFLAGS
 MKCL_CFLAGS
 buildir
 mkcldir
@@ -2433,7 +2434,7 @@ test -z "${docdir}" && docdir="${datadir}/doc/mkcl-${PACKAGE_VERSION}"
 
 boehm_configure_flags=""
 
-                                                 						                                                                                                                  TARGETS='bin/mkcl$(EXE)'
+                                                            						                                                                                                                  TARGETS='bin/mkcl$(EXE)'
 SUBDIRS=c
 
 
@@ -3984,6 +3985,7 @@ MV="mv"
 
 
 
+CFLAGS=''
 LDRPATH='~*'
 SHAREDEXT='so'
 SHAREDPREFIX='lib'
@@ -4010,7 +4012,7 @@ case "${host_os}" in
 		LDRPATH='-Wl,--rpath,~A'
 		#clibs="-ldl"
 		CORE_OS_LIBS="-pthread -ldl"
-		CFLAGS="-D_GNU_SOURCE -fno-strict-aliasing ${CFLAGS}"
+		MKCL_CFLAGS="-D_GNU_SOURCE -fno-strict-aliasing"
 		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
@@ -4023,7 +4025,7 @@ case "${host_os}" in
 		LDRPATH='-Wl,--rpath,~A'
 		#clibs="-ldl"
 		CORE_OS_LIBS="-pthread -ldl"
-		CFLAGS="-D_GNU_SOURCE ${CFLAGS}"
+		MKCL_CFLAGS="-D_GNU_SOURCE"
 		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
@@ -4036,7 +4038,7 @@ case "${host_os}" in
 		LDRPATH='-Wl,--rpath,~A'
 		#clibs="-ldl"
 		CORE_OS_LIBS="-pthread -ldl"
-		CFLAGS="-D_GNU_SOURCE ${CFLAGS}"
+		MKCL_CFLAGS="-D_GNU_SOURCE"
 		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
@@ -4049,7 +4051,7 @@ case "${host_os}" in
 		LDRPATH="-Wl,--rpath,~A"
 		clibs=""
                 CORE_OS_LIBS="-pthread"
-		CFLAGS="-D_GNU_SOURCE -fno-strict-aliasing ${CFLAGS}"
+		MKCL_CFLAGS="-D_GNU_SOURCE -fno-strict-aliasing"
 		SONAME="${SHAREDPREFIX}mkcl.${SHAREDEXT}.SOVERSION"
 		SONAME_LDFLAGS="-Wl,-soname,SONAME"
 		;;
@@ -4101,7 +4103,7 @@ case "${host_os}" in
 		#clibs=''
 		CORE_OS_LIBS=''
 		shared='yes'
-		CFLAGS="-fno-strict-aliasing ${CFLAGS}"
+		MKCL_CFLAGS="-fno-strict-aliasing"
 		THREAD_CFLAGS='-mthreads -D_MT'
 		THREAD_GC_FLAGS='--enable-threads=win32'
 		SHARED_LDFLAGS="-shared ${LDFLAGS}"
@@ -4172,12 +4174,17 @@ case "${WINVER}" in
       MKCL_CFLAGS="${MKCL_CFLAGS} -D${WINVER}";;
      *) ;;
 esac
+if test "${enable_debug+set}" = set; then
+MKCL_OPTIM_CFLAGS="${DEBUG_CFLAGS}"
+else
+MKCL_OPTIM_CFLAGS="-O2"
+fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ld flags when building shared libraries" >&5
 $as_echo_n "checking for ld flags when building shared libraries... " >&6; }
 if test "${enable_shared}" = "yes"; then
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${SHARED_LDFLAGS}" >&5
 $as_echo "${SHARED_LDFLAGS}" >&6; }
-CFLAGS="${CFLAGS} ${PICFLAG}"
+MKCL_CFLAGS="${MKCL_CFLAGS} ${PICFLAG}"
 else
 shared="no";
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: cannot build" >&5
@@ -7944,12 +7951,12 @@ case "${enable_boehm}" in
     { $as_echo "$as_me:${as_lineno-$LINENO}: Configuring included Boehm GC library:" >&5
 $as_echo "$as_me: Configuring included Boehm GC library:" >&6;}
       echo "(destdir=`${PWDCMD}`; cd gc; \
-      CC="${CC} ${PICFLAG}" CFLAGS="-DMK_GC_BUILD ${CFLAGS}" LDFLAGS="${LDFLAGS}" \
+      CC="${CC} ${PICFLAG}" CFLAGS="-DMK_GC_BUILD ${MKCL_CFLAGS} ${MKCL_OPTIM_CFLAGS}" LDFLAGS="${LDFLAGS}" \
         $srcdir/gc/configure --disable-shared --prefix=${destdir} \
 	--includedir=${destdir}/mkcl/ --libdir=${destdir} --build=${build_alias} \
 	--host=${host_alias} --enable-large-config --with-libatomic-ops=no ${boehm_configure_flags})"
      (destdir=`${PWDCMD}`; cd gc; \
-      CC="${CC} ${PICFLAG}" CFLAGS="-DMK_GC_BUILD ${CFLAGS}" LDFLAGS="${LDFLAGS}" \
+      CC="${CC} ${PICFLAG}" CFLAGS="-DMK_GC_BUILD ${MKCL_CFLAGS} ${MKCL_OPTIM_CFLAGS}" LDFLAGS="${LDFLAGS}" \
         $srcdir/gc/configure --disable-shared --prefix=${destdir} \
 	--includedir=${destdir}/mkcl/ --libdir=${destdir} --build=${build_alias} \
 	--host=${host_alias} --enable-large-config --with-libatomic-ops=no ${boehm_configure_flags})
