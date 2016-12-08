@@ -574,8 +574,8 @@ distclean: clean
 	$(RM) Makefile bare.lsp compile.pre
 
 realclean: distclean
-	cd c; $(MAKE) realclean
-	$(RM) *~
+	$(RM) *~ c/*~ c/arch/*~
+	$(RM) lsp/*~ clos/*~ cmp/*~
 
 TAGS: lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre c/*.d c/*.h c/arch/*.d mkcl/*.h
 	if type etags >/dev/null 2>&1; then  \

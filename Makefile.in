@@ -44,6 +44,7 @@
 
 SHELL = /bin/sh
 MACHINE = @MACHINE_VERSION@
+RM	= @RM@
 
 # ========================= Last release ================================
 
@@ -124,7 +125,7 @@ clean:
 
 distclean: clean
 	cd src; $(MAKE) distclean
-	rm -f Makefile
+	$(RM) Makefile
 
 #   `realclean'
 #        Delete everything from the current directory that can be
@@ -135,8 +136,9 @@ distclean: clean
 #        anything that needs to exist in order to run `configure' and then
 #        begin to build the program.
 realclean: distclean
-	rm -f *~
-	cd src; $(MAKE) realclean
+	$(RM) *~
+	$(RM) src/*~ src/c/*~ src/c/arch/*~
+	$(RM) src/lsp/*~ src/clos/*~ src/cmp/*~
 
 # ==================== Various means of distribution ====================
 
