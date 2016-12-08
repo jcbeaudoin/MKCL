@@ -462,7 +462,23 @@ One can set the variable appropriately adding for instance flags which the
 C compiler may need to exploit special hardware features (e.g. a floating point
 coprocessor).")
 
-(defvar *fast-compile-cc* (namestring (merge-pathnames "mkcc" (si::self-truename))))
+(defvar *fast-compile-cc*
+  (let ((mkcc (namestring (merge-pathnames "mkcc" (si::self-truename))))
+        (clang (or #+(or mingw32 mingw64) (namestring (merge-pathnames "clang" (si::self-truename)))
+                   "clang")))
+    (or #-(or mingw32 mingw64)
+        (multiple-value-bind (io proc result)
+            (si::run-program mkcc '("-v") :input nil :output nil :error nil)
+          (declare (ignore io proc))
+          (when (eql 0 result) mkcc)
+          )
+        (multiple-value-bind (io proc result)
+            (si::run-program clang '("--version") :input nil :output nil :error nil)
+          (declare (ignore io proc))
+          (when (eql 0 result) mkcc)
+          )
+        *cc*)))
+
 
 (defvar *ld* (or #+(or mingw32 mingw64)
 		 (let ((cc-path #P"@MKCL_CC@"))
@@ -482,7 +498,7 @@ coprocessor).")
 
 (defvar *cc-flags* "@CPPFLAGS@ @CFLAGS@ @MKCL_CFLAGS@ @MKCL_OPTIM_CFLAGS@ ")
 
-(defvar *fast-compile-cc-flags* *cc-flags*)
+(defvar *fast-compile-cc-flags* "@CPPFLAGS@ @CFLAGS@ @MKCL_CFLAGS@ -O0 ")
 
 (defvar *cc-optimize* #-msvc ""
                       #+msvc "@CFLAGS_OPTIMIZE@")
