@@ -1325,7 +1325,7 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
 	parent_read = 0;
 	parent_error = 0;
 	errno = fork_errno;
-	mkcl_FElibc_error(env, "mkcl:run-program ould not spawn subprocess to run ~S.", 1, command);
+	mkcl_FElibc_error(env, "mkcl:run-program could not spawn subprocess to run ~S.", 1, command);
       }
   }
 #endif  /* MKCL_UNIX */
