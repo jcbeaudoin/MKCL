@@ -53,21 +53,21 @@
 (princ ";;; About to load cmp/load.lsp")
 
 (load "cmp/load.lsp" :external-format '(:ascii :lf))
-(setq compiler::*fast-compile-cc* ;;(namestring (merge-pathnames "bin/mkcc" (si::self-truename)))
+(setq compiler::*fast-compile-cc*
       (let ((mkcc (namestring (merge-pathnames "bin/mkcc" (si::self-truename))))
             (clang "clang"))
         (or #-(or mingw32 mingw64)
-            (multiple-value-bind (io proc result)
+            (ignore-errors
+              (multiple-value-bind (io proc result)
                 (si::run-program mkcc '("-v") :input nil :output nil :error nil)
               (declare (ignore io proc))
-              (when (eql 0 result) mkcc)
-              )
-            (multiple-value-bind (io proc result)
-                (si::run-program clang '("--version") :input nil :output nil :error nil)
-              (declare (ignore io proc))
-              (when (eql 0 result) mkcc)
-              )
-            *cc*)))
+              (when (eql 0 result) mkcc)))
+            (ignore-errors
+              (multiple-value-bind (io proc result)
+                  (si::run-program clang '("--version") :input nil :output nil :error nil)
+                (declare (ignore io proc))
+                (when (eql 0 result) clang)))
+            compiler::*cc*)))
 
 ;;;
 ;;; * Go back to build directory to start compiling
