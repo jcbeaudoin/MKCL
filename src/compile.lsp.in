@@ -55,6 +55,7 @@
 ;;;
 
 (let* (#+windows (compiler::*cc-flags* (concatenate 'string "-DMKCL_API " compiler::*cc-flags*))
+       #+windows (compiler::*fast-compile-cc-flags* (concatenate 'string "-DMKCL_API " compiler::*fast-compile-cc-flags*))
        (lsp-objects (compile-if-old "./lsp/" +lisp-module-files+ :fasl-p nil))
        )
   (setq lsp-objects (append lsp-objects (compile-if-old "./clos/" +clos-module-files+ :fasl-p nil)))
