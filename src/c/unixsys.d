@@ -624,7 +624,7 @@ mkcl_object mk_mkcl_system (MKCL, mkcl_object cmd_string)
 #endif
 
     if (code == -1)
-      mkcl_FElibc_error(env, "si::system unable to fork subprocess to execute command: ~A", 1, cmd_string);
+      mkcl_FElibc_error(env, "mkcl::system unable to fork subprocess to execute command: ~A", 1, cmd_string);
 
 #if MKCL_WINDOWS
     { @(return MKCL_MAKE_FIXNUM(code)); }
@@ -694,7 +694,7 @@ mk_mkcl_make_pipe(MKCL) /* Any user of this? JCB */ /* Without :element-type or 
   ret = pipe(fds);
 #endif
   if (ret < 0) {
-    mkcl_FElibc_error(env, "si:make-pipe was unable to create pipe", 0);
+    mkcl_FElibc_error(env, "mkcl:make-pipe was unable to create pipe", 0);
     output = mk_cl_Cnil;
   } else {
     mkcl_object fake_in_name
@@ -1189,7 +1189,7 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
 
 	if (os_raw_new_directory && chdir(os_raw_new_directory))
 	  {
-	    fprintf(stderr, "\nMKCL: si::run-program: chdir(%s): ", os_raw_new_directory);
+	    fprintf(stderr, "\nMKCL: mkcl::run-program: chdir(%s): ", os_raw_new_directory);
 	  }
 	else 
 	  {
@@ -1371,7 +1371,8 @@ void mkcl_finalize_process(MKCL, mkcl_object proc)
 {
   mk_mkcl_process_status(env, proc);
 #if MKCL_UNIX
-  delete_pid_from_children(env, proc->process.ident);
+  if (proc->process.ident)
+    delete_pid_from_children(env, proc->process.ident);
 #elif MKCL_WINDOWS
   if (proc->process.ident)
     {
@@ -1410,10 +1411,16 @@ mkcl_object mk_mkcl_process_id(MKCL, mkcl_object proc)
 # if defined(__MINGW32__) && !(_WIN32_WINNT >= 0x0501) /* Requires WinXP SP1 or later. */
   @(return mk_cl_Cnil);
 # else
-  @(return mkcl_make_integer(env, GetProcessId(proc->process.ident)));
+  if (proc->process.ident)
+    { @(return mkcl_make_integer(env, GetProcessId(proc->process.ident))); }
+  else
+    { @(return mk_cl_Cnil); }
 # endif
 #else
-  @(return mkcl_make_integer(env, proc->process.ident));
+  if (proc->process.ident)
+    { @(return mkcl_make_integer(env, proc->process.ident)); }
+  else
+    { @(return mk_cl_Cnil); }
 #endif
 }
 
@@ -1449,6 +1456,8 @@ mkcl_object mk_mkcl_process_status(MKCL, mkcl_object proc)
     mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
   else if (proc->process.detached)
     { @(return @':detached'); }
+  else if (proc->process.ident == 0)
+    { @(return @':invalid'); }
 
 #if MKCL_UNIX
   if (proc->process.status != @':exited')
@@ -1461,7 +1470,7 @@ mkcl_object mk_mkcl_process_status(MKCL, mkcl_object proc)
       while ((rc == -1) && (errno == EINTR));
       mk_mt_test_for_thread_shutdown(env);
       if (rc == -1)
-	mkcl_FElibc_error(env, "si:process-status failed on waitpid().", 0);
+	mkcl_FElibc_error(env, "mkcl:process-status failed on waitpid().", 0);
       else if (rc == child_pid)
         {
           proc->process.exit_code = status; /* we keep it raw for mk_mkcl_process_exit_code(). */
@@ -1490,7 +1499,7 @@ mkcl_object mk_mkcl_process_status(MKCL, mkcl_object proc)
 	    CloseHandle(proc->process.ident);
 	    proc->process.ident = NULL;
 	  }
-      } else mkcl_FEwin32_error(env, "mkcl::run-program failed on GetExitCodeProcess", 0);
+      } else mkcl_FEwin32_error(env, "mkcl:process-status failed on GetExitCodeProcess", 0);
     }
 #endif
   
@@ -1708,7 +1717,8 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
   if (mkcl_type_of(proc) != mkcl_t_process)
     mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
 
-  if (proc->process.status == @':exited' /* || proc->process.detached */)
+  if (proc->process.status == @':exited' /* || proc->process.detached */
+      || proc->process.ident == 0)
     { @(return mk_cl_Cnil); }
 
 #if MKCL_UNIX
@@ -1744,21 +1754,22 @@ mkcl_object mk_mkcl_detach_process(MKCL, mkcl_object proc)
 #if MKCL_UNIX
   mkcl_os_process_t id = proc->process.ident;
 
-  {
-    volatile bool locked = false;
+  if (id)
+    {
+      volatile bool locked = false;
 
-    MKCL_UNWIND_PROTECT_BEGIN(env) {
-      MKCL_LIBC_NO_INTR(env, (CHILDREN_LIST_LOCK(env), locked = TRUE));
-      mkcl_core.detached_children = mkcl_cons(env, mkcl_make_integer(env, id), mkcl_core.detached_children);
-    } MKCL_UNWIND_PROTECT_EXIT {
-      if (locked) CHILDREN_LIST_UNLOCK(env);
-    } MKCL_UNWIND_PROTECT_END;
-  }
-  if (mk_mkcl_process_status(env, proc) == @':exited') /* proc may have exited before detached_children was updated. */
-    delete_pid_from_detached_children(id);
+      MKCL_UNWIND_PROTECT_BEGIN(env) {
+        MKCL_LIBC_NO_INTR(env, (CHILDREN_LIST_LOCK(env), locked = TRUE));
+        mkcl_core.detached_children = mkcl_cons(env, mkcl_make_integer(env, id), mkcl_core.detached_children);
+      } MKCL_UNWIND_PROTECT_EXIT {
+        if (locked) CHILDREN_LIST_UNLOCK(env);
+      } MKCL_UNWIND_PROTECT_END;
 
-  delete_pid_from_children(env, id);
+      if (mk_mkcl_process_status(env, proc) == @':exited') /* proc may have exited before detached_children was updated. */
+        delete_pid_from_detached_children(id);
 
+      delete_pid_from_children(env, id);
+    }
 #endif
   detach_worker(env, proc->process.to_worker);
   detach_worker(env, proc->process.from_worker);
