@@ -56,6 +56,7 @@
 (setq compiler::*fast-compile-cc*
       (let ((mkcc (namestring (merge-pathnames "bin/mkcc" (si::self-truename))))
             (clang "clang"))
+        (declare (ignorable mkcc))
         (or #-(or mingw32 mingw64)
             (ignore-errors
               (multiple-value-bind (io proc result)

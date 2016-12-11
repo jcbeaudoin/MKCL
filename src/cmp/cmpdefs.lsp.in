@@ -466,6 +466,7 @@ coprocessor).")
   (let ((mkcc (namestring (merge-pathnames "mkcc" (si::self-truename))))
         (clang (or #+(or mingw32 mingw64) (namestring (merge-pathnames "clang" (si::self-truename)))
                    "clang")))
+    (declare (ignorable mkcc))
     (or #-(or mingw32 mingw64)
         (ignore-errors
           (multiple-value-bind (io proc result)
