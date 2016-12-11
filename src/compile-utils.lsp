@@ -52,7 +52,7 @@
           (when (eql 0 result)
             (setq compiler::*fast-compile-cc* clang)
             (setq compiler::*fast-compile-cc-flags*
-                  (mkcl:bstr+ +clang-extra-cc-flags+ compiler::*fast-compile-cc-flags*)))))))
+                  (mkcl:bstr+ compiler::+clang-extra-cc-flags+ compiler::*fast-compile-cc-flags*)))))))
 
 
 #+windows (setq *compile-extra-options* (append *compile-extra-options* '(:external-format (:ascii :lf))))
