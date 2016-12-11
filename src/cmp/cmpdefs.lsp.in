@@ -462,23 +462,7 @@ One can set the variable appropriately adding for instance flags which the
 C compiler may need to exploit special hardware features (e.g. a floating point
 coprocessor).")
 
-(defvar *fast-compile-cc*
-  (let ((mkcc (namestring (merge-pathnames "mkcc" (si::self-truename))))
-        (clang (or #+(or mingw32 mingw64) (namestring (merge-pathnames "clang" (si::self-truename)))
-                   "clang")))
-    (declare (ignorable mkcc))
-    (or #-(or mingw32 mingw64)
-        (ignore-errors
-          (multiple-value-bind (io proc result)
-              (si::run-program mkcc '("-v") :input nil :output nil :error nil)
-            (declare (ignore io proc))
-            (when (eql 0 result) mkcc)))
-        (ignore-errors
-          (multiple-value-bind (io proc result)
-              (si::run-program clang '("--version") :input nil :output nil :error nil)
-            (declare (ignore io proc))
-            (when (eql 0 result) clang)))
-        *cc*)))
+(defvar *fast-compile-cc* *cc*)
 
 
 (defvar *ld* (or #+(or mingw32 mingw64)
@@ -500,6 +484,27 @@ coprocessor).")
 (defvar *cc-flags* "@CPPFLAGS@ @CFLAGS@ @MKCL_CFLAGS@ @MKCL_OPTIM_CFLAGS@ ")
 
 (defvar *fast-compile-cc-flags* "@CPPFLAGS@ @CFLAGS@ @MKCL_CFLAGS@ -O0 ")
+
+(defconstant +clang-extra-cc-flags+ "-Wno-unused-value -Wno-shift-negative-value -Wno-parentheses-equality ")
+
+;; Autodetect better fast-compile option.
+(let ((mkcc (namestring (merge-pathnames "mkcc" (si::self-truename))))
+      (clang (or #+(or mingw32 mingw64) (namestring (merge-pathnames "clang" (si::self-truename)))
+                 "clang")))
+  (declare (ignorable mkcc))
+  (or #-(or mingw32 mingw64)
+      (ignore-errors
+        (multiple-value-bind (io proc result)
+            (si::run-program mkcc '("-v") :input nil :output nil :error nil)
+          (declare (ignore io proc))
+          (when (eql 0 result) (setq *fast-compile-cc* mkcc))))
+      (ignore-errors
+        (multiple-value-bind (io proc result)
+            (si::run-program clang '("--version") :input nil :output nil :error nil)
+          (declare (ignore io proc))
+          (when (eql 0 result)
+            (setq *fast-compile-cc* clang)
+            (setq *fast-compile-cc-flags* (mkcl:bstr+ +clang-extra-cc-flags+ *fast-compile-cc-flags*)))))))
 
 (defvar *cc-optimize* #-msvc ""
                       #+msvc "@CFLAGS_OPTIMIZE@")
