@@ -60,6 +60,8 @@ lib/x86_64
 lib/i386
 lib/x86_64-win32
 lib/i386-win32
+lib/x86_64-win
+lib/i386-win
 lib/arm
 lib/arm64
 mkcc-doc.info

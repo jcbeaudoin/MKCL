@@ -9,5 +9,7 @@
 *.fas
 *.fasb
 ASDF-TMP-*
+ASDF__TMP__*
 MKCLINIT*
+MKC[0-9A-Z]*.c
 Makefile

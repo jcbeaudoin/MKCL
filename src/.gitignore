@@ -1,6 +1,7 @@
 *.asd
 *.as2
 mkcl_min
+mkcl_min.exe
 ucd.dat
 help.doc
 HELP.DOC

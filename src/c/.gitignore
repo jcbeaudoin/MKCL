@@ -1,6 +1,7 @@
 GNUmakefile
 makefile.depend
 dpp
+dpp.exe
 [a-ce-z]*.c
 disassembler.c
 Makefile
