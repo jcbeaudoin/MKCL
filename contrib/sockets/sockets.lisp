@@ -205,13 +205,13 @@ weird stuff - see gethostbyname(3) for grisly details."
 	       (t t t t t t) t
 	       "
 {
-	unsigned char vector[4];
+	unsigned char in_addr_vector[4];
 	struct hostent *hostent;
-	vector[0] = mkcl_integer_to_word(env, mkcl_aref_index(env, #0,0));
-	vector[1] = mkcl_integer_to_word(env, mkcl_aref_index(env, #0,1));
-	vector[2] = mkcl_integer_to_word(env, mkcl_aref_index(env, #0,2));
-	vector[3] = mkcl_integer_to_word(env, mkcl_aref_index(env, #0,3));
-        MKCL_LIBC_NO_INTR(env, (hostent = gethostbyaddr(vector,4,AF_INET)));
+	in_addr_vector[0] = mkcl_integer_to_word(env, mkcl_aref_index(env, #0,0));
+	in_addr_vector[1] = mkcl_integer_to_word(env, mkcl_aref_index(env, #0,1));
+	in_addr_vector[2] = mkcl_integer_to_word(env, mkcl_aref_index(env, #0,2));
+	in_addr_vector[3] = mkcl_integer_to_word(env, mkcl_aref_index(env, #0,3));
+        MKCL_LIBC_NO_INTR(env, (hostent = gethostbyaddr(((void *) in_addr_vector),4,AF_INET)));
 	if (hostent != NULL) {
  	        char **aliases;
                 char **addrs;
