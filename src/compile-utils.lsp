@@ -1,6 +1,6 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
 ;;;;
-;;;;  Copyright (c) 2010-2013, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2016, Jean-Claude Beaudoin.
 ;;;;  Copyright by a number of previous anonymous authors
 ;;;;            presumed to be the same as for the rest of MKCL.
 ;;;;
@@ -25,6 +25,8 @@
   (setq *compile-extra-options* '(:c-file t :data-file t :h-file t))
   (proclaim '(optimize (debug 3) (speed 1) (compilation-speed 3))) ;; full debug info
   ;;(proclaim '(optimize (debug 3) (speed 1))) ;; full debug info
+  ;;(proclaim '(optimize (debug 0) (speed 3) (compilation-speed 3)))
+  ;;(proclaim '(optimize (debug 0) (speed 3)))
   ;;(proclaim '(optimize (safety 3))) ;; full safety checks
   (setq compiler::*trace-cc* t)
   )
@@ -32,6 +34,25 @@
 
 ;;; -H traces include files in gcc.
 ;;(setq compiler::*cc-flags* (concatenate 'base-string "-H " compiler::*cc-flags*))
+
+(let (#+:mkcl-bootstrap (mkcc (namestring (merge-pathnames "bin/mkcc" (si::self-truename))))
+      #-:mkcl-bootstrap (mkcc (namestring (merge-pathnames "mkcc" (si::self-truename))))
+      (clang "clang"))
+  (declare (ignorable mkcc))
+  (or #-(or mingw32 mingw64)
+      (ignore-errors
+        (multiple-value-bind (io proc result)
+            (si::run-program mkcc '("-v") :input nil :output nil :error nil)
+          (declare (ignore io proc))
+          (when (eql 0 result) (setq compiler::*fast-compile-cc* mkcc))))
+      (ignore-errors
+        (multiple-value-bind (io proc result)
+            (si::run-program clang '("--version") :input nil :output nil :error nil)
+          (declare (ignore io proc))
+          (when (eql 0 result)
+            (setq compiler::*fast-compile-cc* clang)
+            (setq compiler::*fast-compile-cc-flags*
+                  (mkcl:bstr+ +clang-extra-cc-flags+ compiler::*fast-compile-cc-flags*)))))))
 
 
 #+windows (setq *compile-extra-options* (append *compile-extra-options* '(:external-format (:ascii :lf))))

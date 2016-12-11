@@ -1,6 +1,6 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
 ;;;;
-;;;;  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2016, Jean-Claude Beaudoin.
 ;;;;  Copyright by a number of previous anonymous authors
 ;;;;            presumed to be the same as for the rest of MKCL.
 ;;;;
@@ -53,22 +53,6 @@
 (princ ";;; About to load cmp/load.lsp")
 
 (load "cmp/load.lsp" :external-format '(:ascii :lf))
-(setq compiler::*fast-compile-cc*
-      (let ((mkcc (namestring (merge-pathnames "bin/mkcc" (si::self-truename))))
-            (clang "clang"))
-        (declare (ignorable mkcc))
-        (or #-(or mingw32 mingw64)
-            (ignore-errors
-              (multiple-value-bind (io proc result)
-                (si::run-program mkcc '("-v") :input nil :output nil :error nil)
-              (declare (ignore io proc))
-              (when (eql 0 result) mkcc)))
-            (ignore-errors
-              (multiple-value-bind (io proc result)
-                  (si::run-program clang '("--version") :input nil :output nil :error nil)
-                (declare (ignore io proc))
-                (when (eql 0 result) clang)))
-            compiler::*cc*)))
 
 ;;;
 ;;; * Go back to build directory to start compiling
