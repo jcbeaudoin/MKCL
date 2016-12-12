@@ -490,8 +490,8 @@ mk_cl_char_name(MKCL, mkcl_object c)
   mkcl_character code = mkcl_char_code(env, c);
   mkcl_object output;
 
-  if (/* (code >= 0) && */ (code <= 127)) /* Are we ASCII? */
-    output = mkcl_gethash_safe(env, MKCL_MAKE_FIXNUM(code), mkcl_core.char_names, mk_cl_Cnil);
+  if (/* (code >= 0) && */ (code <= MKCL_BASE_CHAR_CODE_LIMIT))
+    output = mkcl_gethash_safe(env, MKCL_MAKE_FIXNUM(code), mkcl_core.base_char_names, mk_cl_Cnil);
   else
     {
       char name[20];
@@ -513,7 +513,7 @@ mk_cl_name_char(MKCL, mkcl_object name)
 
   mkcl_call_stack_check(env);
   name = mk_cl_string(env, name);
-  c = mkcl_gethash_safe(env, name, mkcl_core.char_names, mk_cl_Cnil);
+  c = mkcl_gethash_safe(env, name, mkcl_core.base_char_names, mk_cl_Cnil);
   if (c != mk_cl_Cnil) {
     @(return MKCL_CODE_CHAR(mkcl_fixnum_to_word(c)));
   } else if (mkcl_stringp(env, name) && (l = mkcl_length(env, name))) {

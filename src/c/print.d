@@ -897,7 +897,11 @@ write_character(MKCL, int i, mkcl_object stream)
 	mkcl_write_char(env, i, stream);
       }
 #endif
+#if 0
     else if (((0 <= i) && (i <= 0x020)) || i == 0x07F) /* ASCII control character? */
+#else
+    else if ((0 <= i) && (i < MKCL_BASE_CHAR_CODE_LIMIT))
+#endif
       {
 	mkcl_object name = mk_cl_char_name(env, MKCL_CODE_CHAR(i));
 	if (mkcl_Null(name))

@@ -436,32 +436,29 @@ static void _mkcl_boot_inner(MKCL)
    */
   {
     int i;
-    mkcl_object char_names_table
-      = mk_cl__make_hash_table(env, @'equalp', MKCL_MAKE_FIXNUM(128), /* size */
+    const nb_base_chars = MKCL_NB_ELEMS(base_char_names);
+    mkcl_object base_char_names_table
+      = mk_cl__make_hash_table(env, @'equalp', MKCL_MAKE_FIXNUM(nb_base_chars), /* size */
 			       mkcl_make_singlefloat(env, 1.5f), /* rehash-size */
 			       mkcl_make_singlefloat(env, 0.5f)); /* rehash-threshold */
     
-    mkcl_core.char_names = char_names_table;
-    for (i = 0; i < MKCL_NB_ELEMS(char_names); i++) {
-      mkcl_object name = mkcl_make_simple_base_string(env, char_names[i]);
+    mkcl_core.base_char_names = base_char_names_table;
+    for (i = 0; i < nb_base_chars; i++) {
+      mkcl_object name = mkcl_make_simple_base_string(env, base_char_names[i]);
       mkcl_object code = MKCL_MAKE_FIXNUM(i);
-      mkcl_sethash(env, name, char_names_table, code);
-      mkcl_sethash(env, code, char_names_table, name);
+      mkcl_sethash(env, name, base_char_names_table, code);
+      mkcl_sethash(env, code, base_char_names_table, name);
     }
-    {
-      /* Linefeed is redundant with one of the names given
-       * in iso_latin_names.h, but it can not be associated
-       * to the code 10, because the default name must be
-       * Newline. */
+    { /* Setup some character name aliases. */
       static const mkcl_base_string_object(null_str_obj, "Null");
       /* static const mkcl_base_string_object(bell_str_obj, "Bell"); */ /* clashes with Unicode U1F514. */
       static const mkcl_base_string_object(linefeed_str_obj, "Linefeed");
       static const mkcl_base_string_object(escape_str_obj, "Escape");
       
-      mkcl_sethash(env, (mkcl_object) &null_str_obj, char_names_table, MKCL_MAKE_FIXNUM(0));
-      /* mkcl_sethash(env, (mkcl_object) &bell_str_obj, char_names_table, MKCL_MAKE_FIXNUM(7)); */
-      mkcl_sethash(env, (mkcl_object) &linefeed_str_obj, char_names_table, MKCL_MAKE_FIXNUM(10));
-      mkcl_sethash(env, (mkcl_object) &escape_str_obj, char_names_table, MKCL_MAKE_FIXNUM(27));
+      mkcl_sethash(env, (mkcl_object) &null_str_obj, base_char_names_table, MKCL_MAKE_FIXNUM(0));
+      /* mkcl_sethash(env, (mkcl_object) &bell_str_obj, base_char_names_table, MKCL_MAKE_FIXNUM(7)); */
+      mkcl_sethash(env, (mkcl_object) &linefeed_str_obj, base_char_names_table, MKCL_MAKE_FIXNUM(10));
+      mkcl_sethash(env, (mkcl_object) &escape_str_obj, base_char_names_table, MKCL_MAKE_FIXNUM(27));
     }
   }
 

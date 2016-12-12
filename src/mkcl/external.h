@@ -194,7 +194,7 @@ extern "C" {
     mkcl_object dispatch_reader;        /* a constant included here for GC purposes? JCB */
     mkcl_object default_dispatch_macro; /* unused? JCB */
 
-    mkcl_object char_names;
+    mkcl_object base_char_names;
     mkcl_object empty_base_string;
     mkcl_object empty_string;
     mkcl_object dot_string;
