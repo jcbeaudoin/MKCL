@@ -488,20 +488,27 @@ mk_cl_char_name(MKCL, mkcl_object c)
 {
   mkcl_call_stack_check(env);
   mkcl_character code = mkcl_char_code(env, c);
-  mkcl_object output;
+  mkcl_object output = mk_cl_Cnil;
 
   if (/* (code >= 0) && */ (code <= MKCL_BASE_CHAR_CODE_LIMIT))
     output = mkcl_gethash_safe(env, MKCL_MAKE_FIXNUM(code), mkcl_core.base_char_names, mk_cl_Cnil);
   else
     {
-      char name[20];
+      mkcl_object ext_names = MKCL_SYM_VAL(env, @'si::*extended-character-names*');
 
-      if (/* (code >= 0) && */ (code < 0x010000)) /* Are we confined to 16 bits? */
-	sprintf(name, "U%04x", code);
-      else
-	sprintf(name, "U%06x", code);
-      output = mkcl_make_base_string_copy(env, name);
-    } 
+      if (ext_names != mk_cl_Cnil)
+        output =  mkcl_gethash_safe(env, MKCL_MAKE_FIXNUM(code), ext_names, mk_cl_Cnil);
+      if (mkcl_Null(output))
+        {
+          char name[20];
+
+          if (/* (code >= 0) && */ (code < 0x010000)) /* Are we confined to 16 bits? */
+            sprintf(name, "U%04x", code);
+          else
+            sprintf(name, "U%06x", code);
+          output = mkcl_make_base_string_copy(env, name);
+        }
+    }
   @(return output);
 }
 
@@ -516,30 +523,37 @@ mk_cl_name_char(MKCL, mkcl_object name)
   c = mkcl_gethash_safe(env, name, mkcl_core.base_char_names, mk_cl_Cnil);
   if (c != mk_cl_Cnil) {
     @(return MKCL_CODE_CHAR(mkcl_fixnum_to_word(c)));
-  } else if (mkcl_stringp(env, name) && (l = mkcl_length(env, name))) {
-    c = mk_cl_char(env, name, MKCL_MAKE_FIXNUM(0));
-    if (l == 1) {
-      @(return mk_cl_Cnil);
-    } else if (c != MKCL_CODE_CHAR('u') && c != MKCL_CODE_CHAR('U')) {
-      @(return mk_cl_Cnil);
-    } else {
-      mkcl_index used_l;
-      mkcl_index end = name->base_string.fillp;
-      mkcl_index real_end = end;
-      c = mkcl_parse_integer(env, name, 1, end, &real_end, 16);
-      used_l = real_end;
-      if (!MKCL_FIXNUMP(c) /* Bignum? */
-	  || (used_l < l)) /* Was character name cut short? JCB */
-	{ @(return mk_cl_Cnil); } 
-      else
-	{
-	  mkcl_character code = mkcl_fixnum_to_word(c);
+  } else {
+    mkcl_object ext_names = MKCL_SYM_VAL(env, @'si::*extended-character-names*');
 
-	  if (/* (code < 0) || */ (code >= MKCL_CHAR_CODE_LIMIT)) /* Outside valid character code range? */
-	    { @(return mk_cl_Cnil); }
-	  else
-	    { @(return MKCL_CODE_CHAR(code)); }
-	}
+    if (ext_names != mk_cl_Cnil) c = mkcl_gethash_safe(env, name, ext_names, mk_cl_Cnil);
+    if (c != mk_cl_Cnil) {
+      @(return MKCL_CODE_CHAR(mkcl_fixnum_to_word(c)));
+    } else if (mkcl_stringp(env, name) && (l = mkcl_length(env, name))) {
+      c = mk_cl_char(env, name, MKCL_MAKE_FIXNUM(0));
+      if (l == 1) {
+        @(return mk_cl_Cnil);
+      } else if (c != MKCL_CODE_CHAR('u') && c != MKCL_CODE_CHAR('U')) {
+        @(return mk_cl_Cnil);
+      } else {
+        mkcl_index used_l;
+        mkcl_index end = name->base_string.fillp;
+        mkcl_index real_end = end;
+        c = mkcl_parse_integer(env, name, 1, end, &real_end, 16);
+        used_l = real_end;
+        if (!MKCL_FIXNUMP(c) /* Bignum? */
+            || (used_l < l)) /* Was character name cut short? JCB */
+          { @(return mk_cl_Cnil); } 
+        else
+          {
+            mkcl_character code = mkcl_fixnum_to_word(c);
+            
+            if (/* (code < 0) || */ (code >= MKCL_CHAR_CODE_LIMIT)) /* Outside valid character code range? */
+              { @(return mk_cl_Cnil); }
+            else
+              { @(return MKCL_CODE_CHAR(code)); }
+          }
+      }
     }
   }
   @(return mk_cl_Cnil); /* Just in case. Should not be reached. JCB */

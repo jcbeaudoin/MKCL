@@ -881,7 +881,7 @@ write_symbol(MKCL, mkcl_object x, mkcl_object stream)
 }
 
 static void
-write_character(MKCL, int i, mkcl_object stream)
+write_character(MKCL, mkcl_character i, mkcl_object stream)
 {
   if (!mkcl_print_escape(env) && !mkcl_print_readably(env)) {
     mkcl_write_char(env, i, stream);
@@ -897,11 +897,7 @@ write_character(MKCL, int i, mkcl_object stream)
 	mkcl_write_char(env, i, stream);
       }
 #endif
-#if 0
-    else if (((0 <= i) && (i <= 0x020)) || i == 0x07F) /* ASCII control character? */
-#else
-    else if ((0 <= i) && (i < MKCL_BASE_CHAR_CODE_LIMIT))
-#endif
+    else if (i < MKCL_BASE_CHAR_CODE_LIMIT)
       {
 	mkcl_object name = mk_cl_char_name(env, MKCL_CODE_CHAR(i));
 	if (mkcl_Null(name))
@@ -911,19 +907,29 @@ write_character(MKCL, int i, mkcl_object stream)
       } 
     else
       {
-	int  index = 0;
-	char name[20] = { '\0' };
+        mkcl_object ext_names = MKCL_SYM_VAL(env, @'si::*extended-character-names*');
+        mkcl_object output = ((ext_names != mk_cl_Cnil)
+                              ? mkcl_gethash_safe(env, MKCL_MAKE_FIXNUM(i), ext_names, mk_cl_Cnil)
+                              : mk_cl_Cnil);
+
+        if (!mkcl_Null(output))
+          mk_si_write_ugly_object(env, output, stream);
+        else
+          {
+            int  index = 0;
+            char name[20] = { '\0' };
 	
-	if (i < 0) /* invalid negative code point character? */
-	  sprintf(name, "U-????"); 
-	else if (i < 0x010000) /* Are we confined to 16 bits? */
-	  sprintf(name, "U%04x", i);
-	else if (i < 0x0110000) /* valid Unicode character? */
-	  sprintf(name, "U%06x", i);
-	else
-	  sprintf(name, "U+????"); /* character is above valid Unicode range. */
-	while(name[index])
-	  mkcl_write_char(env, name[index++], stream);
+            if (i < 0) /* invalid negative code point character? */
+              sprintf(name, "U-????"); 
+            else if (i < 0x010000) /* Are we confined to 16 bits? */
+              sprintf(name, "U%04x", i);
+            else if (i < 0x0110000) /* valid Unicode character? */
+              sprintf(name, "U%06x", i);
+            else
+              sprintf(name, "U+????"); /* character is above valid Unicode range. */
+            while(name[index])
+              mkcl_write_char(env, name[index++], stream);
+          }
       }
   }
 }

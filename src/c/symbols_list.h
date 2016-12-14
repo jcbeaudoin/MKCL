@@ -2112,6 +2112,8 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
   {{MKCL_EXT_ "DEFAULT-MODULE-PROVIDER", MKCL_EXT_ORDINARY, NULL, -1, MKCL_OBJNULL}},
   {{MKCL_EXT_ "GIT-DESCRIBE-THIS-MKCL", MKCL_EXT_ORDINARY, NULL, -1, MKCL_OBJNULL}},
 
+  {{SYS_ "*EXTENDED-CHARACTER-NAMES*", SI_SPECIAL, NULL, -1, mk_cl_Cnil}},
+
   /* Tag for end of list!
      This entry, with a first field of NULL value,
      must be the very last of this array.

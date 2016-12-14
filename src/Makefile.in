@@ -83,6 +83,7 @@ CONTRIB_FASLS = \
                 ext/mk-unix.fasb \
                 ext/sockets.fasb \
                 ext/walker.fasb \
+                ext/unicode-names.fasb \
                 asdf-stage/trivial-features.fasb \
                 asdf-stage/trivial-garbage.fasb \
                 asdf-stage/alexandria.fasb \
@@ -167,6 +168,10 @@ ext/serve-event.fasb ext/serve-event.a: bin/mkcl-small$(EXE) ext-dir-exists buil
 
 ext/walker.fasb ext/walker.a: bin/mkcl-small$(EXE) ext-dir-exists build-walker.lsp cmp/cmp.fasb compile-utils.lsp ../contrib/walker/walk.lsp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-walker.lsp
+
+ext/unicode-names.fasb ext/unicode-names.a: bin/mkcl-small$(EXE) ext-dir-exists build-unicode-names.lsp cmp/cmp.fasb compile-utils.lsp ../contrib/unicode/unicode-names.lsp
+	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-unicode-names.lsp
+
 
 
 ../contrib/asdf2-bundle/asdf2-bundle.fas: bin/mkcl-small$(EXE) build-asdf2-bundle.lsp cmp/cmp.fasb compile-utils.lsp ext/asdf2.fasb ../contrib/asdf2-bundle/*.lisp
@@ -435,7 +440,7 @@ install-contribs: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) libmkcc1.@LIBEXT
 	$(INSTALL_LIBRARY) libmkcc1.@LIBEXT@ $(libdir)/mkcc/@build_cpu@
 	for i in ext/*.as2 ext/*.asd; do $(INSTALL_DATA) $${i} $(mkcldir)/contrib/; done
 	for i in asdf-stage/*.as2 asdf-stage/*.asd; do $(INSTALL_DATA) $${i} $(mkcldir)/contrib/; done
-	for i in ext/asdf.fasb ext/asdf2.fasb $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
+	for i in ext/asdf.fasb ext/asdf2.fasb ../contrib/unicode/UnicodeData.txt $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
 	  if test -s $$i; then \
 	    case $$i in \
 	      *.fasb) $(INSTALL_PROGRAM) $$i $(mkcldir)/contrib/;; \
@@ -505,7 +510,7 @@ install-contribs-local: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) libmkcc1.@
 	$(INSTALL_LIBRARY) libmkcc1.@LIBEXT@ ./lib/mkcc/@build_cpu@
 	for i in ext/*.as2 ext/*.asd; do $(INSTALL_DATA) $${i} $(localmkcldir)/contrib/; done
 	for i in asdf-stage/*.as2 asdf-stage/*.asd; do $(INSTALL_DATA) $${i} $(localmkcldir)/contrib/; done
-	for i in ext/asdf.fasb ext/asdf2.fasb $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
+	for i in ext/asdf.fasb ext/asdf2.fasb ../contrib/unicode/UnicodeData.txt $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
 	  if test -s $$i; then \
 	    case $$i in \
 	      *.fasb) $(INSTALL_PROGRAM) $$i $(localmkcldir)/contrib/;; \
