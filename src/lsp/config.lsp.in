@@ -85,7 +85,7 @@ Returns the version of your MKCL as a string."
 (defun lisp-implementation-version ()
   "Args:()
 Returns the version of your MKCL as a string."
-  (si:mkcl-version))
+  (or #-(and) (mkcl:git-describe-this-mkcl) (si:mkcl-version)))
 
 
 
