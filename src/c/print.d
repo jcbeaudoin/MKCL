@@ -913,7 +913,13 @@ write_character(MKCL, mkcl_character i, mkcl_object stream)
                               : mk_cl_Cnil);
 
         if (!mkcl_Null(output))
-          mk_si_write_ugly_object(env, output, stream);
+	  {
+	    mkcl_bds_bind(env, @'*print-escape*', mk_cl_Cnil);
+	    mkcl_bds_bind(env, @'*print-readably*', mk_cl_Cnil);
+	    mk_si_write_ugly_object(env, output, stream);
+	    mkcl_bds_unwind1(env);
+	    mkcl_bds_unwind1(env);
+	  }
         else
           {
             int  index = 0;
