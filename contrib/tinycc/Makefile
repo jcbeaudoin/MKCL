@@ -9,10 +9,10 @@ VPATH = $(top_srcdir)
 CPPFLAGS += -I$(TOP) # for config.h
 
 ifneq (-$(findstring gcc,$(CC))-,-gcc-)
-ifeq (-$(findstring clang,$(CC))-,-clang-)
-# make clang accept gnuisms in libmkcc1.c
-CFLAGS+=-fheinous-gnu-extensions
-endif
+ ifeq (-$(findstring clang,$(CC))-,-clang-)
+ # make clang accept gnuisms in libmkcc1.c
+  CFLAGS+=-fheinous-gnu-extensions
+ endif
 endif
 
 CPPFLAGS_P=$(CPPFLAGS) -DCONFIG_MKCC_STATIC
@@ -21,32 +21,32 @@ LIBS_P=
 LDFLAGS_P=$(LDFLAGS)
 
 ifdef CONFIG_WIN64
-CONFIG_WIN32=yes
+ CONFIG_WIN32=yes
 endif
 
 ifndef CONFIG_WIN32
-LIBS=-lm
-ifndef CONFIG_NOLDL
-LIBS+=-ldl
-endif
+ LIBS=-lm
+ ifndef CONFIG_NOLDL
+  LIBS+=-ldl
+ endif
 endif
 
 # make libmkcc as static or dynamic library?
 ifdef DISABLE_STATIC
-ifndef CONFIG_WIN32
-LIBMKCC=libmkcc.so.1.0
+ ifndef CONFIG_WIN32
+ LIBMKCC=libmkcc.so.1.0
+ else
+ LIBMKCC=libmkcc.dll
+ LIBMKCC_DLL=yes
+ LIBMKCC_EXTRA=libmkcc.def libmkcc.a
+ endif
+ LINK_LIBMKCC=-Wl,-rpath,"$(libdir)"
+ ifdef DISABLE_RPATH
+ LINK_LIBMKCC=
+ endif
 else
-LIBMKCC=libmkcc.dll
-LIBMKCC_DLL=yes
-LIBMKCC_EXTRA=libmkcc.def libmkcc.a
-endif
-LINK_LIBMKCC=-Wl,-rpath,"$(libdir)"
-ifdef DISABLE_RPATH
-LINK_LIBMKCC=
-endif
-else
-LIBMKCC=libmkcc.a
-LINK_LIBMKCC=
+ LIBMKCC=libmkcc.a
+ LINK_LIBMKCC=
 endif
 
 CONFIG_$(ARCH) = yes
@@ -89,27 +89,31 @@ $(ARM_FPA_LD_CROSS)_LINK = arm-fpa-ld-mkcc$(EXESUF)
 $(ARM_VFP_CROSS)_LINK = arm-vfp-mkcc$(EXESUF)
 $(ARM_EABI_CROSS)_LINK = arm-eabi-mkcc$(EXESUF)
 
-ifeq ($(TARGETOS),Windows)
-ifeq ($(ARCH),i386)
-PROGS:=$($(WIN32_CROSS)_LINK)
-$($(WIN32_CROSS)_LINK)_MKCC = yes
-endif
-ifeq ($(ARCH),x86-64)
-PROGS:=$($(WIN64_CROSS)_LINK)
-$($(WIN64_CROSS)_LINK)_MKCC = yes
-endif
-endif
+ifdef CONFIG_CROSS
 
-ifeq ($(TARGETOS),Linux)
-ifeq ($(ARCH),i386)
-PROGS:=$($(I386_CROSS)_LINK)
-$($(I386_CROSS)_LINK)_MKCC = yes
-endif
-ifeq ($(ARCH),x86-64)
-PROGS:=$($(X64_CROSS)_LINK)
-$($(X64_CROSS)_LINK)_MKCC = yes
-endif
-endif
+ ifeq ($(TARGETOS),Windows)
+  ifeq ($(ARCH),i386)
+   PROGS:=$($(WIN32_CROSS)_LINK)
+   $($(WIN32_CROSS)_LINK)_MKCC = yes
+  endif
+  ifeq ($(ARCH),x86-64)
+   PROGS:=$($(WIN64_CROSS)_LINK)
+   $($(WIN64_CROSS)_LINK)_MKCC = yes
+  endif
+ endif
+
+ ifeq ($(TARGETOS),Linux)
+  ifeq ($(ARCH),i386)
+   PROGS:=$($(I386_CROSS)_LINK)
+   $($(I386_CROSS)_LINK)_MKCC = yes
+  endif
+  ifeq ($(ARCH),x86-64)
+   PROGS:=$($(X64_CROSS)_LINK)
+   $($(X64_CROSS)_LINK)_MKCC = yes
+  endif
+ endif
+
+endif # def CONFIG_CROSS
 
 CORE_FILES = mkcc.c libmkcc.c mkccpp.c mkccgen.c mkccelf.c mkccasm.c mkccrun.c
 CORE_FILES += mkcc.h config.h libmkcc.h mkcctok.h
@@ -141,28 +145,28 @@ LIBMKCC1_CROSS=lib/i386-win/libmkcc1.a lib/x86_64-win/libmkcc1.a lib/i386/libmkc
     lib/arm64/libmkcc1.a
 LIBMKCC1=libmkcc1.a
 else ifeq ($(ARCH),x86-64)
-ifeq ($(TARGETOS),Darwin)
-NATIVE_FILES=$(X86_64_FILES)
-PROGS_CROSS=$($(I386_CROSS)_LINK) $($(WIN32_CROSS)_LINK) $($(WIN64_CROSS)_LINK) $(ARM_CROSS) $(C67_CROSS) $(WINCE_CROSS)
-LIBMKCC1_CROSS=lib/i386-win/libmkcc1.a lib/x86_64-win/libmkcc1.a lib/i386/libmkcc1.a lib/x86_64/libmkcc1.a
-LIBMKCC1=libmkcc1.a
-else
-NATIVE_FILES=$(X86_64_FILES)
-PROGS_CROSS=$($(I386_CROSS)_LINK) $($(WIN32_CROSS)_LINK) $($(WIN64_CROSS)_LINK) $(ARM_CROSS) $(ARM64_CROSS) $(C67_CROSS) $(WINCE_CROSS)
-LIBMKCC1_CROSS=lib/i386-win/libmkcc1.a lib/x86_64-win/libmkcc1.a lib/i386/libmkcc1.a lib/x86_64/libmkcc1.a \
+ ifeq ($(TARGETOS),Darwin)
+  NATIVE_FILES=$(X86_64_FILES)
+  PROGS_CROSS=$($(I386_CROSS)_LINK) $($(WIN32_CROSS)_LINK) $($(WIN64_CROSS)_LINK) $(ARM_CROSS) $(C67_CROSS) $(WINCE_CROSS)
+  LIBMKCC1_CROSS=lib/i386-win/libmkcc1.a lib/x86_64-win/libmkcc1.a lib/i386/libmkcc1.a lib/x86_64/libmkcc1.a
+  LIBMKCC1=libmkcc1.a
+ else
+  NATIVE_FILES=$(X86_64_FILES)
+  PROGS_CROSS=$($(I386_CROSS)_LINK) $($(WIN32_CROSS)_LINK) $($(WIN64_CROSS)_LINK) $(ARM_CROSS) $(ARM64_CROSS) $(C67_CROSS) $(WINCE_CROSS)
+  LIBMKCC1_CROSS=lib/i386-win/libmkcc1.a lib/x86_64-win/libmkcc1.a lib/i386/libmkcc1.a lib/x86_64/libmkcc1.a \
     lib/arm64/libmkcc1.a
-LIBMKCC1=libmkcc1.a
-endif
+  LIBMKCC1=libmkcc1.a
+ endif
 else ifeq ($(ARCH),arm)
-NATIVE_FILES=$(ARM_FILES)
-PROGS_CROSS=$(I386_CROSS) $(X64_CROSS) $(WIN32_CROSS) $(WIN64_CROSS) $(ARM64_CROSS) $(C67_CROSS) $(WINCE_CROSS)
-LIBMKCC1=libmkcc1.a
-LIBMKCC1_CROSS=lib/i386-win/libmkcc1.a lib/x86_64-win/libmkcc1.a lib/i386/libmkcc1.a
+ NATIVE_FILES=$(ARM_FILES)
+ PROGS_CROSS=$(I386_CROSS) $(X64_CROSS) $(WIN32_CROSS) $(WIN64_CROSS) $(ARM64_CROSS) $(C67_CROSS) $(WINCE_CROSS)
+ LIBMKCC1=libmkcc1.a
+ LIBMKCC1_CROSS=lib/i386-win/libmkcc1.a lib/x86_64-win/libmkcc1.a lib/i386/libmkcc1.a
 else ifeq ($(ARCH),arm64)
-NATIVE_FILES=$(ARM64_FILES)
-PROGS_CROSS=$(I386_CROSS) $(X64_CROSS) $(WIN32_CROSS) $(WIN64_CROSS) $(ARM_CROSS) $(C67_CROSS) $(WINCE_CROSS)
-LIBMKCC1=libmkcc1.a
-LIBMKCC1_CROSS=lib/i386-win/libmkcc1.a lib/x86_64-win/libmkcc1.a lib/i386/libmkcc1.a
+ NATIVE_FILES=$(ARM64_FILES)
+ PROGS_CROSS=$(I386_CROSS) $(X64_CROSS) $(WIN32_CROSS) $(WIN64_CROSS) $(ARM_CROSS) $(C67_CROSS) $(WINCE_CROSS)
+ LIBMKCC1=libmkcc1.a
+ LIBMKCC1_CROSS=lib/i386-win/libmkcc1.a lib/x86_64-win/libmkcc1.a lib/i386/libmkcc1.a
 endif
 PROGS_CROSS_LINK=$(foreach PROG_CROSS,$(PROGS_CROSS),$($(PROG_CROSS)_LINK))
 
@@ -172,16 +176,16 @@ MKCCLIBS = $(LIBMKCC1) $(LIBMKCC) $(LIBMKCC_EXTRA)
 MKCCDOCS = mkcc.1 mkcc-doc.html mkcc-doc.info
 
 ifdef CONFIG_CROSS
-PROGS+=$(PROGS_CROSS)
-MKCCLIBS+=$(LIBMKCC1_CROSS)
+ PROGS+=$(PROGS_CROSS)
+ MKCCLIBS+=$(LIBMKCC1_CROSS)
 endif
 
 all: $(PROGS) $(MKCCLIBS) $(MKCCDOCS)
 
 ifdef ONE_SOURCE
-NATIVE_MKCC_REQUISITES=mkcc.o
+ NATIVE_MKCC_REQUISITES=mkcc.o
 else
-NATIVE_MKCC_REQUISITES=mkcc.o $(LIBMKCC)
+ NATIVE_MKCC_REQUISITES=mkcc.o $(LIBMKCC)
 endif
 
 # Host Tiny C Compiler
@@ -226,20 +230,20 @@ $(ARM64_CROSS): $(ARM64_FILES)
 
 # libmkcc generation and test
 ifndef ONE_SOURCE
-LIBMKCC_OBJ = $(filter-out mkcc.o,$(patsubst %.c,%.o,$(filter %.c,$(NATIVE_FILES))))
-LIBMKCC_INC = $(filter %.h,$(CORE_FILES)) $(filter-out $(CORE_FILES),$(NATIVE_FILES))
+ LIBMKCC_OBJ = $(filter-out mkcc.o,$(patsubst %.c,%.o,$(filter %.c,$(NATIVE_FILES))))
+ LIBMKCC_INC = $(filter %.h,$(CORE_FILES)) $(filter-out $(CORE_FILES),$(NATIVE_FILES))
 else
-LIBMKCC_OBJ = libmkcc.o
-LIBMKCC_INC = $(NATIVE_FILES)
-libmkcc.o : NATIVE_DEFINES += -DONE_SOURCE
-mkcc.o : NATIVE_DEFINES += -DONE_SOURCE
+ LIBMKCC_OBJ = libmkcc.o
+ LIBMKCC_INC = $(NATIVE_FILES)
+ libmkcc.o : NATIVE_DEFINES += -DONE_SOURCE
+ mkcc.o : NATIVE_DEFINES += -DONE_SOURCE
 endif
 
 $(LIBMKCC_OBJ) mkcc.o : %.o : %.c $(LIBMKCC_INC)
 	$(CC) -o $@ -c $< $(NATIVE_DEFINES) $(CPPFLAGS) $(CFLAGS)
 
 ifndef LIBMKCC_DLL
-libmkcc.a: $(LIBMKCC_OBJ)
+ libmkcc.a: $(LIBMKCC_OBJ)
 	$(AR) rcs $@ $^
 endif
 
@@ -249,7 +253,7 @@ libmkcc.so.1.0: $(LIBMKCC_OBJ)
 libmkcc.so.1.0: CFLAGS+=-fPIC
 
 ifdef LIBMKCC_DLL
-libmkcc.dll libmkcc.def libmkcc.a: $(LIBMKCC_OBJ)
+ libmkcc.dll libmkcc.def libmkcc.a: $(LIBMKCC_OBJ)
 	$(CC) -shared $^ -o $@ $(LDFLAGS) -Wl,--output-def,libmkcc.def,--out-implib,libmkcc.a
 endif
 
@@ -273,16 +277,16 @@ FORCE:
 MKCC_INCLUDES = stdarg.h stddef.h stdbool.h float.h varargs.h
 INSTALL=install
 ifdef STRIP_BINARIES
-INSTALLBIN=$(INSTALL) -s
+ INSTALLBIN=$(INSTALL) -s
 else
-INSTALLBIN=$(INSTALL)
+ INSTALLBIN=$(INSTALL)
 endif
 
 ifdef CONFIG_WIN32
-CONFIG_WIN=yes
+ CONFIG_WIN=yes
 endif
 ifdef CONFIG_WIN64
-CONFIG_WIN=yes
+ CONFIG_WIN=yes
 endif
 
 install-strip: install
