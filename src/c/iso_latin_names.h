@@ -1,5 +1,5 @@
 
-static char *base_char_names[] = {
+static char *base_char_names[MKCL_BASE_CHAR_CODE_LIMIT] = {
 "Nul",
 "Soh",
 "Stx",

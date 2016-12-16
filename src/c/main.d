@@ -438,9 +438,9 @@ static void _mkcl_boot_inner(MKCL)
     int i;
     const nb_base_chars = MKCL_NB_ELEMS(base_char_names);
     mkcl_object base_char_names_table
-      = mk_cl__make_hash_table(env, @'equalp', MKCL_MAKE_FIXNUM(nb_base_chars), /* size */
+      = mk_cl__make_hash_table(env, @'equalp', MKCL_MAKE_FIXNUM(3 * nb_base_chars), /* size */
 			       mkcl_make_singlefloat(env, 1.5f), /* rehash-size */
-			       mkcl_make_singlefloat(env, 0.5f)); /* rehash-threshold */
+			       mkcl_make_singlefloat(env, 0.9f)); /* rehash-threshold */
     
     mkcl_core.base_char_names = base_char_names_table;
     for (i = 0; i < nb_base_chars; i++) {
