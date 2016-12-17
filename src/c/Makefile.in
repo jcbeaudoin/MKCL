@@ -110,13 +110,13 @@ ffi_x86_64_w64.c: arch/ffi_x86_64_w64.d $(DPP)
 	$(AR) cr $@ $(OBJS)
 	$(RANLIB) $@
 
-../mkcltop.a: main.o all_symbols2.o
+../mkcltop.a: all_symbols2.o
 	$(RM) $@
-	$(AR) cr $@ main.o all_symbols2.o
+	$(AR) cr $@ all_symbols2.o
 	$(RANLIB) $@
 
 clean:
-	$(RM) $(DPP) $(DCFILES) $(OBJS) all_symbols.c all_symbols.o all_symbols2.o main2.o cinit.c cinit.o core core.* a.out
+	$(RM) $(DPP) $(DCFILES) $(OBJS) all_symbols.c all_symbols.o all_symbols2.o cinit.c cinit.o core core.* a.out
 	$(RM) GNUmakefile makefile.depend
 
 distclean: clean
@@ -154,9 +154,6 @@ all_symbols.o: all_symbols.c
 
 all_symbols2.o: all_symbols.c
 	$(CC) $(CFLAGS) -DMKCL_FINAL -c all_symbols.c -o $@
-
-main2.o: main.o
-	$(CC) $(CFLAGS) -DSTATIC -c main.c -o $@
 
 cinit.o: cinit.c
 	$(CC) $(CFLAGS) -c cinit.c -o $@

@@ -137,10 +137,12 @@
           (*mkcl-default-library-directory*)
 	  ((error "Unable to find library directory")))))
 
-(defun libs-ld-flags (libraries mkcl-libraries mkcl-shared external-shared)
-  (declare (ignorable mkcl-shared))
+(defun libs-ld-flags (libraries mkcl-libraries use-mkcl-shared-libs use-external-shared-libs)
+  (declare (ignorable use-mkcl-shared-libs))
   (let ((mkcl-libdir (namestring (mkcl-library-directory)))
 	out)
+
+    (unless use-mkcl-shared-libs (push "-Wl,--whole-archive " out))
 
     (dolist (lib-set (si:dyn-list libraries ffi::*referenced-libraries*))
       (dolist (lib-spec lib-set)
@@ -152,11 +154,13 @@
 	      (push (mkcl:str+ "-l" lib-spec " ") out))))))
 
     #-mkcl-bootstrap
-    (unless mkcl-shared (setq mkcl-libdir (mkcl:bstr+ mkcl-libdir "mkcl-" (si:mkcl-version) "/")))
+    (unless use-mkcl-shared-libs (setq mkcl-libdir (mkcl:bstr+ mkcl-libdir "mkcl-" (si:mkcl-version) "/")))
     (dolist (lib mkcl-libraries)
       (push (mkcl:bstr+ "\"" mkcl-libdir lib "\" ") out))
 
-    (if external-shared
+    (unless use-mkcl-shared-libs (push "-Wl,--no-whole-archive" out))
+
+    (if use-external-shared-libs
         (push *syslibs-&-ld-flags-tail* out)
       (push *static-syslibs-&-ld-flags-tail* out))
 
@@ -164,6 +168,9 @@
 
 (defun libs-ld-flags-for-static-program (libraries)
   (let (out)
+
+    (push "-Wl,--whole-archive " out)
+
     (dolist (lib-set (si:dyn-list libraries ffi::*referenced-libraries*))
       (dolist (lib-spec lib-set)
 	(if (pathnamep lib-spec)
@@ -178,6 +185,8 @@
       (dolist (lib *mkcl-static-libs*)
         (push (mkcl:bstr+ "\"" mkcl-libdir lib "\" ") out)))
 
+    (push "-Wl,--no-whole-archive" out)
+
     (push *static-program-ld-flags-tail* out)
 
     (apply #'concatenate 'base-string (nreverse out))))
@@ -188,25 +197,27 @@
 		       *ld*
 		       out-pathname
 		       (or extra-ld-flags "")
-		       o-files
+		       #+msvc o-files
+		       #-msvc (cons "-Wl,--whole-archive" (nconc o-files '("-Wl,--no-whole-archive")))
 		       *static-program-ld-flags*
 		       (libs-ld-flags-for-static-program libraries)
 		       )
 	       (namestring working-directory)))
 
-(defun link-program (out-pathname extra-ld-flags o-files libraries mkcl-shared external-shared &optional (working-directory "."))
+(defun link-program (out-pathname extra-ld-flags o-files libraries use-mkcl-shared-libs use-external-shared-libs &optional (working-directory "."))
   (run-command (format nil
 		       *ld-format*
 		       *ld*
 		       out-pathname
 		       (or extra-ld-flags "")
-		       o-files
+		       #+msvc o-files
+		       #-msvc (cons "-Wl,--whole-archive" (nconc o-files '("-Wl,--no-whole-archive")))
 		       *program-ld-flags*
-		       (libs-ld-flags libraries (if mkcl-shared *mkcl-shared-libs* *mkcl-static-libs*) mkcl-shared external-shared)
+		       (libs-ld-flags libraries (if use-mkcl-shared-libs *mkcl-shared-libs* *mkcl-static-libs*) use-mkcl-shared-libs use-external-shared-libs)
 		       )
 	       (namestring working-directory)))
 
-(defun link-shared-lib (out-pathname extra-ld-flags o-files libraries mkcl-shared external-shared &optional (working-directory "."))
+(defun link-shared-lib (out-pathname extra-ld-flags o-files libraries use-mkcl-shared-libs use-external-shared-libs &optional (working-directory "."))
   (run-command (format nil
 		       *ld-format*
 		       *ld*
@@ -218,10 +229,10 @@
 		       ;; during bootstrap the only shared lib we will build is MKCL's main lib which cannot depend on itself.
 		       (libs-ld-flags libraries
 				      (and #+unix nil #+mkcl-bootstrap nil *mkcl-shared-libs*)
-				      mkcl-shared external-shared))
+				      use-mkcl-shared-libs use-external-shared-libs))
 	       (namestring working-directory)))
 
-(defun link-fasl (out-pathname init-name extra-ld-flags o-files libraries mkcl-shared external-shared &optional (working-directory "."))
+(defun link-fasl (out-pathname init-name extra-ld-flags o-files libraries use-mkcl-shared-libs use-external-shared-libs &optional (working-directory "."))
   (declare (ignorable init-name))
   (run-command (format nil
 		       *ld-format*
@@ -231,10 +242,10 @@
 		       o-files
 		       *bundle-ld-flags*
 		       #-msvc (libs-ld-flags libraries
-					     (if mkcl-shared 
+					     (if use-mkcl-shared-libs
 						 (and #+unix nil *mkcl-shared-libs*)
 					       *mkcl-static-libs*)
-					     mkcl-shared external-shared)
+					     use-mkcl-shared-libs use-external-shared-libs)
 		       #+msvc (concatenate 'string
 					   " /EXPORT:"
 					   init-name
