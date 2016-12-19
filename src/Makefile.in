@@ -271,10 +271,10 @@ mkcl_min$(EXE): $(LIBRARIES) mkclmin.@LIBEXT@ c/cinit.o c/all_symbols.o .gdbinit
 .gdbinit: util/gdbinit
 	cp util/gdbinit $@
 
-c/cinit.o: depend
+c/cinit.o: c/GNUmakefile c/cinit.d mkcl/mkcl.h
 	cd c; $(MAKE) cinit.o
 
-c/all_symbols.o: depend
+c/all_symbols.o: c/GNUmakefile c/all_symbols.d c/symbols_list.h c/symbols_list2.h mkcl/mkcl.h
 	cd c; $(MAKE) all_symbols.o
 
 lsp/config.lsp: lsp/config.pre
@@ -345,13 +345,11 @@ libmkcc1.@LIBEXT@: ../contrib/tinycc/libmkcc1.a
 ../contrib/tinycc/libmkcc1.a: ../contrib/tinycc/*.[ch] ../contrib/tinycc/lib/*.c
 	cd ../contrib/tinycc; $(MAKE)
 
-mkclmin.@LIBEXT@: mkcl/mkcl.h $(MKCL_HFILES) c/*.d c/arch/*.d depend
+mkclmin.@LIBEXT@: c/GNUmakefile mkcl/mkcl.h $(MKCL_HFILES) c/*.d c/arch/*.d c/*.h
 	cd c; $(MAKE) ../mkclmin.@LIBEXT@
-	touch $@
 
-mkcltop.@LIBEXT@: depend c/main.d c/all_symbols.d c/symbols_list.h
+mkcltop.@LIBEXT@: c/GNUmakefile c/all_symbols.o
 	cd c; $(MAKE) ../mkcltop.@LIBEXT@
-	touch $@
 
 gc/.libs/@LIBPREFIX@gc.@LIBEXT@: gc/*.c gc/include/*.h gc/include/*/*.h
 	cd gc; $(MAKE)
@@ -596,7 +594,11 @@ TAGS: lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre c/*.d c/*.h 
 depend: c/makefile.depend
 	touch depend
 
-c/makefile.depend: mkcl/mkcl.h $(MKCL_HFILES)
-	cd c; $(MAKE) depend
+c/makefile.depend: c/Makefile.in c/*.d c/*.h c/arch/*.d mkcl/mkcl.h $(MKCL_HFILES)
+	cd c; $(MAKE) makefile.depend
+
+c/GNUmakefile: c/Makefile c/Makefile.in c/makefile.depend
+	cd c; $(MAKE) GNUmakefile
+
 
 
