@@ -775,14 +775,12 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
     mkcl_dynamic_extent_OSstring(env, os_command, command);
     
 
-    { /* Enclose each argument, as well as the file name
-	 in double quotes, to avoid problems when these
-	 arguments or file names have spaces */
+    {
       mkcl_bds_bind(env, @'*print-escape*', mk_cl_Cnil);
       mkcl_bds_bind(env, @'*print-gensym*', mk_cl_Cnil);
       mkcl_bds_bind(env, @'*print-readably*', mk_cl_Cnil); /* Among others we want #:foo to be printed without package prefix. */
       
-      static const mkcl_base_string_object(format_control_string_obj, "~S~{ ~S~}");
+      static const mkcl_base_string_object(format_control_string_obj, "~A~{ ~A~}");
       command_line = mk_cl_format(env, 4, mk_cl_Cnil, (mkcl_object) &format_control_string_obj, command, argv);
       mkcl_bds_unwind_n(env, 3);
     }
