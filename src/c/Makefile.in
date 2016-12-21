@@ -152,7 +152,7 @@ ffi_x86.o: ffi_x86.c
 all_symbols.o: all_symbols.c
 	$(CC) $(CFLAGS) -c all_symbols.c -o $@
 
-all_symbols2.o: all_symbols.c
+all_symbols2.o: all_symbols.o
 	$(CC) $(CFLAGS) -DMKCL_FINAL -c all_symbols.c -o $@
 
 cinit.o: cinit.c
@@ -164,9 +164,6 @@ Makefile: Makefile.in ../config.status
 
 #
 #
-
-depend:
-	$(MAKE) GNUmakefile
 
 makefile.depend: $(DCFILES) cinit.c all_symbols.c ../mkcl/mkcl.h $(MKCL_HFILES)
 	$(RM) makefile.depend
