@@ -32,6 +32,7 @@
 (error "Sorry, this Lisp is not yet supported.  Patches welcome!")
 
 (defsystem :cffi
+  :version "0.18.0"
   :description "The Common Foreign Function Interface"
   :author "James Bielman  <jamesjb@jamesjb.com>"
   :maintainer "Luis Oliveira  <loliveira@common-lisp.net>"
