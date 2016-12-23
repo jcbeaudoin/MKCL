@@ -1,5 +1,6 @@
 #!/bin/bash
 (cd asdf; ${MAKE:-make} clean)
+(cd asdf3; ${MAKE:-make} clean)
 (cd tinycc; ${MAKE:-make} clean)
 find . -name "*.o" -print -exec rm {} \;
 find . -name "*.so" -print -exec rm {} \;
