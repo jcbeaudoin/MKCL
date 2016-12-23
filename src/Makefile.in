@@ -73,7 +73,7 @@ MKCL_HFILES = mkcl/config.h \
 
 
 ASDF2_FASLS = ext/asdf2.fasb ../contrib/asdf2-bundle/asdf2-bundle.fas
-ASDF_FASLS = ext/asdf.fasb
+ASDF_FASLS = ext/asdf.fasb ext/asdf3.fasb
 
 CONTRIB_FASLS = \
                 ext/bytecmp.fasb \
@@ -94,7 +94,7 @@ CONTRIB_FASLS = \
                 asdf-stage/fiveam.fasb \
                 asdf-stage/rt.fasb
 
-CONTRIB_STATIC_LIBS = ext/asdf.a ext/asdf2.a $(CONTRIB_FASLS:%.fasb=%.a)
+CONTRIB_STATIC_LIBS = ext/asdf.a ext/asdf3.a ext/asdf2.a $(CONTRIB_FASLS:%.fasb=%.a)
 
 BUILTINS = asdf profile rt serve-event sockets mk-unix
 
@@ -134,6 +134,10 @@ asdf-stage-dir-exists:
 
 ext/asdf2.fasb ext/asdf2.a: bin/mkcl-small$(EXE) ext-dir-exists build-asdf2.lsp cmp/cmp.fasb compile-utils.lsp ../contrib/asdf2/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf2.lsp
+
+ext/asdf3.fasb ext/asdf3.a: bin/mkcl-small$(EXE) ext-dir-exists build-asdf3.lsp cmp/cmp.fasb compile-utils.lsp ../contrib/asdf3/*.lisp
+	(cd ../contrib/asdf3/; $(MAKE) build/asdf.lisp; mv -f build/asdf.lisp build/asdf3.lisp)
+	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf3.lsp
 
 ext/asdf.fasb ext/asdf.a: bin/mkcl-small$(EXE) ext-dir-exists build-asdf.lsp cmp/cmp.fasb compile-utils.lsp ../contrib/asdf/*.lisp
 	(cd ../contrib/asdf/; $(MAKE) build/asdf.lisp)
@@ -439,7 +443,7 @@ install-contribs: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) libmkcc1.@LIBEXT
 	$(INSTALL_LIBRARY) libmkcc1.@LIBEXT@ $(libdir)/mkcc/@build_cpu@
 	for i in ext/*.as2 ext/*.asd; do $(INSTALL_DATA) $${i} $(mkcldir)/contrib/; done
 	for i in asdf-stage/*.as2 asdf-stage/*.asd; do $(INSTALL_DATA) $${i} $(mkcldir)/contrib/; done
-	for i in ext/asdf.fasb ext/asdf2.fasb ../contrib/unicode/UnicodeData.txt $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
+	for i in ext/asdf.fasb ext/asdf3.fasb ext/asdf2.fasb ../contrib/unicode/UnicodeData.txt $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
 	  if test -s $$i; then \
 	    case $$i in \
 	      *.fasb) $(INSTALL_PROGRAM) $$i $(mkcldir)/contrib/;; \
@@ -509,7 +513,7 @@ install-contribs-local: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) libmkcc1.@
 	$(INSTALL_LIBRARY) libmkcc1.@LIBEXT@ ./lib/mkcc/@build_cpu@
 	for i in ext/*.as2 ext/*.asd; do $(INSTALL_DATA) $${i} $(localmkcldir)/contrib/; done
 	for i in asdf-stage/*.as2 asdf-stage/*.asd; do $(INSTALL_DATA) $${i} $(localmkcldir)/contrib/; done
-	for i in ext/asdf.fasb ext/asdf2.fasb ../contrib/unicode/UnicodeData.txt $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
+	for i in ext/asdf.fasb ext/asdf3.fasb ext/asdf2.fasb ../contrib/unicode/UnicodeData.txt $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
 	  if test -s $$i; then \
 	    case $$i in \
 	      *.fasb) $(INSTALL_PROGRAM) $$i $(localmkcldir)/contrib/;; \
