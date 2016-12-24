@@ -36,7 +36,8 @@
 
 ;;(format t "dest-dir = ~S~%" dest-dir)
 
-(load "ext/asdf2.fasb") ;; load the local one.
+;;(load "ext/asdf2.fasb") ;; load the local one.
+(load "ext/asdf.fasb")
 
 ;;(push '(mkcl:getcwd) asdf:*central-registry*) ;; ASDF 1 old style
 
@@ -80,7 +81,9 @@
 ;;(format t "~&Done with asdf:find-system.")(finish-output)
 
 (defun asdf-system-depends-on (sys)
-  (reverse (cdr (assoc 'asdf:load-op (asdf::component-depends-on 'asdf:load-op sys)))))
+  #-asdf3.1 (reverse (cdr (assoc 'asdf:load-op (asdf::component-depends-on 'asdf:load-op sys))))
+  #+asdf3.1 (asdf::system-depends-on sys)
+  )
 
 (let ((depends-on (asdf-system-depends-on sys))
       (version (ignore-errors (asdf:component-version sys)))
