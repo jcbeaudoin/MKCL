@@ -342,13 +342,13 @@ bin/mkcc$(EXE): ../contrib/tinycc/mkcc$(EXE)
 	cp ../contrib/tinycc/include/*.h lib/mkcc/include
 
 ../contrib/tinycc/mkcc$(EXE):  ../contrib/tinycc/*.[ch]
-	cd ../contrib/tinycc; $(MAKE)
+	cd ../contrib/tinycc; $(MAKE) mkcc$(EXE)
 
-libmkcc1.@LIBEXT@: ../contrib/tinycc/libmkcc1.a
-	cp ../contrib/tinycc/libmkcc1.a libmkcc1.@LIBEXT@
+libmkcc1.a: ../contrib/tinycc/libmkcc1.a
+	cp ../contrib/tinycc/libmkcc1.a libmkcc1.a
 
-../contrib/tinycc/libmkcc1.a: ../contrib/tinycc/*.[ch] ../contrib/tinycc/lib/*.c
-	cd ../contrib/tinycc; $(MAKE)
+../contrib/tinycc/libmkcc1.a: ../contrib/tinycc/mkcc$(EXE) ../contrib/tinycc/lib/*.c
+	cd ../contrib/tinycc; $(MAKE) libmkcc1.a
 
 mkclmin.@LIBEXT@: c/GNUmakefile mkcl/mkcl.h $(MKCL_HFILES) c/*.d c/arch/*.d c/*.h
 	cd c; $(MAKE) ../mkclmin.@LIBEXT@
@@ -436,11 +436,11 @@ install-base: all
 	if [ -f cmp/cmp.a ] ; then $(INSTALL_DATA) cmp/cmp.a $(mkcldir); fi
 	$(INSTALL_PROGRAM) cmp/cmp.fasb $(mkcldir)
 
-install-contribs: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) libmkcc1.@LIBEXT@
+install-contribs: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) libmkcc1.a
 	$(mkinstalldirs) $(mkcldir)/contrib/ $(libdir)/mkcc/include $(libdir)/mkcc/@build_cpu@
 	$(INSTALL_PROGRAM) bin/mkcc$(EXE) $(bindir)
 	$(INSTALL_DATA) ../contrib/tinycc/include/*.h $(libdir)/mkcc/include
-	$(INSTALL_LIBRARY) libmkcc1.@LIBEXT@ $(libdir)/mkcc/@build_cpu@
+	$(INSTALL_LIBRARY) libmkcc1.a $(libdir)/mkcc/@build_cpu@
 	for i in ext/*.as2 ext/*.asd; do $(INSTALL_DATA) $${i} $(mkcldir)/contrib/; done
 	for i in asdf-stage/*.as2 asdf-stage/*.asd; do $(INSTALL_DATA) $${i} $(mkcldir)/contrib/; done
 	for i in ext/asdf.fasb ext/asdf3.fasb ext/asdf2.fasb ../contrib/unicode/UnicodeData.txt $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
@@ -508,9 +508,9 @@ install-base-local: all
 	if [ -f cmp/cmp.a ] ; then $(INSTALL_DATA) cmp/cmp.a $(localmkcldir); fi
 	$(INSTALL_PROGRAM) cmp/cmp.fasb $(localmkcldir)
 
-install-contribs-local: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) libmkcc1.@LIBEXT@
+install-contribs-local: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) libmkcc1.a
 	$(mkinstalldirs) $(localmkcldir)/contrib/ ./lib/mkcc/include ./lib/mkcc/@build_cpu@
-	$(INSTALL_LIBRARY) libmkcc1.@LIBEXT@ ./lib/mkcc/@build_cpu@
+	$(INSTALL_LIBRARY) libmkcc1.a ./lib/mkcc/@build_cpu@
 	for i in ext/*.as2 ext/*.asd; do $(INSTALL_DATA) $${i} $(localmkcldir)/contrib/; done
 	for i in asdf-stage/*.as2 asdf-stage/*.asd; do $(INSTALL_DATA) $${i} $(localmkcldir)/contrib/; done
 	for i in ext/asdf.fasb ext/asdf3.fasb ext/asdf2.fasb ../contrib/unicode/UnicodeData.txt $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
