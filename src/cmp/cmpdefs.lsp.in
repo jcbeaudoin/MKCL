@@ -15,6 +15,9 @@
 
 (si::reopen-package "CL")
 
+(let ((old-package (find-package "COMPILER")))
+  (when old-package (si::reopen-package old-package)))
+
 (defpackage "COMPILER"
   ;;(:nicknames "COMPILER")
   (:use "FFI" "CL")
