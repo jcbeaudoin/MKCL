@@ -14,7 +14,7 @@
 
 (si::pathname-translations "CONTRIB" `(("**;*.*.*" ,(merge-pathnames "./../contrib/**/*.*" (mkcl:getcwd)))))
 
-(load "cmp/cmp.fasb")
+(load "cmp/CMP.fasb")
 
 (load "compile-utils" :external-format '(:ascii :lf))
 
@@ -36,8 +36,8 @@
 
 ;;(format t "dest-dir = ~S~%" dest-dir)
 
-;;(load "ext/asdf2.fasb") ;; load the local one.
-(load "ext/asdf.fasb")
+;;(load "ext/ASDF2.fasb") ;; load the local one.
+(load "ext/ASDF.fasb")
 
 ;;(push '(mkcl:getcwd) asdf:*central-registry*) ;; ASDF 1 old style
 

@@ -37,5 +37,5 @@
         (setq line (read-line uni-db nil :eof))))))
 
 
-(provide 'unicode-names)
+(provide "UNICODE-NAMES")
 

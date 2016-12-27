@@ -15,7 +15,7 @@
 
 (si::pathname-translations "CONTRIB" `(("**;*.*.*" ,(merge-pathnames "./../contrib/**/*.*" (mkcl:getcwd)))))
 
-(load "cmp/cmp.fasb")
+(load "cmp/CMP.fasb")
 
 (load "compile-utils" :external-format '(:ascii :lf))
 
@@ -24,7 +24,7 @@
 ;;(setq compiler::*trace-cc* t)
 
 (multiple-value-bind (result bundling-error)
-    (ignore-errors (load "ext/asdf2.fasb")) ;; load the local ASDF 2 which in turn load/build asdf2-bundle.
+    (ignore-errors (load "ext/ASDF2.fasb")) ;; load the local ASDF 2 which in turn load/build asdf2-bundle.
   (unless result
     (format *error-output*
             "~&ASDF failed to load package asdf2-bundle! Reason is: ~S ~A.~%"

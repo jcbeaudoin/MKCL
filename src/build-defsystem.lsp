@@ -12,7 +12,7 @@
 ;;;
 ;;;
 
-(load "cmp/cmp.fasb")
+(load "cmp/CMP.fasb")
 
 (load "compile-utils" :external-format '(:ascii :lf))
 
@@ -23,7 +23,7 @@
 ;;;
 ;;; * DEFSYSTEM
 ;;;
-(build-module "defsystem"
+(build-module "MAKE"
               '("../contrib/defsystem/defsystem.lisp")
               :destdir "./ext/" #|:prefix "EXT"|#
 	      )

@@ -12,7 +12,7 @@
 ;;;
 ;;;
 
-(load "cmp/cmp.fasb")
+(load "cmp/CMP.fasb")
 
 (load "compile-utils" :external-format '(:ascii :lf))
 
@@ -20,7 +20,7 @@
 
 ;;(setq compiler::*trace-cc* t)
 
-(build-module "serve-event"
+(build-module "SERVE-EVENT"
 	      '("../contrib/serve-event/serve-event.lisp")
 	      :destdir "./ext/" #|:prefix "EXT"|#
 	      )

@@ -12,7 +12,7 @@
 ;;;
 ;;;
 
-(load "cmp/cmp.fasb")
+(load "cmp/CMP.fasb")
 
 (load "compile-utils" :external-format '(:ascii :lf))
 
@@ -23,7 +23,7 @@
 ;;;
 ;;; * Sockets library.
 ;;;
-(build-module "sockets"
+(build-module "SOCKETS"
 	      '("../contrib/sockets/package.lisp"
 		"../contrib/sockets/sockets.lisp")
 	      :destdir "./ext/" #|:prefix "EXT"|#

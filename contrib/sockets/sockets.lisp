@@ -1769,7 +1769,7 @@ GET-NAME-SERVICE-ERRNO")
 ;; Add sockopts here as you need them...
 
 ;; Finished loading
-(provide 'sockets)
+(provide "SOCKETS")
 
 ;; (terpri)
 ;; (princ ";;; Loading sockets.lisp DONE!")

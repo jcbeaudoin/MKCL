@@ -13,7 +13,7 @@
 ;;;
 
 
-(load "cmp/cmp.fasb")
+(load "cmp/CMP.fasb")
 
 (load "compile-utils" :external-format '(:ascii :lf))
 
@@ -35,7 +35,7 @@
 (mkcl:setenv "ASDF_OUTPUT_TRANSLATIONS" nil)
 (mkcl:setenv "CL_SOURCE_REGISTRY" nil)
 
-(load "ext/asdf.fasb") ;; load the local one.
+(load "ext/ASDF.fasb") ;; load the local one.
 
 ;;(push '(mkcl:getcwd) asdf:*central-registry*) ;; ASDF 1 old style
 

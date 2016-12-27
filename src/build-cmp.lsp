@@ -18,7 +18,7 @@
 
 (load "compile-utils" :external-format '(:ascii :lf))
 
-(build-module "cmp" +cmp-module-files+ 
+(build-module "CMP" +cmp-module-files+ 
 	      :destdir (pathname "./cmp/")
 	      )
 

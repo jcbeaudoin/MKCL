@@ -84,7 +84,7 @@
 
 (pushnew :ecl-bytecmp *features*)
 
-(provide :BYTECMP)
+(provide "BYTECMP")
 
 (in-package :cl-user) ;; put something safe into *package* before we nuke our transient package.
 

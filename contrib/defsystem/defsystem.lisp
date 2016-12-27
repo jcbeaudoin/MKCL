@@ -1076,7 +1076,7 @@
 (provide 'make)
 
 #-(or :cltl2 :lispworks)
-(provide 'make)
+(provide "MAKE")
 
 (pushnew :mk-defsystem *features*)
 
@@ -4618,8 +4618,11 @@ output to *trace-output*.  Returns the shell's exit code."
                       :input nil
                       :output output))
 
-    #+mkcl
+    #+(and mkcl (not windows))
     (nth-value 1 (mkcl:run-program shell (list "-c" command) :input nil :output output))
+
+    #+(and mkcl windows)
+    (nth-value 1 (mkcl:run-program "cmd" (list "/c" command) :input nil :output output))
 
     #+allegro
     (excl:run-shell-command command :input nil :output output)

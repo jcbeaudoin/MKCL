@@ -56,9 +56,10 @@ module."
 	  (*requiring* (cons name *requiring*)))
       (unless (member name *modules* :test #'string=)
 	(cond (pathnames
-	       (unless (listp pathnames) (setf pathnames (list pathnames)))
+	       (unless (listp pathnames) (setf pathnames (list pathnames))) ;; for CLTL2 compatibility. JCB
 	       ;; ambiguity in standard: should we try all pathnames in the
 	       ;; list, or should we stop as soon as one of them calls PROVIDE?
+               ;; CLTL2 says to load all in order. JCB
 	       (dolist (ele pathnames t)
 		 (load ele)))
 	      (t

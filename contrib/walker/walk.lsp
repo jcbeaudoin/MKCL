@@ -1411,5 +1411,5 @@
     
 |#
 
-(provide 'walker)
+(provide "WALKER")
 

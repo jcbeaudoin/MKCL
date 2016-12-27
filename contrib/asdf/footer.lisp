@@ -60,7 +60,7 @@
   (dolist (f '(:asdf :asdf2 :asdf3 :asdf3.1 :asdf-package-system)) (pushnew f *features*))
 
   ;; Provide both lowercase and uppercase, to satisfy more people, especially LispWorks users.
-  (provide "asdf") (provide "ASDF")
+  #-mkcl (provide "asdf") (provide "ASDF")
 
   (cleanup-upgraded-asdf))
 

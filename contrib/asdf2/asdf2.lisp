@@ -4542,7 +4542,7 @@ with a different configuration, so the configuration would be re-read then."
 (pushnew :asdf *features*)
 (pushnew :asdf2 *features*)
 
-(provide :asdf2)
+(provide "ASDF2")
 
 ;;; Local Variables:
 ;;; mode: lisp

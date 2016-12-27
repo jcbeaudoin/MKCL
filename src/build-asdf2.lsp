@@ -12,7 +12,7 @@
 ;;;
 ;;;
 
-(load "cmp/cmp.fasb")
+(load "cmp/CMP.fasb")
 
 (load "compile-utils" :external-format '(:ascii :lf))
 
@@ -23,7 +23,7 @@
 ;;;
 ;;; * ASDF
 ;;;
-(build-module "asdf2"
+(build-module "ASDF2"
               '("../contrib/asdf2/asdf2.lisp")
               :destdir "./ext/"
 	      )

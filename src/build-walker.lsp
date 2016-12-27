@@ -12,7 +12,7 @@
 ;;;
 ;;;
 
-(load "cmp/cmp.fasb")
+(load "cmp/CMP.fasb")
 
 (load "compile-utils" :external-format '(:ascii :lf))
 
@@ -24,7 +24,7 @@
 ;;;
 ;;; * BYTECMP
 ;;;
-(build-module "walker"
+(build-module "WALKER"
               '("../contrib/walker/walk.lsp")
               :destdir "./ext/" #|:prefix "EXT"|#
 	      )

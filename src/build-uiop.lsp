@@ -12,7 +12,7 @@
 ;;;
 ;;;
 
-(load "cmp/cmp.fasb")
+(load "cmp/CMP.fasb")
 
 (load "compile-utils" :external-format '(:ascii :lf))
 
@@ -20,7 +20,7 @@
 
 ;;(setq compiler::*trace-cc* t)
 
-(load "ext/asdf.fasb")
+(load "ext/ASDF.fasb")
 
 #+asdf2
 (let* ((current-dir (mkcl:getcwd))
@@ -51,7 +51,7 @@
 
 (format t "~&About to build UIOP.~%")(finish-output)
 (multiple-value-bind (result bundling-error)
-    (ignore-errors (asdf:bundle-system "uiop"))
+    (ignore-errors (asdf:bundle-system "UIOP"))
   (unless result
     (format t "~%asdf:bundle-system failed! Reason is: ~S ~A.~%" bundling-error bundling-error)
     (finish-output)
