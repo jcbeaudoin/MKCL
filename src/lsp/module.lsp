@@ -32,7 +32,8 @@ It is used by PROVIDE and REQUIRE.")
 (defun provide (module-name)
   "Adds a new module name to *MODULES* indicating that it has been loaded.
 Module-name is a string designator"
-  (pushnew (string module-name) *modules* :test #'string=)
+  (mt:with-lock (mt:+load-compile-lock+)
+    (pushnew (string module-name) *modules* :test #'string=))
   t)
 
 (defvar *requiring* nil)
@@ -48,33 +49,30 @@ MKCL:*MODULE-PROVIDER-FUNCTIONS* are called in order with MODULE-NAME
 as an argument, until one of them returns non-NIL.  User code is
 responsible for calling PROVIDE to indicate a successful load of the
 module."
-  (let ((name (string module-name)))
-    (when (member name *requiring* :test #'string=)
-      (require-error "~@<Could not ~S ~A: circularity detected. Please check ~
+  (mt:with-lock (mt:+load-compile-lock+)
+    (let ((name (string module-name)))
+      (when (member name *requiring* :test #'string=)
+        (require-error "~@<Could not ~S ~A: circularity detected. Please check ~
                      your configuration.~:@>" 'require module-name))
-    (let ((saved-modules (copy-list *modules*))
-	  (*requiring* (cons name *requiring*)))
-      (unless (member name *modules* :test #'string=)
-	(cond (pathnames
-	       (unless (listp pathnames) (setf pathnames (list pathnames))) ;; for CLTL2 compatibility. JCB
-	       ;; ambiguity in standard: should we try all pathnames in the
-	       ;; list, or should we stop as soon as one of them calls PROVIDE?
-               ;; CLTL2 says to load all in order. JCB
-	       (dolist (ele pathnames t)
-		 (load ele)))
-	      (t
-	       (unless (some 
-			(lambda (p)
-			  (handler-case
-			      (funcall p module-name)
-			    ((and condition (not warning)) (condition)
-			      (require-error "Error while loading module ~A: ~A"
-					     module-name condition))))
-			mkcl:*module-provider-functions*)
-		 (require-error "Don't know how to ~S ~A"
-				'require module-name))
-	       )))
-      (set-difference *modules* saved-modules))))
+      (let ((saved-modules (copy-list *modules*))
+            (*requiring* (cons name *requiring*)))
+        (unless (member name *modules* :test #'string=)
+          (cond (pathnames
+                 (unless (listp pathnames) (setf pathnames (list pathnames))) ;; for CLTL2 compatibility. JCB
+                 ;; ambiguity in standard: should we try all pathnames in the
+                 ;; list, or should we stop as soon as one of them calls PROVIDE?
+                 ;; CLTL2 says to load all in order. JCB
+                 (dolist (ele pathnames t)
+                   (load ele)))
+                (t
+                 (unless (some (lambda (p)
+                                 (handler-case
+                                  (funcall p module-name)
+                                  ((and condition (not warning)) (condition)
+                                   (require-error "Error while loading module ~A: ~A" module-name condition))))
+                               mkcl:*module-provider-functions*)
+                   (require-error "Don't know how to ~S ~A" 'require module-name)))))
+        (set-difference *modules* saved-modules)))))
 
 
 (defun mkcl:default-module-provider (module)
