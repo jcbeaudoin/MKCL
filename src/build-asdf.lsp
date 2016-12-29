@@ -23,7 +23,7 @@
 ;;;
 ;;; * ASDF
 ;;;
-(build-module "ASDF"
+(build-module "asdf"
               '("../contrib/asdf/build/asdf.lisp")
               :destdir "./ext/"
 	      )

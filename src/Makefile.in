@@ -72,8 +72,8 @@ MKCL_HFILES = mkcl/config.h \
               mkcl/stacks.h
 
 
-ASDF2_FASLS = ext/ASDF2.fasb ../contrib/asdf2-bundle/asdf2-bundle.fas
-ASDF_FASLS = ext/ASDF.fasb ext/ASDF3.fasb
+ASDF2_FASLS = ext/asdf2.fasb ../contrib/asdf2-bundle/asdf2-bundle.fas
+ASDF_FASLS = ext/asdf.fasb ext/asdf3.fasb
 
 CONTRIB_FASLS = \
                 ext/BYTECMP.fasb \
@@ -84,7 +84,7 @@ CONTRIB_FASLS = \
                 ext/SOCKETS.fasb \
                 ext/WALKER.fasb \
                 ext/UNICODE-NAMES.fasb \
-                asdf-stage/UIOP.fasb \
+                asdf-stage/uiop.fasb \
                 asdf-stage/trivial-features.fasb \
                 asdf-stage/trivial-garbage.fasb \
                 asdf-stage/alexandria.fasb \
@@ -94,7 +94,7 @@ CONTRIB_FASLS = \
                 asdf-stage/fiveam.fasb \
                 asdf-stage/rt.fasb
 
-CONTRIB_STATIC_LIBS = ext/ASDF.a ext/ASDF3.a ext/ASDF2.a $(CONTRIB_FASLS:%.fasb=%.a)
+CONTRIB_STATIC_LIBS = ext/asdf.a ext/asdf3.a ext/asdf2.a $(CONTRIB_FASLS:%.fasb=%.a)
 
 BUILTINS = asdf profile rt serve-event SOCKETS mk-unix
 
@@ -132,23 +132,23 @@ asdf-stage-dir-exists:
 	mkdir ./asdf-stage
 	touch asdf-stage-dir-exists
 
-ext/ASDF2.fasb ext/ASDF2.a: bin/mkcl-small$(EXE) ext-dir-exists build-asdf2.lsp cmp/CMP.fasb compile-utils.lsp ../contrib/asdf2/*.lisp
+ext/asdf2.fasb ext/asdf2.a: bin/mkcl-small$(EXE) ext-dir-exists build-asdf2.lsp cmp/CMP.fasb compile-utils.lsp ../contrib/asdf2/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf2.lsp
 
-ext/ASDF3.fasb ext/ASDF3.a: bin/mkcl-small$(EXE) ext-dir-exists build-asdf3.lsp cmp/CMP.fasb compile-utils.lsp ../contrib/asdf3/*.lisp
+ext/asdf3.fasb ext/asdf3.a: bin/mkcl-small$(EXE) ext-dir-exists build-asdf3.lsp cmp/CMP.fasb compile-utils.lsp ../contrib/asdf3/*.lisp
 	(cd ../contrib/asdf3/; $(MAKE) build/asdf.lisp; mv -f build/asdf.lisp build/asdf3.lisp)
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf3.lsp
 
-ext/ASDF.fasb ext/ASDF.a: bin/mkcl-small$(EXE) ext-dir-exists build-asdf.lsp cmp/CMP.fasb compile-utils.lsp ../contrib/asdf/*.lisp
+ext/asdf.fasb ext/asdf.a: bin/mkcl-small$(EXE) ext-dir-exists build-asdf.lsp cmp/CMP.fasb compile-utils.lsp ../contrib/asdf/*.lisp
 	(cd ../contrib/asdf/; $(MAKE) build/asdf.lisp)
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf.lsp
 
-asdf-stage/UIOP.fasb asdf-stage/UIOP.a: bin/mkcl-small$(EXE) asdf-stage-dir-exists build-uiop.lsp cmp/CMP.fasb compile-utils.lsp ext/ASDF.fasb ../contrib/asdf/uiop/*.lisp
+asdf-stage/uiop.fasb asdf-stage/uiop.a: bin/mkcl-small$(EXE) asdf-stage-dir-exists build-uiop.lsp cmp/CMP.fasb compile-utils.lsp ext/asdf.fasb ../contrib/asdf/uiop/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-uiop.lsp
-	cp ./asdf-stage/asdf/uiop/UIOP.fasb ./asdf-stage/
-	cp ./asdf-stage/asdf/uiop/UIOP.a ./asdf-stage/
-	cp ./asdf-stage/asdf/uiop/UIOP.asd ./asdf-stage/
-	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- UIOP ../contrib/asdf/uiop/ ./asdf-stage/
+	cp ./asdf-stage/asdf/uiop/uiop.fasb ./asdf-stage/
+	cp ./asdf-stage/asdf/uiop/uiop.a ./asdf-stage/
+	cp ./asdf-stage/asdf/uiop/uiop.asd ./asdf-stage/
+	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- uiop ../contrib/asdf/uiop/ ./asdf-stage/
 
 ext/BYTECMP.fasb ext/BYTECMP.a: bin/mkcl-small$(EXE) ext-dir-exists build-bytecmp.lsp cmp/CMP.fasb compile-utils.lsp ../contrib/bytecmp/bytecmp.lsp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-bytecmp.lsp
@@ -179,7 +179,7 @@ ext/UNICODE-NAMES.fasb ext/UNICODE-NAMES.a: bin/mkcl-small$(EXE) ext-dir-exists 
 
 
 
-../contrib/asdf2-bundle/asdf2-bundle.fas: bin/mkcl-small$(EXE) build-asdf2-bundle.lsp cmp/CMP.fasb compile-utils.lsp ext/ASDF2.fasb ../contrib/asdf2-bundle/*.lisp
+../contrib/asdf2-bundle/asdf2-bundle.fas: bin/mkcl-small$(EXE) build-asdf2-bundle.lsp cmp/CMP.fasb compile-utils.lsp ext/asdf2.fasb ../contrib/asdf2-bundle/*.lisp
 	$(RM) ../contrib/asdf2-bundle/asdf2-bundle.fas # something said it had to be remade but ASDF may not agree, so force it.
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf2-bundle.lsp
 
@@ -216,7 +216,7 @@ asdf-stage/babel.fasb asdf-stage/babel.a: bin/mkcl-small$(EXE) asdf-stage-dir-ex
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- babel ../contrib/babel*/ ./asdf-stage/
 
 
-asdf-stage/cffi.fasb asdf-stage/cffi.a: bin/mkcl-small$(EXE) asdf-stage-dir-exists build-asdf-contrib*.lsp $(ASDF_FASLS) $(ASDF2_FASLS) asdf-stage/UIOP.fasb asdf-stage/babel.fasb ../contrib/cffi*/src/*.lisp
+asdf-stage/cffi.fasb asdf-stage/cffi.a: bin/mkcl-small$(EXE) asdf-stage-dir-exists build-asdf-contrib*.lsp $(ASDF_FASLS) $(ASDF2_FASLS) asdf-stage/uiop.fasb asdf-stage/babel.fasb ../contrib/cffi*/src/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- cffi ../contrib/cffi*/
 	cp ./asdf-stage/cffi*/cffi.fasb ./asdf-stage/
 	cp ./asdf-stage/cffi*/cffi.a ./asdf-stage/
@@ -432,7 +432,7 @@ install-base: all
 	done
 	$(INSTALL_DATA) c/dpp$(EXE) $(mkcldir)
 	$(INSTALL_DATA) mkcl_min$(EXE) $(mkcldir)
-	$(INSTALL_DATA) cmp/CMP.asd cmp/CMP.as2 $(mkcldir)
+	$(INSTALL_DATA) cmp/cmp.asd cmp/cmp.as2 $(mkcldir)
 	if [ -f cmp/CMP.a ] ; then $(INSTALL_DATA) cmp/CMP.a $(mkcldir); fi
 	$(INSTALL_PROGRAM) cmp/CMP.fasb $(mkcldir)
 
@@ -443,7 +443,7 @@ install-contribs: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) libmkcc1.a
 	$(INSTALL_LIBRARY) libmkcc1.a $(libdir)/mkcc/@build_cpu@
 	for i in ext/*.as2 ext/*.asd; do $(INSTALL_DATA) $${i} $(mkcldir)/contrib/; done
 	for i in asdf-stage/*.as2 asdf-stage/*.asd; do $(INSTALL_DATA) $${i} $(mkcldir)/contrib/; done
-	for i in ext/ASDF.fasb ext/ASDF3.fasb ext/ASDF2.fasb ../contrib/unicode/UnicodeData.txt $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
+	for i in ext/asdf.fasb ext/asdf3.fasb ext/asdf2.fasb ../contrib/unicode/UnicodeData.txt $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
 	  if test -s $$i; then \
 	    case $$i in \
 	      *.fasb) $(INSTALL_PROGRAM) $$i $(mkcldir)/contrib/;; \
@@ -504,7 +504,7 @@ install-base-local: all
 	done
 	$(INSTALL_DATA) c/dpp$(EXE) $(localmkcldir)
 	$(INSTALL_DATA) mkcl_min$(EXE) $(localmkcldir)
-	$(INSTALL_DATA) cmp/CMP.asd cmp/CMP.as2 $(localmkcldir)
+	$(INSTALL_DATA) cmp/cmp.asd cmp/cmp.as2 $(localmkcldir)
 	if [ -f cmp/CMP.a ] ; then $(INSTALL_DATA) cmp/CMP.a $(localmkcldir); fi
 	$(INSTALL_PROGRAM) cmp/CMP.fasb $(localmkcldir)
 
@@ -513,7 +513,7 @@ install-contribs-local: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) libmkcc1.a
 	$(INSTALL_LIBRARY) libmkcc1.a ./lib/mkcc/@build_cpu@
 	for i in ext/*.as2 ext/*.asd; do $(INSTALL_DATA) $${i} $(localmkcldir)/contrib/; done
 	for i in asdf-stage/*.as2 asdf-stage/*.asd; do $(INSTALL_DATA) $${i} $(localmkcldir)/contrib/; done
-	for i in ext/ASDF.fasb ext/ASDF3.fasb ext/ASDF2.fasb ../contrib/unicode/UnicodeData.txt $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
+	for i in ext/asdf.fasb ext/asdf3.fasb ext/asdf2.fasb ../contrib/unicode/UnicodeData.txt $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
 	  if test -s $$i; then \
 	    case $$i in \
 	      *.fasb) $(INSTALL_PROGRAM) $$i $(localmkcldir)/contrib/;; \

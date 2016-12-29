@@ -538,8 +538,10 @@ for all the linkable object files associated with the system or its dependencies
         #+clasp (compile-file-pathname (make-pathname :name name :defaults "sys:") :output-type :object)
         #+ecl (compile-file-pathname (make-pathname :name name :defaults "sys:") :type :lib)
         #+ecl (compile-file-pathname (make-pathname :name name :defaults "sys:") :type :object)
-        #+mkcl (make-pathname :name name :type (bundle-pathname-type :lib) :defaults #p"sys:")
-        #+mkcl (make-pathname :name name :type (bundle-pathname-type :lib) :defaults #p"sys:contrib;")))))
+        #+mkcl (make-pathname :name name :type (bundle-pathname-type :lib)
+                              :defaults (translate-logical-pathname #p"sys:"))
+        #+mkcl (make-pathname :name name :type (bundle-pathname-type :lib)
+                              :defaults (translate-logical-pathname #p"sys:contrib;"))))))
 
   (defun make-library-system (name &optional (pathname (system-module-pathname name)))
     "Creates a prebuilt-system if PATHNAME isn't NIL."

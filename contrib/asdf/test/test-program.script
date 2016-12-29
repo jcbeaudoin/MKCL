@@ -126,7 +126,7 @@
 (progn
   (DBG "Now create an program without UIOP")
   (assert (probe-file (asdf/bundle::system-module-pathname "asdf")))
-  (assert (probe-file (asdf/bundle::system-module-pathname "cmp")))
+  (assert (probe-file (asdf/bundle::system-module-pathname "CMP")))
   (def-test-system hello-no-uiop
     :class program-system
     :no-uiop t

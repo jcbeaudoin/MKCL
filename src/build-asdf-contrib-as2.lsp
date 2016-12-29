@@ -36,8 +36,8 @@
 
 ;;(format t "dest-dir = ~S~%" dest-dir)
 
-;;(load "ext/ASDF2.fasb") ;; load the local one.
-(load "ext/ASDF.fasb")
+;;(load "ext/asdf2.fasb") ;; load the local one.
+(load "ext/asdf.fasb")
 
 ;;(push '(mkcl:getcwd) asdf:*central-registry*) ;; ASDF 1 old style
 
@@ -103,7 +103,7 @@
   (when maintainer (setq sys-attr (list* :maintainer maintainer sys-attr)))
   (when licence (setq sys-attr (list* :licence licence sys-attr)))
 
-  (build-substitute-as2-file sys-name dest-dir sys-attr)
+  (build-substitute-as2-file sys-name sys-name dest-dir sys-attr)
   )
 
 (mkcl:quit :exit-code 0)
