@@ -2336,7 +2336,8 @@
 
 ;;
 
-(provide 'cmp)
+(provide "cmp")
+(provide "CMP")
 
 #-:mkcl-cmp-bootstrap
 (si::close-package "COMPILER")
