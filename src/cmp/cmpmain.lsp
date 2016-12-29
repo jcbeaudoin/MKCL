@@ -585,7 +585,8 @@ filesystem or in the database of ASDF modules."
   filespec
   )
 
-(defun collect-submodule-initializers (lisp-object-files object-files &aux submodule-inits)
+(defun collect-submodule-initializers (lisp-object-files object-files on-missing-lisp-object-initializer
+                                                         &aux submodule-inits)
   (dolist (item (reverse lisp-object-files))
     (etypecase item
       (symbol
@@ -596,10 +597,10 @@ filesystem or in the database of ASDF modules."
 	      (kind (guess-object-file-kind o-path)))
 	 (unless (member kind '(:object :static-library :lib :shared-library :dll))
 	   (error "COMPILER::BUILDER does not accept a file ~s of kind ~s" item kind))
-	 (let ((init-fn (guess-init-name o-path))
+	 (let ((init-fn (guess-init-name o-path on-missing-lisp-object-initializer))
 	       #+(or)(o-file (validate-object-file o-path)))
 	     (push o-path object-files)
-	     (push init-fn submodule-inits))))))
+	     (when init-fn (push init-fn submodule-inits)))))))
   (values submodule-inits object-files)
   )
 
@@ -627,6 +628,7 @@ filesystem or in the database of ASDF modules."
 		       lisp-object-files
 		       object-files
 		       extra-ld-flags
+                       (on-missing-lisp-object-initializer 'simple-error)
 		       (init-name nil)
 		       (libraries *builder-default-libraries*) ;; a list of strings, each naming a library
 		       (use-mkcl-shared-libraries t)
@@ -717,7 +719,7 @@ filesystem or in the database of ASDF modules."
 	      (push (merge-pathnames o-file cwd) new-object-files)))
 
 	  (multiple-value-setq (submodules object-files)
-	    (collect-submodule-initializers lisp-object-files object-files))
+	    (collect-submodule-initializers lisp-object-files object-files on-missing-lisp-object-initializer))
 	  
 	  (if (or (eq target :program) (eq target :static-program) prologue-p epilogue-p) 
 	      (build-init-c-file-header :full c-file output-internal-name submodules)
@@ -799,7 +801,7 @@ filesystem or in the database of ASDF modules."
 
 (defun build-fasl (&rest args)
   (declare (dynamic-extent args))
-  (handler-bind (((and condition (not style-warning))
+  (handler-bind (((or serious-condition (and warning (not style-warning)))
 		  #'(lambda (condition)
 		      (format t "~&build-fasl failed: ~A~%" condition)
 		      (when *compiler-break-enable*
@@ -809,7 +811,7 @@ filesystem or in the database of ASDF modules."
 
 (defun build-bundle (&rest args)
   (declare (dynamic-extent args))
-  (handler-bind (((and condition (not style-warning))
+  (handler-bind (((or serious-condition (and warning (not style-warning)))
 		  #'(lambda (condition)
 		      (format t "~&build-bundle failed: ~A~%" condition)
 		      (when *compiler-break-enable*
@@ -820,7 +822,7 @@ filesystem or in the database of ASDF modules."
 (defun build-program (output-name &rest args &key (all-static-program nil a-s-p-p) &allow-other-keys)
   (declare (dynamic-extent args))
   (when a-s-p-p (remf args :all-static-program)) ;; handle here, don't pass down.
-  (handler-bind (((and condition (not style-warning))
+  (handler-bind (((or serious-condition (and warning (not style-warning)))
 		  #'(lambda (condition)
 		      (format t "~&build-program failed: ~A~%" condition)
 		      (when *compiler-break-enable*
@@ -832,7 +834,7 @@ filesystem or in the database of ASDF modules."
 
 (defun build-static-library (&rest args)
   (declare (dynamic-extent args))
-  (handler-bind (((and condition (not style-warning))
+  (handler-bind (((or serious-condition (and warning (not style-warning)))
 		  #'(lambda (condition)
 		      (format t "~&build-static-library failed: ~A~%" condition)
 		      (when *compiler-break-enable*
@@ -842,7 +844,7 @@ filesystem or in the database of ASDF modules."
 
 (defun build-shared-library (&rest args)
   (declare (dynamic-extent args))
-  (handler-bind (((and condition (not style-warning))
+  (handler-bind (((or serious-condition (and warning (not style-warning)))
 		  #'(lambda (condition)
 		      (format t "~&build-shared-library failed: ~A~%" condition)
 		      (when *compiler-break-enable*

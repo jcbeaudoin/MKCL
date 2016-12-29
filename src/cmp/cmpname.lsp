@@ -118,11 +118,14 @@ the function name it precedes."
       (subseq name (length prefix) nil)
       name))
 
-(defun guess-init-name (pathname &key (kind (guess-object-file-kind pathname)))
+(defun guess-init-name (pathname on-missing-lisp-object-initializer &aux (kind (guess-object-file-kind pathname)))
   (if (eq kind :object)
     (or (and (mkcl:probe-file-p pathname)
 	     (find-init-name pathname))
-	(error "Cannot find out entry point for binary file ~A" pathname))
+        (when on-missing-lisp-object-initializer
+          (error on-missing-lisp-object-initializer
+                 :format-control "Cannot find out entry point for binary file ~A"
+                 :format-arguments (list pathname))))
     (compute-init-name pathname :kind kind)))
 
 (defun init-function-name (s &key (kind :object))
