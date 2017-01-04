@@ -1,6 +1,6 @@
 ---- BEGINNING OF COPYRIGHT FOR THE MKCL CORE ENVIRONMENT ------------
 
-  Copyright (c) 2010-2016, Jean-Claude Beaudoin
+  Copyright (c) 2010-2017, Jean-Claude Beaudoin
   Copyright (c) 2000, Juan Jose Garcia Ripoll
   Copyright (c) 1990, 1991, 1993 Giuseppe Attardi
   Copyright (c) 1984 Taiichi Yuasa and Masami Hagiya
