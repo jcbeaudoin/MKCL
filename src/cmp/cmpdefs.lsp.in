@@ -569,6 +569,7 @@ coprocessor).")
 
 (defvar *compile-toplevel* T
   "Holds NIL or T depending on whether we are compiling a toplevel form.")
+(defvar *load-control-flow-is-linear* T "Is the control flow of the loading process still linear for sure?")
 
 (defvar *clines-string-list* '()
   "List of strings containing C/C++ statements which are directly inserted

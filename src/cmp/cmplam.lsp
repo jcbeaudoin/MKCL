@@ -142,7 +142,9 @@ The function thus belongs to the type of functions that mkcl_make_cfun accepts."
       (when (fun-closure fun)
 	(error "Function ~A is global but is closed over some variables.~%~{~A ~}"
 	       (fun-name fun) (mapcar #'var-name (fun-referred-vars fun))))
-      (new-defun fun)))
+      (when *load-control-flow-is-linear* ;; Are we sure to get initialized completely?
+        ;; Yes, so we can register for those locally optimized calls.
+        (new-defun fun))))
   fun)
 
 (defun c1lambda-expr (lambda-expr

@@ -14,7 +14,7 @@
 
 (in-package "COMPILER")
 
-(defun c1if (args)
+(defun c1if (args &aux (*load-control-flow-is-linear* nil))
   (check-args-number 'IF args 2 3)
   (let ((f (c1fmla-constant (car args))))
     (case f

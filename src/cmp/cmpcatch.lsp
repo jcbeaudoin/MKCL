@@ -15,7 +15,7 @@
 
 (in-package "COMPILER")
 
-(defun c1catch (args)
+(defun c1catch (args &aux (*load-control-flow-is-linear* nil))
   (check-args-number 'CATCH args 1)
   (incf *setjmps*)
   (make-c1form* 'CATCH :sp-change t :type t :args (c1expr (first args))

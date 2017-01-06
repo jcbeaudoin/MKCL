@@ -24,7 +24,7 @@
 ;;; variable represents whether a block identifier must be created and
 ;;; stored in such variable.
 
-(defun c1block (args)
+(defun c1block (args &aux (*load-control-flow-is-linear* nil))
   (check-args-number 'BLOCK args 1)
   (let ((block-name (first args)))
     (unless (symbolp block-name)

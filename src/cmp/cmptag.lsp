@@ -69,9 +69,10 @@
 
 ;; FIXME! The variable name should not be a usable one!
 (defun c1tagbody (orig-body &aux (*cmp-env* (cmp-env-copy))
-		  (tag-var (make-var :name 'TAGBODY :kind NIL))
-		  (tag-index 0)
-		  (body nil))
+                            (tag-var (make-var :name 'TAGBODY :kind NIL))
+                            (tag-index 0)
+                            (body nil)
+                            (*load-control-flow-is-linear* nil))
 
   ;;; Establish tags.
   (setq body
