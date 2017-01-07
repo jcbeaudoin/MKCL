@@ -452,10 +452,10 @@ install-contribs: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) libmkcc1.a
 	  fi \
 	done
 	if [ -d ../contrib/asdf2-bundle ]; then \
-	  (cd ../contrib/; tar cf - asdf2-bundle) | (cd $(mkcldir)/contrib/; tar xof -); \
+	  cp -pR ../contrib/asdf2-bundle $(mkcldir)/contrib/; \
 	fi
 	if [ -d ../contrib/slime ]; then \
-	  (cd ../contrib/; tar cf - slime) | (cd $(mkcldir)/contrib/; tar xof -); \
+	  cp -pR ../contrib/slime $(mkcldir)/contrib/; \
 	fi
 
 install-local: install-base-local install-contribs-local

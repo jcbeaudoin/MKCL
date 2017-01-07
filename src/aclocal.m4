@@ -192,7 +192,6 @@ AC_SUBST(SHAREDEXT)dnl	Name components of a dynamically linked library
 AC_SUBST(SHAREDPREFIX)
 AC_SUBST(OBJEXT)dnl	These are set by autoconf
 AC_SUBST(EXEEXT)
-AC_SUBST(INSTALL_TARGET)dnl Which type of installation: flat directory or unix like.
 AC_SUBST(thehost)
 CFLAGS=''
 LDRPATH='~*'
@@ -321,7 +320,6 @@ case "${host_os}" in
 		SHAREDEXT='dll'
 		SONAME="libmkcl.SOVERSION.${SHAREDEXT}"
 		PICFLAG=''
-		INSTALL_TARGET='flatinstall'
 		TCP_LIBS='-lws2_32'
 		case "$(cmd //C ver)" in
 		   *Windows\ NT*) WINVER='WinNT' ;;

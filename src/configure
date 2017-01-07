@@ -655,7 +655,6 @@ SONAME3
 INSTALL_INFO
 INFOEXT
 thehost
-INSTALL_TARGET
 SHAREDPREFIX
 SHAREDEXT
 LIBEXT
@@ -4112,7 +4111,6 @@ case "${host_os}" in
 		SHAREDEXT='dll'
 		SONAME="libmkcl.SOVERSION.${SHAREDEXT}"
 		PICFLAG=''
-		INSTALL_TARGET='flatinstall'
 		TCP_LIBS='-lws2_32'
 		case "$(cmd //C ver)" in
 		   *Windows\ NT*) WINVER='WinNT' ;;
