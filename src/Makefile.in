@@ -605,5 +605,6 @@ c/makefile.depend: c/Makefile.in c/*.d c/*.h c/arch/*.d mkcl/mkcl.h $(MKCL_HFILE
 c/GNUmakefile: c/Makefile c/Makefile.in c/makefile.depend
 	cd c; $(MAKE) GNUmakefile
 
-
+c/symbols_list2.h: c/symbols_list.h
+	cd c; $(MAKE) symbols_list2.h
 
