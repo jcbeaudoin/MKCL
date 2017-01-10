@@ -116,7 +116,7 @@ ffi_x86_64_w64.c: arch/ffi_x86_64_w64.d $(DPP)
 	$(RANLIB) $@
 
 clean:
-	$(RM) $(DPP) $(DCFILES) $(OBJS) all_symbols.c all_symbols.o all_symbols2.o cinit.c cinit.o core core.* a.out
+	$(RM) $(DPP) $(DCFILES) $(OBJS) symbols_list2.h all_symbols.c all_symbols.o all_symbols2.o cinit.c cinit.o core core.* a.out
 	$(RM) GNUmakefile makefile.depend
 
 distclean: clean
