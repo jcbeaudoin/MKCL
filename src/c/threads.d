@@ -2394,7 +2394,7 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
       } MKCL_UNWIND_PROTECT_END;
 
       if ( !(success || failure) )
-	sched_yield();
+	MKCL_LIBC_NO_INTR(env, sched_yield());
     } while ( !(retry_count >= MAX_INTERRUPT_RETRIES || success || failure) );
 
     if ( retry_count >= MAX_INTERRUPT_RETRIES)
@@ -2723,10 +2723,10 @@ mk_mt_thread_join(MKCL, mkcl_object thread)
 mkcl_object
 mk_mt_thread_yield(MKCL)
 {
-#ifdef HAVE_SCHED_YIELD
-  MKCL_LIBC_NO_INTR(env, sched_yield());
-#elif MKCL_WINDOWS
+#if MKCL_WINDOWS
   MKCL_LIBC_NO_INTR(env, SwitchToThread());
+#elif defined(HAVE_SCHED_YIELD)
+  MKCL_LIBC_NO_INTR(env, sched_yield());
 #else
   MKCL_LIBC_NO_INTR(env, sleep(0)); /* Use sleep(0) to yield to a >= priority thread */
 #endif

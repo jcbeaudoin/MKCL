@@ -167,7 +167,50 @@ mk_cl_sleep(MKCL, mkcl_object z)
   if (fe_inexact_on)
     fedisableexcept(FE_INEXACT);
 
-#ifdef HAVE_NANOSLEEP
+#if MKCL_WINDOWS
+  {
+    double r = mkcl_to_double(env, z) * 1000;
+    long long now_ms;
+    long long target_ms;
+    FILETIME system_time;
+    ULARGE_INTEGER uli_system_time; /* in multiples of 100 nanoseconds. */
+    DWORD val;
+
+    MKCL_LIBC_NO_INTR(env, GetSystemTimeAsFileTime(&system_time));
+    uli_system_time.LowPart = system_time.dwLowDateTime;
+    uli_system_time.HighPart = system_time.dwHighDateTime;
+
+    now_ms = uli_system_time.QuadPart / 10000;
+    target_ms = now_ms + ((long long) round(r)); /* used to be llround() but mingw with gcc 4.8.1 foobared on it. */
+
+    if (fe_inexact_on)
+      {
+	feclearexcept(FE_INEXACT);
+	feenableexcept(FE_INEXACT);
+      }
+
+    do {
+      DWORD duration;
+
+      if (now_ms >= target_ms)
+	duration = 0;
+      if ((target_ms - now_ms) > MAXDWORD)
+	duration = MAXDWORD;
+      else
+	duration = target_ms - now_ms;
+
+      MKCL_LIBC_Zzz(env, @':io', val = SleepEx(duration, TRUE)); /* The "alertable" version. */
+
+      MKCL_LIBC_NO_INTR(env, GetSystemTimeAsFileTime(&system_time));
+      uli_system_time.LowPart = system_time.dwLowDateTime;
+      uli_system_time.HighPart = system_time.dwHighDateTime;
+
+      now_ms = uli_system_time.QuadPart / 10000;
+
+    } while ((val == WAIT_IO_COMPLETION) && (now_ms < target_ms));
+    mk_mt_test_for_thread_shutdown(env);
+  }
+#elif defined(HAVE_NANOSLEEP)
   {
     struct timespec tm;
     double r = mkcl_to_double(env, z);
@@ -193,73 +236,6 @@ mk_cl_sleep(MKCL, mkcl_object z)
       if (rc)
 	mkcl_FElibc_error(env, "mk_cl_sleep() failed on nanosleep().", 0);
     }
-  }
-#elif MKCL_WINDOWS
-  {
-    double r = mkcl_to_double(env, z) * 1000;
-#if 0
-    DWORD duration = (DWORD) r; /* This limits sleep duration to about 49,7 days */
-
-    if (fe_inexact_on)
-      {
-	feclearexcept(FE_INEXACT);
-	feenableexcept(FE_INEXACT);
-      }
-#endif
-
-#if 0
-    Sleep(duration); /* This one sleeps hard and cannot be interrupted. JCB */
-#else
-    {
-      long long now_ms;
-      long long target_ms;
-      FILETIME system_time;
-      ULARGE_INTEGER uli_system_time; /* in multiples of 100 nanoseconds. */
-      DWORD val;
-
-      MKCL_LIBC_NO_INTR(env, GetSystemTimeAsFileTime(&system_time));
-      uli_system_time.LowPart = system_time.dwLowDateTime;
-      uli_system_time.HighPart = system_time.dwHighDateTime;
-
-      now_ms = uli_system_time.QuadPart / 10000;
-#if 0
-      target_ms = now_ms + llround(r);
-#else
-      target_ms = now_ms + ((long long) round(r)); /* used to be llround() but mingw with gcc 4.8.1 foobared on it. */
-#endif
-
-      if (fe_inexact_on)
-	{
-	  feclearexcept(FE_INEXACT);
-	  feenableexcept(FE_INEXACT);
-	}
-
-      do {
-	DWORD duration;
-
-	if (now_ms >= target_ms)
-	  duration = 0;
-	if ((target_ms - now_ms) > MAXDWORD)
-	  duration = MAXDWORD;
-	else
-	  duration = target_ms - now_ms;
-
-#if 0
-	fprintf(stderr, "\nMKCL: sleep duration = %lu ms.\n", duration); fflush(stderr);
-#endif
-
-	MKCL_LIBC_Zzz(env, @':io', val = SleepEx(duration, TRUE)); /* The "alertable" version. */
-
-	MKCL_LIBC_NO_INTR(env, GetSystemTimeAsFileTime(&system_time));
-	uli_system_time.LowPart = system_time.dwLowDateTime;
-	uli_system_time.HighPart = system_time.dwHighDateTime;
-	
-	now_ms = uli_system_time.QuadPart / 10000;
-	
-      } while ((val == WAIT_IO_COMPLETION) && (now_ms < target_ms));
-      mk_mt_test_for_thread_shutdown(env);
-    }
-#endif
   }
 #else
   z = mkcl_round1(z);
