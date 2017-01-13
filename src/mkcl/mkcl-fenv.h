@@ -50,6 +50,8 @@ int mkcl_fesetenv(int * fenv);
 int mkcl_fetestexcept(int excepts);
 int mkcl_feclearexcept(int excepts);
 
+int feraiseexcept(int excepts);
+
 #else /* !MKCL_WINDOWS */
 # if HAVE_FENV_H
 #  include <fenv.h>

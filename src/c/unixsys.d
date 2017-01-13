@@ -26,6 +26,7 @@
 
 #if MKCL_WINDOWS
 # include <windows.h>
+# include <process.h>
 #endif
 
 #if __linux
@@ -646,7 +647,11 @@ mkcl_object
 mk_mkcl_getpid(MKCL)
 {
   mkcl_call_stack_check(env);
+#if MKCL_WINDOWS
+  @(return MKCL_MAKE_FIXNUM(_getpid()));
+#else
   @(return MKCL_MAKE_FIXNUM(getpid()));
+#endif
 }
 
 pid_t mkcl_gettid(void)

@@ -29,6 +29,7 @@
 # include <windows.h>
 # include <windef.h>
 # include <winbase.h>
+# include <io.h>
 # include <tlhelp32.h>
 # define INIT_PREFIX "mkcl_init_fas_"
 #endif
