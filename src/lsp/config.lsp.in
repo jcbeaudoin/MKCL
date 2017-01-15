@@ -17,33 +17,6 @@
 ;;
 (in-package "COMMON-LISP")
 
-#|
-;; Moved to unixsys.d on 2012/04/12. JCB
-
-#+(and (not mkcl-min) uname)
-(ffi:clines "
-#include <sys/utsname.h>
-")
-
-#+(and (not mkcl-min) uname)
-(defun uname ()
- (ffi:c-inline () ()
-  :object "{
-	mkcl_object output;
-	struct utsname aux;
-	if (uname(&aux) < 0)
-	  output = mk_cl_Cnil;
-	else
-	  output = mk_cl_list(env, 5,
-                              mkcl_make_base_string_copy(env, aux.sysname),
-			      mkcl_make_base_string_copy(env, aux.nodename),
-			      mkcl_make_base_string_copy(env, aux.release),
-			      mkcl_make_base_string_copy(env, aux.version),
-			      mkcl_make_base_string_copy(env, aux.machine));
-	@(return) = output;
-}" :one-liner nil))
-|#
-
 ;;
 ;; * Short and long site names
 ;;
@@ -85,7 +58,7 @@ Returns the version of your MKCL as a string."
 (defun lisp-implementation-version ()
   "Args:()
 Returns the version of your MKCL as a string."
-  (or #-(and) (mkcl:git-describe-this-mkcl) (si:mkcl-version)))
+  (or (mkcl:git-describe-this-mkcl) (si:mkcl-version)))
 
 
 
@@ -115,7 +88,6 @@ uname(2) where available."
   (or #+windows
       (mkcl:getenv "PROCESSOR_LEVEL")))
 
-;;(pushnew :@thehost@ *features*) ;; This is done in c/main.d! JCB
 
 (defun software-type ()
   "Args: ()
