@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyrignt (c) 2010-2016, Jean-Claude Beaudoin. (Completely rewritten 2010)
+    Copyrignt (c) 2010-2017, Jean-Claude Beaudoin. (Completely rewritten 2010)
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -27,6 +27,7 @@
 
 #if MKCL_WINDOWS
 # include <malloc.h> /* for _resetstkoflw(). */
+int _resetstkoflw(void); /* since MinGW does not provide it in malloc.h like MS says and MinGW64 does. */
 # include <windows.h>
 #endif
 

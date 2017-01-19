@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2017, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -39,7 +39,7 @@
 #undef HAVE_NANOSLEEP
 #endif
 
-#if MKCL_WINDOWS && !defined(__MINGW64_VERSION_MAJOR)
+#if MKCL_WINDOWS && !defined(__MINGW64_VERSION_MAJOR) && (__MINGW32_MAJOR_VERSION <= 3) && (__MINGW32_MINOR_VERSION <= 21)
 struct timespec {
   time_t tv_sec;
   long tv_nsec;

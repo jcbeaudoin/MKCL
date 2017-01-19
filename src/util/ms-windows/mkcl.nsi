@@ -8,7 +8,7 @@
 !define PRODUCT_VERSION "${PRODUCT_VERSION_MAJOR}.${PRODUCT_VERSION_MINOR}"
 !define PRODUCT_FULL_VERSION "${PRODUCT_VERSION_MAJOR}.${PRODUCT_VERSION_MINOR}.${PRODUCT_VERSION_PATCH}"
 !define PRODUCT_PUBLISHER "Jean-Claude Beaudoin"
-!define PRODUCT_WEB_SITE "http://www.common-lisp.net/projects/mkcl/"
+!define PRODUCT_WEB_SITE "http://www.common-lisp.net/project/mkcl/"
 !define PRODUCT_PATH_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\mkcl.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME} ${PRODUCT_VERSION}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
