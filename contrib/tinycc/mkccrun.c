@@ -230,8 +230,10 @@ static void set_pages_executable(void *ptr, unsigned long length)
 #else
 # if __TINYC__
 #  define __clear_cache(b,e) __mkcc_clear_cache(b,e)
-# endif
     extern void __mkcc_clear_cache(void *beginning, void *end);
+# elif __clang__
+    extern void __clear_cache(void *beginning, void *end);
+# endif
 
 # ifndef PAGESIZE
 #  define PAGESIZE 4096
