@@ -2,7 +2,7 @@
 ;;;;
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
-;;;;  Copyright (c) 2010-2013, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2017, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -160,7 +160,7 @@
   (si::fset 'dolist f t))
 
 ;; This version of dolist removes constraints imposed on the iteration variable by ANSI CL,
-;; and thus makes dolist much more useful for optimization through declarations.
+;; and thus makes mkcl:dolist! much more useful for optimization through declarations.
 (let ((f #'(si::lambda-block mkcl:dolist! (whole env)
 	   (declare (ignore env))
            (let (body control var list-form result-form)
