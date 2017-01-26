@@ -2430,7 +2430,7 @@ static inline void next_nomacro1(void)
     p = file->buf_ptr;
  redo_no_start:
     c = *p;
-#if (__TINYC__ || __GNUC__)
+#if (__MKCC__ || __TINYC__ || __GNUC__)
 #else
     if (c & 0x80)
         goto parse_ident_fast;
@@ -2539,7 +2539,7 @@ maybe_newline:
          || (parse_flags & PARSE_FLAG_ASM_FILE))
             goto parse_simple;
 
-#if (__TINYC__ || __GNUC__)
+#if (__MKCC__ || __TINYC__ || __GNUC__)
     case 'a' ... 'z':
     case 'A' ... 'K':
     case 'M' ... 'Z':

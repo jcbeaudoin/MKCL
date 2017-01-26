@@ -426,7 +426,7 @@ unsigned long long __mkcc_umoddi3(unsigned long long u, unsigned long long v)
 /* XXX: fix mkcc's code generator to do this instead */
 long long __mkcc_ashrdi3(long long a, int b)
 {
-# ifdef __TINYC__
+# ifdef __MKCC__
     DWunion u;
     u.ll = a;
     if (b >= 32) {
@@ -445,7 +445,7 @@ long long __mkcc_ashrdi3(long long a, int b)
 /* XXX: fix mkcc's code generator to do this instead */
 unsigned long long __mkcc_lshrdi3(unsigned long long a, int b)
 {
-# ifdef __TINYC__
+# ifdef __MKCC__
     DWunion u;
     u.ll = a;
     if (b >= 32) {
@@ -464,7 +464,7 @@ unsigned long long __mkcc_lshrdi3(unsigned long long a, int b)
 /* XXX: fix mkcc's code generator to do this instead */
 long long __mkcc_ashldi3(long long a, int b)
 {
-# ifdef __TINYC__
+# ifdef __MKCC__
     DWunion u;
     u.ll = a;
     if (b >= 32) {
@@ -637,7 +637,7 @@ long long __mkcc_fixxfdi (long double a1)
 
 #if defined(MKCC_TARGET_X86_64) && !defined(_WIN64)
 
-# ifndef __TINYC__
+# ifndef __MKCC__
 #  include <stdlib.h>
 #  include <stdio.h>
 #  include <string.h>
@@ -714,7 +714,7 @@ void *__mkcc_va_arg(__va_list_struct *ap,
         return ap->overflow_arg_area - size;
 
     default:
-#ifndef __TINYC__
+#ifndef __MKCC__
         fprintf(stderr, "unknown ABI type for __mkcc_va_arg\n");
 #endif
         abort();

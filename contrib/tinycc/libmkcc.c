@@ -1080,10 +1080,10 @@ LIBMKCCAPI MKCCState *mkcc_new(void)
     define_push(TOK___DATE__, MACRO_OBJ, NULL, NULL);
     define_push(TOK___TIME__, MACRO_OBJ, NULL, NULL);
 
-    /* define __TINYC__ 92X  */
+    /* define __MKCC__ 92X  */
     sscanf(MKCC_VERSION, "%d.%d.%d", &a, &b, &c);
     sprintf(buffer, "%d", a*10000 + b*100 + c);
-    mkcc_define_symbol(s, "__TINYC__", buffer);
+    mkcc_define_symbol(s, "__MKCC__", buffer);
 
     /* standard defines */
     mkcc_define_symbol(s, "__STDC__", NULL);

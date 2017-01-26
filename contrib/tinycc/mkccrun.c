@@ -228,10 +228,10 @@ static void set_pages_executable(void *ptr, unsigned long length)
     unsigned long old_protect;
     VirtualProtect(ptr, length, PAGE_EXECUTE_READWRITE, &old_protect);
 #else
-# if __TINYC__
+# if __MKCC__
 #  define __clear_cache(b,e) __mkcc_clear_cache(b,e)
     extern void __mkcc_clear_cache(void *beginning, void *end);
-# elif __clang__
+# else
     extern void __clear_cache(void *beginning, void *end);
 # endif
 
@@ -248,7 +248,7 @@ static void set_pages_executable(void *ptr, unsigned long length)
   #else
     /* pcc 1.2.0.DEVEL 20141206 don't have such proc */
   #endif
-# if __TYNYC__
+# if __MKCC__
 #  undef __clear_cache
 # endif
 #endif
