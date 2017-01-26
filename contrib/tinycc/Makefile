@@ -382,7 +382,7 @@ mkcc-doc.html: mkcc-doc.texi
 mkcc.1: mkcc-doc.texi
 	-$(top_srcdir)/texi2pod.pl $< mkcc.pod
 	-version=`cat $(top_srcdir)/VERSION`; \
-         pod2man --section=1 --center="Tiny C Compiler" --release="$$version" mkcc.pod > $@
+         pod2man --section=1 --center="ManKai Tiny C Compiler" --release="$$version" mkcc.pod > $@
 
 mkcc-doc.info: mkcc-doc.texi
 	-makeinfo $<

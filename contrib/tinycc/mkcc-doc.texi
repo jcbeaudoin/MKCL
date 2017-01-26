@@ -4,7 +4,7 @@
 @settitle ManKai tiny C Compiler Reference Documentation
 @dircategory Software development
 @direntry
-* MKCC: (mkcc-doc).               The Tiny C Compiler.
+* MKCC: (mkcc-doc).               The ManKai tiny C Compiler.
 @end direntry
 @c %**end of header
 
@@ -14,7 +14,7 @@
 @titlepage
 @afourpaper
 @sp 7
-@center @titlefont{Tiny C Compiler Reference Documentation}
+@center @titlefont{ManKai tiny C Compiler Reference Documentation}
 @sp 3
 @end titlepage
 @headings double
@@ -23,9 +23,9 @@
 @contents
 
 @node Top, Introduction, (dir), (dir)
-@top Tiny C Compiler Reference Documentation
+@top ManKai tiny C Compiler Reference Documentation
 
-This manual documents version @value{VERSION} of the Tiny C Compiler.
+This manual documents version @value{VERSION} of the ManKai tiny C Compiler.
 
 @menu
 * Introduction::                Introduction to mkcc.
@@ -405,7 +405,7 @@ A colon-separated list of directories searched for libraries for the
 @ignore
 
 @setfilename mkcc
-@settitle Tiny C Compiler
+@settitle ManKai tiny C Compiler
 
 @c man begin SEEALSO
 cpp(1),
