@@ -25,6 +25,7 @@ int main() {
     x <<= 1;
   }
   fprintf(f,"MKCL_LONG_LONG_BITS='%d'",bits);
+  fclose(f);
   exit(0);
 }]])],[eval "`cat conftestval`"],[],[])
 fi
@@ -721,6 +722,7 @@ int main() {
     }
     fprintf(f,"CL_LONG_BITS='%d'",bits);
   }
+  fclose(f);
   exit(0);
 }]])],[eval "`cat conftestval`"],[],[])
 fi

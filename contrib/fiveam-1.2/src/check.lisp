@@ -83,7 +83,7 @@ creates a TEST-PASSED or TEST-FAILURE object."))
   ()
   (:documentation "A test which was not run. Usually this is due
 to unsatisfied dependencies, but users can decide to skip test
-when appropiate."))
+when appropriate."))
 
 (defgeneric test-skipped-p (object)
   (:method ((o t)) nil)

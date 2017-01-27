@@ -569,7 +569,7 @@ dnl  CFLAGS="${CFLAGS} -fstrict-aliasing"
 dnl fi
 
 dnl ----------------------------------------------------------------------
-dnl Check the appropiate type for cl_fixnum/cl_index
+dnl Check the appropriate type for cl_fixnum/cl_index
 MKCL_FIXNUM_TYPE
 MKCL_INTEGER_TYPES
 

@@ -966,7 +966,7 @@ mkcl_coerce_to_file_pathname(MKCL, mkcl_object pathname)
 
 /*
  * mkcl_coerce_to_physical_pathname(P) converts P to a physical pathname,
- * performing the appropiate transformation if P was a logical pathname.
+ * performing the appropriate transformation if P was a logical pathname.
  */
 mkcl_object
 mkcl_coerce_to_physical_pathname(MKCL, mkcl_object x)

@@ -5676,6 +5676,7 @@ int main() {
     x <<= 1;
   }
   fprintf(f,"MKCL_LONG_LONG_BITS='%d'",bits);
+  fclose(f);
   exit(0);
 }
 _ACEOF
@@ -6001,6 +6002,7 @@ int main() {
     }
     fprintf(f,"CL_LONG_BITS='%d'",bits);
   }
+  fclose(f);
   exit(0);
 }
 _ACEOF

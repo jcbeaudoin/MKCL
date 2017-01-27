@@ -2,6 +2,7 @@
  *  MKCC - Tiny C Compiler
  * 
  *  Copyright (c) 2001-2004 Fabrice Bellard
+ *  Copyright (c) 2017 Jean-Claude Beaudoin
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -82,7 +83,9 @@ static void display_info(MKCCState *s, int what)
 
 static void help(void)
 {
-    printf("Tiny C Compiler "MKCC_VERSION" - Copyright (C) 2001-2006 Fabrice Bellard\n"
+    printf("ManKai tiny C Compiler "MKCC_VERSION"\n"
+           " - Copyright (C) 2001-2006 Fabrice Bellard et al.\n"
+           " - Copyright (C) 2016-2017 Jean-Claude Beaudoin.\n"
            "Usage: mkcc [options...] [-o outfile] [-c] infile(s)...\n"
            "       mkcc [options...] -run infile [arguments...]\n"
            "General options:\n"
