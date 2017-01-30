@@ -1200,7 +1200,7 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
 	      execv((char *) mkcl_OSstring_self(os_command), exec_argv);
 	    else
 	      execvp((char *) mkcl_OSstring_self(os_command), exec_argv);
-	    fprintf(stderr, "\nMKCL: mkcl::run-command: %s: ", mkcl_OSstring_self(os_command));
+	    fprintf(stderr, "\nMKCL: mkcl::run-program: %s: ", mkcl_OSstring_self(os_command));
 	  }
 	/* at this point exec has failed */
 	perror(NULL);
