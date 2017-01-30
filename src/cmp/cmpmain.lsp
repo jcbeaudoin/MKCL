@@ -158,7 +158,7 @@
     (dolist (lib mkcl-libraries)
       (push (mkcl:bstr+ "\"" mkcl-libdir lib "\" ") out))
 
-    (unless use-mkcl-shared-libs (push "-Wl,--no-whole-archive" out))
+    (unless use-mkcl-shared-libs (push "-Wl,--no-whole-archive " out))
 
     (if use-external-shared-libs
         (push *syslibs-&-ld-flags-tail* out)
@@ -185,7 +185,7 @@
       (dolist (lib *mkcl-static-libs*)
         (push (mkcl:bstr+ "\"" mkcl-libdir lib "\" ") out)))
 
-    (push "-Wl,--no-whole-archive" out)
+    (push "-Wl,--no-whole-archive " out)
 
     (push *static-program-ld-flags-tail* out)
 

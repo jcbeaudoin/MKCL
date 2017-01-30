@@ -216,8 +216,8 @@ case "${host_os}" in
 		thehost='linux'
 		THREAD_CFLAGS='-pthread'
 		THREAD_LIBS='-lrt'
-		SHARED_LDFLAGS="-shared ${LDFLAGS}"
-		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
+		SHARED_LDFLAGS="-shared"
+		BUNDLE_LDFLAGS="-shared"
 		LDRPATH='-Wl,--rpath,~A'
 		#clibs="-ldl"
 		CORE_OS_LIBS="-pthread -ldl"
@@ -229,8 +229,8 @@ case "${host_os}" in
 		thehost='gnu'
 		THREAD_CFLAGS='-D_THREAD_SAFE'
 		THREAD_LIBS='-lpthread'
-		SHARED_LDFLAGS="-shared ${LDFLAGS}"
-		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
+		SHARED_LDFLAGS="-shared"
+		BUNDLE_LDFLAGS="-shared"
 		LDRPATH='-Wl,--rpath,~A'
 		#clibs="-ldl"
 		CORE_OS_LIBS="-pthread -ldl"
@@ -242,8 +242,8 @@ case "${host_os}" in
 		thehost='kfreebsd'
 		THREAD_CFLAGS='-D_THREAD_SAFE'
 		THREAD_LIBS='-lpthread'
-		SHARED_LDFLAGS="-shared ${LDFLAGS}"
-		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
+		SHARED_LDFLAGS="-shared"
+		BUNDLE_LDFLAGS="-shared"
 		LDRPATH='-Wl,--rpath,~A'
 		#clibs="-ldl"
 		CORE_OS_LIBS="-pthread -ldl"
@@ -255,8 +255,8 @@ case "${host_os}" in
 		thehost='freebsd'
 		THREAD_CFLAGS='-pthread'
 		THREAD_LIBS='-lpthread'
-		SHARED_LDFLAGS="-shared ${LDFLAGS}"
-		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
+		SHARED_LDFLAGS="-shared"
+		BUNDLE_LDFLAGS="-shared"
 		LDRPATH="-Wl,--rpath,~A"
 		clibs=""
                 CORE_OS_LIBS="-pthread"
@@ -267,8 +267,8 @@ case "${host_os}" in
 	netbsd*)
 		thehost='netbsd'
 		THREAD_LIBS='-lpthread'
-		SHARED_LDFLAGS="-shared ${LDFLAGS}"
-		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
+		SHARED_LDFLAGS="-shared"
+		BUNDLE_LDFLAGS="-shared"
 		LDRPATH="-Wl,--rpath,~A"
 		#clibs=""
                 CORE_OS_LIBS=""
@@ -279,8 +279,8 @@ case "${host_os}" in
 		thehost='openbsd'
 		THREAD_CFLAGS=''
 		THREAD_LIBS='-lpthread'
-		SHARED_LDFLAGS="-shared ${LDFLAGS}"
-		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
+		SHARED_LDFLAGS="-shared"
+		BUNDLE_LDFLAGS="-shared"
 		LDRPATH="-Wl,--rpath,~A"
 		#clibs=""
                 CORE_OS_LIBS=""
@@ -289,8 +289,8 @@ case "${host_os}" in
 		;;
 	solaris*)
 		thehost='sun4sol2'
-		SHARED_LDFLAGS="-dy -G ${LDFLAGS}"
-		BUNDLE_LDFLAGS="-dy -G ${LDFLAGS}"
+		SHARED_LDFLAGS="-dy -G"
+		BUNDLE_LDFLAGS="-dy -G"
 		LDRPATH='-Wl,-R,~A'
 		TCP_LIBS='-lsocket -lnsl -lintl'
 		#clibs='-ldl'
@@ -301,8 +301,8 @@ case "${host_os}" in
 		shared='yes'
 		THREAD_CFLAGS='-D_THREAD_SAFE'
 		THREAD_LIBS='-lpthread'
-		SHARED_LDFLAGS="-shared ${LDFLAGS}"
-		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
+		SHARED_LDFLAGS="-shared"
+		BUNDLE_LDFLAGS="-shared"
 		SHAREDPREFIX=''
 		SHAREDEXT='dll'
 		PICFLAG=''
@@ -315,8 +315,8 @@ case "${host_os}" in
 		MKCL_CFLAGS="-fno-strict-aliasing"
 		THREAD_CFLAGS='-mthreads -D_MT'
 		THREAD_GC_FLAGS='--enable-threads=win32'
-		SHARED_LDFLAGS="-shared ${LDFLAGS}"
-		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
+		SHARED_LDFLAGS="-shared"
+		BUNDLE_LDFLAGS="-shared"
 		SHAREDPREFIX=''
 		SHAREDEXT='dll'
 		SONAME="libmkcl.SOVERSION.${SHAREDEXT}"
@@ -336,8 +336,8 @@ case "${host_os}" in
 		shared='yes'
 		SHAREDEXT='dylib'
 		PICFLAG='-fPIC -fno-common'
-		SHARED_LDFLAGS="-dynamiclib -flat_namespace -undefined suppress ${LDFLAGS}"
-		BUNDLE_LDFLAGS="-bundle ${LDFLAGS}"
+		SHARED_LDFLAGS="-dynamiclib -flat_namespace -undefined suppress"
+		BUNDLE_LDFLAGS="-bundle"
 		LDRPATH=''
 		THREAD_CFLAGS='-D_THREAD_SAFE'
 		THREAD_LIBS='-lpthread'
@@ -361,8 +361,8 @@ case "${host_os}" in
 		shared='yes'
 		PICFLAG='-call_shared'
 		THREAD_CFLAGS='-spthread'
-		SHARED_LDFLAGS="-shared ${LDFLAGS}"
-		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
+		SHARED_LDFLAGS="-shared"
+		BUNDLE_LDFLAGS="-shared"
 		LDRPATH='-Wld=\"-rld_l ~A\"'
 		#clibs="-Wld=-lrld"
 		CORE_OS_LIBS="-Wld=-lrld"
