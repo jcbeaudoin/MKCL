@@ -2209,6 +2209,12 @@ mkcl_object mk_si_objnull(MKCL)
   @(return MKCL_OBJNULL);
 }
 
+mkcl_object mk_si_objnull_value_p(MKCL, mkcl_object val)
+{
+  @(return ((val == MKCL_OBJNULL) ? mk_cl_Ct : mk_cl_Cnil));
+}
+
+
 #if MKCL_UNIX
 
 static void _mkcl_display_signal_dispositions(void)

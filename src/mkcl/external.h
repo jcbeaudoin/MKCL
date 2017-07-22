@@ -2336,6 +2336,7 @@ extern "C" {
   extern MKCL_API mkcl_object mk_si_signum_to_signal_name(MKCL, mkcl_object signum);
   extern MKCL_API mkcl_object mk_si_do_sigsegv(MKCL);
   extern MKCL_API mkcl_object mk_si_objnull(MKCL);
+  extern MKCL_API mkcl_object mk_si_objnull_value_p(MKCL, mkcl_object val);
 
   extern MKCL_API mkcl_object mk_si_display_signal_dispositions(MKCL);
 
