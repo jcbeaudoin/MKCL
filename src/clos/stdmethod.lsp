@@ -55,12 +55,13 @@
   (multiple-value-bind (reqs nb_reqs opts nb_opts rest-var key-flag keywords nb_keys allow-other-keys)
       (si::process-lambda-list (method-lambda-list method) 'function)
     (declare (ignore reqs nb_reqs opts nb_opts rest-var nb_keys))
-    (when key-flag
-      (do* ((output '())
-	    (l keywords (cddddr l)))
-	   ((endp l)
-	    (values output allow-other-keys))
-	(push (first l) output)))))
+    (if key-flag
+        (do* ((output '())
+              (l keywords (cddddr l)))
+            ((endp l)
+             (values (nreverse output) allow-other-keys))
+          (push (first l) output))
+      (values nil nil))))
 
 
 (eval-when (compile eval)
