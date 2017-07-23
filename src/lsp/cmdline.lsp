@@ -192,43 +192,25 @@ An excerpt of the rules used by MKCL:
     (when loadrc
       (dolist (file *lisp-init-file-list*)
 	(handler-bind
-	 ((error
+	 ((serious-condition
 	   #'(lambda (c)
 	       (if *break-enable*
 		   (invoke-debugger c)
 		 (progn
-		   (format *error-output* "~&Error during processing of configuration file: ~A~%~A.~%" file c)
-		   (return)
-		   ))))
-	  ((and condition (not warning))
-	   #'(lambda (c)
-	       (if *break-enable*
-		   (invoke-debugger c)
-		 (progn
-		   (format *error-output*
-			   "~&Unhandled condition signaled during processing of configuration file: ~A~%~A.~%"
-			   file c)
+		   (format *error-output* "~&~A during processing of configuration file: ~A~%~A.~%"
+                           (if (typep c 'error) "Error" "Serious-condition signaled") file c)
 		   (return)
 		   )))))
 	 (when (load file :if-does-not-exist nil :search-list nil :verbose nil)
 	   (return)))))
     (handler-bind 
-     ((error
+     ((serious-condition
        #'(lambda (c)
 	   (if *break-enable*
 	       (invoke-debugger c)
 	     (progn
-	       (format *error-output* "~&Error during command line arguments processing:~%~A.~%" c)
-	       (mkcl:quit :exit-code 1)
-	       ))))
-      ((and condition (not warning))
-       #'(lambda (c)
-	   (if *break-enable*
-	       (invoke-debugger c)
-	     (progn
-	       (format *error-output*
-		       "~&Unhandled condition signaled during command line arguments processing:~%~A.~%"
-		       c)
+	       (format *error-output* "~&~A during command line arguments processing:~%~A.~%"
+                       (if (typep c 'error) "Error" "Serious-condition signaled") c)
 	       (mkcl:quit :exit-code 1)
 	       )))))
      (eval commands))))
