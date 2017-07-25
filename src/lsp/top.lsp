@@ -496,7 +496,7 @@ The top-level loop of MKCL. It is called by default when MKCL is invoked."
 	 (format t "~&Interruption failed (sleeping): ~A~%" cond) (finish-output))
        (mt:interrupt-refused (cond)
 	 (format t "~&Interruption failed (refused): ~A~%" cond) (finish-output))
-       (condition (cond)
+       (serious-condition (cond)
 	 (format t "~&Interruption failed (unknown): ~A~%" cond) (finish-output))
        )
       )
@@ -542,21 +542,18 @@ The top-level loop of MKCL. It is called by default when MKCL is invoked."
     (macrolet ((read-eval-print (break-level)
 		`(block read-eval-print
                    (handler-bind 
-                    ((condition
+                    ((serious-condition
                       (lambda (condition)
-                        (cond ((subtypep (type-of condition) 'warning)
-                               ;; We let warnings pass by, this way "warn" does the work.
-                               )
-                              ((< ,break-level 1)
-                               ;; Toplevel should enter the debugger on any condition.
+                        (cond ((< ,break-level 1)
+                               ;; Toplevel should have the possibility to enter the debugger if it chooses to.
                                )
                               (*allow-recursive-debug*
-                               ;; We are told to let the debugger handle this.
+                               ;; We are told to leave the debugger a chance to handle this.
                                )
                               (t
-                               (format t "~&Debugger received error: ~A~%~
-                                         Error flushed.~%" condition)
-                               (clear-input)
+                               (let ((cond-type (if (typep condition 'error) "error" "serious-condition")))
+                                 (format t "~&Debugger received ~A: ~A~% ~A flushed.~%" cond-type condition cond-type)
+                                 (clear-input))
                                (return-from read-eval-print t) ;; go back into the debugger loop.
                                )
                               )
@@ -657,11 +654,11 @@ The top-level loop of MKCL. It is called by default when MKCL is invoked."
   `(block 
     tpl-command
     (handler-bind 
-     ((error (lambda (condition)
-	       (unless *debug-tpl-commands*
-		 (format t "~&Command aborted.~%Received condition: ~A" condition)
-		 (clear-input)
-		 (return-from tpl-command nil)))))
+     ((serious-condition (lambda (condition)
+                           (unless *debug-tpl-commands*
+                             (format t "~&Command aborted.~%Received condition: ~A" condition)
+                             (clear-input)
+                             (return-from tpl-command nil)))))
      ,cmd-form)))
 
 (defun tpl-make-command (name line &aux (c nil))
@@ -1546,7 +1543,7 @@ package."
     (unwind-protect ;; we have to run through the list no matter what happens!
 	(handler-case
 	 (funcall fun)
-	 (condition (c)))
+	 (serious-condition (c)))
       (go next)
       )
     next
@@ -1598,7 +1595,7 @@ package."
 		   (format t "~&;; MKCL shutdown: Terminating thread ~S produced this condition: ~S, ~:*~A.~%" thread cond)
 		   (finish-output))
 		 )
-	       (condition (cond)
+	       (serious-condition (cond)
 		 (format t "~&;; MKCL shutdown: Terminating thread ~S produced this condition: ~S, ~:*~A.~%" thread cond)
 		 (finish-output)
 		 )))))
@@ -1628,7 +1625,7 @@ package."
 		  (format t "~&;; MKCL shutdown: Joining with ~S produced this condition: ~S, ~:*~A.~%" thread cond)
 		  (finish-output)
 		  )
-	       (condition (cond)
+	       (serious-condition (cond)
 		  (format t "~&;; MKCL shutdown: Joining with ~S produced this condition: ~S, ~:*~A.~%" thread cond)
 		  (finish-output)
 		  ))))
@@ -1674,7 +1671,7 @@ package."
 		   (format t "~&;; MKCL shutdown: Killing thread ~S produced this condition: ~S, ~:*~A.~%" thread cond)
 		   (finish-output))
 		 )
-	       (condition (cond)
+	       (serious-condition (cond)
 		 (format t "~&;; MKCL shutdown: Killing thread ~S produced this condition: ~S, ~:*~A.~%" thread cond)
 		 (finish-output)
 		 ))))
@@ -1737,7 +1734,7 @@ package."
 	 (finish-output))
 |#
      )
-   (condition (c) 
+   (serious-condition (c) 
      (terpri)
      (princ "MKCL: Could not create clean-up thread!  Cause: ")
      (princ c)

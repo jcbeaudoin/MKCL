@@ -68,7 +68,7 @@ module."
                  (unless (some (lambda (p)
                                  (handler-case
                                   (funcall p module-name)
-                                  ((and condition (not warning)) (condition)
+                                  (serious-condition (condition)
                                    (require-error "Error while loading module ~A: ~A" module-name condition))))
                                mkcl:*module-provider-functions*)
                    (require-error "Don't know how to ~S ~A" 'require module-name)))))
@@ -79,7 +79,7 @@ module."
   (flet ((try-load (path)
                    (handler-case
                     (load path :if-does-not-exist nil)
-                    ((and condition (not warning)) (condition)
+                    (serious-condition (condition)
                      (error "Error loading file: ~A, Condition: ~A" path condition)))))
     (let* ((sysdir (translate-logical-pathname #P"SYS:"))
            (contribdir (translate-logical-pathname #P"CONTRIB:"))

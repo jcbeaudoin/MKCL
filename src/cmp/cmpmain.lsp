@@ -868,7 +868,7 @@ filesystem or in the database of ASDF modules."
 			  )
 			)
 		      ))
-		 (condition
+		 (serious-condition
 		  #'(lambda (condition)
 		      (format t "~&;;; MKCL Compiler Read Error: in file ~S, near position ~S,~@
                                    ;;; MKCL Compiler Read Error: ~A~%"

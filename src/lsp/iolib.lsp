@@ -913,7 +913,7 @@ where CREATED is true only if we succeeded on creating all directories."
                              (write-byte byte (process-input subprocess)))))
                  (ignore-errors (close input))
                  (ignore-errors (close (process-input subprocess))))
-               (condition (a-condition) ;; This is a universal muffler on anything that may have gone wrong.
+               (serious-condition (a-condition) ;; This is a universal muffler on anything that may have gone wrong.
                           ;; Here we should log something to the Central Thread Logging facility.
                           a-condition))))))
     (setf (process-to-worker subprocess) worker)))
@@ -936,7 +936,7 @@ where CREATED is true only if we succeeded on creating all directories."
                              (write-byte byte output))))
                  (ignore-errors (close (process-output subprocess)))
                  (ignore-errors (close output)))
-               (condition (a-condition) ;; This is a universal muffler on anything that may have gone wrong.
+               (serious-condition (a-condition) ;; This is a universal muffler on anything that may have gone wrong.
                  ;; Here we should log something to the Central Thread Logging facility.
                  a-condition))))))
     (setf (process-from-worker subprocess) worker)))
@@ -957,7 +957,7 @@ where CREATED is true only if we succeeded on creating all directories."
                              (write-byte byte err-output))))
                  (ignore-errors (close (process-error subprocess)))
                  (ignore-errors (close err-output)))
-               (condition (a-condition) ;; This is a universal muffler on anything that may have gone wrong.
+               (serious-condition (a-condition) ;; This is a universal muffler on anything that may have gone wrong.
                           ;; Here we should log something to the Central Thread Logging facility.
                           a-condition))))))
     (setf (process-error-from-worker subprocess) worker)))

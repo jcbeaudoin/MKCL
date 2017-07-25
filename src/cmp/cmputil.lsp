@@ -263,7 +263,7 @@
 (defun cmp-macroexpand (form &optional (env *cmp-env*))
   (with-cmp-protection 
     (handler-case (macroexpand form env)
-      (condition #|program-error|# (condition) ;; program-error was much too weak. JCB
+      (serious-condition #|program-error|# (condition) ;; program-error was much too weak. JCB
 	 (cmperr "Macro expansion of form: ~S~
                   ~%failed with this condition: ~A." form condition)))
     (cmperr "The macro form ~S was not expanded successfully.~
@@ -274,7 +274,7 @@
     (let ((new-form 
 	   (handler-case
 	       (funcall *macroexpand-hook* fd form env)
-	     (condition #|program-error|# (condition) ;; program-error was much too weak. JCB
+	     (serious-condition #|program-error|# (condition) ;; program-error was much too weak. JCB
 	       (cmperr "Macro expansion of form: ~S~
                         ~%failed with this condition: ~A." form condition)))))
       (values new-form (not (eql new-form form))))
