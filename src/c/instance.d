@@ -275,7 +275,9 @@ mk_si_copy_instance(MKCL, mkcl_object x)
 mkcl_object mk_si_set_class_proper_name(MKCL, mkcl_object sym, mkcl_object class)
 {
   mkcl_call_stack_check(env);
-  if (!MKCL_INSTANCEP(class))
+  if (mkcl_Null(class) || class == mk_cl_Cnil_symbol)
+    sym->symbol.properly_named_class = mk_cl_Cnil;
+  else if (!MKCL_INSTANCEP(class))
     mkcl_FEtype_error_instance(env, class);
 
   if (mkcl_Null(sym) || (mkcl_type_of(sym) != mkcl_t_symbol))
