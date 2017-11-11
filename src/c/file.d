@@ -1589,7 +1589,7 @@ str_out_set_position(MKCL, mkcl_object strm, mkcl_object pos)
   mkcl_object string = MKCL_STRING_OUTPUT_STREAM_STRING(strm);
   mkcl_word disp;
   if (mkcl_Null(pos)) {
-    disp = strm->base_string.dim;
+    disp = string->base_string.dim;
   } else {
     disp = mkcl_integer_to_index(env, pos);
   }
@@ -3524,6 +3524,9 @@ mk_si_stream_external_format_set(MKCL, mkcl_object stream, mkcl_object format)
     static const mkcl_base_string_object(reason_control_string_obj, "Cannot change external format of stream ~A");
     @(return mk_cl_Cnil mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, stream));
   }
+  if (mkcl_type_of(stream) != mkcl_t_stream)
+    mkcl_FEwrong_type_argument(env, @'stream', stream);
+
   switch (stream->stream.mode) 
     {
     case mkcl_smm_input:

@@ -621,8 +621,8 @@ mk_si_bc_split(MKCL, mkcl_object b)
 
   mkcl_call_stack_check(env);
 	if (mkcl_type_of(b) == mkcl_t_bclosure) {
-		b = b->bclosure.code;
 		lex = b->bclosure.lex;
+		b = b->bclosure.code;
 	}
 	if (mkcl_type_of(b) != mkcl_t_bytecode)
 	  @(return mk_cl_Cnil mk_cl_Cnil);

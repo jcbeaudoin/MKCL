@@ -1314,7 +1314,10 @@ do_patch_sharp(MKCL, mkcl_object x)
         mkcl_object i = do_patch_sharp(env, x->_complex.imag);
         if (r != x->_complex.real || i != x->_complex.imag) {
           mkcl_object c = mkcl_make_complex(env, r, i);
-          x->_complex = c->_complex;
+          if (i == MKCL_MAKE_FIXNUM(0))
+            x = c;
+          else
+            x->_complex = c->_complex;
         }
       }
       break;
@@ -2073,6 +2076,10 @@ mkcl_invalid_constituent_character_p(mkcl_character c)
 @(defun set_macro_character (c function &optional non_terminating_p
 			     (readtable mkcl_current_readtable(env)))
 @
+  if (mkcl_Null(readtable))
+    readtable = mkcl_core.standard_readtable;
+  else
+    mkcl_assert_type_readtable(env, readtable);
   mkcl_readtable_set(env, readtable, mkcl_char_code(env, c),
 		     mkcl_Null(non_terminating_p)
 		     ? mkcl_cat_terminating
@@ -2087,6 +2094,8 @@ mkcl_invalid_constituent_character_p(mkcl_character c)
 @
   if (mkcl_Null(readtable))
     readtable = mkcl_core.standard_readtable;
+  else
+    mkcl_assert_type_readtable(env, readtable);
   cat = mkcl_readtable_get(env, readtable, mkcl_char_code(env, c), &dispatch);
   if (mkcl_type_of(dispatch) == mkcl_t_hashtable)
     dispatch = mkcl_core.dispatch_reader;
@@ -2116,6 +2125,8 @@ mkcl_invalid_constituent_character_p(mkcl_character c)
 @
   volatile bool locked = false;
 
+  if (mkcl_Null(readtable))
+    readtable = mkcl_core.standard_readtable;
   mkcl_assert_type_readtable(env, readtable);
   mkcl_readtable_get(env, readtable, mkcl_char_code(env, dspchr), &table);
   if (mkcl_type_of(table) != mkcl_t_hashtable) {
@@ -2189,7 +2200,7 @@ mk_si_fast_read_from_base_string(MKCL, mkcl_object x)
   mkcl_call_stack_check(env);
   /* FIXME! Restricted to base string */
   x = mkcl_check_cl_type(env, @'si::fast-read-from-base-string', x, mkcl_t_base_string);
-  in = mkcl_make_string_input_stream(env, x, 0, TOKEN_STRING_FILLP(x), @':utf-8');
+  in = mkcl_make_string_input_stream(env, x, 0, mkcl_base_string_length(env, x), @':utf-8');
   x = mkcl_read_object(env, in);
   if (x == MKCL_OBJNULL)
     mkcl_FEend_of_file(env, in);

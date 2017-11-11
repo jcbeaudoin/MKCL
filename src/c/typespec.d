@@ -395,7 +395,7 @@ mk_cl_type_of(MKCL, mkcl_object x)
     {
       mkcl_object cl = MKCL_CLASS_OF(x);
       t = MKCL_CLASS_NAME(cl);
-      if (mkcl_Null(t) || cl != t->symbol.properly_named_class)
+      if (mkcl_Null(t) || (MKCL_SYMBOLP(t) && cl != t->symbol.properly_named_class))
 	t = cl;
     }
     break;

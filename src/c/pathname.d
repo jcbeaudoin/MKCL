@@ -1126,7 +1126,7 @@ mkcl_merge_pathnames(MKCL, mkcl_object path, mkcl_object defaults, mkcl_object d
     device = path->pathname.device;
   if (mkcl_Null(path->pathname.directory))
     directory = defaults->pathname.directory;
-  else if (MKCL_CONS_CAR(path->pathname.directory) == @':absolute')
+  else if (MKCL_CONSP(path->pathname.directory) && (MKCL_CONS_CAR(path->pathname.directory) == @':absolute'))
     directory = path->pathname.directory;
   else if (!mkcl_Null(defaults->pathname.directory))
     directory = mkcl_append(env, defaults->pathname.directory,
@@ -1664,7 +1664,7 @@ mk_cl_host_namestring(MKCL, mkcl_object pname)
     pathdir = mkcl_list1(env, @':relative');
   } else if (mkcl_Null(defaultdir)) {
     /* The defaults pathname does not have a directory. */
-  } else if (MKCL_CONS_CAR(pathdir) == @':relative') {
+  } else if (MKCL_CONSP(pathdir) && (MKCL_CONS_CAR(pathdir) == @':relative')) {
     /* The pathname is relative to the default one, so we just output the original one. */
   } else {
     /* The new pathname is an absolute one. We compare it with the defaults
@@ -2134,7 +2134,7 @@ copy_list_wildcards(MKCL, mkcl_object *wilds, mkcl_object to)
   out->pathname.complete = (host != mk_cl_Cnil && device != mk_cl_Cnil && dir != mk_cl_Cnil
 			    && name != mk_cl_Cnil && type != mk_cl_Cnil && version != mk_cl_Cnil
 			    && MKCL_CONSP(dir) && (MKCL_CONS_CAR(dir) == @':absolute'));
-  return out;
+  @(return out);
   
  error:
   mkcl_FEerror(env, "~S is not a specialization of path ~S", 2, source, from);

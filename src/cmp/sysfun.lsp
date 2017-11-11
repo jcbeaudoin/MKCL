@@ -1066,10 +1066,10 @@
     ;; file list.d
 
     (proclaim-function car (list) t :no-side-effects t)
-    (def-inline car :always (list) t "@0;MKCL_CAR(#0)") ;; Is this really safe? JCB
+    (def-inline car :unsafe (list) t "@0;MKCL_CAR(#0)") ;; Is this really safe? JCB
 
     (proclaim-function cdr (list) t :no-side-effects t)
-    (def-inline cdr :always (list) t "@0;MKCL_CDR(#0)") ;; Is this really safe? JCB
+    (def-inline cdr :unsafe (list) t "@0;MKCL_CDR(#0)") ;; Is this really safe? JCB
 
     (proclaim-function caar (list) t :no-side-effects t)
     (def-inline caar :always (list) t "mk_cl_car(env, mk_cl_car(env, #0))")
@@ -1199,7 +1199,7 @@
     (def-inline nth :unsafe (fixnum t) t "mkcl_nth(env, #0,#1)")
 
     (proclaim-function first (list) t :no-side-effects t)
-    (def-inline first :always (list) t "@0;MKCL_CAR(#0)")
+    (def-inline first :unsafe (list) t "@0;MKCL_CAR(#0)")
 
     (proclaim-function second (list) t :no-side-effects t)
     (def-inline second :always (list) t "mk_cl_car(env, mk_cl_cdr(env, #0))")
@@ -1217,7 +1217,7 @@
     (proclaim-function ninth (list) t)
     (proclaim-function tenth (list) t)
     (proclaim-function rest (list) t :no-side-effects t)
-    (def-inline rest :always (list) t "@0;MKCL_CDR(#0)")
+    (def-inline rest :unsafe (list) t "@0;MKCL_CDR(#0)")
 
     (proclaim-function nthcdr (fixnum list) t :no-side-effects t)
     (def-inline nthcdr :always (t t) t "mkcl_nthcdr(env, mkcl_safe_fixnum_to_word(env, #0),#1)")

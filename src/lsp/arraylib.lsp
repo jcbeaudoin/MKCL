@@ -21,7 +21,7 @@
 			(initial-element nil initial-element-supplied-p)
 			(initial-contents nil initial-contents-supplied-p)
 			adjustable fill-pointer
-			displaced-to (displaced-index-offset 0))
+			displaced-to (displaced-index-offset 0 d-i-o-p))
   "Args: (dimensions &key (element-type t) initial-element (initial-contents nil)
 		    (adjustable nil) (fill-pointer nil) (displaced-to nil)
 		    (displaced-index-offset 0) (static nil))
@@ -43,12 +43,22 @@ in row-major indexing is actually the reference to the (I + DISPLACED-INDEX-
 OFFSET)th element of the given array.If the STATIC argument is supplied
 with a non-nil value, then the body of the array is allocated as a
 contiguous block."
+  (when initial-element-supplied-p
+    (when initial-contents-supplied-p
+      (error "MAKE-ARRAY: Cannot supply both :INITIAL-ELEMENT and :INITIAL-CONTENTS"))
+    (when displaced-to
+      (error "MAKE-ARRAY: Cannot supply both :INITIAL-ELEMENT and :displaced-to")))
+  (when initial-contents-supplied-p
+    (when displaced-to
+      (error "MAKE-ARRAY: Cannot supply both :INITIAL-CONTENTS and :displaced-to")))
+  (when d-i-o-p
+    (unless displaced-to
+      (error "MAKE-ARRAY: :DISPLACED-INDEX-OFFSET must not be supplied unless a non-nil :DISPLACED-TO is supplied")))
+
   (let ((x (sys:make-pure-array element-type dimensions adjustable
 				fill-pointer displaced-to displaced-index-offset)))
     (declare (array x))
     (cond (initial-element-supplied-p
-           (when initial-contents-supplied-p
-             (error "MAKE-ARRAY: Cannot supply both :INITIAL-ELEMENT and :INITIAL-CONTENTS"))
            (fill-array-with-elt x initial-element 0 nil))
           (initial-contents-supplied-p
            (fill-array-with-seq x initial-contents))

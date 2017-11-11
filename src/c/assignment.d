@@ -113,8 +113,9 @@ mk_cl_fmakunbound(MKCL, mkcl_object fname)
 			 "Ignore lock and proceed", 2, fname, pack);
   }
   if (MKCL_SYMBOLP(fname)) {
-    MKCL_SYM_FUN(sym) = mk_cl_Cnil;
+    if (mkcl_Null(sym)) sym = mk_cl_Cnil_symbol;
     mkcl_symbol_type_set(env, sym, mkcl_symbol_type(env, sym) & ~mkcl_stp_macro);
+    MKCL_SYM_FUN(sym) = mk_cl_Cnil;
   } else {
     mk_si_rem_sysprop(env, sym, @'si::setf-symbol');
     mk_si_rem_sysprop(env, sym, @'si::setf-lambda');

@@ -95,12 +95,13 @@ static void init_relative_OSpath(MKCL, struct OSpath * ospath)
   ospath->reverse_directory_list_shadow = mkcl_list1(env, p->pathname.directory);
 }
 
+#if 0
 static void init_OSpath_from_pathname(MKCL, struct OSpath * ospath, mkcl_object pathname)
 {
   ospath->pathname = pathname;
-  ospath->reverse_directory_list_shadow = mkcl_reverse_proper_list(env, pathname);
+  ospath->reverse_directory_list_shadow = mkcl_reverse_proper_list(env, pathname); /* nonsense, sure to crash! */
 }
-
+#endif
 
 static void copy_OSpath(MKCL, struct OSpath * new, struct OSpath * old)
 {
@@ -142,7 +143,7 @@ static mkcl_object OSpath_pop_dir(MKCL, struct OSpath * path)
   path->pathname->pathname.namestring = mk_cl_Cnil; /* clear pathname namestring cache */
   if (!(dir == @':absolute' || dir == @':relative'))
     {
-      mkcl_object next_to_last_shadow = MKCL_CONS_CDR(last);
+      mkcl_object next_to_last_shadow = MKCL_CONS_CDR(last_shadow);
       mkcl_object next_to_last = MKCL_CONS_CAR(next_to_last_shadow);
 
       MKCL_RPLACD(next_to_last, mk_cl_Cnil);

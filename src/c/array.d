@@ -589,7 +589,13 @@ mk_si_make_pure_array(MKCL, mkcl_object etype, mkcl_object dims, mkcl_object adj
   if (MKCL_FIXNUMP(dims)) {
     return mk_si_make_vector(env, etype, dims, adj, fillp, displ, disploff);
   }
-  r = mkcl_length(env, dims);
+
+  mkcl_object dims_len = mk_cl_list_length(env, dims);
+  if (mkcl_Null(dims_len))
+    mkcl_FEtype_error_proper_list(env, x);
+  else
+    r = mkcl_fixnum_to_word(dims_len);
+
   if (r > MKCL_ARANKLIM) {
     mkcl_FEerror(env, "The array rank, ~R, is too large.", 1, MKCL_MAKE_FIXNUM(r));
   } else if (r == 1) {
@@ -602,20 +608,23 @@ mk_si_make_pure_array(MKCL, mkcl_object etype, mkcl_object dims, mkcl_object adj
   x->array.displaced = mk_cl_Cnil;
   x->array.self.t = NULL;		/* for GC sake */
   x->array.rank = r;
-  x->array.elttype = mkcl_symbol_to_elttype(env, etype);
   x->array.bit_offset = 0;
   x->array.dims = mkcl_alloc_atomic_align(env, sizeof(mkcl_index)*r, sizeof(mkcl_index));
-  for (i = 0, s = 1;  i < r;  i++, dims = MKCL_CONS_CDR(dims)) {
-    j = mkcl_fixnum_in_range(env, @'make-array', "dimension", MKCL_CONS_CAR(dims), 0, MKCL_ADIMLIM);
-    if ((MKCL_ATOTLIM / s) < j)
-      mkcl_FEerror(env, "The array total size, ~D, is too large.", 1, mkcl_word_times(env, s, j));
-    s *= (x->array.dims[i] = j);
-  }
+  if (r == 0)
+    s = 1; /* an array of rank 0 is a single scalar says ANSI-CL. */
+  else
+    for (i = 0, s = 1;  i < r;  i++, dims = MKCL_CONS_CDR(dims)) {
+      j = mkcl_fixnum_in_range(env, @'make-array', "dimension", MKCL_CONS_CAR(dims), 0, MKCL_ADIMLIM);
+      if ((s != 0) && ((MKCL_ATOTLIM / s) < j))
+        mkcl_FEerror(env, "The array total size, ~D, is too large.", 1, mkcl_word_times(env, s, j));
+      s *= (x->array.dims[i] = j);
+    }
 
   x->array.dim = s;
 
   x->array.adjustable = adj != mk_cl_Cnil;
 
+  x->array.elttype = mkcl_symbol_to_elttype(env, etype);
   x->array.elem = mkcl_array_elem_accessor[x->array.elttype];
   x->array.set = mkcl_array_elem_setter[x->array.elttype];
 

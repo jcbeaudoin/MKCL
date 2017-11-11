@@ -1004,51 +1004,54 @@ write_array(MKCL, mkcl_object x, mkcl_object stream)
 
   for (j = 0;  j < n;  j++)
     subscripts[j] = 0;
-  for (m = 0, j = 0;;) {
-    for (i = j;  i < n;  i++) {
-      if (subscripts[i] == 0) {
-	mkcl_write_char(env, '(', stream);
-	if (adims[i] == 0) {
-	  mkcl_write_char(env, ')', stream);
+  if (n == 0)
+    mk_si_write_object(env, mk_cl_Cnil, stream);
+  else
+    for (m = 0, j = 0;;) {
+      for (i = j;  i < n;  i++) {
+        if (subscripts[i] == 0) {
+          mkcl_write_char(env, '(', stream);
+          if (adims[i] == 0) {
+            mkcl_write_char(env, ')', stream);
 	  
-	  j = i-1;
-	  k = 0;
-	  goto INC;
-	}
+            j = i-1;
+            k = 0;
+            goto INC;
+          }
+        }
+        if (subscripts[i] > 0)
+          mkcl_write_char(env, ' ', stream);
+        if (subscripts[i] >= print_length) {
+          write_str(env, "...)", stream);
+          k=adims[i]-subscripts[i];
+          subscripts[i] = 0;
+          for (j = i+1;  j < n;  j++)
+            k *= adims[j];
+          j = i-1;
+          goto INC;
+        }
       }
-      if (subscripts[i] > 0)
-	mkcl_write_char(env, ' ', stream);
-      if (subscripts[i] >= print_length) {
-	write_str(env, "...)", stream);
-	k=adims[i]-subscripts[i];
-	subscripts[i] = 0;
-	for (j = i+1;  j < n;  j++)
-	  k *= adims[j];
-	j = i-1;
-	goto INC;
-      }
-    }
-    /* FIXME: This conses! */
-    if (print_level >= 0)
-      mk_si_write_object(env, mkcl_aref_index(env, x, m), stream);
-    else
-      mkcl_write_char(env, '#', stream);
-    j = n-1;
-    k = 1;
+      /* FIXME: This conses! */
+      if (print_level >= 0)
+        mk_si_write_object(env, mkcl_aref_index(env, x, m), stream);
+      else
+        mkcl_write_char(env, '#', stream);
+      j = n-1;
+      k = 1;
 
-  INC:
-    while (j >= 0) {
-      if (++subscripts[j] < adims[j])
-	break;
-      subscripts[j] = 0;
-      mkcl_write_char(env, ')', stream);
+    INC:
+      while (j >= 0) {
+        if (++subscripts[j] < adims[j])
+          break;
+        subscripts[j] = 0;
+        mkcl_write_char(env, ')', stream);
       
-      --j;
+        --j;
+      }
+      if (j < 0)
+        break;
+      m += k;
     }
-    if (j < 0)
-      break;
-    m += k;
-  }
   if (print_level >= 0) {
     mkcl_bds_unwind1(env);
   }

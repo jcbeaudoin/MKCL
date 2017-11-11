@@ -583,9 +583,9 @@ into_bignum(MKCL, mkcl_object bignum, mkcl_object integer)
 #else
     mpz_set_si(bignum->big.big_num, mkcl_fixnum_to_word(integer));
 #endif
-  } else {
+  } else if (MKCL_BIGNUMP(integer)) {
     mpz_set(bignum->big.big_num, integer->big.big_num);
-  }
+  } else mkcl_FEtype_error_integer(env, integer);
   return bignum;
 }
 

@@ -446,7 +446,6 @@ extern "C" {
   extern MKCL_API mkcl_object _mkcl_big_register_copy(MKCL, mkcl_object x);
   extern MKCL_API mkcl_object _mkcl_big_register_normalize(MKCL, mkcl_object x);
   extern MKCL_API void _mkcl_big_register_free(MKCL, mkcl_object x);
-  extern MKCL_API mkcl_object bignum1(MKCL, mkcl_word val);
 
 
   /* cfun.c */
@@ -1717,7 +1716,7 @@ extern "C" {
 	    &&
 	    !x->base_string.adjustable &&
 	    !x->base_string.hasfillp &&
-	    mkcl_Null(MKCL_CAR(x->base_string.displaced)));
+	    mkcl_Null(mk_cl_car(env, x->base_string.displaced)));
   }
 
   static inline bool mkcl_simple_string_p(MKCL, mkcl_object x)
@@ -1730,14 +1729,14 @@ extern "C" {
 	    &&
 	    !x->string.adjustable &&
 	    !x->string.hasfillp &&
-	    mkcl_Null(MKCL_CAR(x->string.displaced)));
+	    mkcl_Null(mk_cl_car(env, x->string.displaced)));
   }
 
   static inline bool mkcl_simple_bit_vector_p(MKCL, mkcl_object x)
   {
     return (mkcl_type_of(x) == mkcl_t_bitvector
 	    && !x->vector.adjustable && !x->vector.hasfillp
-	    && mkcl_Null(MKCL_CAR(x->vector.displaced)));
+	    && mkcl_Null(mk_cl_car(env, x->vector.displaced)));
   }
 
   static inline bool mkcl_simple_vector_p(MKCL, mkcl_object x)
@@ -1745,7 +1744,7 @@ extern "C" {
     return (mkcl_type_of(x) == mkcl_t_vector
 	    && !x->vector.adjustable
 	    && !x->vector.hasfillp
-	    && mkcl_Null(MKCL_CAR(x->vector.displaced))
+	    && mkcl_Null(mk_cl_car(env, x->vector.displaced))
 	    && x->vector.elttype == mkcl_aet_object);
   }
 
