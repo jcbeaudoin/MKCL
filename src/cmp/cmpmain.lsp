@@ -919,13 +919,17 @@ filesystem or in the database of ASDF modules."
 
 (si:reopen-package :cl)
 
-(defun cl:compile-file-pathname (name &key (output-file T) verbose print external-format ;; standard args
-				      c-file h-file data-file (fasl-p t) ;; compile-file extension args
-				      )
-  (declare (ignore verbose print external-format c-file h-file data-file))
-  (if (or (eq output-file T) (eq output-file nil))
-      (make-pathname :type (if fasl-p "fas" +object-file-extension+) :defaults name)
-    (pathname output-file))
+
+(defun cl:compile-file-pathname (input-file &key (output-file T) verbose print external-format ;; standard args
+                                            c-file h-file data-file (fasl-p t) libraries ;; compile-file extension args
+                                            )
+  (declare (ignore verbose print external-format c-file h-file data-file libraries))
+  (let* ((output-file-type (if fasl-p "fas" +object-file-extension+))
+         (would-be-output-file (merge-pathnames (make-pathname :type output-file-type
+                                                               :defaults input-file))))
+    (if (or (eq output-file T) (eq output-file nil))
+        would-be-output-file
+      (merge-pathnames (pathname output-file) would-be-output-file)))
   )
 
 ;;(defvar *trace-compiler-memory* nil)
