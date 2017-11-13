@@ -1139,11 +1139,7 @@ sharp_dot_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
 {
   if (d != mk_cl_Cnil && !read_suppress(env))
     extra_argument(env, '.', in, d);
-#if 0
-  c = mkcl_read_object_non_recursive(env, in);
-#else
   c = mkcl_read_object(env, in);
-#endif
   if (c == MKCL_OBJNULL)
     mkcl_FEend_of_file(env, in);
   if (read_suppress(env))
