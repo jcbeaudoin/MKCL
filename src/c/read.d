@@ -1338,11 +1338,11 @@ sharp_sharp_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
   if (mkcl_Null(d))
     mkcl_FEreader_error(env, "The ## readmacro requires an argument.", in, 0);
 
-  mkcl_object label = mkcl_assq(env, d, MKCL_SYM_VAL(env, @'si::*sharp-labels*'));
+  mkcl_object label = mkcl_assql(env, d, MKCL_SYM_VAL(env, @'si::*sharp-labels*'));
 
   if (label != mk_cl_Cnil)
     @(return label_value(env, label));
-  label = mkcl_assq(env, d, MKCL_SYM_VAL(env, @'si::*pending-sharp-labels*'));
+  label = mkcl_assql(env, d, MKCL_SYM_VAL(env, @'si::*pending-sharp-labels*'));
   if (label != mk_cl_Cnil)
     @(return mkcl_cons(env, (mkcl_object) &sharp_label_marker, d));
   mkcl_FEreader_error(env, "#~D# is undefined.", in, 1, d);
