@@ -2116,6 +2116,10 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
 
   {{SYS_ "OBJNULL-VALUE-P", SI_ORDINARY, mk_si_objnull_value_p, 1, MKCL_OBJNULL}},
 
+  {{SYS_ "*SHARP-LABELS*", SI_SPECIAL, NULL, -1, mk_cl_Cnil}},
+  {{SYS_ "*PENDING-SHARP-LABELS*", SI_SPECIAL, NULL, -1, mk_cl_Cnil}},
+
+
   /* Tag for end of list!
      This entry, with a first field of NULL value,
      must be the very last of this array.

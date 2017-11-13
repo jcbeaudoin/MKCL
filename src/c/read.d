@@ -90,7 +90,6 @@ mk_si_put_buffer_string(MKCL, mkcl_object string)
 }
 
 static void extra_argument (MKCL, int c, mkcl_object stream, mkcl_object d);
-static mkcl_object patch_sharp(MKCL, mkcl_object x);
 static mkcl_object do_read_delimited_list(MKCL, int d, mkcl_object strm, bool proper_list);
 
 mkcl_object
@@ -98,13 +97,11 @@ mkcl_read_object_non_recursive(MKCL, mkcl_object in)
 {
   mkcl_object x;
   
-  mkcl_bds_bind(env, @'si::*sharp-eq-context*', mk_cl_Cnil);
+  mkcl_bds_bind(env, @'si::*pending-sharp-labels*', mk_cl_Cnil);
+  mkcl_bds_bind(env, @'si::*sharp-labels*', mk_cl_Cnil);
   mkcl_bds_bind(env, @'si::*backq-level*', MKCL_MAKE_FIXNUM(0));
   x = mkcl_read_object(env, in);
-  if (!mkcl_Null(MKCL_SYM_VAL(env, @'si::*sharp-eq-context*')))
-    x = patch_sharp(env, x);
-  
-  mkcl_bds_unwind_n(env, 2);
+  mkcl_bds_unwind_n(env, 3);
   return x;
 }
 
@@ -414,18 +411,16 @@ mk_si_read_object_or_ignore(MKCL, mkcl_object in, mkcl_object eof)
   mkcl_object x;
 
   mkcl_call_stack_check(env);
-  mkcl_bds_bind(env, @'si::*sharp-eq-context*', mk_cl_Cnil);
+  mkcl_bds_bind(env, @'si::*pending-sharp-labels*', mk_cl_Cnil);
+  mkcl_bds_bind(env, @'si::*sharp-labels*', mk_cl_Cnil);
   mkcl_bds_bind(env, @'si::*backq-level*', MKCL_MAKE_FIXNUM(0));
   x = mkcl_read_object_with_delimiter(env, in, EOF, MKCL_READ_RETURN_IGNORABLE, 
 				      mkcl_cat_constituent);
   if (x == MKCL_OBJNULL) {
     MKCL_NVALUES = 1;
     x = eof;
-  } else if (env->nvalues != 0) {
-    if (!mkcl_Null(MKCL_SYM_VAL(env, @'si::*sharp-eq-context*')))
-      x = patch_sharp(env, x);
   }
-  mkcl_bds_unwind_n(env, 2);
+  mkcl_bds_unwind_n(env, 3);
   return x;
 }
 
@@ -907,18 +902,7 @@ sharp_C_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
 		   in, 0);
   real = MKCL_CAR(x);
   imag = MKCL_CADR(x);
-  /* INV: mkcl_make_complex() checks its types. When reading circular
-     structures, we cannot check the types of the elements, and we
-     must build the complex number by hand. */
-  if ((MKCL_CONSP(real) || MKCL_CONSP(imag)) &&
-      !mkcl_Null(MKCL_SYM_VAL(env, @'si::*sharp-eq-context*')))
-    {
-      x = mkcl_alloc_raw_complex(env);
-      x->_complex.real = real;
-      x->_complex.imag = imag;
-    } else {
-    x = mkcl_make_complex(env, real, imag);
-  }
+  x = mkcl_make_complex(env, real, imag);
   @(return x);
 }
 
@@ -1155,7 +1139,11 @@ sharp_dot_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
 {
   if (d != mk_cl_Cnil && !read_suppress(env))
     extra_argument(env, '.', in, d);
+#if 0
   c = mkcl_read_object_non_recursive(env, in);
+#else
+  c = mkcl_read_object(env, in);
+#endif
   if (c == MKCL_OBJNULL)
     mkcl_FEend_of_file(env, in);
   if (read_suppress(env))
@@ -1232,138 +1220,139 @@ sharp_R_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
 #define sharp_A_reader void_reader
 #define sharp_S_reader void_reader
 
-static mkcl_object
-sharp_eq_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
-{
-  mkcl_object pair, value;
-  mkcl_object sharp_eq_context = MKCL_SYM_VAL(env, @'si::*sharp-eq-context*');
 
-  if (read_suppress(env)) { @(return); } /* Why is it returning nothing? JCB */
-  if (mkcl_Null(d))
-    mkcl_FEreader_error(env, "The #= readmacro requires an argument.", in, 0);
-  if (mkcl_assql(env, d, sharp_eq_context) != mk_cl_Cnil)
-    mkcl_FEreader_error(env, "Duplicate definitions for #~D=.", in, 1, d);
-  pair = mkcl_list1(env, d);
-  MKCL_SETQ(env, @'si::*sharp-eq-context*', MKCL_CONS(env, pair, sharp_eq_context));
-  value = mkcl_read_object(env, in);
-  if (value == pair)
-    mkcl_FEreader_error(env, "#~D# is defined by itself.", in, 1, d);
-  MKCL_RPLACD(pair, value);
-  @(return value);
-}
+static mkcl_base_string_object(sharp_label_marker, "sharp");
 
 static mkcl_object
-sharp_sharp_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
+sharp_nsubst(MKCL, mkcl_object visit_table, mkcl_object d, mkcl_object value, mkcl_object tree)
 {
-  mkcl_object pair;
+  if (mkcl_Null(tree)) return(tree);
 
-  if (read_suppress(env)) { @(return mk_cl_Cnil); }
-  if (mkcl_Null(d))
-    mkcl_FEreader_error(env, "The ## readmacro requires an argument.", in, 0);
-  pair = mkcl_assq(env, d, MKCL_SYM_VAL(env, @'si::*sharp-eq-context*'));
-  if (pair != mk_cl_Cnil)
-    @(return pair);
-  mkcl_FEreader_error(env, "#~D# is undefined.", in, 1, d);
-}
+  if (MKCL_CONSP(tree)
+      && (MKCL_CONS_CDR(tree) == d)
+      && (MKCL_CONS_CAR(tree) == ((mkcl_object) &sharp_label_marker)))
+    return value;
 
-static mkcl_object
-do_patch_sharp(MKCL, mkcl_object x)
-{
-  if (mkcl_Null(x)) return(x);
+  if (mkcl_search_hash(env, tree, visit_table))
+    return tree;
 
-  switch (mkcl_type_of(x))
+  mkcl_sethash(env, tree, visit_table, mk_cl_Ct);
+  switch (mkcl_type_of(tree))
     {
     case mkcl_t_cons:
       {
-        mkcl_object y = x;
-        mkcl_object *place = &x;
-        do {
-          /* This was the result of a #d# */
-          if (MKCL_CAR(y) == MKCL_OBJNULL) {
-            *place = MKCL_CDR(y);
-            return x;
-          } else {
-            MKCL_RPLACA(y, do_patch_sharp(env, MKCL_CAR(y)));
-          }
-          place = &MKCL_CONS_CDR(y);
-          y = MKCL_CONS_CDR(y);
-        } while (MKCL_CONSP(y));
+        MKCL_RPLACA(tree, sharp_nsubst(env, visit_table, d, value, MKCL_CONS_CAR(tree)));
+        MKCL_RPLACD(tree, sharp_nsubst(env, visit_table, d, value, MKCL_CONS_CDR(tree)));
       }
       break;
     case mkcl_t_vector:
-      if (x->vector.elttype == mkcl_aet_object)
+      if (tree->vector.elttype == mkcl_aet_object)
         {
           mkcl_index i;
-          for (i = 0;  i < x->vector.fillp;  i++)
-            x->vector.self.t[i] = do_patch_sharp(env, x->vector.self.t[i]);
+          const mkcl_index j = tree->vector.fillp;
+
+          for (i = 0;  i < j;  i++)
+            tree->vector.self.t[i] = sharp_nsubst(env, visit_table, d, value, tree->vector.self.t[i]);
         }
       break;
     case mkcl_t_array:
-      if (x->vector.elttype == mkcl_aet_object)
+      if (tree->array.elttype == mkcl_aet_object)
         {
-          mkcl_index i, j;
-          for (i = 0, j = 1;  i < x->array.rank;  i++)
-            j *= x->array.dims[i];
+          mkcl_index i; const mkcl_index j = tree->array.dim;
+
           for (i = 0;  i < j;  i++)
-            x->array.self.t[i] = do_patch_sharp(env, x->array.self.t[i]);
+            tree->array.self.t[i] = sharp_nsubst(env, visit_table, d, value, tree->array.self.t[i]);
         }
       break;
-    case mkcl_t_complex:
-      {
-        mkcl_object r = do_patch_sharp(env, x->_complex.real);
-        mkcl_object i = do_patch_sharp(env, x->_complex.imag);
-        if (r != x->_complex.real || i != x->_complex.imag) {
-          mkcl_object c = mkcl_make_complex(env, r, i);
-          if (i == MKCL_MAKE_FIXNUM(0))
-            x = c;
-          else
-            x->_complex = c->_complex;
+    case mkcl_t_instance:
+        {
+          mkcl_index i; const mkcl_index j = tree->instance.length;
+          mkcl_object * const slots = tree->instance.slots;
+
+          for (i = 0;  i < j;  i++)
+            slots[i] = sharp_nsubst(env, visit_table, d, value, slots[i]);
         }
-      }
       break;
+#if 0
     case mkcl_t_bclosure:
       {
-        x->bclosure.lex = do_patch_sharp(env, x->bclosure.lex);
-        x = x->bclosure.code = do_patch_sharp(env, x->bclosure.code);
+        tree->bclosure.lex = sharp_nsubst(env, visit_table, d, value, tree->bclosure.lex);
+        tree = tree->bclosure.code = sharp_nsubst(env, visit_table, d, value, tree->bclosure.code);
       }
       goto mkcl_t_bytecode_case;
     case mkcl_t_bytecode:
     mkcl_t_bytecode_case:
       {
         mkcl_index i = 0;
-        x->bytecode.name = do_patch_sharp(env, x->bytecode.name);
-        x->bytecode.definition = do_patch_sharp(env, x->bytecode.definition);
-        for (i = 0; i < x->bytecode.data_size; i++) {
-          x->bytecode.data[i] = do_patch_sharp(env, x->bytecode.data[i]);
+
+        tree->bytecode.name = sharp_nsubst(env, visit_table, d, value, tree->bytecode.name);
+        tree->bytecode.definition = sharp_nsubst(env, visit_table, d, value, tree->bytecode.definition);
+        for (i = 0; i < tree->bytecode.data_size; i++) {
+          tree->bytecode.data[i] = sharp_nsubst(env, visit_table, d, value, tree->bytecode.data[i]);
         }
       }
       break;
+#endif
     default: break;
     }
-  return(x);
+  return(tree);
+}
+
+
+#define label_id(e, s) mk_cl_car(e, s)
+#define label_references(e, s) mk_cl_cadr(e, s)
+#define label_value(e, s) mk_cl_cddr(e, s)
+
+static mkcl_object
+sharp_eq_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
+{
+  mkcl_object pending_label, value;
+  mkcl_object pending_sharp_labels = MKCL_SYM_VAL(env, @'si::*pending-sharp-labels*');
+  mkcl_object sharp_labels = MKCL_SYM_VAL(env, @'si::*sharp-labels*');
+
+  if (read_suppress(env)) { @(return); } /* Why is it returning nothing? JCB */
+  if (mkcl_Null(d))
+    mkcl_FEreader_error(env, "The #= readmacro requires an argument.", in, 0);
+  if ((mkcl_assql(env, d, sharp_labels) != mk_cl_Cnil)
+      || (mkcl_assql(env, d, pending_sharp_labels) != mk_cl_Cnil))
+    mkcl_FEreader_error(env, "Duplicate definitions for #~D=.", in, 1, d);
+  pending_label = mkcl_list1(env, d);
+  MKCL_SETQ(env, @'si::*pending-sharp-labels*', MKCL_CONS(env, pending_label, pending_sharp_labels));
+  value = mkcl_read_object(env, in);
+  if (value == pending_label)
+    mkcl_FEreader_error(env, "#~D# is defined by itself.", in, 1, d);
+
+  mkcl_object references = mk_cl_Cnil;
+  MKCL_RPLACD(pending_label, mkcl_cons(env, references, value));
+  MKCL_SETQ(env, @'si::*sharp-labels*', MKCL_CONS(env, pending_label, MKCL_SYM_VAL(env, @'si::*sharp-labels*')));
+  MKCL_SETQ(env, @'si::*pending-sharp-labels*', pending_sharp_labels);
+
+  mkcl_object visit_table = mk_cl__make_hash_table(env, @'eq', MKCL_MAKE_FIXNUM(50), /* size */
+                                                   mkcl_make_singlefloat(env, 1.5f), /* rehash-size */
+                                                   mkcl_make_singlefloat(env, 0.75f)); /* rehash-threshold */
+  sharp_nsubst(env, visit_table, d, value, value);
+
+  @(return value);
 }
 
 static mkcl_object
-patch_sharp(MKCL, mkcl_object x)
+sharp_sharp_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
 {
-  mkcl_object sharp_eq_context = MKCL_SYM_VAL(env, @'si::*sharp-eq-context*');
-  mkcl_object pairs;
+  if (read_suppress(env)) { @(return mk_cl_Cnil); }
+  if (mkcl_Null(d))
+    mkcl_FEreader_error(env, "The ## readmacro requires an argument.", in, 0);
 
-  pairs = sharp_eq_context;
-  mkcl_loop_for_in(env, pairs) { 
-    mkcl_object pair = MKCL_CONS_CAR(pairs);
-    MKCL_RPLACA(pair, MKCL_OBJNULL);
-  } mkcl_end_loop_for_in;
+  mkcl_object label = mkcl_assq(env, d, MKCL_SYM_VAL(env, @'si::*sharp-labels*'));
 
-  x = do_patch_sharp(env, x);
-
-  pairs = sharp_eq_context;
-  mkcl_loop_for_in(env, pairs) {
-    mkcl_object pair = MKCL_CONS_CAR(pairs);
-    MKCL_RPLACA(pair, mk_cl_Cnil);
-  } mkcl_end_loop_for_in;
-  return x;
+  if (label != mk_cl_Cnil)
+    @(return label_value(env, label));
+  label = mkcl_assq(env, d, MKCL_SYM_VAL(env, @'si::*pending-sharp-labels*'));
+  if (label != mk_cl_Cnil)
+    @(return mkcl_cons(env, (mkcl_object) &sharp_label_marker, d));
+  mkcl_FEreader_error(env, "#~D# is undefined.", in, 1, d);
 }
+
+
 
 #define sharp_plus_reader void_reader
 #define sharp_minus_reader void_reader
@@ -1698,12 +1687,11 @@ do_read_delimited_list(MKCL, int d, mkcl_object in, bool proper_list)
   if (!mkcl_Null(recursivep)) {
     l = do_read_delimited_list(env, delimiter, strm, 1);
   } else {
-    mkcl_bds_bind(env, @'si::*sharp-eq-context*', mk_cl_Cnil);
+    mkcl_bds_bind(env, @'si::*pending-sharp-labels*', mk_cl_Cnil);
+    mkcl_bds_bind(env, @'si::*sharp-labels*', mk_cl_Cnil);
     mkcl_bds_bind(env, @'si::*backq-level*', MKCL_MAKE_FIXNUM(0));
     l = do_read_delimited_list(env, delimiter, strm, 1);
-    if (!mkcl_Null(MKCL_SYM_VAL(env, @'si::*sharp-eq-context*')))
-      l = patch_sharp(env, l);
-    mkcl_bds_unwind_n(env, 2);
+    mkcl_bds_unwind_n(env, 3);
   }
   @(return l);
 @)
@@ -2434,58 +2422,53 @@ mkcl_read_VV(MKCL,
 				     0, block->cblock.data_text_size,
 				     @':UTF-8'
 				     );
-    mkcl_bds_bind(env, @'*read-base*', MKCL_MAKE_FIXNUM(10));
-    mkcl_bds_bind(env, @'*read-default-float-format*', @'single-float');
-    mkcl_bds_bind(env, @'*read-suppress*', mk_cl_Cnil);
-    mkcl_bds_bind(env, @'*readtable*', mkcl_core.standard_readtable);
-    mkcl_bds_bind(env, @'*package*', mkcl_core.lisp_package);
-    mkcl_bds_bind(env, @'si::*sharp-eq-context*', mk_cl_Cnil);
-    mkcl_bds_bind(env, @'si::+reading-fasl-file+', mk_cl_Ct);
+    {
+      mkcl_bds_bind(env, @'*read-base*', MKCL_MAKE_FIXNUM(10));
+      mkcl_bds_bind(env, @'*read-default-float-format*', @'single-float');
+      mkcl_bds_bind(env, @'*read-suppress*', mk_cl_Cnil);
+      mkcl_bds_bind(env, @'*readtable*', mkcl_core.standard_readtable);
+      mkcl_bds_bind(env, @'*package*', mkcl_core.lisp_package);
+      mkcl_bds_bind(env, @'si::*pending-sharp-labels*', mk_cl_Cnil);
+      mkcl_bds_bind(env, @'si::*sharp-labels*', mk_cl_Cnil);
+      mkcl_bds_bind(env, @'si::*backq-level*', MKCL_MAKE_FIXNUM(0));
+      mkcl_bds_bind(env, @'si::+reading-fasl-file+', mk_cl_Ct);
 
-    /* This should be :mkcl-compiled */
-    x = mkcl_read_object(env, in);
-    if ( x != @':MKCL-COMPILED' )
-      mk_cl_error(env, 5, @'mkcl::bad-fasl-file', @':pathname', filename, @':reason', @':format');
-
-    /* This should be MKCL version number
-       of the MKCL that compiled the file. */
-    x = mkcl_read_object(env, in);
-    if ( MKCL_VERSION_NUMBER < mkcl_fixnum_to_word(x) )
-      mk_cl_error(env, 5, @'mkcl::bad-fasl-file', @':pathname', filename, @':reason', @':version');
-
-    /* This should be MKCL FASL version number at compilation time. */
-    x = mkcl_read_object(env, in);
-    if ( MKCL_FASL_VERSION != mkcl_fixnum_to_word(x) )
-      mk_cl_error(env, 5, @'mkcl::bad-fasl-file', @':pathname', filename, @':reason', @':stale');
-
-    /* CPU identifier */
-    x = mkcl_read_object(env, in);
-
-    /* OS family */
-    x = mkcl_read_object(env, in);
-
-    /* OS specific version */
-    x = mkcl_read_object(env, in);
-
-    for (i = 0 ; i < len; i++) {
+      /* This should be :mkcl-compiled */
       x = mkcl_read_object(env, in);
-      if (x == MKCL_OBJNULL) /* end of input? */
-	break;
-      if (i < perm_len)
-	VV[i] = x;
-      else
-	VVtemp[i-perm_len] = x;
-    }
-    if (!mkcl_Null(MKCL_SYM_VAL(env, @'si::*sharp-eq-context*'))) {
-      while (i--) {
-	if (i < perm_len) {
-	  VV[i] = patch_sharp(env, VV[i]);
-	} else {
-	  VVtemp[i-perm_len] = patch_sharp(env, VVtemp[i-perm_len]);
-	}
+      if ( x != @':MKCL-COMPILED' )
+        mk_cl_error(env, 5, @'mkcl::bad-fasl-file', @':pathname', filename, @':reason', @':format');
+
+      /* This should be MKCL version number
+         of the MKCL that compiled the file. */
+      x = mkcl_read_object(env, in);
+      if ( MKCL_VERSION_NUMBER < mkcl_fixnum_to_word(x) )
+        mk_cl_error(env, 5, @'mkcl::bad-fasl-file', @':pathname', filename, @':reason', @':version');
+
+      /* This should be MKCL FASL version number at compilation time. */
+      x = mkcl_read_object(env, in);
+      if ( MKCL_FASL_VERSION != mkcl_fixnum_to_word(x) )
+        mk_cl_error(env, 5, @'mkcl::bad-fasl-file', @':pathname', filename, @':reason', @':stale');
+
+      /* CPU identifier */
+      x = mkcl_read_object(env, in);
+
+      /* OS family */
+      x = mkcl_read_object(env, in);
+
+      /* OS specific version */
+      x = mkcl_read_object(env, in);
+
+      for (i = 0 ; i < len; i++) {
+        x = mkcl_read_object(env, in);
+        if (x == MKCL_OBJNULL) /* end of input? */
+          break;
+        if (i < perm_len)
+          VV[i] = x;
+        else
+          VVtemp[i-perm_len] = x;
       }
+      mkcl_bds_unwind_n(env, 9);
     }
-    mkcl_bds_unwind_n(env, 7);
 
     if (i < len)
       mk_cl_error(env, 5, @'mkcl::bad-fasl-file', @':pathname', filename, @':reason', @':corrupted');
