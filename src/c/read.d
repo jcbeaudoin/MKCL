@@ -1220,25 +1220,25 @@ sharp_R_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
 static mkcl_base_string_object(sharp_label_marker, "sharp");
 
 static mkcl_object
-sharp_nsubst(MKCL, mkcl_object visit_table, mkcl_object d, mkcl_object value, mkcl_object tree)
+sharp_nsubst(MKCL, mkcl_object visit_table, mkcl_object item, mkcl_object value, mkcl_object tree)
 {
   if (mkcl_Null(tree)) return(tree);
 
-  if (MKCL_CONSP(tree)
-      && (MKCL_CONS_CDR(tree) == d)
-      && (MKCL_CONS_CAR(tree) == ((mkcl_object) &sharp_label_marker)))
+  if (item == tree)
     return value;
 
+  if (MKCL_IMMEDIATE(tree)) return tree; /* leaf */
+
   if (mkcl_search_hash(env, tree, visit_table))
-    return tree;
+    return tree; /* already visited */
 
   mkcl_sethash(env, tree, visit_table, mk_cl_Ct);
-  switch (mkcl_type_of(tree))
+  switch (tree->d.t)
     {
     case mkcl_t_cons:
       {
-        MKCL_RPLACA(tree, sharp_nsubst(env, visit_table, d, value, MKCL_CONS_CAR(tree)));
-        MKCL_RPLACD(tree, sharp_nsubst(env, visit_table, d, value, MKCL_CONS_CDR(tree)));
+        MKCL_RPLACA(tree, sharp_nsubst(env, visit_table, item, value, MKCL_CONS_CAR(tree)));
+        MKCL_RPLACD(tree, sharp_nsubst(env, visit_table, item, value, MKCL_CONS_CDR(tree)));
       }
       break;
     case mkcl_t_vector:
@@ -1248,7 +1248,7 @@ sharp_nsubst(MKCL, mkcl_object visit_table, mkcl_object d, mkcl_object value, mk
           const mkcl_index j = tree->vector.fillp;
 
           for (i = 0;  i < j;  i++)
-            tree->vector.self.t[i] = sharp_nsubst(env, visit_table, d, value, tree->vector.self.t[i]);
+            tree->vector.self.t[i] = sharp_nsubst(env, visit_table, item, value, tree->vector.self.t[i]);
         }
       break;
     case mkcl_t_array:
@@ -1257,7 +1257,7 @@ sharp_nsubst(MKCL, mkcl_object visit_table, mkcl_object d, mkcl_object value, mk
           mkcl_index i; const mkcl_index j = tree->array.dim;
 
           for (i = 0;  i < j;  i++)
-            tree->array.self.t[i] = sharp_nsubst(env, visit_table, d, value, tree->array.self.t[i]);
+            tree->array.self.t[i] = sharp_nsubst(env, visit_table, item, value, tree->array.self.t[i]);
         }
       break;
     case mkcl_t_instance:
@@ -1266,14 +1266,14 @@ sharp_nsubst(MKCL, mkcl_object visit_table, mkcl_object d, mkcl_object value, mk
           mkcl_object * const slots = tree->instance.slots;
 
           for (i = 0;  i < j;  i++)
-            slots[i] = sharp_nsubst(env, visit_table, d, value, slots[i]);
+            slots[i] = sharp_nsubst(env, visit_table, item, value, slots[i]);
         }
       break;
 #if 0
     case mkcl_t_bclosure:
       {
-        tree->bclosure.lex = sharp_nsubst(env, visit_table, d, value, tree->bclosure.lex);
-        tree = tree->bclosure.code = sharp_nsubst(env, visit_table, d, value, tree->bclosure.code);
+        tree->bclosure.lex = sharp_nsubst(env, visit_table, item, value, tree->bclosure.lex);
+        tree = tree->bclosure.code = sharp_nsubst(env, visit_table, item, value, tree->bclosure.code);
       }
       goto mkcl_t_bytecode_case;
     case mkcl_t_bytecode:
@@ -1281,10 +1281,10 @@ sharp_nsubst(MKCL, mkcl_object visit_table, mkcl_object d, mkcl_object value, mk
       {
         mkcl_index i = 0;
 
-        tree->bytecode.name = sharp_nsubst(env, visit_table, d, value, tree->bytecode.name);
-        tree->bytecode.definition = sharp_nsubst(env, visit_table, d, value, tree->bytecode.definition);
+        tree->bytecode.name = sharp_nsubst(env, visit_table, item, value, tree->bytecode.name);
+        tree->bytecode.definition = sharp_nsubst(env, visit_table, item, value, tree->bytecode.definition);
         for (i = 0; i < tree->bytecode.data_size; i++) {
-          tree->bytecode.data[i] = sharp_nsubst(env, visit_table, d, value, tree->bytecode.data[i]);
+          tree->bytecode.data[i] = sharp_nsubst(env, visit_table, item, value, tree->bytecode.data[i]);
         }
       }
       break;
@@ -1298,6 +1298,8 @@ sharp_nsubst(MKCL, mkcl_object visit_table, mkcl_object d, mkcl_object value, mk
 #define label_id(e, s) mk_cl_car(e, s)
 #define label_references(e, s) mk_cl_cadr(e, s)
 #define label_value(e, s) mk_cl_cddr(e, s)
+#define pending_label_id(e, s) mk_cl_car(e, s)
+#define pending_label_marker(e, s) mk_cl_cdr(e, s)
 
 static mkcl_object
 sharp_eq_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
@@ -1312,7 +1314,9 @@ sharp_eq_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
   if ((mkcl_assql(env, d, sharp_labels) != mk_cl_Cnil)
       || (mkcl_assql(env, d, pending_sharp_labels) != mk_cl_Cnil))
     mkcl_FEreader_error(env, "Duplicate definitions for #~D=.", in, 1, d);
-  pending_label = mkcl_list1(env, d);
+
+  const mkcl_object marker = mkcl_cons(env, (mkcl_object) &sharp_label_marker, d);
+  pending_label = mkcl_cons(env, d, marker);
   MKCL_SETQ(env, @'si::*pending-sharp-labels*', MKCL_CONS(env, pending_label, pending_sharp_labels));
   value = mkcl_read_object(env, in);
   if (value == pending_label)
@@ -1326,7 +1330,7 @@ sharp_eq_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
   mkcl_object visit_table = mk_cl__make_hash_table(env, @'eq', MKCL_MAKE_FIXNUM(50), /* size */
                                                    mkcl_make_singlefloat(env, 1.5f), /* rehash-size */
                                                    mkcl_make_singlefloat(env, 0.75f)); /* rehash-threshold */
-  sharp_nsubst(env, visit_table, d, value, value);
+  sharp_nsubst(env, visit_table, marker, value, value);
 
   @(return value);
 }
@@ -1344,7 +1348,7 @@ sharp_sharp_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
     @(return label_value(env, label));
   label = mkcl_assql(env, d, MKCL_SYM_VAL(env, @'si::*pending-sharp-labels*'));
   if (label != mk_cl_Cnil)
-    @(return mkcl_cons(env, (mkcl_object) &sharp_label_marker, d));
+    @(return pending_label_marker(env, label));
   mkcl_FEreader_error(env, "#~D# is undefined.", in, 1, d);
 }
 
