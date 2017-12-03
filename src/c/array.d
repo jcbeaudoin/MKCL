@@ -1029,38 +1029,39 @@ mk_cl_array_rank(MKCL, mkcl_object a)
 }
 
 mkcl_object
-mk_cl_array_dimension(MKCL, mkcl_object a, mkcl_object index)
+mk_cl_array_dimension(MKCL, mkcl_object a, mkcl_object axis_number)
 {
   mkcl_index dim;
 
   mkcl_call_stack_check(env);
  AGAIN:
-  switch (mkcl_type_of(a)) 
+  switch (mkcl_type_of(a))
     {
     case mkcl_t_array:
       {
-	int i = mkcl_fixnum_in_range(env, @'array-dimension',"dimension",index,0,a->array.rank);
+	mkcl_index i = mkcl_fixnum_in_range(env, @'array-dimension', "axis-number",
+                                            axis_number, 0, (a->array.rank - 1));
 	dim  = a->array.dims[i];
       }
       break;
     case mkcl_t_string:
-      mkcl_fixnum_in_range(env, @'array-dimension',"dimension",index,0,0);
+      mkcl_fixnum_in_range(env, @'array-dimension', "axis-number", axis_number, 0, 0);
       dim = a->string.dim;
       break;
     case mkcl_t_base_string:
-      mkcl_fixnum_in_range(env, @'array-dimension',"dimension",index,0,0);
+      mkcl_fixnum_in_range(env, @'array-dimension', "axis-number", axis_number, 0, 0);
       dim = a->base_string.dim;
       break;
     case mkcl_t_vector:
-      mkcl_fixnum_in_range(env, @'array-dimension',"dimension",index,0,0);
+      mkcl_fixnum_in_range(env, @'array-dimension', "axis-number", axis_number, 0, 0);
       dim = a->vector.dim;
       break;
     case mkcl_t_bitvector:
-      mkcl_fixnum_in_range(env, @'array-dimension',"dimension",index,0,0);
+      mkcl_fixnum_in_range(env, @'array-dimension', "axis-number", axis_number, 0, 0);
       dim = a->vector.dim;
       break;
     default:
-      a = mkcl_type_error(env, @'array-dimension',"argument",a,@'array');
+      a = mkcl_type_error(env, @'array-dimension', "array", a, @'array');
       goto AGAIN;
     }
   @(return MKCL_MAKE_FIXNUM(dim));
