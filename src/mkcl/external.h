@@ -2712,10 +2712,11 @@ extern "C" {
     mkcl_byte * self = x->vector.self.bit;
     mkcl_index o = x->vector.bit_offset;
 
-    return MKCL_MAKE_FIXNUM(mkcl_likely(i < x->vector.dim)
-			    ? (mkcl_bit_bundle(self, i+o) & mkcl_bundle_bit_mask(i+o))
-			    : (i = mkcl_ensure_valid_array_index(env, x, i),
-			       (mkcl_bit_bundle(self, i+o) & mkcl_bundle_bit_mask(i+o))));
+    return ((mkcl_likely(i < x->vector.dim)
+             ? (mkcl_bit_bundle(self, i+o) & mkcl_bundle_bit_mask(i+o))
+             : (i = mkcl_ensure_valid_array_index(env, x, i),
+                (mkcl_bit_bundle(self, i+o) & mkcl_bundle_bit_mask(i+o))))
+            ? MKCL_MAKE_FIXNUM(1) : MKCL_MAKE_FIXNUM(0));
   }
 
   static inline mkcl_word mkcl_aref_index_bit_raw(MKCL, mkcl_object x, mkcl_index i)
@@ -2725,10 +2726,11 @@ extern "C" {
     mkcl_byte * self = x->vector.self.bit;
     mkcl_index o = x->vector.bit_offset;
 
-    return (mkcl_likely(i < x->vector.dim)
-	    ? (mkcl_bit_bundle(self, i+o) & mkcl_bundle_bit_mask(i+o))
-	    : (i = mkcl_ensure_valid_array_index(env, x, i),
-	       (mkcl_bit_bundle(self, i+o) & mkcl_bundle_bit_mask(i+o))));
+    return ((mkcl_likely(i < x->vector.dim)
+             ? (mkcl_bit_bundle(self, i+o) & mkcl_bundle_bit_mask(i+o))
+             : (i = mkcl_ensure_valid_array_index(env, x, i),
+                (mkcl_bit_bundle(self, i+o) & mkcl_bundle_bit_mask(i+o))))
+            ? 1 : 0);
   }
 
   static inline mkcl_object mkcl_aref_index_word(MKCL, mkcl_object x, mkcl_index i)

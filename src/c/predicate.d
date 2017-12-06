@@ -334,9 +334,13 @@ mkcl_equal(MKCL, register mkcl_object x, mkcl_object y)
     ox = x->vector.bit_offset;
     oy = y->vector.bit_offset;
     for (i = 0;  i < x->vector.fillp;  i++)
-      if ((mkcl_bit_bundle(x->vector.self.bit, i+ox) & mkcl_bundle_bit_mask(i+ox))
-	  !=(mkcl_bit_bundle(y->vector.self.bit, i+oy) & mkcl_bundle_bit_mask(i+oy)))
-	return(FALSE);
+      {
+        const mkcl_byte x_bit = (mkcl_bit_bundle(x->vector.self.bit, i+ox) & mkcl_bundle_bit_mask(i+ox));
+        const mkcl_byte y_bit = (mkcl_bit_bundle(y->vector.self.bit, i+oy) & mkcl_bundle_bit_mask(i+oy));
+
+        if ((x_bit != 0) != (y_bit != 0))
+          return(FALSE);
+      }
     return(TRUE);
   }
   case mkcl_t_pathname:
