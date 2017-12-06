@@ -1038,11 +1038,14 @@ mk_cl_array_dimension(MKCL, mkcl_object a, mkcl_object axis_number)
   switch (mkcl_type_of(a))
     {
     case mkcl_t_array:
-      {
-	mkcl_index i = mkcl_fixnum_in_range(env, @'array-dimension', "axis-number",
-                                            axis_number, 0, (a->array.rank - 1));
-	dim  = a->array.dims[i];
-      }
+      if (a->array.rank == 0)
+        mkcl_FEerror(env, "Array ~S, of rank 0, has no dimension", 1, a);
+      else
+        {
+          mkcl_index i = mkcl_fixnum_in_range(env, @'array-dimension', "axis-number",
+                                              axis_number, 0, (a->array.rank - 1));
+          dim  = a->array.dims[i];
+        }
       break;
     case mkcl_t_string:
       mkcl_fixnum_in_range(env, @'array-dimension', "axis-number", axis_number, 0, 0);
