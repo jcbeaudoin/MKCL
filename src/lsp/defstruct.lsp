@@ -362,11 +362,11 @@ as a STRUCTURE doc and can be retrieved by (documentation 'NAME 'structure)."
         (conc-name (concatenate-base-strings (string name) "-"))
 	(default-constructor (intern (concatenate-base-strings "MAKE-" (string name))))
 	(copier (intern (concatenate-base-strings "COPY-" (string name))))
-	(predicate (intern (concatenate-base-strings (string name) "-P")))
+	predicate predicate-specified
         constructors no-constructor
-        predicate-specified
         include
-        print-function print-object type named initial-offset
+        print-function print-object
+        type named initial-offset
         offset name-offset
         documentation)
 
@@ -388,6 +388,8 @@ as a STRUCTURE doc and can be retrieved by (documentation 'NAME 'structure)."
                         (setq constructors (cons (cdar os) constructors)))))
                (:COPIER (setq copier v))
                (:PREDICATE
+                (unless (symbolp v)
+                  (error "~S must be a symbol to be a valid value for defstruct option :PREDICATE" v))
                 (setq predicate v)
                 (setq predicate-specified t))
                (:INCLUDE
@@ -487,10 +489,14 @@ as a STRUCTURE doc and can be retrieved by (documentation 'NAME 'structure)."
            (setq constructors (list default-constructor))))
 
     ;; Check the named option and set the predicate.
-    (when (and type (not named))
-      (when predicate-specified
-	(error "~S is an illegal structure predicate." predicate))
-      (setq predicate nil))
+    (if (and type (not named))
+        (progn
+;;        (when predicate-specified
+          (unless (or (not predicate-specified) (null predicate))
+            (error "~S is an illegal structure predicate." predicate))
+          (setq predicate nil))
+      (unless predicate-specified
+        (setq predicate (intern (concatenate-base-strings (string name) "-P")))))
 
     (when include (setq include (car include)))
 
@@ -506,8 +512,7 @@ as a STRUCTURE doc and can be retrieved by (documentation 'NAME 'structure)."
 		   ',(copy-list si:*source-location*)
 		   ))
 	  (constructors (mapcar #'(lambda (constructor)
-				    (make-constructor name constructor type named
-						      slot-descriptions))
+				    (make-constructor name constructor type named slot-descriptions))
 				constructors)))
       `(progn
          (define-when (:compile-toplevel :load-toplevel :execute)
@@ -517,3 +522,4 @@ as a STRUCTURE doc and can be retrieved by (documentation 'NAME 'structure)."
            ,@constructors)
 	 ',name)
       )))
+
