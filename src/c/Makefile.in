@@ -77,9 +77,12 @@ OBJS	= main.o symbol.o package.o list.o \
 DCFILES = $(OBJS:%.o=%.c)
 
 .SUFFIXES: .c .o .d
-.PHONY: all
+.PHONY: all all2
 
-all: ../mkclmin.a ../mkcltop.a all_symbols.o all_symbols2.o cinit.o
+all:
+	$(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile all2
+
+all2: ../mkclmin.a ../mkcltop.a all_symbols.o all_symbols2.o cinit.o
 
 .c.s:
 	$(CC) $(CFLAGS) -S -o $@ -c $<
@@ -135,7 +138,8 @@ symbols_list2.h: symbols_list.h
 	cpp -DDPP -DMKCL_FINAL symbols_list.h | \
 	sed -e 's%{{\([A-Z ]*.*".*"\),[^,]*,[ ]*NULL,.*}}%{\1,NULL,-1}%g' \
 	    -e 's%{{\([A-Z ]*.*".*"\),[^,]*,[ ]*\([^,]*\),[ ]*\([^,]*\),.*}}%{\1,"\2",\3}%g' \
-	    -e 's%{{NULL.*%{NULL,NULL,-1}};%' > $@
+	    -e 's%{{NULL.*%{NULL,NULL,-1}};%' > $@-$$$$; \
+	mv $@-$$$$ $@ # We do this here to assure the "atomic" creation of symbols_list2.h.
 
 $(OBJS): $(DPP)
 
@@ -178,8 +182,9 @@ makefile.depend: $(DCFILES) cinit.c all_symbols.c ../mkcl/mkcl.h $(MKCL_HFILES)
 
 
 GNUmakefile: Makefile makefile.depend
-	cat Makefile makefile.depend > .GNUmakefile
-	mv .GNUmakefile GNUmakefile # We do this here to assure the "atomic" creation of GNUmakefile.
+	file=.GNUmakefile-$$$$; cat Makefile makefile.depend > $$file; \
+	mv $$file GNUmakefile # We do this here to assure the "atomic" creation of GNUmakefile.
+
 
 
 
