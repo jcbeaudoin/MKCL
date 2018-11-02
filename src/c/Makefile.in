@@ -116,10 +116,11 @@ ffi_x86_64_w64.c: arch/ffi_x86_64_w64.d $(DPP)
 	$(RANLIB) $@
 
 clean:
-	$(RM) $(DPP) $(DCFILES) $(OBJS) symbols_list2.h all_symbols.c all_symbols.o all_symbols2.o cinit.c cinit.o core core.* a.out
-	$(RM) GNUmakefile makefile.depend
+	$(RM) $(OBJS) all_symbols.o all_symbols2.o cinit.o core core.* a.out
 
 distclean: clean
+	$(RM) $(DPP) $(DCFILES) symbols_list2.h all_symbols.c cinit.c
+	$(RM) GNUmakefile makefile.depend
 	$(RM) Makefile
 
 realclean: distclean
@@ -128,7 +129,7 @@ realclean: distclean
 # Build rules
 
 $(DPP): dpp.c symbols_list2.h
-	$(TRUE_CC) -O2 -I../ dpp.c  -o $@
+	$(TRUE_CC) -O2 dpp.c  -o $@
 
 symbols_list2.h: symbols_list.h
 	cpp -DDPP -DMKCL_FINAL symbols_list.h | \
@@ -152,7 +153,7 @@ ffi_x86.o: ffi_x86.c
 all_symbols.o: all_symbols.c
 	$(CC) $(CFLAGS) -c all_symbols.c -o $@
 
-all_symbols2.o: all_symbols.o
+all_symbols2.o: all_symbols.c
 	$(CC) $(CFLAGS) -DMKCL_FINAL -c all_symbols.c -o $@
 
 cinit.o: cinit.c
@@ -177,7 +178,8 @@ makefile.depend: $(DCFILES) cinit.c all_symbols.c ../mkcl/mkcl.h $(MKCL_HFILES)
 
 
 GNUmakefile: Makefile makefile.depend
-	cat Makefile makefile.depend > GNUmakefile
+	cat Makefile makefile.depend > .GNUmakefile
+	mv .GNUmakefile GNUmakefile # We do this here to assure the "atomic" creation of GNUmakefile.
 
 
 

@@ -101,7 +101,7 @@ BUILTINS = asdf profile rt serve-event SOCKETS mk-unix
 MKCL_STATIC_PARTS = mkcltop.@LIBEXT@ lsp.a mkclmin.@LIBEXT@
 
 
-all: depend bin/mkcc$(EXE) bin/mkcl-config $(TARGETS) $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) help.doc
+all: bin/mkcc$(EXE) bin/mkcl-config $(TARGETS) $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) help.doc
 .PHONY:	all
 
 Makefile: Makefile.in config.status
@@ -277,10 +277,13 @@ mkcl_min$(EXE): $(LIBRARIES) mkclmin.@LIBEXT@ c/cinit.o c/all_symbols.o .gdbinit
 	cp util/gdbinit $@
 
 c/cinit.o: c/GNUmakefile c/cinit.d mkcl/mkcl.h
-	cd c; $(MAKE) cinit.o
+	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile cinit.o
 
 c/all_symbols.o: c/GNUmakefile c/all_symbols.d c/symbols_list.h c/symbols_list2.h mkcl/mkcl.h
-	cd c; $(MAKE) all_symbols.o
+	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile all_symbols.o
+
+c/all_symbols2.o: c/GNUmakefile c/all_symbols.d c/symbols_list.h c/symbols_list2.h mkcl/mkcl.h
+	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile all_symbols2.o
 
 lsp/config.lsp: lsp/config.pre
 	sed -e 's,@mkcldir\\@,$(mkcldir),g' < lsp/config.pre > lsp/config.lsp
@@ -351,10 +354,10 @@ libmkcc1.a: ../contrib/tinycc/libmkcc1.a
 	cd ../contrib/tinycc; $(MAKE) libmkcc1.a
 
 mkclmin.@LIBEXT@: c/GNUmakefile mkcl/mkcl.h $(MKCL_HFILES) c/*.d c/arch/*.d c/*.h
-	cd c; $(MAKE) ../mkclmin.@LIBEXT@
+	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile ../mkclmin.@LIBEXT@
 
-mkcltop.@LIBEXT@: c/GNUmakefile c/all_symbols.o
-	cd c; $(MAKE) ../mkcltop.@LIBEXT@
+mkcltop.@LIBEXT@: c/GNUmakefile c/all_symbols2.o
+	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile ../mkcltop.@LIBEXT@
 
 gc/.libs/@LIBPREFIX@gc.@LIBEXT@: gc/*.c gc/include/*.h gc/include/*/*.h
 	cd gc; $(MAKE)
@@ -543,7 +546,7 @@ doc: $(TARGETS)
 
 clean: clean_lisp clean_contribs
 	cd c; $(MAKE) clean
-	$(RM) depend compile.lsp bin/mkcc$(EXE) bin/mkcl-config BUILD-STAMP lsp/git_describe.lsp
+	$(RM) compile.lsp bin/mkcc$(EXE) bin/mkcl-config BUILD-STAMP lsp/git_describe.lsp
 	$(RM) mkcl_min$(EXE) bin/mkcl$(EXE) bin/mkcl-dyn bin/mkcl-small$(EXE) bin/mkcl-full$(EXE)
 	$(RM) MKCLINIT* bin/MKCLINIT*
 	$(RM) MKC*.c MKC*.tmp bin/MKC*.c bin/MKC*.tmp
@@ -595,9 +598,6 @@ TAGS: lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre c/*.d c/*.h 
 	else touch TAGS; fi
 
 
-
-depend: c/makefile.depend
-	touch depend
 
 c/makefile.depend: c/Makefile.in c/*.d c/*.h c/arch/*.d mkcl/mkcl.h $(MKCL_HFILES)
 	cd c; $(MAKE) makefile.depend
