@@ -150,10 +150,10 @@ ffi_x86.o: ffi_x86.c
 #
 # These files are interrelated
 #
-all_symbols.o: all_symbols.c
+all_symbols.o: all_symbols.c symbols_list.h symbols_list2.h ../mkcl/mkcl.h
 	$(CC) $(CFLAGS) -c all_symbols.c -o $@
 
-all_symbols2.o: all_symbols.c
+all_symbols2.o: all_symbols.c symbols_list.h symbols_list2.h ../mkcl/mkcl.h
 	$(CC) $(CFLAGS) -DMKCL_FINAL -c all_symbols.c -o $@
 
 cinit.o: cinit.c
