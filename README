@@ -6,9 +6,11 @@ MKCL
 
   On a relatively fresh Linux this should do:
 
-  cd mkcl
-  ./configure
-  make
+#+BEGIN_SRC
+    cd mkcl
+    ./configure
+    make
+#+END_SRC
 
 ** Dependencies
 
@@ -17,14 +19,18 @@ MKCL
 
   On Debian based systems you can install it using:
 
-  sudo apt-get install libgmp-dev
+#+BEGIN_SRC
+    sudo apt-get install libgmp-dev
+#+END_SRC
 
 * Installing
 
   You can "install" MKCL locally into the source directory by:
 
-  cd mkcl/src
-  make install-local
+#+BEGIN_SRC
+    cd mkcl/src
+    make install-local
+#+END_SRC
 
   Once it's done you can use the ./mkcl/src/bin/mkcl executable to
   start MKCL, either directly or through a symlink. You may want to
