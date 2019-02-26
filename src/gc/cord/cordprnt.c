@@ -85,6 +85,8 @@ static int extract_conv_spec(CORD_pos source, char *buf,
                 /* Zero fill flag; ignore */
                 break;
             } /* otherwise fall through: */
+            else goto fall_through0;
+        fall_through0:
           case '1':
           case '2':
           case '3':
