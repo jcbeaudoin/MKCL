@@ -500,12 +500,12 @@ mk_cl_char_name(MKCL, mkcl_object c)
         output =  mkcl_gethash_safe(env, MKCL_MAKE_FIXNUM(code), ext_names, mk_cl_Cnil);
       if (mkcl_Null(output))
         {
-          char name[20];
+          char name[20] = { 0 };
 
           if (/* (code >= 0) && */ (code < 0x010000)) /* Are we confined to 16 bits? */
-            sprintf(name, "U%04x", code);
+            snprintf(name, sizeof(name), "U%04x", code);
           else
-            sprintf(name, "U%06x", code);
+            snprintf(name, sizeof(name), "U%06x", code);
           output = mkcl_make_base_string_copy(env, name);
         }
     }

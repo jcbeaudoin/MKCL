@@ -280,8 +280,8 @@ write_base(MKCL, int base, mkcl_object stream)
 
 /* Maximum number of significant digits required to represent accurately
  * a double or single float. */
-
 #define TIMES_LOG10_2(val) (((val)*3)/10)  /* an integral approximation good to 0.35% as long as there is no overflow */
+
 #define DBL_SIG ((TIMES_LOG10_2(DBL_MANT_DIG) + 1))
 #define FLT_SIG ((TIMES_LOG10_2(FLT_MANT_DIG) + 1))
 
@@ -312,12 +312,14 @@ write_base(MKCL, int base, mkcl_object stream)
 #define LONG_G_EXP_STRING "Lg"
 
 #define EXP_STRING "e"
+
 #define G_EXP_STRING "g"
 #define DBL_TYPE double
 
 static int edit_long_double(MKCL, int n, long double d, int *sp, char *s, int *ep)
 {
-  char *exponent, buff[LDBL_SIZE + 1];
+  char *exponent;
+  char buff[512] = { 0 };
   int length;
 
   if (isnan(d) || !isfinite(d))
@@ -336,25 +338,25 @@ static int edit_long_double(MKCL, int n, long double d, int *sp, char *s, int *e
     long double aux;
     n = -n;
     do {
-      sprintf(buff, "%- *.*" LONG_EXP_STRING,
-	      n + 1 + 1 + LDBL_EXPONENT_SIZE, n-1, d);
+      snprintf(buff, sizeof(buff), "%- *.*" LONG_EXP_STRING,
+               n + 1 + 1 + LDBL_EXPONENT_SIZE, n-1, d);
       errno = 0;
       aux = strtold(buff, NULL);
       if ( errno == ERANGE )
 	{
 	  char msg_pattern[] = "underflow or overflow: "
 	                       "strtold in edit_long_double on: %s";
-	  char msg[sizeof(buff) + sizeof(msg_pattern) + 16];
+	  char msg[sizeof(buff) + sizeof(msg_pattern) + 16] = { 0 };
 	  
-	  sprintf(msg, msg_pattern, buff);
+	  snprintf(msg, sizeof(msg), msg_pattern, buff);
 	  mkcl_C_lose(env, msg);
 	}
       n++;
     } while (d != aux && n <= LDBL_MAX_DIGITS);
     n--;
   } else {
-    sprintf(buff, "%- *.*" LONG_EXP_STRING, LDBL_SIZE,
-	    (n <= LDBL_MAX_DIGITS)? (n-1) : (LDBL_MAX_DIGITS-1), d);
+    snprintf(buff, sizeof(buff), "%- *.*" LONG_EXP_STRING, LDBL_SIZE,
+             (n <= LDBL_MAX_DIGITS)? (n-1) : (LDBL_MAX_DIGITS-1), d);
   }
   exponent = strchr(buff, 'e');
 
@@ -387,7 +389,8 @@ static int edit_long_double(MKCL, int n, long double d, int *sp, char *s, int *e
 
 static int edit_double(MKCL, int n, double d, int *sp, char *s, int *ep)
 {
-  char *exponent, buff[DBL_SIZE + 1];
+  char *exponent;
+  char buff[512] = { 0 };
   int length;
 
   if (isnan(d) || !isfinite(d))
@@ -406,24 +409,24 @@ static int edit_double(MKCL, int n, double d, int *sp, char *s, int *ep)
     double aux = 0;
     n = -n + 1;
     do {
-      sprintf(buff, "%- *.*" EXP_STRING, n + 1 + 1 + DBL_EXPONENT_SIZE, n-1, d);
+      snprintf(buff, sizeof(buff), "%- *.*" EXP_STRING, n + 1 + 1 + DBL_EXPONENT_SIZE, n-1, d);
       errno = 0;
       aux = strtod(buff, NULL);
       if ( errno == ERANGE )
 	{
 	  char msg_pattern[] = "underflow or overflow: "
 	                       "strtod in edit_double on: %s";
-	  char msg[sizeof(buff) + sizeof(msg_pattern) + 16];
+	  char msg[sizeof(buff) + sizeof(msg_pattern) + 16] = { 0 };
 	  
-	  sprintf(msg, msg_pattern, buff);
+	  snprintf(msg, sizeof(msg), msg_pattern, buff);
 	  mkcl_C_lose(env, msg);
 	}
       n++;
     } while (d != aux && n <= DBL_MAX_DIGITS);
     n--;
   } else {
-    sprintf(buff, "%- *.*" EXP_STRING, DBL_SIZE,
-	    (n <= DBL_MAX_DIGITS)? (n-1) : (DBL_MAX_DIGITS-1), d);
+    snprintf(buff, sizeof(buff), "%- *.*" EXP_STRING, DBL_SIZE,
+             (n <= DBL_MAX_DIGITS)? (n-1) : (DBL_MAX_DIGITS-1), d);
   }
   exponent = strchr(buff, 'e');
 
@@ -514,14 +517,14 @@ write_long_double(MKCL, long double d, mkcl_character e, int n, mkcl_object stre
       }
       write_str(env, buff+1, stream);
     } else {
-      char buff[LDBL_MANTISSA_SIZE + 1];
+      char buff[512] = { 0 };
       int i;
       long double aux;
       /* Print in fixed point notation with enough number of
        * digits to preserve all information when reading again
        */
       do {
-	sprintf(buff, "%0*.*" LONG_G_EXP_STRING, LDBL_MANTISSA_SIZE, n, d);
+	snprintf(buff, sizeof(buff), "%0*.*" LONG_G_EXP_STRING, LDBL_MANTISSA_SIZE, n, d);
 	aux = strtod(buff, NULL);
 
 	if (n < LDBL_SIG) aux = (double)aux; /* What is the use of this? JCB */
@@ -621,15 +624,20 @@ write_double(MKCL, double d, mkcl_character e, int n, mkcl_object stream, mkcl_o
       }
       write_str(env, buff+1, stream);
     } else {
-      char buff[DBL_MANTISSA_SIZE + 1];
+#if 0
+      char buff[DBL_MANTISSA_SIZE + 1] = { 0 };
+      char buff[512] = { 0 };
+#else
+      char buff[512] = { 0 };
+#endif
       int i;
       double aux;
       /* Print in fixed point notation with enough number of
        * digits to preserve all information when reading again
        */
       do {
-	sprintf(buff, "%0*.*" G_EXP_STRING, DBL_MANTISSA_SIZE, n, d);
-	aux = strtod(buff, NULL);
+	snprintf(buff, sizeof(buff), "%0*.*" G_EXP_STRING, DBL_MANTISSA_SIZE, n, d);
+        aux = strtod(buff, NULL);
 	if (n < DBL_SIG) aux = (float)aux; /* What is the use of this? JCB */
 
 	n++;
@@ -926,13 +934,13 @@ write_character(MKCL, mkcl_character i, mkcl_object stream)
             char name[20] = { '\0' };
 	
             if (i < 0) /* invalid negative code point character? */
-              sprintf(name, "U-????"); 
+              snprintf(name, sizeof(name), "U-????"); 
             else if (i < 0x010000) /* Are we confined to 16 bits? */
-              sprintf(name, "U%04x", i);
+              snprintf(name, sizeof(name), "U%04x", i);
             else if (i < 0x0110000) /* valid Unicode character? */
-              sprintf(name, "U%06x", i);
+              snprintf(name, sizeof(name), "U%06x", i);
             else
-              sprintf(name, "U+????"); /* character is above valid Unicode range. */
+              snprintf(name, sizeof(name), "U+????"); /* character is above valid Unicode range. */
             while(name[index])
               mkcl_write_char(env, name[index++], stream);
           }
@@ -1656,12 +1664,12 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
     mkcl_write_char(env, ')', stream);
     mkcl_write_char(env, ' ', stream);
     {
-      char buf[20];
+      char buf[20] = { 0 };
 
 #if MKCL_WINDOWS || __FreeBSD__
-      sprintf(buf, "0x%p", x->thread.thread);
+      snprintf(buf, sizeof(buf), "0x%p", x->thread.thread);
 #else
-      sprintf(buf, "0x%lx", x->thread.thread);
+      snprintf(buf, sizeof(buf), "0x%lx", x->thread.thread);
 #endif
       write_str(env, buf, stream);
     }

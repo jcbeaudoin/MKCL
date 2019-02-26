@@ -1227,6 +1227,7 @@ static mkcl_object
 list_directory(MKCL, struct OSpath * wd_path, mkcl_object mask, bool only_dir)
 {
   mkcl_object out = mk_cl_Cnil;
+#if 0
 #if HAVE_DIRENT_H
   union {
     struct dirent dirent; /* struct dirent may be an incomplete type with a flexible array member at its end. */
@@ -1235,6 +1236,7 @@ list_directory(MKCL, struct OSpath * wd_path, mkcl_object mask, bool only_dir)
   struct dirent * dirent_buffer = &dirent_entry_obj.dirent;
 #else
 #error Missing struct dirent object allocation.
+#endif
 #endif
   struct dirent * entry;
   DIR *dir;
@@ -1259,7 +1261,13 @@ list_directory(MKCL, struct OSpath * wd_path, mkcl_object mask, bool only_dir)
   }
 
 
+#if 0
   MKCL_LIBC_NO_INTR(env, rc = readdir_r(dir, dirent_buffer, &entry));
+#else
+  errno = 0;
+  MKCL_LIBC_NO_INTR(env, entry = readdir(dir));
+  rc = errno;
+#endif
   while (rc == 0 && entry) {
     char * entry_text = entry->d_name;
 
@@ -1287,7 +1295,13 @@ list_directory(MKCL, struct OSpath * wd_path, mkcl_object mask, bool only_dir)
     out = mkcl_cons(env, mkcl_cstring_copy_to_OSstring(env, entry_text), out);
 
   CONTINUE_WITH_NEXT_ENTRY:
+#if 0
     MKCL_LIBC_NO_INTR(env, rc = readdir_r(dir, dirent_buffer, &entry));
+#else
+    errno = 0;
+    MKCL_LIBC_NO_INTR(env, entry = readdir(dir));
+    rc = errno;
+#endif
   }
   if (rc != 0)
     mkcl_FElibc_file_error(env, wd_path->pathname, "list_directory failed on readdir_r", 0);

@@ -507,12 +507,12 @@ static void
 install_lisp_signal_handler(MKCL, int signum, mkcl_object func_designator)
 {
   /* Create the signal servicing thread */
-  char sig_thread_name[128];
+  char sig_thread_name[128] = { 0 };
 
   if (signum <= MKCL_BASE_SIGMAX)
-    sprintf(sig_thread_name, "%s handling daemon", signal_names[signum]);
+    snprintf(sig_thread_name, sizeof(sig_thread_name), "%s handling daemon", signal_names[signum]);
   else
-    sprintf(sig_thread_name, "SIG%d handling daemon", signum);
+    snprintf(sig_thread_name, sizeof(sig_thread_name), "SIG%d handling daemon", signum);
 
 
   mkcl_create_signal_servicing_thread(env, sig_thread_name, signum, func_designator);
@@ -754,7 +754,7 @@ void mkcl_sigsegv_handler(int sig, siginfo_t *info, void *aux)
 	else
 #endif
 	  {
-	    char address_cstr[24];
+	    char address_cstr[24] = { 0 };
 	    mkcl_object address_str;
 
 	    switch (info->si_code)
@@ -764,7 +764,7 @@ void mkcl_sigsegv_handler(int sig, siginfo_t *info, void *aux)
 	      case SEGV_MAPERR: /* Address not mapped to object.  */
 	      case SEGV_ACCERR: /* Invalid permissions for mapped object.  */
               normal:
-		sprintf(address_cstr, "%p", info->si_addr);
+		snprintf(address_cstr, sizeof(address_cstr), "%p", info->si_addr);
 		break;
 	      error:
 	      default:
@@ -778,7 +778,7 @@ void mkcl_sigsegv_handler(int sig, siginfo_t *info, void *aux)
 		if (info->si_code == SI_KERNEL) sig_print(" (SI_KERNEL)");
 		sig_print(".\n");
 #endif
-		sprintf(address_cstr, "invalid address");
+		snprintf(address_cstr, sizeof(address_cstr), "invalid address");
 		break;
 	      }
 	    address_str =  mkcl_make_base_string_copy(env, address_cstr);
@@ -820,7 +820,7 @@ void mkcl_sigbus_handler(int sig, siginfo_t *info, void *aux)
       }
 
       {
-	char address_cstr[24];
+	char address_cstr[24] = { 0 };
 	mkcl_object address_str;
 	    
 	switch (info->si_code)
@@ -828,7 +828,7 @@ void mkcl_sigbus_handler(int sig, siginfo_t *info, void *aux)
 	  case BUS_ADRALN: /* Invalid address alignment.  */
 	  case BUS_ADRERR: /* Non-existant physical address.  */
 	  case BUS_OBJERR: /* Object specific hardware error.  */
-	    sprintf(address_cstr, "%p", info->si_addr);
+	    snprintf(address_cstr, sizeof(address_cstr), "%p", info->si_addr);
 	    break;
 	  default:
 #ifdef DEBUG_SIGNALS
@@ -840,7 +840,7 @@ void mkcl_sigbus_handler(int sig, siginfo_t *info, void *aux)
 	    sig_print(ltoad(info->si_code, address_cstr));
 	    sig_print(".\n");
 #endif
-	    sprintf(address_cstr, "invalid address");
+	    snprintf(address_cstr, sizeof(address_cstr), "invalid address");
 	    break;
 	  }
 	address_str = mkcl_make_base_string_copy(env, address_cstr);
@@ -1096,10 +1096,10 @@ static LONG handle_fpe(EXCEPTION_POINTERS* ep)
 static LONG handle_access_violation(EXCEPTION_POINTERS* ep)
 {
   const mkcl_env env = MKCL_ENV();
-  char address_cstr[24];
+  char address_cstr[24] = { 0 };
   mkcl_object address_str;
 
-  sprintf(address_cstr, "%p", (void *) ep->ExceptionRecord->ExceptionInformation[1]);
+  snprintf(address_cstr, sizeof(address_cstr), "%p", (void *) ep->ExceptionRecord->ExceptionInformation[1]);
   address_str =  mkcl_make_base_string_copy(env, address_cstr);
 
   mk_cl_error(env, 3, @'mkcl::segmentation-violation', @':address', address_str);
@@ -2303,9 +2303,9 @@ mkcl_sigsegv_monitor(int sig, siginfo_t *info, void *aux)
     maybe_lose("MKCL: mkcl_sigsegv_monitor called outside a lisp thread!");
 
   {
-    char address_cstr[24];
+    char address_cstr[24] = { 0 };
 
-    sprintf(address_cstr, "%p", info->si_addr);
+    snprintf(address_cstr, sizeof(address_cstr), "%p", info->si_addr);
     sig_print("\nMKCL: SIGSEGV monitor invoked on address: ");
     sig_print(address_cstr);
     sig_print("\n");

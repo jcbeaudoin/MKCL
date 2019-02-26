@@ -48,9 +48,10 @@ char * mkcl_handle_debug_name(MKCL, char * prefix)
   static unsigned long count = 0;
   static const char * const format = "MKCL(%lu): %s %lu";
   DWORD pid = GetCurrentProcessId();
-  char * name = mkcl_alloc_atomic(env, sizeof(format) + 12 + strlen(prefix) + 12);
+  const int sizeof_name = sizeof(format) + 12 + strlen(prefix) + 12;
+  char * name = mkcl_alloc_atomic(env, sizeof_name);
 
-  sprintf(name, format, pid, prefix, count++);
+  snprintf(name, sizeof_name, format, pid, prefix, count++);
   return name;
 }
 #endif
