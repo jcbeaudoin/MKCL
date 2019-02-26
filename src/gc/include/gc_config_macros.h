@@ -264,6 +264,9 @@
 #ifndef MK_GC_ATTR_NONNULL
 # if defined(__GNUC__) && __GNUC__ >= 4
 #   define MK_GC_ATTR_NONNULL(argnum) __attribute__((__nonnull__(argnum)))
+#   if __GNUC__ >= 7
+#     define MK_GC_ATTR_NONNULL_ENFORCED 1
+#   endif
 # else
 #   define MK_GC_ATTR_NONNULL(argnum) /* empty */
 # endif

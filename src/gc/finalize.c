@@ -211,7 +211,11 @@ STATIC int MK_GC_register_disappearing_link_inner(
 MK_GC_API int MK_GC_CALL MK_GC_general_register_disappearing_link(void * * link,
                                                          const void * obj)
 {
-    if (((word)link & (ALIGNMENT-1)) != 0 || NULL == link)
+    if (((word)link & (ALIGNMENT-1)) != 0
+#ifndef MK_GC_ATTR_NONNULL_ENFORCED
+        || NULL == link
+#endif
+        )
         ABORT("Bad arg to MK_GC_general_register_disappearing_link");
     return MK_GC_register_disappearing_link_inner(&MK_GC_dl_hashtbl, link, obj);
 }
@@ -266,7 +270,11 @@ MK_GC_API int MK_GC_CALL MK_GC_unregister_disappearing_link(void * * link)
 #ifndef MK_GC_LONG_REFS_NOT_NEEDED
   MK_GC_API int MK_GC_CALL MK_GC_register_long_link(void * * link, const void * obj)
   {
-    if (((word)link & (ALIGNMENT-1)) != 0 || NULL == link)
+    if (((word)link & (ALIGNMENT-1)) != 0
+#ifndef MK_GC_ATTR_NONNULL_ENFORCED
+        || NULL == link
+#endif
+        )
         ABORT("Bad arg to MK_GC_register_long_link");
     return MK_GC_register_disappearing_link_inner(&MK_GC_ll_hashtbl, link, obj);
   }
@@ -345,7 +353,11 @@ MK_GC_API int MK_GC_CALL MK_GC_unregister_disappearing_link(void * * link)
     int result;
     DCL_LOCK_STATE;
 
-    if (((word)new_link & (ALIGNMENT-1)) != 0 || new_link == NULL)
+    if (((word)new_link & (ALIGNMENT-1)) != 0
+#ifndef MK_GC_ATTR_NONNULL_ENFORCED
+        || new_link == NULL
+#endif
+        )
       ABORT("Bad new_link arg to MK_GC_move_disappearing_link");
     if (((word)link & (ALIGNMENT-1)) != 0)
       return MK_GC_NOT_FOUND; /* Nothing to do. */
@@ -362,7 +374,11 @@ MK_GC_API int MK_GC_CALL MK_GC_unregister_disappearing_link(void * * link)
       int result;
       DCL_LOCK_STATE;
 
-      if (((word)new_link & (ALIGNMENT-1)) != 0 || new_link == NULL)
+      if (((word)new_link & (ALIGNMENT-1)) != 0
+#ifndef MK_GC_ATTR_NONNULL_ENFORCED
+          || new_link == NULL
+#endif
+          )
         ABORT("Bad new_link arg to MK_GC_move_disappearing_link");
       if (((word)link & (ALIGNMENT-1)) != 0)
         return MK_GC_NOT_FOUND; /* Nothing to do. */
