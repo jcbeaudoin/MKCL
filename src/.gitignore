@@ -23,7 +23,6 @@ mkcl-cov-build*
 receipe_for_GC
 depend
 encodings/
-#include/
 lib/
 .gdbinit
 lsp/git_describe.lsp
