@@ -4,7 +4,7 @@
 
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
-;;;;  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2017, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    ECoLisp is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public

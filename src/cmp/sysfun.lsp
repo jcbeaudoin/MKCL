@@ -2,7 +2,7 @@
 ;;;;
 ;;;  CMPSYSFUN   Database for system functions.
 ;;;
-;;;  Copyright (c) 2010-2015, Jean-Claude Beaudoin.
+;;;  Copyright (c) 2010-2017, Jean-Claude Beaudoin.
 ;;;  Copyright (c) 2003, Juan Jose Garcia Ripoll.
 ;;;  Copyright (c) 1991, Giuseppe Attardi. All rights reserved.
 ;;;
