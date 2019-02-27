@@ -1001,6 +1001,7 @@ ST_FUNC void restore_parse_state(ParseState *s)
     tokc = s->tokc;
 }
 
+#if 0
 /* return the number of additional 'ints' necessary to store the
    token */
 static inline int tok_size(const int *p)
@@ -1029,6 +1030,7 @@ static inline int tok_size(const int *p)
         return 1 + 0;
     }
 }
+#endif
 
 /* token string handling */
 
