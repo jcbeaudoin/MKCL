@@ -2591,7 +2591,7 @@ maybe_newline:
         } else {
             /* slower case */
             cstr_reset(&tokcstr);
-            cstr_cat(&tokcstr, p1, len);
+            cstr_cat(&tokcstr, (char *) p1, len);
             p--;
             PEEKC(c, p);
         parse_ident_slow:
@@ -3710,7 +3710,7 @@ ST_FUNC int mkcc_preprocess(MKCCState *s1)
     /* Credits to Fabrice Bellard's initial revision to demonstrate its
        capability to compile and run itself, provided all numbers are
        given as decimals. mkcc -E -P10 will do. */
-    if (s1->Pflag == 1 + 10)
+    if (((int) s1->Pflag) == 1 + 10)
         parse_flags |= PARSE_FLAG_TOK_NUM, s1->Pflag = 1;
 
 #ifdef PP_BENCH

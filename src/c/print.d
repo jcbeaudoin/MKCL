@@ -933,9 +933,7 @@ write_character(MKCL, mkcl_character i, mkcl_object stream)
             int  index = 0;
             char name[20] = { '\0' };
 	
-            if (i < 0) /* invalid negative code point character? */
-              snprintf(name, sizeof(name), "U-????"); 
-            else if (i < 0x010000) /* Are we confined to 16 bits? */
+            if (i < 0x010000) /* Are we confined to 16 bits? */
               snprintf(name, sizeof(name), "U%04x", i);
             else if (i < 0x0110000) /* valid Unicode character? */
               snprintf(name, sizeof(name), "U%06x", i);

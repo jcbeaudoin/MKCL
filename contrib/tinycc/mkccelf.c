@@ -2181,11 +2181,11 @@ static int layout_sections(MKCCState *s1, ElfW(Phdr) *phdr, int phnum,
                     /* update dynamic relocation infos */
                     if (s->sh_type == SHT_RELX) {
 #if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
-                        if (!strcmp(strsec->data + s->sh_name, ".rel.got")) {
+                      if (!strcmp(((char *) (strsec->data + s->sh_name)), ".rel.got")) {
                             dyninf->rel_addr = addr;
                             dyninf->rel_size += s->sh_size; /* XXX only first rel. */
                         }
-                        if (!strcmp(strsec->data + s->sh_name, ".rel.bss")) {
+                      if (!strcmp(((char *) (strsec->data + s->sh_name)), ".rel.bss")) {
                             dyninf->bss_addr = addr;
                             dyninf->bss_size = s->sh_size; /* XXX only first rel. */
                         }
