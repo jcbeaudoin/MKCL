@@ -1141,6 +1141,8 @@ LIBMKCCAPI MKCCState *mkcc_new(void)
 # endif
 # if defined(__FreeBSD__)
     mkcc_define_symbol(s, "__FreeBSD__", "__FreeBSD__");
+    /* No 'Thread Storage Local' on FreeBSD with tcc */
+    mkcc_define_symbol(s, "__NO_TLS", NULL);
 # endif
 # if defined(__FreeBSD_kernel__)
     mkcc_define_symbol(s, "__FreeBSD_kernel__", NULL);
@@ -1176,11 +1178,18 @@ LIBMKCCAPI MKCCState *mkcc_new(void)
     /* wint_t is unsigned int by default, but (signed) int on BSDs
        and unsigned short on windows.  Other OSes might have still
        other conventions, sigh.  */
-#if defined(__FreeBSD__) || defined (__FreeBSD_kernel__) || defined(__NetBSD__)
+# if defined(__FreeBSD__) || defined (__FreeBSD_kernel__) || defined(__NetBSD__)
     mkcc_define_symbol(s, "__WINT_TYPE__", "int");
-#else
+#  if defined(__FreeBSD__)
+    /* define __GNUC__ to have some usefull stuff from sys/cdefs.h
+       that are unconditionally used in FreeBSDs other system headers :/ */
+    mkcc_define_symbol(s, "__GNUC__", "2");
+    mkcc_define_symbol(s, "__GNUC_MINOR__", "7");
+    mkcc_define_symbol(s, "__builtin_alloca", "alloca");
+#  endif
+# else
     mkcc_define_symbol(s, "__WINT_TYPE__", "unsigned int");
-#endif
+# endif
 #endif
 
 #ifndef MKCC_TARGET_PE
