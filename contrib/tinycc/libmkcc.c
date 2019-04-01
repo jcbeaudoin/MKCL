@@ -1140,9 +1140,14 @@ LIBMKCCAPI MKCCState *mkcc_new(void)
     mkcc_define_symbol(s, "__linux", NULL);
 # endif
 # if defined(__FreeBSD__)
-    mkcc_define_symbol(s, "__FreeBSD__", "__FreeBSD__");
-    /* No 'Thread Storage Local' on FreeBSD with tcc */
-    mkcc_define_symbol(s, "__NO_TLS", NULL);
+    {
+      char buf[64] = { 0 };
+
+      snprintf(buf, sizeof(buf), "%d", __FreeBSD__);
+      mkcc_define_symbol(s, "__FreeBSD__", buf);
+      /* No 'Thread Storage Local' on FreeBSD with tcc */
+      mkcc_define_symbol(s, "__NO_TLS", NULL);
+    }
 # endif
 # if defined(__FreeBSD_kernel__)
     mkcc_define_symbol(s, "__FreeBSD_kernel__", NULL);
