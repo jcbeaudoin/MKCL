@@ -28,6 +28,7 @@ the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  
 */
 
+#include <stdarg.h>
 #include <stdint.h>
 
 #define W_TYPE_SIZE   32
@@ -651,21 +652,6 @@ extern void free(void*);
 extern void abort(void);
 # endif
 
-enum __va_arg_type {
-    __va_gen_reg, __va_float_reg, __va_stack
-};
-
-//This should be in sync with the declaration on our include/stdarg.h
-/* GCC compatible definition of va_list. */
-typedef struct {
-    unsigned int gp_offset;
-    unsigned int fp_offset;
-    union {
-        unsigned int overflow_offset;
-        char *overflow_arg_area;
-    };
-    char *reg_save_area;
-} __va_list_struct;
 
 #undef __mkcc_va_start
 #undef __mkcc_va_arg
@@ -686,20 +672,20 @@ void __mkcc_va_start(__va_list_struct *ap, void *fp)
 }
 
 void *__mkcc_va_arg(__va_list_struct *ap,
-               enum __va_arg_type arg_type,
+               enum __mkcc_va_arg_type arg_type,
                int size, int align)
 {
     size = (size + 7) & ~7;
     align = (align + 7) & ~7;
     switch (arg_type) {
-    case __va_gen_reg:
+    case __mkcc_va_gen_reg:
         if (ap->gp_offset + size <= 48) {
             ap->gp_offset += size;
             return ap->reg_save_area + ap->gp_offset - size;
         }
         goto use_overflow_area;
 
-    case __va_float_reg:
+    case __mkcc_va_float_reg:
         if (ap->fp_offset < 128 + 48) {
             ap->fp_offset += 16;
             return ap->reg_save_area + ap->fp_offset - 16;
@@ -707,7 +693,7 @@ void *__mkcc_va_arg(__va_list_struct *ap,
         size = 8;
         goto use_overflow_area;
 
-    case __va_stack:
+    case __mkcc_va_stack:
     use_overflow_area:
         ap->overflow_arg_area += size;
         ap->overflow_arg_area = (char*)((intptr_t)(ap->overflow_arg_area + align - 1) & -(intptr_t)align);

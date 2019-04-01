@@ -18,8 +18,11 @@ typedef struct {
 
 typedef __va_list_struct va_list[1];
 
+enum __mkcc_va_arg_type {
+    __mkcc_va_gen_reg, __mkcc_va_float_reg, __mkcc_va_stack
+};
 void __mkcc_va_start(__va_list_struct *ap, void *fp);
-void *__mkcc_va_arg(__va_list_struct *ap, int arg_type, int size, int align);
+void *__mkcc_va_arg(__va_list_struct *ap, enum __mkcc_va_arg_type arg_type, int size, int align);
 
 #define va_start(ap, last) __mkcc_va_start(ap, __builtin_frame_address(0))
 #define va_arg(ap, type)                                                \
@@ -70,6 +73,12 @@ typedef char *va_list;
 #define va_arg(ap,type) (ap += (sizeof(type)+3)&~3, *(type *)(ap - ((sizeof(type)+3)&~3)))
 #define va_copy(dest, src) (dest) = (src)
 #define va_end(ap)
+#endif
+
+#if __FreeBSD__ >= 12
+/* define this to work around a quirk (bug?) in /usr/include/sys/_types.h */
+#define __GNUCLIKE_BUILTIN_VARARGS 1
+typedef va_list __builtin_va_list;
 #endif
 
 /* fix a buggy dependency on GCC in libio.h */
