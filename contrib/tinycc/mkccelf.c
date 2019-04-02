@@ -3334,7 +3334,7 @@ static int ld_next(MKCCState *s1, char *name, int name_size)
        case 'x':
        case 'y':
        case 'z':
-    /* case 'A' ... 'z': */
+    /* case 'A' ... 'Z': */
     case 'A':
        case 'B':
        case 'C':
@@ -3438,11 +3438,18 @@ static int ld_add_file_list(MKCCState *s1, const char *cmd, int as_needed)
                 ret = -1;
                 goto lib_parse_error;
             }
-            pstrcpy(libname, sizeof libname, &filename[1]);
             if (s1->static_link) {
-                snprintf(filename, sizeof filename, "lib%s.a", libname);
+	      const char format[] = "lib%s.a";
+	      char buf[sizeof(filename) - sizeof(format)];
+	      pstrcpy(buf, sizeof buf, &filename[1]);
+	      snprintf(filename, sizeof filename, format, buf);
+	      pstrcpy(libname, sizeof libname, buf);
             } else {
-                snprintf(filename, sizeof filename, "lib%s.so", libname);
+	      const char format[] = "lib%s.so";
+	      char buf[sizeof(filename) - sizeof(format)];
+	      pstrcpy(buf, sizeof buf, &filename[1]);
+	      snprintf(filename, sizeof filename, format, buf);
+	      pstrcpy(libname, sizeof libname, buf);
             }
         } else if (t != LD_TOK_NAME) {
             mkcc_error_noabort("filename expected");

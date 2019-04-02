@@ -2284,22 +2284,17 @@ ST_FUNC int mkcc_parse_args1(MKCCState *s, int argc, char **argv)
             break;
         case MKCC_OPTION_iwithprefix:
             if (1) {
-                char buf[1024];
-                int buf_size = sizeof(buf)-1;
-                char *p = &buf[0];
+                char buf[1024] = "{B}/";
+                const size_t buf_remain_size = sizeof(buf) - sizeof("{B}/");
+                char * const p = &buf[sizeof("{B}/") - 1];
+                const size_t len = strlen(optarg);
 
-                char *sysroot = "{B}/";
-                int len = strlen(sysroot);
-                if (len > buf_size)
-                    len = buf_size;
-                strncpy(p, sysroot, len);
-                p += len;
-                buf_size -= len;
-
-                len = strlen(optarg);
-                if (len > buf_size)
-                    len = buf_size;
-                strncpy(p, optarg, len+1);
+                if (len < buf_remain_size)
+                  strcpy(p, optarg);
+                else {
+                  strncpy(p, optarg, buf_remain_size);
+                  p[buf_remain_size] = '\0';
+                }
                 mkcc_add_sysinclude_path(s, buf);
             }
             break;
