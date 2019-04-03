@@ -2998,18 +2998,35 @@ MK_GC_API MK_GC_push_other_roots_proc MK_GC_CALL MK_GC_get_push_other_roots(void
 # endif /* USE_WINALLOC */
 
 # if defined(MSWIN32)
+#if 0
     typedef LPTOP_LEVEL_EXCEPTION_FILTER SIG_HNDLR_PTR;
 #   undef SIG_DFL
 #   define SIG_DFL (LPTOP_LEVEL_EXCEPTION_FILTER)((signed_word)-1)
+#else
+    typedef LPTOP_LEVEL_EXCEPTION_FILTER EXCEPTION_HANDLER_PTR;
+    EXCEPTION_HANDLER_PTR MK_GC_old_exception_handler = NULL;
+#endif
 # elif defined(MSWINCE)
+#if 0
     typedef LONG (WINAPI *SIG_HNDLR_PTR)(struct _EXCEPTION_POINTERS *);
 #   undef SIG_DFL
 #   define SIG_DFL (SIG_HNDLR_PTR) (-1)
+#else
+    typedef LONG (WINAPI *EXCEPTION_HANDLER_PTR)(struct _EXCEPTION_POINTERS *);
+    EXCEPTION_HANDLER_PTR MK_GC_old_exception_handler = NULL;
+#endif
 # elif defined(DARWIN)
     typedef void (* SIG_HNDLR_PTR)();
 # else
     typedef void (* SIG_HNDLR_PTR)(int, siginfo_t *, void *);
     typedef void (* PLAIN_HNDLR_PTR)(int);
+struct old_sig_handler {
+  /* PLAIN_HNDLR_PTR sa_handler; */
+  void (* _sa_handler)(int);
+  /* SIG_HNDLR_PTR sa_sigaction; */
+  void (* _sa_sigaction)(int, siginfo_t *, void *);
+  MK_GC_bool used_SIGINFO;
+};
 # endif
 
 # if defined(__GLIBC__)
@@ -3019,14 +3036,26 @@ MK_GC_API MK_GC_push_other_roots_proc MK_GC_CALL MK_GC_get_push_other_roots(void
 # endif
 
 #ifndef DARWIN
-  STATIC SIG_HNDLR_PTR MK_GC_old_segv_handler = 0;
+#if 0
+STATIC SIG_HNDLR_PTR MK_GC_old_segv_handler = 0;
+#else
+STATIC struct old_sig_handler MK_GC_old_segv_handler = { 0, 0, FALSE };
+#endif
                         /* Also old MSWIN32 ACCESS_VIOLATION filter */
 # if !defined(MSWIN32) && !defined(MSWINCE)
-    STATIC SIG_HNDLR_PTR MK_GC_old_bus_handler = 0;
+#if 0
+STATIC SIG_HNDLR_PTR MK_GC_old_bus_handler = 0;
+#else
+STATIC struct old_sig_handler MK_GC_old_bus_handler = { 0, 0, FALSE };
+#endif
 #   if defined(FREEBSD) || defined(HURD) || defined(HPUX)
-      STATIC MK_GC_bool MK_GC_old_bus_handler_used_si = FALSE;
+#if 0
+STATIC MK_GC_bool MK_GC_old_bus_handler_used_si = FALSE;
+#endif
 #   endif
-    STATIC MK_GC_bool MK_GC_old_segv_handler_used_si = FALSE;
+#if 0
+STATIC MK_GC_bool MK_GC_old_segv_handler_used_si = FALSE;
+#endif
 # endif /* !MSWIN32 */
 #endif /* !DARWIN */
 
@@ -3137,7 +3166,7 @@ MK_GC_API MK_GC_push_other_roots_proc MK_GC_CALL MK_GC_get_push_other_roots(void
 #     include <ucontext.h>
 #   endif
     STATIC void MK_GC_write_fault_handler(int sig, siginfo_t *si, void *raw_sc)
-# else
+# else /* defined(MSWIN32) || defined(MSWINCE) */
 #   define SIG_OK (exc_info -> ExceptionRecord -> ExceptionCode \
                      == STATUS_ACCESS_VIOLATION)
 #   define CODE_OK (exc_info -> ExceptionRecord -> ExceptionInformation[0] \
@@ -3149,8 +3178,7 @@ MK_GC_API MK_GC_push_other_roots_proc MK_GC_CALL MK_GC_get_push_other_roots(void
 #   if !defined(MSWIN32) && !defined(MSWINCE)
         char *addr = si -> si_addr;
 #   else
-        char * addr = (char *) (exc_info -> ExceptionRecord
-                                -> ExceptionInformation[1]);
+        char * addr = (char *) (exc_info -> ExceptionRecord -> ExceptionInformation[1]);
 #   endif
     unsigned i;
 
@@ -3180,25 +3208,46 @@ MK_GC_API MK_GC_push_other_roots_proc MK_GC_CALL MK_GC_get_push_other_roots(void
             /* sequence, which often depends on SA_SIGINFO.     */
 
             /* Heap blocks now begin and end on page boundaries */
+#if 0
             SIG_HNDLR_PTR old_handler;
+                MK_GC_bool used_si;
+#else
+#           if defined(MSWIN32) || defined(MSWINCE)
+            EXCEPTION_HANDLER_PTR old_handler;
+#           else
+            struct old_sig_handler old_handler;
+#           endif
+#endif
 
 #           if defined(MSWIN32) || defined(MSWINCE)
-                old_handler = MK_GC_old_segv_handler;
+#if 0
+            old_handler = MK_GC_old_segv_handler;
+#else
+            old_handler = MK_GC_old_exception_handler;
+#endif
 #           else
-                MK_GC_bool used_si;
 
 #             if defined(FREEBSD) || defined(HURD) || defined(HPUX)
                 if (sig == SIGBUS) {
+#if 0
                    old_handler = MK_GC_old_bus_handler;
                    used_si = MK_GC_old_bus_handler_used_si;
+#else
+                   old_handler = MK_GC_old_bus_handler;
+#endif
                 } else
 #             endif
                 /* else */ {
-                   old_handler = MK_GC_old_segv_handler;
-                   used_si = MK_GC_old_segv_handler_used_si;
+#if 0
+                  old_handler = MK_GC_old_segv_handler;
+                  used_si = MK_GC_old_segv_handler_used_si;
+#else
+                  old_handler = MK_GC_old_segv_handler;
+#endif
                 }
 #           endif
 
+#if 0
             if (old_handler == (SIG_HNDLR_PTR)SIG_DFL) {
 #               if !defined(MSWIN32) && !defined(MSWINCE)
                     ABORT_ARG1("Unexpected bus error or segmentation fault",
@@ -3206,7 +3255,16 @@ MK_GC_API MK_GC_push_other_roots_proc MK_GC_CALL MK_GC_get_push_other_roots(void
 #               else
                     return(EXCEPTION_CONTINUE_SEARCH);
 #               endif
-            } else {
+            }
+#else
+#           if !defined(MSWIN32) && !defined(MSWINCE)
+            if (!old_handler.used_SIGINFO && (old_handler._sa_handler == SIG_DFL))
+              ABORT_ARG1("Unexpected bus error or segmentation fault", " at %p", addr);
+#           else
+            if (old_handler == NULL) return(EXCEPTION_CONTINUE_SEARCH);
+#           endif
+#endif
+            else {
                 /*
                  * FIXME: This code should probably check if the
                  * old signal handler used the traditional style and
@@ -3215,11 +3273,19 @@ MK_GC_API MK_GC_push_other_roots_proc MK_GC_CALL MK_GC_get_push_other_roots(void
 #               if defined(MSWIN32) || defined(MSWINCE)
                     return((*old_handler)(exc_info));
 #               else
+#if 0
                     if (used_si)
                       ((SIG_HNDLR_PTR)old_handler) (sig, si, raw_sc);
                     else
                       /* FIXME: should pass nonstandard args as well. */
                       ((PLAIN_HNDLR_PTR)old_handler) (sig);
+#else
+                    if (old_handler.used_SIGINFO)
+                      (old_handler._sa_sigaction) (sig, si, raw_sc);
+                    else
+                      /* FIXME: should pass nonstandard args as well. */
+                      (old_handler._sa_handler) (sig);
+#endif
                     return;
 #               endif
             }
@@ -3334,12 +3400,23 @@ MK_GC_INNER void MK_GC_remove_protection(struct hblk *h, word nblocks,
         }
 #     endif
       if (oldact.sa_flags & SA_SIGINFO) {
+#if 0
         MK_GC_old_segv_handler = oldact.sa_sigaction;
         MK_GC_old_segv_handler_used_si = TRUE;
-      } else {
+#else
+        MK_GC_old_segv_handler._sa_sigaction = oldact.sa_sigaction;
+        MK_GC_old_segv_handler.used_SIGINFO = TRUE;
+#endif
+       } else {
+#if 0
         MK_GC_old_segv_handler = (SIG_HNDLR_PTR)oldact.sa_handler;
         MK_GC_old_segv_handler_used_si = FALSE;
+#else
+        MK_GC_old_segv_handler._sa_handler = oldact.sa_handler;
+        MK_GC_old_segv_handler.used_SIGINFO = FALSE;
+#endif
       }
+#if 0
       if (MK_GC_old_segv_handler == (SIG_HNDLR_PTR)SIG_IGN) {
         WARN("Previously ignored segmentation violation!?\n", 0);
         MK_GC_old_segv_handler = (SIG_HNDLR_PTR)SIG_DFL;
@@ -3347,20 +3424,40 @@ MK_GC_INNER void MK_GC_remove_protection(struct hblk *h, word nblocks,
       if (MK_GC_old_segv_handler != (SIG_HNDLR_PTR)SIG_DFL) {
         MK_GC_VERBOSE_LOG_PRINTF("Replaced other SIGSEGV handler\n");
       }
+#else
+      if (!MK_GC_old_segv_handler.used_SIGINFO && (MK_GC_old_segv_handler._sa_handler == SIG_IGN)) {
+        WARN("Previously ignored segmentation violation!?\n", 0);
+        MK_GC_old_segv_handler._sa_handler = SIG_DFL;
+      }
+      if (!MK_GC_old_segv_handler.used_SIGINFO && (MK_GC_old_segv_handler._sa_handler != SIG_DFL)) {
+        MK_GC_VERBOSE_LOG_PRINTF("Replaced other SIGSEGV handler\n");
+      }
+#endif
 #   if defined(HPUX) || defined(LINUX) || defined(HURD) \
        || (defined(FREEBSD) && defined(SUNOS5SIGS))
       sigaction(SIGBUS, &act, &oldact);
       if ((oldact.sa_flags & SA_SIGINFO) != 0) {
+#if 0
         MK_GC_old_bus_handler = oldact.sa_sigaction;
 #       if !defined(LINUX)
           MK_GC_old_bus_handler_used_si = TRUE;
 #       endif
+#else
+        MK_GC_old_bus_handler._sa_sigaction = oldact.sa_sigaction;
+        MK_GC_old_bus_handler.used_SIGINFO = TRUE;
+#endif
       } else {
+#if 0
         MK_GC_old_bus_handler = (SIG_HNDLR_PTR)oldact.sa_handler;
 #       if !defined(LINUX)
           MK_GC_old_bus_handler_used_si = FALSE;
 #       endif
+#else
+        MK_GC_old_bus_handler._sa_handler = oldact.sa_handler;
+        MK_GC_old_bus_handler.used_SIGINFO = FALSE;
+#endif
       }
+#if 0
       if (MK_GC_old_bus_handler == (SIG_HNDLR_PTR)SIG_IGN) {
         WARN("Previously ignored bus error!?\n", 0);
 #       if !defined(LINUX)
@@ -3371,6 +3468,18 @@ MK_GC_INNER void MK_GC_remove_protection(struct hblk *h, word nblocks,
       } else if (MK_GC_old_bus_handler != (SIG_HNDLR_PTR)SIG_DFL) {
           MK_GC_VERBOSE_LOG_PRINTF("Replaced other SIGBUS handler\n");
       }
+#else
+      if (!MK_GC_old_bus_handler.used_SIGINFO && (MK_GC_old_bus_handler._sa_handler == SIG_IGN)) {
+        WARN("Previously ignored bus error!?\n", 0);
+#       if !defined(LINUX)
+          MK_GC_old_bus_handler._sa_handler = SIG_DFL;
+#       else
+          /* MK_GC_old_bus_handler is not used by MK_GC_write_fault_handler.  */
+#       endif
+      } else if (!MK_GC_old_bus_handler.used_SIGINFO && (MK_GC_old_bus_handler._sa_handler != SIG_DFL)) {
+          MK_GC_VERBOSE_LOG_PRINTF("Replaced other SIGBUS handler\n");
+      }
+#endif
 #   endif /* HPUX || LINUX || HURD || (FREEBSD && SUNOS5SIGS) */
 #   endif /* ! MS windows */
 #   if defined(GWW_VDB)
