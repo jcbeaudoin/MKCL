@@ -520,8 +520,10 @@ typedef struct {
 } refill_data;
 
 /* Executed with allocation lock. */
-static char refill_cache(refill_data * client_data)
+static void * refill_cache(void * _data)
 {
+    refill_data * client_data = _data;
+
     register lf_state * state = client_data -> state;
     register size_t file_pos = client_data -> file_pos;
     FILE *f = state -> lf_file;
@@ -541,7 +543,7 @@ static char refill_cache(refill_data * client_data)
     /* Store barrier goes here. */
     ATOMIC_WRITE(state -> lf_cache[line_no], new_cache);
     state -> lf_current = line_start + LINE_SZ;
-    return(new_cache->data[MOD_LINE_SZ(file_pos)]);
+    return((void *) ((intptr_t) (new_cache->data[MOD_LINE_SZ(file_pos)])));
 }
 
 char CORD_lf_func(size_t i, void * client_data)
