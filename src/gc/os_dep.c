@@ -3036,13 +3036,13 @@ struct old_sig_handler {
 # endif
 
 #ifndef DARWIN
+# if !defined(MSWIN32) && !defined(MSWINCE)
 #if 0
 STATIC SIG_HNDLR_PTR MK_GC_old_segv_handler = 0;
 #else
 STATIC struct old_sig_handler MK_GC_old_segv_handler = { 0, 0, FALSE };
 #endif
                         /* Also old MSWIN32 ACCESS_VIOLATION filter */
-# if !defined(MSWIN32) && !defined(MSWINCE)
 #if 0
 STATIC SIG_HNDLR_PTR MK_GC_old_bus_handler = 0;
 #else
@@ -3487,12 +3487,15 @@ MK_GC_INNER void MK_GC_remove_protection(struct hblk *h, word nblocks,
         return;
 #   endif
 #   if defined(MSWIN32)
-      MK_GC_old_segv_handler = SetUnhandledExceptionFilter(MK_GC_write_fault_handler);
-      if (MK_GC_old_segv_handler != NULL) {
+      MK_GC_old_exception_handler = SetUnhandledExceptionFilter(MK_GC_write_fault_handler);
+      if (MK_GC_old_exception_handler != NULL) {
         MK_GC_COND_LOG_PRINTF("Replaced other UnhandledExceptionFilter\n");
-      } else {
+      }
+#if 0
+      else {
           MK_GC_old_segv_handler = SIG_DFL;
       }
+#endif
 #   elif defined(MSWINCE)
       /* MPROTECT_VDB is unsupported for WinCE at present.      */
       /* FIXME: implement it (if possible). */
