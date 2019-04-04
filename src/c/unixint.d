@@ -27,7 +27,9 @@
 
 #if MKCL_WINDOWS
 # include <malloc.h> /* for _resetstkoflw(). */
+# ifndef __MINGW64_VERSION_MAJOR
 int _resetstkoflw(void); /* since MinGW does not provide it in malloc.h like MS says and MinGW64 does. */
+# endif
 # include <windows.h>
 #endif
 
