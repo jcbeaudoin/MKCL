@@ -3037,25 +3037,8 @@ struct old_sig_handler {
 
 #ifndef DARWIN
 # if !defined(MSWIN32) && !defined(MSWINCE)
-#if 0
-STATIC SIG_HNDLR_PTR MK_GC_old_segv_handler = 0;
-#else
 STATIC struct old_sig_handler MK_GC_old_segv_handler = { 0, 0, FALSE };
-#endif
-                        /* Also old MSWIN32 ACCESS_VIOLATION filter */
-#if 0
-STATIC SIG_HNDLR_PTR MK_GC_old_bus_handler = 0;
-#else
 STATIC struct old_sig_handler MK_GC_old_bus_handler = { 0, 0, FALSE };
-#endif
-#   if defined(FREEBSD) || defined(HURD) || defined(HPUX)
-#if 0
-STATIC MK_GC_bool MK_GC_old_bus_handler_used_si = FALSE;
-#endif
-#   endif
-#if 0
-STATIC MK_GC_bool MK_GC_old_segv_handler_used_si = FALSE;
-#endif
 # endif /* !MSWIN32 */
 #endif /* !DARWIN */
 
@@ -3208,62 +3191,32 @@ STATIC MK_GC_bool MK_GC_old_segv_handler_used_si = FALSE;
             /* sequence, which often depends on SA_SIGINFO.     */
 
             /* Heap blocks now begin and end on page boundaries */
-#if 0
-            SIG_HNDLR_PTR old_handler;
-                MK_GC_bool used_si;
-#else
 #           if defined(MSWIN32) || defined(MSWINCE)
             EXCEPTION_HANDLER_PTR old_handler;
 #           else
             struct old_sig_handler old_handler;
 #           endif
-#endif
 
 #           if defined(MSWIN32) || defined(MSWINCE)
-#if 0
-            old_handler = MK_GC_old_segv_handler;
-#else
             old_handler = MK_GC_old_exception_handler;
-#endif
 #           else
 
 #             if defined(FREEBSD) || defined(HURD) || defined(HPUX)
                 if (sig == SIGBUS) {
-#if 0
                    old_handler = MK_GC_old_bus_handler;
-                   used_si = MK_GC_old_bus_handler_used_si;
-#else
-                   old_handler = MK_GC_old_bus_handler;
-#endif
                 } else
 #             endif
                 /* else */ {
-#if 0
                   old_handler = MK_GC_old_segv_handler;
-                  used_si = MK_GC_old_segv_handler_used_si;
-#else
-                  old_handler = MK_GC_old_segv_handler;
-#endif
                 }
 #           endif
 
-#if 0
-            if (old_handler == (SIG_HNDLR_PTR)SIG_DFL) {
-#               if !defined(MSWIN32) && !defined(MSWINCE)
-                    ABORT_ARG1("Unexpected bus error or segmentation fault",
-                               " at %p", addr);
-#               else
-                    return(EXCEPTION_CONTINUE_SEARCH);
-#               endif
-            }
-#else
 #           if !defined(MSWIN32) && !defined(MSWINCE)
             if (!old_handler.used_SIGINFO && (old_handler._sa_handler == SIG_DFL))
               ABORT_ARG1("Unexpected bus error or segmentation fault", " at %p", addr);
 #           else
             if (old_handler == NULL) return(EXCEPTION_CONTINUE_SEARCH);
 #           endif
-#endif
             else {
                 /*
                  * FIXME: This code should probably check if the
@@ -3273,19 +3226,11 @@ STATIC MK_GC_bool MK_GC_old_segv_handler_used_si = FALSE;
 #               if defined(MSWIN32) || defined(MSWINCE)
                     return((*old_handler)(exc_info));
 #               else
-#if 0
-                    if (used_si)
-                      ((SIG_HNDLR_PTR)old_handler) (sig, si, raw_sc);
-                    else
-                      /* FIXME: should pass nonstandard args as well. */
-                      ((PLAIN_HNDLR_PTR)old_handler) (sig);
-#else
                     if (old_handler.used_SIGINFO)
                       (old_handler._sa_sigaction) (sig, si, raw_sc);
                     else
                       /* FIXME: should pass nonstandard args as well. */
                       (old_handler._sa_handler) (sig);
-#endif
                     return;
 #               endif
             }
@@ -3400,31 +3345,12 @@ MK_GC_INNER void MK_GC_remove_protection(struct hblk *h, word nblocks,
         }
 #     endif
       if (oldact.sa_flags & SA_SIGINFO) {
-#if 0
-        MK_GC_old_segv_handler = oldact.sa_sigaction;
-        MK_GC_old_segv_handler_used_si = TRUE;
-#else
         MK_GC_old_segv_handler._sa_sigaction = oldact.sa_sigaction;
         MK_GC_old_segv_handler.used_SIGINFO = TRUE;
-#endif
        } else {
-#if 0
-        MK_GC_old_segv_handler = (SIG_HNDLR_PTR)oldact.sa_handler;
-        MK_GC_old_segv_handler_used_si = FALSE;
-#else
         MK_GC_old_segv_handler._sa_handler = oldact.sa_handler;
         MK_GC_old_segv_handler.used_SIGINFO = FALSE;
-#endif
       }
-#if 0
-      if (MK_GC_old_segv_handler == (SIG_HNDLR_PTR)SIG_IGN) {
-        WARN("Previously ignored segmentation violation!?\n", 0);
-        MK_GC_old_segv_handler = (SIG_HNDLR_PTR)SIG_DFL;
-      }
-      if (MK_GC_old_segv_handler != (SIG_HNDLR_PTR)SIG_DFL) {
-        MK_GC_VERBOSE_LOG_PRINTF("Replaced other SIGSEGV handler\n");
-      }
-#else
       if (!MK_GC_old_segv_handler.used_SIGINFO && (MK_GC_old_segv_handler._sa_handler == SIG_IGN)) {
         WARN("Previously ignored segmentation violation!?\n", 0);
         MK_GC_old_segv_handler._sa_handler = SIG_DFL;
@@ -3432,43 +3358,16 @@ MK_GC_INNER void MK_GC_remove_protection(struct hblk *h, word nblocks,
       if (!MK_GC_old_segv_handler.used_SIGINFO && (MK_GC_old_segv_handler._sa_handler != SIG_DFL)) {
         MK_GC_VERBOSE_LOG_PRINTF("Replaced other SIGSEGV handler\n");
       }
-#endif
 #   if defined(HPUX) || defined(LINUX) || defined(HURD) \
        || (defined(FREEBSD) && defined(SUNOS5SIGS))
       sigaction(SIGBUS, &act, &oldact);
       if ((oldact.sa_flags & SA_SIGINFO) != 0) {
-#if 0
-        MK_GC_old_bus_handler = oldact.sa_sigaction;
-#       if !defined(LINUX)
-          MK_GC_old_bus_handler_used_si = TRUE;
-#       endif
-#else
         MK_GC_old_bus_handler._sa_sigaction = oldact.sa_sigaction;
         MK_GC_old_bus_handler.used_SIGINFO = TRUE;
-#endif
       } else {
-#if 0
-        MK_GC_old_bus_handler = (SIG_HNDLR_PTR)oldact.sa_handler;
-#       if !defined(LINUX)
-          MK_GC_old_bus_handler_used_si = FALSE;
-#       endif
-#else
         MK_GC_old_bus_handler._sa_handler = oldact.sa_handler;
         MK_GC_old_bus_handler.used_SIGINFO = FALSE;
-#endif
       }
-#if 0
-      if (MK_GC_old_bus_handler == (SIG_HNDLR_PTR)SIG_IGN) {
-        WARN("Previously ignored bus error!?\n", 0);
-#       if !defined(LINUX)
-          MK_GC_old_bus_handler = (SIG_HNDLR_PTR)SIG_DFL;
-#       else
-          /* MK_GC_old_bus_handler is not used by MK_GC_write_fault_handler.  */
-#       endif
-      } else if (MK_GC_old_bus_handler != (SIG_HNDLR_PTR)SIG_DFL) {
-          MK_GC_VERBOSE_LOG_PRINTF("Replaced other SIGBUS handler\n");
-      }
-#else
       if (!MK_GC_old_bus_handler.used_SIGINFO && (MK_GC_old_bus_handler._sa_handler == SIG_IGN)) {
         WARN("Previously ignored bus error!?\n", 0);
 #       if !defined(LINUX)
@@ -3479,7 +3378,6 @@ MK_GC_INNER void MK_GC_remove_protection(struct hblk *h, word nblocks,
       } else if (!MK_GC_old_bus_handler.used_SIGINFO && (MK_GC_old_bus_handler._sa_handler != SIG_DFL)) {
           MK_GC_VERBOSE_LOG_PRINTF("Replaced other SIGBUS handler\n");
       }
-#endif
 #   endif /* HPUX || LINUX || HURD || (FREEBSD && SUNOS5SIGS) */
 #   endif /* ! MS windows */
 #   if defined(GWW_VDB)
@@ -3491,11 +3389,6 @@ MK_GC_INNER void MK_GC_remove_protection(struct hblk *h, word nblocks,
       if (MK_GC_old_exception_handler != NULL) {
         MK_GC_COND_LOG_PRINTF("Replaced other UnhandledExceptionFilter\n");
       }
-#if 0
-      else {
-          MK_GC_old_segv_handler = SIG_DFL;
-      }
-#endif
 #   elif defined(MSWINCE)
       /* MPROTECT_VDB is unsupported for WinCE at present.      */
       /* FIXME: implement it (if possible). */
