@@ -77,12 +77,14 @@ typedef char *va_list;
 
 #if __FreeBSD__ >= 12
 /* define this to work around a quirk (bug?) in /usr/include/sys/_types.h */
-#define __GNUCLIKE_BUILTIN_VARARGS 1
+# define __GNUCLIKE_BUILTIN_VARARGS 1
 typedef va_list __builtin_va_list;
 #endif
 
 /* fix a buggy dependency on GCC in libio.h */
 typedef va_list __gnuc_va_list;
 #define _VA_LIST_DEFINED
-
+#if __FreeBSD__ == 10
+# define __GNUC_VA_LIST 1 /* To protect from redefinition the __gnuc_va_list typedef just here above. */
+#endif
 #endif /* _STDARG_H */
