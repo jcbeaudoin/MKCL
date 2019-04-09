@@ -906,8 +906,8 @@ The top-level loop of MKCL. It is called by default when MKCL is invoked."
 	 )
 	((> b bds-top) (when none (format t "  none.")))
       (if no-values
-	  (format t "~%  ~S" (bds-var b))
-	(format t "~%  ~S: ~S" (bds-var b) (dynamic-binding-value b)))
+	  (ignore-errors (format t "~%  ~S" (bds-var b)))
+	(ignore-errors (format t "~%  ~S: ~S" (bds-var b) (dynamic-binding-value b))))
      )
     (terpri)
     )
@@ -1280,7 +1280,7 @@ package."
        and i from 1
        do (let ((user-command (format nil "r~D" i))
 		(name (format nil "~@[~A~]" (restart-name restart)))
-		(helpstring (princ-to-string restart)))
+		(helpstring (ignore-errors (princ-to-string restart))))
 	    (push (list
 		   (list (intern (string-upcase user-command) :keyword))
 		   restart :restart
@@ -1289,7 +1289,10 @@ package."
                            (string-downcase user-command) "[Restart command]" name helpstring))
 		  restart-commands)
 	    (when display
-	      (format display ":~A~10T~A~30T~A~%" user-command name restart))))
+	      (format display ":~A~10T~A~30T" user-command name)
+              (ignore-errors (format display "~A" restart))
+              (format display "~%")
+              )))
     (when display (terpri display))
     (nreverse restart-commands)))
 
@@ -1394,8 +1397,10 @@ package."
 	 (*readtable* (or *break-readtable* *readtable*))
 	 (*break-message* ;;(format nil "~&~A~%" condition)
 	                  (concatenate 'string
-                                       (prin1-to-string condition) ":" (string #\newline)
-                                       "    " (princ-to-string condition) (string #\newline))
+                                       (ignore-errors (prin1-to-string condition))
+                                       ":" (string #\newline) "    "
+                                       (ignore-errors (princ-to-string condition))
+                                       (string #\newline))
 			  )
 	 (*break-level* (1+ *break-level*))
 	 (break-level *break-level*)
