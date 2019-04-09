@@ -261,12 +261,12 @@
                   (component-depends-on (make-instance 'load-op) c)))))
 
 (defmethod input-files ((o load-fasl-op) (c system))
-  (declare (ignore o))
+  (declare (ignorable o))
   (unless (trivial-system-p c)
     (output-files (make-instance 'fasl-op) c)))
 
 (defmethod perform ((o load-fasl-op) (c t))
-  (declare (ignore o c))
+  (declare (ignorable o c))
   nil)
 
 (defmethod perform ((o load-fasl-op) (c system))
@@ -298,19 +298,19 @@
    :defaults (component-parent-pathname component)))
 
 (defmethod output-files (o (c compiled-file))
-  (declare (ignore o c))
+  (declare (ignorable o c))
   nil)
 (defmethod input-files (o (c compiled-file))
-  (declare (ignore o c))
+  (declare (ignorable o c))
   nil)
 (defmethod perform ((o load-op) (c compiled-file))
-  (declare (ignore o))
+  (declare (ignorable o))
   (load (component-pathname c)))
 (defmethod perform ((o load-fasl-op) (c compiled-file))
-  (declare (ignore o))
+  (declare (ignorable o))
   (load (component-pathname c)))
 (defmethod perform (o (c compiled-file))
-  (declare (ignore o c))
+  (declare (ignorable o c))
   nil)
 
 ;;;
@@ -320,7 +320,7 @@
   ((static-library :accessor prebuilt-system-static-library :initarg :lib)))
 
 (defmethod output-files ((o lib-op) (c prebuilt-system))
-  (declare (ignore o))
+  (declare (ignorable o))
   (values (list (prebuilt-system-static-library c))
 	  t)) ; Advertise that we do not want this path renamed by asdf-output-translations
 
