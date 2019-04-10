@@ -42,7 +42,10 @@
     (writers :initarg :writers :initform nil :accessor slot-definition-writers)
     (documentation :initarg :documentation :initform nil :accessor slot-definition-documentation)
     (location :initarg :location :initform nil :accessor slot-definition-location)
-    (class :initarg :class :initform nil :accessor slot-definition-class) ;; extension to MOP. JCB
+    ;; here below, extension to MOP. JCB
+    (class :initarg :class :initform nil :accessor slot-definition-class)
+    (reader-methods :initarg :reader-methods :initform nil :accessor slot-definition-reader-methods)
+    (writer-methods :initarg :writer-methods :initform nil :accessor slot-definition-writer-methods)
     ))
 
 (defun class-shared-slots (class)

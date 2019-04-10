@@ -173,6 +173,7 @@
 ;;; CLASS REDEFINITION PROTOCOL
 
 (defun refinalize-inheritance (class)
+  (unfinalize-inheritance class)
   (finalize-inheritance class)
   (dolist (subclass (class-direct-subclasses class))
     (when (class-finalized-p subclass)

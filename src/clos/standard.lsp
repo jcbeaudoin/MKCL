@@ -540,6 +540,12 @@
     )
   )
 
+(defmethod unfinalize-inheritance ((class class))
+  "Undo side-effects of finalize-inheritance((* class))."
+  ;; empty root method
+  ;; support the protocol but nothing to really do yet. JCB
+  )
+
 (defun std-create-slots-table (class)
   (let* ((all-slots (class-slots class))
 	 (table (make-hash-table :size (max 32 (* 2 (length all-slots))))))
@@ -551,6 +557,23 @@
   (call-next-method)
   (std-create-slots-table class)
   (std-class-generate-accessors class))
+
+(defmethod unfinalize-inheritance ((class standard-class))
+  "Undo side-effects of finalize-inheritance((* standard-class))."
+  (call-next-method)
+  ;; undo accessor methods
+  (dolist (slotd (class-slots class))
+    (let ((reader-methods (slot-definition-reader-methods slotd)))
+      (setf (slot-definition-reader-methods slotd) nil)
+      (dolist (reader-method reader-methods)
+        (remove-method (method-generic-function reader-method) reader-method)))
+    (let ((writer-methods (slot-definition-writer-methods slotd)))
+      (setf (slot-definition-writer-methods slotd) nil)
+      (dolist (writer-method writer-methods)
+        (remove-method (method-generic-function writer-method) writer-method))))
+  ;; what about slot-table?
+  ;;  It seems to be unused at this point. JCB
+  )
 
 (defmethod compute-class-precedence-list ((class class))
   (compute-clos-class-precedence-list class (class-direct-superclasses class)))
@@ -939,15 +962,17 @@
 			       'standard-writer-method
 			     (apply #'writer-method-class standard-class slotd writer-args))))
 	(dolist (fname (slot-definition-readers slotd))
-	  (install-method fname nil `(,standard-class) '(self)
-			  nil nil reader nil reader-class
-			  :slot-definition slotd
-			  :source (class-source standard-class)))
+          (push (install-method fname nil `(,standard-class) '(self)
+                                nil nil reader nil reader-class
+                                :slot-definition slotd
+                                :source (class-source standard-class))
+                (slot-definition-reader-methods slotd)))
 	(dolist (fname (slot-definition-writers slotd))
-	  (install-method fname nil `(,(find-class t) ,standard-class) '(value self)
-			  nil nil writer nil writer-class
-			  :slot-definition slotd
-			  :source (class-source standard-class)))))))
+          (push (install-method fname nil `(,(find-class t) ,standard-class) '(value self)
+                                nil nil writer nil writer-class
+                                :slot-definition slotd
+                                :source (class-source standard-class))
+                (slot-definition-writer-methods slotd)))))))
 
 ;;; ======================================================================
 ;;; STANDARD-OBJECT
