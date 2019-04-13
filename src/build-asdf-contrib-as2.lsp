@@ -1,6 +1,6 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
 ;;;;
-;;;;  Copyright (c) 2010-2014, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2019, Jean-Claude Beaudoin.
 ;;;;
 ;;;;  This program is free software; you can redistribute it and/or
 ;;;;  modify it under the terms of the GNU Lesser General Public
@@ -51,7 +51,7 @@
 
   (asdf::clear-source-registry)
   (asdf::initialize-source-registry `(:source-registry (:directory ,(namestring sys-dir))
-                                                       (:tree ,(namestring current-dir))
+                                                       (:directory ,(namestring dest-dir))
                                                        :ignore-inherited-configuration))
   );;#+asdf2
 

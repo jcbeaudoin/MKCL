@@ -1,7 +1,7 @@
 #
 #  Makefile for MKCL
 #
-#  Copyright (c) 2010-2018, Jean-Claude Beaudoin.
+#  Copyright (c) 2010-2019, Jean-Claude Beaudoin.
 #  Copyright by a number of previous anonymous authors
 #            presumed to be the same as for the rest of MKCL.
 #
@@ -84,7 +84,7 @@ CONTRIB_FASLS = \
                 ext/SOCKETS.fasb \
                 ext/WALKER.fasb \
                 ext/UNICODE-NAMES.fasb \
-                asdf-stage/uiop.fasb \
+                ext/uiop.fasb \
                 asdf-stage/trivial-features.fasb \
                 asdf-stage/trivial-garbage.fasb \
                 asdf-stage/alexandria.fasb \
@@ -143,12 +143,13 @@ ext/asdf.fasb ext/asdf.a: bin/mkcl-small$(EXE) ext-dir-exists build-asdf.lsp cmp
 	(cd ../contrib/asdf/; $(MAKE) build/asdf.lisp)
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf.lsp
 
-asdf-stage/uiop.fasb asdf-stage/uiop.a: bin/mkcl-small$(EXE) asdf-stage-dir-exists build-uiop.lsp cmp/CMP.fasb compile-utils.lsp ext/asdf.fasb ../contrib/asdf/uiop/*.lisp
+ext/uiop.fasb ext/uiop.a: bin/mkcl-small$(EXE) ext-dir-exists build-uiop.lsp cmp/CMP.fasb compile-utils.lsp ext/asdf.fasb ../contrib/asdf/uiop/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-uiop.lsp
-	cp ./asdf-stage/asdf/uiop/uiop.fasb ./asdf-stage/
-	cp ./asdf-stage/asdf/uiop/uiop.a ./asdf-stage/
-	cp ./asdf-stage/asdf/uiop/uiop.asd ./asdf-stage/
-	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- uiop ../contrib/asdf/uiop/ ./asdf-stage/
+	cp ./ext/uiop/uiop.fasb ./ext/
+	cp ./ext/uiop/uiop.a ./ext/
+	cp ./ext/uiop/uiop.asd ./ext/
+	cp ./ext/uiop/uiop.as2 ./ext/
+
 
 ext/BYTECMP.fasb ext/BYTECMP.a: bin/mkcl-small$(EXE) ext-dir-exists build-bytecmp.lsp cmp/CMP.fasb compile-utils.lsp ../contrib/bytecmp/bytecmp.lsp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-bytecmp.lsp
@@ -216,7 +217,7 @@ asdf-stage/babel.fasb asdf-stage/babel.a: bin/mkcl-small$(EXE) asdf-stage-dir-ex
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- babel ../contrib/babel*/ ./asdf-stage/
 
 
-asdf-stage/cffi.fasb asdf-stage/cffi.a: bin/mkcl-small$(EXE) asdf-stage-dir-exists build-asdf-contrib*.lsp $(ASDF_FASLS) $(ASDF2_FASLS) asdf-stage/uiop.fasb asdf-stage/babel.fasb ../contrib/cffi*/src/*.lisp
+asdf-stage/cffi.fasb asdf-stage/cffi.a: bin/mkcl-small$(EXE) asdf-stage-dir-exists build-asdf-contrib*.lsp $(ASDF_FASLS) $(ASDF2_FASLS) asdf-stage/babel.fasb ../contrib/cffi*/src/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- cffi ../contrib/cffi*/
 	cp ./asdf-stage/cffi*/cffi.fasb ./asdf-stage/
 	cp ./asdf-stage/cffi*/cffi.a ./asdf-stage/

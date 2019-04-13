@@ -1,6 +1,6 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
 ;;;;
-;;;;  Copyright (c) 2010-2014, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2019, Jean-Claude Beaudoin.
 ;;;;
 ;;;;  This program is free software; you can redistribute it and/or
 ;;;;  modify it under the terms of the GNU Lesser General Public
@@ -65,7 +65,12 @@
 
 ;;(format t "~&Done with asdf setup.")(finish-output)
 
-
+#+asdf3.3
+(defun bundle-system (system &key force)
+  (asdf:oos 'asdf::deliver-asd-op system :force force))
+#-asdf3.3
+(defun bundle-system (system &key force)
+  (asdf:bundle-system system :force force))
 
 (defparameter sys nil)
 
@@ -74,7 +79,7 @@
 (setq si::*default-external-format* '(:utf-8 :lf))
 
 (multiple-value-bind (result bundling-error)
-    (ignore-errors (asdf:bundle-system sys-name))
+    (ignore-errors (bundle-system sys-name))
   (unless result
     (format t "~%asdf:bundle-system for ~S failed! Reason is: ~S ~A.~%" sys-name bundling-error bundling-error)
     (finish-output)

@@ -1,6 +1,6 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
 ;;;;
-;;;;  Copyright (c) 2010-2016, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2019, Jean-Claude Beaudoin.
 ;;;;  Copyright by a number of previous anonymous authors
 ;;;;            presumed to be the same as for the rest of MKCL.
 ;;;;
@@ -23,7 +23,7 @@
   ;;(setq compiler::*compiler-break-enable* t) ;; enter debugger on compiler internal error
   (setq compiler::*delete-compiler-internal-files* nil)
   (setq *compile-extra-options* '(:c-file t :data-file t :h-file t))
-  (proclaim '(optimize (debug 3) (speed 1) (compilation-speed 3))) ;; full debug info
+  (proclaim '(optimize (debug 3) (speed 1) (compilation-speed 1))) ;; full debug info
   ;;(proclaim '(optimize (debug 3) (speed 1))) ;; full debug info
   ;;(proclaim '(optimize (debug 0) (speed 3) (compilation-speed 3)))
   ;;(proclaim '(optimize (debug 0) (speed 3)))
@@ -149,6 +149,7 @@
 (defun build-module (name sources &key
 			  (builtin nil) ;; deprecated! JCB
 			  (destdir "")
+                          (version nil)
 			  ((:prefix si::*init-function-prefix*) "EXT")
 			  &aux (*break-enable* t)
 			  )
@@ -162,10 +163,12 @@
 		       (format t "~&Bailing out from build-module condition handler!~%") (finish-output)
 		       (mkcl:quit :exit-code 1)))))
    (let* ((asdf-module-name (string-downcase name)) ;; ASDF is hell-bent on downcasing system names by default.
-          (destname (make-pathname :name name :defaults destdir)))
+          (destname (make-pathname :name name :defaults destdir))
+          (system-attribs (when version (list :version version)))
+          )
      (unless (find asdf-module-name '("asdf" "asdf2" "asdf3") :test #'equalp)
-       (build-substitute-as2-file asdf-module-name name destdir nil)
-       (build-substitute-asd-file asdf-module-name name destdir nil))
+       (build-substitute-as2-file asdf-module-name name destdir system-attribs)
+       (build-substitute-asd-file asdf-module-name name destdir system-attribs))
      (if builtin
 	 (let* ((objects (compile-if-old destdir sources)))
 	   (unless (compiler::build-static-library destname :lisp-object-files objects)

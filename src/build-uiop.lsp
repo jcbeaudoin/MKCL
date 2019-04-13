@@ -1,6 +1,6 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
 ;;;;
-;;;;  Copyright (c) 2010-2014, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2019, Jean-Claude Beaudoin.
 ;;;;
 ;;;;  This program is free software; you can redistribute it and/or
 ;;;;  modify it under the terms of the GNU Lesser General Public
@@ -16,46 +16,33 @@
 
 (load "compile-utils" :external-format '(:ascii :lf))
 
-(setq cl:*compile-verbose* t cl:*load-verbose* t)
+;;(setq cl:*compile-verbose* t cl:*load-verbose* t)
 
 ;;(setq compiler::*trace-cc* t)
 
-(load "ext/asdf.fasb")
+;;;;;;;;;;;;;;;
 
-#+asdf2
-(let* ((current-dir (mkcl:getcwd))
-       ;;(src-dir (truename (merge-pathnames "../contrib/" current-dir)))
-       (uiop-src-dir (truename (merge-pathnames "../contrib/asdf/uiop/" current-dir)))
-       (target-dir (merge-pathnames "./asdf-stage/asdf/uiop/" current-dir))
-       )
-  (ensure-directories-exist target-dir)
-  ;; If you want to watch ASDF activity uncomment this.
-  ;;(setq asdf::*verbose-out* t) ;; needed to trace ASDF activity outside asdf:operate.
-  (setq asdf::*asdf-verbose* nil)
+(defconstant +uiop-module-files+
+'(
+  "../contrib/asdf/uiop/package.lisp"
+  "../contrib/asdf/uiop/common-lisp.lisp"
+  "../contrib/asdf/uiop/utility.lisp"
+  "../contrib/asdf/uiop/version.lisp"
+  "../contrib/asdf/uiop/os.lisp"
+  "../contrib/asdf/uiop/pathname.lisp"
+  "../contrib/asdf/uiop/filesystem.lisp"
+  "../contrib/asdf/uiop/stream.lisp"
+  "../contrib/asdf/uiop/image.lisp"
+  "../contrib/asdf/uiop/lisp-build.lisp"
+  "../contrib/asdf/uiop/launch-program.lisp"
+  "../contrib/asdf/uiop/run-program.lisp"
+  "../contrib/asdf/uiop/configuration.lisp"
+  "../contrib/asdf/uiop/backward-driver.lisp"
+  "../contrib/asdf/uiop/driver.lisp"
+  ))
 
-  (asdf::clear-source-registry)
-  (asdf::initialize-source-registry `(:source-registry (:tree ,(namestring uiop-src-dir))
-                                                       ;;(:directory ,(namestring sys-dir))
-                                                       ;;(:tree ,(namestring current-dir))
-                                                       :ignore-inherited-configuration))
-  (asdf::clear-output-translations)
-  (asdf::initialize-output-translations `(:output-translations
-                                          (,(namestring uiop-src-dir)
-                                           ,(namestring target-dir))
-                                          :ignore-inherited-configuration))
-  );;#+asdf2
-
-;;(format t "~&About to call asdf:find-system.")(finish-output)
-
-(setq si::*default-external-format* '(:utf-8 :lf))
-
-(format t "~&About to build UIOP.~%")(finish-output)
-(multiple-value-bind (result bundling-error)
-    (ignore-errors (asdf:bundle-system "uiop"))
-  (unless result
-    (format t "~%asdf:bundle-system failed! Reason is: ~S ~A.~%" bundling-error bundling-error)
-    (finish-output)
-    (mkcl:quit :exit-code 1)))
+(build-module "uiop" +uiop-module-files+ :version "3.3.3"
+              :destdir (ensure-directories-exist (pathname "./ext/uiop/"))
+	      )
 
 (mkcl:quit :exit-code 0) ;; signal to "make" that all is well.
-
