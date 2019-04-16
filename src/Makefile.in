@@ -87,10 +87,12 @@ CONTRIB_FASLS = \
                 ext/uiop.fasb \
                 asdf-stage/trivial-features.fasb \
                 asdf-stage/trivial-garbage.fasb \
+                asdf-stage/trivial-backtrace.fasb \
                 asdf-stage/alexandria.fasb \
                 asdf-stage/babel.fasb \
                 asdf-stage/cffi.fasb \
                 asdf-stage/bordeaux-threads.fasb \
+		asdf-stage/net.didierverna.asdf-flv.fasb \
                 asdf-stage/fiveam.fasb \
                 asdf-stage/rt.fasb
 
@@ -201,6 +203,14 @@ asdf-stage/trivial-garbage.fasb asdf-stage/trivial-garbage.a: bin/mkcl-small$(EX
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- trivial-garbage ../contrib/trivial-garbage*/ ./asdf-stage/
 
 
+asdf-stage/trivial-backtrace.fasb asdf-stage/trivial-backtrace.a: bin/mkcl-small$(EXE) asdf-stage-dir-exists build-asdf-contrib*.lsp $(ASDF_FASLS) $(ASDF2_FASLS) ../contrib/trivial-backtrace*/dev/*.lisp
+	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- trivial-backtrace ../contrib/trivial-backtrace*/
+	cp ./asdf-stage/trivial-backtrace*/trivial-backtrace.fasb ./asdf-stage/
+	cp ./asdf-stage/trivial-backtrace*/trivial-backtrace.a ./asdf-stage/
+	cp ./asdf-stage/trivial-backtrace*/trivial-backtrace.asd ./asdf-stage/
+	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- trivial-backtrace ../contrib/trivial-backtrace*/ ./asdf-stage/
+
+
 asdf-stage/alexandria.fasb asdf-stage/alexandria.a: bin/mkcl-small$(EXE) asdf-stage-dir-exists build-asdf-contrib*.lsp $(ASDF_FASLS) $(ASDF2_FASLS) ../contrib/alexandria*/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- alexandria ../contrib/alexandria*/
 	cp ./asdf-stage/alexandria*/alexandria.fasb ./asdf-stage/
@@ -233,7 +243,15 @@ asdf-stage/bordeaux-threads.fasb asdf-stage/bordeaux-threads.a: bin/mkcl-small$(
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- bordeaux-threads ../contrib/bordeaux-threads-*/ ./asdf-stage/
 
 
-asdf-stage/fiveam.fasb asdf-stage/fiveam.a: bin/mkcl-small$(EXE) asdf-stage-dir-exists build-asdf-contrib*.lsp $(ASDF_FASLS) $(ASDF2_FASLS) asdf-stage/alexandria.fasb ../contrib/fiveam-*/src/*.lisp
+asdf-stage/net.didierverna.asdf-flv.fasb asdf-stage/net.didierverna.asdf-flv.a: bin/mkcl-small$(EXE) asdf-stage-dir-exists build-asdf-contrib*.lsp $(ASDF_FASLS) $(ASDF2_FASLS) asdf-stage/alexandria.fasb ../contrib/net.didierverna.asdf-flv_*/*
+	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- net.didierverna.asdf-flv ../contrib/net.didierverna.asdf-flv_*/
+	cp ./asdf-stage/net.didierverna.asdf-flv*/net.didierverna.asdf-flv.fasb ./asdf-stage/
+	cp ./asdf-stage/net.didierverna.asdf-flv*/net.didierverna.asdf-flv.a ./asdf-stage/
+	cp ./asdf-stage/net.didierverna.asdf-flv*/net.didierverna.asdf-flv.asd ./asdf-stage/
+	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- net.didierverna.asdf-flv ../contrib/net.didierverna.asdf-flv_*/ ./asdf-stage/
+
+
+asdf-stage/fiveam.fasb asdf-stage/fiveam.a: bin/mkcl-small$(EXE) asdf-stage-dir-exists build-asdf-contrib*.lsp $(ASDF_FASLS) $(ASDF2_FASLS) asdf-stage/alexandria.fasb asdf-stage/net.didierverna.asdf-flv.fasb asdf-stage/trivial-backtrace.fasb ../contrib/fiveam-*/src/*.lisp
 	bin/mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib.lsp -- fiveam ../contrib/fiveam-*/
 	cp ./asdf-stage/fiveam*/src/fiveam.fasb ./asdf-stage/
 	cp ./asdf-stage/fiveam*/src/fiveam.a ./asdf-stage/
