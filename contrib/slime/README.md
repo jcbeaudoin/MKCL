@@ -17,7 +17,7 @@ For much more information, consult [the manual][1].
 Quick setup instructions
 ------------------------
 
-  1. [Setup the MELPA repository][2], if you haven't already, and install
+  1. [Set up the MELPA repository][2], if you haven't already, and install
      SLIME using `M-x package-install RET slime RET`.
 
   2. Add the following lines to your `~/.emacs` file, filling in in
@@ -39,9 +39,8 @@ the manual's instructions on [how to install SLIME via Git][7].
 Contribs
 --------
 
-SLIME comes with additional contributed packages or "contribs". When SLIME
-is loaded it loads the contribs you set up before in `slime-contribs`. You
-can use the command `slime-setup` to reload contribs.
+SLIME comes with additional contributed packages or "contribs".
+Contribs can be selected via the `slime-contribs` list.
 
 The most-often used contrib is `slime-fancy`, which primarily installs a
 popular set of other contributed packages. It includes a better REPL, and

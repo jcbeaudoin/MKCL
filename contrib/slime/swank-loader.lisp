@@ -23,9 +23,12 @@
            :dump-image
            :list-fasls
            :*source-directory*
-           :*fasl-directory*))
+           :*fasl-directory*
+           :*started-from-emacs*))
 
 (cl:in-package :swank-loader)
+
+(defvar *started-from-emacs* nil)
 
 (defvar *source-directory*
   (make-pathname :name nil :type nil
@@ -48,15 +51,16 @@
   #+ecl '((swank ecl) (swank gray))
   #+clasp '((swank clasp) (swank gray))
   #+mkcl '((swank mkcl) (swank gray))
+  #+mezzano '((swank mezzano) (swank gray))
   )
 
 (defparameter *implementation-features*
   '(:allegro :lispworks :sbcl :clozure :cmu :clisp :ccl :corman :cormanlisp
-    :armedbear :gcl :ecl :scl :mkcl :clasp))
+    :armedbear :gcl :ecl :scl :mkcl :clasp :mezzano))
 
 (defparameter *os-features*
   '(:macosx :linux :windows :mswindows :win32 :solaris :darwin :sunos :hpux
-    :unix))
+    :unix :mezzano))
 
 (defparameter *architecture-features*
   '(:powerpc :ppc :x86 :x86-64 :x86_64 :amd64 :i686 :i586 :i486 :pc386 :iapx386
@@ -103,7 +107,9 @@
                 (subseq s 0 (position #\space s)))
   #+armedbear (lisp-implementation-version)
   #+ecl (ecl-version-string)
-  #+clasp (clasp-version-string))
+  #+clasp (clasp-version-string)
+  #+mezzano (let ((s (lisp-implementation-version)))
+              (subseq s 0 (position #\space s))))
 
 (defun unique-dir-name ()
   "Return a name that can be used as a directory name that is
@@ -133,12 +139,20 @@ operating system, and hardware architecture."
   "Returns true if NEW-FILE is newer than OLD-FILE."
   (> (file-write-date new-file) (file-write-date old-file)))
 
+(defun string-starts-with (string prefix)
+  (string-equal string prefix :end1 (min (length string) (length prefix))))
+
 (defun slime-version-string ()
   "Return a string identifying the SLIME version.
 Return nil if nothing appropriate is available."
-  (with-open-file (s (merge-pathnames "ChangeLog" *source-directory*)
+  (with-open-file (s (merge-pathnames "slime.el" *source-directory*)
                      :if-does-not-exist nil)
-    (and s (symbol-name (read s)))))
+    (when s
+      (loop with prefix = ";; Version: "
+            for line = (read-line s nil :eof)
+            until (eq line :eof)
+            when (string-starts-with line prefix)
+              return (subseq line (length prefix))))))
 
 (defun default-fasl-dir ()
   (merge-pathnames
@@ -300,9 +314,6 @@ If LOAD is true, load the fasl file."
     (eval `(pushnew 'compile-contribs ,(q "swank::*after-init-hook*"))))
   (funcall (q "swank::init")))
 
-(defun string-starts-with (string prefix)
-  (string-equal string prefix :end1 (min (length string) (length prefix))))
-
 (defun list-swank-packages ()
   (remove-if-not (lambda (package)
                    (let ((name (package-name package)))
@@ -323,13 +334,16 @@ If LOAD is true, load the fasl file."
         (delete-package package)))))
 
 (defun init (&key delete reload load-contribs (setup t)
-                  (quiet (not *load-verbose*)))
+                  (quiet (not *load-verbose*))
+                  from-emacs)
   "Load SWANK and initialize some global variables.
 If DELETE is true, delete any existing SWANK packages.
 If RELOAD is true, reload SWANK, even if the SWANK package already exists.
 If LOAD-CONTRIBS is true, load all contribs
 If SETUP is true, load user init files and initialize some
 global variabes in SWANK."
+  (when from-emacs
+    (setf *started-from-emacs* t))
   (when (and delete (find-package :swank))
     (delete-packages (list-swank-packages)))
   (cond ((or (not (find-package :swank)) reload)

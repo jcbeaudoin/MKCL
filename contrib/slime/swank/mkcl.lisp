@@ -635,7 +635,7 @@
         (if (and file pos) 
             (make-location
               `(:file ,(if (stringp file) file (namestring file)))
-              `(:end-position ,pos)
+              `(:end-position ,pos) ;; `(:position ,pos)
               `(:snippet
                 ,(with-open-file (s file)
                                  (file-position s pos)
@@ -887,7 +887,9 @@
         (condition (condition)
            (format t "~&In (swank-mkcl) receive-if: Something went bad with semaphore-wait ~A~%" condition)
            (finish-output)
-           nil))
+           nil
+           )
+        )
        (mt:with-lock (mutex)
          (setf (mailbox.locked-by mbox) mt:*thread*)
          (let* ((q (mailbox.queue mbox))
@@ -897,16 +899,21 @@
              (setf (mailbox.locked-by mbox) nil)
              ;;(format t "~&thread ~S received: ~S~%" mt:*thread* (car tail))
              (return (car tail))))
-         (setf (mailbox.locked-by mbox) nil))
+         (setf (mailbox.locked-by mbox) nil)
+         )
 
        ;;(format t "/ ~S~%" mt:*thread*) (finish-output)
        (when (eq timeout t) (return (values nil t)))
 ;;        (unless got-one
 ;;          (format t "~&In (swank-mkcl) receive-if: semaphore-wait timed out!~%"))
-       ))
+       )
+    )
     (condition (condition)
       (format t "~&Error in (swank-mkcl) receive-if: ~S, ~A~%" condition condition) (finish-output)
-      nil)))
+      nil
+      )
+    )
+  )
 
 
 (defmethod stream-finish-output ((stream stream))

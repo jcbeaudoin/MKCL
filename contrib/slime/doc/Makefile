@@ -55,6 +55,9 @@ publish: slime.pdf html.tgz
 slime.pdf: $(TEXI)
 	texi2pdf $<
 
+slime-refcard.pdf: slime-refcard.tex
+	texi2pdf $<
+
 install: install-info
 
 uninstall: uninstall-info
@@ -62,19 +65,19 @@ uninstall: uninstall-info
 # Create contributors.texi, a texinfo table listing all known
 # contributors of code.
 #
-# Explicitly includes Eric Marsden (pre-ChangeLog hacker)
-#
 # The gist of this horror show is that the contributor list is piped
 # into texinfo-tabulate.awk with one name per line, sorted
-# alphabetically.
-CHANGELOGS=../ChangeLog ../contrib/ChangeLog
-contributors.texi: $(CHANGELOGS) Makefile texinfo-tabulate.awk
-	cat $(CHANGELOGS) | \
+# by number of contributions.
+LAST_CHANGELOG_COMMIT=ab6d1bd5c9d3c5b4a6299b8c864ce4acfd25cbcc
+contributors.texi: ../slime.el Makefile texinfo-tabulate.awk
+	git show $(LAST_CHANGELOG_COMMIT):ChangeLog \
+	         $(LAST_CHANGELOG_COMMIT):contrib/ChangeLog | \
 	sed -ne '/^[0-9]/{s/^[^ ]* *//; s/ *<.*//; p;}' | \
+	(cat; git log $(LAST_CHANGELOG_COMMIT).. --format='%aN') | \
 	sort | \
 	uniq -c | \
-	sort -nr| \
-	sed -e 's/^[^A-Z]*//' | \
+	LC_ALL=C sort -nr | \
+	sed -e 's/^[^A-Z]*//; /^$$/d' | \
 	LC_ALL=C awk -f texinfo-tabulate.awk \
 	> $@
 
@@ -109,4 +112,5 @@ clean:
 	rm -f slime.kys slime.log slime.pg slime.tmp slime.toc slime.tp
 	rm -f slime.vr slime.vrs
 	rm -f slime.info slime.pdf slime.dvi slime.ps slime.html
+	rm -f slime-refcard.pdf slime-refcard.log slime-refcard.aux
 	rm -rf html html.tgz

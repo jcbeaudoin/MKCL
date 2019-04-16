@@ -437,6 +437,13 @@ corresponding values in the CDR of VALUE."
 (defmacro without-slime-interrupts (&body body)
   `(with-interrupts-enabled% nil ,body))
 
+(defun queue-thread-interrupt (thread function)
+  (interrupt-thread thread
+                    (lambda ()
+                      ;; safely interrupt THREAD
+                      (when (invoke-or-queue-interrupt function)
+                        (wake-thread thread)))))
+
 (defun invoke-or-queue-interrupt (function)
   (log-event "invoke-or-queue-interrupt: ~a~%" function)
   (cond ((not (boundp '*slime-interrupts-enabled*))
@@ -457,7 +464,8 @@ corresponding values in the CDR of VALUE."
                (t
                 (log-event "queue-interrupt: ~a~%" function)
                 (when *interrupt-queued-handler*
-                  (funcall *interrupt-queued-handler*)))))))
+                  (funcall *interrupt-queued-handler*))
+                t)))))
 
 
 ;;; FIXME: poor name?
@@ -692,6 +700,8 @@ If PACKAGE is not specified, the home package of SYMBOL is used."
   "Default value of :dont-close argument to start-server and
   create-server.")
 
+(defparameter *loopback-interface* "localhost")
+
 (defun start-server (port-file &key (style *communication-style*)
                                     (dont-close *dont-close*))
   "Start the server and write the listen port number to PORT-FILE.
@@ -703,18 +713,22 @@ This is the entry point for Emacs."
 (defun create-server (&key (port default-server-port)
                         (style *communication-style*)
                         (dont-close *dont-close*)
+                        interface
                         backlog)
   "Start a SWANK server on PORT running in STYLE.
 If DONT-CLOSE is true then the listen socket will accept multiple
-connections, otherwise it will be closed after the first."
-  (setup-server port #'simple-announce-function
-                style dont-close backlog))
+connections, otherwise it will be closed after the first.
+
+Optionally, an INTERFACE could be specified and swank will bind
+the PORT on this interface. By default, interface is \"localhost\"."
+  (let ((*loopback-interface* (or interface
+                                  *loopback-interface*)))
+    (setup-server port #'simple-announce-function
+                  style dont-close backlog)))
 
 (defun find-external-format-or-lose (coding-system)
   (or (find-external-format coding-system)
       (error "Unsupported coding system: ~s" coding-system)))
-
-(defparameter *loopback-interface* "127.0.0.1")
 
 (defmacro restart-loop (form &body clauses)
   "Executes FORM, with restart-case CLAUSES which have a chance to modify FORM's
@@ -770,13 +784,11 @@ first."
   (create-server :port port :style style :dont-close dont-close))
 
 (defun accept-connections (socket style dont-close)
-  (let ((client (unwind-protect 
-                     (accept-connection socket :external-format nil
-                                               :buffering t)
-                  (unless dont-close
-                    (close-socket socket)))))
-    (authenticate-client client)
-    (serve-requests (make-connection socket client style))
+  (unwind-protect
+       (let ((client (accept-connection socket :external-format nil
+                                               :buffering t)))
+         (authenticate-client client)
+         (serve-requests (make-connection socket client style)))
     (unless dont-close
       (send-to-sentinel `(:stop-server :socket ,socket)))))
 
@@ -784,7 +796,7 @@ first."
   (let ((secret (slime-secret)))
     (when secret
       (set-stream-timeout stream 20)
-      (let ((first-val (decode-message stream)))
+      (let ((first-val (read-packet stream)))
         (unless (and (stringp first-val) (string= first-val secret))
           (error "Incoming connection doesn't know the password.")))
       (set-stream-timeout stream nil))))
@@ -945,16 +957,6 @@ The processing is done in the extent of the toplevel restart."
     (with-panic-handler (connection)
       (loop (dispatch-event connection (receive))))))
 
-(defvar *auto-flush-interval* 0.2)
-
-(defun auto-flush-loop (stream)
-  (loop
-   (when (not (and (open-stream-p stream)
-                   (output-stream-p stream)))
-     (return nil))
-   (force-output stream)
-   (sleep *auto-flush-interval*)))
-
 (defgeneric thread-for-evaluation (connection id)
   (:documentation "Find or create a thread to evaluate the next request.")
   (:method ((connection multithreaded-connection) (id (eql t)))
@@ -976,10 +978,7 @@ The processing is done in the extent of the toplevel restart."
     (if thread
         (etypecase connection
           (multithreaded-connection
-           (interrupt-thread thread
-                             (lambda ()
-                               ;; safely interrupt THREAD
-                               (invoke-or-queue-interrupt #'simple-break))))
+           (queue-thread-interrupt thread #'simple-break))
           (singlethreaded-connection
            (simple-break)))
         (encode-message (list :debug-condition (current-thread-id)
@@ -1368,13 +1367,13 @@ entered nothing, returns NIL when user pressed C-g."
                                            ,prompt ,initial-value))
     (third (wait-for-event `(:emacs-return ,tag result)))))
 
-(defstruct (unredable-result
-            (:constructor make-unredable-result (string))
+(defstruct (unreadable-result
+            (:constructor make-unreadable-result (string))
             (:copier nil)
             (:print-object
              (lambda (object stream)
                (print-unreadable-object (object stream :type t)
-                 (princ (unredable-result-string object) stream)))))
+                 (princ (unreadable-result-string object) stream)))))
   string)
 
 (defun process-form-for-emacs (form)
@@ -1411,7 +1410,7 @@ converted to lower case."
 				  ,(process-form-for-emacs form)))
 	   (let ((value (caddr (wait-for-event `(:emacs-return ,tag result)))))
 	     (dcase value
-               ((:unreadable value) (make-unredable-result value))
+               ((:unreadable value) (make-unreadable-result value))
 	       ((:ok value) value)
                ((:error kind . data) (error "~a: ~{~a~}" kind data))
 	       ((:abort) (abort))))))))
@@ -2357,8 +2356,8 @@ and no continue restart available.")))))
 
 ;;;; Compilation Commands.
 
-(defstruct (:compilation-result
-             (:type list) :named)
+(defstruct (compilation-result (:type list))
+  (type :compilation-result)
   notes
   (successp nil :type boolean)
   (duration 0.0 :type float)
@@ -2964,7 +2963,16 @@ If non-nil, called with two arguments SPEC and TRACED-P." )
     (do-find (string-left-trim *find-definitions-left-trim* name))
     (do-find (string-left-trim *find-definitions-left-trim*
                                (string-right-trim
-                                *find-definitions-right-trim* name)))))
+                                *find-definitions-right-trim* name)))
+    ;; Not exactly robust
+    (when (and (eql (search "(setf " name :test #'char-equal) 0)
+               (char= (char name (1- (length name))) #\)))
+      (multiple-value-bind (symbol found)
+          (with-buffer-syntax ()
+            (parse-symbol (subseq name (length "(setf ")
+                                  (1- (length name)))))
+        (when found
+          (values `(setf ,symbol) t))))))
 
 (defslimefun find-definitions-for-emacs (name)
   "Return a list ((DSPEC LOCATION) ...) of definitions for NAME.
@@ -3374,7 +3382,7 @@ Return NIL if LIST is circular."
    (let ((content (hash-table-to-alist ht)))
      (cond ((every (lambda (x) (typep (first x) '(or string symbol))) content)
             (setf content (sort content 'string< :key #'first)))
-           ((every (lambda (x) (typep (first x) 'number)) content)
+           ((every (lambda (x) (typep (first x) 'real)) content)
             (setf content (sort content '< :key #'first))))
      (loop for (key . value) in content appending
            `((:value ,key) " = " (:value ,value)
@@ -3458,12 +3466,11 @@ Example:
 
 (defslimefun debug-nth-thread (index)
   (let ((connection *emacs-connection*))
-    (interrupt-thread (nth-thread index)
-                      (lambda ()
-                        (invoke-or-queue-interrupt
-                         (lambda ()
-                           (with-connection (connection)
-                             (simple-break))))))))
+    (queue-thread-interrupt
+     (nth-thread index)
+     (lambda ()
+       (with-connection (connection)
+         (simple-break))))))
 
 (defslimefun kill-nth-thread (index)
   (kill-thread (nth-thread index)))
