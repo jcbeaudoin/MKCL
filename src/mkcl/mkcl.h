@@ -20,7 +20,8 @@
 
 #ifdef __MINGW32__
 /* These defines have to be done before any system include. */
-# define __USE_MINGW_ANSI_STDIO 1
+# define _GNU_SOURCE 1
+# define _XOPEN_SOURCE 700 /* The maximum useful value since 2008 it seems. JCB */
 /* For WINVER, Windows XP is 0x0501, Windows XP_SP2 is 0x502,
                Windows Vista is 0x0600, Windows 7 is 0x0601, Windows 8 is 0x0602. */
 # define WINVER 0x0502 /* Don't want to support below that. JCB */
