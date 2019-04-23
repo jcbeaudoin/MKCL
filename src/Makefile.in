@@ -363,13 +363,13 @@ bin/mkcc$(EXE): ../contrib/tinycc/mkcc$(EXE)
 	mkdir -p lib/mkcc/include
 	cp ../contrib/tinycc/include/*.h lib/mkcc/include
 
-../contrib/tinycc/mkcc$(EXE):  ../contrib/tinycc/*.[ch]
+../contrib/tinycc/mkcc$(EXE):  ../contrib/tinycc/*.[ch] ../contrib/tinycc/Makefile ../contrib/tinycc/config.mak
 	cd ../contrib/tinycc; $(MAKE) mkcc$(EXE)
 
 libmkcc1.a: ../contrib/tinycc/libmkcc1.a
 	cp ../contrib/tinycc/libmkcc1.a libmkcc1.a
 
-../contrib/tinycc/libmkcc1.a: ../contrib/tinycc/mkcc$(EXE) ../contrib/tinycc/lib/*.c
+../contrib/tinycc/libmkcc1.a: ../contrib/tinycc/mkcc$(EXE) ../contrib/tinycc/lib/*.[cS] ../contrib/tinycc/lib/Makefile
 	cd ../contrib/tinycc; $(MAKE) libmkcc1.a
 
 mkclmin.@LIBEXT@: c/GNUmakefile mkcl/mkcl.h $(MKCL_HFILES) c/*.d c/arch/*.d c/*.h
