@@ -679,7 +679,18 @@ static int pe_write(struct pe_info *pe)
             }
         }
 
+#if 0
         strncpy((char*)psh->Name, sh_name, sizeof psh->Name);
+#else
+	/* This code here below does not support names longer than sizeof(psh->Name) (a.k.a. 8).
+	   Microsoft defines a special case for those involving redirection to a location in the 'string table'
+	   and says that executable images cannot use that scheme. JCB 2019/04/24 */
+	if (strlen(sh_name) < sizeof psh->Name)
+	  strncpy((char*)psh->Name, sh_name, sizeof psh->Name);
+	else
+	  memcpy(psh->Name, sh_name, sizeof psh->Name);
+	/* Should we complain for the case where strlen(sh_name) > sizeof(psh->Name)? */
+#endif
 
         psh->Characteristics = pe_sec_flags[si->cls];
         psh->VirtualAddress = addr;
