@@ -88,25 +88,25 @@ else
 ifeq "$(TARGET)" "i386"
  OBJ = $(addprefix $(DIR)/,$(I386_O))
  TGT = -DMKCC_TARGET_I386
- XCC = $(CC)
+ XCC = $(CC) -I$(top_srcdir)/include
 # XCC ?= $(MKCC) -B$(top_srcdir)
 else
 ifeq "$(TARGET)" "x86_64"
  OBJ = $(addprefix $(DIR)/,$(X86_64_O))
  TGT = -DMKCC_TARGET_X86_64
- XCC = $(CC)
+ XCC = $(CC) -I$(top_srcdir)/include
 # XCC ?= $(MKCC) -B$(top_srcdir)
 else
 ifeq "$(TARGET)" "arm"
  OBJ = $(addprefix $(DIR)/,$(ARM_O))
  TGT = -DMKCC_TARGET_ARM
- XCC = $(CC)
+ XCC = $(CC) -I$(top_srcdir)/include
 # XCC ?= $(MKCC) -B$(top_srcdir)
 else
 ifeq "$(TARGET)" "arm64"
  OBJ = $(addprefix $(DIR)/,$(ARM64_O))
  TGT = -DMKCC_TARGET_ARM64
- XCC = $(CC)
+ XCC = $(CC) -I$(top_srcdir)/include
 # XCC ?= $(MKCC) -B$(top_srcdir)
 else
  $(error libmkcc1.a not supported on target '$(TARGET)')
