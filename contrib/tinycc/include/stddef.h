@@ -30,10 +30,7 @@ typedef unsigned long long int uint64_t;
 
 #define offsetof(type, field) ((size_t)&((type *)0)->field)
 
-#define alloca(size) __mkcc_alloca(size)
-void *__mkcc_alloca(size_t size);
-
-#endif
+#endif /* def _STDDEF_H */
 
 /* Older glibc require a wint_t from <stddef.h> (when requested
    by __need_wint_t, as otherwise stddef.h isn't allowed to
