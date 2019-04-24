@@ -8,6 +8,9 @@ typedef __PTRDIFF_TYPE__ ptrdiff_t;
 typedef __PTRDIFF_TYPE__ intptr_t;
 typedef __SIZE_TYPE__ uintptr_t;
 
+#if 0
+/* File stddef.h has no business defining these in any manner, shape or form.
+   That job belongs to stdint.h in any proper C99 context! JCB */
 #ifndef __int8_t_defined
 #define __int8_t_defined
 typedef signed char int8_t;
@@ -18,6 +21,7 @@ typedef unsigned char uint8_t;
 typedef unsigned short int uint16_t;
 typedef unsigned int uint32_t;
 typedef unsigned long long int uint64_t;
+#endif
 #endif
 
 #ifndef NULL
