@@ -865,7 +865,7 @@ MK_GC_API void MK_GC_CALL MK_GC_init(void)
         BOOL (WINAPI *pfn) (LPCRITICAL_SECTION, DWORD) = NULL;
         HMODULE hK32 = GetModuleHandle(TEXT("kernel32.dll"));
         if (hK32)
-          pfn = (BOOL (WINAPI *) (LPCRITICAL_SECTION, DWORD))
+          pfn = (BOOL (WINAPI *) (LPCRITICAL_SECTION, DWORD)) (void *)
                 GetProcAddress (hK32,
                                 "InitializeCriticalSectionAndSpinCount");
         if (pfn)

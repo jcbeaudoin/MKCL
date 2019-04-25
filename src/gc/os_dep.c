@@ -1602,8 +1602,7 @@ void MK_GC_register_data_segments(void)
 
       hK32 = GetModuleHandle(TEXT("kernel32.dll"));
       if (hK32 != (HMODULE)0 &&
-          (GetWriteWatch_func = (GetWriteWatch_type)GetProcAddress(hK32,
-                                                "GetWriteWatch")) != NULL) {
+          (GetWriteWatch_func = (GetWriteWatch_type)(void *)GetProcAddress(hK32, "GetWriteWatch")) != NULL) {
         /* Also check whether VirtualAlloc accepts MEM_WRITE_WATCH,   */
         /* as some versions of kernel32.dll have one but not the      */
         /* other, making the feature completely broken.               */
