@@ -74,7 +74,7 @@ ifeq "$(TARGET)" "i386-win"
  XCC ?= $(CC) -I$(top_srcdir)/include
 # XCC ?= $(MKCC) -B$(top_srcdir)/win32 -I$(top_srcdir)/include
 # XAR ?= $(DIR)/tiny_libmaker$(EXESUF)
-# PICFLAGS =
+ PICFLAGS =
 else
 ifeq "$(TARGET)" "x86_64-win"
  OBJ_CRT = $(addprefix $(DIR)/,$(WIN_CRT_O))
@@ -83,7 +83,7 @@ ifeq "$(TARGET)" "x86_64-win"
  XCC ?= $(CC) -I$(top_srcdir)/include
 # XCC ?= $(MKCC) -B$(top_srcdir)/win32 -I$(top_srcdir)/include
 # XAR ?= $(DIR)/tiny_libmaker$(EXESUF)
-# PICFLAGS =
+ PICFLAGS =
 else
 ifeq "$(TARGET)" "i386"
  OBJ = $(addprefix $(DIR)/,$(I386_O))
