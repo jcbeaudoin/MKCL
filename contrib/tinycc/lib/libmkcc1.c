@@ -657,10 +657,10 @@ extern void abort(void);
 #undef __mkcc_va_copy
 #undef __mkcc_va_end
 
-void __mkcc_va_start(__va_list_struct *ap, void *fp)
+void __mkcc_va_start(__mkcc_va_list_struct *ap, void *fp)
 {
-    memset(ap, 0, sizeof(__va_list_struct));
-    *ap = *(__va_list_struct *)((char *)fp - 16);
+    memset(ap, 0, sizeof(__mkcc_va_list_struct));
+    *ap = *(__mkcc_va_list_struct *)((char *)fp - 16);
     ap->overflow_arg_area = (char *)fp + ap->overflow_offset;
     ap->reg_save_area = (char *)fp - 176 - 16;
 #if 0
@@ -670,7 +670,7 @@ void __mkcc_va_start(__va_list_struct *ap, void *fp)
 #endif
 }
 
-void *__mkcc_va_arg(__va_list_struct *ap,
+void *__mkcc_va_arg(__mkcc_va_list_struct *ap,
 		    enum __mkcc_va_arg_type arg_type,
 		    int size, int align)
 {
