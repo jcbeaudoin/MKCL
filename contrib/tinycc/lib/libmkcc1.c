@@ -693,12 +693,13 @@ void *__mkcc_va_arg(__va_list_struct *ap,
         goto use_overflow_area;
 
     case __mkcc_va_stack:
-    use_overflow_area:
-        ap->overflow_arg_area += size;
-        ap->overflow_arg_area = (char*)((intptr_t)(ap->overflow_arg_area + align - 1) & -(intptr_t)align);
-        return ap->overflow_arg_area - size;
+        goto use_overflow_area;
 
     }
+ use_overflow_area:
+    ap->overflow_arg_area += size;
+    ap->overflow_arg_area = (char*)((intptr_t)(ap->overflow_arg_area + align - 1) & -(intptr_t)align);
+    return ap->overflow_arg_area - size;
 }
 
 #endif /* __x86_64__ */
