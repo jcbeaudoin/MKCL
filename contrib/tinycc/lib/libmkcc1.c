@@ -639,9 +639,8 @@ long long __mkcc_fixxfdi (long double a1)
 #if defined(MKCC_TARGET_X86_64) && !defined(_WIN64)
 
 # ifndef __MKCC__
-#  include <stdlib.h>
-#  include <stdio.h>
-#  include <string.h>
+#  include <stdlib.h> /* for malloc(), free() and abort().*/
+#  include <string.h> /* for memset(). */
 # else
 /* Avoid including stdlib.h because it is not easily available when
    cross compiling */
@@ -672,8 +671,8 @@ void __mkcc_va_start(__va_list_struct *ap, void *fp)
 }
 
 void *__mkcc_va_arg(__va_list_struct *ap,
-               enum __mkcc_va_arg_type arg_type,
-               int size, int align)
+		    enum __mkcc_va_arg_type arg_type,
+		    int size, int align)
 {
     size = (size + 7) & ~7;
     align = (align + 7) & ~7;
@@ -699,11 +698,6 @@ void *__mkcc_va_arg(__va_list_struct *ap,
         ap->overflow_arg_area = (char*)((intptr_t)(ap->overflow_arg_area + align - 1) & -(intptr_t)align);
         return ap->overflow_arg_area - size;
 
-    default:
-#ifndef __MKCC__
-        fprintf(stderr, "unknown ABI type for __mkcc_va_arg\n");
-#endif
-        abort();
     }
 }
 
@@ -721,7 +715,6 @@ void __mkcc_clear_cache(void *beginning, void *end)
 # define _GNU_SOURCE
 # include <unistd.h>
 # include <sys/syscall.h>
-# include <stdio.h>
 
 void __mkcc_clear_cache(void *beginning, void *end)
 {
