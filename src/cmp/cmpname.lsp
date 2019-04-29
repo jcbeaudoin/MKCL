@@ -1,7 +1,7 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: C -*-
 ;;;;
 ;;;;  Copyright (c) 2007, Juan Jose Garcia Ripoll.
-;;;;  Copyright (c) 2012, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2012-2016, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public

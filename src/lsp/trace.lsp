@@ -1,6 +1,7 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
 ;;;;
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
+;;;;  Copyright (c) 2013, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public

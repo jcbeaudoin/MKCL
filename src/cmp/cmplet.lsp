@@ -4,6 +4,7 @@
 ;;;;
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
+;;;;  Copyright (c) 2013-2015, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    MKCL is free software; you can redistribute it and/or modify it
 ;;;;    under the terms of the GNU Lesser General Public License as
