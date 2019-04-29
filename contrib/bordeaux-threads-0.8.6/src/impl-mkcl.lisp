@@ -71,11 +71,8 @@ Distributed under the MIT license (see LICENSE file)
   (mt:make-condition-variable))
 
 (defun condition-wait (condition-variable lock &key timeout)
-  (signal-error-if-condition-wait-timeout timeout)
-  (mt:condition-wait condition-variable lock)
+  (mt:condition-wait condition-variable lock timeout)
   t)
-
-(define-condition-wait-compiler-macro)
 
 (defun condition-notify (condition-variable)
   (mt:condition-signal condition-variable))
