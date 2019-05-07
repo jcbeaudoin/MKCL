@@ -142,13 +142,8 @@
 			top-output-string
 			(*global-fun-refs* (make-global-fun-refs-vector)) ;; JCB
 			(*volatile* " volatile "))
-
+  (declare (ignore h-pathname data-pathname))
   (setq *top-level-forms* (nreverse *top-level-forms*))
-  (progn
-    (wt-nl1 "#include \"")
-    #-unicode (wt (file-basename h-pathname))
-    #+unicode (wt1-base-string-verbatim (file-basename h-pathname)) ;; JCB
-    (wt "\""))
   ;; All lines from CLINES statements are grouped at the beginning of the header
   ;; Notice that it does not make sense to guarantee that c-lines statements
   ;; are produced in-between the function definitions, because two functions
@@ -170,7 +165,6 @@
 	 (*compiler-output1* (make-string-output-stream :element-type 'base-char :encoding :UTF-8))
 	 (*emitted-local-funs* nil)
 	 (*compiler-declared-globals* (make-hash-table)))
-    (wt-nl1 "#include \"") (wt (file-basename data-pathname)) (wt "\"")
     (wt-nl1 "#ifdef __cplusplus")
     (wt-nl1 "extern \"C\"")
     (wt-nl1 "#endif")
@@ -338,8 +332,7 @@
     (dolist (x *callbacks*)
       (apply #'t3-defcallback x)))
 
-  #-unicode (wt-nl top-output-string)
-  #+unicode (progn (wt-nl) (wt1-base-string-verbatim top-output-string)) ;; JCB
+  (wt-nl top-output-string)
   )
 
 (defun c1eval-when (args)

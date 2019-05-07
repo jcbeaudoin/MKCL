@@ -880,20 +880,31 @@ filesystem or in the database of ASDF modules."
 
 
 (defun compiler-pass2 (c-pathname h-pathname data-pathname init-name &key input-designator)
-  (with-open-file (*compiler-output1* c-pathname :direction :output :external-format :utf-8) ;; JCB
-    (wt-comment-nl "Compiler: ~A ~A" (lisp-implementation-type) (lisp-implementation-version))
-    (multiple-value-bind (second minute hour day month year)
-        (get-decoded-time)
-      (wt-comment-nl "Date: ~D/~D/~D ~2,'0D:~2,'0D:~2,'0D (yyyy/mm/dd)" year month day hour minute second)
-      (wt-comment-nl "Machine: ~A ~A ~A" (software-type) (software-version) (machine-type)))
-    (wt-comment-nl "Source: ~A" input-designator)
-    (wt-comment-nl "This file external format: ~A" (stream-external-format *compiler-output1*)) ;; JCB debug
-    (with-open-file (*compiler-output2* h-pathname :direction :output :external-format :utf-8) ;; JCB
+  (let ((banner (make-string-output-stream))
+        (decls  (make-string-output-stream))
+        (data  (make-string-output-stream))
+        (body (make-string-output-stream)))
+    (let ((*compiler-output1* banner))
+      (wt-comment-nl "Compiler: ~A ~A" (lisp-implementation-type) (lisp-implementation-version))
+      (multiple-value-bind (second minute hour day month year)
+          (get-decoded-time)
+        (wt-comment-nl "Date: ~D/~D/~D ~2,'0D:~2,'0D:~2,'0D (yyyy/mm/dd)" year month day hour minute second)
+        (wt-comment-nl "Machine: ~A ~A ~A" (software-type) (software-version) (machine-type)))
+      (wt-comment-nl "Source: ~A" input-designator)
       (wt-nl1 "#include " *cmpinclude*)
+      (terpri *compiler-output1*))
+    (let ((*compiler-output1* body)
+          (*compiler-output2* decls))
       (catch *cmperr-tag*
-	(ctop-write init-name h-pathname data-pathname))
-      (terpri *compiler-output1*)
-      (terpri *compiler-output2*))))
+        (ctop-write init-name h-pathname data-pathname))
+      (terpri *compiler-output2*) (terpri *compiler-output2*)
+      (terpri *compiler-output1*) (terpri *compiler-output1*))
+    (data-dump data)
+    (with-open-file (c-file c-pathname :direction :output :external-format :utf-8) ;; JCB
+                    (princ (get-output-stream-string banner) c-file)
+                    (princ (get-output-stream-string decls) c-file)
+                    (princ (get-output-stream-string data) c-file)
+                    (princ (get-output-stream-string body) c-file))))
 
 
 (defun compiler-output-values (main-value conditions)
@@ -1053,7 +1064,6 @@ compiled successfully, returns the pathname of the compiled file."
 	 (progn
 	   (setf init-name (compute-init-name output-file :kind (if fasl-p :fasl :object)))
 	   (compiler-pass2 c-pathname h-pathname data-pathname init-name :input-designator (namestring input-pathname))
-	   (data-dump data-pathname)
 	   )
 
 	 ;;(when *trace-compiler-memory* (format t "~&compile-file before CC: ~S.~%" (si:sample-allocation-statistics)))
@@ -1173,7 +1183,6 @@ returned as the value of COMPILE."
 	 (t1expr form)
 	 (let (#+(or mingw32 mingw64 msvc cygwin)(*self-destructing-fasl* t))
 	   (compiler-pass2 c-pathname h-pathname data-pathname init-name :input-designator (format nil "~A" definition)))
-	 (setf si:*compiler-constants* (data-dump data-file #|data-pathname|# :close-when-done t))
 
 	 (compiler-cc (file-namestring c-pathname) (file-namestring o-pathname) tool-wd)
 	 (link-fasl (file-namestring so-pathname) init-name "" (list (file-namestring o-pathname)) libraries t t tool-wd)

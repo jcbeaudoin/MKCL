@@ -207,7 +207,8 @@
 	   ;; This is used by "compile" but not by "compile-file". JCB
 	   (format stream "~%#define compiler_data_text NULL~@
                              #define compiler_data_text_size 0~%")
-	   (setf output (concatenate 'vector (data-get-all-objects))))
+	   (setf output (concatenate 'vector (data-get-all-objects)))
+	   (setf si:*compiler-constants* output))
 	  (t ;; always emit. JCB
 	   (wt-data-begin stream)
 	   (macrolet ((stringify (data)
