@@ -305,13 +305,13 @@ static thread_value_t CALL_CONV thread_entry_point(void *arg)
     if (thread->thread.result_value == MKCL_OBJNULL)
       thread->thread.result_value = value;
     status = (thread_value_t) MKCL_THREAD_NORMAL_EXIT;
-#if 0
+    MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
   } MKCL_CATCH_ALL_IF_CAUGHT {
+    MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
     /* mkcl_bds_unwind1(env); */
     /* mkcl_bds_unwind1(env); */
     /* mkcl_bds_unwind1(env); */
     /* mkcl_bds_unwind1(env); */
-#endif
   } MKCL_CATCH_ALL_END;
   status = (thread_value_t) mkcl_exit_status(env);
   thread->thread.status = mkcl_thread_done;
@@ -384,15 +384,15 @@ static void * signal_servicing_thread_entry_point(void *arg)
 	mkcl_top_apply(env, thread->thread.function, MKCL_CONS(env, MKCL_MAKE_FIXNUM(received_signo), mk_cl_Cnil));
       }
     mkcl_cleanup_thread_lisp_context(env);
-#if 0
+    MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
   } MKCL_CATCH_ALL_IF_CAUGHT {
+    MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
     /* mkcl_bds_unwind1(env); */
     /* mkcl_bds_unwind1(env); */
     /* mkcl_bds_unwind1(env); */
     /* mkcl_bds_unwind1(env); */
     /* We could add some special action here to help stack unwinding
        but we don't need to do anything yet. */
-#endif
   } MKCL_CATCH_ALL_END;
   thread->thread.status = mkcl_thread_done;
 
@@ -1098,9 +1098,9 @@ static thread_value_t CALL_CONV imported_thread_pool_filler(void * arg)
     /* mkcl_bds_unwind1(env); */
     /* mkcl_bds_unwind1(env); */
 #endif
-#if 0
+    MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
   } MKCL_CATCH_ALL_IF_CAUGHT {
-#endif
+    MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
   } MKCL_CATCH_ALL_END;
   status = (thread_value_t) mkcl_exit_status(env);
   thread->thread.status = mkcl_thread_done;
@@ -1548,9 +1548,9 @@ static thread_value_t CALL_CONV finalization_thread_entry_point(void * arg)
     /* mkcl_bds_unwind1(env); */
     /* mkcl_bds_unwind1(env); */
 #endif
-#if 0
+    MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
   } MKCL_CATCH_ALL_IF_CAUGHT {
-#endif
+    MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
   } MKCL_CATCH_ALL_END;
   status = (thread_value_t) mkcl_exit_status(env);
   thread->thread.status = mkcl_thread_done;

@@ -1329,9 +1329,12 @@ static void call_finalizer_on_mkcl_object(void * obj, void * client_data)
 	      {
 		mkcl_cleanup_thread_lisp_context(env);
 		mkcl_disable_interrupts(env);
+                MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
 	      }
 
 	  } MKCL_CATCH_ALL_IF_CAUGHT {
+	    if (imported_env)
+	      { MKCL_UNSET_CALL_STACK_ROOT_GUARD(env); }
 	    if (finalizer == mk_cl_Ct)
 	      fprintf(stderr, "\nMKCL: standard finalizer has crashed!\nMKCL: object ");
 	    else

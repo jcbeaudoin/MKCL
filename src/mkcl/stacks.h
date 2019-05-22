@@ -562,6 +562,7 @@ extern "C" {
 #endif /* !MKCL_WINDOWS */
 
 #define MKCL_SETUP_CALL_STACK_ROOT_GUARD(env) (*((env)->frs_org) = *((env)->frs_top))
+#define MKCL_UNSET_CALL_STACK_ROOT_GUARD(env) ((env)->frs_org->frs_val = MKCL_OBJNULL) /* Marks an uninitialized call stack root guard. */
 
 
 /******************************************************/

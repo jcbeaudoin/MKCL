@@ -733,9 +733,11 @@ mkcl_boot(int argc, char **argv, struct mkcl_thread_init_parameters * params)
 	MKCL_SETUP_CALL_STACK_ROOT_GUARD(env);
 	_mkcl_boot_inner(env);
 	mkcl_set_option(MKCL_OPT_BOOTED, TRUE);
+        MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
       } MKCL_CATCH_ALL_IF_CAUGHT {
 	mkcl_object result_value = env->own_thread->thread.result_value;
 	
+        MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
 	if (MKCL_FIXNUMP(result_value))
 	  errno = mkcl_fixnum_to_word(result_value);
 	else
@@ -926,7 +928,9 @@ int mkcl_shutdown_watchdog(MKCL) /* We expect to run this function with interrup
 	  {
 	    own_thread->thread.result_value = join_thread(env, shutdown_thread);
 	  }
+        MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
       } MKCL_CATCH_ALL_IF_CAUGHT {
+        MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
 	own_thread->thread.result_value = @':invalid-value';
       } MKCL_CATCH_ALL_END;
     }

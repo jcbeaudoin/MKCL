@@ -1034,9 +1034,9 @@ static void handle_console_ctrl_event(mkcl_object lisp_handler, int signo)
 	mkcl_funcall1(env, lisp_handler, MKCL_MAKE_FIXNUM(signo));
 	mkcl_disable_interrupts(env);
 	mkcl_cleanup_thread_lisp_context(env);
-#if 0
+        MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
       } MKCL_CATCH_ALL_IF_CAUGHT {
-#endif
+        MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
       } MKCL_CATCH_ALL_END;
       thread->thread.status = mkcl_thread_done;
 

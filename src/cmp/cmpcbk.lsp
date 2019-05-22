@@ -193,6 +193,9 @@
 
     (wt-nl "mkcl_cleanup_thread_lisp_context(env);")
     (wt-nl "mkcl_disable_interrupts(env);")
+    (wt-nl "MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);")
+    (wt-nl "} MKCL_CATCH_ALL_IF_CAUGHT {")
+    (wt-nl "MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);")
     (wt-nl "} MKCL_CATCH_ALL_END;")
     (wt-nl "thread->thread.status = mkcl_thread_done;")
     (wt-nl "mkcl_release_current_thread(env);")

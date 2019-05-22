@@ -424,7 +424,9 @@ main(int argc, char **argv)
         mkcl_read_VV(env, mk_cl_Cnil, ~A, mk_cl_Cnil);
         ~A
 
+        MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
       } MKCL_CATCH_ALL_IF_CAUGHT {
+        MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
         /* watchdog here? */
         /* return mkcl_exit_status(env); */
       } MKCL_CATCH_ALL_END;
@@ -460,7 +462,9 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdS
         mkcl_enable_interrupts(env);
         mkcl_read_VV(env, mk_cl_Cnil, ~A, mk_cl_Cnil);
         ~A
+        MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
       } MKCL_CATCH_ALL_IF_CAUGHT {
+        MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
         /* watchdog here? */
         /* return mkcl_exit_status(env); */
       } MKCL_CATCH_ALL_END;

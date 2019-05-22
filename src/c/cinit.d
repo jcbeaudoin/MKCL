@@ -140,7 +140,9 @@ main(int argc, char **args)
 	top_level = _mkcl_intern(env, "TOP-LEVEL", mkcl_core.system_package);
 	mkcl_def_c_function(env, top_level, mk_si_simple_toplevel, 0);
 	mkcl_funcall0(env, top_level);
+        MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
       } MKCL_CATCH_ALL_IF_CAUGHT { /* The execution was abnormally terminated. */
+        MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
 	return mkcl_exit_status(env);
       } MKCL_CATCH_ALL_END;
       return(0);

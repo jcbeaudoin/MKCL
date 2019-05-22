@@ -634,10 +634,14 @@ mkcl_unwind(MKCL, mkcl_frame_ptr fr)
 
     env->nlj_fr = fr;
     if (fr == NULL)
-      frs_top = frs_org; /* jump directly all the way to the frs stack root guard! Used to abort everything. */
+      { /* jump directly all the way to the frs stack root guard! Used to abort everything. */
+        frs_top = frs_org;
+        if ( frs_top->frs_val == MKCL_OBJNULL )
+          mkcl_thread_exit(env, MKCL_THREAD_ABORTED); /* root guard was uninitialized, so just abort raw! */
+      }
     else
       /* Search back on the stack. */
-      for (; (frs_top != fr) && (frs_top->frs_val != MKCL_PROTECT_TAG) && (frs_top > frs_org); frs_top--);
+      for (; (frs_top != fr) && (frs_top > frs_org) && (frs_top->frs_val != MKCL_PROTECT_TAG); frs_top--);
 
     env->frs_top = frs_top;
     env->ihs_top = frs_top->frs_ihs;
@@ -1002,6 +1006,7 @@ mkcl_init_stacks(MKCL, mkcl_env new_env, struct mkcl_thread_init_parameters * pa
   new_env->frs_upper_bound = new_env->frs_org + size;
 
   new_env->frs_overflow_size = mkcl_get_option(MKCL_OPT_FRAME_STACK_OVERFLOW_SIZE);
+  new_env->frs_org->frs_val = MKCL_OBJNULL; /* Marks an uninitialized call stack root guard. */
 
   /*--- Binding stack ---*/
   size = (params ? params->binding_stack_initial_size : 0);
