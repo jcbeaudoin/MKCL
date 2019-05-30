@@ -2559,6 +2559,16 @@ MK_GC_INNER void MK_GC_thr_init(void)
 # endif
 }
 
+MK_GC_INNER void MK_GC_thr_uninit(void) /* JCB */
+{
+  /* stop markers threads. */
+  MK_GC_thr_initialized = FALSE;
+#ifdef PARALLEL_MARK
+  MK_GC_notify_all_marker();
+#endif
+}
+
+
 #ifdef MK_GC_PTHREADS
 
   struct start_info {
