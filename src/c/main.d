@@ -760,6 +760,7 @@ mkcl_boot(int argc, char **argv, struct mkcl_thread_init_parameters * params)
 
 static void _mkcl_final_clean_up(MKCL)
 {
+  mkcl_library_close_all(env);
 #if MKCL_WINDOWS
   while (InterlockedCompareExchange(&mkcl_boot_gate, TRUE, FALSE));
 #elif MKCL_PTHREADS
@@ -776,6 +777,7 @@ static void _mkcl_final_clean_up(MKCL)
   mkcl_clean_up_unixsys(env);
   mkcl_clean_up_threads(env);
   mkcl_clean_up_unixint(env);
+  mk_si_gc_off(env);
   mkcl_clean_up_alloc(env);
 
   mkcl_early_boot = TRUE;
@@ -787,6 +789,27 @@ static void _mkcl_final_clean_up(MKCL)
 #else
 # error Incomplete _mkcl_final_clean_up().
 #endif
+}
+
+mkcl_object mk_si_shutdown_mkcl(MKCL, mkcl_object code, mkcl_object watchdog_thread, mkcl_object verbose, mkcl_object clean)
+{
+  mkcl_object val = (env->own_thread->thread.result_value
+                     = mk_si_shutdown_mkcl_threads(env, code, watchdog_thread, verbose, clean));
+  bool must_clean_up = FALSE;
+  long int status = mkcl_exit_status(env);
+
+  mk_mt_get_lock(env, 1, mkcl_core.shutdown_gate);
+  if ( (mkcl_core.shutdown_watchdog_thread == mk_cl_Cnil)
+       || (mkcl_core.shutdown_watchdog_will_clean_up != mk_cl_Cnil) )
+    must_clean_up = TRUE;
+  mk_mt_giveup_lock(env, mkcl_core.shutdown_gate);
+  if ( must_clean_up )
+    {
+      _mkcl_final_clean_up(env);
+      /* we cannot do a normal return since we just uninitialized all the machinery needed to do so. */
+      mkcl_thread_exit(env, status);
+    }
+  @(return val);
 }
 
 long mkcl_exit_status(MKCL)
@@ -895,6 +918,8 @@ static mkcl_object join_thread(MKCL, mkcl_object shutdown_thread)
 
 int mkcl_shutdown_watchdog(MKCL) /* We expect to run this function with interrupts disabled. */
 {
+  mkcl_object watchdog_thread = mk_cl_Cnil;
+  bool must_clean_up = FALSE;
   const mkcl_object own_thread = env->own_thread;
   mkcl_object result_value = own_thread->thread.result_value;
 
@@ -910,12 +935,12 @@ int mkcl_shutdown_watchdog(MKCL) /* We expect to run this function with interrup
       MKCL_CATCH_ALL_BEGIN(env) { /* Make sure we have minimal safety wrappers on in case of an abort. */
 	MKCL_SETUP_CALL_STACK_ROOT_GUARD(env);
 	mkcl_object shutdown_thread;
-	mkcl_object watchdog_thread;
       
 	mk_mt_get_lock(env, 1, mkcl_core.shutdown_gate);
 	shutdown_thread = mkcl_core.shutdown_thread;
 	if (mkcl_Null(shutdown_thread)) mkcl_core.shutdown_thread = mk_cl_Ct;
 	watchdog_thread = mkcl_core.shutdown_watchdog_thread;
+        must_clean_up = (mkcl_core.shutdown_watchdog_will_clean_up != mk_cl_Cnil);
 	mk_mt_giveup_lock(env, mkcl_core.shutdown_gate);
       
 #if 0
@@ -960,8 +985,10 @@ int mkcl_shutdown_watchdog(MKCL) /* We expect to run this function with interrup
       }
 #endif
 
-    mkcl_library_close_all(env);
-    _mkcl_final_clean_up(env);
+    if ( own_thread == watchdog_thread && must_clean_up )
+      {
+        _mkcl_final_clean_up(env);
+      }
 
 #if 0
     fprintf(stderr, "\n;; MKCL shutdown watchdog: exit status = %d\n", status); fflush(stderr);

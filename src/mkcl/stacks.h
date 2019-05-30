@@ -543,6 +543,9 @@ extern "C" {
     /* if (frs_top != (__the_env)->frs_top) mkcl_frs_stack_botch(__the_env); */ \
 } while(0)
 #else /* !MKCL_WINDOWS */
+
+# include <pthread.h>
+
 # define MKCL_CATCH_ALL_BEGIN(the_env) do {				\
   const mkcl_env __the_env = (the_env);					\
   int __old_cancel_state;						\

@@ -1959,7 +1959,7 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
   {{SYS_ "REGISTER-SHUTDOWN-THREAD", SI_ORDINARY, mk_si_register_shutdown_thread, 1, MKCL_OBJNULL}},
   {{SYS_ "REGISTER-SHUTDOWN-WATCHDOG-THREAD", SI_ORDINARY, mk_si_register_shutdown_watchdog_thread, 2, MKCL_OBJNULL}},
   {{SYS_ "SHUTDOWN-WATCHDOG-THREAD", SI_ORDINARY, mk_si_shutdown_watchdog_thread, 0, MKCL_OBJNULL}},
-  {{SYS_ "SHUTDOWN-MKCL", SI_ORDINARY, MKCL_IN_LISP(mk_si_shutdown_mkcl), 4, MKCL_OBJNULL}},
+  {{SYS_ "SHUTDOWN-MKCL", SI_ORDINARY, mk_si_shutdown_mkcl, 4, MKCL_OBJNULL}},
 
   {{SYS_ "SETUP-FOR-GDB", SI_ORDINARY, mk_si_setup_for_gdb, -1, MKCL_OBJNULL}},
 
@@ -2119,6 +2119,7 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
   {{SYS_ "*SHARP-LABELS*", SI_SPECIAL, NULL, -1, mk_cl_Cnil}},
   {{SYS_ "*PENDING-SHARP-LABELS*", SI_SPECIAL, NULL, -1, mk_cl_Cnil}},
 
+  {{SYS_ "SHUTDOWN-MKCL-THREADS", SI_ORDINARY, MKCL_IN_LISP(mk_si_shutdown_mkcl_threads), 4, MKCL_OBJNULL}},
 
   /* Tag for end of list!
      This entry, with a first field of NULL value,

@@ -1555,7 +1555,7 @@ package."
     )
   )
 
-(defun shutdown-mkcl (code watchdog-thread verbose clean)
+(defun shutdown-mkcl-threads (code watchdog-thread verbose clean)
   (unwind-protect
       (let ((threads (mt:all-threads))
 	    (this mt:*thread*))
@@ -1637,7 +1637,7 @@ package."
 	  (setq threads (mt:all-threads))
 	  (if (dolist (it threads t) (unless (or (eq it this) (eq it watchdog-thread)) (return nil)))
 	      ;; we're the last one, so let's turn off the lights and leave.
-	      (return-from shutdown-mkcl code)
+	      (return-from shutdown-mkcl-threads code)
 	    (sleep 0.01)
 	    ;;(mt:thread-yield)
 	    )
@@ -1683,7 +1683,7 @@ package."
 	  (setq threads (mt:all-threads))
 	  (if (dolist (it threads t) (unless (or (eq it this) (eq it watchdog-thread)) (return nil)))
 	      ;; we're the last one, so let's turn off the lights and leave.
-	      (return-from shutdown-mkcl code)
+	      (return-from shutdown-mkcl-threads code)
 	    (sleep 0.1)
 	    )
 	  )
@@ -1692,7 +1692,7 @@ package."
 	  (setq threads (mt:all-threads))
 	  (if (dolist (it threads t) (unless (or (eq it this) (eq it watchdog-thread)) (return nil)))
 	      ;; we're the last one, so let's turn off the lights and leave.
-	      (return-from shutdown-mkcl code)
+	      (return-from shutdown-mkcl-threads code)
 	    ;;(sleep 0.1)
 	    (mt:thread-yield)
 	    )
@@ -1701,7 +1701,7 @@ package."
 	  (format t "~&MKCL: Remaining threads: ~S.~%" threads)
 	  (format t "~&MKCL: Incomplete shutdown!~%") (finish-output)
 	  (sleep 1))
-	(return-from shutdown-mkcl code)
+	(return-from shutdown-mkcl-threads code)
 	)
     ;; unwind-protected from here down.
     (call-exit-hooks)

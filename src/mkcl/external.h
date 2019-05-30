@@ -1171,6 +1171,7 @@ extern "C" {
   extern MKCL_API mkcl_object mk_mkcl_setenv(MKCL, mkcl_object var, mkcl_object value);
   extern MKCL_API mkcl_object mkcl_setenv(MKCL, mkcl_object var, mkcl_object value);
   extern MKCL_API mkcl_object mk_si_shutdown_mkcl(MKCL, mkcl_object code, mkcl_object watchdog_thread, mkcl_object verbose, mkcl_object clean);
+  extern MKCL_API mkcl_object mk_si_shutdown_mkcl_threads(MKCL, mkcl_object code, mkcl_object watchdog_thread, mkcl_object verbose, mkcl_object clean);
   extern MKCL_API mkcl_object mk_si_gdb(MKCL);
 
   typedef enum mkcl_option {

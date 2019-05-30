@@ -108,7 +108,7 @@ static mkcl_object mk_si_simple_toplevel(MKCL)
   }
 }
 
-mkcl_object mk_si_shutdown_mkcl(MKCL, mkcl_object code, mkcl_object watchdog_thread, mkcl_object verbose, mkcl_object clean)
+mkcl_object mk_si_shutdown_mkcl_threads(MKCL, mkcl_object code, mkcl_object watchdog_thread, mkcl_object verbose, mkcl_object clean)
 { /* Bootstrap stub. */
   return mk_cl_Cnil;
 }

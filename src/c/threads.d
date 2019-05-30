@@ -4316,8 +4316,19 @@ void mkcl_thread_exit(MKCL, long status_code)
 {
   if (env)
     {
-      env->own_thread->thread.status = mkcl_thread_done;
+      mkcl_object thread = env->own_thread;
+      thread->thread.status = mkcl_thread_done;
       env->disable_interrupts = 2; /* This prevents any interrupts, even forced. */
+      if ( thread == mkcl_core.shutdown_watchdog_thread )
+        { /* this thread is about to bail out on its watchdog duties, so let's take act of that. */
+          mk_mt_get_lock(env, 1, mkcl_core.shutdown_gate);
+          if ( thread == mkcl_core.shutdown_watchdog_thread )
+            {
+              mkcl_core.shutdown_watchdog_thread = mk_cl_Cnil;
+              mkcl_core.shutdown_watchdog_will_clean_up = mk_cl_Cnil;
+            }
+          mk_mt_giveup_lock(env, mkcl_core.shutdown_gate);
+        }
     }
 
 #if MKCL_PTHREADS

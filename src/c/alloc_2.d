@@ -1098,6 +1098,7 @@ mkcl_init_alloc(void)
 
 void mkcl_clean_up_alloc(MKCL)
 { /* Best effort only. We cannot raise an exception from here. */
+  MK_GC_uninit();
 #if MKCL_WINDOWS
   DeleteCriticalSection(&oom_handler_lock);
 #elif MKCL_PTHREADS
