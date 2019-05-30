@@ -2094,6 +2094,7 @@ MK_GC_INNER void MK_GC_get_next_stack(char *start, char *limit,
         MK_GC_release_mark_lock();
         if (WaitForSingleObject(event, INFINITE) == WAIT_FAILED)
           ABORT("WaitForSingleObject failed");
+        if ( !MK_GC_thr_initialized ) _endthreadex(0); /* JCB */
         MK_GC_acquire_mark_lock();
       }
 
@@ -2159,6 +2160,9 @@ MK_GC_INNER void MK_GC_get_next_stack(char *start, char *limit,
                                      INFINITE /* timeout */,
                                      FALSE /* isAlertable */) == WAIT_FAILED)
           ABORT("SignalObjectAndWait failed");
+
+        if ( !MK_GC_thr_initialized ) _endthreadex(0); /* JCB */
+
         /* The state of mark_cv is non-signaled here again. */
 
         if (waitcnt > 1) {

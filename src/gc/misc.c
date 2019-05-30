@@ -1225,6 +1225,15 @@ MK_GC_API void MK_GC_CALL MK_GC_init(void)
     RESTORE_CANCEL(cancel_state);
 }
 
+MK_GC_API void MK_GC_CALL MK_GC_uninit(void) /* JCB */
+{
+  MK_GC_disable();
+#ifdef THREADS
+  MK_GC_thr_uninit();
+#endif
+  MK_GC_is_initialized = FALSE;
+}
+
 MK_GC_API void MK_GC_CALL MK_GC_enable_incremental(void)
 {
 # if !defined(MK_GC_DISABLE_INCREMENTAL) && !defined(KEEP_BACK_PTRS)

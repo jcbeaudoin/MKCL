@@ -1147,6 +1147,15 @@ MK_GC_INNER void MK_GC_thr_init(void)
 # endif
 }
 
+MK_GC_INNER void MK_GC_thr_uninit(void) /* JCB */
+{
+  /* stop markers threads. */
+  MK_GC_thr_initialized = FALSE;
+#ifdef PARALLEL_MARK
+  MK_GC_notify_all_marker();
+#endif
+}
+
 /* Perform all initializations, including those that    */
 /* may require allocation.                              */
 /* Called without allocation lock.                      */
@@ -2036,6 +2045,11 @@ MK_GC_INNER void MK_GC_wait_marker(void)
     if (pthread_cond_wait(&mark_cv, &mark_mutex) != 0) {
         ABORT("pthread_cond_wait failed");
     }
+    if ( !MK_GC_thr_initialized ) /* JCB */
+      {
+        pthread_mutex_unlock(&mark_mutex);
+        pthread_exit(0);
+      }
     MK_GC_ASSERT(MK_GC_mark_lock_holder == NO_THREAD);
     SET_MARK_LOCK_HOLDER;
 }

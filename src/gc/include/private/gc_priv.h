@@ -1683,6 +1683,7 @@ void MK_GC_register_data_segments(void);
 
 #ifdef THREADS
   MK_GC_INNER void MK_GC_thr_init(void);
+  MK_GC_INNER void MK_GC_thr_uninit(void);
   MK_GC_INNER void MK_GC_init_parallel(void);
 #else
   MK_GC_INNER MK_GC_bool MK_GC_is_static_root(ptr_t p);

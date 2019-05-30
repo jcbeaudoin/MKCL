@@ -394,6 +394,7 @@ MK_GC_API void MK_GC_CALL MK_GC_atfork_child(void);
 /* Initialize the collector.  Portable clients should call MK_GC_INIT()    */
 /* from the main program instead.                                       */
 MK_GC_API void MK_GC_CALL MK_GC_init(void);
+MK_GC_API void MK_GC_CALL MK_GC_uninit(void); /* JCB */
 
 /* General purpose allocation routines, with roughly malloc calling     */
 /* conv.  The atomic versions promise that no relevant pointers are     */
