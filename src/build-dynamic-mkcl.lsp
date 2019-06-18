@@ -17,14 +17,14 @@
 ;;(load "cmp/load.lsp" :external-format '(:ascii :lf))
 (load "cmp/CMP.fasb")
 
-(setq compiler::*mkcl-include-directory* (truename (pathname ".")) ;; truename is needed by MS-Windows
+(setq compiler::*mkcl-include-directory* (truename (pathname "./c")) ;; truename is needed by MS-Windows
       compiler::*mkcl-library-directory* (truename (pathname "."))
       )
 
 (unless (compiler::build-program
 	 #+msvc "mkcl2"
-	 #+unix "bin/mkcl-dyn"
-	 #+mingw32 "bin/mkcl"
+	 #+unix "mkcl-dyn"
+	 #+mingw32 "mkcl-dyn"
 	 )
   (mkcl:quit :exit-code 1))
 

@@ -14,7 +14,7 @@
 
 ;;(setq compiler::*trace-cc* t)
 
-(setq compiler::*mkcl-include-directory* (truename (pathname ".")) ;; truename is needed by MS-Windows
+(setq compiler::*mkcl-include-directory* (truename (pathname "./c")) ;; truename is needed by MS-Windows
       compiler::*mkcl-library-directory* (truename (pathname "."))
       )
 
@@ -29,7 +29,7 @@
     )
 
 (unless (compiler::build-program
-	 "bin/mkcl-full"
+	 "mkcl-full"
 	 :lisp-object-files (list* "cmp/cmp.a" *modules*) ;; list of built-ins.
 	 :use-mkcl-shared-libraries nil ;; force static linking
 	 )

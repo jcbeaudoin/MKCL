@@ -2445,7 +2445,7 @@ test -z "${docdir}" && docdir="${datadir}/doc/mkcl-${PACKAGE_VERSION}"
 
 boehm_configure_flags=""
 
-                                                            						                                                                                                                  TARGETS='bin/mkcl$(EXE)'
+                                                            						                                                                                                                  TARGETS='mkcl$(EXE)'
 SUBDIRS=c
 
 
@@ -7966,12 +7966,12 @@ $as_echo "$as_me: Configuring included Boehm GC library:" >&6;}
       echo "(destdir=`${PWDCMD}`; cd gc; \
       CC="${CC} ${PICFLAG}" CFLAGS="-DMK_GC_BUILD ${MKCL_CFLAGS} ${MKCL_OPTIM_CFLAGS}" LDFLAGS="${LDFLAGS}" \
         $srcdir/gc/configure --disable-shared --prefix=${destdir} \
-	--includedir=${destdir}/mkcl/ --libdir=${destdir} --build=${build_alias} \
+	--includedir=${destdir}/c/mkcl/ --libdir=${destdir} --build=${build_alias} \
 	--host=${host_alias} --enable-large-config --with-libatomic-ops=no ${boehm_configure_flags})"
      (destdir=`${PWDCMD}`; cd gc; \
       CC="${CC} ${PICFLAG}" CFLAGS="-DMK_GC_BUILD ${MKCL_CFLAGS} ${MKCL_OPTIM_CFLAGS}" LDFLAGS="${LDFLAGS}" \
         $srcdir/gc/configure --disable-shared --prefix=${destdir} \
-	--includedir=${destdir}/mkcl/ --libdir=${destdir} --build=${build_alias} \
+	--includedir=${destdir}/c/mkcl/ --libdir=${destdir} --build=${build_alias} \
 	--host=${host_alias} --enable-large-config --with-libatomic-ops=no ${boehm_configure_flags})
       MKCL_BOEHM_GC_HEADER='mkcl/gc/gc.h'
     ;;
@@ -8019,9 +8019,9 @@ echo "cd ../contrib/tinycc; ./configure --prefix=${prefix}"
 $as_echo "$as_me: Done with TCC." >&6;}
 
 
-ac_config_files="$ac_config_files bare.lsp lsp/load.lsp clos/load.lsp cmp/load.lsp ../Makefile Makefile c/Makefile doc/Makefile doc/mkcl.man doc/mkcl-config.man mkcl/mkcl-gc.h mkcl/configpre.h:mkcl/config.h.in bin/mkcl-config.pre:util/mkcl-config lsp/config.pre:lsp/config.lsp.in compile.pre:compile.lsp.in cmp/cmpdefs.pre:cmp/cmpdefs.lsp.in"
+ac_config_files="$ac_config_files bare.lsp lsp/load.lsp clos/load.lsp cmp/load.lsp ../Makefile Makefile c/Makefile doc/Makefile doc/mkcl.man doc/mkcl-config.man c/mkcl/mkcl-gc.h c/mkcl/configpre.h:c/mkcl/config.h.in mkcl-config.pre:util/mkcl-config lsp/config.pre:lsp/config.lsp.in compile.pre:compile.lsp.in cmp/cmpdefs.pre:cmp/cmpdefs.lsp.in"
 
-ac_config_headers="$ac_config_headers mkcl/config.h:mkcl/configpre.h"
+ac_config_headers="$ac_config_headers c/mkcl/config.h:c/mkcl/configpre.h"
  # FIXME
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -8724,13 +8724,13 @@ do
     "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
     "doc/mkcl.man") CONFIG_FILES="$CONFIG_FILES doc/mkcl.man" ;;
     "doc/mkcl-config.man") CONFIG_FILES="$CONFIG_FILES doc/mkcl-config.man" ;;
-    "mkcl/mkcl-gc.h") CONFIG_FILES="$CONFIG_FILES mkcl/mkcl-gc.h" ;;
-    "mkcl/configpre.h") CONFIG_FILES="$CONFIG_FILES mkcl/configpre.h:mkcl/config.h.in" ;;
-    "bin/mkcl-config.pre") CONFIG_FILES="$CONFIG_FILES bin/mkcl-config.pre:util/mkcl-config" ;;
+    "c/mkcl/mkcl-gc.h") CONFIG_FILES="$CONFIG_FILES c/mkcl/mkcl-gc.h" ;;
+    "c/mkcl/configpre.h") CONFIG_FILES="$CONFIG_FILES c/mkcl/configpre.h:c/mkcl/config.h.in" ;;
+    "mkcl-config.pre") CONFIG_FILES="$CONFIG_FILES mkcl-config.pre:util/mkcl-config" ;;
     "lsp/config.pre") CONFIG_FILES="$CONFIG_FILES lsp/config.pre:lsp/config.lsp.in" ;;
     "compile.pre") CONFIG_FILES="$CONFIG_FILES compile.pre:compile.lsp.in" ;;
     "cmp/cmpdefs.pre") CONFIG_FILES="$CONFIG_FILES cmp/cmpdefs.pre:cmp/cmpdefs.lsp.in" ;;
-    "mkcl/config.h") CONFIG_HEADERS="$CONFIG_HEADERS mkcl/config.h:mkcl/configpre.h" ;;
+    "c/mkcl/config.h") CONFIG_HEADERS="$CONFIG_HEADERS c/mkcl/config.h:c/mkcl/configpre.h" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

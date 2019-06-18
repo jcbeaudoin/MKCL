@@ -289,7 +289,7 @@ AC_SUBST(CORE_LIBS, [])         dnl Locally compiled libs to link into
 AC_SUBST(SHARED_LDFLAGS)        dnl Flags for shared libraries linker
 AC_SUBST(BUNDLE_LDFLAGS)        dnl Flags for FASL files linker
 AC_SUBST(EXTRA_OBJS)            dnl Extra *.o files to be compiled into libmkcl.a
-AC_SUBST(TARGETS, ['bin/mkcl$(EXE)'])dnl Versions of MKCL to be built 
+AC_SUBST(TARGETS, ['mkcl$(EXE)'])dnl Versions of MKCL to be built
 AC_SUBST(SUBDIRS, [c])          dnl Subdirectories that make should process
 AC_SUBST(LIBRARIES, [])         dnl GMP, Boehm's GC, etc
 AC_SUBST(LSP_LIBRARIES)         dnl Libraries produced by lisp translator
@@ -628,9 +628,9 @@ dnl Checks for system services
 dnl =====================================================================
 dnl Final pass over configuration files
 dnl
-dnl Notice that we build ${builddir}/mkcl/configpre.h from
-dnl ${srcdir}/mkcl/config.h.in, and then use all AC_DEF* to build
-dnl mkcl/config.h from mkcl/configpre.h
+dnl Notice that we build ${builddir}/c/mkcl/configpre.h from
+dnl ${srcdir}/c/mkcl/config.h.in, and then use all AC_DEF* to build
+dnl c/mkcl/config.h from c/mkcl/configpre.h
 
 dnl ----------------------------------------------------------------------
 dnl Do we use C or C++ compiler to compile mkcl?
@@ -776,12 +776,12 @@ dnl    if mkdir gc; then
       echo "(destdir=`${PWDCMD}`; cd gc; \
       CC="${CC} ${PICFLAG}" CFLAGS="-DMK_GC_BUILD ${MKCL_CFLAGS} ${MKCL_OPTIM_CFLAGS}" LDFLAGS="${LDFLAGS}" \
         $srcdir/gc/configure --disable-shared --prefix=${destdir} \
-	--includedir=${destdir}/mkcl/ --libdir=${destdir} --build=${build_alias} \
+	--includedir=${destdir}/c/mkcl/ --libdir=${destdir} --build=${build_alias} \
 	--host=${host_alias} --enable-large-config --with-libatomic-ops=no ${boehm_configure_flags})"
      (destdir=`${PWDCMD}`; cd gc; \
       CC="${CC} ${PICFLAG}" CFLAGS="-DMK_GC_BUILD ${MKCL_CFLAGS} ${MKCL_OPTIM_CFLAGS}" LDFLAGS="${LDFLAGS}" \
         $srcdir/gc/configure --disable-shared --prefix=${destdir} \
-	--includedir=${destdir}/mkcl/ --libdir=${destdir} --build=${build_alias} \
+	--includedir=${destdir}/c/mkcl/ --libdir=${destdir} --build=${build_alias} \
 	--host=${host_alias} --enable-large-config --with-libatomic-ops=no ${boehm_configure_flags})
       MKCL_BOEHM_GC_HEADER='mkcl/gc/gc.h'
 dnl     else
@@ -822,7 +822,7 @@ dnl     if test -z "$gmp_build"; then
 dnl       gmp_build="${build_alias}"
 dnl     fi
 dnl dnl    if mkdir gmp; then
-dnl      MKCL_GMP_HEADER='mkcl/gmp.h'
+dnl      MKCL_GMP_HEADER='c/mkcl/gmp.h'
 dnl      dnl Notice we need -DPIC to force the assembler to generate PIC code
 dnl      echo "(destdir=`${PWDCMD}`; cd gmp; CC="${CC} ${PICFLAG}" \
 dnl        $srcdir/gmp/configure --disable-shared --prefix=${destdir} \
@@ -845,10 +845,10 @@ AC_MSG_NOTICE([Done with TCC.])
 AC_CONFIG_FILES([
   bare.lsp lsp/load.lsp clos/load.lsp cmp/load.lsp
   ../Makefile Makefile c/Makefile doc/Makefile doc/mkcl.man doc/mkcl-config.man
-  mkcl/mkcl-gc.h
-  mkcl/configpre.h:mkcl/config.h.in bin/mkcl-config.pre:util/mkcl-config
+  c/mkcl/mkcl-gc.h
+  c/mkcl/configpre.h:c/mkcl/config.h.in mkcl-config.pre:util/mkcl-config
   lsp/config.pre:lsp/config.lsp.in compile.pre:compile.lsp.in
   cmp/cmpdefs.pre:cmp/cmpdefs.lsp.in
  ])
-AC_CONFIG_HEADERS([mkcl/config.h:mkcl/configpre.h]) # FIXME
+AC_CONFIG_HEADERS([c/mkcl/config.h:c/mkcl/configpre.h]) # FIXME
 AC_OUTPUT

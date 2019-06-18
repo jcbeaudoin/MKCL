@@ -35,8 +35,7 @@
 ;;; -H traces include files in gcc.
 ;;(setq compiler::*cc-flags* (concatenate 'base-string "-H " compiler::*cc-flags*))
 
-(let (#+:mkcl-bootstrap (mkcc (namestring (merge-pathnames "bin/mkcc" (si::self-truename))))
-      #-:mkcl-bootstrap (mkcc (namestring (merge-pathnames "mkcc" (si::self-truename))))
+(let ((mkcc (namestring (merge-pathnames "mkcc" (si::self-truename))))
       (clang "clang"))
   (declare (ignorable mkcc))
   (or #-(or mingw32 mingw64)
@@ -60,7 +59,7 @@
 ;;;
 ;;; * Add include path to not yet installed headers.
 
-(setq compiler::*mkcl-include-directory* (truename (pathname ".")) ;; truename is needed by MS-Windows
+(setq compiler::*mkcl-include-directory* (truename (pathname "./c")) ;; truename is needed by MS-Windows
       compiler::*mkcl-library-directory* (truename (pathname "."))
       )
 

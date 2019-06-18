@@ -92,7 +92,7 @@
 
 #+unix
 (unless (compiler:build-program
-	 "bin/mkcl-small"
+	 "mkcl-small"
 	 :use-mkcl-shared-libraries nil ;; force static linking
 	 ;;:extra-ld-flags "-pg"  ;; for profiling
 	 )
@@ -100,7 +100,7 @@
 
 
 #+windows
-(let ((target-name #+msvc "bin/mkcl2" #+(or mingw32 mingw64) "bin/mkcl-small"))
+(let ((target-name #+msvc "mkcl2" #+(or mingw32 mingw64) "mkcl-small"))
   (unless (compiler:build-program
 	   target-name
 	   )

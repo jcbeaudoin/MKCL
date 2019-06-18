@@ -22,9 +22,9 @@ VPATH	= @srcdir@
 TRUE_CC = @CC@
 CC	= @CC@
 ifeq (@thehost@,mingw32)
-CFLAGS	= -I$$PWD/../ -DMKCL_API @CPPFLAGS@ @CFLAGS@ @MKCL_CFLAGS@ @MKCL_OPTIM_CFLAGS@
+CFLAGS	= -I$$PWD -DMKCL_API @CPPFLAGS@ @CFLAGS@ @MKCL_CFLAGS@ @MKCL_OPTIM_CFLAGS@
 else
-CFLAGS	= -I$$PWD/../ @CPPFLAGS@ @CFLAGS@ @MKCL_CFLAGS@ @MKCL_OPTIM_CFLAGS@
+CFLAGS	= -I$$PWD @CPPFLAGS@ @CFLAGS@ @MKCL_CFLAGS@ @MKCL_OPTIM_CFLAGS@
 endif
 
 SHELL	= /bin/sh
@@ -44,18 +44,18 @@ includedir=@includedir@
 
 # Files
 
-MKCL_HFILES = ../mkcl/config.h \
-              ../mkcl/list.h \
-              ../mkcl/external.h \
-              ../mkcl/internal.h \
-              ../mkcl/mkcl-fenv.h \
-              ../mkcl/mkcl-gc.h \
-              ../mkcl/mkcl-inl.h \
-              ../mkcl/mkcl-math.h \
-              ../mkcl/mkcl-unicode.h \
-              ../mkcl/number.h \
-              ../mkcl/object.h \
-              ../mkcl/stacks.h
+MKCL_HFILES = mkcl/config.h \
+              mkcl/list.h \
+              mkcl/external.h \
+              mkcl/internal.h \
+              mkcl/mkcl-fenv.h \
+              mkcl/mkcl-gc.h \
+              mkcl/mkcl-inl.h \
+              mkcl/mkcl-math.h \
+              mkcl/mkcl-unicode.h \
+              mkcl/number.h \
+              mkcl/object.h \
+              mkcl/stacks.h
 
 
 
@@ -154,10 +154,10 @@ ffi_x86.o: ffi_x86.c
 #
 # These files are interrelated
 #
-all_symbols.o: all_symbols.c symbols_list.h symbols_list2.h ../mkcl/mkcl.h
+all_symbols.o: all_symbols.c symbols_list.h symbols_list2.h mkcl/mkcl.h
 	$(CC) $(CFLAGS) -c all_symbols.c -o $@
 
-all_symbols2.o: all_symbols.c symbols_list.h symbols_list2.h ../mkcl/mkcl.h
+all_symbols2.o: all_symbols.c symbols_list.h symbols_list2.h mkcl/mkcl.h
 	$(CC) $(CFLAGS) -DMKCL_FINAL -c all_symbols.c -o $@
 
 cinit.o: cinit.c
@@ -170,7 +170,7 @@ Makefile: Makefile.in ../config.status
 #
 #
 
-makefile.depend: $(DCFILES) cinit.c all_symbols.c ../mkcl/mkcl.h $(MKCL_HFILES)
+makefile.depend: $(DCFILES) cinit.c all_symbols.c mkcl/mkcl.h $(MKCL_HFILES)
 	$(RM) makefile.depend
 	for i in $^; do \
 	  case $$i in \

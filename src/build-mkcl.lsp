@@ -35,13 +35,13 @@
 
 
 
-(setq compiler::*mkcl-include-directory* (truename (pathname ".")) ;; truename is needed by MS-Windows
+(setq compiler::*mkcl-include-directory* (truename (pathname "./c")) ;; truename is needed by MS-Windows
       compiler::*mkcl-library-directory* (truename (pathname "."))
       )
 
 #+unix
 (unless (compiler::build-program
-	 "bin/mkcl"
+	 "mkcl"
 	 :lisp-object-files '( "cmp/CMP.a" ) ;; list of pre-loads.
 	 :use-mkcl-shared-libraries nil ;; force static linking
 	 ;;:extra-ld-flags "-pg"  ;; for profiling
@@ -51,7 +51,7 @@
 
 #+windows
 (unless (compiler::build-program
-	 "bin/mkcl"
+	 "mkcl"
 	 :lisp-object-files '( "cmp/CMP.a" ) ;; list of pre-loads.
 ;;	 :extra-ld-flags "-Wl,--stack,0x800000" ;; Stack of 8MB. ;; behaves badly on MinGW64. 
 #|
