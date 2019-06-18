@@ -2,6 +2,14 @@
 *.as2
 mkcl_min
 mkcl_min.exe
+mkcl
+mkcl.exe
+mkcl-small
+mkcl-small.exe
+mkcc
+mkcc.exe
+mkcl-config
+mkcl-config.pre
 ucd.dat
 help.doc
 HELP.DOC
