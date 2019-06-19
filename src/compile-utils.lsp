@@ -104,7 +104,7 @@
 		  (unless (and (probe-file object)
 			       (>= (file-write-date object) (file-write-date source))
 			       (>= (file-write-date object) 
-				   (file-write-date "./mkcl/mkcl-cmp.h")))
+				   (file-write-date "./c/mkcl/mkcl-cmp.h")))
 		    (format t "~&(compile-file ~S :output-file ~S~{ ~S~})~%"
 			    source object (append options *compile-extra-options*))
 		    (multiple-value-bind (output-truename warnings-p failure-p)
