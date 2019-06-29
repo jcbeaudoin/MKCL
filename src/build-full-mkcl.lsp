@@ -1,6 +1,6 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
 ;;;;
-;;;;  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2019, Jean-Claude Beaudoin.
 ;;;;
 ;;;;  This program is free software; you can redistribute it and/or
 ;;;;  modify it under the terms of the GNU Lesser General Public
@@ -11,6 +11,9 @@
 
 ;;;
 ;;;
+(push :mkcl-bootstrap *features*)
+
+(load "cmp/load.lsp" :external-format '(:ascii :lf))
 
 ;;(setq compiler::*trace-cc* t)
 
@@ -18,19 +21,21 @@
       compiler::*mkcl-library-directory* (truename (pathname "."))
       )
 
-(defparameter *modules* nil)
+(defparameter *build-modules* (list "cmp/CMP.a"))
 
-(do ((i 6 (1+ i))
-     (max (si:argc))
+(do ((i 8 (1+ i))
+     (max (mkcl:argc))
      )
-    ((>= i max) (setq *modules* (nreverse *modules*)))
-    (push (mkcl:argv i) *modules*)
+    ((>= i max) (setq *build-modules* (nreverse *build-modules*)))
+    (push (mkcl:argv i) *build-modules*)
     ;;(format t "~&i = ~D, arg = ~S~%" i (mkcl:argv i))
     )
 
+;;(format t "~&*build-modules* = ~S~%" *build-modules*) (finish-output)
+
 (unless (compiler::build-program
 	 "mkcl-full"
-	 :lisp-object-files (list* "cmp/cmp.a" *modules*) ;; list of built-ins.
+	 :lisp-object-files *build-modules* ;; list of built-ins.
 	 :use-mkcl-shared-libraries nil ;; force static linking
 	 )
   (mkcl:quit :exit-code 1))

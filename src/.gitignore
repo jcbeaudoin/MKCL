@@ -6,6 +6,8 @@ mkcl
 mkcl.exe
 mkcl-small
 mkcl-small.exe
+mkcl-full
+mkcl-full.exe
 mkcc
 mkcc.exe
 mkcl-config
