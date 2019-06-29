@@ -75,7 +75,7 @@ MKCL_HFILES = c/mkcl/config.h \
 ASDF2_FASLS = ext/asdf2.fasb ../contrib/asdf2-bundle/asdf2-bundle.fas
 ASDF_FASLS = ext/asdf.fasb ext/asdf3.fasb
 
-CONTRIB_FASLS = \
+EXTENSION_CONTRIB_FASLS = \
                 ext/BYTECMP.fasb \
                 ext/MAKE.fasb \
                 ext/profile.fasb \
@@ -83,7 +83,9 @@ CONTRIB_FASLS = \
                 ext/mk-unix.fasb \
                 ext/SOCKETS.fasb \
                 ext/WALKER.fasb \
-                ext/UNICODE-NAMES.fasb \
+                ext/UNICODE-NAMES.fasb
+
+ASDF_CONTRIB_FASLS = \
                 ext/uiop.fasb \
                 asdf-stage/trivial-features.fasb \
                 asdf-stage/trivial-garbage.fasb \
@@ -96,15 +98,28 @@ CONTRIB_FASLS = \
                 asdf-stage/fiveam.fasb \
                 asdf-stage/rt.fasb
 
-CONTRIB_STATIC_LIBS = ext/asdf.a ext/asdf3.a ext/asdf2.a $(CONTRIB_FASLS:%.fasb=%.a)
+EXTENSION_CONTRIB_STATIC_LIBS = $(EXTENSION_CONTRIB_FASLS:%.fasb=%.a)
 
-BUILTINS = asdf profile rt serve-event SOCKETS mk-unix
+ASDF_CONTRIB_STATIC_LIBS = $(ASDF_CONTRIB_FASLS:%.fasb=%.a)
+
+CONTRIB_FASLS = $(EXTENSION_CONTRIB_FASLS) $(ASDF_CONTRIB_FASLS)
+
+CONTRIB_STATIC_LIBS = ext/asdf.a ext/asdf3.a ext/asdf2.a $(CONTRIB_FASLS:%.fasb=%.a)
 
 MKCL_STATIC_PARTS = mkcltop.@LIBEXT@ lsp.a mkclmin.@LIBEXT@
 
 
-all: mkcc$(EXE) mkcl-config $(TARGETS) $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) help.doc
-.PHONY:	all
+all: base contribs
+
+base: mkcc$(EXE) mkcl-config $(TARGETS) help.doc
+
+contribs: extension-contribs asdf-contribs
+
+extension-contribs: ../contrib/unicode/UnicodeData.txt $(EXTENSION_CONTRIB_FASLS) $(EXTENSION_CONTRIB_STATIC_LIBS)
+
+asdf-contribs: $(ASDF_FASLS) $(ASDF2_FASLS) $(ASDF_CONTRIB_FASLS)
+
+.PHONY:	all base contribs extension-contribs asdf-contribs
 
 Makefile: Makefile.in config.status
 	./config.status
@@ -276,13 +291,8 @@ mkcl-dyn: mkcl-small$(EXE) cmp/CMP.fasb build-dynamic-mkcl.lsp
 mkcl$(EXE): mkcl-small$(EXE) cmp/CMP.fasb build-mkcl.lsp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-mkcl.lsp
 
-ifeq (@thehost@,mingw32)
-mkcl-full$(EXE): mkcl-small$(EXE) build-full-mkcl.lsp $(BUILTINS:%=%.a)
-	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-full-mkcl.lsp -- $(BUILTINS:%=%.a)
-else
-mkcl-full$(EXE): mkcl-small$(EXE) build-full-mkcl.lsp $(BUILTINS)
-	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-full-mkcl.lsp -- $(BUILTINS)
-endif
+mkcl-full$(EXE): mkcl-small$(EXE) build-full-mkcl.lsp ext/asdf.a ext/profile.a ext/SERVE-EVENT.a ext/SOCKETS.a ext/mk-unix.a
+	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-full-mkcl.lsp --  ext/asdf.a ext/profile.a ext/SERVE-EVENT.a ext/SOCKETS.a ext/mk-unix.a
 
 help.doc: dump-doc.lsp mkcl-small$(EXE) doc/help.lsp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load dump-doc.lsp
@@ -403,45 +413,46 @@ BUILD-STAMP: config.status
 	echo "#" `uname -a` > $@
 	head -8 config.log | tail -6 >> $@
 
-install: install-base install-contribs
+install: install-base install-extension-contribs install-asdf-contribs install-slime
 #	cd doc; $(MAKE) prefix=$(prefix) install
 
-install-base: all
-	$(mkinstalldirs) $(bindir) $(libdir) \
-	  $(mkcldir) $(includedir) $(includedir)/mkcl
-	$(INSTALL_DATA) ../Copyright ../LGPL $(mkcldir)
-	$(INSTALL_DATA) ../Copyright ../LGPL $(includedir)/mkcl
+install-base: all libmkcc1.a
+	$(mkinstalldirs) $(DESTDIR)$(bindir) $(DESTDIR)$(libdir) \
+	  $(DESTDIR)$(mkcldir)  $(DESTDIR)$(libdir)/mkcc/include $(DESTDIR)$(libdir)/mkcc/@build_cpu@ \
+          $(DESTDIR)$(includedir) $(DESTDIR)$(includedir)/mkcl
+	$(INSTALL_DATA) ../Copyright ../LGPL $(DESTDIR)$(mkcldir)
+	$(INSTALL_DATA) ../Copyright ../LGPL $(DESTDIR)$(includedir)/mkcl
 	for i in $(TARGETS); do \
-	  $(INSTALL_PROGRAM) $$i $(bindir); \
+	  $(INSTALL_PROGRAM) $$i $(DESTDIR)$(bindir); \
 	done
 	if [ -d encodings ]; then \
-	  $(mkinstalldirs) $(mkcldir)/encodings; \
+	  $(mkinstalldirs) $(DESTDIR)$(mkcldir)/encodings; \
 	  for i in ./encodings/*; do \
-	    $(INSTALL_DATA) $$i $(mkcldir)/encodings; \
+	    $(INSTALL_DATA) $$i $(DESTDIR)$(mkcldir)/encodings; \
 	  done \
 	fi
-	$(INSTALL_DATA) ./c/mkcl/*.h $(includedir)/mkcl
+	$(INSTALL_DATA) ./c/mkcl/*.h $(DESTDIR)$(includedir)/mkcl
 	if (echo $(SUBDIRS) | grep gc); then \
-	  $(mkinstalldirs) $(includedir)/mkcl/gc; \
-	  $(INSTALL_DATA) ./c/mkcl/gc/*.h $(includedir)/mkcl/gc; \
+	  $(mkinstalldirs) $(DESTDIR)$(includedir)/mkcl/gc; \
+	  $(INSTALL_DATA) ./c/mkcl/gc/*.h $(DESTDIR)$(includedir)/mkcl/gc; \
 	fi
-	rm $(includedir)/mkcl/config.h
-	sed '/-CUT-/,$$d' ./c/mkcl/config.h > $(includedir)/mkcl/config.h
-	$(INSTALL_SCRIPT) mkcl-config $(bindir)
+	rm $(DESTDIR)$(includedir)/mkcl/config.h
+	sed '/-CUT-/,$$d' ./c/mkcl/config.h > $(DESTDIR)$(includedir)/mkcl/config.h
+	$(INSTALL_SCRIPT) mkcl-config $(DESTDIR)$(bindir)
 	for i in BUILD-STAMP help.doc ; do \
-	  $(INSTALL_DATA) $$i $(mkcldir); \
+	  $(INSTALL_DATA) $$i $(DESTDIR)$(mkcldir); \
 	done
 	for i in $(LSP_LIBRARIES); do \
 	  if test -s $$i ; then \
 	    case $$i in \
-	      *.dll) $(INSTALL_LIBRARY) $$i $(libdir); \
-		     $(INSTALL_LIBRARY) $$i $(bindir);; \
-	      *) $(INSTALL_LIBRARY) $$i $(libdir);; \
+	      *.dll) $(INSTALL_LIBRARY) $$i $(DESTDIR)$(libdir); \
+		     $(INSTALL_LIBRARY) $$i $(DESTDIR)$(bindir);; \
+	      *) $(INSTALL_LIBRARY) $$i $(DESTDIR)$(libdir);; \
 	    esac \
 	  fi \
 	done
 	if [ "x@MKCL_INTERNAL_SONAME@" != "x" -a -f "@MKCL_INTERNAL_SONAME@" ]; then \
-	  ( cd $(libdir) && rm -f @SONAME3@ @SONAME2@ @SONAME1@ @SONAME@ && \
+	  ( cd $(DESTDIR)$(libdir) && rm -f @SONAME3@ @SONAME2@ @SONAME1@ @SONAME@ && \
 	    $(LN_S) @MKCL_INTERNAL_SONAME@ @SONAME3@ && \
 	    $(LN_S) @MKCL_INTERNAL_SONAME@ @SONAME2@ && \
 	    $(LN_S) @MKCL_INTERNAL_SONAME@ @SONAME1@ && \
@@ -449,116 +460,82 @@ install-base: all
 	fi
 	for i in $(MKCL_STATIC_PARTS) $(LIBRARIES); do \
 	  if test -s $$i ; then \
-	    $(INSTALL_LIBRARY) $$i $(mkcldir); \
+	    $(INSTALL_LIBRARY) $$i $(DESTDIR)$(mkcldir); \
 	  fi \
 	done
-	$(INSTALL_DATA) c/dpp$(EXE) $(mkcldir)
-	$(INSTALL_DATA) mkcl_min$(EXE) $(mkcldir)
-	$(INSTALL_DATA) cmp/cmp.asd cmp/cmp.as2 $(mkcldir)
-	if [ -f cmp/CMP.a ] ; then $(INSTALL_DATA) cmp/CMP.a $(mkcldir); fi
-	$(INSTALL_PROGRAM) cmp/CMP.fasb $(mkcldir)
+	$(INSTALL_DATA) c/dpp$(EXE) $(DESTDIR)$(mkcldir)
+	$(INSTALL_DATA) mkcl_min$(EXE) $(DESTDIR)$(mkcldir)
+	$(INSTALL_DATA) cmp/cmp.asd cmp/cmp.as2 $(DESTDIR)$(mkcldir)
+	if [ -f cmp/CMP.a ] ; then $(INSTALL_DATA) cmp/CMP.a $(DESTDIR)$(mkcldir); fi
+	$(INSTALL_PROGRAM) cmp/CMP.fasb $(DESTDIR)$(mkcldir)
+	$(INSTALL_PROGRAM) mkcc$(EXE) $(DESTDIR)$(bindir)
+	$(INSTALL_DATA) ../contrib/tinycc/include/*.h $(DESTDIR)$(libdir)/mkcc/include
+	$(INSTALL_LIBRARY) libmkcc1.a $(DESTDIR)$(libdir)/mkcc/@build_cpu@
 
-install-contribs: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) libmkcc1.a
-	$(mkinstalldirs) $(mkcldir)/contrib/ $(libdir)/mkcc/include $(libdir)/mkcc/@build_cpu@
-	$(INSTALL_PROGRAM) mkcc$(EXE) $(bindir)
-	$(INSTALL_DATA) ../contrib/tinycc/include/*.h $(libdir)/mkcc/include
-	$(INSTALL_LIBRARY) libmkcc1.a $(libdir)/mkcc/@build_cpu@
-	for i in ext/*.as2 ext/*.asd; do $(INSTALL_DATA) $${i} $(mkcldir)/contrib/; done
-	for i in asdf-stage/*.as2 asdf-stage/*.asd; do $(INSTALL_DATA) $${i} $(mkcldir)/contrib/; done
-	for i in ext/asdf.fasb ext/asdf3.fasb ext/asdf2.fasb ../contrib/unicode/UnicodeData.txt $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
+install-extension-contribs: extension-contribs
+	$(mkinstalldirs) $(DESTDIR)$(mkcldir)/contrib/
+	for i in ../contrib/unicode/UnicodeData.txt $(EXTENSION_CONTRIB_FASLS) $(EXTENSION_CONTRIB_STATIC_LIBS); do \
 	  if test -s $$i; then \
 	    case $$i in \
-	      *.fasb) $(INSTALL_PROGRAM) $$i $(mkcldir)/contrib/;; \
-	      *) $(INSTALL_DATA) $$i $(mkcldir)/contrib/;; \
+	      *.fasb) $(INSTALL_PROGRAM) $$i $(DESTDIR)$(mkcldir)/contrib/;; \
+	      *) $(INSTALL_DATA) $$i $(DESTDIR)$(mkcldir)/contrib/;; \
+	    esac; \
+	  fi \
+	done
+
+install-asdf-contribs: asdf-contribs # $(ASDF_FASLS) $(ASDF2_FASLS) $(ASDF_CONTRIB_FASLS)
+	$(mkinstalldirs) $(DESTDIR)$(mkcldir)/contrib/
+	for i in ext/*.as2 ext/*.asd; do $(INSTALL_DATA) $${i} $(DESTDIR)$(mkcldir)/contrib/; done
+	for i in asdf-stage/*.as2 asdf-stage/*.asd; do $(INSTALL_DATA) $${i} $(DESTDIR)$(mkcldir)/contrib/; done
+	for i in ext/asdf.fasb ext/asdf3.fasb ext/asdf2.fasb ext/asdf.a ext/asdf3.a ext/asdf2.a $(ASDF_CONTRIB_FASLS) $(ASDF_CONTRIB_STATIC_LIBS); do \
+	  if test -s $$i; then \
+	    case $$i in \
+	      *.fasb) $(INSTALL_PROGRAM) $$i $(DESTDIR)$(mkcldir)/contrib/;; \
+	      *) $(INSTALL_DATA) $$i $(DESTDIR)$(mkcldir)/contrib/;; \
 	    esac; \
 	  fi \
 	done
 	if [ -d ../contrib/asdf2-bundle ]; then \
-	  cp -pR ../contrib/asdf2-bundle $(mkcldir)/contrib/; \
+	  cp -pR ../contrib/asdf2-bundle $(DESTDIR)$(mkcldir)/contrib/; \
 	fi
+
+install-slime:
 	if [ -d ../contrib/slime ]; then \
-	  cp -pR ../contrib/slime $(mkcldir)/contrib/; \
+	  cp -pR ../contrib/slime $(DESTDIR)$(mkcldir)/contrib/; \
 	fi
 
-install-local: install-base-local install-contribs-local
+install-local:
+	$(MAKE) prefix="." install
 
-install-base-local: all
-	$(mkinstalldirs) ./lib/ \
-	  $(localmkcldir) ./include/ ./include//mkcl
-	$(INSTALL_DATA) ../Copyright ../LGPL $(localmkcldir)
-	$(INSTALL_DATA) ../Copyright ../LGPL ./include/mkcl
-	if [ -d encodings ]; then \
-	  $(mkinstalldirs) $(localmkcldir)/encodings; \
-	  for i in ./encodings/*; do \
-	    $(INSTALL_DATA) $$i $(localmkcldir)/encodings; \
-	  done \
-	fi
-	$(INSTALL_DATA) ./c/mkcl/*.h ./include//mkcl
-	if (echo $(SUBDIRS) | grep gc); then \
-	  $(mkinstalldirs) ./include//mkcl/gc; \
-	  $(INSTALL_DATA) ./c/mkcl/gc/*.h ./include//mkcl/gc; \
-	fi
-	rm ./include//mkcl/config.h
-	sed '/-CUT-/,$$d' ./c/mkcl/config.h > ./include//mkcl/config.h
-	for i in BUILD-STAMP help.doc ; do \
-	  $(INSTALL_DATA) $$i $(localmkcldir); \
-	done
-	for i in $(LSP_LIBRARIES); do \
-	  if test -s $$i ; then \
-	    case $$i in \
-	      *.dll) $(INSTALL_LIBRARY) $$i ./lib/; \
-		     $(INSTALL_LIBRARY) $$i ./bin/;; \
-	      *) $(INSTALL_LIBRARY) $$i ./lib/;; \
-	    esac \
-	  fi \
-	done
-	if [ "x@MKCL_INTERNAL_SONAME@" != "x" -a -f "@MKCL_INTERNAL_SONAME@" ]; then \
-	  ( cd ./lib/ && rm -f @SONAME3@ @SONAME2@ @SONAME1@ @SONAME@ && \
-	    $(LN_S) @MKCL_INTERNAL_SONAME@ @SONAME3@ && \
-	    $(LN_S) @MKCL_INTERNAL_SONAME@ @SONAME2@ && \
-	    $(LN_S) @MKCL_INTERNAL_SONAME@ @SONAME1@ && \
-	    $(LN_S) @MKCL_INTERNAL_SONAME@ @SONAME@ ) \
-	fi
-	for i in $(MKCL_STATIC_PARTS) $(LIBRARIES); do \
-	  if test -s $$i ; then \
-	    $(INSTALL_LIBRARY) $$i $(localmkcldir); \
-	  fi \
-	done
-	$(INSTALL_DATA) c/dpp$(EXE) $(localmkcldir)
-	$(INSTALL_DATA) mkcl_min$(EXE) $(localmkcldir)
-	$(INSTALL_DATA) cmp/cmp.asd cmp/cmp.as2 $(localmkcldir)
-	if [ -f cmp/CMP.a ] ; then $(INSTALL_DATA) cmp/CMP.a $(localmkcldir); fi
-	$(INSTALL_PROGRAM) cmp/CMP.fasb $(localmkcldir)
 
-install-contribs-local: $(ASDF_FASLS) $(ASDF2_FASLS) $(CONTRIB_FASLS) libmkcc1.a
-	$(mkinstalldirs) $(localmkcldir)/contrib/ ./lib/mkcc/include ./lib/mkcc/@build_cpu@
-	$(INSTALL_LIBRARY) libmkcc1.a ./lib/mkcc/@build_cpu@
-	for i in ext/*.as2 ext/*.asd; do $(INSTALL_DATA) $${i} $(localmkcldir)/contrib/; done
-	for i in asdf-stage/*.as2 asdf-stage/*.asd; do $(INSTALL_DATA) $${i} $(localmkcldir)/contrib/; done
-	for i in ext/asdf.fasb ext/asdf3.fasb ext/asdf2.fasb ../contrib/unicode/UnicodeData.txt $(CONTRIB_FASLS) $(CONTRIB_STATIC_LIBS); do \
-	  if test -s $$i; then \
-	    case $$i in \
-	      *.fasb) $(INSTALL_PROGRAM) $$i $(localmkcldir)/contrib/;; \
-	      *) $(INSTALL_DATA) $$i $(localmkcldir)/contrib/;; \
-	    esac; \
-	  fi \
-	done
-	cp -pR ../contrib/asdf2-bundle $(localmkcldir)/contrib/
+install-base-local:
+	$(MAKE) prefix="." install-base
 
+install-extension-contribs-local:
+	$(MAKE) prefix="." install-extension-contribs
+
+install-asdf-contribs-local:
+	$(MAKE) prefix="." install-asdf-contribs
 
 uninstall:
-	for i in $(TARGETS) mkcl-config; do $(RM) $(bindir)/$$(basename $$i); done
-	$(RM) $(bindir)/mkcc$(EXE)
-	$(RM) -r $(includedir)/mkcl $(mkcldir)
-	$(RM) -r $(libdir)/mkcc
+	for i in $(TARGETS) mkcl-config; do $(RM) $(DESTDIR)$(bindir)/$$(basename $$i); done
+	$(RM) $(DESTDIR)$(bindir)/mkcc$(EXE)
+	$(RM) -r $(DESTDIR)$(includedir)/mkcl $(DESTDIR)$(mkcldir)
+	$(RM) -r $(DESTDIR)$(libdir)/mkcc
 	for i in $(LSP_LIBRARIES); do \
 	  case $$i in \
-	    *.dll) $(RM) $(libdir)/$$i || : ; $(RM) $(bindir)/$$i || : ;; \
-	    *) $(RM) $(libdir)/$$i || : ;; \
+	    *.dll) $(RM) $(DESTDIR)$(libdir)/$$i || : ; $(RM) $(DESTDIR)$(bindir)/$$i || : ;; \
+	    *) $(RM) $(DESTDIR)$(libdir)/$$i || : ;; \
 	  esac \
 	done
-	cd $(libdir) && rm -f @SONAME3@ @SONAME2@ @SONAME1@ @SONAME@
+	cd $(DESTDIR)$(libdir) && rm -f @SONAME3@ @SONAME2@ @SONAME1@ @SONAME@
+	$(RM) -r $(DESTDIR)$(mkcldir)
 #	cd doc; $(MAKE) uninstall
+
+uninstall-local:
+	$(MAKE) prefix="." uninstall
+	$(RM) -r ./bin ./lib ./include
+
 
 doc: $(TARGETS)
 	cd doc; $(MAKE)
@@ -576,7 +553,6 @@ clean: clean_lisp clean_contribs
 	$(RM) *.dll bin/*.dll
 	$(RM) *.o *.a *.la *.so *.data *.fasb *.fas core core.* a.out
 	cd bin; $(RM) *.o *.a *.la *.so *.data *.fasb *.fas core core.* a.out
-	$(RM) -r lib include
 
 clean_contribs:
 	$(RM) -r lib/mkcc/@build_cpu@
@@ -591,7 +567,7 @@ clean_lisp:
 	$(RM) lsp/config.lsp cmp/cmpdefs.lsp
 	$(RM) help.doc
 
-distclean: clean
+distclean: uninstall-local clean
 	cd c; $(MAKE) distclean
 	$(RM) mkcl-config.pre
 	$(RM) doc/Makefile doc/mkcl.man doc/mkcl-config.man
