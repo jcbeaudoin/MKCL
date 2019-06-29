@@ -41,6 +41,7 @@ prefix=@prefix@
 exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
+mkcldir=@mkcldir@
 
 # Files
 
@@ -142,6 +143,10 @@ symbols_list2.h: symbols_list.h
 	mv $@-$$$$ $@ # We do this here to assure the "atomic" creation of symbols_list2.h.
 
 $(OBJS): $(DPP)
+
+
+unixfsys.o: unixfsys.c
+	$(CC) $(CFLAGS) -DMKCL_SYS_LIBDIR_DEFAULT="\"$(mkcldir)\"" -o $@ -c $<
 
 
 #
