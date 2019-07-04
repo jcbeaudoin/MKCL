@@ -23,9 +23,11 @@
 ;;;
 ;;; * Sockets library.
 ;;;
+(defparameter sources '("../contrib/sockets/package.lisp"
+                        "../contrib/sockets/sockets.lisp"))
+(clean-up "./ext/" sources)
 (build-module "SOCKETS"
-	      '("../contrib/sockets/package.lisp"
-		"../contrib/sockets/sockets.lisp")
+	      sources
 	      :destdir "./ext/" #|:prefix "EXT"|#
 	      )
 
