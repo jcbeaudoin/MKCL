@@ -416,7 +416,7 @@ BUILD-STAMP: config.status
 install: install-base install-extension-contribs install-asdf-contribs install-slime
 #	cd doc; $(MAKE) prefix=$(prefix) install
 
-install-base: all libmkcc1.a
+install-base: base libmkcc1.a
 	$(mkinstalldirs) $(DESTDIR)$(bindir) $(DESTDIR)$(libdir) \
 	  $(DESTDIR)$(mkcldir)  $(DESTDIR)$(libdir)/mkcc/include $(DESTDIR)$(libdir)/mkcc/@build_cpu@ \
           $(DESTDIR)$(includedir) $(DESTDIR)$(includedir)/mkcl
