@@ -504,18 +504,21 @@ install-slime:
 	  cp -pR ../contrib/slime $(DESTDIR)$(mkcldir)/contrib/; \
 	fi
 
-install-local:
-	$(MAKE) prefix="." install
+install-local: install-base-local install-extension-contribs install-asdf-contribs install-slime-local
 
 
-install-base-local:
+install-base-local: base libmkcc1.a
 	$(MAKE) prefix="." install-base
 
-install-extension-contribs-local:
+install-extension-contribs-local: extension-contribs
 	$(MAKE) prefix="." install-extension-contribs
 
-install-asdf-contribs-local:
+install-asdf-contribs-local: asdf-contribs
 	$(MAKE) prefix="." install-asdf-contribs
+
+install-slime-local:
+	$(MAKE) prefix="." install-slime
+
 
 uninstall:
 	for i in $(TARGETS) mkcl-config; do $(RM) $(DESTDIR)$(bindir)/$$(basename $$i); done
