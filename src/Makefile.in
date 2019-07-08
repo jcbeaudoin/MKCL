@@ -115,7 +115,7 @@ base: mkcc$(EXE) mkcl-config $(TARGETS) help.doc
 
 contribs: extension-contribs asdf-contribs
 
-extension-contribs: ../contrib/unicode/UnicodeData.txt $(EXTENSION_CONTRIB_FASLS) $(EXTENSION_CONTRIB_STATIC_LIBS)
+extension-contribs: ../contrib/unicode/UnicodeData.txt $(EXTENSION_CONTRIB_FASLS) # $(EXTENSION_CONTRIB_STATIC_LIBS)
 
 asdf-contribs: $(ASDF_FASLS) $(ASDF2_FASLS) $(ASDF_CONTRIB_FASLS)
 
