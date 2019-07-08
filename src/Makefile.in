@@ -504,7 +504,7 @@ install-slime:
 	  cp -pR ../contrib/slime $(DESTDIR)$(mkcldir)/contrib/; \
 	fi
 
-install-local: install-base-local install-extension-contribs install-asdf-contribs install-slime-local
+install-local: install-base-local install-extension-contribs-local install-asdf-contribs-local install-slime-local
 
 
 install-base-local: base libmkcc1.a
