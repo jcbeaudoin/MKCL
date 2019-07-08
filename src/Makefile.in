@@ -555,7 +555,6 @@ clean: clean_lisp clean_contribs
 	-(cd gc; $(MAKE) clean-libtool clean-libLTLIBRARIES)
 	$(RM) *.dll bin/*.dll
 	$(RM) *.o *.a *.la *.so *.data *.fasb *.fas core core.* a.out
-	cd bin; $(RM) *.o *.a *.la *.so *.data *.fasb *.fas core core.* a.out
 
 clean_contribs:
 	$(RM) -r lib/mkcc/@build_cpu@
