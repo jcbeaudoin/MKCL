@@ -819,7 +819,8 @@
 
 (defun c2fset (fun macro pprint c1forms)
   (declare (ignore pprint))
-  (unless (and (not (fun-closure fun))
+  (unless (and (not macro)
+               (not (fun-closure fun))
 	       (eq *destination* 'TRASH))
     (return-from c2fset
       (c2call-global 'SI:FSET c1forms (c1form-primary-type (second c1forms)))))

@@ -71,13 +71,14 @@ retrieved by (documentation 'NAME 'function).  See LIST for the backquote
 macro useful for defining macros."
   (multiple-value-bind (function pprint doc-string)
       (sys::expand-defmacro name vl body)
-    (setq function `(function ,function))
+
     #+(or)
     (when *dump-defun-definitions*
       (print function)
-      (setq function `(si::bc-disassemble ,function)))
+      (setq function `(si::bc-disassemble #',function)))
+
     `(define-when (:compile-toplevel :load-toplevel :execute)
-       (si::fset ',name ,function t ,pprint)
+       (si::fset ',name #',function t ,pprint)
        ,@(si::expand-set-documentation name 'function doc-string)
        ',name)))
 
@@ -140,13 +141,19 @@ VARIABLE doc and can be retrieved by (DOCUMENTATION 'SYMBOL 'VARIABLE)."
   (multiple-value-bind (function pprint doc-string)
       (sys::expand-defmacro name vl body)
     (declare (ignore pprint))
-    (setq function `(function ,function))
+
     #+(or)
     (when *dump-defun-definitions*
       (print function)
-      (setq function `(si::bc-disassemble ,function)))
+      (setq function `(si::bc-disassemble #',function)))
+
     `(define-when (:load-toplevel :execute) ;;progn
-       (put-sysprop ',name 'sys::compiler-macro ,function)
+       (put-sysprop ',name 'sys::compiler-macro
+                    #'(lambda (a-form some-env)
+                        ;;(funcall #',function a-form some-env)
+                        ;;(flet (,(cdr function)) (,name a-form some-env))
+                        (,function a-form some-env)
+                        ))
        ,@(si::expand-set-documentation name 'function doc-string)
        ,(si:register-with-pde whole)
        ',name)))

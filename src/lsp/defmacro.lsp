@@ -285,10 +285,12 @@
 	(push `(declare (ignore ,env)) decls)))
   (multiple-value-bind (ppn whole *dl* *key-check* *arg-check*)
       (destructure vl name)
-    (setq body (nconc decls (append *arg-check* *key-check* body)))
-    (values `(si::lambda-block ,name (,whole ,env &aux ,@*dl*) ,@body)
-	    ppn
-	    doc)))
+    (values
+     `(lambda (,whole ,env &aux ,@*dl*)
+        ,@decls ,@*arg-check* ,@*key-check*
+        (block ,(si::function-block-name name) ,@body))
+     ppn
+     doc)))
 
 (si::fset 'defmacro ;; bootstrap version. redefined in evalmacros.lsp
 	  #'(si::lambda-block defmacro (def env)
@@ -301,12 +303,13 @@
 		(multiple-value-bind (function pprint doc)
 		    (sys::expand-defmacro name vl body)
 		  (declare (ignore doc))
-		  (setq function `(function ,function))
+
 		  #+(or)
 		  (when *dump-defmacro-definitions*
 		    (print function)
-		    (setq function `(si::bc-disassemble ,function)))
-		  (si:register-with-pde def `(si::fset ',name ,function t ,pprint)))))
+		    (setq function `(si::bc-disassemble #',function)))
+
+		  (si:register-with-pde def `(si::fset ',name #',function t ,pprint)))))
 	  t)
 
 ;;; valid lambda-list to DESTRUCTURING-BIND is:
