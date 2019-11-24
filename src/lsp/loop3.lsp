@@ -64,6 +64,9 @@
 #-mkcl
 (provide :loop)
 
+(defvar *strict-ansi-loop-macro* t) ;; Force strict observance of ANSI-CL specification for 'loop'. JCB
+(defvar *loop-prologue-before-all* t) ;; The old, non-conformant, way. JCB
+
 ;;; Technology.
 ;;;
 ;;; The LOOP iteration macro is one of a number of pieces of code
@@ -794,7 +797,12 @@ a LET-like macro, and a SETQ-like macro, which perform LOOP-style destructuring.
 			    ;; evaluated in the loop prologue, which precedes
 			    ;; all loop code except for the initial settings
 			    ;; provided by with, for, or as.
-			    ,@(psimp (append (nreverse rbefore) prologue))
+                           ,@(psimp
+                              (if *strict-ansi-loop-macro*
+                                  (append (nreverse rbefore) prologue)
+                                (if *loop-prologue-before-all*
+                                    (append prologue (nreverse rbefore))
+                                  (append (nreverse rbefore) prologue))))
 			 next-loop
 			    ,@(psimp (append main-body (nreconc rafter `((go next-loop)))))
 			 end-loop
