@@ -391,7 +391,7 @@ extern "C" {
 #endif
 
 #define mkcl_va_end(a) va_end(a[0].args)
-#define	mkcl_check_arg(e,n) do { if (narg != (n)) mkcl_FEwrong_num_arguments_anonym(e);} while(0)
+#define	mkcl_check_arg(e,n) do { if (narg != (n)) mkcl_FEwrong_num_arguments_anonym(e, n, n, narg);} while(0)
 
 /***********************
  * RETURN VALUES STACK

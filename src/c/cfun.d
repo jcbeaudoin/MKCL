@@ -24,15 +24,51 @@
 
 #include "cfun_dispatch.d"
 
-static mkcl_object wrong_num_args(MKCL)
+static mkcl_object wrong_num_args_cfun_0(MKCL)
 {
-  mkcl_FEwrong_num_arguments(env, env->function);
+  mkcl_object fun = env->function;
+
+  mkcl_FEwrong_num_arguments(env, fun, fun->cfun.narg, fun->cfun.narg, 0);
   return mk_cl_Cnil;
 }
 
-static mkcl_object (wrong_num_args_va)(MKCL, mkcl_narg narg, ...)
+static mkcl_object wrong_num_args_cfun_1(MKCL)
 {
-  mkcl_FEwrong_num_arguments(env, env->function);
+  mkcl_object fun = env->function;
+
+  mkcl_FEwrong_num_arguments(env, fun, fun->cfun.narg, fun->cfun.narg, 1);
+  return mk_cl_Cnil;
+}
+
+static mkcl_object wrong_num_args_cfun_2(MKCL)
+{
+  mkcl_object fun = env->function;
+
+  mkcl_FEwrong_num_arguments(env, fun, fun->cfun.narg, fun->cfun.narg, 2);
+  return mk_cl_Cnil;
+}
+
+static mkcl_object wrong_num_args_cfun_3(MKCL)
+{
+  mkcl_object fun = env->function;
+
+  mkcl_FEwrong_num_arguments(env, fun, fun->cfun.narg, fun->cfun.narg, 3);
+  return mk_cl_Cnil;
+}
+
+static mkcl_object wrong_num_args_cfun_4(MKCL)
+{
+  mkcl_object fun = env->function;
+
+  mkcl_FEwrong_num_arguments(env, fun, fun->cfun.narg, fun->cfun.narg, 4);
+  return mk_cl_Cnil;
+}
+
+static mkcl_object wrong_num_args_cfun_va(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_object fun = env->function;
+
+  mkcl_FEwrong_num_arguments(env, fun, fun->cfun.narg, fun->cfun.narg, narg);
   return mk_cl_Cnil;
 }
 
@@ -49,12 +85,12 @@ mkcl_make_cfun(MKCL, mkcl_objectfn_fixed c_function, mkcl_object name,
 			 2, name, MKCL_MAKE_FIXNUM(narg));
 
   cf = mkcl_alloc_raw_cfun(env);
-  cf->cfun.f.entry = (((narg < 0) || (narg > 4)) ? dispatch_table[narg] : (mkcl_objectfn) wrong_num_args_va);
-  cf->cfun.f._[0] = ((narg == 0) ? c_function : (mkcl_objectfn_fixed) wrong_num_args);
-  cf->cfun.f._[1] = ((narg == 1) ? c_function : (mkcl_objectfn_fixed) wrong_num_args);
-  cf->cfun.f._[2] = ((narg == 2) ? c_function : (mkcl_objectfn_fixed) wrong_num_args);
-  cf->cfun.f._[3] = ((narg == 3) ? c_function : (mkcl_objectfn_fixed) wrong_num_args);
-  cf->cfun.f._[4] = ((narg == 4) ? c_function : (mkcl_objectfn_fixed) wrong_num_args);
+  cf->cfun.f.entry = (((narg < 0) || (narg > 4)) ? dispatch_table[narg] : (mkcl_objectfn) wrong_num_args_cfun_va);
+  cf->cfun.f._[0] = ((narg == 0) ? c_function : (mkcl_objectfn_fixed) wrong_num_args_cfun_0);
+  cf->cfun.f._[1] = ((narg == 1) ? c_function : (mkcl_objectfn_fixed) wrong_num_args_cfun_1);
+  cf->cfun.f._[2] = ((narg == 2) ? c_function : (mkcl_objectfn_fixed) wrong_num_args_cfun_2);
+  cf->cfun.f._[3] = ((narg == 3) ? c_function : (mkcl_objectfn_fixed) wrong_num_args_cfun_3);
+  cf->cfun.f._[4] = ((narg == 4) ? c_function : (mkcl_objectfn_fixed) wrong_num_args_cfun_4);
   cf->cfun.old_entry_fixed = c_function;
   cf->cfun.name = name;
   cf->cfun.block = cblock;
@@ -213,6 +249,55 @@ mk_si_untrace_closure_creation(MKCL)
 
 
 
+static mkcl_object wrong_num_args_cclosure_0(MKCL)
+{
+  mkcl_object fun = env->function;
+
+  mkcl_FEwrong_num_arguments(env, fun, fun->cclosure.narg, fun->cclosure.narg, 0);
+  return mk_cl_Cnil;
+}
+
+static mkcl_object wrong_num_args_cclosure_1(MKCL)
+{
+  mkcl_object fun = env->function;
+
+  mkcl_FEwrong_num_arguments(env, fun, fun->cclosure.narg, fun->cclosure.narg, 1);
+  return mk_cl_Cnil;
+}
+
+static mkcl_object wrong_num_args_cclosure_2(MKCL)
+{
+  mkcl_object fun = env->function;
+
+  mkcl_FEwrong_num_arguments(env, fun, fun->cclosure.narg, fun->cclosure.narg, 2);
+  return mk_cl_Cnil;
+}
+
+static mkcl_object wrong_num_args_cclosure_3(MKCL)
+{
+  mkcl_object fun = env->function;
+
+  mkcl_FEwrong_num_arguments(env, fun, fun->cclosure.narg, fun->cclosure.narg, 3);
+  return mk_cl_Cnil;
+}
+
+static mkcl_object wrong_num_args_cclosure_4(MKCL)
+{
+  mkcl_object fun = env->function;
+
+  mkcl_FEwrong_num_arguments(env, fun, fun->cclosure.narg, fun->cclosure.narg, 4);
+  return mk_cl_Cnil;
+}
+
+static mkcl_object wrong_num_args_cclosure_va(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_object fun = env->function;
+
+  mkcl_FEwrong_num_arguments(env, fun, fun->cclosure.narg, fun->cclosure.narg, narg);
+  return mk_cl_Cnil;
+}
+
+
 mkcl_object
 mkcl_make_cclosure(MKCL, mkcl_object producer, mkcl_objectfn_fixed c_function, int narg,
 		   mkcl_index depth, mkcl_object syms_cenv, mkcl_object cenv,
@@ -221,12 +306,12 @@ mkcl_make_cclosure(MKCL, mkcl_object producer, mkcl_objectfn_fixed c_function, i
   mkcl_object cc;
 
   cc = mkcl_alloc_raw_cclosure(env);
-  cc->cclosure.f.entry = wrong_num_args_va;
-  cc->cclosure.f._[0] = ((narg == 0) ? c_function : (mkcl_objectfn_fixed) wrong_num_args);
-  cc->cclosure.f._[1] = ((narg == 1) ? c_function : (mkcl_objectfn_fixed) wrong_num_args);
-  cc->cclosure.f._[2] = ((narg == 2) ? c_function : (mkcl_objectfn_fixed) wrong_num_args);
-  cc->cclosure.f._[3] = ((narg == 3) ? c_function : (mkcl_objectfn_fixed) wrong_num_args);
-  cc->cclosure.f._[4] = ((narg == 4) ? c_function : (mkcl_objectfn_fixed) wrong_num_args);
+  cc->cclosure.f.entry = wrong_num_args_cclosure_va;
+  cc->cclosure.f._[0] = ((narg == 0) ? c_function : (mkcl_objectfn_fixed) wrong_num_args_cclosure_0);
+  cc->cclosure.f._[1] = ((narg == 1) ? c_function : (mkcl_objectfn_fixed) wrong_num_args_cclosure_1);
+  cc->cclosure.f._[2] = ((narg == 2) ? c_function : (mkcl_objectfn_fixed) wrong_num_args_cclosure_2);
+  cc->cclosure.f._[3] = ((narg == 3) ? c_function : (mkcl_objectfn_fixed) wrong_num_args_cclosure_3);
+  cc->cclosure.f._[4] = ((narg == 4) ? c_function : (mkcl_objectfn_fixed) wrong_num_args_cclosure_4);
   cc->cclosure.syms_cenv = syms_cenv;
   cc->cclosure.block = block;
   cc->cclosure.name = mk_cl_Cnil;

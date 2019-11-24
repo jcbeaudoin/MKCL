@@ -771,7 +771,7 @@ mkcl_negate(MKCL, mkcl_object x)
 @
   /* INV: type check is in mkcl_divide() */
   if (narg == 0)
-    mkcl_FEwrong_num_arguments(env, @'/');
+    mkcl_FEwrong_num_arguments(env, @'/', 1, -1, narg);
   if (narg == 1)
     { mkcl_va_end(nums); @(return mkcl_divide(env, MKCL_MAKE_FIXNUM(1), num)); }
   while (--narg)

@@ -1047,7 +1047,7 @@ string_compare(MKCL, mkcl_narg narg, int sign1, int sign2, int case_sensitive, m
 #define start2p KEY_VARS[6]
   mkcl_object KEY_VARS[8];
 
-  if (narg < 2) mkcl_FEwrong_num_arguments_anonym(env);
+  if (narg < 2) mkcl_FEwrong_num_arguments_anonym(env, 2, -1, narg);
   KEYS[0]=@':start1';
   KEYS[1]=@':end1';
   KEYS[2]=@':start2';
@@ -1300,7 +1300,7 @@ string_case(MKCL, mkcl_narg narg, mkcl_casefun casefun, mkcl_va_list ARGS)
   mkcl_object conv;
   mkcl_object KEY_VARS[4];
 
-  if (narg < 1) mkcl_FEwrong_num_arguments_anonym(env);
+  if (narg < 1) mkcl_FEwrong_num_arguments_anonym(env, 1, -1, narg);
   KEYS[0]=@':start';
   KEYS[1]=@':end';
   mkcl_parse_key(env, ARGS, 2, KEYS, KEY_VARS, NULL, FALSE, FALSE);
@@ -1386,7 +1386,7 @@ nstring_case(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_casefun casefun, mkcl_v
 #define startp KEY_VARS[2]
   mkcl_object KEY_VARS[4];
 
-  if (narg < 1) mkcl_FEwrong_num_arguments_anonym(env);
+  if (narg < 1) mkcl_FEwrong_num_arguments_anonym(env, 1, -1, narg);
   KEYS[0]=@':start';
   KEYS[1]=@':end';
   mkcl_parse_key(env, ARGS, 2, KEYS, KEY_VARS, NULL, FALSE, FALSE);

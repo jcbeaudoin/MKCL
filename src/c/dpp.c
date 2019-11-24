@@ -707,7 +707,7 @@ put_declaration(void)
   }
   if (nopt == 0 && !rest_flag && !key_flag) {
     put_lineno();
-    fprintf(out, "\tif (narg!=%d) mkcl_FEwrong_num_arguments(env, MKCL_MAKE_FIXNUM(%d));\n", nreq, function_code);
+    fprintf(out, "\tif (narg!=%d) mkcl_FEwrong_num_arguments(env, MKCL_MAKE_FIXNUM(%d), %d, %d, narg);\n", nreq, function_code, nreq, nreq);
   } else {
     simple_varargs = !rest_flag && !key_flag && ((nreq + nopt) < 32);
     if (key_flag) {
@@ -728,11 +728,18 @@ put_declaration(void)
 		rest_var, rest_var, ((nreq > 0) ? required[nreq-1] : "narg"),
 		nreq);
     put_lineno();
-    fprintf(out, "\tif (narg < %d", nreq);
-    if (nopt > 0 && !rest_flag && !key_flag) {
-      fprintf(out, "|| narg > %d", nreq + nopt);
+    {
+      int n_min = nreq;
+      int n_max = -1;
+
+      fprintf(out, "\tif (narg < %d", nreq);
+      if (nopt > 0 && !rest_flag && !key_flag) {
+        fprintf(out, "|| narg > %d", nreq + nopt);
+        n_max = nreq + nopt;
+      }
+      fprintf(out, ") mkcl_FEwrong_num_arguments(env, MKCL_MAKE_FIXNUM(%d), %d, %d, narg);\n",
+              function_code, n_min, n_max);
     }
-    fprintf(out, ") mkcl_FEwrong_num_arguments(env, MKCL_MAKE_FIXNUM(%d));\n", function_code);
     for (i = 0;  i < nopt;  i++) {
       put_lineno();
       fprintf(out, "\tif (narg > %d) {\n", nreq+i);

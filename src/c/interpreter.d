@@ -540,7 +540,7 @@ mkcl_interpret(MKCL, mkcl_object frame, mkcl_object lex_env, mkcl_object bytecod
 	  if ( func_narg < 0 )
 	    reg0 = mkcl_APPLY(env, narg, reg0, frame_aux.base);
 	  else if ( narg != func_narg )
-	    mkcl_FEwrong_num_arguments(env, reg0);
+	    mkcl_FEwrong_num_arguments(env, reg0, func_narg, func_narg, narg);
 	  else if ( narg < MKCL_MAX_FAST_FUNC_DISPATCH )
 	    reg0 = mkcl_APPLY_fixed(env, narg, reg0->cfun.f._[narg], frame_aux.base);
 	  else
@@ -608,7 +608,8 @@ mkcl_interpret(MKCL, mkcl_object frame, mkcl_object lex_env, mkcl_object bytecod
     */
     CASE(OP_POPREQ); {
       if (frame_index >= frame->frame.size) {
-	mkcl_FEwrong_num_arguments(env, bytecode->bytecode.name);
+	mkcl_FEwrong_num_arguments(env, bytecode->bytecode.name,
+                                   frame->frame.size, frame->frame.size, frame_index);
       }
       reg0 = frame->frame.base[frame_index++];
       THREAD_NEXT;

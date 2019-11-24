@@ -736,8 +736,8 @@ extern "C" {
   extern MKCL_API void mkcl_FEwrong_type_argument(MKCL, mkcl_object type, mkcl_object value) mkcl_noreturn;
   extern MKCL_API void mkcl_FEnot_fixnum_type(MKCL, mkcl_object value) mkcl_noreturn;
   extern MKCL_API void mkcl_FEnot_codeblock_type(MKCL, mkcl_object value) mkcl_noreturn;
-  extern MKCL_API void mkcl_FEwrong_num_arguments(MKCL, mkcl_object fun) mkcl_noreturn;
-  extern MKCL_API void mkcl_FEwrong_num_arguments_anonym(MKCL) mkcl_noreturn;
+  extern MKCL_API void mkcl_FEwrong_num_arguments(MKCL, mkcl_object fun, mkcl_narg min, mkcl_narg max, mkcl_narg narg) mkcl_noreturn;
+  extern MKCL_API void mkcl_FEwrong_num_arguments_anonym(MKCL, mkcl_narg min, mkcl_narg max, mkcl_narg narg) mkcl_noreturn;
   extern MKCL_API void mkcl_FEunbound_variable(MKCL, mkcl_object sym) mkcl_noreturn;
   extern MKCL_API void mkcl_FEinvalid_macro_call(MKCL, mkcl_object obj) mkcl_noreturn;
   extern MKCL_API void mkcl_FEinvalid_variable(MKCL, const char *s, mkcl_object obj) mkcl_noreturn;

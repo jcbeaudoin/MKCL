@@ -356,14 +356,29 @@ The function thus belongs to the type of functions that mkcl_make_cfun accepts."
     (incf *inline-blocks*)
     (if (and use-narg (not varargs))
 	(wt-nl "if(narg!=" nreq ") "
-               (if fname "mkcl_FEwrong_num_arguments(env, this_func);" "mkcl_FEwrong_num_arguments_anonym(env);"))
+               (if fname
+                   "mkcl_FEwrong_num_arguments(env, this_func, "
+                 "mkcl_FEwrong_num_arguments_anonym(env, ")
+               nreq ", " nreq
+               ", narg);"
+               )
 	(when varargs
 	  (when requireds
 	    (wt-nl "if(narg<" nreq ") "
-                   (if fname "mkcl_FEwrong_num_arguments(env, this_func);" "mkcl_FEwrong_num_arguments_anonym(env);")))
+                   (if fname
+                       "mkcl_FEwrong_num_arguments(env, this_func, "
+                     "mkcl_FEwrong_num_arguments_anonym(env, ")
+                   nreq ", " (if (or rest key-flag) "-1" (+ nreq nopt))
+                   ", narg);"
+                   ))
 	  (unless (or rest key-flag)
 	    (wt-nl "if(narg>" (+ nreq nopt) ") "
-                   (if fname "mkcl_FEwrong_num_arguments(env, this_func);" "mkcl_FEwrong_num_arguments_anonym(env);")))))
+                   (if fname
+                       "mkcl_FEwrong_num_arguments(env, this_func, "
+                     "mkcl_FEwrong_num_arguments_anonym(env, ")
+                   nreq ", " (+ nreq nopt)
+                   ", narg);"
+                   ))))
     (wt-nl "{"))
 
   ;; If the number of required arguments exceeds the number of variables we

@@ -395,7 +395,7 @@ mkcl_number_compare(MKCL, mkcl_object x, mkcl_object y)
   int i, j;
 @
   if (narg == 0)
-    mkcl_FEwrong_num_arguments_anonym(env);
+    mkcl_FEwrong_num_arguments_anonym(env, 1, -1, narg);
   numi = mkcl_va_arg(nums);
   for (i = 2; i<=narg; i++) {
     mkcl_va_list numb;
@@ -416,7 +416,7 @@ monotonic(MKCL, int s, int t, int narg, mkcl_va_list nums)
   mkcl_object c, d;
   
   if (narg == 0)
-    mkcl_FEwrong_num_arguments_anonym(env);
+    mkcl_FEwrong_num_arguments_anonym(env, 1, -1, narg);
   /* INV: type check occurs in mkcl_number_compare() */
   for (c = mkcl_va_arg(nums); --narg; c = d) {
     d = mkcl_va_arg(nums);

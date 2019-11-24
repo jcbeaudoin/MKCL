@@ -151,7 +151,7 @@ extern inline mkcl_object mk_cl_cdr(MKCL, mkcl_object x);
   mkcl_object head;
 @
   if (narg == 0)
-    mkcl_FEwrong_num_arguments(env, @'list*');
+  mkcl_FEwrong_num_arguments(env, @'list*', 1, -1, narg);
   head = mkcl_va_arg(args);
   if (--narg) {
     mkcl_object tail = head = mkcl_list1(env, head);
@@ -1095,7 +1095,7 @@ mkcl_adjoin(MKCL, mkcl_object item, mkcl_object list)
     if (narg == 2)
       output = mkcl_adjoin(env, item, list);
     else if (narg < 2)
-      mkcl_FEwrong_num_arguments(env, @'adjoin');
+      mkcl_FEwrong_num_arguments(env, @'adjoin', 2, -1, narg);
     else
       {
 	output = @si::member1(env, item, list, test, test_not, key);

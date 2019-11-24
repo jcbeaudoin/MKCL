@@ -178,7 +178,7 @@ mkcl_char_eq(MKCL, mkcl_object x, mkcl_object y)
 @
   /* INV: mkcl_char_eq() checks types of its arguments */
   if (narg == 0)
-    mkcl_FEwrong_num_arguments(env, @'char/=');
+    mkcl_FEwrong_num_arguments(env, @'char/=', 1, -1, 0);
   c = mkcl_va_arg(cs);
   for (i = 2; i<=narg; i++) {
     mkcl_va_list ds;
@@ -199,7 +199,7 @@ Lchar_cmp(MKCL, mkcl_narg narg, int s, int t, mkcl_va_list args)
   mkcl_object c, d;
 
   if (narg == 0)
-    mkcl_FEwrong_num_arguments_anonym(env);
+    mkcl_FEwrong_num_arguments_anonym(env, 1, -1, narg);
   c = mkcl_va_arg(args);
   for (; --narg; c = d) {
     d = mkcl_va_arg(args);
@@ -272,7 +272,7 @@ mkcl_char_equal(MKCL, mkcl_object x, mkcl_object y)
 @
   /* INV: mkcl_char_equal() checks the type of its arguments */
   if (narg == 0)
-    mkcl_FEwrong_num_arguments(env, @'char-not-equal');
+    mkcl_FEwrong_num_arguments(env, @'char-not-equal', 1, -1, narg);
   c = mkcl_va_arg(cs);
   for (i = 2;  i<=narg;  i++) {
     mkcl_va_list ds;
@@ -294,7 +294,7 @@ Lchar_compare(MKCL, mkcl_narg narg, int s, int t, mkcl_va_list args)
   
   /* INV: mkcl_char_compare() checks the types of its arguments */
   if (narg == 0)
-    mkcl_FEwrong_num_arguments_anonym(env);
+    mkcl_FEwrong_num_arguments_anonym(env, 1, -1, narg);
   c = mkcl_va_arg(args);
   for (; --narg; c = d) {
     d = mkcl_va_arg(args);

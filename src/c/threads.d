@@ -1781,7 +1781,7 @@ mk_mt_thread_preset(MKCL, mkcl_narg narg, mkcl_object thread, mkcl_object functi
 {
   mkcl_call_stack_check(env);
   if (narg < 2)
-    mkcl_FEwrong_num_arguments(env, @'mt::thread-preset');
+    mkcl_FEwrong_num_arguments(env, @'mt::thread-preset', 2, -1, narg);
   mkcl_assert_type_thread(env, thread);
 
   if (thread->thread.detached)
@@ -3119,7 +3119,7 @@ mk_mt_thread_run_function(MKCL, mkcl_narg narg, mkcl_object name, mkcl_object fu
 
   mkcl_call_stack_check(env);
   if (narg < 2)
-    mkcl_FEwrong_num_arguments(env, @'mt::thread-run-function');
+    mkcl_FEwrong_num_arguments(env, @'mt::thread-run-function', 2, -1, narg);
 
   mkcl_va_start(env, args, function, narg, 2);
   mkcl_object rest = mkcl_grab_rest_args(env, args, FALSE);

@@ -445,7 +445,7 @@ get_spec_vector(MKCL, mkcl_object frame, mkcl_object gf)
     if (spec_no >= vector->vector.dim)
       return MKCL_OBJNULL; /* cache key size overflow. JCB */
     if (spec_position >= narg)
-      mkcl_FEwrong_num_arguments(env, gf);
+      mkcl_FEwrong_num_arguments(env, gf, spec_position + 1, -1, narg);
 
     {
       const mkcl_object arg = args[spec_position];
