@@ -944,7 +944,7 @@
     (def-inline char-code :always (character) t "(MKCL_MAKE_FIXNUM(#0))")
     (def-inline char-code :always (character) :fixnum "(#0)")
 
-    (proclaim-function code-char (fixnum) character :no-side-effects t)
+    (proclaim-function code-char (fixnum) (or character null) :no-side-effects t)
     (def-inline code-char :always (fixnum) t
       "@0;(((0 <= (#0) && (#0) < 0x0D800) || (0x0DFFF < (#0) && (#0) != 0x0FFFE && (#0) != 0x0FFFF && (#0) < MKCL_CHAR_CODE_LIMIT)) ? MKCL_CODE_CHAR(#0) : mk_cl_Cnil)")
     ;;(def-inline code-char :always (fixnum) :char "(#0) /* (code-char fixnum) */")
@@ -1191,7 +1191,7 @@
     (def-inline endp :always (t) :bool "mkcl_endp(env, #0)")
     (def-inline endp :always (list) :bool "mkcl_Null(#0)")
 
-    (proclaim-function list-length (list) (or nil (integer 0 *)))
+    (proclaim-function list-length (list) (or null (integer 0 *)))
     (proclaim-function nth (integer list) t :no-side-effects t)
     (def-inline nth :always (t t) t "mkcl_nth(env, mkcl_safe_fixnum_to_word(env, #0),#1)")
     (def-inline nth :always (fixnum t) t "mkcl_nth(env, #0,#1)")
