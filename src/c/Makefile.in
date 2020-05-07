@@ -97,8 +97,9 @@ all2: ../mkclmin.a ../mkcltop.a all_symbols.o all_symbols2.o cinit.o
 
 $(DCFILES) all_symbols.c cinit.c: $(DPP)
 
-apply_x86.c: arch/apply_x86.d $(DPP)
-	$(DPP) $< $@
+# This one was put out to pasture a long time ago.
+#apply_x86.c: arch/apply_x86.d $(DPP)
+#	$(DPP) $< $@
 
 ffi_x86.c: arch/ffi_x86.d $(DPP)
 	$(DPP) $< $@
@@ -108,6 +109,13 @@ ffi_x86_64.c: arch/ffi_x86_64.d $(DPP)
 
 ffi_x86_64_w64.c: arch/ffi_x86_64_w64.d $(DPP)
 	$(DPP) $< $@
+
+ffi_arm.c: arch/ffi_arm.d $(DPP)
+	$(DPP) $< $@
+
+ffi_aarch64.c: arch/ffi_aarch64.d $(DPP)
+	$(DPP) $< $@
+
 
 ../mkclmin.a: $(OBJS)
 	$(RM) $@
