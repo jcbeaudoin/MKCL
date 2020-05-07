@@ -853,12 +853,10 @@ case "${host_cpu}" in
 	;;
    aarch64 )
         EXTRA_OBJS="${EXTRA_OBJS} ffi_aarch64.o"
-        AC_DEFINE(MKCL_USE_VARARG_AS_POINTER)
 	dynamic_ffi=yes
         ;;
    arm* )
         EXTRA_OBJS="${EXTRA_OBJS} ffi_arm.o"
-        AC_DEFINE(MKCL_USE_VARARG_AS_POINTER)
 	dynamic_ffi=yes
         ;;
    *)
