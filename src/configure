@@ -6469,14 +6469,10 @@ case "${host_cpu}" in
 	;;
    aarch64 )
         EXTRA_OBJS="${EXTRA_OBJS} ffi_aarch64.o"
-        $as_echo "#define MKCL_USE_VARARG_AS_POINTER 1" >>confdefs.h
-
 	dynamic_ffi=yes
         ;;
    arm* )
         EXTRA_OBJS="${EXTRA_OBJS} ffi_arm.o"
-        $as_echo "#define MKCL_USE_VARARG_AS_POINTER 1" >>confdefs.h
-
 	dynamic_ffi=yes
         ;;
    *)
