@@ -741,9 +741,11 @@ void mkcl_sigsegv_handler(int sig, siginfo_t *info, void *aux)
 #ifdef __x86_64
 	mkcl_index fault_BP = ctx->uc_mcontext.gregs[REG_RBP]; /* REG_RSP == 10 on x86_64.*/
 	mkcl_index fault_SP = ctx->uc_mcontext.gregs[REG_RSP]; /* REG_RSP == 15 on x86_64.*/
-#else
+#elif __i386
 	mkcl_index fault_BP = ctx->uc_mcontext.gregs[REG_EBP]; /* REG_EBP == 6 on x86.*/
 	mkcl_index fault_SP = ctx->uc_mcontext.gregs[REG_ESP]; /* REG_ESP == 7 on x86.*/
+#else
+# error  Unknown processor architecture
 #endif
 	/* The following test assumes a stack that grows downward. */
 	if ((fault_BP >= fault_address) && (fault_address >= (fault_SP - mkcl_core.pagesize)))
@@ -2198,7 +2200,7 @@ mkcl_object mk_si_signum_to_signal_name(MKCL, mkcl_object _signum)
 /* Testing tool only. */
 mkcl_object mk_si_do_sigsegv(MKCL)
 {
-#ifdef __x86_64
+#if defined(__x86_64) || defined(__aarch64__)
   @(return *((mkcl_object *) 0xffffffffffffdeadULL));
 #else
   @(return *((mkcl_object *) 0xffffdead));

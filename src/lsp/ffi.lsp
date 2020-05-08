@@ -143,6 +143,8 @@
 		       #+unix 4
 		       #+windows 8) ;; Good only for default /Zp option
 	    #+x86-64 align
+	    #+arm align
+	    #+aarch64 align
 	    )
     ))
 

@@ -332,7 +332,7 @@ typedef unsigned @CL_FIXNUM_TYPE@ mkcl_hashkey;
 
 #define MKCL_ARCHITECTURE "@ARCHITECTURE@"
 
-#if defined(__i386) || defined(__x86_64)
+#if defined(__i386) || defined(__x86_64) || defined(__AARCH64EL__) || defined(__ARMEL__)
 # define MKCL_LSB_FIRST 1 /* On Intel and compatibles, the Least Significant Bit comes first (bit 0). */
 # define MKCL_LITTLE_ENDIAN 1
 #endif

@@ -101,7 +101,7 @@
   nil)
 
 (defconstant +rep-type-canonical-map+
-  #+(and x86-64 (not windows))
+  #+(and x86-64 aarch64 (not windows))
   '((:int8-t . :byte) (:uint8-t . :unsigned-byte)
     (:int16-t . :short) (:uint16-t . :unsigned-short)
     (:int32-t . :int) (:uint32-t . :unsigned-int)
@@ -111,7 +111,7 @@
     (:long-double . :double)
     (t . :object)
     )
-  #+(or x86 windows)
+  #+(or x86 arm windows)
   '((:int8-t . :byte) (:uint8-t . :unsigned-byte)
     (:int16-t . :short) (:uint16-t . :unsigned-short)
     (:int32-t . :int) (:uint32-t . :unsigned-int)
@@ -217,7 +217,7 @@
     (def-inline aref :always (base-string fixnum) :char "mkcl_base_char_index_raw(env, #0, #1)")
     (def-inline aref :always ((array mkcl:natural64) fixnum) :uint64-t "mkcl_aref_index_b64_raw(env, #0, #1)")
     (def-inline aref :always ((array mkcl:integer64) fixnum) :int64-t "mkcl_aref_index_i64_raw(env, #0, #1)")
-    #+x86-64
+    #+(or x86-64 aarch64)
     (def-inline aref :always ((array mkcl:natural32) fixnum) :fixnum "mkcl_aref_index_b32_raw(env, #0, #1)")
     (def-inline aref :always ((array mkcl:integer32) fixnum) :fixnum "mkcl_aref_index_i32_raw(env, #0, #1)")
     (def-inline aref :always ((array mkcl:natural32) fixnum) :uint32-t "mkcl_aref_index_b32_raw(env, #0, #1)")
@@ -266,7 +266,7 @@
       "@0;(#0)->array.self.b64[(#1)*(#0)->array.dims[1]+(#2)]")
     (def-inline aref :unsafe ((array mkcl:integer64) fixnum fixnum) :int64-t
       "@0;(#0)->array.self.i64[(#1)*(#0)->array.dims[1]+(#2)]")
-    #+x86-64
+    #+(or x86-64 aarch64)
     (def-inline aref :unsafe ((array mkcl:natural32) fixnum fixnum) :fixnum
       "@0;(#0)->array.self.b32[(#1)*(#0)->array.dims[1]+(#2)]")
     (def-inline aref :unsafe ((array mkcl:integer32) fixnum fixnum) :fixnum
@@ -310,7 +310,7 @@
     (def-inline aref :unsafe ((array mkcl:cl-word) fixnum) :fixnum "(#0)->array.self.word[#1]")
     (def-inline aref :unsafe ((array mkcl:natural64) fixnum) :uint64-t "(#0)->array.self.b64[#1]")
     (def-inline aref :unsafe ((array mkcl:integer64) fixnum) :int64-t "(#0)->array.self.i64[#1]")
-    #+x86-64
+    #+(or x86-64 aarch64)
     (def-inline aref :unsafe ((array mkcl:natural32) fixnum) :fixnum "(#0)->array.self.b32[#1]")
     (def-inline aref :unsafe ((array mkcl:integer32) fixnum) :fixnum "(#0)->array.self.i32[#1]")
     (def-inline aref :unsafe ((array mkcl:natural32) fixnum) :uint32-t "(#0)->array.self.b32[#1]")
@@ -368,13 +368,13 @@
     (def-inline si:aset :always (mkcl:natural64 (array mkcl:natural64) fixnum) :uint64-t "mkcl_aset_index_b64_raw(env, #1, #2, #0)")
     (def-inline si:aset :always (mkcl:integer64 (array mkcl:integer64) fixnum) :int64-t "mkcl_aset_index_i64_raw(env, #1, #2, #0)/*1*/")
 
-    #+x86-64
+    #+(or x86-64 aarch64)
     (def-inline si:aset :always (fixnum (array mkcl:natural32) fixnum) :fixnum 
       "mkcl_fixnum_to_word(mkcl_aset_index_b32(env, #1, #2, MKCL_MAKE_FIXNUM(#0))) /*3*/")
-    #+x86-64
+    #+(or x86-64 aarch64)
     (def-inline si:aset :always (fixnum (array mkcl:natural32) fixnum) :void
       "mkcl_aset_index_b32(env, #1, #2, MKCL_MAKE_FIXNUM(#0)) /*4*/")
-    #+x86-64
+    #+(or x86-64 aarch64)
     (def-inline si:aset :always (mkcl:natural32 (array mkcl:natural32) fixnum) :uint32-t "mkcl_aset_index_b32_raw(env, #1, #2, #0) /*1*/")
     (def-inline si:aset :always (fixnum (array mkcl:integer32) fixnum) :fixnum
       "mkcl_fixnum_to_word(mkcl_aset_index_i32(env, #1, #2, MKCL_MAKE_FIXNUM(#0))) /*2*/")
@@ -439,10 +439,10 @@
       "@01;((#1)->array.self.b64[(#2)*(#1)->array.dims[1]+(#3)] = (#0))")
     (def-inline si:aset :unsafe (mkcl:integer64 (array mkcl:integer64) fixnum fixnum) :int64-t
       "@01;((#1)->array.self.i64[(#2)*(#1)->array.dims[1]+(#3)] = (#0))")
-    #+x86-64
+    #+(or x86-64 aarch64)
     (def-inline si:aset :unsafe (fixnum (array mkcl:natural32) fixnum fixnum) :fixnum
       "@01;((#1)->array.self.b32[(#2)*(#1)->array.dims[1]+(#3)] = (#0))")
-    #+x86-64
+    #+(or x86-64 aarch64)
     (def-inline si:aset :unsafe (mkcl:natural32 (array mkcl:natural32) fixnum fixnum) :uint32-t
       "@01;((#1)->array.self.b32[(#2)*(#1)->array.dims[1]+(#3)] = (#0))")
     (def-inline si:aset :unsafe (fixnum (array mkcl:integer32) fixnum fixnum) :fixnum
@@ -487,9 +487,9 @@
     (def-inline si:aset :unsafe (mkcl:cl-word (array mkcl:cl-word) fixnum) :fixnum "((#1)->array.self.word[#2] = (#0))")
     (def-inline si:aset :unsafe (mkcl:natural64 (array mkcl:natural64) fixnum) :uint64-t "((#1)->array.self.b64[#2] = (#0))")
     (def-inline si:aset :unsafe (mkcl:integer64 (array mkcl:integer64) fixnum) :int64-t "((#1)->array.self.i64[#2] = (#0))")
-    #+x86-64
+    #+(or x86-64 aarch64)
     (def-inline si:aset :unsafe (fixnum (array mkcl:natural32) fixnum) :fixnum "((#1)->array.self.b32[#2] = (#0))")
-    #+x86-64
+    #+(or x86-64 aarch64)
     (def-inline si:aset :unsafe (mkcl:natural32 (array mkcl:natural32) fixnum) :uint32-t "((#1)->array.self.b32[#2] = (#0))")
     (def-inline si:aset :unsafe (fixnum (array mkcl:integer32) fixnum) :fixnum "((#1)->array.self.i32[#2] = (#0))")
     (def-inline si:aset :unsafe (mkcl:integer32 (array mkcl:integer32) fixnum) :int32-t "((#1)->array.self.i32[#2] = (#0))")
@@ -544,7 +544,7 @@
     (def-inline row-major-aref :always (base-string fixnum) :char "mkcl_base_char_index_raw(env, #0, #1)")
     (def-inline row-major-aref :always ((array mkcl:natural64) fixnum) :uint64-t "mkcl_aref_index_b64_raw(env, #0, #1)")
     (def-inline row-major-aref :always ((array mkcl:integer64) fixnum) :int64-t "mkcl_aref_index_i64_raw(env, #0, #1)")
-    #+x86-64
+    #+(or x86-64 aarch64)
     (def-inline row-major-aref :always ((array mkcl:natural32) fixnum) :fixnum "mkcl_aref_index_b32_raw(env, #0, #1)")
     (def-inline row-major-aref :always ((array mkcl:integer32) fixnum) :fixnum "mkcl_aref_index_i32_raw(env, #0, #1)")
     (def-inline row-major-aref :always ((array mkcl:natural32) fixnum) :uint32-t "mkcl_aref_index_b32_raw(env, #0, #1)")
@@ -576,7 +576,7 @@
     (def-inline row-major-aref :unsafe ((array mkcl:cl-word) fixnum) :fixnum "(#0)->array.self.word[#1]")
     (def-inline row-major-aref :unsafe ((array mkcl:natural64) fixnum) :uint64-t "(#0)->array.self.b64[#1]")
     (def-inline row-major-aref :unsafe ((array mkcl:integer64) fixnum) :int64-t "(#0)->array.self.i64[#1]")
-    #+x86-64
+    #+(or x86-64 aarch64)
     (def-inline row-major-aref :unsafe ((array mkcl:natural32) fixnum) :fixnum "(#0)->array.self.b32[#1]")
     (def-inline row-major-aref :unsafe ((array mkcl:integer32) fixnum) :fixnum "(#0)->array.self.i32[#1]")
     (def-inline row-major-aref :unsafe ((array mkcl:natural32) fixnum) :uint32-t "(#0)->array.self.b32[#1]")
@@ -632,11 +632,11 @@
     (def-inline si:row-major-aset :always (base-string fixnum base-char) :char "mkcl_base_char_set_index_raw(env, #0, #1, #2)")
     (def-inline si:row-major-aset :always ((array mkcl:natural64) fixnum mkcl:natural64) :uint64-t "mkcl_aset_index_b64_raw(env, #0, #1, #2)")
     (def-inline si:row-major-aset :always ((array mkcl:integer64) fixnum mkcl:integer64) :int64-t "mkcl_aset_index_i64_raw(env, #0, #1, #2)")
-    #+x86-64
+    #+(or x86-64 aarch64)
     (def-inline si:row-major-aset :always ((array mkcl:natural32) fixnum fixnum) :fixnum "mkcl_fixnum_to_word(mkcl_aset_index_b32(env, #0, #1, MKCL_MAKE_FIXNUM(#2)))")
-    #+x86-64
+    #+(or x86-64 aarch64)
     (def-inline si:row-major-aset :always ((array mkcl:natural32) fixnum fixnum) :void "mkcl_aset_index_b32(env, #0, #1, MKCL_MAKE_FIXNUM(#2)))")
-    #+x86-64
+    #+(or x86-64 aarch64)
     (def-inline si:row-major-aset :always ((array mkcl:natural32) fixnum mkcl:natural32) :uint32-t "mkcl_aset_index_b32_raw(env, #0, #1, #2)")
     (def-inline si:row-major-aset :always ((array mkcl:integer32) fixnum fixnum) :fixnum "mkcl_fixnum_to_word(mkcl_aset_index_i32(env, #0, #1, MKCL_MAKE_FIXNUM(#2)))")
     (def-inline si:row-major-aset :always ((array mkcl:integer32) fixnum fixnum) :void "mkcl_aset_index_i32(env, #0, #1, MKCL_MAKE_FIXNUM(#2))")
@@ -675,9 +675,9 @@
     (def-inline si:row-major-aset :unsafe ((array mkcl:cl-word) fixnum mkcl:cl-word) :fixnum "((#0)->array.self.word[#1] = (#2))")
     (def-inline si:row-major-aset :unsafe ((array mkcl:natural64) fixnum mkcl:natural64) :uint64-t "((#0)->array.self.b64[#1] = (#2))")
     (def-inline si:row-major-aset :unsafe ((array mkcl:integer64) fixnum mkcl:integer64) :int64-t "((#0)->array.self.i64[#1] = (#2))")
-    #+x86-64
+    #+(or x86-64 aarch64)
     (def-inline si:row-major-aset :unsafe ((array mkcl:natural32) fixnum fixnum) :fixnum "((#0)->array.self.b32[#1] = (#2))")
-    #+x86-64
+    #+(or x86-64 aarch64)
     (def-inline si:row-major-aset :unsafe ((array mkcl:natural32) fixnum mkcl:natural32) :uint32-t "((#0)->array.self.b32[#1] = (#2))")
     (def-inline si:row-major-aset :unsafe ((array mkcl:integer32) fixnum fixnum) :fixnum "((#0)->array.self.i32[#1] = (#2))")
     (def-inline si:row-major-aset :unsafe ((array mkcl:integer32) fixnum mkcl:integer32) :int32-t "((#0)->array.self.i32[#1] = (#2))")
@@ -1556,9 +1556,9 @@
 #|
     ;; These here do not work right now because type filtering of expressions promotes every
     ;; integral value to type FIXNUM therefore loosing the accuracy needed in these cases. JCB
-    #+x86-64
+    #+(or x86-64 aarch64)
     (def-inline logbitp :always ((integer -61 61) fixnum) :bool "(((#1) >> (#0)) & 1)")
-    #-x86-64
+    #-(or x86-64 aarch64)
     (def-inline logbitp :always ((integer -29 29) fixnum) :bool "(((#1) >> (#0)) & 1)")
 |#
 
@@ -1609,9 +1609,9 @@
     ;; These here do not work right now because type filtering of expressions promotes every
     ;; integral value to type FIXNUM therefore loosing the accuracy needed in these cases. JCB
     (def-inline expt :always ((integer 2 2) (integer 0 61)) t "MKCL_MAKE_FIXNUM(1<<(#1))")
-    #+x86-64
+    #+(or x86-64 aarch64)
     (def-inline expt :always ((integer 2 2) (integer 0 61)) :fixnum "(1<<(#1))")
-    #-x86-64
+    #-(or x86-64 aarch64)
     (def-inline expt :always ((integer 2 2) (integer 0 29)) :fixnum "(1<<(#1))")
     (def-inline expt :always ((integer 0 0) t) :fixnum "0")
     (def-inline expt :always ((integer 1 1) t) :fixnum "1")

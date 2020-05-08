@@ -87,9 +87,14 @@ static const char * const feature_names[] = {
         "MKCL", "COMMON", "COMMON-LISP", "ANSI-CL",
 #if defined(__i386) || defined(__pentium)
 	"X86",
-	"LITTLE-ENDIAN",
 #elif defined(__x86_64)
 	"X86-64",
+#elif defined(__aarch64__)
+	"AARCH64",
+#elif defined(__arm__)
+	"ARM",
+#endif
+#ifdef MKCL_LITTLE_ENDIAN
 	"LITTLE-ENDIAN",
 #endif
 #ifdef MKCL_IEEE_FP

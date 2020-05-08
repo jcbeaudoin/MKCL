@@ -220,6 +220,8 @@
 	     (wt-filtered-data (stringify ;; CPU identifier
 				#+x86 :x86 
 				#+x86-64 :x86-64
+				#+arm :arm
+				#+aarch64 :aarch64
 				)
 			       stream) ;; JCB
 	     (wt-filtered-data (stringify ;; OS family
