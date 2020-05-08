@@ -101,7 +101,7 @@
   nil)
 
 (defconstant +rep-type-canonical-map+
-  #+(and x86-64 aarch64 (not windows))
+  #+(and (or x86-64 aarch64) (not windows))
   '((:int8-t . :byte) (:uint8-t . :unsigned-byte)
     (:int16-t . :short) (:uint16-t . :unsigned-short)
     (:int32-t . :int) (:uint32-t . :unsigned-int)

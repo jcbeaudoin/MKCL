@@ -377,8 +377,8 @@
 
 (defun make-pointer (addr type)
   (c-inline (type (size-of-foreign-type type) addr)
-	    #-(and windows x86-64) (:object :unsigned-long :unsigned-long)
-	    #+(and windows x86-64) (:object :unsigned-long-long :unsigned-long-long)
+	    #-(and windows (or x86-64 aarch64)) (:object :unsigned-long :unsigned-long)
+	    #+(and windows (or x86-64 aarch64)) (:object :unsigned-long-long :unsigned-long-long)
 	    :object
             "mkcl_make_foreign(env, #0, #1, (void*)#2)"
 	    :side-effects t
