@@ -531,7 +531,7 @@ uninstall:
 	    *) $(RM) $(DESTDIR)$(libdir)/$$i || : ;; \
 	  esac \
 	done
-	cd $(DESTDIR)$(libdir) && rm -f @SONAME3@ @SONAME2@ @SONAME1@ @SONAME@
+	-(cd $(DESTDIR)$(libdir) && rm -f @SONAME3@ @SONAME2@ @SONAME1@ @SONAME@)
 	$(RM) -r $(DESTDIR)$(mkcldir)
 #	cd doc; $(MAKE) uninstall
 
