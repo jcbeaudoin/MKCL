@@ -14,7 +14,13 @@
 
 void __mkcc_clear_cache(void *beg, void *end)
 {
-    __arm64_clear_cache(beg, end);
+#if 0
+  __arm64_clear_cache(beg, end);
+#else
+  /* Should work in GCC and clang. */
+  extern void __builtin___clear_cache (void* start, void* end);
+  __builtin___clear_cache(beg, end);
+#endif
 }
 
 typedef struct {
