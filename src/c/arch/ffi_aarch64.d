@@ -367,8 +367,16 @@ mkcl_dynamic_callback_execute(long i1, long i2, long i3, long i4, long i5, long 
     case MKCL_FFI_POINTER_VOID:
     case MKCL_FFI_CSTRING:
     case MKCL_FFI_OBJECT: val = output.ul; break;
-    case MKCL_FFI_DOUBLE: asm("movsd (%0),%%xmm0" :: "a" (&output.d)); break;
-    case MKCL_FFI_FLOAT: asm("movss (%0),%%xmm0" :: "a" (&output.f)); break;
+    case MKCL_FFI_DOUBLE:
+#if 0 /* this code is x86_64 legacy. */
+      asm("movsd (%0),%%xmm0" :: "a" (&output.d));
+#endif
+      break;
+    case MKCL_FFI_FLOAT:
+#if 0 /* this code is x86_64 legacy. */
+      asm("movss (%0),%%xmm0" :: "a" (&output.f));
+#endif
+      break;
     case MKCL_FFI_VOID: break;
     default: mkcl_FEerror(env, "Invalid C callback function return type", 0); break;
     }
