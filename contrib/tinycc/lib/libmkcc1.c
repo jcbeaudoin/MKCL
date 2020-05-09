@@ -114,7 +114,37 @@ union float_long {
 
 /* XXX: use gcc/mkcc intrinsic ? */
 # if defined(MKCC_TARGET_I386)
-#  define sub_ddmmss(sh, sl, ah, al, bh, bl) \
+#  if __clang__
+#   define sub_ddmmss(sh, sl, ah, al, bh, bl) \
+  __asm__ ("subl %5,%1\n\tsbbl %3,%0"					\
+	   : "=r" ((sh)),					\
+	     "=&r" ((sl))					\
+	   : "0" ((ah)),					\
+	     "g" ((bh)),					\
+	     "1" ((al)),					\
+	     "g" ((bl)))
+#   define umul_ppmm(w1, w0, u, v) \
+  __asm__ ("mull %3"							\
+	   : "=a" ((w0)),					\
+	     "=d" ((w1))					\
+	   : "%0" ((u)),					\
+	     "rm" ((v)))
+#   define udiv_qrnnd(q, r, n1, n0, dv) \
+  __asm__ ("divl %4"							\
+	   : "=a" ((q)),					\
+	     "=d" ((r))					\
+	   : "0" ((n0)),					\
+	     "1" ((n1)),					\
+	     "rm" ((dv)))
+#   define count_leading_zeros(count, x) \
+  do {									\
+    USItype __cbtmp;							\
+    __asm__ ("bsrl %1,%0"						\
+	     : "=r" (__cbtmp) : "rm" ((x)));			\
+    (count) = __cbtmp ^ 31;						\
+  } while (0)
+#  else
+#   define sub_ddmmss(sh, sl, ah, al, bh, bl)                            \
   __asm__ ("subl %5,%1\n\tsbbl %3,%0"					\
 	   : "=r" ((USItype) (sh)),					\
 	     "=&r" ((USItype) (sl))					\
@@ -122,26 +152,27 @@ union float_long {
 	     "g" ((USItype) (bh)),					\
 	     "1" ((USItype) (al)),					\
 	     "g" ((USItype) (bl)))
-#  define umul_ppmm(w1, w0, u, v) \
+#   define umul_ppmm(w1, w0, u, v) \
   __asm__ ("mull %3"							\
 	   : "=a" ((USItype) (w0)),					\
 	     "=d" ((USItype) (w1))					\
 	   : "%0" ((USItype) (u)),					\
 	     "rm" ((USItype) (v)))
-#  define udiv_qrnnd(q, r, n1, n0, dv) \
+#   define udiv_qrnnd(q, r, n1, n0, dv) \
   __asm__ ("divl %4"							\
 	   : "=a" ((USItype) (q)),					\
 	     "=d" ((USItype) (r))					\
 	   : "0" ((USItype) (n0)),					\
 	     "1" ((USItype) (n1)),					\
 	     "rm" ((USItype) (dv)))
-#  define count_leading_zeros(count, x) \
+#   define count_leading_zeros(count, x) \
   do {									\
     USItype __cbtmp;							\
     __asm__ ("bsrl %1,%0"						\
 	     : "=r" (__cbtmp) : "rm" ((USItype) (x)));			\
     (count) = __cbtmp ^ 31;						\
   } while (0)
+#  endif
 # else
 #  error unsupported CPU type
 # endif
