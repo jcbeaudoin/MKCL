@@ -109,7 +109,7 @@ STATIC MK_GC_has_static_roots_func MK_GC_has_static_roots = 0;
 #     undef EM_ALPHA
 #   endif
 #   include <link.h>
-#   if !defined(MK_GC_DONT_DEFINE_LINK_MAP)
+#   if (__ANDROID_API__ < 3) /* Below CupCake, how about that? JCB */ && !defined(MK_GC_DONT_DEFINE_LINK_MAP)
       /* link_map and r_debug should be defined explicitly,             */
       /* as only bionic/linker/linker.h defines them but the header     */
       /* itself is a C++ one starting from Android 4.3.                 */
