@@ -38,6 +38,7 @@
 #include <setjmp.h> 		/* setjmp and buffers */
 #include <errno.h>
 #include <stdlib.h>
+#include <signal.h>		/* sigset_t */
 
 
 #include <mkcl/config.h>
