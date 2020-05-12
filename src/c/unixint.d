@@ -38,6 +38,7 @@ int _resetstkoflw(void); /* since MinGW does not provide it in malloc.h like MS 
 # include <sys/wait.h>
 # include <dlfcn.h>
 # include <ucontext.h>
+# include <sched.h>
 #endif
 
 #include <mkcl/mkcl-fenv.h>
@@ -1700,7 +1701,7 @@ mk_mt_try_to_wake_up_thread(MKCL, mkcl_object thread)
 
 	      @(return mk_cl_Cnil); /* We muffle any error because this was just a try. */
 	    }
-	  pthread_yield();
+	  sched_yield();
 	}
 #endif
       @(return mk_cl_Ct);
@@ -2146,13 +2147,13 @@ static void temp_sigwinch_handler(int sig, siginfo_t *info, void *aux)
   if (pthread_equal(signal_servicing_thread, pthread_self()))
     {
       sigaction(SIGWINCH, &old_sigwinch_sigaction, NULL);
-      pthread_exit(PTHREAD_CANCELLED);
+      pthread_exit(0);
     }
   else
     { /* Do some effort to reasonably handle the odd and very unlikely case of a SIGWINCH
          received by a thread other than signal_servicing_thread on an Android platform. */
       if (old_sigwinch_sigaction.sa_flags & SA_SIGINFO)
-        old_sigwinch_sigaction.sig_action(sig, info, aux);
+        old_sigwinch_sigaction.sa_sigaction(sig, info, aux);
       else
         {
           void (*handler)(int) = old_sigwinch_sigaction.sa_handler;
