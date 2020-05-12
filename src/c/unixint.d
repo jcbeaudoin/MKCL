@@ -2139,13 +2139,53 @@ void mkcl_init_late_unixint(MKCL)
   mkcl_enable_interrupts(env);
 }
 
+#if __ANDROID__
+static struct sigaction &old_sigwinch_sigaction;
+static void temp_sigwinch_handler(int sig, siginfo_t *info, void *aux)
+{
+  if (pthread_equal(signal_servicing_thread, pthread_self()))
+    {
+      sigaction(SIGWINCH, old_sigwinch_sigaction, NULL);
+      pthread_exit(PTHREAD_CANCELLED);
+    }
+  else
+    { /* Do some effort to reasonably handle the odd and very unlikely case of a SIGWINCH
+         received by a thread other than signal_servicing_thread on an Android platform. */
+      if (old_sigwinch_sigaction.sa_flags & SA_SIGINFO)
+        old_sigwinch_sigaction.sig_action(sig, info, aux);
+      else
+        {
+          void (*handler)(int) = old_sigwinch_sigaction.sa_handler;
+
+          if (!(handler == SIG_IGN || handler == SIG_DFL || handler == SIG_ERR))
+            handler(sig);
+        }
+    }
+}
+
+static void terminate_signal_servicing_thread(void)
+{
+  struct sigaction new_sigwinch_sigaction;
+
+  new_sigwinch_handler.sa_sigaction = temp_sigwinch_handler;
+  sigemptyset(&new_sigwinch_handler.sa_mask);
+  new_sigwinch_handler.sa_flags = SA_SIGINFO;
+
+  sigaction(SIGWINCH, &new_sigwinch_sigaction, &old_sigwinch_sigaction);
+  pthread_kill(thread_id, SIGWINCH);
+}
+
+#else  /* __ANDROID__ */ /* Android refused to implement pthread_cancel() et al. */
+# define terminate_signal_servicing_thread() ((void) pthread_cancel(signal_servicing_thread))
+#endif /* __ANDROID__ */
+
 void mkcl_clean_up_unixint(MKCL)
 { /* Best effort only. We cannot raise an exception from here. */
 #if MKCL_WINDOWS
 #elif MKCL_PTHREADS
   int i;
 
-  (void) pthread_cancel(signal_servicing_thread);
+  terminate_signal_servicing_thread();
   /* We uninstall our signal handlers. */
   for (i = 1; i <= MKCL_SIGMAX; i++)
     {

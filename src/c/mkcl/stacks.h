@@ -546,6 +546,10 @@ extern "C" {
 
 # include <pthread.h>
 
+# ifdef __ANDROID__
+#  define pthread_setcancelstate(a, b) /* Android refused to implement pthread_cancel() et al. */
+# endif
+
 # define MKCL_CATCH_ALL_BEGIN(the_env) do {				\
   const mkcl_env __the_env = (the_env);					\
   int __old_cancel_state;						\
