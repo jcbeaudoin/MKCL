@@ -2140,12 +2140,12 @@ void mkcl_init_late_unixint(MKCL)
 }
 
 #if __ANDROID__
-static struct sigaction &old_sigwinch_sigaction;
+static struct sigaction old_sigwinch_sigaction;
 static void temp_sigwinch_handler(int sig, siginfo_t *info, void *aux)
 {
   if (pthread_equal(signal_servicing_thread, pthread_self()))
     {
-      sigaction(SIGWINCH, old_sigwinch_sigaction, NULL);
+      sigaction(SIGWINCH, &old_sigwinch_sigaction, NULL);
       pthread_exit(PTHREAD_CANCELLED);
     }
   else
@@ -2167,12 +2167,12 @@ static void terminate_signal_servicing_thread(void)
 {
   struct sigaction new_sigwinch_sigaction;
 
-  new_sigwinch_handler.sa_sigaction = temp_sigwinch_handler;
-  sigemptyset(&new_sigwinch_handler.sa_mask);
-  new_sigwinch_handler.sa_flags = SA_SIGINFO;
+  new_sigwinch_sigaction.sa_sigaction = temp_sigwinch_handler;
+  sigemptyset(&new_sigwinch_sigaction.sa_mask);
+  new_sigwinch_sigaction.sa_flags = SA_SIGINFO;
 
   sigaction(SIGWINCH, &new_sigwinch_sigaction, &old_sigwinch_sigaction);
-  pthread_kill(thread_id, SIGWINCH);
+  pthread_kill(signal_servicing_thread, SIGWINCH);
 }
 
 #else  /* __ANDROID__ */ /* Android refused to implement pthread_cancel() et al. */
