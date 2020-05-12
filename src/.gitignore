@@ -34,6 +34,6 @@ receipe_for_GC
 depend
 encodings/
 lib/
-include/mkcl/
+include/
 .gdbinit
 lsp/git_describe.lsp
