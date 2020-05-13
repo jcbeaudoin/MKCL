@@ -439,8 +439,9 @@ MK_GC_INNER void MK_GC_push_all_stacks(void)
   int MK_GC_stopping_pid = 0;
 #endif
 
-#ifdef PLATFORM_ANDROID
-  extern int tkill(pid_t tid, int sig); /* from sys/linux-unistd.h */
+#if 0 /* JCB */ && defined(PLATFORM_ANDROID)
+/* I have no idea why this code was needed on Android at any time! Must be ancient...  JCB 2020/05/12 */
+  extern int tkill(pid_t tid, int sig); /* from sys/linux-unistd.h */ /* No such file anymore! JCB */
 
   static int android_thread_kill(pid_t tid, int sig)
   {
@@ -499,7 +500,7 @@ STATIC int MK_GC_suspend_all(void)
                 p -> stop_info.stack_ptr = (ptr_t)stack.ss_sp - stack.ss_size;
               }
 #           else
-#             ifndef PLATFORM_ANDROID
+#             if 1 /* JCB */ || !defined(PLATFORM_ANDROID)
                 result = pthread_kill(p -> id, MK_GC_sig_suspend);
 #             else
                 result = android_thread_kill(p -> kernel_id, MK_GC_sig_suspend);
@@ -835,7 +836,7 @@ MK_GC_INNER void MK_GC_start_world(void)
             if (pthread_resume_np(p -> id) != 0)
               ABORT("pthread_resume_np failed");
 #         else
-#           ifndef PLATFORM_ANDROID
+#           if 1 /* JCB */ || !defined(PLATFORM_ANDROID)
               result = pthread_kill(p -> id, MK_GC_sig_thr_restart);
 #           else
               result = android_thread_kill(p -> kernel_id,

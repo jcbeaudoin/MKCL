@@ -505,7 +505,7 @@ STATIC MK_GC_thread MK_GC_new_thread(pthread_t id)
         if (result == 0) return(0);
     }
     result -> id = id;
-#   ifdef PLATFORM_ANDROID
+#   if 0 /* JCB */ && defined(PLATFORM_ANDROID)
       result -> kernel_id = gettid();
 #   endif
     result -> next = MK_GC_threads[hv];
@@ -679,7 +679,7 @@ STATIC void MK_GC_remove_all_threads_but_me(void)
             /* MK_GC_destroy_thread_local and MK_GC_free_internal     */
             /* before update).                                  */
             me -> stop_info.mach_thread = mach_thread_self();
-#         elif defined(PLATFORM_ANDROID)
+#         elif 0 /* JCB */ && defined(PLATFORM_ANDROID)
             me -> kernel_id = gettid();
 #         endif
 #         if defined(THREAD_LOCAL_ALLOC) && !defined(USE_CUSTOM_SPECIFIC)
