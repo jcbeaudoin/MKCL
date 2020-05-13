@@ -226,6 +226,7 @@ static void bark_about_signal(siginfo_t *info, const char * const msg)
   return;
 }
 
+#ifdef DEBUG_SIGNALS
 static void sig_print_sigmask(sigset_t * set)
 {
     int i;
@@ -246,6 +247,7 @@ static void show_sigmask(void)
   pthread_sigmask(SIG_SETMASK, NULL, &mask);
   sig_print_sigmask(&mask);
 }
+#endif /* def DEBUG_SIGNALS */
 
 static
 void posix_signal(MKCL, int sig, void (*handler)(int, siginfo_t *, void *))
@@ -645,6 +647,7 @@ void mkcl_sigfpe_handler(int sig, siginfo_t *info, void *aux)
 #endif
 }
 
+#if 0 /* unused? */
 static void
 unblock_signal(int signal)
 {
@@ -657,6 +660,7 @@ unblock_signal(int signal)
   pthread_sigmask(SIG_UNBLOCK, &unblock_mask, NULL);
   pthread_sigmask(SIG_SETMASK, NULL, &current_mask);
 }
+#endif
 
 void mkcl_synchronous_signal_handler(int sig, siginfo_t *info, void *aux)
 {
