@@ -997,7 +997,10 @@ static void * customize_GC(void * client_data)
 
 static int alloc_initialized = FALSE;
 
-#if MKCL_PTHREADS
+#if __ANDROID__ && __LP32__ /* Signal mask support for realtime signals is broken in Android 32bits. */
+# define DEFAULT_GC_THREAD_SUSPEND_SIGNAL SIGPWR
+# define DEFAULT_GC_THREAD_RESTART_SIGNAL SIGXCPU
+#elif MKCL_PTHREADS
 # define DEFAULT_GC_THREAD_SUSPEND_SIGNAL SIGRTMIN + 5
 # define DEFAULT_GC_THREAD_RESTART_SIGNAL SIGRTMIN + 4
 #elif MKCL_WINDOWS

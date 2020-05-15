@@ -1786,7 +1786,7 @@ static void * signal_servicing_loop(void * arg)
   return NULL;
 }
 
-static mkcl_os_thread_t signal_servicing_thread;
+static mkcl_os_thread_t default_signal_servicing_thread;
 
 
 struct mkcl_signal_disposition
@@ -2020,12 +2020,18 @@ void mkcl_init_early_unixint(MKCL)
 
   /* Create a forever sleeping thread to ensure async-signals handlers will always find
      at least one thread stack to run on. */
-  if (pthread_create(&signal_servicing_thread, NULL, signal_servicing_loop, NULL))
+  if (pthread_create(&default_signal_servicing_thread, NULL, signal_servicing_loop, NULL))
     mkcl_lose(env, "mkcl_init_unixint failed on pthread_create.");
 
-# define DEFAULT_THREAD_RESUME_SIGNAL SIGRTMIN + 1
-# define DEFAULT_THREAD_INTERRUPT_SIGNAL SIGRTMIN + 2
-# define DEFAULT_THREAD_WAKE_UP_SIGNAL SIGRTMIN + 3
+# if __ANDROID__ && __LP32__ /* Signal mask support for realtime signals is broken in Android 32bits. */
+#  define DEFAULT_THREAD_RESUME_SIGNAL SIGWINCH
+#  define DEFAULT_THREAD_INTERRUPT_SIGNAL SIGSTKFLT
+#  define DEFAULT_THREAD_WAKE_UP_SIGNAL SIGXFSZ
+# else
+#  define DEFAULT_THREAD_RESUME_SIGNAL SIGRTMIN + 1
+#  define DEFAULT_THREAD_INTERRUPT_SIGNAL SIGRTMIN + 2
+#  define DEFAULT_THREAD_WAKE_UP_SIGNAL SIGRTMIN + 3
+# endif
 
 
   wake_up_sig = mkcl_get_option(MKCL_OPT_THREAD_WAKE_UP_SIGNAL);
@@ -2146,42 +2152,28 @@ void mkcl_init_late_unixint(MKCL)
 
 #if __ANDROID__
 static struct sigaction old_sigwinch_sigaction;
-static void temp_sigwinch_handler(int sig, siginfo_t *info, void *aux)
+static void extra_wake_up_signal_handler(int sig, siginfo_t *info, void *aux)
 {
-  if (pthread_equal(signal_servicing_thread, pthread_self()))
-    {
-      sigaction(SIGWINCH, &old_sigwinch_sigaction, NULL);
-      pthread_exit(0);
-    }
+  if (pthread_equal(default_signal_servicing_thread, pthread_self()))
+    pthread_exit(0);
   else
-    { /* Do some effort to reasonably handle the odd and very unlikely case of a SIGWINCH
-         received by a thread other than signal_servicing_thread on an Android platform. */
-      if (old_sigwinch_sigaction.sa_flags & SA_SIGINFO)
-        old_sigwinch_sigaction.sa_sigaction(sig, info, aux);
-      else
-        {
-          void (*handler)(int) = old_sigwinch_sigaction.sa_handler;
-
-          if (!(handler == SIG_IGN || handler == SIG_DFL || handler == SIG_ERR))
-            handler(sig);
-        }
-    }
+    mkcl_wake_up_signal_handler(sig, info, aux);
 }
 
-static void terminate_signal_servicing_thread(void)
+static void terminate_default_signal_servicing_thread(void)
 {
-  struct sigaction new_sigwinch_sigaction;
+  struct sigaction new_wake_up_sigaction;
 
-  new_sigwinch_sigaction.sa_sigaction = temp_sigwinch_handler;
-  sigemptyset(&new_sigwinch_sigaction.sa_mask);
-  new_sigwinch_sigaction.sa_flags = SA_SIGINFO;
+  new_wake_up_sigaction.sa_sigaction = extra_wake_up_signal_handler;
+  sigemptyset(&new_wake_up_sigaction.sa_mask);
+  new_wake_up_sigaction.sa_flags = SA_SIGINFO;
 
-  sigaction(SIGWINCH, &new_sigwinch_sigaction, &old_sigwinch_sigaction);
-  pthread_kill(signal_servicing_thread, SIGWINCH);
+  sigaction(wake_up_sig, &new_wake_up_sigaction, NULL);
+  pthread_kill(default_signal_servicing_thread, WAKE_UP);
 }
 
 #else  /* __ANDROID__ */ /* Android refused to implement pthread_cancel() et al. */
-# define terminate_signal_servicing_thread() ((void) pthread_cancel(signal_servicing_thread))
+# define terminate_default_signal_servicing_thread() ((void) pthread_cancel(default_signal_servicing_thread))
 #endif /* __ANDROID__ */
 
 void mkcl_clean_up_unixint(MKCL)
@@ -2190,7 +2182,7 @@ void mkcl_clean_up_unixint(MKCL)
 #elif MKCL_PTHREADS
   int i;
 
-  terminate_signal_servicing_thread();
+  terminate_default_signal_servicing_thread();
   /* We uninstall our signal handlers. */
   for (i = 1; i <= MKCL_SIGMAX; i++)
     {
