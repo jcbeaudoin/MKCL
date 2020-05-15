@@ -2023,7 +2023,8 @@ void mkcl_init_early_unixint(MKCL)
   if (pthread_create(&default_signal_servicing_thread, NULL, signal_servicing_loop, NULL))
     mkcl_lose(env, "mkcl_init_unixint failed on pthread_create.");
 
-# if __ANDROID__ && __LP32__ /* Signal mask support for realtime signals is broken in Android 32bits. */
+# if __ANDROID__ && (__arm__ || __i386__)
+  /* Signal mask support for realtime signals is broken in Android 32bits. */
 #  define DEFAULT_THREAD_RESUME_SIGNAL SIGWINCH
 #  define DEFAULT_THREAD_INTERRUPT_SIGNAL SIGSTKFLT
 #  define DEFAULT_THREAD_WAKE_UP_SIGNAL SIGXFSZ
@@ -2169,7 +2170,7 @@ static void terminate_default_signal_servicing_thread(void)
   new_wake_up_sigaction.sa_flags = SA_SIGINFO;
 
   sigaction(wake_up_sig, &new_wake_up_sigaction, NULL);
-  pthread_kill(default_signal_servicing_thread, WAKE_UP);
+  pthread_kill(default_signal_servicing_thread, wake_up_sig);
 }
 
 #else  /* __ANDROID__ */ /* Android refused to implement pthread_cancel() et al. */
