@@ -164,11 +164,16 @@ extern "C" {
 
   /* Immediate fixnums:		*/
 #define MKCL_FIXNUM_TAG		mkcl_t_fixnum
-#define MKCL_MAKE_FIXNUM(n)	((mkcl_object)(((mkcl_word)(n) << 2) | MKCL_FIXNUM_TAG))
+#if __clang__
+# define MKCL_MAKE_FIXNUM(n)	((mkcl_object)(((mkcl_word)(n) * 4) | MKCL_FIXNUM_TAG))
+# define mkcl_fixnum_to_word(obje) ((((mkcl_word)(obje)) & ~mkcl_t_fixnum) / 4)
+#else
+# define MKCL_MAKE_FIXNUM(n)	((mkcl_object)(((mkcl_word)(n) << 2) | MKCL_FIXNUM_TAG))
+# define mkcl_fixnum_to_word(obje) (((mkcl_word)(obje)) >> 2)
+#endif
 #define MKCL_FIXNUM_MINUSP(n)	((mkcl_word)(n) < 0)
 #define MKCL_FIXNUM_PLUSP(n)	((mkcl_word)(n) >= (mkcl_word)MKCL_MAKE_FIXNUM(0))
 #define MKCL_FIXNUMP(o)		(MKCL_IMMEDIATE(o) == mkcl_t_fixnum)
-#define	mkcl_fixnum_to_word(obje) (((mkcl_word)(obje)) >> 2)
 
   
   /* Immediate characters:	*/
