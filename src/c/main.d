@@ -285,6 +285,7 @@ static void _mkcl_boot_inner(MKCL)
   mk_cl_Cnil_symbol->symbol.properly_named_class = mk_cl_Cnil;
   mk_cl_Cnil_symbol->symbol.stype = mkcl_stp_constant;
 
+#if !__clang__
   mk_cl_Ct->symbol.t = mkcl_t_symbol;
   mk_cl_Ct->symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;
   mk_cl_Ct->symbol.value = mk_cl_Ct;
@@ -295,7 +296,18 @@ static void _mkcl_boot_inner(MKCL)
   mk_cl_Ct->symbol.hpack = mk_cl_Cnil;
   mk_cl_Ct->symbol.properly_named_class = mk_cl_Cnil;
   mk_cl_Ct->symbol.stype = mkcl_stp_constant;
-
+#else
+  mkcl_root_symbols[1].data.t = mkcl_t_symbol;
+  mkcl_root_symbols[1].data.special_index = MKCL_NOT_A_SPECIAL_INDEX;
+  mkcl_root_symbols[1].data.value = mk_cl_Ct;
+  mkcl_root_symbols[1].data.name = mkcl_make_simple_base_string(env, "T");
+  mkcl_root_symbols[1].data.gfdef = mk_cl_Cnil;
+  mkcl_root_symbols[1].data.plist = mk_cl_Cnil;
+  mkcl_root_symbols[1].data.sys_plist = mk_cl_Cnil;
+  mkcl_root_symbols[1].data.hpack = mk_cl_Cnil;
+  mkcl_root_symbols[1].data.properly_named_class = mk_cl_Cnil;
+  mkcl_root_symbols[1].data.stype = mkcl_stp_constant;
+#endif
 
 #if 1
   mkcl_core.packages = mk_cl_Cnil;
@@ -347,7 +359,11 @@ static void _mkcl_boot_inner(MKCL)
   mkcl_import2(env, mk_cl_Cnil, mkcl_core.lisp_package);
   mkcl_export2(env, mk_cl_Cnil, mkcl_core.lisp_package);
 
+#if !__clang__
   mk_cl_Ct->symbol.hpack = mkcl_core.lisp_package;
+#else
+  mkcl_root_symbols[1].data.hpack = mkcl_core.lisp_package;
+#endif
   mkcl_import2(env, mk_cl_Ct, mkcl_core.lisp_package);
   mkcl_export2(env, mk_cl_Ct, mkcl_core.lisp_package);
 

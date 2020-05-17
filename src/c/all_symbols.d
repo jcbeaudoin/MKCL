@@ -334,7 +334,7 @@ mkcl_object mk_si_mangle_function_name(MKCL, mkcl_object symbol)
 
 
 static void
-make_this_symbol(MKCL, int i, mkcl_object s, int code, const char *name,
+make_this_symbol(MKCL, int i, struct mkcl_symbol * symbol, int code, const char *name,
 		 mkcl_objectfn fun, int narg, mkcl_object value)
 {
   enum mkcl_stype stp;
@@ -358,41 +358,41 @@ make_this_symbol(MKCL, int i, mkcl_object s, int code, const char *name,
   case GRAY_PACKAGE: package = mkcl_core.gray_package; break;
   default: mkcl_lose(env, "Unknown package in make_this_symbol");
   }
-  s->symbol.t = mkcl_t_symbol;
-  s->symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;
-  MKCL_SET(s, MKCL_OBJNULL);
-  MKCL_SYM_FUN(s) = mk_cl_Cnil;
-  s->symbol.plist = mk_cl_Cnil;
-  s->symbol.sys_plist = mk_cl_Cnil;
-  s->symbol.hpack = mk_cl_Cnil;
-  s->symbol.properly_named_class = mk_cl_Cnil;
-  s->symbol.stype = stp;
-  s->symbol.hpack = package;
-  s->symbol.name = mkcl_make_simple_base_string(env, (char *) name);
+  symbol->t = mkcl_t_symbol;
+  symbol->special_index = MKCL_NOT_A_SPECIAL_INDEX;
+  symbol->value = MKCL_OBJNULL;
+  symbol->gfdef = mk_cl_Cnil;
+  symbol->plist = mk_cl_Cnil;
+  symbol->sys_plist = mk_cl_Cnil;
+  symbol->hpack = mk_cl_Cnil;
+  symbol->properly_named_class = mk_cl_Cnil;
+  symbol->stype = stp;
+  symbol->hpack = package;
+  symbol->name = mkcl_make_simple_base_string(env, (char *) name);
   if (package == mkcl_core.keyword_package) {
-    mkcl_sethash(env, s->symbol.name, package->pack.external, s);
-    MKCL_SET(s, s);
+    mkcl_sethash(env, symbol->name, package->pack.external, (mkcl_object) symbol);
+    symbol->value = (mkcl_object) symbol;
   } else {
     int intern_flag;
-    MKCL_SET(s, value);
-    if (mkcl_find_symbol(env, s->symbol.name, package, &intern_flag) != mk_cl_Cnil
+    symbol->value = value;
+    if (mkcl_find_symbol(env, symbol->name, package, &intern_flag) != mk_cl_Cnil
 	&& intern_flag == MKCL_SYMBOL_IS_INHERITED) {
-      mkcl_shadowing_import(env, s, package);
+      mkcl_shadowing_import(env, (mkcl_object) symbol, package);
     } else {
-      mkcl_import2(env, s, package);
+      mkcl_import2(env, (mkcl_object) symbol, package);
     }
-    mkcl_export2(env, s, package);
+    mkcl_export2(env, (mkcl_object) symbol, package);
   }
   if (form) {
-    s->symbol.stype |= mkcl_stp_special_form;
+    symbol->stype |= mkcl_stp_special_form;
   } else if (fun) {
     mkcl_object f;
     if (narg >= 0) {
-      f = mkcl_make_cfun(env, (mkcl_objectfn_fixed) fun, s, MKCL_OBJNULL, narg, NULL);
+      f = mkcl_make_cfun(env, (mkcl_objectfn_fixed) fun, (mkcl_object) symbol, MKCL_OBJNULL, narg, NULL);
     } else {
-      f = mkcl_make_cfun_va(env, fun, s, MKCL_OBJNULL, NULL);
+      f = mkcl_make_cfun_va(env, fun, (mkcl_object) symbol, MKCL_OBJNULL, NULL);
     }
-    MKCL_SYM_FUN(s) = f;
+    symbol->gfdef = f;
   }
 }
 
@@ -406,7 +406,7 @@ mkcl_init_all_symbols(MKCL)
 
   /* We skip NIL and T, thus we start at 2. */
   for (i = 2; mkcl_root_symbols[i].init.name != NULL; i++) {
-    s = (mkcl_object)(mkcl_root_symbols + i);
+    struct mkcl_symbol * s = &(mkcl_root_symbols[i].data);
     code = mkcl_root_symbols[i].init.type;
     name = mkcl_root_symbols[i].init.name;
     fun = (mkcl_objectfn)mkcl_root_symbols[i].init.fun;
