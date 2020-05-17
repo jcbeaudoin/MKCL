@@ -698,7 +698,12 @@ mkcl_sethash(MKCL, mkcl_object key, mkcl_object hashtable, mkcl_object value)
   i = hashtable->hash.entries + 1;
   if (i >= hashtable->hash.size ||
       /* This version is all integral ops. */
-      (!(i & (((mkcl_word) -1) << (MKCL_WORD_BITS - 4))) /* make sure i will not overflow. */
+      (
+#if __clang__
+       !(i & (((mkcl_index) -1) << (MKCL_WORD_BITS - 4))) /* make sure i will not overflow. */
+#else
+       !(i & (((mkcl_word) -1) << (MKCL_WORD_BITS - 4))) /* make sure i will not overflow. */
+#endif
        && (i * 16) >= (hashtable->hash.size * hashtable->hash.factor_of_16th)))
     mkcl_extend_hashtable(env, hashtable);
 
