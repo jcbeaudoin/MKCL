@@ -1778,7 +1778,7 @@ mk_mt_try_to_wake_up_thread(MKCL, mkcl_object thread)
 
 #if MKCL_UNIX
 
-static void * signal_servicing_loop(void * arg)
+static void * default_signal_servicing_loop(void * arg)
 {
   pthread_detach(pthread_self());
   for (;;) /* sleep forever! */
@@ -2020,7 +2020,7 @@ void mkcl_init_early_unixint(MKCL)
 
   /* Create a forever sleeping thread to ensure async-signals handlers will always find
      at least one thread stack to run on. */
-  if (pthread_create(&default_signal_servicing_thread, NULL, signal_servicing_loop, NULL))
+  if (pthread_create(&default_signal_servicing_thread, NULL, default_signal_servicing_loop, NULL))
     mkcl_lose(env, "mkcl_init_unixint failed on pthread_create.");
 
 # if __ANDROID__ && (__arm__ || __i386__)
