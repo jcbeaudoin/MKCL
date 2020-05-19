@@ -106,6 +106,9 @@ static const char * const feature_names[] = {
 #ifdef __linux
         "LINUX",
 #endif
+#if __ANDROID__
+        "ANDROID",
+#endif
 #if __FreeBSD__
         "FREEBSD",
 #endif
