@@ -1176,7 +1176,7 @@ raw_string_is_wild_p(mkcl_OSstring_raw_type p)
   return FALSE;
 }
 
-bool mkcl_component_string_is_wild_p(MKCL, mkcl_object comp_str)
+bool mkcl_pathname_component_string_is_wild_p(MKCL, mkcl_object comp_str)
 {
   if (MKCL_STRINGP(comp_str))
     {
@@ -1268,7 +1268,7 @@ list_directory(MKCL, struct OSpath * wd_path, mkcl_object mask, bool only_dir)
 
   mkcl_object os_path = mkcl_string_to_OSstring(env, mkcl_namestring(env, wd_path->pathname, FALSE));
 
-  if (!(mask == @':wild' || mkcl_component_string_is_wild_p(env, mask)))
+  if (!(mask == @':wild' || mkcl_pathname_component_string_is_wild_p(env, mask)))
     {
       struct stat buf;
       int rc;

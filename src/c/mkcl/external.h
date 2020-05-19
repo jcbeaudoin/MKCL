@@ -2255,6 +2255,8 @@ extern "C" {
   extern MKCL_API mkcl_object mk_mkcl_probe_file_p(MKCL, mkcl_object filename);
   extern MKCL_API mkcl_object mk_mkcl_stream_filename(MKCL, mkcl_object x);
 
+  extern MKCL_API bool mkcl_pathname_component_string_is_wild_p(MKCL, mkcl_object comp_str);
+
   /* unixint.c */
 
 #if MKCL_DEBUG_INTERRUPT_MASK

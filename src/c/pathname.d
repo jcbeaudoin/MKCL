@@ -910,17 +910,15 @@ mk_cl_logical_pathname(MKCL, mkcl_object x)
   }
   if (component == mk_cl_Cnil || component == @':name') {
     mkcl_object name = pathname->pathname.name;
-    if (name != mk_cl_Cnil &&
-	(name == @':wild' || 
-	 (!MKCL_SYMBOLP(name) && mkcl_member_char(env, '*', name))))
+    if (name != mk_cl_Cnil
+        && (name == @':wild' || mkcl_pathname_component_string_is_wild_p(env, name)))
       @(return mk_cl_Ct);
     checked = 1;
   }
   if (component == mk_cl_Cnil || component == @':type') {
     mkcl_object name = pathname->pathname.type;
-    if (name != mk_cl_Cnil &&
-	(name == @':wild' || 
-	 (!MKCL_SYMBOLP(name) && mkcl_member_char(env, '*', name))))
+    if (name != mk_cl_Cnil
+        && (name == @':wild' || mkcl_pathname_component_string_is_wild_p(env, name)))
       @(return mk_cl_Ct);
     checked = 1;
   }
@@ -929,9 +927,9 @@ mk_cl_logical_pathname(MKCL, mkcl_object x)
     checked = 1;
     mkcl_loop_for_on_unsafe(list) {
       mkcl_object name = MKCL_CONS_CAR(list);
-      if (name != mk_cl_Cnil &&
-	  (name == @':wild' || name == @':wild-inferiors' ||
-	   (!MKCL_SYMBOLP(name) && mkcl_member_char(env, '*', name))))
+      if (name != mk_cl_Cnil
+          && (name == @':wild' || name == @':wild-inferiors'
+              || mkcl_pathname_component_string_is_wild_p(env, name)))
 	{
 	  @(return mk_cl_Ct);
 	}
