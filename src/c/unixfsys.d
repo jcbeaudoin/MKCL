@@ -374,7 +374,7 @@ file_kind(MKCL, mkcl_object os_filename, bool follow_links)
 # ifdef HAVE_LSTAT
   MKCL_LIBC_NO_INTR(env, rc = (follow_links ? stat : lstat)((char *) mkcl_OSstring_self(os_filename), &buf));
 # else
-  MKCL_LIBC_NO_INTR(env, rc = stat(mkcl_OSstring_self(os_filename), &buf));
+  MKCL_LIBC_NO_INTR(env, rc = stat((char *) mkcl_OSstring_self(os_filename), &buf));
 # endif
 
   if (rc)
@@ -645,7 +645,7 @@ bool mkcl_probe_file(MKCL, mkcl_object os_filename, bool follow_links)
 # ifdef HAVE_LSTAT
   MKCL_LIBC_NO_INTR(env, rc = (follow_links ? stat : lstat)((char *) mkcl_OSstring_self(os_filename), &buf));
 # else
-  MKCL_LIBC_NO_INTR(env, rc = stat(mkcl_OSstring_self(os_filename), &buf));
+  MKCL_LIBC_NO_INTR(env, rc = stat((char *) mkcl_OSstring_self(os_filename), &buf));
 # endif
 
   if (rc)
@@ -1134,7 +1134,7 @@ list_directory(MKCL, struct OSpath * wd_path, mkcl_object mask, bool only_dir)
       mkcl_object os_mask = mkcl_string_to_OSstring(env, mask); /* ??? */
 
       mkcl_OSstring_nconc(env, os_path, os_mask);
-      MKCL_LIBC_NO_INTR(env, rc = stat(mkcl_OSstring_self(os_path), &buf));
+      MKCL_LIBC_NO_INTR(env, rc = stat((char *) mkcl_OSstring_self(os_path), &buf));
       if (rc)
         {
           switch (errno)
