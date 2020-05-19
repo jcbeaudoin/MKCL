@@ -62,11 +62,7 @@ static void init_absolute_OSpath(MKCL, struct OSpath * ospath)
   p->pathname.directory = mkcl_list1(env, @':absolute');
   p->pathname.name      = mk_cl_Cnil;
   p->pathname.type      = mk_cl_Cnil;
-#if 0
-  p->pathname.version   = @':unspecific';
-#else
   p->pathname.version   = @':newest';
-#endif
   p->pathname.namestring = mk_cl_Cnil;
 
   ospath->pathname = p;
@@ -84,24 +80,13 @@ static void init_relative_OSpath(MKCL, struct OSpath * ospath)
   p->pathname.directory = mkcl_list1(env, @':relative');
   p->pathname.name      = mk_cl_Cnil;
   p->pathname.type      = mk_cl_Cnil;
-#if 0
-  p->pathname.version   = @':unspecific';
-#else
   p->pathname.version   = @':newest';
-#endif
   p->pathname.namestring = mk_cl_Cnil;
 
   ospath->pathname = p;
   ospath->reverse_directory_list_shadow = mkcl_list1(env, p->pathname.directory);
 }
 
-#if 0
-static void init_OSpath_from_pathname(MKCL, struct OSpath * ospath, mkcl_object pathname)
-{
-  ospath->pathname = pathname;
-  ospath->reverse_directory_list_shadow = mkcl_reverse_proper_list(env, pathname); /* nonsense, sure to crash! */
-}
-#endif
 
 static void copy_OSpath(MKCL, struct OSpath * new, struct OSpath * old)
 {
@@ -162,11 +147,7 @@ static int is_slash(int c) { return MKCL_IS_DIR_SEPARATOR(c); }
 static int
 safe_chdir(MKCL, mkcl_object path)
 {
-#if 0
-  mkcl_object os_path = mkcl_string_to_OSstring(env, path);
-#else
   mkcl_dynamic_extent_OSstring(env, os_path, path);
-#endif
   int output;
 
 #if MKCL_WINDOWS
@@ -187,8 +168,8 @@ typedef struct stat os_file_stat;
 static int
 safe_stat(MKCL, mkcl_object path, os_file_stat *sb)
 {
-  mkcl_dynamic_extent_OSstring(env, os_path, path);
   int output;
+  mkcl_dynamic_extent_OSstring(env, os_path, path);
 
   MKCL_LIBC_NO_INTR(env, output = stat((char *) mkcl_OSstring_self(os_path), sb));
   return output;
@@ -199,12 +180,8 @@ safe_stat(MKCL, mkcl_object path, os_file_stat *sb)
 static int
 safe_lstat(MKCL, mkcl_object path, struct stat *sb)
 {
-#if 0
-  mkcl_object os_path = mkcl_string_to_OSstring(env, path);
-#else
-  mkcl_dynamic_extent_OSstring(env, os_path, path);
-#endif
   int output;
+  mkcl_dynamic_extent_OSstring(env, os_path, path);
 
   MKCL_LIBC_NO_INTR(env, output = lstat((char *) mkcl_OSstring_self(os_path), sb));
   return output;
@@ -214,12 +191,8 @@ safe_lstat(MKCL, mkcl_object path, struct stat *sb)
 #if MKCL_UNIX
 static mkcl_object safe_realpath(MKCL, mkcl_object orig_pathname, mkcl_object path)
 {
-#if 0
-  mkcl_OSstring_raw_type os_raw_path = mkcl_OSstring_self(mkcl_string_to_OSstring(env, path));
-#else
   mkcl_dynamic_extent_OSstring(env, os_path, path);
   mkcl_OSstring_raw_type os_raw_path = mkcl_OSstring_self(os_path);
-#endif
   char * output;
 
   MKCL_LIBC_NO_INTR(env, output = realpath((char *) os_raw_path, NULL));
@@ -242,12 +215,8 @@ static mkcl_object safe_realpath(MKCL, mkcl_object orig_pathname, mkcl_object pa
 
 static mkcl_object safe_realpath(MKCL, mkcl_object orig_pathname, mkcl_object path)
 {
-#if 0
-  mkcl_OSstring_raw_type os_raw_path = mkcl_OSstring_self(mkcl_string_to_OSstring(env, path));
-#else
   mkcl_dynamic_extent_OSstring(env, os_path, path);
   mkcl_OSstring_raw_type os_raw_path = mkcl_OSstring_self(os_path);
-#endif
   DWORD size = MAX_PATH + 1;
   wchar_t * output;
 
@@ -307,15 +276,15 @@ current_dir_on_drive(MKCL, int drive)
     mkcl_FElibc_error(env, "current_dir_on_drive() failed on _getdcwd()", 0);
   size = wcslen(mkcl_OSstring_self(output));
   mkcl_OSstring_set_fillp(output, size);
-#ifdef _MSC_VER
-#error left as an exercise to the reader!
+# ifdef _MSC_VER
+#  error left as an exercise to the reader!
   {
     unsigned char *c;
     for (c = output->base_string.self; *c; c++)
       if (*c == '\\')
 	*c = '/';
   }
-#endif
+# endif
 
   if (mkcl_OSstring_last(env, output) != '/')
     mkcl_OSstring_push_extend(env, output, '/');
@@ -390,10 +359,10 @@ file_kind(MKCL, mkcl_object os_filename, bool follow_links)
     output = mk_cl_Cnil; /* We prefer to have the caller handle the error just above us. */
   else if ( dw & FILE_ATTRIBUTE_DIRECTORY )
     output = @':directory';
-#ifdef FILE_ATTRIBUTE_REPARSE_POINT
+# ifdef FILE_ATTRIBUTE_REPARSE_POINT
   else if ( dw & FILE_ATTRIBUTE_REPARSE_POINT )
     output = @':link';
-#endif
+# endif
   else if ( dw & FILE_ATTRIBUTE_DEVICE )
     output = @':device';
   else
@@ -432,19 +401,6 @@ file_kind(MKCL, mkcl_object os_filename, bool follow_links)
   return output;
 }
 
-#if 0
-mkcl_object
-mk_si_file_kind(MKCL, mkcl_object filename, mkcl_object follow_links) {
-  filename = mk_si_coerce_to_filename(env, filename);
-#if 0
-  mkcl_object os_filename = mkcl_string_to_OSstring(env, filename);
-#else
-  mkcl_dynamic_extent_OSstring(env, os_filename, filename);
-#endif
-  mkcl_object kind = file_kind(env, os_filename, !mkcl_Null(follow_links));
-  @(return kind);
-}
-#else
 
 @(defun si::file-kind (filespec &key follow_symlinks signal_error)
 @
@@ -462,7 +418,6 @@ mk_si_file_kind(MKCL, mkcl_object filename, mkcl_object follow_links) {
     }
   @(return kind);
 @)
-#endif
 
 
 
@@ -502,13 +457,8 @@ mkcl_backup_open(MKCL, mkcl_object filename, int option, int mode)
   int fd;
   int error;
   static const mkcl_base_string_object(back_ext_str_obj, ".BAK");
-#if 0
-  mkcl_object os_back_ext = mkcl_string_to_OSstring(env, (mkcl_object) &back_ext_str_obj);
-  mkcl_object os_filename = mkcl_string_to_OSstring(env, filename);
-#else
   mkcl_dynamic_extent_OSstring(env, os_back_ext, (mkcl_object) &back_ext_str_obj);
   mkcl_dynamic_extent_OSstring(env, os_filename, filename);
-#endif
   mkcl_object backupfilename = mkcl_alloc_OSstring(env, mkcl_length(env, filename) + mkcl_OSstring_size(os_back_ext));
 
   mkcl_OSstring_nconc(env, backupfilename, os_filename);
@@ -557,11 +507,7 @@ mkcl_file_len(MKCL, int f)
   if (not_ok)
     mkcl_FElibc_error(env, "fstat() failed in mkcl_file_len().", 0);
 
-#if 0
-  return mkcl_make_integer(env, filestatus.st_size);
-#else
   return mkcl_make_int64_t(env, filestatus.st_size);
-#endif
 }
 
 
@@ -581,13 +527,8 @@ mkcl_object mk_cl_rename_file(MKCL, mkcl_object old_filespec, mkcl_object new_na
   new_name = mkcl_merge_pathnames(env, mk_cl_pathname(env, new_name), old_filespec, @':newest');
   new_filename = mk_si_coerce_to_filename(env, new_name);
 
-#if 0
-  mkcl_object new_os_filename = mkcl_string_to_OSstring(env, new_filename);
-  mkcl_object old_os_filename = mkcl_string_to_OSstring(env, old_filename);
-#else
   mkcl_dynamic_extent_OSstring(env, new_os_filename, new_filename);
   mkcl_dynamic_extent_OSstring(env, old_os_filename, old_filename);
-#endif
   
   mkcl_get_interrupt_status(env, &old_intr);
   mkcl_disable_interrupts(env);
@@ -662,11 +603,7 @@ mk_cl_delete_file(MKCL, mkcl_object file)
 {
   mkcl_call_stack_check(env);
   mkcl_object filename = mk_si_coerce_to_filename(env, file);
-#if 0
-  mkcl_object os_filename = mkcl_string_to_OSstring(env, filename);
-#else
   mkcl_dynamic_extent_OSstring(env, os_filename, filename);
-#endif
   int ok;
 
 #if MKCL_WINDOWS
@@ -699,12 +636,6 @@ bool mkcl_probe_file(MKCL, mkcl_object os_filename, bool follow_links)
 	  return FALSE;
 	}
     }
-# if 0
-#  ifdef FILE_ATTRIBUTE_REPARSE_POINT
-  else if ( dw & FILE_ATTRIBUTE_REPARSE_POINT )
-    return TRUE;
-#  endif
-# endif
   else
     return TRUE;
 #else /* !MKCL_WINDOWS */
@@ -740,14 +671,10 @@ mk_cl_probe_file(MKCL, mkcl_object filespec)
 {
   mkcl_call_stack_check(env);
   /* INV: Both SI:FILE-KIND and TRUENAME complain if "file" has wildcards */
-#if 0
-  @(return (mkcl_Null(mk_si_file_kind(env, filespec, mk_cl_Ct)) ? mk_cl_Cnil : mk_cl_truename(env, filespec)));
-#else
   mkcl_object filename = mk_si_coerce_to_filename(env, filespec);
   mkcl_dynamic_extent_OSstring(env, os_filename, filename);
 
   @(return (mkcl_probe_file(env, os_filename, TRUE /* follow symlinks */) ? mk_cl_truename(env, filespec) : mk_cl_Cnil));
-#endif
 }
 
 mkcl_object
@@ -933,11 +860,7 @@ mkcl_homedir_pathname(MKCL, mkcl_object user)
 
   if (!mkcl_Null(user))
     {
-#if 0
-      mkcl_object os_user = mkcl_string_to_OSstring(env, user);
-#else
       mkcl_dynamic_extent_OSstring(env, os_user, user);
-#endif
       mkcl_OSstring_raw_type raw_os_user = mkcl_OSstring_self(os_user);
       mkcl_index os_user_size = mkcl_OSstring_size(os_user);
 
@@ -1033,58 +956,7 @@ static inline bool not_eq_ch(wchar_t c1, wchar_t c2)
   return(towupper(c1) != towupper(c2)); /* towupper */
 }
 #endif /* MKCL_WINDOWS */
-/*
- * Take two C strings and check if the first one matches
- * against the pattern given by the second one. The pattern
- * is that of a Unix shell except for brackets and curly
- * braces.
- */ /* Which is too generous for the rules of ANSI CL! JCB */
-#if 0
-static bool
-string_match(const char *s, const char *p) /* Will not work on Windows 16bits chars. */
-{
-  const char *next;
-  while (*s) {
-    switch (*p) {
-    case '*':
-      /* Match any group of characters */
-      next = p+1;
-      if (*next != '?') {
-	if (*next == '\\')
-	  next++;
-	while (*s && not_eq_ch(*s,*next)) s++;
-      }
-      if (string_match(s,next))
-	return TRUE;
-      /* starts back from the '*' */
-      if (!*s)
-	return FALSE;
-      s++;
-      break;
-    case '?':
-      /* Match any character */
-      s++, p++;
-      break;
-    case '\\':
-      /* Interpret a pattern character literally.
-         Trailing slash is interpreted as a slash. */
-      if (p[1]) p++;
-      if (not_eq_ch(*s,*p))
-	return FALSE;
-      s++, p++;
-      break;
-    default:
-      if (not_eq_ch(*s,*p))
-	return FALSE;
-      s++, p++;
-      break;
-    }
-  }
-  while (*p == '*')
-    p++;
-  return (*p == 0);
-}
-#endif
+
 
 static bool
 raw_string_match(mkcl_OSstring_raw_type s, mkcl_OSstring_raw_type p)
@@ -1139,12 +1011,7 @@ string_match(MKCL, mkcl_OSstring_raw_type s, mkcl_object mask)
     return TRUE;
   else if (MKCL_STRINGP(mask))
     {
-#if 0
-      mkcl_object os_mask;
-      os_mask = mkcl_string_to_OSstring(env, mask);
-#else
       mkcl_dynamic_extent_OSstring(env, os_mask, mask);
-#endif
       mkcl_OSstring_raw_type p = mkcl_OSstring_self(os_mask);
       
       return raw_string_match(s, p);
@@ -1224,21 +1091,13 @@ list_directory(MKCL, struct OSpath * wd_path, mkcl_object mask, bool only_dir)
   do
     {
       wchar_t * entry_text = fd.cFileName;
-#if 0
-      wchar_t * entry_alt_text = fd.cAlternateFileName;
-#endif
 
       if (entry_text[0] == L'.' &&
 	  (entry_text[1] == L'\0' ||
 	   (entry_text[1] == L'.' && entry_text[2] == L'\0')))
 	goto CONTINUE_WITH_NEXT_ENTRY;
-#if 0 /* It seems that giving the cAlternateFilename field a role equal to cFileName produces surprising and unexpected results! */
-      if (!mkcl_Null(mask) && !(string_match(env, entry_text, mask) || string_match(env, entry_alt_text, mask)))
-	goto CONTINUE_WITH_NEXT_ENTRY;
-#else
       if (!mkcl_Null(mask) && !string_match(env, entry_text, mask))
 	goto CONTINUE_WITH_NEXT_ENTRY;
-#endif
       if (only_dir && !(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
 	goto CONTINUE_WITH_NEXT_ENTRY;
       out = mkcl_cons(env, mkcl_cstring16_copy_to_OSstring(env, entry_text), out);
@@ -1380,22 +1239,6 @@ static bool is_dot_pathname_p(MKCL, mkcl_object pathname)
   return false;
 }
 
-#if 0
-static bool is_dot_dot_pathname_p(MKCL, mkcl_object pathname)
-{
-  mkcl_object name = pathname->pathname.name;
-  mkcl_object type = pathname->pathname.type;
-
-  if (!mkcl_Null(name)
-      && name->base_string.fillp == 1
-      && name->base_string.self[0] == '.'
-      && !mkcl_Null(type)
-      && type->base_string.fillp == 0)
-    return true;
-
-  return false;
-}
-#endif
 
 static mkcl_object dir_real_pathname(MKCL, struct OSpath * wd_path)
 {
@@ -1427,23 +1270,15 @@ dir_files(MKCL, bool follow_symlinks, struct OSpath * wd_path, mkcl_object paths
   if (name == mk_cl_Cnil && type == mk_cl_Cnil)
     {
       mkcl_object wd_path_namestring = mkcl_namestring(env, wd_path->pathname, FALSE);
-#if 0
-      mkcl_object wd_path_os_namestring = mkcl_string_to_OSstring(env, wd_path_namestring);
-#else
       mkcl_dynamic_extent_OSstring(env, wd_path_os_namestring, wd_path_namestring);
-#endif
       mkcl_object kind = file_kind(env, wd_path_os_namestring, FALSE);
 
       if (mkcl_Null(kind))
 	{
-#if 0
-	  return mk_cl_Cnil; /* This here should be throwing a file-error of some kind! */
-#else
 #if MKCL_WINDOWS
 	  mkcl_FEwin32_file_error(env, wd_path_os_namestring, "GetFileAttributes() failed in file_kind()", 0);
 #else
 	  mkcl_FElibc_file_error(env, wd_path_os_namestring, "stat() failed in file_kind()", 0);
-#endif
 #endif
 	}
       else if (!follow_symlinks && @':link' == kind) /* This branch seems to be never taken! JCB */
@@ -1475,13 +1310,6 @@ dir_files(MKCL, bool follow_symlinks, struct OSpath * wd_path, mkcl_object paths
     {
       return mk_cl_list(env, 1, basedir);
     }
-#if 0
-  if (is_dot_dot_pathname_p(env, pathspec)) /* never happens now. */
-    {
-      OSpath_push_dir(env, wd_path, @':UP');
-      return mk_cl_list(env, 1, mk_cl_truename(env, wd_path->pathname));
-    }
-#endif
 
   if (name == @':wild' || name == @':unspecific')
     mask = mkcl_cstring_copy_to_OSstring(env, "*");
@@ -1499,11 +1327,7 @@ dir_files(MKCL, bool follow_symlinks, struct OSpath * wd_path, mkcl_object paths
     }
   else if (mkcl_stringp(env, type))
     {
-#if 0
-      mkcl_object os_type = mkcl_string_to_OSstring(env, type);
-#else
       mkcl_dynamic_extent_OSstring(env, os_type, type);
-#endif
       mkcl_OSstring_push_extend(env, mask, '.');
       mkcl_OSstring_nconc(env, mask, os_type);
     }
@@ -1512,15 +1336,11 @@ dir_files(MKCL, bool follow_symlinks, struct OSpath * wd_path, mkcl_object paths
   mkcl_loop_for_in(env, all_files) {
     mkcl_object new_os_filename = MKCL_CAR(all_files);
     mkcl_object new_filename = mkcl_OSstring_to_string(env, new_os_filename);
-#if 0 /* ifndef __unix ??? */
-    mkcl_object new_pathname = mk_cl_pathname(env, new_filename);
-#else
     mkcl_object new_pathname;
     {
       mkcl_index s = 0, e = mkcl_string_length(env, new_filename), ep;
       new_pathname = mkcl_parse_namestring(env, new_filename, s, e, &ep, mkcl_core.localhost_string, mkcl_specific_namestring);
     }
-#endif
 
     new_pathname->pathname.host = basedir->pathname.host;
     new_pathname->pathname.device = basedir->pathname.device;
@@ -1624,11 +1444,7 @@ dir_recursive(MKCL, bool follow_symlinks, struct OSpath * wd_path, mkcl_object p
     } mkcl_end_loop_for_in;
     output = mkcl_nconc(env, output, dir_recursive(env, follow_symlinks, wd_path, pathspec, MKCL_CDR(dir_spec)));
   } else {
-#if 0
-    mkcl_lose(env, "dir_recursive: invalid directory component");
-#else
     mk_cl_error(env, 3, @'file-error', @':pathname', pathspec);
-#endif
   }
   return output;
 }
@@ -1781,14 +1597,8 @@ mk_si_get_SYS_library_pathname(MKCL)
   mkcl_object namestring;
 @
   /* This will fail if the new directory does not exist */
-#if 0
-  directory = mk_cl_truename(env, directory); /* this one add *default-pathname-defaults*! */
-  if (directory->pathname.name != mk_cl_Cnil || directory->pathname.type != mk_cl_Cnil)
-    mkcl_FEerror(env, "~A is not a directory pathname.", 1, directory);
-#else
   directory = mk_cl_pathname(env, directory);
   directory = mkcl_coerce_to_physical_pathname(env, directory);
-#endif
   namestring = mkcl_namestring(env, directory, TRUE);
   if (namestring == mk_cl_Cnil) {
     mkcl_FEerror(env, "Pathname ~A does not have a physical namestring", 1, directory);
@@ -1806,11 +1616,7 @@ mk_mkcl_mkdir(MKCL, mkcl_object directory, mkcl_object mode)
   int ok;
   mkcl_call_stack_check(env);
   mkcl_object filename = mk_si_coerce_to_filename(env, directory);
-#if 0
-  mkcl_object os_filename = mkcl_string_to_OSstring(env, filename);
-#else
   mkcl_dynamic_extent_OSstring(env, os_filename, filename);
-#endif
 #if MKCL_UNIX
   mkcl_index modeint = mkcl_fixnum_in_range(env, @'mkcl::mkdir', "mode", mode, 0, 0777);
 #endif
@@ -1867,16 +1673,6 @@ mk_mkcl_mkdir(MKCL, mkcl_object directory, mkcl_object mode)
 
 	/* Yes, there is a gaping hole between name creation and file opening, but there does not
 	   seem to be any way provided by Microsoft to make this atomic. */
-# if 0
-	tmp_stream = mkcl_open_stream(env, tmp_filename,
-				      /* :direction */ mkcl_smm_io,
-				      /* :if-exists */ mk_cl_Cnil,
-				      /* :if-does-not-exist */ @':create',
-				      /* :element-type */ element_type,
-				      /* :external-format */ external_format);
-	if (mkcl_Null(tmp_stream) && first_try) /* We try to compensate for the gap mentionned just above by trying once again. */
-	  { first_try = FALSE; goto AGAIN; }
-# else
 	int fd; /* This one should give better performance */
 
 	MKCL_LIBC_NO_INTR(env, fd = _wopen(strTempFileName,
@@ -1890,7 +1686,6 @@ mk_mkcl_mkdir(MKCL, mkcl_object directory, mkcl_object mode)
 	    { @(return mk_cl_Cnil mk_cl_Cnil MKCL_MAKE_FIXNUM(errno)); }
 
 	tmp_stream = mkcl_make_stream_from_fd(env, tmp_filename, fd, mkcl_smm_io, element_type, external_format);
-# endif
       }
     }
 #else /*  MKCL_WINDOWS */
@@ -1925,11 +1720,7 @@ mk_mkcl_rmdir(MKCL, mkcl_object directory)
 
   mkcl_call_stack_check(env);
   directory = mk_si_coerce_to_filename(env, directory);
-#if 0
-  mkcl_object os_directory = mkcl_string_to_OSstring(env, directory);
-#else
   mkcl_dynamic_extent_OSstring(env, os_directory, directory);
-#endif
 
 #if MKCL_WINDOWS
   MKCL_LIBC_NO_INTR(env, code = _wrmdir(mkcl_OSstring_self(os_directory)));
