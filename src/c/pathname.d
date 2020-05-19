@@ -1098,56 +1098,6 @@ mkcl_meld_pathnames(MKCL, mkcl_object path, mkcl_object defaults, mkcl_object de
 mkcl_object
 mkcl_merge_pathnames(MKCL, mkcl_object path, mkcl_object defaults, mkcl_object default_version)
 {
-#if 0
-  mkcl_object host, device, directory, name, type, version;
-  bool logical = FALSE;
-
-#if 0
-  defaults = mk_cl_pathname(env, defaults);
-  path = mk_cl_parse_namestring(env, 1, path, mk_cl_Cnil, defaults);
-#endif
-  if (mkcl_Null(host = path->pathname.host))
-    {
-      host = defaults->pathname.host;
-      logical = defaults->pathname.logical;
-    }
-  else
-    logical = path->pathname.logical;
-  if (mkcl_Null(path->pathname.device))
-    if (mkcl_Null(path->pathname.host))
-      device = defaults->pathname.device;
-    else if (path->pathname.host == defaults->pathname.host)
-      device = defaults->pathname.device;
-    else
-      device = default_device(path->pathname.host);
-  else
-    device = path->pathname.device;
-  if (mkcl_Null(path->pathname.directory))
-    directory = defaults->pathname.directory;
-  else if (MKCL_CONSP(path->pathname.directory) && (MKCL_CONS_CAR(path->pathname.directory) == @':absolute'))
-    directory = path->pathname.directory;
-  else if (!mkcl_Null(defaults->pathname.directory))
-    directory = mkcl_append(env, defaults->pathname.directory,
-			    MKCL_CDR(path->pathname.directory));
-  else
-    directory = path->pathname.directory;
-  if (mkcl_Null(name = path->pathname.name))
-    name = defaults->pathname.name;
-  if (mkcl_Null(type = path->pathname.type))
-    type = defaults->pathname.type;
-  version = path->pathname.version;
-  if (mkcl_Null(path->pathname.name)) {
-    if (mkcl_Null(version))
-      version = defaults->pathname.version;
-  }
-  if (mkcl_Null(version))
-    version = default_version;
-  /*
-    In this implementation, version is not considered
-  */
-  defaults = _make_pathname(env, logical, host, device, directory, name, type, version);
-  return defaults;
-#else
   if (path->pathname.complete)
     return(path); /* nothing to be merged. */
   else
@@ -1157,7 +1107,6 @@ mkcl_merge_pathnames(MKCL, mkcl_object path, mkcl_object defaults, mkcl_object d
       p->pathname = path->pathname;
       return mkcl_meld_pathnames(env, p, defaults, default_version);
     }
-#endif
 }
 
 static bool is_strictly_absolute_pathname(MKCL, mkcl_object pathname)
@@ -1787,7 +1736,8 @@ mk_cl_pathname_match_p(MKCL, mkcl_object path, mkcl_object wildcard)
 
   /* Missing components default to :WILD */
   if (!mkcl_Null(wildcard->pathname.host)
-      && ((wildcard->pathname.logical && (mk_cl_string_equal(env, 2, path->pathname.host, wildcard->pathname.host) == mk_cl_Cnil))
+      && ((wildcard->pathname.logical
+           && (mk_cl_string_equal(env, 2, path->pathname.host, wildcard->pathname.host) == mk_cl_Cnil))
 	  || (!wildcard->pathname.logical && !mkcl_string_E(env, path->pathname.host, wildcard->pathname.host)))
       )
     { @(return mk_cl_Cnil); }
