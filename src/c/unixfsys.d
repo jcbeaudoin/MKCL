@@ -1159,6 +1159,41 @@ string_match(MKCL, mkcl_OSstring_raw_type s, mkcl_object mask)
     return FALSE;
 }
 
+static bool
+raw_string_is_wild_p(mkcl_OSstring_raw_type p)
+{ /* This code expects proper null termination of raw string. JCB */
+  for (; *p; p++)
+    switch (*p)
+      {
+      case '*': return TRUE;
+      case '?': return TRUE;
+      case '\\': p++;
+        if (*p == '\0')
+          return FALSE; /* already at end, don't go any further. */
+        break;
+      default: break;
+      }
+  return FALSE;
+}
+
+bool mkcl_component_string_is_wild_p(MKCL, mkcl_object comp_str)
+{
+  if (MKCL_STRINGP(comp_str))
+    {
+      mkcl_dynamic_extent_OSstring(env, os_comp_str, comp_str);
+      mkcl_OSstring_raw_type p = mkcl_OSstring_self(os_comp_str);
+
+      return raw_string_is_wild_p(p);
+    }
+  else if (MKCL_OSSTRINGP(comp_str))
+    {
+      mkcl_OSstring_raw_type p = mkcl_OSstring_self(comp_str);
+
+      return raw_string_is_wild_p(p);
+    }
+  else
+    return FALSE;
+}
 /*
  * list_directory() lists the files and directories which are contained
  * in directory designated by 'path'. If ONLY_DIR is
@@ -1233,6 +1268,32 @@ list_directory(MKCL, struct OSpath * wd_path, mkcl_object mask, bool only_dir)
 
   mkcl_object os_path = mkcl_string_to_OSstring(env, mkcl_namestring(env, wd_path->pathname, FALSE));
 
+  if (!(mask == @':wild' || mkcl_component_string_is_wild_p(env, mask)))
+    {
+      struct stat buf;
+      int rc;
+      mkcl_object os_mask = mkcl_string_to_OSstring(env, mask); /* ??? */
+
+      mkcl_OSstring_nconc(env, os_path, os_mask);
+      MKCL_LIBC_NO_INTR(env, rc = stat(mkcl_OSstring_self(os_path), &buf));
+      if (rc)
+        {
+          switch (errno)
+            {
+            case ENOENT:
+              return mk_cl_Cnil; /* ENOENT is expected but the others may need to be reported. */
+            case EACCES: case ELOOP: case ENAMETOOLONG: case EOVERFLOW:
+              return mk_cl_Cnil; /* something is wrong at the filesystem level. */
+            case ENOTDIR: case ENOMEM: case EFAULT:
+              return mk_cl_Cnil; /* something is very wrong with the OS. */
+            default:
+              return mk_cl_Cnil; /* Unexpected errno, something is wrong with the documentation of stat()? */
+            }
+        }
+      else
+        return mkcl_cons(env, os_mask, mk_cl_Cnil); /* return this single match. */
+    }
+
   if (mkcl_OSstring_size(os_path) == 0)
     { /* 'path' is empty we assume we want the current directory. */
       mkcl_OSstring_push_extend(env, os_path, '.');
@@ -1245,7 +1306,7 @@ list_directory(MKCL, struct OSpath * wd_path, mkcl_object mask, bool only_dir)
     /* opendir failed, errno should say why.
        One of EACCES, EBADF, EMFILE, ENFILE, ENOENT, ENOMEM, ENOTDIR.
      */
-    mkcl_FElibc_file_error(env, wd_path->pathname, "list_directory failed on opendir", 0);
+    mkcl_FElibc_file_error(env, wd_path->pathname, "list_directory failed on opendir: ~S", 1, os_path);
     return mk_cl_Cnil;
   }
 
@@ -1572,16 +1633,17 @@ dir_recursive(MKCL, bool follow_symlinks, struct OSpath * wd_path, mkcl_object p
   return output;
 }
 
-@(defun directory (mask &key (follow_symlinks mk_cl_Cnil) &allow_other_keys)
+@(defun directory (pathspec &key (follow_symlinks mk_cl_Cnil) &allow_other_keys)
   mkcl_object output;
 @
   {
-    mkcl_object path_spec = mkcl_coerce_to_file_pathname(env, mask);
+    mkcl_object path_spec = mkcl_coerce_to_file_pathname(env, pathspec);
     mkcl_object dir_spec = path_spec->pathname.directory;
-    mkcl_object path /* = init_OSpath(env) */;
+    /* mkcl_object path = init_OSpath(env) */;
     struct OSpath wd_path;
 
-    if (MKCL_PATHNAMEP(mask) && (mkcl_Null(mask->pathname.version) || mask->pathname.version == @':unspecific'))
+    if (MKCL_PATHNAMEP(pathspec)
+        && (mkcl_Null(pathspec->pathname.version) || pathspec->pathname.version == @':unspecific'))
       path_spec->pathname.version = @':wild';
 
     if (MKCL_CAR(dir_spec) == @':absolute')
