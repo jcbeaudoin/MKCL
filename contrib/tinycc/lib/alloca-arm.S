@@ -1,8 +1,8 @@
 	.text
 	.align	2
 	.global	__mkcc_alloca
-	.type	alloca, %function
-alloca:
+	.type	__mkcc_alloca, %function
+__mkcc_alloca:
 	rsb	sp, r0, sp
 	bic	sp, sp, #7
 	mov	r0, sp
