@@ -55,7 +55,8 @@ else
  I386_O = libmkcc1.o alloca86.o
  X86_64_O = libmkcc1.o alloca86_64.o
 endif
-ARM_O = libmkcc1.o armeabi.o alloca-arm.o
+#ARM_O = libmkcc1.o armeabi.o alloca-arm.o
+ARM_O = libmkcc1.o alloca-arm.o
 WIN_CRT_O = crt1.o wincrt1.o dllcrt1.o dllmain.o chkstk.o
 ARM64_O = lib-arm64.o
 
