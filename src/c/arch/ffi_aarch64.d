@@ -1,6 +1,6 @@
 /* -*- mode: c -*- */
 /*
-    ffi_x86_64.c -- Nonportable component of the FFI, for 64-bit (AMD x86_64) Linux/Unix.
+    ffi_aarch64.c -- Nonportable component of the FFI, for 64-bit AARCH64 Android/Linux/Unix.
 */
 /*
     Copyright (c) 2005, Juan Jose Garcia Ripoll.
@@ -19,8 +19,8 @@
 #include <sys/mman.h>
 #include <mkcl/internal.h>
 
-#define MAX_INT_REGISTERS 6
-#define MAX_FP_REGISTERS 8
+#define MAX_INT_REGISTERS 4
+#define MAX_FP_REGISTERS 16
 
 struct mkcl_fficall_reg {
   long int_registers[MAX_INT_REGISTERS]; /* Shouldn't it be "unsigned" instead? JCB. */

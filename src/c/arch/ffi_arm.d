@@ -1,10 +1,10 @@
 /* -*- mode: c -*- */
 /*
-    ffi_x86.c -- Nonportable component of the FFI
+    ffi_arm.c -- Nonportable component of the FFI
 */
 /*
     Copyright (c) 2005, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
+    Copyright (c) 2020, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -17,21 +17,46 @@
 #include <mkcl/mkcl.h>
 #include <mkcl/internal.h>
 #include <string.h>
-#if MKCL_UNIX
 #include <sys/mman.h>
-#endif
 
+
+#define MAX_CORE_REGISTERS 4
+#define MAX_VFP_REGISTERS 16
+
+struct mkcl_fficall_reg {
+  long r[MAX_CORE_REGISTERS];
+  int core_register_count;
+  union {
+    float s[MAX_VFP_REGISTERS];
+    double d[MAX_VFP_REGISTERS/2];
+  } vfp;
+  int vfp_register_count;
+};
+
+struct mkcl_fficall_reg *
+mkcl_fficall_prepare_extra(MKCL, struct mkcl_fficall_reg *registers)
+{
+  if (registers == 0) {
+    registers = mkcl_alloc(env, sizeof(*registers));
+  }
+  registers->core_register_count = 0;
+  registers->vfp_register_count = 0;
+  return registers;
+}
+
+#if 0
 struct mkcl_fficall_reg *
 mkcl_fficall_prepare_extra(MKCL, struct mkcl_fficall_reg *registers)
 {
   /* No need to prepare registers */
   return 0;
 }
+#endif
 
 void
 mkcl_fficall_push_arg(MKCL, union mkcl_ffi_values *data, enum mkcl_ffi_tag type)
 {
-  int i;
+  long i;
   switch (type) {
   case MKCL_FFI_CHAR: i = data->c;	goto INT;
   case MKCL_FFI_UNSIGNED_CHAR: i = data->uc; goto INT;
