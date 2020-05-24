@@ -86,7 +86,7 @@ all:
 all2: ../mkclmin.a ../mkcltop.a all_symbols.o all_symbols2.o cinit.o
 
 .c.s:
-	$(CC) $(CFLAGS) -S -o $@ -c $<
+	$(CC) $(CFLAGS) -fverbose-asm -S -o $@ -c $<
 
 .c.o:
 	$(CC) $(CFLAGS) -o $@ -c $<
@@ -128,7 +128,7 @@ ffi_aarch64.c: arch/ffi_aarch64.d $(DPP)
 	$(RANLIB) $@
 
 clean:
-	$(RM) $(OBJS) all_symbols.o all_symbols2.o cinit.o core core.* a.out
+	$(RM) $(OBJS) $(OBJS:%.o=%.s) all_symbols.o all_symbols2.o cinit.o core core.* a.out
 
 distclean: clean
 	$(RM) $(DPP) $(DCFILES) symbols_list2.h all_symbols.c cinit.c
@@ -163,6 +163,7 @@ unixfsys.o: unixfsys.c
 
 ffi_x86.o: ffi_x86.c
 	$(CC) $(CFLAGS) -O0 -c ffi_x86.c -o $@
+
 
 #
 # These files are interrelated
