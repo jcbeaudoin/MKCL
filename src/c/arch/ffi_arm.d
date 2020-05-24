@@ -112,90 +112,112 @@ mkcl_fficall_push_arg(MKCL, union mkcl_ffi_values *data, enum mkcl_ffi_tag type)
 void
 mkcl_fficall_execute(MKCL, void *f_ptr, struct mkcl_fficall *fficall, enum mkcl_ffi_tag return_type)
 {
-  char* buf = fficall->buffer;
+  mkcl_word * const args_buffer = (mkcl_word *) fficall->buffer;
   char* stack_p;
   size_t bufsize;
+  mkcl_index btop;
+  struct mkcl_fficall_reg * regs = fficall->registers;
 
   mkcl_fficall_align16(env); /* Size of a cache line. */
   bufsize = fficall->buffer_sp - fficall->buffer;
+  btop = bufsize / sizeof(mkcl_word);
+
+  typedef long (*integral_ffunc)(long a0, long a1, long a2, long a3,
+				 double d0, double d1, double d2, double d3,
+				 double d4, double d5, double d6, double d7);
+
+  typedef long long (*long_long_ffunc)(long a0, long a1, long a2, long a3,
+				       double d0, double d1, double d2, double d3,
+				       double d4, double d5, double d6, double d7);
+
+  typedef void * (*ptr_ffunc)(long a0, long a1, long a2, long a3,
+			      double d0, double d1, double d2, double d3,
+			      double d4, double d5, double d6, double d7);
+
+  typedef float (*float_ffunc)(long a0, long a1, long a2, long a3,
+			       double d0, double d1, double d2, double d3,
+			       double d4, double d5, double d6, double d7);
+
+  typedef double (*double_ffunc)(long a0, long a1, long a2, long a3,
+				 double d0, double d1, double d2, double d3,
+				 double d4, double d5, double d6, double d7);
+
+  typedef long double (*long_double_ffunc)(long a0, long a1, long a2, long a3,
+					   double d0, double d1, double d2, double d3,
+					   double d4, double d5, double d6, double d7);
+
+  typedef void (*void_ffunc)(long a0, long a1, long a2, long a3,
+			     double d0, double d1, double d2, double d3,
+			     double d4, double d5, double d6, double d7);
 
   /* Save current stack pointer and then push stack based arguments. */
-#ifdef _MSC_VER
-# if 0 /* this code is x86 legacy. */
-  __asm
-    {
-      mov	stack_p,esp
-	sub	esp,bufsize
-	mov	esi,buf
-	mov	edi,esp
-	mov	ecx,bufsize
-	rep	movsb
-	}
-# endif
-#else
-# if 0 /* this code is x86 legacy. */
-  asm volatile (
-		"movl	%%esp, %0\n\t"
-		"subl	%1, %%esp\n\t"
-		"movl	%2, %%esi\n\t"
-		"movl	%%esp, %%edi\n\t"
-		"rep\n\t"
-		"movsb\n\t"
-		: "=a" (stack_p) : "c" (bufsize), "d" (buf) : "%edi", "%esi", "%esp");
-  /* We could use esi to store esp instead of putting in the stack frame. */
-# endif
-#endif
+  {
+    mkcl_word args_on_stack[btop]; /* VLA */
 
-  if (return_type <= MKCL_FFI_UNSIGNED_LONG) {
-    fficall->output.i = ((int (*)())f_ptr)();
-  } else if (return_type == MKCL_FFI_POINTER_VOID) {
-    fficall->output.pv = ((void * (*)())f_ptr)();
-  } else if (return_type == MKCL_FFI_CSTRING) {
-    fficall->output.pc = ((char * (*)())f_ptr)();
-  } else if (return_type == MKCL_FFI_OBJECT) {
-    fficall->output.o = ((mkcl_object (*)())f_ptr)();
-  } else if (return_type == MKCL_FFI_FLOAT) {
-    fficall->output.f = ((float (*)())f_ptr)();
-  } else if (return_type == MKCL_FFI_DOUBLE) {
-    fficall->output.d = ((double (*)())f_ptr)();
-  } else if (return_type == MKCL_FFI_LONG_DOUBLE) {
-    fficall->output.ld = ((long double (*)())f_ptr)();
-  }
-  else if (return_type == MKCL_FFI_VOID) {
-    ((void (*)())f_ptr)();
-  }
-  else if (return_type == MKCL_FFI_INT16_T) {
-    fficall->output.i16 = ((mkcl_int16_t (*)())f_ptr)();
-  } else if (return_type == MKCL_FFI_UINT16_T) {
-    fficall->output.u16 = ((mkcl_uint16_t (*)())f_ptr)();
-  }
-  else if (return_type == MKCL_FFI_INT32_T) {
-    fficall->output.i32 = ((mkcl_int32_t (*)())f_ptr)();
-  } else if (return_type == MKCL_FFI_UINT32_T) {
-    fficall->output.u32 = ((mkcl_uint32_t (*)())f_ptr)();
-  }
-  else if (return_type == MKCL_FFI_INT64_T) {
-    fficall->output.i64 = ((mkcl_int64_t (*)())f_ptr)();
-  } else if (return_type == MKCL_FFI_UINT64_T) {
-    fficall->output.u64 = ((mkcl_uint64_t (*)())f_ptr)();
-  }
-  else if (return_type == MKCL_FFI_LONG_LONG) {
-    fficall->output.ll = ((mkcl_long_long_t (*)())f_ptr)();
-  } else if (return_type == MKCL_FFI_UNSIGNED_LONG_LONG) {
-    fficall->output.ull = ((mkcl_ulong_long_t (*)())f_ptr)();
-  }
-  else {
-    mkcl_FEerror(env, "Unknown C function return type", 0);
-  }
+    for (; btop; btop--)
+      args_on_stack[btop] = args_buffer[btop]; /* copy overflow args to the tip of the stack. */
 
-#if 0 /* this code is x86 legacy. */
-  /* restore saved stack pointer */
-#ifdef _MSC_VER
-  __asm mov esp,stack_p
-#else
-    asm volatile ("mov %0,%%esp" :: "a" (stack_p));
+    if (return_type <= MKCL_FFI_UNSIGNED_LONG) {
+      fficall->output.l
+	= ((integral_ffunc) f_ptr) (regs->r[0], regs->r[1], regs->r[2], regs->r[3],
+				    regs->vfp.d[0], regs->vfp.d[1], regs->vfp.d[2], regs->vfp.d[3],
+				    regs->vfp.d[4], regs->vfp.d[5], regs->vfp.d[6], regs->vfp.d[7]);
+    } else if ((return_type == MKCL_FFI_POINTER_VOID)
+	       || (return_type == MKCL_FFI_CSTRING)
+	       ||  (return_type == MKCL_FFI_FLOAT)) {
+      fficall->output.pv
+	= ((ptr_ffunc) f_ptr) (regs->r[0], regs->r[1], regs->r[2], regs->r[3],
+			       regs->vfp.d[0], regs->vfp.d[1], regs->vfp.d[2], regs->vfp.d[3],
+			       regs->vfp.d[4], regs->vfp.d[5], regs->vfp.d[6], regs->vfp.d[7]);
+    } else if (return_type == MKCL_FFI_FLOAT) {
+      fficall->output.f
+	= ((float_ffunc) f_ptr) (regs->r[0], regs->r[1], regs->r[2], regs->r[3],
+				 regs->vfp.d[0], regs->vfp.d[1], regs->vfp.d[2], regs->vfp.d[3],
+				 regs->vfp.d[4], regs->vfp.d[5], regs->vfp.d[6], regs->vfp.d[7]);
+    } else if (return_type == MKCL_FFI_DOUBLE) {
+      fficall->output.d
+	= ((double_ffunc) f_ptr) (regs->r[0], regs->r[1], regs->r[2], regs->r[3],
+				  regs->vfp.d[0], regs->vfp.d[1], regs->vfp.d[2], regs->vfp.d[3],
+				  regs->vfp.d[4], regs->vfp.d[5], regs->vfp.d[6], regs->vfp.d[7]);
+    } else if (return_type == MKCL_FFI_LONG_DOUBLE) {
+      fficall->output.ld
+	= ((long_double_ffunc) f_ptr) (regs->r[0], regs->r[1], regs->r[2], regs->r[3],
+				       regs->vfp.d[0], regs->vfp.d[1], regs->vfp.d[2], regs->vfp.d[3],
+				       regs->vfp.d[4], regs->vfp.d[5], regs->vfp.d[6], regs->vfp.d[7]);
+    }
+    else if (return_type == MKCL_FFI_VOID) {
+      ((void_ffunc) f_ptr) (regs->r[0], regs->r[1], regs->r[2], regs->r[3],
+			    regs->vfp.d[0], regs->vfp.d[1], regs->vfp.d[2], regs->vfp.d[3],
+			    regs->vfp.d[4], regs->vfp.d[5], regs->vfp.d[6], regs->vfp.d[7]);
+    }
+#if 0
+    else if (return_type == MKCL_FFI_INT16_T) {
+      fficall->output.i16 = ((mkcl_int16_t (*)())f_ptr)();
+    } else if (return_type == MKCL_FFI_UINT16_T) {
+      fficall->output.u16 = ((mkcl_uint16_t (*)())f_ptr)();
+    }
+    else if (return_type == MKCL_FFI_INT32_T) {
+      fficall->output.i32 = ((mkcl_int32_t (*)())f_ptr)();
+    } else if (return_type == MKCL_FFI_UINT32_T) {
+      fficall->output.u32 = ((mkcl_uint32_t (*)())f_ptr)();
+    }
+    else if (return_type == MKCL_FFI_INT64_T) {
+      fficall->output.i64 = ((mkcl_int64_t (*)())f_ptr)();
+    } else if (return_type == MKCL_FFI_UINT64_T) {
+      fficall->output.u64 = ((mkcl_uint64_t (*)())f_ptr)();
+    }
 #endif
-#endif
+    else if ((return_type == MKCL_FFI_LONG_LONG)
+	     || (return_type == MKCL_FFI_UNSIGNED_LONG_LONG)) {
+      fficall->output.ll
+	= ((long_long_ffunc) f_ptr) (regs->r[0], regs->r[1], regs->r[2], regs->r[3],
+				     regs->vfp.d[0], regs->vfp.d[1], regs->vfp.d[2], regs->vfp.d[3],
+				     regs->vfp.d[4], regs->vfp.d[5], regs->vfp.d[6], regs->vfp.d[7]);
+    }
+    else {
+      mkcl_FEerror(env, "Unknown C function return type", 0);
+    }
+  }
 }
 
 
