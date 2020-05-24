@@ -6,3 +6,4 @@ dpp.exe
 disassembler.c
 Makefile
 symbols_list2.h
+*.s
