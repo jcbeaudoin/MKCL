@@ -5,3 +5,5 @@ configure.lineno
 .deps/
 .libs/
 libtool
+/config.log
+/config.status
