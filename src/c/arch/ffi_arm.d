@@ -64,8 +64,6 @@ mkcl_fficall_push_arg(MKCL, union mkcl_ffi_values *data, enum mkcl_ffi_tag type)
   case MKCL_FFI_UNSIGNED_BYTE: i = data->ub; goto INT;
   case MKCL_FFI_SHORT: i = data->s; goto INT;
   case MKCL_FFI_UNSIGNED_SHORT: i = data->us; goto INT;
-  case MKCL_FFI_INT16_T: i = data->i16; goto INT;
-  case MKCL_FFI_UINT16_T: i = data->u16; goto INT;
   case MKCL_FFI_INT:
   case MKCL_FFI_LONG:
   case MKCL_FFI_UNSIGNED_INT:
@@ -91,11 +89,6 @@ mkcl_fficall_push_arg(MKCL, union mkcl_ffi_values *data, enum mkcl_ffi_tag type)
   case MKCL_FFI_LONG_DOUBLE:
     mkcl_fficall_align4(env);
     mkcl_fficall_push_bytes(env, &data->d, sizeof(long double));
-    break;
-  case MKCL_FFI_UINT64_T:
-  case MKCL_FFI_INT64_T:
-    mkcl_fficall_align4(env);
-    mkcl_fficall_push_bytes(env, &data->ull, sizeof(mkcl_uint64_t));
     break;
   case MKCL_FFI_UNSIGNED_LONG_LONG:
   case MKCL_FFI_LONG_LONG:
@@ -190,23 +183,6 @@ mkcl_fficall_execute(MKCL, void *f_ptr, struct mkcl_fficall *fficall, enum mkcl_
 			    regs->vfp.d[0], regs->vfp.d[1], regs->vfp.d[2], regs->vfp.d[3],
 			    regs->vfp.d[4], regs->vfp.d[5], regs->vfp.d[6], regs->vfp.d[7]);
     }
-#if 0
-    else if (return_type == MKCL_FFI_INT16_T) {
-      fficall->output.i16 = ((mkcl_int16_t (*)())f_ptr)();
-    } else if (return_type == MKCL_FFI_UINT16_T) {
-      fficall->output.u16 = ((mkcl_uint16_t (*)())f_ptr)();
-    }
-    else if (return_type == MKCL_FFI_INT32_T) {
-      fficall->output.i32 = ((mkcl_int32_t (*)())f_ptr)();
-    } else if (return_type == MKCL_FFI_UINT32_T) {
-      fficall->output.u32 = ((mkcl_uint32_t (*)())f_ptr)();
-    }
-    else if (return_type == MKCL_FFI_INT64_T) {
-      fficall->output.i64 = ((mkcl_int64_t (*)())f_ptr)();
-    } else if (return_type == MKCL_FFI_UINT64_T) {
-      fficall->output.u64 = ((mkcl_uint64_t (*)())f_ptr)();
-    }
-#endif
     else if ((return_type == MKCL_FFI_LONG_LONG)
 	     || (return_type == MKCL_FFI_UNSIGNED_LONG_LONG)) {
       fficall->output.ll
@@ -302,11 +278,7 @@ mkcl_dynamic_callback_execute(mkcl_object cbk_info, char *arg_buffer)
   case MKCL_FFI_UNSIGNED_CHAR: i = output.uc; goto INT;
   case MKCL_FFI_BYTE: i = output.b; goto INT;
   case MKCL_FFI_UNSIGNED_BYTE: i = output.ub; goto INT;
-
-  case MKCL_FFI_INT16_T:
   case MKCL_FFI_SHORT: i = output.s; goto INT;
-
-  case MKCL_FFI_UINT16_T:
   case MKCL_FFI_UNSIGNED_SHORT: i = output.us; goto INT;
 
   case MKCL_FFI_POINTER_VOID:
@@ -333,8 +305,6 @@ mkcl_dynamic_callback_execute(mkcl_object cbk_info, char *arg_buffer)
     return;
   case MKCL_FFI_LONG_LONG:
   case MKCL_FFI_UNSIGNED_LONG_LONG:
-  case MKCL_FFI_INT64_T:
-  case MKCL_FFI_UINT64_T:
 #if 0 /* this code is x86 legacy. */
 # ifdef _MSC_VER
     __asm mov eax,output.l2[0]

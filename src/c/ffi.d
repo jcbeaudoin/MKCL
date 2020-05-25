@@ -370,18 +370,6 @@ mkcl_foreign_ref_elt(MKCL, void *p, enum mkcl_ffi_tag tag)
     return mkcl_make_unsigned_integer(env, *(unsigned int *)p);
   case MKCL_FFI_LONG:
     return mkcl_make_integer(env, *(long *)p);
-  case MKCL_FFI_INT16_T:
-    return mkcl_make_int16_t(env, *(mkcl_int16_t *)p);
-  case MKCL_FFI_UINT16_T:
-    return mkcl_make_uint16_t(env, *(mkcl_uint16_t *)p);
-  case MKCL_FFI_INT32_T:
-    return mkcl_make_int32_t(env, *(mkcl_int32_t *)p);
-  case MKCL_FFI_UINT32_T:
-    return mkcl_make_uint32_t(env, *(mkcl_uint32_t *)p);
-  case MKCL_FFI_INT64_T:
-    return mkcl_make_int64_t(env, *(mkcl_int64_t *)p);
-  case MKCL_FFI_UINT64_T:
-    return mkcl_make_uint64_t(env, *(mkcl_uint64_t *)p);
   case MKCL_FFI_LONG_LONG:
     return mkcl_make_long_long(env, *(mkcl_long_long_t *)p);
   case MKCL_FFI_UNSIGNED_LONG_LONG:
@@ -444,24 +432,6 @@ mkcl_foreign_set_elt(MKCL, void *p, enum mkcl_ffi_tag tag, mkcl_object value)
     break;
   case MKCL_FFI_UNSIGNED_LONG:
     *(unsigned long *)p = mkcl_integer_to_index(env, value);
-    break;
-  case MKCL_FFI_INT16_T:
-    *(mkcl_int16_t *)p = mkcl_to_int16_t(env, value);
-    break;
-  case MKCL_FFI_UINT16_T:
-    *(mkcl_uint16_t *)p = mkcl_to_uint16_t(env, value);
-    break;
-  case MKCL_FFI_INT32_T:
-    *(mkcl_int32_t *)p = mkcl_to_int32_t(env, value);
-    break;
-  case MKCL_FFI_UINT32_T:
-    *(mkcl_uint32_t *)p = mkcl_to_uint32_t(env, value);
-    break;
-  case MKCL_FFI_INT64_T:
-    *(mkcl_int64_t *)p = mkcl_to_int64_t(env, value);
-    break;
-  case MKCL_FFI_UINT64_T:
-    *(mkcl_uint64_t *)p = mkcl_to_uint64_t(env, value);
     break;
   case MKCL_FFI_LONG_LONG:
     *(mkcl_long_long_t *)p = mkcl_to_long_long(env, value);

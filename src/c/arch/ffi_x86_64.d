@@ -51,18 +51,12 @@ mkcl_fficall_push_arg(MKCL, union mkcl_ffi_values *data, enum mkcl_ffi_tag type)
   case MKCL_FFI_UNSIGNED_CHAR: i = data->uc; goto INT;
   case MKCL_FFI_BYTE: i = data->b; goto INT;
   case MKCL_FFI_UNSIGNED_BYTE: i = data->ub; goto INT;
-  case MKCL_FFI_INT16_T: i = data->i16; goto INT;
-  case MKCL_FFI_UINT16_T: i = data->u16; goto INT;
   case MKCL_FFI_SHORT: i = data->s; goto INT;
   case MKCL_FFI_UNSIGNED_SHORT: i = data->us; goto INT;
-  case MKCL_FFI_INT32_T: i = data->i32; goto INT;
-  case MKCL_FFI_UINT32_T: i = data->u32; goto INT;
   case MKCL_FFI_INT: i = data->i; goto INT;
   case MKCL_FFI_UNSIGNED_INT: i = data->ui; goto INT;
   case MKCL_FFI_LONG:
   case MKCL_FFI_UNSIGNED_LONG:
-  case MKCL_FFI_INT64_T:
-  case MKCL_FFI_UINT64_T:
   case MKCL_FFI_LONG_LONG:
   case MKCL_FFI_UNSIGNED_LONG_LONG:
   case MKCL_FFI_POINTER_VOID:
@@ -338,18 +332,12 @@ mkcl_dynamic_callback_execute(long i1, long i2, long i3, long i4, long i5, long 
     case MKCL_FFI_UNSIGNED_CHAR: val = output.uc; break;
     case MKCL_FFI_BYTE: val = output.b; break;
     case MKCL_FFI_UNSIGNED_BYTE: val = output.ub; break;
-    case MKCL_FFI_INT16_T: val = output.i16; break;
-    case MKCL_FFI_UINT16_T: val = output.u16; break;
     case MKCL_FFI_SHORT: val = output.s; break;
     case MKCL_FFI_UNSIGNED_SHORT: val = output.us; break;
-    case MKCL_FFI_INT32_T: val = output.i32; break;
-    case MKCL_FFI_UINT32_T: val = output.u32; break;
     case MKCL_FFI_INT:
     case MKCL_FFI_UNSIGNED_INT:
     case MKCL_FFI_LONG:
     case MKCL_FFI_UNSIGNED_LONG:
-    case MKCL_FFI_INT64_T:
-    case MKCL_FFI_UINT64_T:
     case MKCL_FFI_LONG_LONG:
     case MKCL_FFI_UNSIGNED_LONG_LONG:
     case MKCL_FFI_POINTER_VOID:
