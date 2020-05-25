@@ -233,8 +233,6 @@ mkcl_dynamic_callback_execute(mkcl_object cbk_info, char *arg_buffer)
   case MKCL_FFI_CSTRING:
   case MKCL_FFI_INT:
   case MKCL_FFI_UNSIGNED_INT:
-  case MKCL_FFI_INT32_T:
-  case MKCL_FFI_UINT32_T:
   case MKCL_FFI_LONG:
   case MKCL_FFI_UNSIGNED_LONG:
     i = output.i;

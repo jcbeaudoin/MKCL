@@ -68,8 +68,6 @@ mkcl_fficall_push_arg(MKCL, union mkcl_ffi_values *data, enum mkcl_ffi_tag type)
   case MKCL_FFI_LONG:
   case MKCL_FFI_UNSIGNED_INT:
   case MKCL_FFI_UNSIGNED_LONG:
-  case MKCL_FFI_INT32_T:
-  case MKCL_FFI_UINT32_T:
   case MKCL_FFI_POINTER_VOID:
   case MKCL_FFI_CSTRING:
   case MKCL_FFI_OBJECT:
@@ -286,8 +284,6 @@ mkcl_dynamic_callback_execute(mkcl_object cbk_info, char *arg_buffer)
   case MKCL_FFI_CSTRING:
   case MKCL_FFI_INT:
   case MKCL_FFI_UNSIGNED_INT:
-  case MKCL_FFI_INT32_T:
-  case MKCL_FFI_UINT32_T:
   case MKCL_FFI_LONG:
   case MKCL_FFI_UNSIGNED_LONG:
     i = output.i;
