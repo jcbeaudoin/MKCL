@@ -996,32 +996,34 @@ static void relocate_rel(MKCCState *s1, Section *sr)
    their space */
 static int prepare_dynamic_rel(MKCCState *s1, Section *sr)
 {
+    int count = 0;
+#if defined(MKCC_TARGET_I386) ||  defined(MKCC_TARGET_X86_64) /* JCB */
     ElfW_Rel *rel;
-    int sym_index, esym_index, type, count;
 
-    count = 0;
     for_each_elem(sr, 0, rel, ElfW_Rel) {
-        sym_index = ELFW(R_SYM)(rel->r_info);
-        type = ELFW(R_TYPE)(rel->r_info);
+        int sym_index = ELFW(R_SYM)(rel->r_info);
+        int type = ELFW(R_TYPE)(rel->r_info);
         switch(type) {
-#if defined(MKCC_TARGET_I386)
+# if defined(MKCC_TARGET_I386)
         case R_386_32:
-#elif defined(MKCC_TARGET_X86_64)
+# elif defined(MKCC_TARGET_X86_64)
         case R_X86_64_32:
         case R_X86_64_32S:
         case R_X86_64_64:
-#endif
+# endif
             count++;
             break;
-#if defined(MKCC_TARGET_I386)
+# if defined(MKCC_TARGET_I386)
         case R_386_PC32:
-#elif defined(MKCC_TARGET_X86_64)
+# elif defined(MKCC_TARGET_X86_64)
         case R_X86_64_PC32:
-#endif
-            esym_index = s1->symtab_to_dynsym[sym_index];
-            if (esym_index)
+# endif
+	    {
+	      int esym_index = s1->symtab_to_dynsym[sym_index];
+	      if (esym_index)
                 count++;
-            break;
+	    }
+	    break;
         default:
             break;
         }
@@ -1031,6 +1033,7 @@ static int prepare_dynamic_rel(MKCCState *s1, Section *sr)
         sr->sh_flags |= SHF_ALLOC;
         sr->sh_size = count * sizeof(ElfW_Rel);
     }
+#endif /* defined(MKCC_TARGET_I386) ||  defined(MKCC_TARGET_X86_64) */
     return count;
 }
 
