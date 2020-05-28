@@ -1,7 +1,5 @@
 	.arch armv7-a
 	.file "arm_callback_trampoline.s"
-
-
 	.text
 	.align 1
 	.p2align 2,,3
@@ -12,20 +10,19 @@
 	.fpu vfpv3-d16
 	.type trampoline, %function
 trampoline:
-	mov	r3, pc
-	add	r3, #24
 	push	{r4, lr}
-	ldr	r2, [r3]
-	ldr	r0, [r3, #4]
-	mov	r1, sp
-	blx	r2
+	mov	r4, sp
+	push    {r4}            @ push stack_marker
+	ldr	r4, =0xdeadbeef @ get cbk_info
+	push    {r4}            @ push cbk_info
+	ldr	r4, =0xbeefdead @ get pointer to mkcl_XXX_dynamic_callback_execute
+	blx	r4              @ call through r4
+	add	sp, sp, #8      @ remove pushed args
 	pop	{r4, pc}
-	nop
-	nop
 	.align	2
 	.Lptr:
-	.word -1 @ mkcl_dynamic_callback_execute
-	.word -2 @ cbk_info
+	@ .word -1 @ mkcl_dynamic_callback_execute
+	@ .word -2 @ cbk_info
 	.size	trampoline, .-trampoline
 	.align	2
 

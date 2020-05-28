@@ -456,19 +456,19 @@ mkcl_dynamic_callback_make(MKCL, mkcl_object data, enum mkcl_ffi_calling_convent
     mkcl_FEerror(env, "Invalid C function callback return type", 0);
   }
 
-  i(0x7B); i(0x46);                   /*	mov	r3, pc        */
-  i(0x03); i(0xF1); i(0x18); i(0x03); /*	add	r3, #24       */
-  i(0x10); i(0xB5);                   /*	push	{r4, lr}      */
-  i(0x1A); i(0x68);                   /*	ldr	r2, [r3]      */ /* pointer to trampoline */
-  i(0x58); i(0x68);                   /*	ldr	r0, [r3, #4]  */ /* arg0 */
-  i(0x69); i(0x46);                   /*	mov	r1, sp        */ /* arg1 */
-  i(0x90); i(0x47);                   /*	blx	r2            */ /* call the callback trampoline */
-  i(0x10); i(0xBD);                   /*	pop	{r4, pc}      */ /* return to caller. */
-  i(0x00); i(0xBF);                   /*	nop                   */
-  i(0x00); i(0xBF);                   /*	nop                   */
-  i(0x00); i(0xBF);                   /*	.align	2             */
-  immed_ptr(fptr); /* The code here above expect this pointer to be 24 bytes (0x18) after the first opcode. */
-  immed_ptr(data); /* The code here above expect this pointer to be 4 bytes after the previous one. */
+  i(0x10); i(0xB5);	/* push	{r4, lr}                               */
+  i(0x6C); i(0x46);	/* mov	r4, sp                                 */
+  i(0x10); i(0xB4);	/* push    {r4}           @ push stack_marker  */
+  i(0x03); i(0x4C);	/* ldr	r4, =0xdeadbeef   @ get cbk_info       */
+  i(0x10); i(0xB4);	/* push    {r4}           @ push cbk_info      */
+  i(0x03); i(0x4C);	/* ldr	r4, =0xbeefdead   @ get pointer to callback frame provider */
+  i(0xA0); i(0x47);	/* blx	r4                @ call through r4    */
+  i(0x02); i(0xB0);	/* add	sp, sp, #8        @ remove pushed args */
+  i(0x10); i(0xBD);	/* pop	{r4, pc}                               */
+  i(0x00); i(0xBF);	/* .align 2                                    */
+  immed_ptr(data);
+  immed_ptr(fptr);
+
 
   {
     int rc = mprotect(buf, mkcl_core.pagesize, PROT_READ | /* PROT_WRITE | */ PROT_EXEC);
