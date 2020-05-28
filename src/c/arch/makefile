@@ -11,3 +11,10 @@ Return.s: Return.c
 clean:
 	rm -f Call.s Return.s
 
+distclean: clean
+
+
+realclean: distclean
+	$(RM) *~
+
+
