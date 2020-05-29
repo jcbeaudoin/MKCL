@@ -57,6 +57,9 @@ mkcl_fficall_push_arg(MKCL, union mkcl_ffi_values *data, enum mkcl_ffi_tag type)
   struct mkcl_fficall_reg *registers = fficall->registers;
 
   switch (type) {
+  case MKCL_FFI_POINTER_VOID: word = (intptr_t) data->pv; goto WORD_WIDE;
+  case MKCL_FFI_CSTRING: word = (intptr_t) data->pc; goto WORD_WIDE;
+  case MKCL_FFI_OBJECT: word = (intptr_t) data->o; goto WORD_WIDE;
   case MKCL_FFI_CHAR: word = data->c;	goto WORD_WIDE;
   case MKCL_FFI_UNSIGNED_CHAR: word = data->uc; goto WORD_WIDE;
   case MKCL_FFI_BYTE: word = data->b; goto WORD_WIDE;
@@ -67,9 +70,6 @@ mkcl_fficall_push_arg(MKCL, union mkcl_ffi_values *data, enum mkcl_ffi_tag type)
   case MKCL_FFI_LONG:
   case MKCL_FFI_UNSIGNED_INT:
   case MKCL_FFI_UNSIGNED_LONG:
-  case MKCL_FFI_POINTER_VOID:
-  case MKCL_FFI_CSTRING:
-  case MKCL_FFI_OBJECT:
     word = data->l;
   WORD_WIDE:
     if (registers->core_register_count < MAX_CORE_REGISTERS) {
@@ -151,9 +151,9 @@ mkcl_fficall_execute(MKCL, void *f_ptr, struct mkcl_fficall *fficall, enum mkcl_
   bufsize = fficall->buffer_sp - fficall->buffer;
   btop = bufsize / sizeof(mkcl_word);
 
-  typedef long (*integral_ffunc)(long a0, long a1, long a2, long a3,
-				 double d0, double d1, double d2, double d3,
-				 double d4, double d5, double d6, double d7);
+  typedef long (*word_integral_ffunc)(long a0, long a1, long a2, long a3,
+				      double d0, double d1, double d2, double d3,
+				      double d4, double d5, double d6, double d7);
 
   typedef long long (*long_long_ffunc)(long a0, long a1, long a2, long a3,
 				       double d0, double d1, double d2, double d3,
@@ -188,9 +188,9 @@ mkcl_fficall_execute(MKCL, void *f_ptr, struct mkcl_fficall *fficall, enum mkcl_
 
     if (return_type <= MKCL_FFI_UNSIGNED_LONG) {
       fficall->output.l
-	= ((integral_ffunc) f_ptr) (regs->r[0], regs->r[1], regs->r[2], regs->r[3],
-				    regs->vfp.d[0], regs->vfp.d[1], regs->vfp.d[2], regs->vfp.d[3],
-				    regs->vfp.d[4], regs->vfp.d[5], regs->vfp.d[6], regs->vfp.d[7]);
+	= ((word_integral_ffunc) f_ptr) (regs->r[0], regs->r[1], regs->r[2], regs->r[3],
+					 regs->vfp.d[0], regs->vfp.d[1], regs->vfp.d[2], regs->vfp.d[3],
+					 regs->vfp.d[4], regs->vfp.d[5], regs->vfp.d[6], regs->vfp.d[7]);
     } else if ((return_type == MKCL_FFI_POINTER_VOID)
 	       || (return_type == MKCL_FFI_CSTRING)
 	       ||  (return_type == MKCL_FFI_OBJECT)) {
@@ -237,7 +237,7 @@ static const mkcl_base_string_object(mkcl_dynamic_callback_import_thread_name__o
 static const mkcl_object mkcl_dynamic_callback_import_thread_name = (mkcl_object) &mkcl_dynamic_callback_import_thread_name__obj_;
 
 static union mkcl_ffi_values
-mkcl_dynamic_callback_execute(long i1, long i2, long i3, long i4,
+mkcl_dynamic_callback_execute(long a1, long a2, long a3, long a4,
 			      double d0, double d1, double d2, double d3,
 			      double d4, double d5, double d6, double d7,
 			      mkcl_object cbk_info, char *arg_buffer)
@@ -251,8 +251,8 @@ mkcl_dynamic_callback_execute(long i1, long i2, long i3, long i4,
   mkcl_object rtype = MKCL_CADR(cbk_info);
   mkcl_object argtypes = MKCL_CADDR(cbk_info);
 
-  arg_buffer += sizeof(void *); /* Skip saved stack frame pointer */
-  arg_buffer += sizeof(void *); /* Skip return address */
+  arg_buffer += sizeof(long); /* Skip saved LR (a.k.a.: return address) */
+  arg_buffer += sizeof(long); /* Skip saved r4 */
 
   if (env == NULL)
     {
@@ -268,11 +268,11 @@ mkcl_dynamic_callback_execute(long i1, long i2, long i3, long i4,
     enum mkcl_ffi_tag tag = mkcl_foreign_type_code(env, MKCL_CAR(argtypes));
     mkcl_index size = mkcl_fixnum_to_word(mk_si_size_of_foreign_elt_type(env, MKCL_CAR(argtypes)));
     result = mkcl_foreign_ref_elt(env, arg_buffer, tag);
-    mkcl_temp_stack_frame_push(env, frame, result);
     {
       mkcl_index sp = (size + 0x03) & ~((mkcl_index) 0x03);
       arg_buffer += (sp);
     }
+    mkcl_temp_stack_frame_push(env, frame, result);
   }
 
   if (imported_env)
@@ -312,88 +312,88 @@ mkcl_dynamic_callback_execute(long i1, long i2, long i3, long i4,
 }
 
 static void
-mkcl_void_dynamic_callback_execute(long i1, long i2, long i3, long i4,
+mkcl_void_dynamic_callback_execute(long a1, long a2, long a3, long a4,
 				   double d0, double d1, double d2, double d3,
 				   double d4, double d5, double d6, double d7,
 				   mkcl_object cbk_info, char *arg_buffer)
 {
-  (void) mkcl_dynamic_callback_execute(i1, i2, i3, i4, d0, d1, d2, d3, d4, d5, d6, d7, cbk_info, arg_buffer);
+  (void) mkcl_dynamic_callback_execute(a1, a2, a3, a4, d0, d1, d2, d3, d4, d5, d6, d7, cbk_info, arg_buffer);
 }
 
 static mkcl_int8_t
-mkcl_byte_dynamic_callback_execute(long i1, long i2, long i3, long i4,
+mkcl_byte_dynamic_callback_execute(long a1, long a2, long a3, long a4,
 				   double d0, double d1, double d2, double d3,
 				   double d4, double d5, double d6, double d7,
 				   mkcl_object cbk_info, char *arg_buffer)
 {
   union mkcl_ffi_values val
-    = mkcl_dynamic_callback_execute(i1, i2, i3, i4, d0, d1, d2, d3, d4, d5, d6, d7, cbk_info, arg_buffer);
+    = mkcl_dynamic_callback_execute(a1, a2, a3, a4, d0, d1, d2, d3, d4, d5, d6, d7, cbk_info, arg_buffer);
   return val.b;
 }
 
 static short
-mkcl_short_dynamic_callback_execute(long i1, long i2, long i3, long i4,
+mkcl_short_dynamic_callback_execute(long a1, long a2, long a3, long a4,
 				   double d0, double d1, double d2, double d3,
 				   double d4, double d5, double d6, double d7,
 				   mkcl_object cbk_info, char *arg_buffer)
 {
   union mkcl_ffi_values val
-    = mkcl_dynamic_callback_execute(i1, i2, i3, i4, d0, d1, d2, d3, d4, d5, d6, d7, cbk_info, arg_buffer);
+    = mkcl_dynamic_callback_execute(a1, a2, a3, a4, d0, d1, d2, d3, d4, d5, d6, d7, cbk_info, arg_buffer);
   return val.s;
 }
 
 static long
-mkcl_long_dynamic_callback_execute(long i1, long i2, long i3, long i4,
+mkcl_long_dynamic_callback_execute(long a1, long a2, long a3, long a4,
 				   double d0, double d1, double d2, double d3,
 				   double d4, double d5, double d6, double d7,
 				   mkcl_object cbk_info, char *arg_buffer)
 {
   union mkcl_ffi_values val
-    = mkcl_dynamic_callback_execute(i1, i2, i3, i4, d0, d1, d2, d3, d4, d5, d6, d7, cbk_info, arg_buffer);
+    = mkcl_dynamic_callback_execute(a1, a2, a3, a4, d0, d1, d2, d3, d4, d5, d6, d7, cbk_info, arg_buffer);
   return val.l;
 }
 
 static long long
-mkcl_long_long_dynamic_callback_execute(long i1, long i2, long i3, long i4,
+mkcl_long_long_dynamic_callback_execute(long a1, long a2, long a3, long a4,
 				   double d0, double d1, double d2, double d3,
 				   double d4, double d5, double d6, double d7,
 				   mkcl_object cbk_info, char *arg_buffer)
 {
   union mkcl_ffi_values val
-    = mkcl_dynamic_callback_execute(i1, i2, i3, i4, d0, d1, d2, d3, d4, d5, d6, d7, cbk_info, arg_buffer);
+    = mkcl_dynamic_callback_execute(a1, a2, a3, a4, d0, d1, d2, d3, d4, d5, d6, d7, cbk_info, arg_buffer);
   return val.ll;
 }
 
 static float
-mkcl_float_dynamic_callback_execute(long i1, long i2, long i3, long i4,
+mkcl_float_dynamic_callback_execute(long a1, long a2, long a3, long a4,
 				   double d0, double d1, double d2, double d3,
 				   double d4, double d5, double d6, double d7,
 				   mkcl_object cbk_info, char *arg_buffer)
 {
   union mkcl_ffi_values val
-    = mkcl_dynamic_callback_execute(i1, i2, i3, i4, d0, d1, d2, d3, d4, d5, d6, d7, cbk_info, arg_buffer);
+    = mkcl_dynamic_callback_execute(a1, a2, a3, a4, d0, d1, d2, d3, d4, d5, d6, d7, cbk_info, arg_buffer);
   return val.f;
 }
 
 static double
-mkcl_double_dynamic_callback_execute(long i1, long i2, long i3, long i4,
+mkcl_double_dynamic_callback_execute(long a1, long a2, long a3, long a4,
 				   double d0, double d1, double d2, double d3,
 				   double d4, double d5, double d6, double d7,
 				   mkcl_object cbk_info, char *arg_buffer)
 {
   union mkcl_ffi_values val
-    = mkcl_dynamic_callback_execute(i1, i2, i3, i4, d0, d1, d2, d3, d4, d5, d6, d7, cbk_info, arg_buffer);
+    = mkcl_dynamic_callback_execute(a1, a2, a3, a4, d0, d1, d2, d3, d4, d5, d6, d7, cbk_info, arg_buffer);
   return val.d;
 }
 
 static long double
-mkcl_long_double_dynamic_callback_execute(long i1, long i2, long i3, long i4,
+mkcl_long_double_dynamic_callback_execute(long a1, long a2, long a3, long a4,
 				   double d0, double d1, double d2, double d3,
 				   double d4, double d5, double d6, double d7,
 				   mkcl_object cbk_info, char *arg_buffer)
 {
   union mkcl_ffi_values val
-    = mkcl_dynamic_callback_execute(i1, i2, i3, i4, d0, d1, d2, d3, d4, d5, d6, d7, cbk_info, arg_buffer);
+    = mkcl_dynamic_callback_execute(a1, a2, a3, a4, d0, d1, d2, d3, d4, d5, d6, d7, cbk_info, arg_buffer);
   return val.ld;
 }
 
