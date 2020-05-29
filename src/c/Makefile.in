@@ -117,12 +117,12 @@ ffi_aarch64.c: arch/ffi_aarch64.d $(DPP)
 	$(DPP) $< $@
 
 
-../mkclmin.a: $(OBJS)
+../mkclmin.a: GNUmakefile $(OBJS)
 	$(RM) $@
 	$(AR) cr $@ $(OBJS)
 	$(RANLIB) $@
 
-../mkcltop.a: all_symbols2.o
+../mkcltop.a: GNUmakefile all_symbols2.o
 	$(RM) $@
 	$(AR) cr $@ all_symbols2.o
 	$(RANLIB) $@
@@ -168,13 +168,13 @@ ffi_x86.o: ffi_x86.c
 #
 # These files are interrelated
 #
-all_symbols.o: all_symbols.c symbols_list.h symbols_list2.h mkcl/mkcl.h
+all_symbols.o: GNUmakefile all_symbols.c symbols_list.h symbols_list2.h mkcl/mkcl.h
 	$(CC) $(CFLAGS) -c all_symbols.c -o $@
 
-all_symbols2.o: all_symbols.c symbols_list.h symbols_list2.h mkcl/mkcl.h
+all_symbols2.o: GNUmakefile all_symbols.c symbols_list.h symbols_list2.h mkcl/mkcl.h
 	$(CC) $(CFLAGS) -DMKCL_FINAL -c all_symbols.c -o $@
 
-cinit.o: cinit.c
+cinit.o: GNUmakefile cinit.c
 	$(CC) $(CFLAGS) -c cinit.c -o $@
 
 
