@@ -596,7 +596,7 @@ TAGS: lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre c/*.d c/*.h 
 
 
 
-c/makefile.depend: c/Makefile.in c/*.d c/*.h c/arch/*.d c/mkcl/mkcl.h $(MKCL_HFILES)
+c/makefile.depend: c/*.d c/*.h c/arch/*.d c/mkcl/mkcl.h $(MKCL_HFILES)
 	cd c; $(MAKE) makefile.depend
 
 c/GNUmakefile: c/Makefile.in c/makefile.depend
