@@ -184,12 +184,11 @@ Makefile: Makefile.in ../config.status
 #
 #
 
-makefile.depend: *.d *.h arch/*.d cinit.c all_symbols.c mkcl/mkcl.h $(MKCL_HFILES)
+makefile.depend: $(DCFILES) *.h arch/*.d cinit.c all_symbols.c mkcl/mkcl.h $(MKCL_HFILES)
 	$(RM) makefile.depend
 	for i in $^; do \
 	  case $$i in \
 	  *.h) ;; \
-	  *.d) $(CC) -MM $(CFLAGS) $${i%%.d}.c >> makefile.depend;; \
 	  *.c) $(CC) -MM $(CFLAGS) $${i} >> makefile.depend;; \
 	  *) ;; \
 	  esac; \
