@@ -251,6 +251,10 @@ mkcl_dynamic_callback_execute(long a1, long a2, long a3, long a4,
   mkcl_object rtype = MKCL_CADR(cbk_info);
   mkcl_object argtypes = MKCL_CADDR(cbk_info);
 
+  struct mkcl_fficall_reg registers;
+
+  mkcl_fficall_prepare_extra(env, &registers);
+
   arg_buffer += sizeof(long); /* Skip saved LR (a.k.a.: return address) */
   arg_buffer += sizeof(long); /* Skip saved r4 */
 
@@ -267,11 +271,64 @@ mkcl_dynamic_callback_execute(long a1, long a2, long a3, long a4,
   for (; !mkcl_endp(env, argtypes); argtypes = MKCL_CDR(argtypes)) {
     enum mkcl_ffi_tag tag = mkcl_foreign_type_code(env, MKCL_CAR(argtypes));
     mkcl_index size = mkcl_fixnum_to_word(mk_si_size_of_foreign_elt_type(env, MKCL_CAR(argtypes)));
-    result = mkcl_foreign_ref_elt(env, arg_buffer, tag);
-    {
-      mkcl_index sp = (size + 0x03) & ~((mkcl_index) 0x03);
-      arg_buffer += (sp);
-    }
+    if ((tag == MKCL_FFI_LONG_LONG) || (tag == MKCL_FFI_UNSIGNED_LONG_LONG))
+      {
+	if (registers.core_register_count < (MAX_CORE_REGISTERS - 1)) {
+	  result = mkcl_foreign_ref_elt(env, &registers.r[registers.core_register_count], tag);
+	  registers.core_register_count += 2;
+	} else
+	  goto ARG_FROM_STACK;
+      }
+    else if (tag <= MKCL_FFI_OBJECT) /* word sized integral */
+      if (registers.core_register_count < MAX_CORE_REGISTERS)
+	result = mkcl_foreign_ref_elt(env, &registers.r[registers.core_register_count++], tag);
+      else
+	goto ARG_FROM_STACK;
+    else if (tag == MKCL_FFI_FLOAT)
+      if (registers.vfp_register_least_unallocated < MAX_VFP_REGISTERS) {
+	int i = registers.vfp_register_least_unallocated;
+	result = mkcl_foreign_ref_elt(env, &registers.vfp.s[i], tag);
+	registers.vfp_register_allocated[i] = TRUE;
+	for (i++; (i < MAX_VFP_REGISTERS) && registers.vfp_register_allocated[i]; i++);
+	registers.vfp_register_least_unallocated = i;
+      } else
+	goto ARG_FROM_STACK;
+    else if ((tag == MKCL_FFI_DOUBLE) || (tag == MKCL_FFI_LONG_DOUBLE))
+      if (registers.vfp_register_least_unallocated < (MAX_VFP_REGISTERS - 1)) {
+	int least_unallocated_pair = registers.vfp_register_least_unallocated;
+	if (least_unallocated_pair & 1) least_unallocated_pair++; /* round up to next pair */
+	for (; (least_unallocated_pair < MAX_VFP_REGISTERS)
+	       && (registers.vfp_register_allocated[least_unallocated_pair]
+		   || registers.vfp_register_allocated[least_unallocated_pair + 1])
+	       ; least_unallocated_pair += 2);
+	if (least_unallocated_pair < MAX_VFP_REGISTERS) {
+	  result = mkcl_foreign_ref_elt(env, &registers.vfp.d[least_unallocated_pair / 2], tag);
+	  registers.vfp_register_allocated[least_unallocated_pair++] = TRUE;
+	  registers.vfp_register_allocated[least_unallocated_pair++] = TRUE;
+	  {
+	    int i = least_unallocated_pair;
+
+	    for (i++; (i < MAX_VFP_REGISTERS) && registers.vfp_register_allocated[i]; i++);
+	    registers.vfp_register_least_unallocated = i;
+	  }
+	} else {
+	  registers.vfp_register_least_unallocated = MAX_VFP_REGISTERS; /* this ends back-filling */
+	  goto ARG_FROM_STACK;
+	}
+      } else {
+	registers.vfp_register_least_unallocated = MAX_VFP_REGISTERS; /* this ends back-filling */
+	goto ARG_FROM_STACK;
+      }
+    else if (tag >= MKCL_FFI_VOID)
+      mkcl_FEerror(env, "Invalid C function callback argument type", 0);
+    else
+    ARG_FROM_STACK:
+      {
+	mkcl_index size_on_stack = (size + 0x07) & ~((mkcl_index) 0x07);
+
+	result = mkcl_foreign_ref_elt(env, arg_buffer, tag);
+	arg_buffer += size_on_stack;
+      }
     mkcl_temp_stack_frame_push(env, frame, result);
   }
 
