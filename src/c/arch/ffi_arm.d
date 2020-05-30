@@ -254,6 +254,18 @@ mkcl_dynamic_callback_execute(long a1, long a2, long a3, long a4,
   struct mkcl_fficall_reg registers;
 
   mkcl_fficall_prepare_extra(env, &registers);
+  registers.r[0] = a1;
+  registers.r[1] = a2;
+  registers.r[2] = a3;
+  registers.r[3] = a4;
+  registers.vfp.d[0] = d0;
+  registers.vfp.d[1] = d1;
+  registers.vfp.d[2] = d2;
+  registers.vfp.d[3] = d3;
+  registers.vfp.d[4] = d4;
+  registers.vfp.d[5] = d5;
+  registers.vfp.d[6] = d6;
+  registers.vfp.d[7] = d7;
 
   arg_buffer += sizeof(long); /* Skip saved LR (a.k.a.: return address) */
   arg_buffer += sizeof(long); /* Skip saved r4 */
