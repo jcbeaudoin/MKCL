@@ -518,12 +518,13 @@ mkcl_dynamic_callback_make(MKCL, mkcl_object data, enum mkcl_ffi_calling_convent
 {
   unsigned char * buf = mkcl_alloc_callback_block(env);
   unsigned char * ip = buf; /* the instruction pointer (ip) */
-  union { unsigned char b[4]; void * p; unsigned long l; unsigned short s; } imm; /* a staging buffer for immediate data */
+  union { unsigned char b[8]; void * p; unsigned long l; unsigned int i; unsigned short s; } imm; /* a staging buffer for immediate data */
 
 #define i(byte) *(ip++) = (byte)
-#define immed_ptr(val_ptr) imm.p = (val_ptr); i(imm.b[0]); i(imm.b[1]); i(imm.b[2]); i(imm.b[3]);
+#define immed_ptr(val_ptr) imm.p = (val_ptr); i(imm.b[0]); i(imm.b[1]); i(imm.b[2]); i(imm.b[3]); i(imm.b[4]); i(imm.b[5]); i(imm.b[6]); i(imm.b[7]);
 #define immed16(val_short) imm.s = (val_short);	i(imm.b[0]); i(imm.b[1]);
-#define immed32(val_long) imm.l = (val_long); i(imm.b[0]); i(imm.b[1]); i(imm.b[2]); i(imm.b[3]);
+#define immed32(val_int) imm.i = (val_int); i(imm.b[0]); i(imm.b[1]); i(imm.b[2]); i(imm.b[3]);
+#define immed64(val_long) imm.l = (val_long); i(imm.b[0]); i(imm.b[1]); i(imm.b[2]); i(imm.b[3]); i(imm.b[4]); i(imm.b[5]); i(imm.b[6]); i(imm.b[7]);
     
 
   const enum mkcl_ffi_tag return_type_tag = mkcl_foreign_type_code(env, MKCL_CADR(data));
@@ -569,6 +570,7 @@ mkcl_dynamic_callback_make(MKCL, mkcl_object data, enum mkcl_ffi_calling_convent
     mkcl_FEerror(env, "Invalid C function callback return type", 0);
   }
 
+#if 0
   /* This is ARM code, replace it ASAP */
   i(0x10); i(0xB5);	/* push	{r4, lr}                               */
   i(0x6C); i(0x46);	/* mov	r4, sp                                 */
@@ -582,7 +584,29 @@ mkcl_dynamic_callback_make(MKCL, mkcl_object data, enum mkcl_ffi_calling_convent
   i(0x00); i(0xBF);	/* .align 2                                    */
   immed_ptr(data);
   immed_ptr(fptr);
+#endif
 
+
+  i(0xFD); i(0x7B); i(0xBF); i(0xA9); /* stp x29, x30, [sp, -16]! // x29 is FP (Frame Pointer), x30 is LR (Link Register) */
+  /* */                               /* .cfi_def_cfa_offset 16 */
+  /* */                               /* .cfi_offset 29, -16 */
+  /* */                               /* .cfi_offset 30, -8 */
+  i(0xFD); i(0x03); i(0x00); i(0x91); /* mov    x29, sp */
+  i(0xFD); i(0x0F); i(0x1F); i(0xF8); /* str	x29, [sp, -16]!  // push stack_marker */
+  i(0xE8); i(0x00); i(0x00); i(0x58); /* ldr	x8, =0xdeadbeef12345678  // get cbk_info */
+  i(0xE8); i(0x0F); i(0x1F); i(0xF8); /* str	x8, [sp, -16]!  // push cbk_info */
+  i(0xE8); i(0x00); i(0x00); i(0x58); /* ldr	x8, =0xbeefdead87654321 // mkcl_dynamic_callback_execute */
+  i(0x00); i(0x01); i(0x3F); i(0xD6); /* blr	x8 */
+  i(0xFD); i(0x7B); i(0xC1); i(0xA8); /* ldp	x29, x30, [sp], 16 */
+  /* */                               /* .cfi_restore 30 */
+  /* */                               /* .cfi_restore 29 */
+  /* */                               /* .cfi_def_cfa_offset 0 */
+  i(0xC0); i(0x03); i(0x5F); i(0xD6); /* ret */
+  /* */                               /* .cfi_endproc */
+  /* */                               /* .align	2 */
+  i(0x1F); i(0x20); i(0x03); i(0xD5); /* .p2align 3,,7 */
+  immed_ptr(data);
+  immed_ptr(fptr);
 
   {
     int rc = mprotect(buf, mkcl_core.pagesize, PROT_READ | /* PROT_WRITE | */ PROT_EXEC);
