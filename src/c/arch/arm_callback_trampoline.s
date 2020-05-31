@@ -1,3 +1,14 @@
+	//
+	//   Copyright (c) 2020, Jean-Claude Beaudoin.
+	//
+	//   This is the AARCH64 assembly code, in GAS syntax,
+	//   for the MKCL C to Lisp callback trampoline.
+	//
+	//   The machine code it produces when processed with:
+	//      as -a aarch64_callback_trampoline.s
+	//   is incorporated into ffi_aarch64.d after having
+	//   been extracted from the assembler listing.
+	//
 	.arch armv7-a
 	.file "arm_callback_trampoline.s"
 	.text
