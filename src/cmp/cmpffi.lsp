@@ -598,7 +598,8 @@
   (with-input-from-string (s c-expression)
     (when output-vars
       (wt-nl))
-    (do ((c (read-char s nil nil)
+    (do ((nb-arguments (length coerced-arguments))
+         (c (read-char s nil nil)
 	    (read-char s nil nil)))
 	((null c))
       (case c
@@ -636,7 +637,7 @@
 
 	   (cond ((or (null index) (and single-digit next-char (alphanumericp next-char)))
 		  (wt #\# k))
-		 ((< index (length coerced-arguments))
+		 ((< index nb-arguments)
 		  (wt (nth index coerced-arguments)))
 		 (t
 		  (cmperr "C-INLINE: Variable code exceeds number of arguments")))))
