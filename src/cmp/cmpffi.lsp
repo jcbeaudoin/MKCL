@@ -622,8 +622,19 @@
 	(#\#
 	 (let* ((k (read-char s))
 		(next-char (peek-char nil s nil nil))
-		(index (digit-char-p k 36)))
-	   (cond ((or (null index) (and next-char (alphanumericp next-char)))
+		(index (digit-char-p k 36))
+                (next-digit nil)
+                (single-digit t))
+
+           (when (and index (< index 10)) ;;; JCB
+             ;;; Allow a full natural integer after the #, and not only a single digit in base 36. JCB
+             (sys::while (and next-char (setq next-digit (digit-char-p next-char)))
+               (setq single-digit nil)
+               (setq index (+ (* index 10) next-digit))
+               (setq k (read-char s))
+               (setq next-char (peek-char nil s nil nil))))
+
+	   (cond ((or (null index) (and single-digit next-char (alphanumericp next-char)))
 		  (wt #\# k))
 		 ((< index (length coerced-arguments))
 		  (wt (nth index coerced-arguments)))
