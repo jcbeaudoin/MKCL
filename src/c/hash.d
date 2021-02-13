@@ -1208,7 +1208,7 @@ mkcl_hash_table_iterate(MKCL, mkcl_narg narg)
       for (; e != NULL; e = e->next)
 	if (e->key != MKCL_OBJNULL) { /* next in bucket. Pop and return it. */
           /* bucket_index has not changed. */
-          next_wrapper->foreign.data = (void *) e->next;
+          *((void **) next_wrapper->foreign.data) = (void *) e->next;
           @(return mk_cl_Ct e->key e->value);
         }      
     }
@@ -1224,14 +1224,14 @@ mkcl_hash_table_iterate(MKCL, mkcl_narg narg)
           if (e->key != MKCL_OBJNULL) {
             const mkcl_object _bucket_index = MKCL_MAKE_FIXNUM(bucket_index);
             closure_display->display.level[0]->lblock.var[2] = _bucket_index;
-            next_wrapper->foreign.data = (void *) e->next;
+            *((void **) next_wrapper->foreign.data) = (void *) e->next;
             @(return mk_cl_Ct e->key e->value);
           }      
       }
   }     
   /* If we reach here then the iteration is complete. */
   closure_display->display.level[0]->lblock.var[2] = MKCL_MAKE_FIXNUM(bucket_index);
-  next_wrapper->foreign.data = NULL;
+  *((void **) next_wrapper->foreign.data) = NULL;
   @(return mk_cl_Cnil mk_cl_Cnil mk_cl_Cnil);
 }
 
@@ -1244,12 +1244,12 @@ mk_si_hash_table_iterator(MKCL, mkcl_object ht)
   {
     mkcl_object closure_block = mkcl_alloc_clevel_block(env, mk_cl_Cnil, mk_cl_Cnil, 3);
     mkcl_object closure_syms_block = mkcl_alloc_clevel_block(env, mk_cl_Cnil, mk_cl_Cnil, 3);
+    mkcl_object it = mkcl_make_foreign(env, mk_cl_list(env, 2, @'*', @':void'), sizeof(void *));
 
+    *((void **) it->foreign.data) = ht->hash.data[0];
     closure_block->lblock.producer = mk_cl_Cnil;
     closure_block->lblock.var[0] = ht;
-    closure_block->lblock.var[1] = mkcl_make_foreign(env, mk_cl_Cnil,
-                                                     sizeof(struct mkcl_hashtable_entry), 
-                                                     ht->hash.data[0]);
+    closure_block->lblock.var[1] = it;
     closure_block->lblock.var[2] = MKCL_MAKE_FIXNUM(0);
 
     closure_syms_block->lblock.producer = mk_cl_Cnil;

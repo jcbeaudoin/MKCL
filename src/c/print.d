@@ -1597,7 +1597,7 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
   case mkcl_t_foreign:
     if (mkcl_print_readably(env)) mkcl_FEprint_not_readable(env, x);
     write_str(env, "#<foreign ", stream);
-    mk_si_write_ugly_object(env, x->foreign.tag, stream);
+    mk_si_write_ugly_object(env, x->foreign.C_type, stream);
     mkcl_write_char(env, ' ', stream);
     write_addr(env, (mkcl_object)x->foreign.data, stream);
     mkcl_write_char(env, '>', stream);

@@ -299,8 +299,9 @@ mkcl_dynamic_callback_execute(mkcl_object cbk_info, char *arg_buffer)
 }
 
 
+#if MKCL_WINDOWS
 void *
-mkcl_dynamic_callback_make(MKCL, mkcl_object data, enum mkcl_ffi_calling_convention cc_type)
+mkcl_stdcall_dynamic_callback_make(MKCL, mkcl_object data)
 {
   unsigned char * buf = mkcl_alloc_callback_block(env);
   unsigned char * ip = buf; /* the instruction pointer (ip) */
@@ -321,12 +322,8 @@ mkcl_dynamic_callback_make(MKCL, mkcl_object data, enum mkcl_ffi_calling_convent
   /* call   *%eax          */  i(0xff); i(0xd0);                    /* call mkcl_dynamic_callback_execute() */
   /* addl   $16, %esp      */  i(0x83); i(0xc4); i(0x10);           /* cleanup arg list of previous call, 16 bytes. */
   /* leave                 */  i(0xc9);                             /* undo stack frame */
-#if MKCL_UNIX
-  /* ret                   */  i(0xc3);                             /* return */
-#elif MKCL_WINDOWS
-  if (cc_type == MKCL_FFI_CC_CDECL) {
-    /* ret                 */  i(0xc3);                             /* return */
-  } else { /* This would be MKCL_FFI_CC_STDCALL. JCB */
+
+  { /* This would be MKCL_FFI_CC_STDCALL. JCB */
     mkcl_object arg_types = MKCL_CADDR(data);
     unsigned long arg_list_byte_size = 0;
     const unsigned long mask = 3;
@@ -348,9 +345,53 @@ mkcl_dynamic_callback_make(MKCL, mkcl_object data, enum mkcl_ffi_calling_convent
 	/* ret <immed16> */ i(0xc2); immed16(arg_list_byte_size);   /* return and pop byte_size bytes. */
       }
   }
-#else
-# error Incomplete mkcl_dynamic_callback_make().
+  /* nop                   */  i(0x90);  /* Fill with nop until end of I-cache line (multiple of 16 bytes). */
+  /* nop                   */  i(0x90);
+  /* nop                   */  i(0x90);
+  /* nop                   */  i(0x90);
+  /* nop                   */  i(0x90);
+  /* nop                   */  i(0x90);
+
+  { /* By default on Win64 data is PAGE_READWRITE only and we would get
+       an ACCESS_VIOLATION if we didn't set it to EXECUTE. */
+    /* Not really needed on Win32 but we do it for uniformity with other platforms. */
+    DWORD old_protection_flags;
+    BOOL ok = VirtualProtect(buf, mkcl_core.pagesize, PAGE_EXECUTE_READ, &old_protection_flags);
+    
+    if (!ok)
+      mkcl_FEwin32_error(env, "mkcl_dynamic_callback_make() failed on VirtualProtect()", 0);
+  }
+
+#if 0
+  printf("\nIn mkcl_stdcall_dynamic_callback_make(), returning %p.\n", buf); fflush(NULL); /* debug JCB */
 #endif
+  return buf;
+}
+#endif
+
+void *
+mkcl_dynamic_callback_make(MKCL, mkcl_object data)
+{
+  unsigned char * buf = mkcl_alloc_callback_block(env);
+  unsigned char * ip = buf; /* the instruction pointer (ip) */
+  union { unsigned char b[4]; void * p; unsigned long l; unsigned short s; } imm; /* a staging buffer for immediate data */
+
+#define i(byte) *(ip++) = (byte)
+#define immed_ptr(val_ptr) imm.p = (val_ptr); i(imm.b[0]); i(imm.b[1]); i(imm.b[2]); i(imm.b[3]);
+#define immed16(val_short) imm.s = (val_short);	i(imm.b[0]); i(imm.b[1]);
+#define immed32(val_long) imm.l = (val_long); i(imm.b[0]); i(imm.b[1]); i(imm.b[2]); i(imm.b[3]);
+    
+
+  /* pushl  %ebp           */  i(0x55);                             /* build stack frame, step 1 of 2 */
+  /* movl   %esp, %ebp     */  i(0x89); i(0xe5);                    /* build stack frame, step 2 of 2 */
+  /* pushl  %esp           */  i(0x54);                             /* push arg_list pointer */
+  /* movl   <addr32>, %eax */  i(0xb8); immed_ptr(data);
+  /* pushl  %eax           */  i(0x50);                             /* push data */   
+  /* movl   <addr32>, %eax */  i(0xb8); immed_ptr(mkcl_dynamic_callback_execute);
+  /* call   *%eax          */  i(0xff); i(0xd0);                    /* call mkcl_dynamic_callback_execute() */
+  /* addl   $16, %esp      */  i(0x83); i(0xc4); i(0x10);           /* cleanup arg list of previous call, 16 bytes. */
+  /* leave                 */  i(0xc9);                             /* undo stack frame */
+  /* ret                   */  i(0xc3);                             /* return */
   /* nop                   */  i(0x90);  /* Fill with nop until end of I-cache line (multiple of 16 bytes). */
   /* nop                   */  i(0x90);
   /* nop                   */  i(0x90);

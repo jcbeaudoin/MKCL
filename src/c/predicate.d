@@ -355,9 +355,9 @@ mkcl_equal(MKCL, register mkcl_object x, mkcl_object y)
   case mkcl_t_foreign:
     /* Since foreign objects are in fact a kind of proxy view this implements a kind of delegated EQ. */
     return ((tx == ty)
-            && (x->foreign.data == y->foreign.data)
+            && (x->foreign.data == y->foreign.data) /* We should compare byte for byte. JCB */
             && (x->foreign.size == y->foreign.size)
-            && mkcl_equal(env, x->foreign.tag, y->foreign.tag));
+            && mkcl_equal(env, x->foreign.C_type, y->foreign.C_type));
   default:
     return FALSE; /* We handled the positive EQ case at the very beginning so this must be false now. */
   }
@@ -488,9 +488,9 @@ mkcl_equalp(MKCL, mkcl_object x, mkcl_object y)
   case mkcl_t_foreign:
     /* Since foreign objects are in fact a kind of proxy view this implements a kind of delegated EQ. */
     return ((tx == ty)
-            && (x->foreign.data == y->foreign.data)
+            && (x->foreign.data == y->foreign.data) /* We should compare byte for byte. JCB */
             && (x->foreign.size == y->foreign.size)
-            && mkcl_equal(env, x->foreign.tag, y->foreign.tag));
+            && mkcl_equal(env, x->foreign.C_type, y->foreign.C_type));
   default:
     return FALSE; /* We handled the positive EQ case at the very beginning so this must be false now. */
   }

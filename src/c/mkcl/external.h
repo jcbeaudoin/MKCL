@@ -312,7 +312,7 @@ extern "C" {
   extern MKCL_API mkcl_object mkcl_alloc_raw_rwlock(MKCL);
   extern MKCL_API mkcl_object mkcl_alloc_raw_semaphore(MKCL);
   extern MKCL_API mkcl_object mkcl_alloc_raw_condition_variable(MKCL);
-  extern MKCL_API mkcl_object mkcl_alloc_raw_foreign(MKCL);
+  extern MKCL_API mkcl_object mkcl_alloc_raw_foreign(MKCL, size_t);
   extern MKCL_API mkcl_object mkcl_alloc_raw_stream(MKCL);
   extern MKCL_API mkcl_object mkcl_alloc_raw_process(MKCL);
   extern MKCL_API mkcl_object mkcl_alloc_utf_8(MKCL, mkcl_index length);
@@ -820,12 +820,16 @@ extern "C" {
   extern MKCL_API mkcl_object mk_si_allocate_foreign_data(MKCL, mkcl_object tag, mkcl_object size);
   extern MKCL_API mkcl_object mk_si_make_foreign_null_pointer(MKCL);
   extern MKCL_API mkcl_object mk_si_foreign_address(MKCL, mkcl_object f);
+#if 0
   extern MKCL_API mkcl_object mk_si_foreign_indexed(MKCL, mkcl_object f, mkcl_object ndx, mkcl_object size, mkcl_object tag);
-  extern MKCL_API mkcl_object mk_si_foreign_ref(MKCL, mkcl_object f, mkcl_object ndx, mkcl_object size, mkcl_object tag);
+#endif
+  extern MKCL_API mkcl_object mk_si_foreign_ref(MKCL, mkcl_object f, mkcl_object ndx, mkcl_object size);
   extern MKCL_API mkcl_object mk_si_foreign_ref_elt(MKCL, mkcl_object f, mkcl_object ndx, mkcl_object tag);
   extern MKCL_API mkcl_object mk_si_foreign_set(MKCL, mkcl_object f, mkcl_object ndx, mkcl_object value);
   extern MKCL_API mkcl_object mk_si_foreign_set_elt(MKCL, mkcl_object f, mkcl_object ndx, mkcl_object tag, mkcl_object value);
+#if 0
   extern MKCL_API mkcl_object mk_si_foreign_tag(MKCL, mkcl_object x);
+#endif
   extern MKCL_API mkcl_object mk_si_foreign_recast(MKCL, mkcl_object f, mkcl_object size, mkcl_object tag);
   extern MKCL_API mkcl_object mk_si_free_foreign_data(MKCL, mkcl_object x);
   extern MKCL_API mkcl_object mk_si_make_foreign_data_from_array(MKCL, mkcl_object x);
@@ -840,19 +844,6 @@ extern "C" {
   extern MKCL_API mkcl_object mk_si_release_ffi_area(MKCL);
   extern MKCL_API mkcl_object mk_si_pointer(MKCL, mkcl_object x);
 
-  extern MKCL_API mkcl_object mkcl_make_foreign(MKCL, mkcl_object type_tag, mkcl_index data_size, void * foreign_data_pointer);
-  extern MKCL_API mkcl_object mkcl_allocate_foreign_data(MKCL, mkcl_object tag, mkcl_index size);
-  extern MKCL_API void * mkcl_foreign_raw_pointer(MKCL, mkcl_object f);
-  extern MKCL_API char * mkcl_base_string_raw_pointer(MKCL, mkcl_object f);
-  extern MKCL_API mkcl_object mkcl_null_terminated_base_string(MKCL, mkcl_object s);
-  extern MKCL_API mkcl_object mkcl_foreign_ref_elt(MKCL, void *p, enum mkcl_ffi_tag type);
-  extern MKCL_API void mkcl_foreign_set_elt(MKCL, void *p, enum mkcl_ffi_tag type, mkcl_object value);
-
-  static inline bool mkcl_foreignp(MKCL, mkcl_object x)
-  {
-    mkcl_type t = mkcl_type_of(x);
-    return (t == mkcl_t_foreign);
-  }
 
   /* file.c */
 

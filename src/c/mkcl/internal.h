@@ -209,6 +209,55 @@ extern "C" {
 
   /* ffi.d */
 
+  enum mkcl_ffi_tag {
+    MKCL_FFI_CHAR = 0,
+    MKCL_FFI_UNSIGNED_CHAR,
+    MKCL_FFI_BYTE,
+    MKCL_FFI_UNSIGNED_BYTE,
+    MKCL_FFI_SHORT,
+    MKCL_FFI_UNSIGNED_SHORT,
+    MKCL_FFI_INT,
+    MKCL_FFI_UNSIGNED_INT,
+    MKCL_FFI_LONG,
+    MKCL_FFI_UNSIGNED_LONG,
+    MKCL_FFI_LONG_LONG,
+    MKCL_FFI_UNSIGNED_LONG_LONG,
+    MKCL_FFI_POINTER_VOID,
+    MKCL_FFI_CSTRING,
+    MKCL_FFI_OBJECT, /* This tag must be the last one of the "integral" types. */
+    MKCL_FFI_FLOAT,
+    MKCL_FFI_DOUBLE,
+    MKCL_FFI_LONG_DOUBLE,
+#if 0
+    /* The other C99 types. */
+    MKCL_FFI_FLOAT_COMPLEX,
+    MKCL_FFI_DOUBLE_COMPLEX,
+    MKCL_FFI_LONG_DOUBLE_COMPLEX,
+    MKCL_FFI_FLOAT_IMAGINARY,
+    MKCL_FFI_DOUBLE_IMAGINARY,
+    MKCL_FFI_LONG_DOUBLE_IMAGINARY,
+#endif
+    MKCL_FFI_VOID,
+    MKCL_FFI_INT8_T = MKCL_FFI_BYTE,
+    MKCL_FFI_UINT8_T = MKCL_FFI_UNSIGNED_BYTE,
+    MKCL_FFI_INT16_T = MKCL_FFI_SHORT,
+    MKCL_FFI_UINT16_T = MKCL_FFI_UNSIGNED_SHORT,
+    MKCL_FFI_INT32_T  = MKCL_FFI_INT,
+    MKCL_FFI_UINT32_T = MKCL_FFI_UNSIGNED_INT,
+#if MKCL_LONG_BITS == 64
+    MKCL_FFI_INT64_T = MKCL_FFI_LONG,
+    MKCL_FFI_UINT64_T = MKCL_FFI_UNSIGNED_LONG
+#else
+    MKCL_FFI_INT64_T = MKCL_FFI_LONG_LONG,
+    MKCL_FFI_UINT64_T = MKCL_FFI_UNSIGNED_LONG_LONG
+#endif
+  };
+  /* enum MKCL_FFI_VOID is used as a limit marker in a number of locations, beware!
+     Note also that the order of enums declared in enum mkcl_ffi_tag must
+     carefully match the content of mkcl_foreign_type_table[] and mkcl_foreign_type_size[].
+     JCB
+   */
+
 
  /* These two fficall parameters are in bytes and should be multiples of 16. */
 #define MKCL_FFICALL_ARGS_STAGING_AREA_INITIAL_SIZE 32
@@ -243,6 +292,7 @@ extern "C" {
     long double ld;
   };
 
+#if 0
   enum mkcl_ffi_calling_convention {
     MKCL_FFI_CC_CDECL = 0,
     MKCL_FFI_CC_STDCALL
@@ -250,12 +300,15 @@ extern "C" {
   /* Note that the order of enums declared in enum mkcl_ffi_calling_convention must
      carefully match the content of mkcl_foreign_cc_table[]. JCB
    */
+#endif
 
   struct mkcl_fficall {
     char *buffer_sp;
     size_t buffer_size;
     union mkcl_ffi_values output;
+#if 0
     enum mkcl_ffi_calling_convention cc;
+#endif
     struct mkcl_fficall_reg *registers;
     char * buffer;
     /* mkcl_object cstring; */
@@ -273,7 +326,24 @@ extern "C" {
   extern struct mkcl_fficall_reg *mkcl_fficall_prepare_extra(MKCL, struct mkcl_fficall_reg *registers);
   extern void mkcl_fficall_push_arg(MKCL, union mkcl_ffi_values *data, enum mkcl_ffi_tag type);
   extern void mkcl_fficall_execute(MKCL, void *f_ptr, struct mkcl_fficall *fficall, enum mkcl_ffi_tag return_type);
-  extern void* mkcl_dynamic_callback_make(MKCL, mkcl_object data, enum mkcl_ffi_calling_convention cc_type);
+
+  extern mkcl_object mkcl_make_foreign(MKCL, mkcl_object C_type, mkcl_index data_size);
+  extern MKCL_API mkcl_object mkcl_allocate_foreign_data(MKCL, mkcl_object tag, mkcl_index size);
+  extern MKCL_API char * mkcl_base_string_raw_pointer(MKCL, mkcl_object f);
+  extern void* mkcl_dynamic_callback_make(MKCL, mkcl_object data);
+#if MKCL_WINDOWS /* should be on Win32 only. JCB */
+  extern void* mkcl_stdcall_dynamic_callback_make(MKCL, mkcl_object data);
+#endif
+  extern mkcl_object mkcl_foreign_ref_elt(MKCL, void *p, enum mkcl_ffi_tag type);
+  extern void mkcl_foreign_set_elt(MKCL, void *p, enum mkcl_ffi_tag type, mkcl_object value);
+  extern void * mkcl_foreign_raw_pointer(MKCL, mkcl_object f);
+  extern mkcl_object mkcl_null_terminated_base_string(MKCL, mkcl_object s);
+
+  static inline bool mkcl_foreignp(MKCL, mkcl_object x)
+  {
+    mkcl_type t = mkcl_type_of(x);
+    return (t == mkcl_t_foreign);
+  }
 
   /* load.d */
 

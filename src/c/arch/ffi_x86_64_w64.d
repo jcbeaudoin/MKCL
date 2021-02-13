@@ -339,7 +339,7 @@ mkcl_dynamic_callback_execute(int64_t i1, int64_t i2, int64_t i3, int64_t i4,
 
 
 void*
-mkcl_dynamic_callback_make(MKCL, mkcl_object data, enum mkcl_ffi_calling_convention cc_type)
+mkcl_dynamic_callback_make(MKCL, mkcl_object data)
 {
   unsigned char * buf = mkcl_alloc_callback_block(env);
   unsigned char * ip = buf; /* the instruction pointer (ip) */

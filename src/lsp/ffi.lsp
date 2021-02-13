@@ -1,7 +1,7 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
 ;;;;
 ;;;;  Copyright (c) 2001, Juan Jose Garcia-Ripoll
-;;;;  Copyright (c) 2012-2013, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2012-2013,2020, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -53,28 +53,84 @@
 ;;;----------------------------------------------------------------------
 ;;; FOREIGN TYPES
 ;;;
+;;; The basic foreign types are one of:
+;;;
+;;;     <basic-type> = :byte | :unsigned-byte
+;;;                  | :char | :unsigned-char
+;;;                  | :short | :unsigned-short
+;;;                  | :int | :unsigned-int
+;;;                  | :long | :unsigned-long
+;;;                  | :long-long | :unsigned-long-long
+;;;                  | :data-pointer | :function-pointer
+;;;                  | :pointer-void | :object | :cstring ;; Not really basic! Should be typedefs.
+;;;                  | :float | :double | :long-double
+;;;                  | :int8-t | :uint8-t | :int16-t | :uint16-t ;; Not really basic! Should be typedefs.
+;;;                  | :int32-t | :uint32-t | :int64-t | :uint64-t ;; Not really basic! Should be typedefs.
+;;;                  | :float-complex | :double-complex | :long-double-complex
+;;;                  | :float-imaginary | :double-imaginary | :long-double-imaginary
+;;;                  | :bool
+;;;                  | :void
+;;;
+;;;    <qualified-type> = (<qualifier> <type>) | <type>
+;;;
+;;;    <qualifier> = :const
+;;;                | :volatile
+;;;                | :restrict
+;;;                | :const-volatile
+;;;                | :const-restrict
+;;;                | :volatile-restrict
+;;;                | :const-volatile-restrict
+;;;
 
 (deftype foreign () 'si:foreign)
 
-(defvar *ffi-types* (make-hash-table :size 128))
+(defvar *ffi-C-names* (make-hash-table :size 128 :test 'equal))
+
+(defvar *ffi-C-tags* (make-hash-table :size 128 :test 'equal))
+
+(defun undef-foreign-name (name)
+  (remhash name *ffi-C-names*))
+
+(defun undef-foreign-tag (tag)
+  (remhash tag *ffi-C-tags*))
+
+(defun undef-all-foreign-names () (setq *ffi-C-names* (make-hash-table :size 128 :test 'equal)))
+(defun undef-all-foreign-tags () (setq *ffi-C-tags* (make-hash-table :size 128 :test 'equal)))
 
 (defun foreign-elt-type-p (name)
   (and (symbolp name)
-       (member name '(:byte :unsigned-byte :short :unsigned-short
-		      :int :unsigned-int :char :unsigned-char
+       (member name '(:byte :unsigned-byte :char :unsigned-char
+                      :short :unsigned-short
+		      :int :unsigned-int
 		      :long :unsigned-long
-		      :long-long
-		      :unsigned-long-long
-		      :pointer-void :object
-		      :float :double :cstring
-		      :long-double
+		      :long-long :unsigned-long-long
+		      :pointer-void :object :cstring
+		      :float :double :long-double
+                      :int8-t :uint8-t
 		      :int16-t :unit16-t :int32-t :uint32-t :int64-t :uint64-t
+                      #-(and) :float-complex
+                      #-(and) :double-complex
+                      #-(and) :long-double-complex
+                      #-(and) :float-imaginary
+                      #-(and) :double-imaginary
+                      #-(and) :long-double-imaginary
 		      )
 	       :test 'eq)))
 
+(defstruct (C-tag #+mkcl (:type vector))
+  name
+  type
+  size
+  alignement
+  )
+
+(defmacro def-C-tag (name type-spec size alignment)
+  (setf (gethash name *ffi-C-tags*) (make-C-tag :name name :type type-spec :size size :alignment alignment))
+  nil)
+
 (defmacro def-foreign-type (name definition)
   `(eval-when (:compile-toplevel :load-toplevel :execute)
-     (setf (gethash ',name ffi::*ffi-types*) ',definition)))
+     (setf (gethash ',name ffi::*ffi-C-names*) ',definition)))
 
 (defmacro def-type (name definition)
   (declare (ignore definition))
@@ -84,7 +140,7 @@
   (if (atom type)
     (if (member type context)
       type
-      (multiple-value-bind (value present-p) (gethash type *ffi-types* type)
+      (multiple-value-bind (value present-p) (gethash type *ffi-C-names* type)
         (if present-p
           (%convert-to-ffi-type value (cons type context))
           value)))
@@ -130,12 +186,14 @@
 	         (setf size field-size))
 	       (when (or (null align) (> field-align align))
 	         (setf align field-align)))))
+          ((eq name :enum)
+           (setf size (si::size-of-foreign-elt-type :int)))
 	  ((eq name '*)
 	   (setf size (si::size-of-foreign-elt-type :pointer-void)))
           ((eq name 'quote)
            (size-of-foreign-type (second type)))
 	  (t
-	   (error "~A does not denote a foreign type" name)))
+	   (error "~A does not denote a foreign data type" name)))
     (unless align
       (setf align size))
     (values size
@@ -165,30 +223,39 @@
 ;;;----------------------------------------------------------------------
 ;;; ENUMERATION TYPES
 ;;;
+;;; The enumaration type is represented by the following list:
+;;;
+;;;     (:ENUM <name-tag> { (<enum-name> . <enum-value>) }*)
+;;;
+;;;   Where <name-tag> is a string designator, possibly empty when denoting anonymous 'enum's.
+;;;   <enum-name> is also a string designator naming an enumeration constant.
+;;;   <enum-value> is an integer.
+;;;
+;;; A list (:ENUM <name-tag>) denotes a reference to the type described here just above.
+;;;
 
 (defmacro def-enum (name values-list &key (separator-string "#"))
   (let ((constants '())
 	(value -1)
-	field
+	enum-constant
 	forms)
     (setf separator-string (string separator-string))
     (dolist (item values-list)
-      (cond ((symbolp item)
-	     (setf field item)
+      (cond ((or (symbolp item) (stringp item) (characterp item))
+	     (setf enum-constant (sring item))
 	     (incf value))
 	    ((and (consp item)
-		  (symbolp (setf field (first item)))
+		  (symbolp (setf enum-constant (first item)))
 		  (integerp (setf value (second item)))
 		  (endp (cddr item))))
 	    (t
 	     (error "Not a valid argument to DEF-ENUM~%~a" values-list)))
-      (setf field (concatenate 'string
+      (setf enum-constant (concatenate 'string
 			       (symbol-name name)
 			       separator-string
-			       (string field)))
-      (push `(defconstant ,(intern field (symbol-package name))
-	       ',value)
-	    forms))
+			       (string enum-constant)))
+      (push `(defconstant ,(intern enum-constant (symbol-package name)) ',value) forms)
+      )
     `(progn
        (def-foreign-type ,name :int)
        ,@forms)))
@@ -217,7 +284,7 @@
 				  type))
 	(t ;; agregate types (:struct :union :array)
 	 ;;(si::foreign-ref obj ndx (if size-p size (size-of-foreign-type type)) type)
-	 (si::foreign-ref obj ndx size type)
+	 (si::foreign-ref obj ndx size)
 	 )))
 
 ;;;----------------------------------------------------------------------
@@ -225,23 +292,51 @@
 ;;;
 ;;; The structure type is represented by the following list:
 ;;;
-;;;	(STRUCT (SLOT-NAME1 . SLOT-TYPE1)*)
+;;;	(:STRUCT <name-tag> (<field-name> <field-type> <byte-offset> . <bit-offset>)*)
 ;;;
-;;; FIXME! We do not care about slot alignment!
+;;;   Where <name-tag> is a string designator, possibly empty when denoting anonymous 'struct's.
+;;;   <field-name> is also a string designator, also possibly empty when denoting an unnamed bit field.
+;;;   <field-type> can be any previously established foreign type, or one of the
+;;;   bit field specification, each qualified or not, such that:
+;;;
+;;;       <field-type> = (<qualifier> <unqualified-field-type>) | <unqualified-field-type>
+;;;
+;;;       <unqualified-field-type> = <any known foreign data type>
+;;;                                | (:unsigned-char-bit-field <width>)
+;;;                                | (:signed-char-bit-field <width>)
+;;;                                | (:char-bit-field <width>)
+;;;                                | (:unsigned-short-bit-field <width>)
+;;;                                | (:signed-short-bit-field <width>)
+;;;                                | (:short-bit-field <width>)
+;;;                                | (:unsigned-int-bit-field <width>)
+;;;                                | (:signed-int-bit-field <width>)
+;;;                                | (:int-bit-field <width>)
+;;;                                | (:unsigned-long-bit-field <width>)
+;;;                                | (:signed-long-bit-field <width>)
+;;;                                | (:long-bit-field <width>)
+;;;                                | (:bool-bit-field <width>)
+;;;
+;;;   where <width> is a small positive integer in the range 0 to "number of bits in a machine word"
+;;;   (typically 32 or 64, maybe 128 in some future). A <width> of 0 has special meaning in C.
+;;;
+;;; A list (:STRUCT <name-tag>) denotes a reference to the type described here just above.
+;;;
+;;; FIXME! We do not take care of slot alignment!
 ;;;
 
-(defmacro def-struct (name &rest slots)
+(defmacro def-struct (name &rest fields)
   (let ((struct-type (list :struct))
-	field
-	type)
-    (dolist (item (subst `(* ,name) :pointer-self slots))
-      (if (and (consp item)
-	       (= (length item) 2)
-	       (symbolp (setf field (first item))))
-	(setf type (second item))
-	(error "Not a valid DEF-STRUCT slot ~A" item))
-      (push (list field type) struct-type))
-    `(def-foreign-type ,name ,(nreverse struct-type))))
+        (name-tag (string name))
+	field-name
+	field-type)
+    (dolist (item (subst `(* (:struct ,name-tag)) :pointer-self fields)) ;; :pointer-self should be deprecated! JCB.
+      (unless (and (consp item)
+                   (= (length item) 2)
+                   (symbolp (setf field-name (first item))))
+	(error "Not a valid DEF-STRUCT field ~A" item))
+      (setf field-type (second item))
+      (push (list* field-name field-type 0 0) struct-type))
+    `(def-C-tag ,name-tag ,(nreverse struct-type))))
 
 (defun slot-position (type field)
   (setf type (%convert-to-ffi-type type))
@@ -290,54 +385,38 @@
 
 
 ;;;----------------------------------------------------------------------
-;;; ARRAYS
-;;;
-
-(defmacro def-array-pointer (name element-type)
-  `(def-foreign-type ,name (* ,element-type)))
-
-(defun deref-array (array array-type position)
-  (setf array-type (%convert-to-ffi-type array-type))
-  (let* ((element-type (second array-type))
-	 (element-size (size-of-foreign-type element-type))
-	 (ndx (* position element-size))
-	 (length (or (third array-type) '*)))
-    (unless (or (eq length '*)
-		(> length position -1))
-      (error "Out of bounds when accessing array ~A." array))
-    (%foreign-data-ref (si::foreign-recast array (+ ndx element-size) array-type) ndx element-type element-size)))
-
-(defun (setf deref-array) (value array array-type position)
-  (setf array-type (%convert-to-ffi-type array-type))
-  (let* ((element-type (second array-type))
-	 (element-size (size-of-foreign-type element-type))
-	 (ndx (* position element-size))
-	 (length (or (third array-type) '*)))
-    (unless (or (eq length '*)
-		(> length position -1))
-      (error "Out of bounds when accessing array ~A." array))
-    (%foreign-data-set (si::foreign-recast array (+ ndx element-size) array-type) ndx element-type value)))
-
-
-;;;----------------------------------------------------------------------
 ;;; UNIONS
 ;;;
+;;; The union type is represented by the following list:
+;;;
+;;;   (:UNION <name-tag> (<field-name> <field-type> . <bit-offset>)*)
+;;;
+;;; See the description of structure types here above for the definition of
+;;; <name-tag>,<field-name> and <field-type>.
+;;;
+;;; A list (:UNION <name-tag>) denotes a reference to the type described here just above.
+;;;
 
-(defmacro def-union (name &rest slots)
-  (let ((struct-type (list :union))
-	field
-	type)
-    (dolist (item (subst `(* ,struct-type) :pointer-self slots))
+(defmacro def-union (name &rest fields)
+  (let ((union-type (list :union))
+        (name-tag (string name))
+	field-name
+	field-type)
+    (dolist (item (subst `(* (:union ,name-tag)) :pointer-self fields)) ;; :pointer-self should be deprecated! JCB.
       (unless (and (consp item)
 		   (= (length item) 2)
-		   (symbolp (setf field (first item))))
-	(error "Not a valid DEF-UNION slot ~A" item))
-      (setf type (second item))
-      (push (list field type) struct-type))
-    `(def-foreign-type ,name ,(nreverse struct-type))))
+		   (symbolp (setf field-name (first item))))
+	(error "Not a valid DEF-UNION field ~A" item))
+      (setf field-type (second item))
+      (push (list* field-name field-type 0) union-type))
+    `(def-C-tag ,name-tag ,(nreverse union-type))))
 
 ;;;----------------------------------------------------------------------
 ;;; POINTERS
+;;;
+;;; A pointer type is represented by the following list:
+;;;
+;;;     (* <qualified-type>)
 ;;;
 
 ;(defvar +null-cstring-pointer+ (si:allocate-foreign-data :cstring 0))
@@ -380,19 +459,65 @@
 	    #-(and windows (or x86-64 aarch64)) (:object :unsigned-long :unsigned-long)
 	    #+(and windows (or x86-64 aarch64)) (:object :unsigned-long-long :unsigned-long-long)
 	    :object
-            "mkcl_make_foreign(env, #0, #1, (void*)#2)"
+            "{
+             mkcl_object output = mkcl_make_foreign(env, #0, #1);
+             ((void **) output->foreign.data)[0] = (void *)#2;
+             @(return) = output;
+             }"
 	    :side-effects t
-	    :one-liner t))
+	    :one-liner nil))
+
+
+;;;----------------------------------------------------------------------
+;;; ARRAYS
+;;;
+;;; An array type is represented by the following list:
+;;;
+;;;     (:ARRAY <qualified-element-type> [<dimension>])
+;;;
+;;;   Where <qualified-element-type> can be any established foreign data type, with qualification
+;;;   or not, and <dimension> must be a fixnum integer constant or the symbol '*'.
+;;;   An array without any <dimension> is an incomplete array
+;;;   and can only occur as the last field of a :struct or as
+;;;   type of a :function parameter.
+;;;   If <dimension> is symbol '*' then the array is a variable length array
+;;;   and can only appear as type of a :function parameter.
+;;;
+
+(defmacro def-array-pointer (name element-type) ;; Deprecated, as it is redundant and useless! JCB
+  `(def-foreign-type ,name (* ,element-type)))
+
+(defun deref-array (array array-type position)
+  (setf array-type (%convert-to-ffi-type array-type))
+  (let* ((element-type (second array-type))
+	 (element-size (size-of-foreign-type element-type))
+	 (ndx (* position element-size))
+	 (length (or (third array-type) '*)))
+    (unless (or (eq length '*)
+		(> length position -1))
+      (error "Out of bounds when accessing array ~A." array))
+    (%foreign-data-ref (si::foreign-recast array (+ ndx element-size) array-type) ndx element-type element-size)))
+
+(defun (setf deref-array) (value array array-type position)
+  (setf array-type (%convert-to-ffi-type array-type))
+  (let* ((element-type (second array-type))
+	 (element-size (size-of-foreign-type element-type))
+	 (ndx (* position element-size))
+	 (length (or (third array-type) '*)))
+    (unless (or (eq length '*)
+		(> length position -1))
+      (error "Out of bounds when accessing array ~A." array))
+    (%foreign-data-set (si::foreign-recast array (+ ndx element-size) array-type) ndx element-type value)))
 
 
 ;;;----------------------------------------------------------------------
 ;;; CHARACTERS AND STRINGS
 ;;;
-;;; MKCL always returns characters when dereferencing (:array * :char)
+;;; MKCL always returns a character when dereferencing (:array :char *)
 ;;;
 
 (defun null-char-p (char)
-  (eq char #.(code-char 0)))
+  (eql char #.(code-char 0)))
 
 (defun ensure-char-character (char)
   (cond ((characterp char) char)
@@ -523,6 +648,25 @@
 ;;;----------------------------------------------------------------------
 ;;; INTERFACE TO C FUNCTIONS AND VARIABLES
 ;;;
+;;; The function type is represented by the following list:
+;;;
+;;;     (:FUNCTION <return-type> <argument-list>)
+;;;
+;;;   where,
+;;;
+;;;     <return-type> = <any known foreign type> ;; but not :function or :array
+;;;
+;;;     <argument-list> = ( <arg-type> { <arg-type> }* ) | ()
+;;;
+;;;     <arg-type> = <qualified-type> | &...
+;;;
+;;;   An empty () argument-list denotes an old-style non-prototype function.
+;;;
+;;;   In a new-style prototype-based function argument-list, &... denotes a variadic function
+;;;   and &... must be the last (rightmost) item of the argument-list.
+;;;   An <argument-list> that consists of ( :void ) denotes a new-style prototype-based
+;;;   function of zero argument and is the only way :void can be used as a valid <arg-type>.
+;;;
 
 (defun map-name-from-c-to-lisp (name)
   (cond ((or (stringp name)
@@ -535,8 +679,9 @@
 (defun %convert-to-arg-type (type)
   (let ((type (%convert-to-ffi-type type)))
     (cond ((atom type) type)
-          ((eq (first type) '*) :pointer-void)
-	  ((eq (first type) :array) :pointer-void)
+          ((eq (first type) '*) :pointer-void) ;; Cute dumbing down! JCB
+	  ((eq (first type) :array) :pointer-void) ;; Cute dumbing down! JCB
+          ((eq (first type) :function) :pointer-void) ;; Cute dumbing down! JCB
 	  (t (error "Unsupported argument type: ~A" type))
     )))
 
@@ -590,26 +735,27 @@
 	 ,inline-form)
       )))
 
-(defmacro def-foreign-var (name type module)
+(defmacro def-foreign-var (name qualified-type module)
   (multiple-value-bind (c-name lisp-name)
       (map-name-from-c-to-lisp name)
-    (let* ((ffi-type (%convert-to-ffi-type type))
+    (let* ((ffi-type (%convert-to-ffi-type qualified-type))
            (can-deref (or (foreign-elt-type-p ffi-type)
                           (and (consp ffi-type)
                                (member (first ffi-type) '(* :array)))))
 	   (inline-form (cond (module
-			       `(si::find-foreign-symbol ,c-name ,module ',type ,(size-of-foreign-type type)))
+			       `(si::find-foreign-symbol ,c-name ,module ',qualified-type
+                                                         ,(size-of-foreign-type qualified-type)))
 			      (t
 			       `(c-inline () () :object
 					  ,(format nil "mkcl_make_foreign(env, @~S, ~A, &~A)"
-						   type (size-of-foreign-type type) c-name)
+						   qualified-type (size-of-foreign-type qualified-type) c-name)
 					  :side-effects t :one-liner t)))))
       (if can-deref
           `(progn
              (si::put-sysprop ',lisp-name 'ffi-foreign-var ,inline-form)
              (eval-when (:compile-toplevel :load-toplevel :execute)
                (define-symbol-macro ,lisp-name
-                 (ffi:deref-pointer (si::get-sysprop ',lisp-name 'ffi-foreign-var) ',type)
+                 (ffi:deref-pointer (si::get-sysprop ',lisp-name 'ffi-foreign-var) ',qualified-type)
                  )))
           `(defvar ,lisp-name ,inline-form))
       )))
@@ -648,7 +794,7 @@
 	  )))))
   nil)
 
-(defvar *referenced-libraries* nil) ;; used by the CMP compiler during link phase.
+(defvar *referenced-libraries* nil) ;; used (read) by the CMP compiler during link phase.
 
 (defun do-load-foreign-library (tmp)
   (let* ((path (if (pathnamep tmp) tmp (pathname (string tmp))))

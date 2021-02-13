@@ -850,63 +850,23 @@ extern "C" {
   };
 
 
-  enum mkcl_ffi_tag {
-    MKCL_FFI_CHAR = 0,
-    MKCL_FFI_UNSIGNED_CHAR,
-    MKCL_FFI_BYTE,
-    MKCL_FFI_UNSIGNED_BYTE,
-    MKCL_FFI_SHORT,
-    MKCL_FFI_UNSIGNED_SHORT,
-    MKCL_FFI_INT,
-    MKCL_FFI_UNSIGNED_INT,
-    MKCL_FFI_LONG,
-    MKCL_FFI_UNSIGNED_LONG,
-    MKCL_FFI_LONG_LONG,
-    MKCL_FFI_UNSIGNED_LONG_LONG,
-    MKCL_FFI_POINTER_VOID,
-    MKCL_FFI_CSTRING,
-    MKCL_FFI_OBJECT, /* This tag must be the last one of the "integral" types. */
-    MKCL_FFI_FLOAT,
-    MKCL_FFI_DOUBLE,
-    MKCL_FFI_LONG_DOUBLE,
-#if 0
-    /* The other C99 types. */
-    MKCL_FFI_FLOAT_COMPLEX,
-    MKCL_FFI_DOUBLE_COMPLEX,
-    MKCL_FFI_LONG_DOUBLE_COMPLEX,
-    MKCL_FFI_FLOAT_IMAGINARY,
-    MKCL_FFI_DOUBLE_IMAGINARY,
-    MKCL_FFI_LONG_DOUBLE_IMAGINARY,
-#endif
-    MKCL_FFI_VOID,
-    MKCL_FFI_INT8_T = MKCL_FFI_BYTE,
-    MKCL_FFI_UINT8_T = MKCL_FFI_UNSIGNED_BYTE,
-    MKCL_FFI_INT16_T = MKCL_FFI_SHORT,
-    MKCL_FFI_UINT16_T = MKCL_FFI_UNSIGNED_SHORT,
-    MKCL_FFI_INT32_T  = MKCL_FFI_INT,
-    MKCL_FFI_UINT32_T = MKCL_FFI_UNSIGNED_INT,
-#if MKCL_LONG_BITS == 64
-    MKCL_FFI_INT64_T = MKCL_FFI_LONG,
-    MKCL_FFI_UINT64_T = MKCL_FFI_UNSIGNED_LONG
-#else
-    MKCL_FFI_INT64_T = MKCL_FFI_LONG_LONG,
-    MKCL_FFI_UINT64_T = MKCL_FFI_UNSIGNED_LONG_LONG
-#endif
-  };
-  /* enum MKCL_FFI_VOID is used as a limit marker in a number of locations, beware!
-     Note also that the order of enums declared in enum mkcl_ffi_tag must
-     carefully match the content of mkcl_foreign_type_table[] and mkcl_foreign_type_size[].
-     JCB
-   */
-
-
-  struct mkcl_foreign {	/*  wrapper for a pointer to some foreign data  */
+  /*
+    dummy type
+  */
+  struct mkcl_dummy {
     MKCL_HEADER;
-    mkcl_object tag;	/*  a tag identifying the foreign type pointed to,
-			    taken from the mkcl_foreign_type_table[] of c/ffi.d  */
-    mkcl_index size;	/*  the size of the memory region pointed to, in bytes  */
-    char *data;		/*  the data itself, pointer to a foreign location  */
   };
+
+  struct mkcl_foreign {	/*  Wrapper for some data in foreign format. */
+    MKCL_HEADER;
+    mkcl_object C_type;	/*  A foreign type specifier in the notation described in lsp/ffi.lsp. */
+    mkcl_index size;	/*  The size of the 'data' array member, in bytes. */
+    mkcl_index pad;     /*  Passive padding to get 'data' reasonably aligned. Otherwise not used. */
+                        /*  This passive spacer pads to 32 bytes on 64 bits and to 16 bytes on 32 bits. */
+    char data[];        /*  The data itself once properly rebased and cast.
+                            This is a flexible array member a la C99. */
+  };
+
 
   struct mkcl_temp_stack_frame {
     MKCL_HEADER;
@@ -983,13 +943,6 @@ extern "C" {
     MKCL_HEADER;
     mkcl_object pins;
     mkcl_os_mutex_ref lock;
-  };
-
-  /*
-    dummy type
-  */
-  struct mkcl_dummy {
-    MKCL_HEADER;
   };
 
   struct mkcl_process {

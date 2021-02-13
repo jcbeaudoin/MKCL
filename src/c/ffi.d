@@ -84,11 +84,13 @@ static unsigned int const mkcl_foreign_type_size[] = {
   0 /* sizeof(void) */
 };
 
+#if 0
 /* This array must match content of enum mkcl_ffi_calling_convention. */
 static const mkcl_object mkcl_foreign_cc_table[] = {
   @':cdecl',
   @':stdcall'
 };
+#endif
 
 
 mkcl_object
@@ -104,32 +106,20 @@ mkcl_object mk_si_foreignp(MKCL, mkcl_object x)
 }
 
 mkcl_object
-mkcl_make_foreign(MKCL, mkcl_object type_tag, mkcl_index data_size, void * foreign_data_pointer)
+mkcl_make_foreign(MKCL, mkcl_object C_type, mkcl_index data_size)
 {
 
-  mkcl_object output = mkcl_alloc_raw_foreign(env);
-  output->foreign.tag = (type_tag == mk_cl_Cnil) ? @':void' : type_tag;
-  output->foreign.size = data_size;
-  output->foreign.data = foreign_data_pointer;
+  mkcl_object output = mkcl_alloc_raw_foreign(env, data_size);
+  output->foreign.C_type = C_type;
   return output;
 }
 
 mkcl_object
-mkcl_allocate_foreign_data(MKCL, mkcl_object tag, mkcl_index size)
+mkcl_allocate_foreign_data(MKCL, mkcl_object C_type, mkcl_index size)
 {
-  mkcl_object output = mkcl_alloc_raw_foreign(env);
+  mkcl_object output = mkcl_alloc_raw_foreign(env, size);
 
-  output->foreign.tag = tag;
-  output->foreign.size = size;
-  output->foreign.data = mkcl_alloc_uncollectable(env, size);
-
-#if 0 /* do we need this? */
-  /* The use of finalizer would require the introduction of a concept of "foreign data ownership"
-     since not all "foreign" own the data they point to, be they displaced, wrappers or clones. */
-  /* Currently we can hardly do any better than simply enjoy the memory leaks. JCB */
-  mk_si_set_finalizer(env, output, @+'si::free-foreign-data');
-#endif
-
+  output->foreign.C_type = C_type;
   return output;
 }
 
@@ -138,7 +128,7 @@ mkcl_foreign_raw_pointer(MKCL, mkcl_object f)
 {
   if (mkcl_type_of(f) != mkcl_t_foreign)
     mkcl_FEwrong_type_argument(env, @'si::foreign', f);
-  return f->foreign.data;
+  return ((void **) f->foreign.data)[0];
 }
 
 char *
@@ -180,14 +170,14 @@ mkcl_object
 mk_si_make_foreign_null_pointer(MKCL)
 {
   mkcl_call_stack_check(env);
-  mkcl_object output = mkcl_alloc_raw_foreign(env);
+  mkcl_object output = mkcl_alloc_raw_foreign(env, sizeof(void *));
 
-  output->foreign.tag = @':void';
-  output->foreign.size = 0;
-  output->foreign.data = NULL;
+  output->foreign.C_type = mkcl_cons(env, @'*', mkcl_cons(env, @':void', mk_cl_Cnil));
+  *((void **) output->foreign.data) = NULL;
   @(return output);
 }
 
+#if 0
 mkcl_object
 mk_si_free_foreign_data(MKCL, mkcl_object f)
 {
@@ -203,32 +193,39 @@ mk_si_free_foreign_data(MKCL, mkcl_object f)
   f->foreign.data = NULL;
   @(return );
 }
+#endif
+
 
 mkcl_object
 mk_si_make_foreign_data_from_array(MKCL, mkcl_object array)
 {
-  mkcl_object tag = mk_cl_Cnil;
+  mkcl_object elem_type = mk_cl_Cnil;
 
   mkcl_call_stack_check(env);
   if (mkcl_type_of(array) != mkcl_t_array && mkcl_type_of(array) != mkcl_t_vector) {
     mkcl_FEwrong_type_argument(env, @'array', array);
   }
   switch (array->array.elttype) {
-  case mkcl_aet_sf: tag = @':float'; break;
-  case mkcl_aet_df: tag = @':double'; break;
+  case mkcl_aet_sf: elem_type = @':float'; break;
+  case mkcl_aet_df: elem_type = @':double'; break;
 #if MKCL_WORD_BITS > MKCL_LONG_BITS
-  case mkcl_aet_word: tag = @':long-long'; break;
-  case mkcl_aet_index: tag = @':unsigned-long-long'; break;
+  case mkcl_aet_word: elem_type = @':long-long'; break;
+  case mkcl_aet_index: elem_type = @':unsigned-long-long'; break;
 #else
-  case mkcl_aet_word: tag = @':long'; break;
-  case mkcl_aet_index: tag = @':unsigned-long'; break;
+  case mkcl_aet_word: elem_type = @':long'; break;
+  case mkcl_aet_index: elem_type = @':unsigned-long'; break;
 #endif
+    /* Why not permit other element types? JCB */
   default:
     mkcl_FEerror(env, "Cannot make foreign object from array with element type ~S.",
 		 1, mkcl_elttype_to_symbol(env, array->array.elttype));
     break;
   }
-  @(return mkcl_make_foreign(env, tag, 0, array->array.self.bc));
+  mkcl_object C_type = mkcl_cons(env, @'*', mkcl_cons(env, elem_type, mk_cl_Cnil));
+  mkcl_object obj = mkcl_make_foreign(env, C_type, sizeof(void *));
+
+  *((char **) obj->foreign.data) = array->array.self.bc;
+  @(return obj);
 }
 
 mkcl_object
@@ -241,6 +238,7 @@ mk_si_foreign_address(MKCL, mkcl_object f)
   @(return mkcl_make_unsigned_integer(env, (mkcl_index)f->foreign.data));
 }
 
+#if 0
 mkcl_object
 mk_si_foreign_tag(MKCL, mkcl_object f)
 {
@@ -250,7 +248,9 @@ mk_si_foreign_tag(MKCL, mkcl_object f)
   }
   @(return f->foreign.tag);
 }
+#endif
 
+#if 0 /* redundant with mk_si_foreign_ref(). */
 mkcl_object
 mk_si_foreign_indexed(MKCL, mkcl_object f, mkcl_object andx, mkcl_object asize, mkcl_object tag)
 {
@@ -265,15 +265,16 @@ mk_si_foreign_indexed(MKCL, mkcl_object f, mkcl_object andx, mkcl_object asize, 
   if (ndx >= f->foreign.size || (f->foreign.size - ndx) < size) {
     mkcl_FEerror(env, "Out of bounds reference into foreign data type ~A.", 1, f);
   }
-  output = mkcl_alloc_raw_foreign(env);
+  output = mkcl_alloc_raw_foreign(env, size);
   output->foreign.tag = tag;
   output->foreign.size = size;
   output->foreign.data = f->foreign.data + ndx;
   @(return output);
 }
+#endif
 
 mkcl_object
-mk_si_foreign_ref(MKCL, mkcl_object f, mkcl_object andx, mkcl_object asize, mkcl_object tag)
+mk_si_foreign_ref(MKCL, mkcl_object f, mkcl_object andx, mkcl_object asize)
 {
   mkcl_call_stack_check(env);
   mkcl_index ndx = mkcl_integer_to_index(env, andx);
@@ -286,7 +287,10 @@ mk_si_foreign_ref(MKCL, mkcl_object f, mkcl_object andx, mkcl_object asize, mkcl
   if (ndx >= f->foreign.size || (f->foreign.size - ndx) < size) {
     mkcl_FEerror(env, "Out of bounds reference into foreign data type ~A.", 1, f);
   }
-  output = mkcl_make_foreign(env, tag, size, f->foreign.data + ndx);
+
+  mkcl_object C_type = mkcl_cons(env, @'*', f->foreign.C_type);
+  output = mkcl_make_foreign(env, C_type, sizeof(void *));
+  *((char **) output->foreign.data) = f->foreign.data + ndx;
   @(return output);
 }
 
@@ -324,6 +328,7 @@ mkcl_foreign_type_code(MKCL, mkcl_object type)
   return MKCL_FFI_VOID;
 }
 
+#if 0
 enum mkcl_ffi_calling_convention
 mkcl_foreign_cc_code(MKCL, mkcl_object cc)
 {
@@ -335,6 +340,7 @@ mkcl_foreign_cc_code(MKCL, mkcl_object cc)
   mkcl_FEerror(env, "~A does no denote a valid calling convention.", 1, cc);
   return MKCL_FFI_CC_CDECL;
 }
+#endif
 
 mkcl_object
 mkcl_foreign_ref_elt(MKCL, void *p, enum mkcl_ffi_tag tag)
@@ -365,7 +371,12 @@ mkcl_foreign_ref_elt(MKCL, void *p, enum mkcl_ffi_tag tag)
   case MKCL_FFI_UNSIGNED_LONG:
     return mkcl_make_unsigned_integer(env, *(unsigned long *)p);
   case MKCL_FFI_POINTER_VOID:
-    return mkcl_make_foreign(env, @':void', 0, *(void **)p);
+    {
+      mkcl_object C_type = mk_cl_list(env, 2, @'*', @':void');
+      mkcl_object obj = mkcl_make_foreign(env, C_type, sizeof(void *));
+      *((void **) obj->foreign.data) = *(void **)p;
+      return obj;
+    }
   case MKCL_FFI_CSTRING:
     return *(char **)p ? mkcl_make_simple_base_string(env, *(char **)p) : mk_cl_Cnil; /* external-format needed? JCB */
   case MKCL_FFI_OBJECT:
@@ -507,13 +518,13 @@ mk_si_null_pointer_p(MKCL, mkcl_object f)
 }
 
 mkcl_object
-mk_si_foreign_recast(MKCL, mkcl_object f, mkcl_object size, mkcl_object tag)
+mk_si_foreign_recast(MKCL, mkcl_object f, mkcl_object size, mkcl_object C_type)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(f) != mkcl_t_foreign)
     mkcl_FEwrong_type_argument(env, @'si::foreign', f);
   f->foreign.size = mkcl_integer_to_index(env, size);
-  f->foreign.tag = tag;
+  f->foreign.C_type = C_type;
   @(return f);
 }
 
@@ -589,7 +600,7 @@ mk_si_unload_foreign_module(MKCL, mkcl_object module)
 }
 
 mkcl_object
-mk_si_find_foreign_symbol(MKCL, mkcl_object var, mkcl_object module, mkcl_object type, mkcl_object size)
+mk_si_find_foreign_symbol(MKCL, mkcl_object var, mkcl_object module, mkcl_object C_type, mkcl_object size)
 {
   mkcl_call_stack_check(env);
   volatile mkcl_object locked = mk_cl_Cnil;
@@ -610,7 +621,11 @@ mk_si_find_foreign_symbol(MKCL, mkcl_object var, mkcl_object module, mkcl_object
   } MKCL_UNWIND_PROTECT_END;
 
   if (sym != NULL)
-    output = mkcl_make_foreign(env, type, mkcl_integer_to_index(env, size), sym);
+    {
+      output = mkcl_make_foreign(env, C_type, sizeof(void *));
+      /* *((void **) output->foreign.data) = sym; */
+      ((void **) output->foreign.data)[0] = sym;
+    }
 
   if (mkcl_type_of(output) != mkcl_t_foreign)
     mkcl_FEerror(env, "FIND-FOREIGN-SYMBOL: Could not load foreign symbol ~S from module ~S (Error: ~S)", 3, var, module, output);
@@ -676,14 +691,14 @@ mkcl_fficall_prepare(MKCL, mkcl_object return_type, mkcl_object arg_type, mkcl_o
       fficall->buffer_sp = fficall->buffer;
       fficall->registers = NULL;
       fficall->output.pc = NULL;
-      fficall->cc = MKCL_FFI_CC_CDECL;
+      /* fficall->cc = MKCL_FFI_CC_CDECL; */
       /* fficall->cstring = mk_cl_Cnil; */
     }
   else
     fficall->buffer_sp = fficall->buffer;
   /* fficall->buffer_size = 0; */
   /* fficall->cstring = mk_cl_Cnil; */
-  fficall->cc = mkcl_foreign_cc_code(env, cc_type);
+  /* fficall->cc = mkcl_foreign_cc_code(env, cc_type); */
   fficall->registers = mkcl_fficall_prepare_extra(env, fficall->registers);
   return fficall;
 }
@@ -761,12 +776,17 @@ void mkcl_fficall_align16(MKCL)
 @)
 
 @(defun si::make-dynamic-callback (fun sym rtype argtypes &optional (cctype @':cdecl'))
-	mkcl_object data;
-	mkcl_object cbk;
 @
-  data = mk_cl_list(env, 3, fun, rtype, argtypes);
-  cbk  = mkcl_make_foreign(env, @':void', 0, mkcl_dynamic_callback_make(env, data, mkcl_foreign_cc_code(env, cctype)));
+  mkcl_object data = mk_cl_list(env, 3, fun, rtype, argtypes);
+#if 0
+  void * ptr = mkcl_dynamic_callback_make(env, data, mkcl_foreign_cc_code(env, cctype));
+#else
+  void * ptr = mkcl_dynamic_callback_make(env, data);
+#endif
+  mkcl_object C_type = mk_cl_list(env, 2, @'*', @':void');
+  mkcl_object cbk  = mkcl_make_foreign(env, C_type, sizeof(void *));
 
+  *((void **) cbk->foreign.data) = ptr;
   mk_si_put_sysprop(env, sym, @':callback', MKCL_CONS(env, cbk, data));
   @(return cbk);
 @)

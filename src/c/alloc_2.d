@@ -762,13 +762,14 @@ mkcl_alloc_raw_condition_variable(MKCL)
 }
 
 mkcl_object
-mkcl_alloc_raw_foreign(MKCL)
+mkcl_alloc_raw_foreign(MKCL, size_t size)
 {
   mkcl_object s;
 
   COLLECT_STATS(env, foreign);
-  s = MKCL_GC_MALLOC(env, sizeof(struct mkcl_foreign));
+  s = MKCL_GC_MALLOC(env, sizeof(struct mkcl_foreign) + size);
   s->foreign.t = mkcl_t_foreign;
+  s->foreign.size = size;
   return s;
 }
 
