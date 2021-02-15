@@ -679,7 +679,7 @@ mk_si_release_ffi_area(MKCL)
 }
 
 struct mkcl_fficall *
-mkcl_fficall_prepare(MKCL, mkcl_object return_type, mkcl_object arg_type, mkcl_object cc_type)
+mkcl_fficall_prepare(MKCL, mkcl_object return_type, mkcl_object arg_type)
 {
   struct mkcl_fficall *fficall = env->fficall;
 
@@ -691,14 +691,9 @@ mkcl_fficall_prepare(MKCL, mkcl_object return_type, mkcl_object arg_type, mkcl_o
       fficall->buffer_sp = fficall->buffer;
       fficall->registers = NULL;
       fficall->output.pc = NULL;
-      /* fficall->cc = MKCL_FFI_CC_CDECL; */
-      /* fficall->cstring = mk_cl_Cnil; */
     }
   else
     fficall->buffer_sp = fficall->buffer;
-  /* fficall->buffer_size = 0; */
-  /* fficall->cstring = mk_cl_Cnil; */
-  /* fficall->cc = mkcl_foreign_cc_code(env, cc_type); */
   fficall->registers = mkcl_fficall_prepare_extra(env, fficall->registers);
   return fficall;
 }
@@ -739,11 +734,13 @@ void mkcl_fficall_align16(MKCL)
   fficall->buffer_sp = (char *) (((intptr_t) (fficall->buffer_sp + 0xF)) & ~((uintptr_t)0xF));
 }
 
-@(defun si::call-cfun (fun return_type arg_types args &optional (cc_type @':cdecl'))
+mkcl_object mk_si_call_cfun(MKCL, mkcl_object fun, mkcl_object return_type, mkcl_object arg_types, mkcl_object args)
+{
   void *cfun = mkcl_foreign_raw_pointer(env, fun);
   enum mkcl_ffi_tag return_type_tag = mkcl_foreign_type_code(env, return_type);
-@
-  struct mkcl_fficall *fficall = mkcl_fficall_prepare(env, return_type, arg_types, cc_type);
+  struct mkcl_fficall *fficall = mkcl_fficall_prepare(env, return_type, arg_types);
+
+  mkcl_call_stack_check(env);
 
   while (MKCL_CONSP(arg_types)) {
     mkcl_object object;
@@ -773,21 +770,19 @@ void mkcl_fficall_align16(MKCL)
       fficall->buffer_sp = fficall->buffer;  
       @(return return_value);
     }
-@)
+}
 
-@(defun si::make-dynamic-callback (fun sym rtype argtypes &optional (cctype @':cdecl'))
-@
+mkcl_object mk_si_make_dynamic_callback(MKCL, mkcl_object fun, mkcl_object sym, mkcl_object rtype, mkcl_object argtypes)
+{
+  mkcl_call_stack_check(env);
+
   mkcl_object data = mk_cl_list(env, 3, fun, rtype, argtypes);
-#if 0
-  void * ptr = mkcl_dynamic_callback_make(env, data, mkcl_foreign_cc_code(env, cctype));
-#else
   void * ptr = mkcl_dynamic_callback_make(env, data);
-#endif
   mkcl_object C_type = mk_cl_list(env, 2, @'*', @':void');
   mkcl_object cbk  = mkcl_make_foreign(env, C_type, sizeof(void *));
 
   *((void **) cbk->foreign.data) = ptr;
   mk_si_put_sysprop(env, sym, @':callback', MKCL_CONS(env, cbk, data));
   @(return cbk);
-@)
+}
 

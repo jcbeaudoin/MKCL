@@ -838,8 +838,8 @@ extern "C" {
   extern MKCL_API mkcl_object mk_si_load_foreign_module(MKCL, mkcl_object module);
   extern MKCL_API mkcl_object mk_si_unload_foreign_module(MKCL, mkcl_object module);
   extern MKCL_API mkcl_object mk_si_find_foreign_symbol(MKCL, mkcl_object var, mkcl_object module, mkcl_object type, mkcl_object size);
-  extern MKCL_API mkcl_object mk_si_call_cfun(MKCL, mkcl_narg, mkcl_object fun, mkcl_object return_type, mkcl_object arg_types, mkcl_object args, ...);
-  extern MKCL_API mkcl_object mk_si_make_dynamic_callback(MKCL, mkcl_narg, mkcl_object fun, mkcl_object sym, mkcl_object return_type, mkcl_object arg_types, ...);
+  extern MKCL_API mkcl_object mk_si_call_cfun(MKCL, mkcl_object fun, mkcl_object return_type, mkcl_object arg_types, mkcl_object args);
+  extern MKCL_API mkcl_object mk_si_make_dynamic_callback(MKCL, mkcl_object fun, mkcl_object sym, mkcl_object return_type, mkcl_object arg_types);
   extern MKCL_API mkcl_object mk_si_trim_ffi_arguments_staging_area(MKCL);
   extern MKCL_API mkcl_object mk_si_release_ffi_area(MKCL);
   extern MKCL_API mkcl_object mk_si_pointer(MKCL, mkcl_object x);

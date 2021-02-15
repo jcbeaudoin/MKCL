@@ -697,19 +697,19 @@
 		  0 (max 0 (1- (* nargs 3)))))) ;; There is 3 characters per argument specifier. JCB
 
 ;;; FIXME! We should turn this into a closure generator that produces no code.
-(defmacro def-lib-function (name args &key returning module (call :cdecl))
+(defmacro def-lib-function (name args &key returning module)
   (multiple-value-bind (c-name lisp-name) (map-name-from-c-to-lisp name)
     (let* ((return-type (ffi::%convert-to-return-type returning))
 	   (return-required (not (eq return-type :void)))
 	   (argtypes (mapcar #'(lambda (a) (ffi::%convert-to-arg-type (second a))) args)))
       `(let ((c-fun (si::find-foreign-symbol ',c-name ,module :pointer-void 0)))
 	(defun ,lisp-name ,(mapcar #'first args)
-	  (si::call-cfun c-fun ',return-type ',argtypes (list ,@(mapcar #'first args)) ,call))))))
+	  (si::call-cfun c-fun ',return-type ',argtypes (list ,@(mapcar #'first args))))))))
 
-(defmacro def-function (name args &key module (returning :void) (call :cdecl))
+(defmacro def-function (name args &key module (returning :void))
   (when module
     (return-from def-function
-      `(def-lib-function ,name ,args :returning ,returning :module ,module :call ,call)))
+      `(def-lib-function ,name ,args :returning ,returning :module ,module)))
   (multiple-value-bind (c-name lisp-name)
       (map-name-from-c-to-lisp name)
     (let* ((arguments (mapcar #'first args))
@@ -822,12 +822,12 @@
   (multiple-value-bind (name call-type) (if (consp name)
 					    (values-list name)
 					  (values name :cdecl))
+                       (declare (ignorable call-type))
     ;;(format t "~&Expanding macro defcallback on ~S.~%" name)
     (let ((arg-types (mapcar #'second arg-desc))
 	  (arg-names (mapcar #'first arg-desc)))
       `(si::make-dynamic-callback
-	#'(si::lambda-block ,name ,arg-names ,@body)
-	',name ',ret-type ',arg-types ,call-type))))
+	#'(si::lambda-block ,name ,arg-names ,@body) ',name ',ret-type ',arg-types))))
 
 (defun callback (name)
   (let ((x (si::get-sysprop name :callback)))

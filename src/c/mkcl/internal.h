@@ -292,23 +292,10 @@ extern "C" {
     long double ld;
   };
 
-#if 0
-  enum mkcl_ffi_calling_convention {
-    MKCL_FFI_CC_CDECL = 0,
-    MKCL_FFI_CC_STDCALL
-  };
-  /* Note that the order of enums declared in enum mkcl_ffi_calling_convention must
-     carefully match the content of mkcl_foreign_cc_table[]. JCB
-   */
-#endif
-
   struct mkcl_fficall {
     char *buffer_sp;
     size_t buffer_size;
     union mkcl_ffi_values output;
-#if 0
-    enum mkcl_ffi_calling_convention cc;
-#endif
     struct mkcl_fficall_reg *registers;
     char * buffer;
     /* mkcl_object cstring; */
@@ -316,7 +303,7 @@ extern "C" {
 
   extern enum mkcl_ffi_tag mkcl_foreign_type_code(MKCL, mkcl_object type);
   extern enum mkcl_ffi_calling_convention mkcl_foreign_cc_code(MKCL, mkcl_object cc_type);
-  extern struct mkcl_fficall * mkcl_fficall_prepare(MKCL, mkcl_object return_type, mkcl_object arg_types, mkcl_object cc_type);
+  extern struct mkcl_fficall * mkcl_fficall_prepare(MKCL, mkcl_object return_type, mkcl_object arg_types);
   extern void mkcl_fficall_push_bytes(MKCL, void *data, size_t bytes);
   extern void mkcl_fficall_push_int(MKCL, int word);
   extern void mkcl_fficall_align4(MKCL);

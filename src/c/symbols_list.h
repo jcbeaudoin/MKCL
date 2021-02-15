@@ -1539,7 +1539,7 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
 
   {{SYS_ "*CODE-WALKER*", SI_SPECIAL, NULL, -1, MKCL_OBJNULL}},
 
-  {{SYS_ "CALL-CFUN", SI_ORDINARY, mk_si_call_cfun, -1, MKCL_OBJNULL}},
+  {{SYS_ "CALL-CFUN", SI_ORDINARY, mk_si_call_cfun, 4, MKCL_OBJNULL}},
   {{KEY_ "CALLBACK", KEYWORD, NULL, -1, MKCL_OBJNULL}},
   {{SYS_ "MAKE-DYNAMIC-CALLBACK", SI_ORDINARY, mk_si_make_dynamic_callback, -1, MKCL_OBJNULL}},
   {{KEY_ "CDECL", KEYWORD, NULL, -1, MKCL_OBJNULL}},
