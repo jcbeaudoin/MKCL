@@ -2622,11 +2622,7 @@
 #endif
 
 #ifndef STATIC
-# ifndef NO_DEBUGGING
-#   define STATIC /* ignore to aid profiling and possibly debugging     */
-# else
-#   define STATIC static
-# endif
+# define STATIC static
 #endif
 
 #if defined(LINUX) && (defined(USE_PROC_FOR_LIBRARIES) || defined(IA64) \
