@@ -586,7 +586,7 @@ void mkcl_sigfpe_handler(int sig, siginfo_t *info, void *aux)
   if ( env == NULL )
     maybe_lose("MKCL: mkcl_sigfpe_handler called outside a lisp thread!");
   else if (!mkcl_get_option(MKCL_OPT_BOOTED)) {
-    printf("For signal %d, %s\n", sig, sys_siglist[sig]);
+    psiginfo(info, "In mkcl_sigfpe_handler, Received this");
     mkcl_lose(env, "In mkcl_sigfpe_handler. Got signal before environment was installed on our thread.");
   }
   else
@@ -680,7 +680,7 @@ void mkcl_synchronous_signal_handler(int sig, siginfo_t *info, void *aux)
   else
     {
       if (!mkcl_get_option(MKCL_OPT_BOOTED)) {
-	printf("For signal %d, %s\n", sig, sys_siglist[sig]);
+	psiginfo(info, "In mkcl_synchronous_signal_handler, Received this");
 	mkcl_lose(env, "In mkcl_synchronous_signal_handler. "
 		  "Got signal before environment was installed"
 		  " on our thread.");
@@ -734,7 +734,7 @@ void mkcl_sigsegv_handler(int sig, siginfo_t *info, void *aux)
   else
     {
       if (!mkcl_get_option(MKCL_OPT_BOOTED)) {
-	printf("For signal %d, %s\n", sig, sys_siglist[sig]);
+	psiginfo(info, "In mkcl_sigsegv_handler, Received this");
 	mkcl_lose(env, "In mkcl_sigsegv_handler. "
 		  "Got signal before environment was installed"
 		  " on our thread.");
@@ -822,7 +822,7 @@ void mkcl_sigbus_handler(int sig, siginfo_t *info, void *aux)
   else
     {
       if (!mkcl_get_option(MKCL_OPT_BOOTED)) {
-	printf("For signal %d, %s\n", sig, sys_siglist[sig]);
+	psiginfo(info, "In mkcl_sigbus_handler, Received this");
 	mkcl_lose(env, "In mkcl_sigbus_handler. "
 		  "Got signal before environment was installed"
 		  " on our thread.");
