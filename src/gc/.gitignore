@@ -7,3 +7,4 @@ configure.lineno
 libtool
 /config.log
 /config.status
+!include/
