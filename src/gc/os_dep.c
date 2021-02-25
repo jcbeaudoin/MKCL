@@ -529,6 +529,10 @@ MK_GC_INNER char * MK_GC_get_maps(void)
   }
 #endif /* NETBSD */
 
+#ifdef JMP_BUF
+  JMP_BUF MK_GC_jmp_buf;  /* JCB */
+#endif
+
 #ifdef OPENBSD
   static struct sigaction old_segv_act;
   STATIC sigjmp_buf MK_GC_jmp_buf_openbsd;

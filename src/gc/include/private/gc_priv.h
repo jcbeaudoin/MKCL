@@ -2488,7 +2488,7 @@ MK_GC_INNER ptr_t MK_GC_store_debug_info(ptr_t p, word sz, const char *str,
 
 #if defined(NEED_FIND_LIMIT) \
      || (defined(USE_PROC_FOR_LIBRARIES) && defined(THREADS))
-  JMP_BUF MK_GC_jmp_buf;
+  MK_GC_API JMP_BUF MK_GC_jmp_buf;
 
   /* Set up a handler for address faults which will longjmp to  */
   /* MK_GC_jmp_buf;                                                */
