@@ -1743,7 +1743,7 @@ if not possible."
 		    (warn "The function ~s is already in the runtime. C-EXPORT-FNAME declaration ignored." x)
 		    (put-sysprop x 'Lfun c-name))))
 	     ((consp x)
-	      (destructuring-bind (c-name lisp-name) x
+	      (destructuring-bind (lisp-name c-name) x
 		(if (si::mangle-function-name lisp-name)
 		    (warn "The function ~s is already in the runtime. C-EXPORT-FNAME declaration ignored." lisp-name)
 		    (put-sysprop lisp-name 'Lfun c-name))))

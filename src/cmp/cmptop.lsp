@@ -368,7 +368,7 @@
 
 (defun exported-fname (name)
   (let (cname found)
-    (if (and (symbolp name) (setf cname (get-sysprop name 'Lfun)))
+    (if (and (symbolp name) (setf cname (get-sysprop name 'si::Lfun)))
         (values cname t)
       (if (multiple-value-setq (found cname) (si::mangle-function-name name))
 	  (values cname t)

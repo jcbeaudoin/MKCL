@@ -292,7 +292,7 @@
   (rem-sysprop symbol ':inline-always)
   (rem-sysprop symbol ':inline-unsafe)
   (rem-sysprop symbol ':inline-safe)
-  (rem-sysprop symbol 'lfun))
+  (rem-sysprop symbol 'si::lfun))
   
 (defun lisp-to-c-function-name (obj)
   "Translate Lisp function name object prin1 representation to valid C function name"

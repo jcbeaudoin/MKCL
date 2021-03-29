@@ -147,7 +147,7 @@
    ;; either because it has been proclaimed so, or because it belongs
    ;; to the runtime.
    ((and (<= (cmp-env-optimization 'debug) 1)
-	 (setf fd (get-sysprop fname 'Lfun))
+	 (setf fd (get-sysprop fname 'si::Lfun))
 	 (multiple-value-setq (minarg maxarg) (get-proclaimed-narg fname)))
     ;;(format t "~&About to call call-exported-function-loc on: ~S~%" fname)(finish-output) ;; debug JCB
     (call-exported-function-loc fname args fd minarg maxarg nil))
