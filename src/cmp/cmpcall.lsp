@@ -148,7 +148,7 @@
    ;; to the runtime.
    ((and (<= (cmp-env-optimization 'debug) 1)
 	 (setf fd (get-sysprop fname 'si::Lfun))
-	 (multiple-value-setq (minarg maxarg) (get-proclaimed-narg fname)))
+	 (multiple-value-setq (found minarg maxarg) (get-proclaimed-narg fname)))
     ;;(format t "~&About to call call-exported-function-loc on: ~S~%" fname)(finish-output) ;; debug JCB
     (call-exported-function-loc fname args fd minarg maxarg nil))
 
@@ -169,7 +169,7 @@
 	(gethash fun-c-name *compiler-declared-globals*)
       (declare (ignore val))
       (unless declared
-	(if (= maxarg minarg)
+	(if (and (= maxarg minarg) (<= maxarg si::c-arguments-limit))
 	    (progn
 	      (wt-nl-h "extern mkcl_object ") (wt-h fun-c-name) (wt-h "(MKCL")
 	      (dotimes (i maxarg)

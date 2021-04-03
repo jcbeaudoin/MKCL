@@ -38,7 +38,7 @@ mk_cl_upgraded_array_element_type(MKCL, mkcl_narg narg, mkcl_object type, ...)
 }
 
 extern mkcl_object
-mk_si_safe_eval(MKCL, mkcl_narg arg, mkcl_object form, mkcl_object lex_env, mkcl_object error_value, ...)
+mk_si_safe_eval(MKCL, mkcl_object form, mkcl_object lex_env, mkcl_object error_value)
 {
   mkcl_call_stack_check(env);
   return mkcl_funcall3(env, @+'si::safe-eval', form, lex_env, error_value);
@@ -70,7 +70,7 @@ mk_cl_vector_push_extend(MKCL, mkcl_narg narg, mkcl_object elt, mkcl_object vect
 }
 
 extern mkcl_object
-mk_si_find_relative_package(MKCL, mkcl_narg narg, mkcl_object package, ...)
+mk_si_find_relative_package(MKCL, mkcl_object package)
 {
   @(return mk_cl_Cnil);
 }

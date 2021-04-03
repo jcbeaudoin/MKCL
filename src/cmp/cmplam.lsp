@@ -100,18 +100,20 @@ The function thus belongs to the type of functions that mkcl_make_cfun accepts."
       (setf (c1form-volatile lambda-expr) t))
     (setf (fun-lambda fun) lambda-expr)
     (if global
-	(multiple-value-setq (cfun exported) (exported-fname name))
-	(setf cfun (next-cfun "LC~D~A" name) exported nil))
-    (if exported
+	(multiple-value-setq (cfun exported) (exported-fname name)) ;; Can we only C "export" "global" function names (ie.: defuns), really? JCB
+      (setf cfun (next-cfun "LC~D~A" name) exported nil))
+    (multiple-value-setq (minarg maxarg) (lambda-form-allowed-nargs lambda-expr))
+    (when exported
 	;; Check whether the function was proclaimed to have a certain
-	;; number of arguments, and otherwise produce a function with
-	;; a flexible signature.
-	(progn
-	  (multiple-value-setq (minarg maxarg) (get-proclaimed-narg name))
-	  (unless minarg
-	    (setf minarg 0 maxarg call-arguments-limit)))
-      (multiple-value-setq (minarg maxarg)
-			   (lambda-form-allowed-nargs lambda-expr)))
+	;; number of arguments, and validate match with effectively stated signature.
+	(multiple-value-bind (found-proclaim proclaimed-minarg proclaimed-maxarg)
+            (get-proclaimed-narg name)
+          (when found-proclaim
+            (unless (and (= minarg proclaimed-minarg) (= maxarg proclaimed-maxarg)) (break))
+            (cmpassert (and (= minarg proclaimed-minarg) (= maxarg proclaimed-maxarg))
+                       "In function ~S, the stated actual lambda-list does not match the proclaimed one. (~S ~S, vs ~S ~S)"
+                       name minarg maxarg proclaimed-minarg proclaimed-maxarg))))
+ 
     (setf (fun-cfun fun) cfun
 	  (fun-global fun) global
 	  (fun-exported fun) exported
@@ -292,9 +294,9 @@ The function thus belongs to the type of functions that mkcl_make_cfun accepts."
     (destructuring-bind (requireds optionals rest key-flag keywords a-o-k)
 	(c1form-arg 0 lambda)
       (declare (ignore keywords))
+      (setq minarg (length requireds))
       (when (and (null rest) (not key-flag) (not a-o-k))
-	(setf minarg (length requireds)
-	      maxarg (+ minarg (/ (length optionals) 3)))))
+	(setq maxarg (+ minarg (/ (length optionals) 3)))))
     (values minarg maxarg)))
 
 #| Steps:

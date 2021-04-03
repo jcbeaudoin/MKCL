@@ -135,7 +135,7 @@
 	   and maxarg = 0
 	   and in-optionals = nil
 	   do (cond ((member type '(* &rest &key &allow-other-keys) :test #'eq)
-		     (return (values minarg call-arguments-limit)))
+		     (return (values found minarg call-arguments-limit)))
 		    ((eq type '&optional)
 		     (setf in-optionals t maxarg minarg))
 		    (in-optionals
@@ -143,13 +143,13 @@
 		    (t
 		     (incf minarg)
 		     (incf maxarg)))
-	   finally (return (values minarg maxarg)))
+	   finally (return (values found minarg maxarg)))
       #+(and) ;; JCB
       (multiple-value-bind (found cname minarg maxarg) (si::mangle-function-name fun-name)
-	(declare (ignore found cname))
-	(values minarg maxarg)
+	(declare (ignore cname))
+	(values found minarg maxarg)
 	)
-      #+(or)(values 0 call-arguments-limit)))) ;; JCB
+      #+(or)(values found 0 call-arguments-limit)))) ;; JCB
 
 ;;; Proclamation and declaration handling.
 

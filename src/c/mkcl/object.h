@@ -32,7 +32,7 @@
    Changes in FASL layout should be rare and well motivated
    since they destroy binary upward compatibility of FASLs.
 */
-#define MKCL_FASL_VERSION 6 /* for MKCL 1.1.10 */
+#define MKCL_FASL_VERSION 7 /* for post MKCL 1.1.11 */
 
 #ifdef __cplusplus
 extern "C" {

@@ -339,7 +339,7 @@ mkcl_find_package_nolock(MKCL, mkcl_object name)
   if (mkcl_get_option(MKCL_OPT_BOOTED)
       && MKCL_SYM_FUN(@'si::find-relative-package') != mk_cl_Cnil
       && MKCL_SYM_VAL(env, @'si::*relative-package-names*') != mk_cl_Cnil) {
-    return mk_si_find_relative_package(env, 1, name);
+    return mk_si_find_relative_package(env, name);
   }
 #endif
   return mk_cl_Cnil;

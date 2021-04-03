@@ -785,7 +785,7 @@
 
     (proclaim-function si:replace-array (*) t)
 
-    (proclaim-function bit ((array bit) *) bit :no-side-effects t)
+    (proclaim-function bit ((array bit) &rest t) bit :no-side-effects t)
 
     (def-inline bit :always (t t) t "mk_cl_aref(env, 2, #0, #1)")
     (def-inline bit :always (t t t) t "mk_cl_aref(env, 3, #0, #1, #2)")
@@ -807,7 +807,7 @@
     (def-inline bit :unsafe ((array bit) fixnum) t "mkcl_bvref_index(env, #0,#1)") ;;not quite unsafe
     (def-inline bit :unsafe ((array bit) fixnum) :fixnum "mkcl_bvref_index_raw(env, #0,#1)") ;;not quite unsafe
 
-    (proclaim-function sbit ((simple-array bit) *) bit :no-side-effects t)
+    (proclaim-function sbit ((simple-array bit) &rest t) bit :no-side-effects t)
 
     (def-inline sbit :always (t t) t "mk_cl_aref(env, 2, #0, #1)")
     (def-inline sbit :always (t t t) t "mk_cl_aref(env, 3, #0, #1, #2)")
@@ -829,7 +829,7 @@
     (def-inline sbit :unsafe ((array bit) fixnum) t "mkcl_bvref_index(env, #0,#1)") ;;not quite unsafe
     (def-inline sbit :unsafe ((array bit) fixnum) :fixnum "mkcl_bvref_index_raw(env, #0,#1)") ;;not quite unsafe
 
-    (proclaim-function si:bit-set (bit (array bit) *) bit)
+    (proclaim-function si:bit-set (bit (array bit) &rest t) bit)
 
     (def-inline si:bit-set :always (t t t) t "mk_si_aset(env, 3, #0, #1, #2)")
     (def-inline si:bit-set :always (t t t t) t "mk_si_aset(env, 4, #0, #1, #2, #3)")
@@ -852,7 +852,7 @@
     (def-inline si:bit-set :unsafe (fixnum (array bit) fixnum) t "MKCL_MAKE_FIXNUM(mkcl_bvset_index_raw(env, #1, #2, #0))") ;;not quite unsafe
     (def-inline si:bit-set :unsafe (fixnum (array bit) fixnum) :fixnum "mkcl_bvset_index_raw(env, #1, #2, #0)") ;;not quite unsafe
 
-    (proclaim-function si:sbit-set (bit (simple-array bit) *) bit)
+    (proclaim-function si:sbit-set (bit (simple-array bit) &rest t) bit)
 
     (def-inline si:sbit-set :always (t t t) t "mk_si_aset(env, 3, #0, #1, #2)")
     (def-inline si:sbit-set :always (t t t t) t "mk_si_aset(env, 4, #0, #1, #2, #3)")
@@ -1278,11 +1278,11 @@
     (def-inline acons :always (t t t) t "MKCL_CONS(env, MKCL_CONS(env, (#0), (#1)), (#2))")
     (proclaim-function pairlis (list list *) list)
     (proclaim-function assoc (t list *) list)
-    (proclaim-function assoc-if (t list *) list)
-    (proclaim-function assoc-if-not (t list *) list)
-    (proclaim-function rassoc (t list *) list)
-    (proclaim-function rassoc-if (t list *) list)
-    (proclaim-function rassoc-if-not (t list *) list)
+    (proclaim-function assoc-if (t list &key t) list)
+    (proclaim-function assoc-if-not (t list &key t) list)
+    (proclaim-function rassoc (t list &key t) list)
+    (proclaim-function rassoc-if (t list &key t) list)
+    (proclaim-function rassoc-if-not (t list &key t) list)
     (proclaim-function si:memq (t t) t)
 
     ;; file macros.d
@@ -1424,12 +1424,17 @@
 
     (proclaim-function numerator (t) t)
     (proclaim-function denominator (t) t)
-    (proclaim-function floor (t *) (values t t) :no-side-effects t)
+    (proclaim-function floor (t &optional t) (values t t) :no-side-effects t)
+    (proclaim-function ffloor (t &optional t) (values t t) :no-side-effects t)
 
-    (proclaim-function ceiling (t *) (values t t))
-    (proclaim-function truncate (t *) (values t t) :no-side-effects t)
+    (proclaim-function ceiling (t &optional t) (values t t))
+    (proclaim-function fceiling (t &optional t) (values t t))
+    (proclaim-function truncate (t &optional t) (values t t) :no-side-effects t)
+    (proclaim-function ftruncate (t &optional t) (values t t) :no-side-effects t)
 
-    (proclaim-function round (t *) (values t t))
+    (proclaim-function round (t &optional t) (values t t))
+    (proclaim-function fround (t &optional t) (values t t))
+
     (proclaim-function mod (t t) t :no-side-effects t)
     (def-inline mod :always (fixnum fixnum) t
       "@01;MKCL_MAKE_FIXNUM(((#0)>=0&&(#1)>0) ? (#0)%(#1) : mkcl_imod(env, #0,#1))")
@@ -1659,7 +1664,6 @@
     (def-inline tan :always (single-float) :float "tanf(#0)")
     (def-inline tan :always (fixnum) :float "tanf(#0)")
 
-    (proclaim-function atan (t *) t)
 
     ;; file package.d
 
@@ -1674,7 +1678,7 @@
     (proclaim-function package-shadowing-symbols (t) t)
     (proclaim-function list-all-packages () t)
     (proclaim-function intern (string *) (values t t))
-    (proclaim-function find-symbol (string *) (values t t))
+    (proclaim-function find-symbol (string &optional t) (values t t))
     (proclaim-function unintern (t *) t)
     (proclaim-function export (t *) t)
     (proclaim-function unexport (t *) t)
@@ -1754,6 +1758,8 @@
     (proclaim-function bit-vector-p (t) t :predicate t :no-side-effects t)
     (def-inline bit-vector-p :always (t) :bool "(mkcl_type_of(#0)==mkcl_t_bitvector)")
 
+    (proclaim-function vector (&rest t) t)
+
     (proclaim-function vectorp (t) t :predicate t :no-side-effects t)
     (def-inline vectorp :always (t) :bool "@0;MKCL_VECTORP(#0)")
 
@@ -1763,7 +1769,7 @@
     (def-inline vector-push :always (character string) t "mkcl_string_push(env, #1, #0)")
     (def-inline vector-push :always (base-char base-string) t "mkcl_base_string_push(env, #1, #0)")
 
-    (proclaim-function vector-push-extend (t vector *) fixnum :no-sp-change t)
+    (proclaim-function vector-push-extend (t vector &optional t) fixnum :no-sp-change t)
     (def-inline vector-push-extend :always (t vector) t "MKCL_MAKE_FIXNUM(mkcl_vector_push_extend(env, #1, #0))")
     (def-inline vector-push-extend :always (t vector) :fixnum "mkcl_vector_push_extend(env, #1, #0)")
     #+unicode
@@ -1933,21 +1939,21 @@
     (proclaim-function reverse (sequence) sequence)
     (proclaim-function nreverse (sequence) sequence)
 
-    (proclaim-function fill (sequence t *) sequence)
+    (proclaim-function fill (sequence t &key t) sequence)
     #+unicode
     (def-inline fill :always (string character) t "mkcl_fill_string(env, #0, #1)")
     (def-inline fill :always (base-string base-char) t "mkcl_fill_base_string(env, #0, #1)")
 
-    (proclaim-function replace (sequence sequence *) sequence)
+    (proclaim-function replace (sequence sequence &key t) sequence)
     #+unicode
     (def-inline replace :always (string string) t "mkcl_replace_in_string(env, #0, #1)")
     (def-inline replace :always (base-string base-string) t "mkcl_replace_in_base_string(env, #0, #1)")
 
-    (proclaim-function search (sequence sequence *) t)
+    (proclaim-function search (sequence sequence &key t) t)
     (def-inline search :always (base-string base-string) t "mkcl_search_in_base_string(env, #0, #1)")
 
-    (proclaim-function map (t t t *) t)
-    (proclaim-function map-into (t t *) t)
+    (proclaim-function map (t t t &rest t) t)
+    (proclaim-function map-into (t t &rest t) t)
 
     ;; file character.d
 
@@ -2166,10 +2172,16 @@
 
     ;; file seq.lsp
 
-    (proclaim-function si::make-seq-iterator (t *) t :no-sp-change t)
+    (proclaim-function concatenate (t &rest t) t)
+    (proclaim-function make-sequence (t t &key t) t)
+    (proclaim-function si::make-seq-iterator (t &optional t) t :no-sp-change t)
     (proclaim-function si::seq-iterator-ref (sequence t) t :no-sp-change t)
     (proclaim-function si::seq-iterator-set (sequence t t) t :no-sp-change t)
     (proclaim-function si::seq-iterator-next (sequence t) t :no-sp-change t)
+    (proclaim-function some (t t &rest t) t)
+    (proclaim-function every (t t &rest t) t)
+    (proclaim-function notany (t t &rest t) t)
+    (proclaim-function notevery (t t &rest t) t)
 
     ;; Additions used by the compiler.
     ;; The following functions do not exist. They are always expanded into the
@@ -2258,6 +2270,126 @@
 
     (proclaim-function clos::class-slots (class) list)
     (proclaim-function clos::method-specializers (method) t)
+
+    (proclaim-function si::do-deftype (t t t) t)
+    (proclaim-function cl:upgraded-array-element-type (t &optional t) t)
+    (proclaim-function cl:upgraded-complex-part-type (t &optional t) t)
+
+    (proclaim-function cl:subtypep (t t &optional t) t)
+
+    (proclaim-function si::search-keyword (t t) t)
+
+    (proclaim-function make-array (t &key t) t)
+    (proclaim-function array-in-bounds-p (t &rest t) t)
+    (proclaim-function cl:bit (t &rest t) t)
+    (proclaim-function cl:sbit (t &rest t) t)
+    (proclaim-function cl:bit-and (t t &optional t) t)
+    (proclaim-function cl:bit-ior (t t &optional t) t)
+    (proclaim-function cl:bit-xor (t t &optional t) t)
+    (proclaim-function cl:bit-eqv (t t &optional t) t)
+    (proclaim-function cl:bit-nand (t t &optional t) t)
+    (proclaim-function cl:bit-nor (t t &optional t) t)
+    (proclaim-function cl:bit-andc1 (t t &optional t) t)
+    (proclaim-function cl:bit-andc2 (t t &optional t) t)
+    (proclaim-function cl:bit-orc1 (t t &optional t) t)
+    (proclaim-function cl:bit-orc2 (t t &optional t) t)
+    (proclaim-function cl:bit-not (t &optional t) t)
+    (proclaim-function cl:adjust-array (t t &key t) t)
+
+    (proclaim-function cl:read-from-string (t &optional t t &key t) (values t t))
+    (proclaim-function cl:write-to-string (t &key t) t)
+    (proclaim-function mkcl:write-to-base-string (t &key t &allow-other-keys) t)
+    (proclaim-function mkcl:prin1-to-base-string (t &key t) t)
+    (proclaim-function mkcl:princ-to-base-string (t &key t) t)
+    (proclaim-function cl:ensure-directories-exist (t &key t) (values t t))
+    (proclaim-function mkcl:run-program (t t &rest t &key t) (values t t t))
+
+    (proclaim-function cl:union (t t &key t) t)
+    (proclaim-function cl:nunion (t t &key t) t)
+    (proclaim-function cl:intersection (t t &key t) t)
+    (proclaim-function cl:nintersection (t t &key t) t)
+    (proclaim-function cl:set-difference (t t &key t) t)
+    (proclaim-function cl:nset-difference (t t &key t) t)
+    (proclaim-function cl:set-exclusive-or (t t &key t) t)
+    (proclaim-function cl:nset-exclusive-or (t t &key t) t)
+    (proclaim-function cl:subsetp (t t &key t) t)
+    (proclaim-function cl:assoc (t t &key t) t)
+    (proclaim-function cl:assoc-if (t t &key t) t)
+    (proclaim-function cl:assoc-if-not (t t &key t) t)
+    (proclaim-function cl:rassoc (t t &key t) t)
+    (proclaim-function cl:rassoc-if (t t &key t) t)
+    (proclaim-function cl:rassoc-if-not (t t &key t) t)
+    (proclaim-function cl:member (t t &key t) t)
+    (proclaim-function cl:member-if (t t &key t) t)
+    (proclaim-function cl:member-if-not (t t &key t) t)
+    (proclaim-function cl:subst (t t t &key t) t)
+    (proclaim-function cl:subst-if (t t t &key t) t)
+    (proclaim-function cl:subst-if-not (t t t &key t) t)
+    (proclaim-function cl:nsubst (t t t &key t) t)
+    (proclaim-function cl:nsubst-if (t t t &key t) t)
+    (proclaim-function cl:nsubst-if-not (t t t &key t) t)
+
+    (proclaim-function cl:decode-universal-time (t &optional t) (values t t t t t t t t t))
+    (proclaim-function cl:encode-universal-time (t t t t t t &optional t) t)
+
+    (proclaim-function cl:atan (t &optional t) t)
+
+    (proclaim-function cl:apropos (t &optional t) (values))
+    (proclaim-function cl:apropos-list (t &optional t) t)
+
+    (proclaim-function si:package-children (t &key t) t)
+
+    (proclaim-function cl:reduce (t t &key t) t)
+    (proclaim-function cl:remove (t t &key t) t)
+    (proclaim-function cl:remove-if (t t &key t) t)
+    (proclaim-function cl:remove-if-not (t t &key t) t)
+    (proclaim-function cl:delete (t t &key t) t)
+    (proclaim-function cl:delete-if (t t &key t) t)
+    (proclaim-function cl:delete-if-not (t t &key t) t)
+    (proclaim-function cl:position (t t &key t) t)
+    (proclaim-function cl:position-if (t t &key t) t)
+    (proclaim-function cl:position-if-not (t t &key t) t)
+    (proclaim-function cl:count (t t &key t) t)
+    (proclaim-function cl:count-if (t t &key t) t)
+    (proclaim-function cl:count-if-not (t t &key t) t)
+    (proclaim-function cl:substitute (t t t &key t) t)
+    (proclaim-function cl:substitute-if (t t t &key t) t)
+    (proclaim-function cl:substitute-if-not (t t t &key t) t)
+    (proclaim-function cl:nsubstitute (t t t &key t) t)
+    (proclaim-function cl:nsubstitute-if (t t t &key t) t)
+    (proclaim-function cl:nsubstitute-if-not (t t t &key t) t)
+    (proclaim-function cl:find (t t &key t) t)
+    (proclaim-function cl:find-if (t t &key t) t)
+    (proclaim-function cl:find-if-not (t t &key t) t)
+    (proclaim-function cl:remove-duplicates (t &key t) t)
+    (proclaim-function cl:delete-duplicates (t &key t) t)
+    (proclaim-function cl:mismatch (t t &key t) t)
+    (proclaim-function cl:sort (t t &key t) t)
+    (proclaim-function cl:stable-sort (t t &key t) t)
+    (proclaim-function cl:merge (t t t t &key t) t)
+
+    (proclaim-function cl:method-combination-error (t &rest t) t)
+    (proclaim-function cl:invalid-method-error (t t &rest t) t)
+
+    (proclaim-function cl:pprint-newline (t &optional t) t)
+    (proclaim-function cl:pprint-indent (t t &optional t) t)
+    (proclaim-function cl:pprint-tab (t t t &optional t) t)
+    (proclaim-function cl:pprint-fill (t t &optional t t) t)
+    (proclaim-function cl:pprint-linear (t t &optional t t) t)
+    (proclaim-function cl:pprint-tabular (t t &optional t t t) t)
+    (proclaim-function cl:copy-pprint-dispatch (&optional t) t)
+    (proclaim-function cl:pprint-dispatch (t &optional t) (values t t))
+    (proclaim-function cl:set-pprint-dispatch (t t &optional t t) t)
+
+    (proclaim-function cl:continue (&optional t) t)
+    (proclaim-function cl:abort (&optional t) t)
+    (proclaim-function cl:muffle-warning (&optional t) t)
+    (proclaim-function cl:store-value (t &optional t) t)
+    (proclaim-function cl:use-value (t &optional t) t)
+
+    (proclaim-function cl:require (t &optional t) t)
+    (proclaim-function cl:y-or-n-p (&optional t &rest t) t)
+    (proclaim-function cl:yes-or-no-p (&optional t &rest t) t)
     )
   )  ;; end of (defparameter +all-optimizers+ ...)
 
