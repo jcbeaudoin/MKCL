@@ -1734,7 +1734,7 @@ if not possible."
      (warn "The ~A proclamation is not supported at this moment." decl-name))
     (DECLARATION
      (do-declaration (rest decl) #'error))
-    (SI::C-EXPORT-FNAME ;; This declaration cannot be used on globally named closures (ie: produced by a "defun"). JCB
+    (MKCL:C-EXPORT-FNAME ;; This declaration cannot be used on globally named closures (ie: produced by a "defun"). JCB
      (dolist (x (cdr decl))
        (cond ((symbolp x)
 	      (multiple-value-bind (found c-name)

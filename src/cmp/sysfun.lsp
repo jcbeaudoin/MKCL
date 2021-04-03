@@ -2411,9 +2411,9 @@
 ;;;
 
 
-
+#+(or) ;; commented out until I receive valid motivation to do otherwise. JCB 2021/04/03.
 (proclaim
- `(SI::C-EXPORT-FNAME
+ `(MKCL:C-EXPORT-FNAME
    si::ecase-error si::etypecase-error si::do-check-type
    si::ccase-error si::find-documentation si::find-declarations
    si::search-keyword si::check-keyword si::check-arg-length
