@@ -1743,10 +1743,14 @@ if not possible."
 		    (warn "The function ~s is already in the runtime. C-EXPORT-FNAME declaration ignored." x)
 		    (put-sysprop x 'Lfun c-name))))
 	     ((consp x)
-	      (destructuring-bind (lisp-name c-name) x
-		(if (si::mangle-function-name lisp-name)
-		    (warn "The function ~s is already in the runtime. C-EXPORT-FNAME declaration ignored." lisp-name)
-		    (put-sysprop lisp-name 'Lfun c-name))))
+	      (destructuring-bind (arg0 arg1) x
+                (let (lisp-name c-name)
+                  (cond ((and (symbolp arg0) (stringp arg1)) (setq lisp-name arg0 c-name arg1))
+                        ((and (stringp arg0) (symbolp arg1)) (setq lisp-name arg1 c-name arg0))
+                        (t (warn "Ignoring invalid arguments (~S ~S) in proclamation ~S." arg0 arg1 decl)))
+		  (if (si::mangle-function-name lisp-name)
+		      (warn "The function ~s is already in the runtime. C-EXPORT-FNAME declaration ignored." lisp-name)
+		    (put-sysprop lisp-name 'Lfun c-name)))))
 	     (t
 	      (error "Syntax error in proclamation ~s" decl)))))
     ((ARRAY ATOM BASE-CHAR BIGNUM BIT BIT-VECTOR CHARACTER COMPILED-FUNCTION
