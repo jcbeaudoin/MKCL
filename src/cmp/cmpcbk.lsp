@@ -3,7 +3,7 @@
 ;;;;  CMPCBK --  Callbacks: lisp functions that can be called from the C world
 
 ;;;;  Copyright (c) 2003, Juan Jose Garcia-Ripoll.
-;;;;  Copyright (c) 2012, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2012,2021 Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -15,39 +15,40 @@
 (in-package "COMPILER")
 
 (defun c1-defcallback (args)
-  (destructuring-bind (name return-type arg-list &rest body)
-      args
-    (let ((arg-types '())
-	  (arg-type-constants '())
-	  (arg-variables '())
-	  (c-name (format nil "mkcl_callback_~d" (length *callbacks*)))
-	  (name (if (consp name) (first name) name))
-	  (call-type (if (consp name) (second name) :cdecl)))
-      (dolist (i arg-list)
-	(unless (consp i)
-	  (cmperr "Syntax error in CALLBACK form: C type is missing in argument ~A "i))
-	(push (first i) arg-variables)
-	(let ((type (second i)))
-	  (push (second i) arg-types)
-	  (push (if (ffi::foreign-elt-type-p type)
-		    (foreign-elt-type-code type)
-		    (add-object type))
-		arg-type-constants)))
-      (push (list name c-name (add-object name)
-		  return-type (reverse arg-types) (reverse arg-type-constants) call-type)
-	    *callbacks*)
-      (c1expr
-       `(progn
-	 ;; defun does not seem to work very well when not at toplevel!
-	 ;;(defun ,name ,(reverse arg-variables) ,@body)
-	 (setf (symbol-function ',name)
-	       #'(si::lambda-block ,name ,(reverse arg-variables) ,@body))
-	 (si::put-sysprop ',name :callback
-	  (list
-	  (ffi:c-inline () () :object
-	   ,(format nil "mkcl_make_foreign(env,@':pointer-void,0,~a)" c-name)
-	   :one-liner t)))))
-      )))
+  (destructuring-bind (name-spec return-type arg-list &rest body) args
+    (let ((name (if (consp name-spec) (first name-spec) name-spec))
+          (call-type (if (consp name-spec) (second name-spec) :cdecl)))
+      (multiple-value-bind (exported-name callback-exported-p) (exported-fname name)
+        (let ((arg-types '())
+	      (arg-type-constants '())
+	      (arg-variables '())
+              (helper-name (intern (mkcl:str+ (symbol-name name) "-CALLBACK-HELPER") (symbol-package name)))
+              (c-name (if callback-exported-p exported-name (next-cfun "LC~D~A" name))))
+          (dolist (i arg-list)
+	    (unless (consp i)
+	      (cmperr "Syntax error in CALLBACK form: C type is missing in argument ~A "i))
+	    (push (first i) arg-variables)
+	    (let ((type (second i)))
+	      (push (second i) arg-types)
+	      (push (if (ffi::foreign-elt-type-p type)
+		        (foreign-elt-type-code type)
+		      (add-object type))
+		    arg-type-constants)))
+          (push (list name c-name (add-object helper-name)
+		      return-type (reverse arg-types) (reverse arg-type-constants)
+                      call-type callback-exported-p)
+	        *callbacks*)
+          (c1expr
+           `(progn
+	      ;; defun does not seem to work very well when not at toplevel!
+	      ;;(defun ,helper-name ,(reverse arg-variables) ,@body)
+	      (setf (symbol-function ',helper-name)
+	            #'(si::lambda-block ,helper-name ,(reverse arg-variables) ,@body))
+	      (si::put-sysprop ',name :callback
+	                       (list
+	                        (ffi:c-inline () () :object
+	                                      ,(format nil "mkcl_make_foreign(env,@':pointer-void,0,~a)" c-name)
+	                                      :one-liner t))))))))))
 
 (defconstant +foreign-elt-type-codes+
   '((:char . "MKCL_FFI_CHAR")
@@ -76,8 +77,10 @@
       (cmperr "~a is not a valid elementary FFI type" x))
     (cdr x)))
 
-(defun t3-defcallback (lisp-name c-name c-name-constant return-type
-		       arg-types arg-type-constants call-type &aux (return-p t))
+(defun t3-defcallback (lisp-name c-name helper-constant
+                                 return-type arg-types arg-type-constants
+                                 call-type exported-p
+                                 &aux (return-p t))
   (cond ((ffi::foreign-elt-type-p return-type))
 	((member return-type '(nil :void))
 	 (setf return-p nil))
@@ -91,8 +94,8 @@
 		(:cdecl "")
 		(:stdcall "__stdcall ")
 		(t (cmperr "DEFCALLBACK does not support ~A as calling convention" call-type)))))
-    (wt-nl1 "static " return-type-name " " fmod c-name "(")
-    (wt-nl-h "static " return-type-name " " fmod c-name "(")
+    (wt-nl1 (if exported-p "extern " "static ") return-type-name " " fmod c-name "(")
+    (wt-nl-h (if exported-p "extern MKCL_DLLEXPORT " "static ") return-type-name " " fmod c-name "(")
     (if arg-types
 	(loop for n from 0
 	      and type in arg-types
@@ -102,8 +105,7 @@
 		(wt comma (rep-type-name (ffi::%convert-to-arg-type type)) " var" n)
 		(wt-h comma (rep-type-name (ffi::%convert-to-arg-type type)) " var" n)
 		(setf comma ",")))
-      (progn (wt "void") (wt-h "void"))
-      )
+      (progn (wt "void") (wt-h "void")))
     (wt ")") (wt-h ");")
     (wt-nl1 "{")
     (when return-p
@@ -132,7 +134,7 @@
                      n "," ct "," (ffi:size-of-foreign-type type) "));")))
 
     ;; here is the lisp callback function invocation.
-    (wt-nl "aux = mkcl_apply_from_temp_stack_frame(env, frame, mkcl_fdefinition(env, " c-name-constant "));")
+    (wt-nl "aux = mkcl_apply_from_temp_stack_frame(env, frame, mkcl_fdefinition(env, " helper-constant "));")
 
     (wt-nl "mkcl_temp_stack_frame_close(env, frame);")
 
@@ -158,8 +160,7 @@
 		(wt comma (rep-type-name (ffi::%convert-to-arg-type type)) " var" n)
 		(wt-h comma (rep-type-name (ffi::%convert-to-arg-type type)) " var" n)
 		(setf comma ",")))
-      (progn (wt "void") (wt-h "void"))
-      )
+      (progn (wt "void") (wt-h "void")))
     (wt ")") (wt-h ");")
     (wt-nl1 "{")
     (when return-p
