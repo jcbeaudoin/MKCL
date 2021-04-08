@@ -130,7 +130,8 @@ mkcl_elt_set(MKCL, mkcl_object seq, mkcl_word index, mkcl_object val)
   mkcl_FEtype_error_seq_index(env, seq, MKCL_MAKE_FIXNUM(index));
 }
 
-@(defun subseq (sequence start &optional end &aux x)
+@(defun subseq (sequence start &optional end)
+  mkcl_object x = mk_cl_Cnil;
 	mkcl_word s, e;
 	mkcl_word i;
 @

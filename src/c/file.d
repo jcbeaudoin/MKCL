@@ -5190,8 +5190,8 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
 	      (if_exists mk_cl_Cnil iesp)
 	      (if_does_not_exist mk_cl_Cnil idnesp)
 	      (external_format @':default')
-	      (stdio_stream mk_cl_Ct)
-	      &aux strm)
+	      (stdio_stream mk_cl_Ct))
+  mkcl_object strm = mk_cl_Cnil;
   enum mkcl_smmode smm;
   int flags = 0;
 @

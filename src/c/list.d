@@ -470,8 +470,9 @@ mkcl_last(MKCL, mkcl_object l, mkcl_index n)
     { @(return mkcl_last(env, l, mkcl_integer_to_index(env, k))); }
 @)
 
-@(defun make_list (size &key initial_element &aux x)
-	mkcl_word i;
+@(defun make_list (size &key initial_element)
+  mkcl_word i;
+  mkcl_object x = mk_cl_Cnil;
 @
   /* INV: mkcl_integer_to_index() signals a type-error if SIZE is not a integer >=0 */
   i = mkcl_integer_to_index(env, size);

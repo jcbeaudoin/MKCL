@@ -391,7 +391,8 @@ mkcl_number_compare(MKCL, mkcl_object x, mkcl_object y)
   }
 }
 
-@(defun /= (&rest nums &aux numi)
+@(defun /= (&rest nums)
+  mkcl_object numi = mk_cl_Cnil;
   int i, j;
 @
   if (narg == 0)

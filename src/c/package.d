@@ -1096,7 +1096,8 @@ mk_cl_list_all_packages(MKCL)
   @(return packages);
 }
 
-@(defun intern (strng &optional (p mkcl_current_package(env)) &aux sym)
+@(defun intern (strng &optional (p mkcl_current_package(env)))
+  mkcl_object sym = mk_cl_Cnil;
 	int intern_flag;
 @
   sym = mkcl_intern(env, strng, p, &intern_flag);

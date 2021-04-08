@@ -340,7 +340,8 @@ mk_cl_symbol_name(MKCL, mkcl_object x)
   @(return mkcl_symbol_name(env, x));
 }
 
-@(defun copy_symbol (sym &optional cp &aux x)
+@(defun copy_symbol (sym &optional cp)
+  mkcl_object x = mk_cl_Cnil;
 @
   if (mkcl_Null(sym))
     sym = mk_cl_Cnil_symbol;

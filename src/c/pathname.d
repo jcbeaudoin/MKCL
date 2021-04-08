@@ -1352,8 +1352,8 @@ mk_cl_namestring(MKCL, mkcl_object x)
 
 @(defun parse_namestring (thing
 			  &o host (defaults mk_si_default_pathname_defaults(env))
-			  &k (start MKCL_MAKE_FIXNUM(0)) end junk_allowed
-			  &a output)
+			  &k (start MKCL_MAKE_FIXNUM(0)) end junk_allowed)
+  mkcl_object output = mk_cl_Cnil;
   mkcl_index s, e, ee;
 @
   if (host != mk_cl_Cnil) {
@@ -1454,8 +1454,8 @@ mk_cl_namestring(MKCL, mkcl_object x)
 @(defun make_pathname (&key (host MKCL_OBJNULL) (device MKCL_OBJNULL) (directory MKCL_OBJNULL)
 			    (name MKCL_OBJNULL) (type MKCL_OBJNULL) (version MKCL_OBJNULL)
 		            ((:case scase) @':local')
-		            defaults
-		       &aux x)
+		            defaults)
+  mkcl_object x = mk_cl_Cnil;
 @
   bool logical = FALSE;
   bool verbatim = MKCL_EQ(scase, @':common') ? FALSE : TRUE;

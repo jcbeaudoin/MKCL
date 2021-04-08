@@ -1843,8 +1843,8 @@ do_read_delimited_list(MKCL, int d, mkcl_object in, bool proper_list)
 		       &key (start MKCL_MAKE_FIXNUM(0))
 			    end
 			    (radix MKCL_MAKE_FIXNUM(10))
-			    junk_allowed
-		       &aux x)
+			    junk_allowed)
+  mkcl_object x = mk_cl_Cnil;
   mkcl_index s, e, ep;
   mkcl_object rtbl = mkcl_current_readtable(env);
 @ 

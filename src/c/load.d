@@ -542,8 +542,13 @@ mk_si_load_source(MKCL, mkcl_object source, mkcl_object verbose, mkcl_object pri
 	      (print mkcl_symbol_value(env, @'*load-print*'))
 	      (if_does_not_exist @':error')
 	      (external_format @':default')
-	      (search_list mkcl_symbol_value(env, @'si::*load-search-list*'))
-	      &aux pathname pntype hooks filename function ok)
+	      (search_list mkcl_symbol_value(env, @'si::*load-search-list*')))
+  mkcl_object pathname = mk_cl_Cnil;
+  mkcl_object pntype = mk_cl_Cnil;
+  mkcl_object hooks = mk_cl_Cnil;
+  mkcl_object filename = mk_cl_Cnil;
+  mkcl_object function = mk_cl_Cnil;
+  mkcl_object ok = mk_cl_Cnil;
   bool not_a_filename = 0;
 @
   ok = mk_cl_Cnil;
