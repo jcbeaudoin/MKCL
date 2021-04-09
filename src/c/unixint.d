@@ -540,11 +540,11 @@ install_lisp_terminal_signal_handler(MKCL)
   {
 #if MKCL_UNIX
     if (mkcl_Null(pid))
-      { @(return MKCL_MAKE_FIXNUM(mkcl_debugged_by_process_id = getppid())); }
+      { mkcl_return_value(MKCL_MAKE_FIXNUM(mkcl_debugged_by_process_id = getppid())); }
     else
-      { @(return MKCL_MAKE_FIXNUM(mkcl_debugged_by_process_id = mkcl_safe_fixnum_to_word(env, pid))); }
+      { mkcl_return_value(MKCL_MAKE_FIXNUM(mkcl_debugged_by_process_id = mkcl_safe_fixnum_to_word(env, pid))); }
 #else
-    @(return MKCL_MAKE_FIXNUM(0));
+    mkcl_return_value(MKCL_MAKE_FIXNUM(0));
 #endif
   }
 @)
@@ -1388,7 +1388,7 @@ mk_si_initial_floating_point_exception_set(MKCL)
   fpe_set = MKCL_CONS(env, @'floating-point-inexact', fpe_set);
 #endif
   
-  @(return fpe_set);
+  mkcl_return_value(fpe_set);
 }
 
 static int default_fpe_mask(MKCL)
@@ -1447,7 +1447,7 @@ mk_si_disable_fpe(MKCL, mkcl_object exception)
 
   env->fpe_control_bits &= ~bits;
 
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 mkcl_object
@@ -1480,7 +1480,7 @@ mk_si_enable_fpe(MKCL, mkcl_object exception)
   
   env->fpe_control_bits |= bits;
 
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 void mkcl_reactivate_fpe_set(MKCL)
@@ -1506,7 +1506,7 @@ mk_si_all_enabled_fpe(MKCL)
   if (enabled_except & FE_INEXACT)
     fpe_set = MKCL_CONS(env, @'floating-point-inexact', fpe_set);
 
-  @(return fpe_set);
+  mkcl_return_value(fpe_set);
 }
 
 mkcl_object
@@ -1529,7 +1529,7 @@ mk_si_fpe_enabled_p(MKCL, mkcl_object exception)
   else
     mkcl_FEerror(env, "Unknown floating-point exception: ~S.", 1, exception);
 
-  @(return ((enabled_except & bits) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value(((enabled_except & bits) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
@@ -1550,7 +1550,7 @@ mk_si_all_raised_fpe(MKCL)
   if (raised_except & FE_INEXACT)
     fpe_set = MKCL_CONS(env, @'floating-point-inexact', fpe_set);
 
-  @(return fpe_set);
+  mkcl_return_value(fpe_set);
 }
 
 mkcl_object
@@ -1573,7 +1573,7 @@ mk_si_fpe_raised_p(MKCL, mkcl_object exception)
   else
     mkcl_FEerror(env, "Unknown floating-point exception: ~S.", 1, exception);
 
-  @(return ((raised_except & bits) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value(((raised_except & bits) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
@@ -1597,7 +1597,7 @@ mk_si_raise_fpe(MKCL, mkcl_object exception)
 
   feraiseexcept(bits);
 
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 void mkcl_clear_fpe(MKCL, int except)
@@ -1632,7 +1632,7 @@ mk_si_clear_fpe(MKCL, mkcl_object exception)
 
   feclearexcept(bits);
 
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 mkcl_object
@@ -1640,7 +1640,7 @@ mk_si_clear_all_fpe(MKCL)
 {
   mkcl_call_stack_check(env);
   feclearexcept(FE_ALL_EXCEPT);
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 #if MKCL_WINDOWS
@@ -1661,7 +1661,7 @@ mk_mt_try_to_wake_up_thread(MKCL, mkcl_object thread)
     mkcl_FEwrong_type_argument(env, @'mt::thread', thread);
 
   if (thread->thread.status != mkcl_thread_active)
-    { @(return mk_cl_Cnil); } /* There is no point in trying to wake up something that cannot be made to run. */
+    { mkcl_return_value(mk_cl_Cnil); } /* There is no point in trying to wake up something that cannot be made to run. */
 
   sleeping_on = thread->thread.env->sleeping_on;
   if (mkcl_Null(sleeping_on))
@@ -1670,7 +1670,7 @@ mk_mt_try_to_wake_up_thread(MKCL, mkcl_object thread)
       fprintf(stderr, "\n;; MKCL: Tried to wake up [%s] on NIL!\n", thread->thread.name->base_string.self);
       fflush(stderr);
 #endif
-      @(return mk_cl_Cnil);
+      mkcl_return_value(mk_cl_Cnil);
     }
   else if (sleeping_on == @':io')
     {
@@ -1689,11 +1689,11 @@ mk_mt_try_to_wake_up_thread(MKCL, mkcl_object thread)
 	      if (ERROR_INVALID_HANDLE == GetLastError())
 		thread->thread.status = mkcl_thread_done; /* Let's prononce it dead. */
 	      
-	      @(return mk_cl_Cnil);
+	      mkcl_return_value(mk_cl_Cnil);
 	    }
 	}
       else
-	{ @(return mk_cl_Cnil); }
+	{ mkcl_return_value(mk_cl_Cnil); }
 #else
       for (i = 0; i < 3; i++) /* We knock 3 times because our wake-up call may be received before the sleep. */
 	{
@@ -1703,12 +1703,12 @@ mk_mt_try_to_wake_up_thread(MKCL, mkcl_object thread)
 	      if (rc == ESRCH)
 		thread->thread.status = mkcl_thread_done; /* Let's prononce it dead. */
 
-	      @(return mk_cl_Cnil); /* We muffle any error because this was just a try. */
+	      mkcl_return_value(mk_cl_Cnil); /* We muffle any error because this was just a try. */
 	    }
 	  sched_yield();
 	}
 #endif
-      @(return mk_cl_Ct);
+      mkcl_return_value(mk_cl_Ct);
     }
   else
     {
@@ -1723,7 +1723,7 @@ mk_mt_try_to_wake_up_thread(MKCL, mkcl_object thread)
 	  fflush(stderr);
 #endif
 	  mk_mt_condition_broadcast(env, sleeping_on);
-	  @(return mk_cl_Ct);
+	  mkcl_return_value(mk_cl_Ct);
 	  break;
 	case mkcl_t_lock:
 	case mkcl_t_rwlock: /* We're out of luck on these, thanks to POSIX. */
@@ -1731,7 +1731,7 @@ mk_mt_try_to_wake_up_thread(MKCL, mkcl_object thread)
 	  fprintf(stderr, "\n;; MKCL: Tried to wake up [%s] on a lock!\n", thread->thread.name->base_string.self);
 	  fflush(stderr);
 #endif
-	  @(return mk_cl_Cnil);
+	  mkcl_return_value(mk_cl_Cnil);
 	  break;
 	case mkcl_t_semaphore:
 	  /* Messing with a semaphore count is a dangerous propostion at best. Caveat emptor. */
@@ -1741,7 +1741,7 @@ mk_mt_try_to_wake_up_thread(MKCL, mkcl_object thread)
 	  fflush(stderr);
 #endif
 	  mkcl_funcall1(env, @+'mt::semaphore-signal', sleeping_on);
-	  @(return mk_cl_Ct);
+	  mkcl_return_value(mk_cl_Ct);
 	  break;
 	case mkcl_t_cons: /* a hack. just in case. JCB */
 	  {
@@ -1753,7 +1753,7 @@ mk_mt_try_to_wake_up_thread(MKCL, mkcl_object thread)
 	    fflush(stderr);
 #endif
 	    f(data);
-	    @(return mk_cl_Ct);
+	    mkcl_return_value(mk_cl_Ct);
 	  }
 	  break;
 	case mkcl_t_cfun: case mkcl_t_cclosure:
@@ -1763,14 +1763,14 @@ mk_mt_try_to_wake_up_thread(MKCL, mkcl_object thread)
 	  fflush(stderr);
 #endif
 	  mkcl_funcall0(env, sleeping_on);
-	  @(return mk_cl_Ct);
+	  mkcl_return_value(mk_cl_Ct);
 	  break;
 	default:
 #if 0
 	  fprintf(stderr, "\n;; MKCL: Tried to wake up [%s] on an UNKNOWN objet!\n", thread->thread.name->base_string.self);
 	  fflush(stderr);
 #endif
-	  @(return mk_cl_Cnil);
+	  mkcl_return_value(mk_cl_Cnil);
 	}
     }
 }
@@ -2229,7 +2229,7 @@ mkcl_object mk_si_signum_to_signal_name(MKCL, mkcl_object _signum)
     {
       mkcl_word signum = mkcl_fixnum_to_word(_signum);
 
-      @(return mkcl_signum_to_signal_name(env, signum));
+      mkcl_return_value(mkcl_signum_to_signal_name(env, signum));
     }
 }
 
@@ -2239,21 +2239,21 @@ mkcl_object mk_si_signum_to_signal_name(MKCL, mkcl_object _signum)
 mkcl_object mk_si_do_sigsegv(MKCL)
 {
 #if defined(__x86_64) || defined(__aarch64__)
-  @(return *((mkcl_object *) 0xffffffffffffdeadULL));
+  mkcl_return_value(*((mkcl_object *) 0xffffffffffffdeadULL));
 #else
-  @(return *((mkcl_object *) 0xffffdead));
+  mkcl_return_value(*((mkcl_object *) 0xffffdead));
 #endif
 }
 
 /* Testing tool only. */
 mkcl_object mk_si_objnull(MKCL)
 {
-  @(return MKCL_OBJNULL);
+  mkcl_return_value(MKCL_OBJNULL);
 }
 
 mkcl_object mk_si_objnull_value_p(MKCL, mkcl_object val)
 {
-  @(return ((val == MKCL_OBJNULL) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value(((val == MKCL_OBJNULL) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 
@@ -2320,7 +2320,7 @@ mk_si_display_signal_dispositions(MKCL)
 {
   mkcl_call_stack_check(env);
   _mkcl_display_signal_dispositions();
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 #if MKCL_UNIX
@@ -2396,7 +2396,7 @@ mkcl_object mk_si_install_sigsegv_monitor(MKCL)
     }
 #endif /* __linux */
 
-  @(return);
+  mkcl_return_no_value;
 }
 
 

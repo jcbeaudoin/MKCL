@@ -132,49 +132,49 @@ mkcl_object
 mk_cl_zerop(MKCL, mkcl_object x)
 {	/* INV: mkcl_zerop() checks type */
   mkcl_call_stack_check(env);
-  @(return (mkcl_zerop(env, x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_zerop(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_plusp(MKCL, mkcl_object x)
 {	/* INV: mkcl_plusp()  checks type */
   mkcl_call_stack_check(env);
-  @(return (mkcl_plusp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_plusp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_minusp(MKCL, mkcl_object x)
 {	/* INV: mkcl_minusp() checks type */
   mkcl_call_stack_check(env);
-  @(return (mkcl_minusp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_minusp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_oddp(MKCL, mkcl_object x)
 {	/* INV: mkcl_oddp() checks type */
   mkcl_call_stack_check(env);
-  @(return (mkcl_oddp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_oddp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_evenp(MKCL, mkcl_object x)
 {	/* INV: mkcl_evenp() checks_type */
   mkcl_call_stack_check(env);
-  @(return (mkcl_evenp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_evenp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_si_float_nan_p(MKCL, mkcl_object x)
 {
   mkcl_call_stack_check(env);
-  @(return (mkcl_float_nan_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_float_nan_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_si_float_infinity_p(MKCL, mkcl_object x)
 {
   mkcl_call_stack_check(env);
-  @(return (mkcl_float_infinity_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_float_infinity_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 bool

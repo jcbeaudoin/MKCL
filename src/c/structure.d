@@ -53,7 +53,7 @@ mkcl_object
 mk_si_structure_subtype_p(MKCL, mkcl_object x, mkcl_object y)
 {
   mkcl_call_stack_check(env);
-  @(return ((mkcl_type_of(x) == MKCL_T_STRUCTURE
+  mkcl_return_value(((mkcl_type_of(x) == MKCL_T_STRUCTURE
 	     && _mkcl_structure_subtypep(MKCL_STYPE(x), y)) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
@@ -66,7 +66,7 @@ mk_si_structure_subtype_p(MKCL, mkcl_object x, mkcl_object y)
   for (i = 0;  i < narg;  i++)
     MKCL_SLOT(x, i) = mkcl_va_arg(args);
   mkcl_va_end(args);
-  @(return x);
+  mkcl_return_value(x);
 @)
 
 #define mkcl_copy_structure mk_si_copy_instance
@@ -87,7 +87,7 @@ mkcl_copy_structure(MKCL, mkcl_object x)
   MKCL_SLOTS(y) = NULL;	/* for GC sake */
   MKCL_SLOTS(y) = (mkcl_object *)mkcl_alloc_align(env, size, sizeof(mkcl_object));
   memcpy(MKCL_SLOTS(y), MKCL_SLOTS(x), size);
-  @(return y);
+  mkcl_return_value(y);
 }
 #endif /* !CLOS */
 
@@ -108,7 +108,7 @@ mk_cl_copy_structure(MKCL, mkcl_object s)
   default:
     mkcl_FEwrong_type_argument(env, @'structure', s);
   }
-  @(return s);
+  mkcl_return_value(s);
 }
 
 
@@ -120,7 +120,7 @@ mk_si_structure_name(MKCL, mkcl_object s)
   if (!mk_si_structurep(env, s))
     mkcl_FEwrong_type_argument(env, @'structure', s);
   else
-    { @(return MKCL_SNAME(s)); }
+    { mkcl_return_value(MKCL_SNAME(s)); }
 }
 
 mkcl_object
@@ -130,7 +130,7 @@ mk_si_structure_length(MKCL, mkcl_object s)
   if (!mk_si_structurep(env, s))
     mkcl_FEwrong_type_argument(env, @'structure', s);
   else
-    { @(return mkcl_make_unsigned_integer(env, MKCL_SLENGTH(s))); }
+    { mkcl_return_value(mkcl_make_unsigned_integer(env, MKCL_SLENGTH(s))); }
 }
 
 void
@@ -152,7 +152,7 @@ mk_si_structure_ref(MKCL, mkcl_object x, mkcl_object name, mkcl_object index)
   else if (!MKCL_FIXNUMP(index) || (i = mkcl_fixnum_to_word(index)) >= MKCL_SLENGTH(x))
     mkcl_FEtype_error_structure_index(env, x, index);
 
-  { @(return MKCL_SLOT(x, i)); }
+  { mkcl_return_value(MKCL_SLOT(x, i)); }
 }
 
 mkcl_object
@@ -167,7 +167,7 @@ mk_si_structure_set(MKCL, mkcl_object x, mkcl_object name, mkcl_object index, mk
   else if (!MKCL_FIXNUMP(index) || (i = mkcl_fixnum_to_word(index)) >= MKCL_SLENGTH(x))
     mkcl_FEtype_error_structure_index(env, x, index);
 
-  { MKCL_SLOT(x, i) = val; @(return val); }
+  { MKCL_SLOT(x, i) = val; mkcl_return_value(val); }
 }
 
 mkcl_object
@@ -175,11 +175,11 @@ mk_si_structurep(MKCL, mkcl_object s)
 {
   mkcl_call_stack_check(env);
   if (MKCL_INSTANCEP(s) && _mkcl_structure_subtypep(MKCL_CLASS_OF(s), @'structure-object'))
-    { @(return mk_cl_Ct); }
+    { mkcl_return_value(mk_cl_Ct); }
 #if 0 /* !CLOS */
   if (mkcl_type_of(s) == mkcl_t_structure)
-    { @(return mk_cl_Ct); }
+    { mkcl_return_value(mk_cl_Ct); }
 #endif
   else
-    { @(return mk_cl_Cnil); }
+    { mkcl_return_value(mk_cl_Cnil); }
 }

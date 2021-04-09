@@ -64,7 +64,7 @@ mk_cl_vector_push_extend(MKCL, mkcl_narg narg, mkcl_object elt, mkcl_object vect
   if (fp < vector->vector.dim) {
     vector->vector.fillp = fp+1;
     vector->vector.self.t[fp+1] = elt;
-    @(return MKCL_MAKE_FIXNUM(fp));
+    mkcl_return_value(MKCL_MAKE_FIXNUM(fp));
   }
   return mkcl_funcall2(env, @+'VECTOR-PUSH-EXTEND', elt, vector);
 }
@@ -72,7 +72,7 @@ mk_cl_vector_push_extend(MKCL, mkcl_narg narg, mkcl_object elt, mkcl_object vect
 extern mkcl_object
 mk_si_find_relative_package(MKCL, mkcl_object package)
 {
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 @(defun cerror (cformat eformat &rest args)
@@ -80,7 +80,7 @@ mk_si_find_relative_package(MKCL, mkcl_object package)
   const mkcl_object rest = mkcl_grab_rest_args(env, args, FALSE);
   mkcl_va_end(args);
   mkcl_object val = mk_cl_apply(env, 3, @+'error', eformat, rest);
-  @(return val);
+  mkcl_return_value(val);
 @)
 
 
@@ -103,7 +103,7 @@ static mkcl_object mk_si_simple_toplevel(MKCL)
     mkcl_write_cstr(env, "\n> ", output);
     sentence = @read(env, 3, mk_cl_Cnil, mk_cl_Cnil, MKCL_OBJNULL);
     if (sentence == MKCL_OBJNULL)
-      { @(return); }
+      { mkcl_return_no_value; }
     mkcl_prin1(env, mk_si_eval_in_env(env, 1, sentence), output);
   }
 }

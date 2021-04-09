@@ -209,17 +209,17 @@ mkcl_make_random_state(MKCL, mkcl_object rs)
 @(defun random (x &optional (rs mkcl_symbol_value(env, @'*random-state*')))
 @
   rs = mkcl_check_cl_type(env, @'random', rs, mkcl_t_random);
-  @(return rando(env, x, rs));
+  mkcl_return_value(rando(env, x, rs));
 @)
 
 @(defun make_random_state (&optional (rs mk_cl_Cnil))
 @
-  @(return mkcl_make_random_state(env, rs));
+  mkcl_return_value(mkcl_make_random_state(env, rs));
 @)
 
 mkcl_object
 mk_cl_random_state_p(MKCL, mkcl_object x)
 {
   mkcl_call_stack_check(env);
-  @(return ((mkcl_type_of(x) == mkcl_t_random) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value(((mkcl_type_of(x) == mkcl_t_random) ? mk_cl_Ct : mk_cl_Cnil));
 }

@@ -1580,7 +1580,7 @@ static mkcl_object
 str_out_get_position(MKCL, mkcl_object strm)
 {
   mkcl_object pos = mkcl_make_unsigned_integer(env, MKCL_STRING_OUTPUT_STREAM_STRING(strm)->base_string.fillp);
-  @(return pos pos);
+  mkcl_return_2_values(pos, pos);
 }
 
 static mkcl_object
@@ -1669,7 +1669,7 @@ mk_si_make_string_output_stream_from_string(MKCL, mkcl_object s, mkcl_object enc
     strm->stream.flags = MKCL_STREAM_TEXT;
     strm->stream.byte_size = 32;
   }
-  @(return strm);
+  mkcl_return_value(strm);
 }
 
 mkcl_object
@@ -1704,7 +1704,7 @@ mkcl_make_string_output_stream(MKCL, mkcl_index line_length, bool extended, mkcl
 		   "(~A) must be a subtype of character",
 		   1, element_type);
     }
-    @(return mkcl_make_string_output_stream(env, DEFAULT_OUTPUT_STRING_LENGTH, extended, encoding));
+    mkcl_return_value(mkcl_make_string_output_stream(env, DEFAULT_OUTPUT_STRING_LENGTH, extended, encoding));
   }
 @)
 
@@ -1721,7 +1721,7 @@ mk_cl_get_output_stream_string(MKCL, mkcl_object strm)
 		     : mkcl_alloc_adjustable_base_string(env, DEFAULT_OUTPUT_STRING_LENGTH));
 
   MKCL_STRING_OUTPUT_STREAM_STRING(strm) = new;
-  @(return strng);
+  mkcl_return_value(strng);
 }
 
 /**********************************************************************
@@ -1838,7 +1838,7 @@ static mkcl_object
 str_in_get_position(MKCL, mkcl_object strm)
 {
   mkcl_object pos = mkcl_make_unsigned_integer(env, MKCL_STRING_INPUT_STREAM_POSITION(strm));
-  @(return pos pos);
+  mkcl_return_2_values(pos, pos);
 }
 
 static mkcl_object
@@ -1936,7 +1936,7 @@ mkcl_make_string_input_stream(MKCL, mkcl_object strng, mkcl_index istart, mkcl_i
     e = (mkcl_index)mkcl_fixnum_to_word(iend);
   if (e > strng->base_string.fillp || s > e)
     goto E;
-  @(return (mkcl_make_string_input_stream(env, strng, s, e, encoding)));
+  mkcl_return_value((mkcl_make_string_input_stream(env, strng, s, e, encoding)));
 
  E:
   mkcl_FEerror(env,
@@ -2112,7 +2112,7 @@ mk_cl_make_two_way_stream(MKCL, mkcl_object istrm, mkcl_object ostrm)
   strm->stream.ops = duplicate_dispatch_table(env, &two_way_ops);
   MKCL_TWO_WAY_STREAM_INPUT(strm) = istrm;
   MKCL_TWO_WAY_STREAM_OUTPUT(strm) = ostrm;
-  @(return strm);
+  mkcl_return_value(strm);
 }
 
 mkcl_object
@@ -2121,7 +2121,7 @@ mk_cl_two_way_stream_input_stream(MKCL, mkcl_object strm)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(strm) != mkcl_t_stream || strm->stream.mode != mkcl_smm_two_way)
     mkcl_FEwrong_type_argument(env, @'two-way-stream', strm);
-  @(return MKCL_TWO_WAY_STREAM_INPUT(strm));
+  mkcl_return_value(MKCL_TWO_WAY_STREAM_INPUT(strm));
 }
 
 mkcl_object
@@ -2130,7 +2130,7 @@ mk_cl_two_way_stream_output_stream(MKCL, mkcl_object strm)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(strm) != mkcl_t_stream || strm->stream.mode != mkcl_smm_two_way)
     mkcl_FEwrong_type_argument(env, @'two-way-stream', strm);
-  @(return MKCL_TWO_WAY_STREAM_OUTPUT(strm));
+  mkcl_return_value(MKCL_TWO_WAY_STREAM_OUTPUT(strm));
 }
 
 /**********************************************************************
@@ -2293,7 +2293,7 @@ static const struct mkcl_file_ops broadcast_ops = {
   x->stream.ops = duplicate_dispatch_table(env, &broadcast_ops);
   x->stream.mode = mkcl_smm_broadcast;
   MKCL_BROADCAST_STREAM_LIST(x) = mk_cl_nreverse(env, streams);
-  @(return x);
+  mkcl_return_value(x);
 @)
 
 mkcl_object
@@ -2466,7 +2466,7 @@ mk_cl_make_echo_stream(MKCL, mkcl_object strm1, mkcl_object strm2)
   strm->stream.ops = duplicate_dispatch_table(env, &echo_ops);
   MKCL_ECHO_STREAM_INPUT(strm) = strm1;
   MKCL_ECHO_STREAM_OUTPUT(strm) = strm2;
-  @(return strm);
+  mkcl_return_value(strm);
 }
 
 mkcl_object
@@ -2475,7 +2475,7 @@ mk_cl_echo_stream_input_stream(MKCL, mkcl_object strm)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(strm) != mkcl_t_stream || strm->stream.mode != mkcl_smm_echo)
     mkcl_FEwrong_type_argument(env, @'echo-stream', strm);
-  @(return MKCL_ECHO_STREAM_INPUT(strm));
+  mkcl_return_value(MKCL_ECHO_STREAM_INPUT(strm));
 }
 
 mkcl_object
@@ -2484,7 +2484,7 @@ mk_cl_echo_stream_output_stream(MKCL, mkcl_object strm)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(strm) != mkcl_t_stream || strm->stream.mode != mkcl_smm_echo)
     mkcl_FEwrong_type_argument(env, @'echo-stream', strm);
-  @(return MKCL_ECHO_STREAM_OUTPUT(strm));
+  mkcl_return_value(MKCL_ECHO_STREAM_OUTPUT(strm));
 }
 
 /**********************************************************************
@@ -2610,7 +2610,7 @@ static const struct mkcl_file_ops concatenated_ops = {
   x->stream.mode = mkcl_smm_concatenated;
   x->stream.ops = duplicate_dispatch_table(env, &concatenated_ops);
   MKCL_CONCATENATED_STREAM_LIST(x) = mk_cl_nreverse(env, streams);
-  @(return x);
+  mkcl_return_value(x);
 @)
 
 mkcl_object
@@ -2810,7 +2810,7 @@ mk_cl_make_synonym_stream(MKCL, mkcl_object sym)
   x->stream.ops = duplicate_dispatch_table(env, &synonym_ops);
   x->stream.mode = mkcl_smm_synonym;
   MKCL_SYNONYM_STREAM_SYMBOL(x) = sym;
-  @(return x);
+  mkcl_return_value(x);
 }
 
 mkcl_object
@@ -2819,7 +2819,7 @@ mk_cl_synonym_stream_symbol(MKCL, mkcl_object strm)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(strm) != mkcl_t_stream || strm->stream.mode != mkcl_smm_synonym)
     mkcl_FEwrong_type_argument(env, @'synonym-stream', strm);
-  @(return MKCL_SYNONYM_STREAM_SYMBOL(strm));
+  mkcl_return_value(MKCL_SYNONYM_STREAM_SYMBOL(strm));
 }
 
 /**********************************************************************
@@ -3025,7 +3025,7 @@ io_file_get_position(MKCL, mkcl_object strm)
   if (strm->stream.byte_size != 8) {
     output = mkcl_floor2(env, output, MKCL_MAKE_FIXNUM(strm->stream.byte_size / 8));
   }
-  @(return output strm->stream.character_position);
+  mkcl_return_2_values(output, strm->stream.character_position);
 }
 
 static mkcl_object
@@ -3256,7 +3256,7 @@ set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_str
 	element_type = @'unsigned-byte';
       } else {/* byte_size == 0 */
 	static const mkcl_base_string_object(reason_string_obj, "Binary stream of unspecified element-type");
-	@(return mk_cl_Cnil ((mkcl_object) &reason_string_obj));
+	mkcl_return_2_values(mk_cl_Cnil, ((mkcl_object) &reason_string_obj));
       }
 
       if (external_format == @':LITTLE-ENDIAN')
@@ -3272,7 +3272,7 @@ set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_str
 	{
 	  static const mkcl_base_string_object(reason_control_string_obj,
 					       "Invalid binary stream external-format specifier: ~S");
-	  @(return mk_cl_Cnil mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, external_format));
+	  mkcl_return_2_values(mk_cl_Cnil, mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, external_format));
 	}
 
       /* commit new binary parameters to object */
@@ -3315,7 +3315,7 @@ set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_str
 
 	if (!mkcl_Null(mk_cl_cddr(env, format_spec))) {
 	  static const mkcl_base_string_object(reason_control_string_obj, "Invalid external-format specifier: ~S");
-	  @(return mk_cl_Cnil mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, external_format));
+	  mkcl_return_2_values(mk_cl_Cnil, mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, external_format));
 	}
 
 	if (line_termination == @':CR')
@@ -3326,7 +3326,7 @@ set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_str
 	  flags = flags | (MKCL_STREAM_CR | MKCL_STREAM_LF);
 	else {
 	  static const mkcl_base_string_object(reason_control_string_obj, "Invalid line termination specifier: ~S");
-	  @(return mk_cl_Cnil mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, line_termination));
+	  mkcl_return_2_values(mk_cl_Cnil, mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, line_termination));
 	}
       }
 
@@ -3365,7 +3365,7 @@ set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_str
 	  if (flags & MKCL_STREAM_LITTLE_ENDIAN) {
 	    static const mkcl_base_string_object(reason_string_obj,
 						 "Incoherent stream format :UTF-16BE on a little-endian stream");
-	    @(return mk_cl_Cnil ((mkcl_object) &reason_string_obj));
+	    mkcl_return_2_values(mk_cl_Cnil, ((mkcl_object) &reason_string_obj));
 	  }
 	}
       else if (external_format == @':UTF-16LE')
@@ -3397,7 +3397,7 @@ set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_str
 	  if (flags & MKCL_STREAM_LITTLE_ENDIAN) {
 	    static const mkcl_base_string_object(reason_string_obj,
 						 "Incoherent stream format :UTF-32BE on a little-endian stream");
-	    @(return mk_cl_Cnil ((mkcl_object) &reason_string_obj));
+	    mkcl_return_2_values(mk_cl_Cnil, ((mkcl_object) &reason_string_obj));
 	  }
 	}
       else if (external_format == @':UTF-32LE')
@@ -3424,7 +3424,7 @@ set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_str
 	  mkcl_object failure_reason = MKCL_VALUES(1);
 
 	  if (mkcl_Null(format_table))
-	    { @(return mk_cl_Cnil failure_reason); }
+	    { mkcl_return_2_values(mk_cl_Cnil, failure_reason); }
 	  else
 	    {
 	      element_type = @'character';
@@ -3456,9 +3456,9 @@ set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_str
 	{
 	  static const mkcl_base_string_object(reason_string_obj,
 					       "Invalid or unsupported stream :external-format ~S with flags #x~X");
-	  @(return mk_cl_Cnil mk_cl_format(env, 4,
-					   mk_cl_Cnil, (mkcl_object) &reason_string_obj,
-					   external_format, MKCL_MAKE_FIXNUM(flags)));
+	  mkcl_return_2_values(mk_cl_Cnil, mk_cl_format(env, 4,
+                                                        mk_cl_Cnil, (mkcl_object) &reason_string_obj,
+                                                        external_format, MKCL_MAKE_FIXNUM(flags)));
 	}
 
       if (stream->stream.ops->write_char == eformat_write_char && (flags & MKCL_STREAM_CR)) {
@@ -3513,7 +3513,7 @@ set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_str
   }
   stream->stream.flags = flags;
   stream->stream.byte_size = byte_size;
-  @(return stream  mk_cl_Cnil);
+  mkcl_return_2_values(stream, mk_cl_Cnil);
 }
 
 mkcl_object
@@ -3522,7 +3522,7 @@ mk_si_stream_external_format_set(MKCL, mkcl_object stream, mkcl_object format)
   mkcl_call_stack_check(env);
   if (mkcl_unlikely(MKCL_INSTANCEP(stream))) {
     static const mkcl_base_string_object(reason_control_string_obj, "Cannot change external format of stream ~A");
-    @(return mk_cl_Cnil mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, stream));
+    mkcl_return_2_values(mk_cl_Cnil, mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, stream));
   }
   if (mkcl_type_of(stream) != mkcl_t_stream)
     mkcl_FEwrong_type_argument(env, @'stream', stream);
@@ -3544,22 +3544,22 @@ mk_si_stream_external_format_set(MKCL, mkcl_object stream, mkcl_object format)
 	if (mkcl_unlikely(!(elt_type == @'character' || elt_type == @'base-char'))){
 	  static const mkcl_base_string_object(reason_control_string_obj,
 					       "Cannot change external format of binary stream ~A");
-	  @(return mk_cl_Cnil mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, stream));
+	  mkcl_return_2_values(mk_cl_Cnil, mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, stream));
 	} else {
 	  mkcl_object status = set_file_stream_elt_type(env, stream, stream->stream.byte_size, stream->stream.flags, format);
 	  mkcl_object failure_reason = MKCL_VALUES(1);
 	  
 	  if (mkcl_Null(status))
-	    { @(return mk_cl_Cnil failure_reason); }
+	    { mkcl_return_2_values(mk_cl_Cnil, failure_reason); }
 	  else
-	    { @(return mk_cl_Ct mk_cl_Cnil); }
+	    { mkcl_return_2_values(mk_cl_Ct, mk_cl_Cnil); }
 	}
       }
       break;
     default:
       {
 	static const mkcl_base_string_object(reason_control_string_obj, "Cannot change external format of stream ~A");
-	@(return mk_cl_Cnil mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, stream));
+	mkcl_return_2_values(mk_cl_Cnil, mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, stream));
       }
     }
 }
@@ -3802,7 +3802,7 @@ io_stream_get_position(MKCL, mkcl_object strm)
   if (strm->stream.byte_size != 8) {
     output = mkcl_floor2(env, output, MKCL_MAKE_FIXNUM(strm->stream.byte_size / 8));
   }
-  @(return output strm->stream.character_position);
+  mkcl_return_2_values(output, strm->stream.character_position);
 }
 
 static mkcl_object
@@ -4331,9 +4331,9 @@ mk_si_get_buffering_mode(MKCL, mkcl_object stream)
     mkcl_FEtype_error_stream(env, stream);
   }
   if (MKCL_STREAM_IS_C_STDIO_BASED_P(stream))  
-    { @(return stream->stream.buffering_mode); }
+    { mkcl_return_value(stream->stream.buffering_mode); }
   else
-    { @(return @':invalid'); }
+    { mkcl_return_value(@':invalid'); }
 }
 
 mkcl_object
@@ -4380,7 +4380,7 @@ mk_si_set_buffering_mode(MKCL, mkcl_object stream, mkcl_object buffer_mode_symbo
   else
     mkcl_FEerror(env, "Do not know how to set buffering mode on stream: ~S", 1, stream);
 
-  @(return stream);
+  mkcl_return_value(stream);
 }
 
 static mkcl_object
@@ -4722,7 +4722,7 @@ mk_cl_file_string_length(MKCL, mkcl_object stream, mkcl_object string)
   mkcl_call_stack_check(env);
  BEGIN:
   if (MKCL_INSTANCEP(stream)) {
-    @(return mk_cl_Cnil);
+    mkcl_return_value(mk_cl_Cnil);
   }
 
   if (mkcl_type_of(stream) != mkcl_t_stream) {
@@ -4731,7 +4731,7 @@ mk_cl_file_string_length(MKCL, mkcl_object stream, mkcl_object string)
   if (stream->stream.mode == mkcl_smm_broadcast) {
     stream = MKCL_BROADCAST_STREAM_LIST(stream);
     if (mkcl_Null(stream)) {
-      @(return MKCL_MAKE_FIXNUM(1));
+      mkcl_return_value(MKCL_MAKE_FIXNUM(1));
     } else {
       goto BEGIN;
     }
@@ -4754,7 +4754,7 @@ mk_cl_file_string_length(MKCL, mkcl_object stream, mkcl_object string)
   default:
     mkcl_FEwrong_type_argument(env, @'string', string);
   }
-  @(return MKCL_MAKE_FIXNUM(l));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(l));
 }
 
 mkcl_object
@@ -4798,7 +4798,7 @@ mk_si_do_write_sequence(MKCL, mkcl_object seq, mkcl_object stream, mkcl_object s
     ops->write_vector(env, stream, seq, start, end);
   }
  OUTPUT:
-  @(return seq);
+  mkcl_return_value(seq);
 }
 
 mkcl_object
@@ -4848,7 +4848,7 @@ mk_si_do_read_sequence(MKCL, mkcl_object seq, mkcl_object stream, mkcl_object s,
     start = ops->read_vector(env, stream, seq, start, end);
   }
  OUTPUT:
-  @(return MKCL_MAKE_FIXNUM(start));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(start));
 }
 
 /**********************************************************************
@@ -4859,14 +4859,14 @@ mkcl_object
 mk_si_file_column(MKCL, mkcl_object strm)
 {
   mkcl_call_stack_check(env);
-  @(return MKCL_MAKE_FIXNUM(mkcl_file_column(env, strm)));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(mkcl_file_column(env, strm)));
 }
 
 mkcl_object
 mk_cl_file_length(MKCL, mkcl_object strm)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_file_length(env, strm));
+  mkcl_return_value(mkcl_file_length(env, strm));
 }
 
 
@@ -4886,28 +4886,28 @@ mk_cl_file_length(MKCL, mkcl_object strm)
     }
     output = mkcl_file_position_set(env, file_stream, position);
   }
-  @(return output character_position);
+  mkcl_return_2_values(output, character_position);
 @)
 
 mkcl_object
 mk_cl_input_stream_p(MKCL, mkcl_object strm)
 {
   mkcl_call_stack_check(env);
-  @(return (mkcl_input_stream_p(env, strm) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_input_stream_p(env, strm) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_output_stream_p(MKCL, mkcl_object strm)
 {
   mkcl_call_stack_check(env);
-  @(return (mkcl_output_stream_p(env, strm) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_output_stream_p(env, strm) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_interactive_stream_p(MKCL, mkcl_object strm)
 {
   mkcl_call_stack_check(env);
-  @(return (stream_dispatch_table(env, strm)->interactive_p(env, strm) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((stream_dispatch_table(env, strm)->interactive_p(env, strm) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
@@ -4919,14 +4919,14 @@ mk_cl_open_stream_p(MKCL, mkcl_object strm)
   }
   if (mkcl_type_of(strm) != mkcl_t_stream)
     mkcl_FEwrong_type_argument(env, @'stream', strm);
-  @(return (strm->stream.closed ? mk_cl_Cnil : mk_cl_Ct));
+  mkcl_return_value((strm->stream.closed ? mk_cl_Cnil : mk_cl_Ct));
 }
 
 mkcl_object
 mk_cl_stream_element_type(MKCL, mkcl_object strm)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_stream_element_type(env, strm));
+  mkcl_return_value(mkcl_stream_element_type(env, strm));
 }
 
 mkcl_object
@@ -4939,7 +4939,7 @@ mk_cl_stream_external_format(MKCL, mkcl_object strm)
  AGAIN:
   t= mkcl_type_of(strm);
   if (t == mkcl_t_instance) /* FIXME: not strong/restrictive enough. JCB */
-    { @(return @':default'); }
+    { mkcl_return_value(@':default'); }
   else
     if (t != mkcl_t_stream)
       mkcl_FEwrong_type_argument(env, @'stream', strm);
@@ -4948,7 +4948,7 @@ mk_cl_stream_external_format(MKCL, mkcl_object strm)
     goto AGAIN;
   }
   output = strm->stream.format;
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
@@ -4958,7 +4958,7 @@ mk_cl_streamp(MKCL, mkcl_object strm)
   if (MKCL_INSTANCEP(strm)) {
     return mkcl_funcall1(env, @+'gray::streamp', strm);
   }
-  @(return ((mkcl_type_of(strm) == mkcl_t_stream) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value(((mkcl_type_of(strm) == mkcl_t_stream) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 /**********************************************************************
@@ -4975,7 +4975,7 @@ mk_si_copy_stream(MKCL, mkcl_object in, mkcl_object out)
     mkcl_write_char(env, c, out);
   }
   mkcl_force_output(env, out);
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 }
 
 
@@ -5241,13 +5241,13 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
 
   strm = mkcl_open_stream(env, filename, smm, if_exists, if_does_not_exist, element_type, external_format);
 
-  @(return strm);
+  mkcl_return_value(strm);
 @)
 
 
 @(defun close (strm &key (abort @'nil'))
 @
-  @(return stream_dispatch_table(env, strm)->close(env, strm));
+  mkcl_return_value(stream_dispatch_table(env, strm)->close(env, strm));
 @)
 
 /**********************************************************************
@@ -5603,7 +5603,7 @@ static mkcl_object stream_encoding_error_boot_stub(MKCL, mkcl_object stream, mkc
     ch = MKCL_CODE_CHAR(((mkcl_base_char) '?')); 
   else
     ch = MKCL_CODE_CHAR(0xfffd);  /* Unicode standard replacement character */
-  @(return ch);
+  mkcl_return_value(ch);
 }
 
 static mkcl_object stream_decoding_error_boot_stub(MKCL, mkcl_object stream, mkcl_object external_format, mkcl_object octets)
@@ -5618,7 +5618,7 @@ static mkcl_object stream_decoding_error_boot_stub(MKCL, mkcl_object stream, mkc
     ch = MKCL_CODE_CHAR(((mkcl_base_char) '?')); 
   else
     ch = MKCL_CODE_CHAR(0xfffd);  /* Unicode standard replacement character */
-  @(return ch);
+  mkcl_return_value(ch);
 }
 
 

@@ -275,7 +275,7 @@ mkcl_clone_bclosure(MKCL, mkcl_object c0, mkcl_object new_lex)
   if (mkcl_Null(new_lex))
     new_lex = mk_cl_copy_list(env, c0->bclosure.lex);
 
-  @(return close_around(env, c0->bclosure.producer, c0->bclosure.code, new_lex));
+  mkcl_return_value(close_around(env, c0->bclosure.producer, c0->bclosure.code, new_lex));
 }
 
 #define SETUP_ENV(the_env) { ihs.lex_env = lex_env; }
@@ -1365,5 +1365,5 @@ mkcl_interpret(MKCL, mkcl_object frame, mkcl_object lex_env, mkcl_object bytecod
 
 @(defun si::interpreter_stack ()
 @
-	@(return mk_cl_Cnil)
+	mkcl_return_value(mk_cl_Cnil)
 @)

@@ -88,7 +88,7 @@ mk_cl_set(MKCL, mkcl_object var, mkcl_object val)
     mk_si_rem_sysprop(env, sym, @'si::setf-method');
     mk_si_rem_sysprop(env, sym, @'si::setf-update');
   }
-  @(return def);
+  mkcl_return_value(def);
 @)
 
 mkcl_object
@@ -98,7 +98,7 @@ mk_cl_makunbound(MKCL, mkcl_object sym)
   if (mkcl_symbol_type(env, sym) & mkcl_stp_constant)
     mkcl_FEinvalid_variable(env, "Cannot unbind the constant ~S.", sym);
   MKCL_SETQ(env, sym, MKCL_OBJNULL);
-  @(return sym);
+  mkcl_return_value(sym);
 }
 
 mkcl_object
@@ -122,7 +122,7 @@ mk_cl_fmakunbound(MKCL, mkcl_object fname)
     mk_si_rem_sysprop(env, sym, @'si::setf-method');
     mk_si_rem_sysprop(env, sym, @'si::setf-update');
   }
-  @(return fname);
+  mkcl_return_value(fname);
 }
 
 
@@ -137,18 +137,18 @@ mk_si_get_sysprop(MKCL, mkcl_object sym, mkcl_object prop)
       mkcl_object plist = sym->symbol.sys_plist;
       mkcl_object val = mkcl_getf(env, plist, prop, MKCL_OBJNULL);
       if (val == MKCL_OBJNULL)
-	{ @(return mk_cl_Cnil mk_cl_Cnil); }
+	{ mkcl_return_2_values(mk_cl_Cnil, mk_cl_Cnil); }
       else
-	{ @(return val mk_cl_Ct); }
+	{ mkcl_return_2_values(val, mk_cl_Ct); }
     }
   else
     {
       mkcl_object plist = mkcl_gethash_safe(env, sym, mkcl_core.system_properties, mk_cl_Cnil);
       prop = mkcl_getf(env, plist, prop, MKCL_OBJNULL);
       if (prop == MKCL_OBJNULL) {
-	@(return mk_cl_Cnil mk_cl_Cnil);
+	mkcl_return_2_values(mk_cl_Cnil, mk_cl_Cnil);
       } else {
-	@(return prop mk_cl_Ct);
+	mkcl_return_2_values(prop, mk_cl_Ct);
       }
     }
 }
@@ -174,7 +174,7 @@ mk_si_put_sysprop(MKCL, mkcl_object sym, mkcl_object prop, mkcl_object value)
       } MKCL_UNWIND_PROTECT_EXIT {
 	if (locked) SYSTEM_PROPERTIES_UNLOCK();
       } MKCL_UNWIND_PROTECT_END;
-      @(return value);
+      mkcl_return_value(value);
     }
   else
     {
@@ -193,7 +193,7 @@ mk_si_put_sysprop(MKCL, mkcl_object sym, mkcl_object prop, mkcl_object value)
       } MKCL_UNWIND_PROTECT_EXIT {
 	if (locked) SYSTEM_PROPERTIES_UNLOCK();
       } MKCL_UNWIND_PROTECT_END;
-      @(return value);
+      mkcl_return_value(value);
     }
 }
 
@@ -221,7 +221,7 @@ mk_si_rem_sysprop(MKCL, mkcl_object sym, mkcl_object prop)
       } MKCL_UNWIND_PROTECT_EXIT {
 	if (locked) SYSTEM_PROPERTIES_UNLOCK();
       } MKCL_UNWIND_PROTECT_END;
-      @(return found);
+      mkcl_return_value(found);
     }
   else
     {
@@ -242,7 +242,7 @@ mk_si_rem_sysprop(MKCL, mkcl_object sym, mkcl_object prop)
       } MKCL_UNWIND_PROTECT_EXIT {
 	if (locked) SYSTEM_PROPERTIES_UNLOCK();
       } MKCL_UNWIND_PROTECT_END;
-      @(return found);
+      mkcl_return_value(found);
     }
 }
 
@@ -252,7 +252,7 @@ mk_si_system_properties(MKCL)
 {
   /* Maybe we should lock the system properties,
      then copy the hashtable and finally return the copy. JCB */
-  @(return mkcl_core.system_properties);
+  mkcl_return_value(mkcl_core.system_properties);
 }
 
 

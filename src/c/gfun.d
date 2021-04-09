@@ -28,7 +28,7 @@ mkcl_FEnot_funcallable_fixed(MKCL)
 {
   mkcl_object fun = env->function;
   mkcl_FEerror(env, "Not a funcallable instance ~A.", 1, fun);
-  @(return);
+  mkcl_return_no_value;
 }
 
 mkcl_object
@@ -186,7 +186,7 @@ mk_si_set_raw_funcallable(MKCL, mkcl_object instance, mkcl_object function)
     }
     instance->instance.slots[instance->instance.length-1] = function;
   }
-  @(return instance);
+  mkcl_return_value(instance);
 }
 
 mkcl_object
@@ -228,13 +228,13 @@ mk_clos_set_funcallable_instance_function(MKCL, mkcl_object x, mkcl_object funct
     x->instance.f._[3] = user_function_dispatch_f3;
     x->instance.f._[4] = user_function_dispatch_f4;
   }
-  @(return x);
+  mkcl_return_value(x);
 }
 
 mkcl_object
 mk_si_generic_function_p(MKCL, mkcl_object x)
 {
-  @(return ((MKCL_INSTANCEP(x) && (x->instance.isgf))? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value(((MKCL_INSTANCEP(x) && (x->instance.isgf))? mk_cl_Ct : mk_cl_Cnil));
 }
 
 /**********************************************************************
@@ -317,7 +317,7 @@ mk_si_clear_gfun_cache(MKCL, mkcl_object what)
   } MKCL_UNWIND_PROTECT_EXIT {
     if (locked) MKCL_THREAD_LIST_UNLOCK();
   } MKCL_UNWIND_PROTECT_END;
-  @(return);
+  mkcl_return_no_value;
 }
 
 static mkcl_index

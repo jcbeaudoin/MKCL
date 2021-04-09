@@ -50,7 +50,7 @@ mk_si_allocate_raw_instance(MKCL, mkcl_object orig, mkcl_object clas, mkcl_objec
     orig->instance.length = output->instance.length;
     orig->instance.slots = output->instance.slots;
   }
-  @(return orig);
+  mkcl_return_value(orig);
 }
 
 mkcl_object
@@ -59,7 +59,7 @@ mk_si_instance_sig(MKCL, mkcl_object x)
   mkcl_call_stack_check(env);
   if (mkcl_unlikely(!MKCL_INSTANCEP(x)))
     mkcl_FEtype_error_instance(env, x);
-  @(return x->instance.sig);
+  mkcl_return_value(x->instance.sig);
 }
 
 mkcl_object
@@ -68,7 +68,7 @@ mk_si_instance_sig_set(MKCL, mkcl_object x)
   mkcl_call_stack_check(env);
   if (mkcl_unlikely(!MKCL_INSTANCEP(x)))
     mkcl_FEtype_error_instance(env, x);
-  @(return (x->instance.sig = MKCL_CLASS_SLOTS(MKCL_CLASS_OF(x))));
+  mkcl_return_value((x->instance.sig = MKCL_CLASS_SLOTS(MKCL_CLASS_OF(x))));
 }
 
 mkcl_object
@@ -77,7 +77,7 @@ mk_si_instance_sig_set2(MKCL, mkcl_object x, mkcl_object sig)
   mkcl_call_stack_check(env);
   if (mkcl_unlikely(!MKCL_INSTANCEP(x)))
     mkcl_FEtype_error_instance(env, x);
-  @(return (x->instance.sig = sig));
+  mkcl_return_value((x->instance.sig = sig));
 }
 
 mkcl_object
@@ -86,7 +86,7 @@ mk_si_instance_class(MKCL, mkcl_object x)
   mkcl_call_stack_check(env);
   if (!MKCL_INSTANCEP(x))
     mkcl_FEtype_error_instance(env, x);
-  @(return MKCL_CLASS_OF(x));
+  mkcl_return_value(MKCL_CLASS_OF(x));
 }
 
 mkcl_object
@@ -96,7 +96,7 @@ mk_si_instance_length(MKCL, mkcl_object x)
   if (!MKCL_INSTANCEP(x))
     mkcl_FEtype_error_instance(env, x);
   else
-    { @(return mkcl_make_unsigned_integer(env, x->instance.length)); }
+    { mkcl_return_value(mkcl_make_unsigned_integer(env, x->instance.length)); }
 }
 
 mkcl_object
@@ -108,7 +108,7 @@ mk_si_instance_class_set(MKCL, mkcl_object x, mkcl_object y)
   if (!MKCL_INSTANCEP(y))
     mkcl_FEtype_error_instance(env, y);
   MKCL_CLASS_OF(x) = y;
-  @(return x);
+  mkcl_return_value(x);
 }
 
 void
@@ -143,7 +143,7 @@ mk_si_instance_ref(MKCL, mkcl_object x, mkcl_object index)
 			 (i = mkcl_fixnum_to_word(index)) < 0 || i >= x->instance.length))
     mkcl_FEtype_error_instance_index(env, x, index);
 
-  { @(return x->instance.slots[i]); }
+  { mkcl_return_value(x->instance.slots[i]); }
 }
 
 mkcl_object
@@ -160,7 +160,7 @@ mk_si_instance_ref_safe(MKCL, mkcl_object x, mkcl_object index)
   x = x->instance.slots[i];
   if (mkcl_unlikely(x == MKCL_UNBOUND))
     mk_cl_error(env, 5, @'unbound-slot', @':name', index, @':instance', x);
-  @(return x);
+  mkcl_return_value(x);
 }
 
 #if 0 /* inlined */
@@ -189,13 +189,13 @@ mk_si_instance_set(MKCL, mkcl_object x, mkcl_object index, mkcl_object value)
 			 || i < 0))
     mkcl_FEtype_error_instance_index(env, x, index);
 
-  { x->instance.slots[i] = value; @(return value); }
+  { x->instance.slots[i] = value; mkcl_return_value(value); }
 }
 
 mkcl_object
 mk_si_instancep(MKCL, mkcl_object x)
 {
-  @(return (MKCL_INSTANCEP(x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((MKCL_INSTANCEP(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
@@ -203,13 +203,13 @@ mk_si_unbound(MKCL)
 {
   /* Returns an object that cannot be read or written and which
      is used to represent an unitialized slot */
-  @(return MKCL_UNBOUND);
+  mkcl_return_value(MKCL_UNBOUND);
 }
 
 mkcl_object
 mk_si_sl_boundp(MKCL, mkcl_object x)
 {
-  @(return ((x == MKCL_UNBOUND) ? mk_cl_Cnil : mk_cl_Ct));
+  mkcl_return_value(((x == MKCL_UNBOUND) ? mk_cl_Cnil : mk_cl_Ct));
 }
 
 mkcl_object
@@ -224,7 +224,7 @@ mk_si_sl_makunbound(MKCL, mkcl_object x, mkcl_object index)
       (i = mkcl_fixnum_to_word(index)) >= x->instance.length || i < 0)
     mkcl_FEtype_error_instance_index(env, x, index);
   x->instance.slots[i] = MKCL_UNBOUND;
-  @(return x);
+  mkcl_return_value(x);
 }
 
 mkcl_object
@@ -241,7 +241,7 @@ mk_si_copy_instance(MKCL, mkcl_object x)
   y->instance.sig = x->instance.sig;
   memcpy(y->instance.slots, x->instance.slots,
 	 x->instance.length * sizeof(mkcl_object));
-  @(return y);
+  mkcl_return_value(y);
 }
 
 @(defun find-class (name &optional (errorp mk_cl_Ct) lex_env)
@@ -250,7 +250,7 @@ mk_si_copy_instance(MKCL, mkcl_object x)
   do {
     if (mkcl_Null(name)) {
       if (mkcl_Null(errorp))
-        { @(return mk_cl_Cnil); }
+        { mkcl_return_value(mk_cl_Cnil); }
       else
 	mkcl_FEerror(env, "No class named ~S.", 1, name);
     }
@@ -260,12 +260,12 @@ mk_si_copy_instance(MKCL, mkcl_object x)
 	if (mkcl_Null(class))
 	  {
 	    if (mkcl_Null(errorp))
-	      { @(return mk_cl_Cnil); }
+	      { mkcl_return_value(mk_cl_Cnil); }
 	    else
 	      mkcl_FEerror(env, "No class named ~S.", 1, name);
 	  }
 	else
-	  { @(return class); }
+	  { mkcl_return_value(class); }
       }
     else
       name = mkcl_type_error(env, @'find-class', "symbol", name, @'symbol');
@@ -284,7 +284,7 @@ mkcl_object mk_si_set_class_proper_name(MKCL, mkcl_object sym, mkcl_object class
     mkcl_FEwrong_type_argument(env, @'symbol', sym);
 
   sym->symbol.properly_named_class = class;
-  @(return class);
+  mkcl_return_value(class);
 }
 
 mkcl_object
@@ -366,7 +366,7 @@ mk_cl_class_of(MKCL, mkcl_object x)
 
   mkcl_call_stack_check(env);
   if (tp == mkcl_t_instance)
-    @(return MKCL_CLASS_OF(x));
+    mkcl_return_value(MKCL_CLASS_OF(x));
   switch (tp) {
   case mkcl_t_fixnum:
   case mkcl_t_bignum:
@@ -477,7 +477,7 @@ mk_cl_class_of(MKCL, mkcl_object x)
     } else {
       output = mkcl_aref_index(env, x, index);
     }
-    @(return output);
+    mkcl_return_value(output);
   }
 }
 

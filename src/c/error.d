@@ -351,7 +351,7 @@ mkcl_object
 mk_si_errno_string(MKCL)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_libc_error_string(env, errno));
+  mkcl_return_value(mkcl_libc_error_string(env, errno));
 }
 
 mkcl_object
@@ -365,7 +365,7 @@ mk_si_libc_error_string(MKCL, mkcl_object errno_val)
   else
     errno_msg = mk_cl_Cnil;
 
-  @(return errno_msg);
+  mkcl_return_value(errno_msg);
 }
 
 /*************************************

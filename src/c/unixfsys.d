@@ -416,7 +416,7 @@ file_kind(MKCL, mkcl_object os_filename, bool follow_links)
       mkcl_FElibc_file_error(env, os_filename, "stat() failed in file_kind()", 0);
 #endif
     }
-  @(return kind);
+  mkcl_return_value(kind);
 @)
 
 
@@ -439,7 +439,7 @@ mk_cl_truename(MKCL, mkcl_object orig_pathname)
       if (@':directory' == file_kind(env, true_os_path, FALSE))
 	if (!MKCL_IS_DIR_SEPARATOR(mkcl_OSstring_last(env, true_os_path)))
 	  mkcl_OSstring_push_extend(env, true_os_path, MKCL_DIR_SEPARATOR);
-      @(return mk_cl_pathname(env, mkcl_OSstring_to_string(env, true_os_path)));
+      mkcl_return_value(mk_cl_pathname(env, mkcl_OSstring_to_string(env, true_os_path)));
     }
   else
     { /* This is a ridiculously nonsensical extension of the specification 
@@ -447,7 +447,7 @@ mk_cl_truename(MKCL, mkcl_object orig_pathname)
 	 (like ccl, clisp, cmulisp, lispworks and allegro)
 	 and seems to be expected (even demanded) by a large number of users.
 	 So, we are forced to join the crowd! JCB */
-      @(return mk_cl_parse_namestring(env, 3, current_dir(env), mk_cl_Cnil, mk_cl_Cnil));
+      mkcl_return_value(mk_cl_parse_namestring(env, 3, current_dir(env), mk_cl_Cnil, mk_cl_Cnil));
     }
 }
 
@@ -595,7 +595,7 @@ mkcl_object mk_cl_rename_file(MKCL, mkcl_object old_filespec, mkcl_object new_na
   
  SUCCESS:
   mkcl_set_interrupt_status(env, &old_intr);
-  @(return new_name old_truename mk_cl_truename(env, new_name));
+  mkcl_return_3_values(new_name, old_truename, mk_cl_truename(env, new_name));
 }
 
 mkcl_object
@@ -614,7 +614,7 @@ mk_cl_delete_file(MKCL, mkcl_object file)
 
   if (ok == -1)
     mkcl_FElibc_file_error(env, file, "Cannot delete file.", 0);
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 }
 
 
@@ -674,7 +674,7 @@ mk_cl_probe_file(MKCL, mkcl_object filespec)
   mkcl_object filename = mk_si_coerce_to_filename(env, filespec);
   mkcl_dynamic_extent_OSstring(env, os_filename, filename);
 
-  @(return (mkcl_probe_file(env, os_filename, TRUE /* follow symlinks */) ? mk_cl_truename(env, filespec) : mk_cl_Cnil));
+  mkcl_return_value((mkcl_probe_file(env, os_filename, TRUE /* follow symlinks */) ? mk_cl_truename(env, filespec) : mk_cl_Cnil));
 }
 
 mkcl_object
@@ -705,7 +705,7 @@ mk_mkcl_stream_filename(MKCL, mkcl_object x)
   default:
     mkcl_FEwrong_type_argument(env, @'file-stream', x);
   }
-  @(return x);
+  mkcl_return_value(x);
 }
 
 mkcl_object
@@ -739,7 +739,7 @@ mk_mkcl_probe_file_p(MKCL, mkcl_object filename)
   {
     mkcl_dynamic_extent_OSstring(env, os_filename, filename);
 
-    @(return (mkcl_probe_file(env, os_filename, TRUE /* follow symlinks */) ? mk_cl_Ct : mk_cl_Cnil));
+    mkcl_return_value((mkcl_probe_file(env, os_filename, TRUE /* follow symlinks */) ? mk_cl_Ct : mk_cl_Cnil));
   }
 }
 
@@ -806,7 +806,7 @@ mk_cl_file_write_date(MKCL, mkcl_object file)
 #else
 #error mk_cl_file_write_date() not implemented on this platform.
 #endif /* elif MKCL_WINDOWS */
-  @(return time);
+  mkcl_return_value(time);
 }
 
 mkcl_object
@@ -841,13 +841,13 @@ mk_cl_file_author(MKCL, mkcl_object file)
   }
 
   /* Beware that this is the file owner not its author. */
-  @(return output);
+  mkcl_return_value(output);
 #else /* MKCL_UNIX */
   /* If we want to duplicate the unix behavior on MS-Windows
      we could call GetFileSecurity() then do GetSecurityDescriptorOnwer()
      and finally LookupAccountSid to get the name of the file owner.
    */
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 #endif /* MKCL_UNIX */
 }
 
@@ -945,7 +945,7 @@ mkcl_homedir_pathname(MKCL, mkcl_object user)
 @(defun user_homedir_pathname (&optional host)
 @
   /* Ignore optional host argument. */
-  @(return mkcl_homedir_pathname(env, mk_cl_Cnil));
+  mkcl_return_value(mkcl_homedir_pathname(env, mk_cl_Cnil));
 @)
 
 #if MKCL_UNIX
@@ -1472,7 +1472,7 @@ dir_recursive(MKCL, bool follow_symlinks, struct OSpath * wd_path, mkcl_object p
 
     output = dir_recursive(env, !mkcl_Null(follow_symlinks), &wd_path, path_spec, MKCL_CDR(dir_spec));
   }
-  @(return output);
+  mkcl_return_value(output);
 @)
 
 @(defun mkcl::getcwd (&key (change_default_pathname_defaults mk_cl_Cnil) (all_drives mk_cl_Cnil))
@@ -1506,10 +1506,10 @@ dir_recursive(MKCL, bool follow_symlinks, struct OSpath * wd_path, mkcl_object p
       }
 
 
-    @(return output mk_cl_nreverse(env, all_cwd));
+    mkcl_return_2_values(output, mk_cl_nreverse(env, all_cwd));
   }
 #else /*  MKCL_WINDOWS */
-  @(return output);
+  mkcl_return_value(output);
 #endif /*  MKCL_WINDOWS */
 @)
 
@@ -1589,7 +1589,7 @@ mk_si_get_SYS_library_pathname(MKCL)
 
       mkcl_core.SYS_library_pathname = SYS_libdir;
     }
-  @(return SYS_libdir);
+  mkcl_return_value(SYS_libdir);
 }
 
 @(defun mkcl::chdir (directory &optional (change_d_p_d mk_cl_Cnil))
@@ -1607,7 +1607,7 @@ mk_si_get_SYS_library_pathname(MKCL)
     mkcl_FElibc_file_error(env, namestring, "Can't change the current directory to ~A", 1, namestring);
   if (change_d_p_d != mk_cl_Cnil)
     MKCL_SETQ(env, @'*default-pathname-defaults*', directory);
-  @(return mk_mkcl_getcwd(env, 0) previous);
+  mkcl_return_2_values(mk_mkcl_getcwd(env, 0), previous);
 @)
 
 mkcl_object
@@ -1629,7 +1629,7 @@ mk_mkcl_mkdir(MKCL, mkcl_object directory, mkcl_object mode)
 
   if (ok < 0)
     mkcl_FElibc_file_error(env, filename, "Could not create directory.", 0);
-  @(return filename);
+  mkcl_return_value(filename);
 }
 
 /* For #'si:mkstemp we follow the same keyword argument defaults as #'cl:open. */
@@ -1683,7 +1683,7 @@ mk_mkcl_mkdir(MKCL, mkcl_object directory, mkcl_object mode)
 	  if ((errno == EEXIST) && first_try)
 	    { first_try = FALSE; goto AGAIN; }
 	  else
-	    { @(return mk_cl_Cnil mk_cl_Cnil MKCL_MAKE_FIXNUM(errno)); }
+	    { mkcl_return_3_values(mk_cl_Cnil, mk_cl_Cnil, MKCL_MAKE_FIXNUM(errno)); }
 
 	tmp_stream = mkcl_make_stream_from_fd(env, tmp_filename, fd, mkcl_smm_io, element_type, external_format);
       }
@@ -1702,14 +1702,14 @@ mk_mkcl_mkdir(MKCL, mkcl_object directory, mkcl_object mode)
     MKCL_LIBC_NO_INTR(env, fd = mkstemp((char *) mkcl_OSstring_self(os_template)));
 
     if (fd == -1) {
-      @(return mk_cl_Cnil mk_cl_Cnil MKCL_MAKE_FIXNUM(errno));
+      mkcl_return_3_values(mk_cl_Cnil, mk_cl_Cnil, MKCL_MAKE_FIXNUM(errno));
     } else {
       tmp_filename = mkcl_OSstring_to_string(env, os_template);
       tmp_stream = mkcl_make_stream_from_fd(env, tmp_filename, fd, mkcl_smm_io, element_type, external_format);
     }
 #endif /* else  MKCL_WINDOWS */
 
-    @(return tmp_stream tmp_filename);
+    mkcl_return_2_values(tmp_stream, tmp_filename);
   }
 @)
 
@@ -1729,7 +1729,7 @@ mk_mkcl_rmdir(MKCL, mkcl_object directory)
 #endif
   if (code != 0)
     mkcl_FElibc_file_error(env, directory, "Can't remove directory: ~S.", 1, directory);
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 mkcl_object
@@ -1885,7 +1885,7 @@ mk_mkcl_copy_file(MKCL, mkcl_object orig, mkcl_object dest)
     }
   }
 
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 }
 
 

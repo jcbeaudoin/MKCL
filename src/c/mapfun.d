@@ -46,7 +46,7 @@
 	  mkcl_temp_stack_frame_close(env, cars_frame);
 	  mkcl_temp_stack_frame_close(env, cdrs_frame);
           mkcl_va_end(lists);
-	  @(return res);
+	  mkcl_return_value(res);
 	}
 	MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, MKCL_CONS_CAR(cdr));
 	MKCL_TEMP_STACK_FRAME_SET(cdrs_frame, i, MKCL_CONS_CDR(cdr));
@@ -73,7 +73,7 @@
 	  mkcl_temp_stack_frame_close(env, cars_frame);
 	  mkcl_temp_stack_frame_close(env, cdrs_frame);
           mkcl_va_end(lists);
-	  @(return res);
+	  mkcl_return_value(res);
 	}
 	MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, cdr);
 	MKCL_TEMP_STACK_FRAME_SET(cdrs_frame, i, MKCL_CONS_CDR(cdr));
@@ -100,7 +100,7 @@
 	  mkcl_temp_stack_frame_close(env, cars_frame);
 	  mkcl_temp_stack_frame_close(env, cdrs_frame);
           mkcl_va_end(lists);
-	  @(return onelist);
+	  mkcl_return_value(onelist);
 	}
 	MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, MKCL_CONS_CAR(cdr));
 	MKCL_TEMP_STACK_FRAME_SET(cdrs_frame, i, MKCL_CONS_CDR(cdr));
@@ -126,7 +126,7 @@
 	  mkcl_temp_stack_frame_close(env, cars_frame);
 	  mkcl_temp_stack_frame_close(env, cdrs_frame);
           mkcl_va_end(lists);
-	  @(return onelist);
+	  mkcl_return_value(onelist);
 	}
 	MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, cdr);
 	MKCL_TEMP_STACK_FRAME_SET(cdrs_frame, i, MKCL_CONS_CDR(cdr));
@@ -152,7 +152,7 @@
 	  mkcl_temp_stack_frame_close(env, cars_frame);
 	  mkcl_temp_stack_frame_close(env, cdrs_frame);
           mkcl_va_end(lists);
-	  @(return res);
+	  mkcl_return_value(res);
 	}
 	MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, MKCL_CONS_CAR(cdr));
 	MKCL_TEMP_STACK_FRAME_SET(cdrs_frame, i, MKCL_CONS_CDR(cdr));
@@ -180,7 +180,7 @@
 	  mkcl_temp_stack_frame_close(env, cars_frame);
 	  mkcl_temp_stack_frame_close(env, cdrs_frame);
           mkcl_va_end(lists);
-	  @(return res);
+	  mkcl_return_value(res);
 	}
 	MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, cdr);
 	MKCL_TEMP_STACK_FRAME_SET(cdrs_frame, i, MKCL_CONS_CDR(cdr));

@@ -96,7 +96,7 @@ mkcl_object
 mk_cl_abs(MKCL, mkcl_object x)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_abs(env, x));
+  mkcl_return_value(mkcl_abs(env, x));
 }
 
 mkcl_word
@@ -151,7 +151,7 @@ mk_cl_exp(MKCL, mkcl_object x)
     goto AGAIN;
   }
   MKCL_MATHERR_TEST(env);
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
@@ -215,7 +215,7 @@ mk_cl_expt(MKCL, mkcl_object x, mkcl_object y)
       x = mkcl_times(env, x, x);
     } while (1);
   }
-  @(return z);
+  mkcl_return_value(z);
 }
 
 static mkcl_object
@@ -392,7 +392,7 @@ mkcl_object
 mk_si_log1p(MKCL, mkcl_object x)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_log1p(env, x));
+  mkcl_return_value(mkcl_log1p(env, x));
 }
 
 mkcl_object
@@ -433,7 +433,7 @@ mk_cl_sqrt(MKCL, mkcl_object x)
       ;
     }
   MKCL_MATHERR_TEST(env);
-  @(return z);
+  mkcl_return_value(z);
 }
 
 static double
@@ -595,7 +595,7 @@ mk_cl_sin(MKCL, mkcl_object x)
     goto AGAIN;
   }
   MKCL_MATHERR_TEST(env);
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
@@ -638,7 +638,7 @@ mk_cl_cos(MKCL, mkcl_object x)
     goto AGAIN;
   }
   MKCL_MATHERR_TEST(env);
-  @(return output);
+  mkcl_return_value(output);
 }
 
 /*
@@ -685,7 +685,7 @@ mk_cl_tan(MKCL, mkcl_object x)
     goto AGAIN;
   }
   MKCL_MATHERR_TEST(env);
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
@@ -728,7 +728,7 @@ mk_cl_sinh(MKCL, mkcl_object x)
     goto AGAIN;
   }
   MKCL_MATHERR_TEST(env);
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
@@ -771,7 +771,7 @@ mk_cl_cosh(MKCL, mkcl_object x)
     goto AGAIN;
   }
   MKCL_MATHERR_TEST(env);
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
@@ -806,15 +806,15 @@ mk_cl_tanh(MKCL, mkcl_object x)
     goto AGAIN;
   }
   MKCL_MATHERR_TEST(env);
-  @(return output);
+  mkcl_return_value(output);
 }
 
 @(defun log (x &optional (y MKCL_OBJNULL))
 @
   /* INV: type check in mkcl_log1() and mkcl_log2() */
   if (y == MKCL_OBJNULL)
-    { @(return mkcl_log1(env, x)); }
-  @(return mkcl_log2(env, y, x));
+    { mkcl_return_value(mkcl_log1(env, x)); }
+  mkcl_return_value(mkcl_log2(env, y, x));
 @)
 
 @(defun atan (x &optional (y MKCL_OBJNULL))
@@ -823,7 +823,7 @@ mk_cl_tanh(MKCL, mkcl_object x)
   /* FIXME mkcl_atan() and mkcl_atan2() produce generic errors
      without recovery and function information. */
   if (y == MKCL_OBJNULL)
-    { @(return mkcl_atan1(env, x)); }
-  @(return mkcl_atan2(env, x, y));
+    { mkcl_return_value(mkcl_atan1(env, x)); }
+  mkcl_return_value(mkcl_atan2(env, x, y));
 @)
 

@@ -87,7 +87,7 @@ search_macro_function(MKCL, mkcl_object name, mkcl_object lex_env)
 
 @(defun macro_function (sym &optional lex_env)
 @
-  @(return (search_macro_function(env, sym, lex_env)));
+  mkcl_return_value((search_macro_function(env, sym, lex_env)));
 @)
 
 /*
@@ -117,7 +117,7 @@ search_macro_function(MKCL, mkcl_object name, mkcl_object lex_env)
     else
       form = mkcl_funcall3(env, hook, exp_fun, form, lex_env);
   }
-  @(return form exp_fun);
+  mkcl_return_2_values(form, exp_fun);
 @)
 
 /*
@@ -138,7 +138,7 @@ search_macro_function(MKCL, mkcl_object name, mkcl_object lex_env)
       done = mk_cl_Ct;
     }
   } while (1);
-  @(return form done);
+  mkcl_return_2_values(form, done);
 @)
 
 static mkcl_object
@@ -147,16 +147,16 @@ or_macro(MKCL, mkcl_object whole, mkcl_object lex_env)
   mkcl_object output = mk_cl_Cnil;
   whole = MKCL_CDR(whole);
   if (mkcl_Null(whole))	/* (OR) => NIL */
-    @(return mk_cl_Cnil);
+    mkcl_return_value(mk_cl_Cnil);
   while (!mkcl_Null(MKCL_CDR(whole))) {
     output = MKCL_CONS(env, MKCL_CONS(env, MKCL_CAR(whole), mk_cl_Cnil), output);
     whole = MKCL_CDR(whole);
   }
   if (mkcl_Null(output))	/* (OR form1) => form1 */
-    @(return MKCL_CAR(whole));
+    mkcl_return_value(MKCL_CAR(whole));
   /* (OR form1 ... formn forml) => (COND (form1) ... (formn) (t forml)) */
   output = MKCL_CONS(env, mk_cl_list(env, 2, mk_cl_Ct, MKCL_CAR(whole)), output);
-  @(return MKCL_CONS(env, @'cond', mk_cl_nreverse(env, output)));
+  mkcl_return_value(MKCL_CONS(env, @'cond', mk_cl_nreverse(env, output)));
 }
 
 static mkcl_object
@@ -172,7 +172,7 @@ expand_and(MKCL, mkcl_object whole)
 static mkcl_object
 and_macro(MKCL, mkcl_object whole, mkcl_object lex_env)
 {
-  @(return expand_and(env, MKCL_CDR(whole)));
+  mkcl_return_value(expand_and(env, MKCL_CDR(whole)));
 }
 
 static mkcl_object

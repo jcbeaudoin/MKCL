@@ -283,7 +283,7 @@ mk_cl_eval(MKCL, mkcl_object form)
   default:
     flag = mk_cl_Ct;
   }
-  @(return flag);
+  mkcl_return_value(flag);
 @)
 
 

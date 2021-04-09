@@ -247,7 +247,7 @@ mk_cl_sleep(MKCL, mkcl_object z)
   if (MKCL_FIXNUMP(z))
     sleep(mkcl_fixnum_to_word(z)); /* FIXME! sleep() takes an "unsigned int", beware of truncation here. JCB */
 #endif
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 static mkcl_object
@@ -291,7 +291,7 @@ mk_cl_get_internal_run_time(MKCL) /* Should take a "thread" as optional argument
 {
   struct timespec ts;
   get_run_time(env, &ts);
-  @(return timespec_to_time(env, ts.tv_sec, ts.tv_nsec));
+  mkcl_return_value(timespec_to_time(env, ts.tv_sec, ts.tv_nsec));
 }
 
 mkcl_object
@@ -301,7 +301,7 @@ mk_cl_get_internal_real_time(MKCL)
 
   mkcl_call_stack_check(env);
   get_real_time(env, &ts);
-  @(return timespec_to_time(env, ts.tv_sec - beginning.tv_sec, ts.tv_nsec - beginning.tv_nsec));
+  mkcl_return_value(timespec_to_time(env, ts.tv_sec - beginning.tv_sec, ts.tv_nsec - beginning.tv_nsec));
 }
 
 mkcl_object
@@ -310,7 +310,7 @@ mk_cl_get_universal_time(MKCL)
      because of the value returned by time() will have wrapped-around. JCB */
   mkcl_call_stack_check(env);
   mkcl_object utc = mkcl_make_integer(env, time(0));
-  @(return mkcl_plus(env, utc, mkcl_core.Jan1st1970UT));
+  mkcl_return_value(mkcl_plus(env, utc, mkcl_core.Jan1st1970UT));
 }
 
 
@@ -351,7 +351,7 @@ mk_si_get_local_time_zone(MKCL)
       zone_bias_in_minutes += 24*60;
 #endif
   }
-  @(return mkcl_make_ratio(env, MKCL_MAKE_FIXNUM(zone_bias_in_minutes), MKCL_MAKE_FIXNUM(60)));
+  mkcl_return_value(mkcl_make_ratio(env, MKCL_MAKE_FIXNUM(zone_bias_in_minutes), MKCL_MAKE_FIXNUM(60)));
 }
 
 

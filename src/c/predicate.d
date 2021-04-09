@@ -25,173 +25,173 @@
 mkcl_object
 mk_cl_identity(MKCL, mkcl_object x)
 {
-  @(return x);
+  mkcl_return_value(x);
 }
 
 mkcl_object
 mk_cl_null(MKCL, mkcl_object x)
 {
-  @(return (mkcl_Null(x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_Null(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_symbolp(MKCL, mkcl_object x)
 {
-  @(return (MKCL_SYMBOLP(x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((MKCL_SYMBOLP(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_atom(MKCL, mkcl_object x)
 {
-  @(return (MKCL_ATOM(x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((MKCL_ATOM(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_consp(MKCL, mkcl_object x)
 {
-  @(return (MKCL_CONSP(x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((MKCL_CONSP(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_listp(MKCL, mkcl_object x)
 {
-  @(return ((MKCL_LISTP(x)) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value(((MKCL_LISTP(x)) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_numberp(MKCL, mkcl_object x)
 {
   mkcl_type t = mkcl_type_of(x);
-  @(return (MKCL_NUMBER_TYPE_P(t) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((MKCL_NUMBER_TYPE_P(t) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_integerp(MKCL, mkcl_object x)
 {
   mkcl_type t = mkcl_type_of(x);
-  @(return ((t == mkcl_t_fixnum || t == mkcl_t_bignum) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value(((t == mkcl_t_fixnum || t == mkcl_t_bignum) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_rationalp(MKCL, mkcl_object x)
 {
-  @(return (mkcl_rationalp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_rationalp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_floatp(MKCL, mkcl_object x)
 {
-  @(return (mkcl_floatp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_floatp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_realp(MKCL, mkcl_object x)
 {
-  @(return (mkcl_realp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_realp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_complexp(MKCL, mkcl_object x)
 {
-  @(return (MKCL_COMPLEXP(x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((MKCL_COMPLEXP(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_characterp(MKCL, mkcl_object x)
 {
-  @(return (MKCL_CHARACTERP(x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((MKCL_CHARACTERP(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_mkcl_base_char_p(MKCL, mkcl_object c)
 {
-  @(return ((MKCL_CHARACTERP(c) && MKCL_BASE_CHAR_P(c)) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value(((MKCL_CHARACTERP(c) && MKCL_BASE_CHAR_P(c)) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_stringp(MKCL, mkcl_object x)
 {
-  @(return (mkcl_stringp(env, x)? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_stringp(env, x)? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_bit_vector_p(MKCL, mkcl_object x)
 {
-  @(return ((mkcl_type_of(x) == mkcl_t_bitvector) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value(((mkcl_type_of(x) == mkcl_t_bitvector) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_vectorp(MKCL, mkcl_object x)
 {
   mkcl_type t = mkcl_type_of(x);
-  @(return (MKCL_VECTORP(x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((MKCL_VECTORP(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_simple_string_p(MKCL, mkcl_object x)
 {
-  @(return (mkcl_simple_string_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_simple_string_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_si_simple_base_string_p(MKCL, mkcl_object x)
 {
-  @(return (mkcl_simple_base_string_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_simple_base_string_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_si_base_string_p(MKCL, mkcl_object x)
 {
-  @(return ((mkcl_type_of(x) == mkcl_t_base_string) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value(((mkcl_type_of(x) == mkcl_t_base_string) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_simple_bit_vector_p(MKCL, mkcl_object x)
 {
-  @(return (mkcl_simple_bit_vector_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_simple_bit_vector_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_simple_vector_p(MKCL, mkcl_object x)
 {
-  @(return (mkcl_simple_vector_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_simple_vector_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_arrayp(MKCL, mkcl_object x)
 {
   mkcl_type t = mkcl_type_of(x);
-  @(return (MKCL_ARRAY_TYPE_P(t) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((MKCL_ARRAY_TYPE_P(t) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_packagep(MKCL, mkcl_object x)
 {
-  @(return ((mkcl_type_of(x) == mkcl_t_package) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value(((mkcl_type_of(x) == mkcl_t_package) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_functionp(MKCL, mkcl_object x)
 {
-  @(return (mkcl_functionp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_functionp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_compiled_function_p(MKCL, mkcl_object x)
 {
-  @(return (mkcl_compiled_function_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_compiled_function_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_si_bytecodep(MKCL, mkcl_object x)
 {
-  @(return (mkcl_bytecodep(env, x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_bytecodep(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_eq(MKCL, mkcl_object x, mkcl_object y)
 {
-  @(return ((x == y) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value(((x == y) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 /*
@@ -270,7 +270,7 @@ mkcl_object
 mk_cl_eql(MKCL, mkcl_object x, mkcl_object y)
 {
   mkcl_call_stack_check(env);
-  @(return (mkcl_eql(env, x, y) ? mk_cl_Ct : mk_cl_Cnil))
+  mkcl_return_value((mkcl_eql(env, x, y) ? mk_cl_Ct : mk_cl_Cnil))
 }
 
 bool
@@ -367,7 +367,7 @@ mkcl_object
 mk_cl_equal(MKCL, mkcl_object x, mkcl_object y)
 {
   mkcl_call_stack_check(env);
-  @(return (mkcl_equal(env, x, y) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_equal(env, x, y) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 bool
@@ -500,21 +500,21 @@ mkcl_object
 mk_cl_equalp(MKCL, mkcl_object x, mkcl_object y)
 {
   mkcl_call_stack_check(env);
-  @(return (mkcl_equalp(env, x, y) ? mk_cl_Ct : mk_cl_Cnil))
+  mkcl_return_value((mkcl_equalp(env, x, y) ? mk_cl_Ct : mk_cl_Cnil))
 }
 
 mkcl_object
 mk_mkcl_fixnump(MKCL, mkcl_object x)
 {
-  @(return (MKCL_FIXNUMP(x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((MKCL_FIXNUMP(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
 mk_si_unbound_value_p(MKCL, mkcl_object val)
 {
   if ( MKCL_OBJNULL == val )
-    { @(return mk_cl_Ct); }
+    { mkcl_return_value(mk_cl_Ct); }
   else
-    { @(return mk_cl_Cnil); }
+    { mkcl_return_value(mk_cl_Cnil); }
 }
 

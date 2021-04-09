@@ -85,9 +85,9 @@ long_double_fix_compare(mkcl_word n, long double d)
   /* INV: For >= 2 arguments, mkcl_number_equalp() performs checks */
   for (i = 1; i < narg; i++)
     if (!mkcl_number_equalp(env, num, mkcl_va_arg(nums)))
-      { mkcl_va_end(nums); @(return mk_cl_Cnil); }
+      { mkcl_va_end(nums); mkcl_return_value(mk_cl_Cnil); }
   mkcl_va_end(nums);
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 /* Returns 1 if both numbers compare to equal */
@@ -404,11 +404,11 @@ mkcl_number_compare(MKCL, mkcl_object x, mkcl_object y)
     numi = mkcl_va_arg(nums);
     for (j = 1; j<i; j++)
       if (mkcl_number_equalp(env, numi, mkcl_va_arg(numb)))
-	{ mkcl_va_end(nums); mkcl_va_end(numb); @(return mk_cl_Cnil); }
+	{ mkcl_va_end(nums); mkcl_va_end(numb); mkcl_return_value(mk_cl_Cnil); }
     mkcl_va_end(numb);
   }
   mkcl_va_end(nums);
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 static mkcl_object
@@ -450,7 +450,7 @@ mkcl_object @>  MONOTONIC(-1, 1)
       max = numi;
   } while (--narg);
   mkcl_va_end(nums);
-  @(return max);
+  mkcl_return_value(max);
 @)
 
 @(defun min (min &rest nums)
@@ -465,6 +465,6 @@ mkcl_object @>  MONOTONIC(-1, 1)
       min = numi;
   } while (--narg);
   mkcl_va_end(nums);
-  @(return min);
+  mkcl_return_value(min);
 @)
 

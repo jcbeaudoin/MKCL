@@ -174,7 +174,7 @@ mk_cl_row_major_aref(MKCL, mkcl_object x, mkcl_object indx)
   if (mkcl_unlikely(!(MKCL_FIXNUMP(indx) && ((j = mkcl_fixnum_to_word(indx)) < x->array.dim))))
     j = mkcl_fixnum_in_range(env, @'row-major-aref', "index", indx, 0, (mkcl_word)x->array.dim-1);
 
-  @(return mkcl_aref_index(env, x, j));
+  mkcl_return_value(mkcl_aref_index(env, x, j));
 }
 
 mkcl_object
@@ -189,7 +189,7 @@ mk_si_row_major_aset(MKCL, mkcl_object x, mkcl_object indx, mkcl_object val)
   if (mkcl_unlikely(!(MKCL_FIXNUMP(indx) && ((j = mkcl_fixnum_to_word(indx)) < x->array.dim))))
     j = mkcl_fixnum_in_range(env, @'si::row-major-aset', "index", indx, 0, (mkcl_word)x->array.dim-1);
 
-  @(return mkcl_aset_index(env, x, j, val));
+  mkcl_return_value(mkcl_aset_index(env, x, j, val));
 }
 
 @(defun array-row-major-index (x &rest indx)
@@ -231,7 +231,7 @@ mk_si_row_major_aset(MKCL, mkcl_object x, mkcl_object indx, mkcl_object val)
     }
     mkcl_va_end(indx);
     /* By construction, "j" is a valid array index and should thus be within the range of fixnum. */
-    @(return MKCL_MAKE_FIXNUM(j));
+    mkcl_return_value(MKCL_MAKE_FIXNUM(j));
   } 
 @)
 
@@ -335,7 +335,7 @@ mkcl_index mkcl_array_row_major_index_3_t(MKCL, mkcl_object a, mkcl_object i, mk
       goto AGAIN;
     }
     mkcl_va_end(indx);
-    @(return mkcl_aref_index(env, x, j));
+    mkcl_return_value(mkcl_aref_index(env, x, j));
   } 
 @)
 
@@ -411,7 +411,7 @@ mkcl_vref(MKCL, mkcl_object v, mkcl_object index)
       goto AGAIN;
     }
     mkcl_va_end(dims);
-    @(return mkcl_aset_index(env, x, j, v));
+    mkcl_return_value(mkcl_aset_index(env, x, j, v));
   } 
 @)
 
@@ -550,7 +550,7 @@ mk_cl_svref(MKCL, mkcl_object x, mkcl_object index)
   if (mkcl_unlikely(!(MKCL_FIXNUMP(index) && ((i = mkcl_fixnum_to_word(index)) < x->vector.dim))))
     i = mkcl_fixnum_in_range(env, @'svref', "index", index, 0, (mkcl_word)x->vector.dim-1);
 
-  @(return x->vector.self.t[i]);
+  mkcl_return_value(x->vector.self.t[i]);
 }
 
 mkcl_object
@@ -569,7 +569,7 @@ mk_si_svset(MKCL, mkcl_object x, mkcl_object index, mkcl_object v)
   if (mkcl_unlikely(!(MKCL_FIXNUMP(index) && ((i = mkcl_fixnum_to_word(index)) < x->vector.dim))))
     i = mkcl_fixnum_in_range(env, @'svref', "index", index, 0, (mkcl_word)x->vector.dim-1);
 
-  @(return (x->vector.self.t[i] = v));
+  mkcl_return_value((x->vector.self.t[i] = v));
 }
 
 
@@ -637,7 +637,7 @@ mk_si_make_pure_array(MKCL, mkcl_object etype, mkcl_object dims, mkcl_object adj
     mkcl_array_allocself(env, x);
   else
     displace(env, x, displ, disploff);
-  @(return x);
+  mkcl_return_value(x);
 }
 
 /*
@@ -701,7 +701,7 @@ mk_si_make_vector(MKCL, mkcl_object etype, mkcl_object dim, mkcl_object adj,
     mkcl_array_allocself(env, x);
   else
     displace(env, x, displ, disploff);
-  @(return x);
+  mkcl_return_value(x);
 }
 
 mkcl_object
@@ -943,7 +943,7 @@ mkcl_object
 mk_cl_array_element_type(MKCL, mkcl_object a)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_elttype_to_symbol(env, mkcl_array_elttype(env, a)))
+  mkcl_return_value(mkcl_elttype_to_symbol(env, mkcl_array_elttype(env, a)))
 }
 
 /*
@@ -1023,7 +1023,7 @@ mk_cl_array_rank(MKCL, mkcl_object a)
 {
   mkcl_call_stack_check(env);
   mkcl_assert_type_array(env, a);
-  @(return ((mkcl_type_of(a) == mkcl_t_array)
+  mkcl_return_value(((mkcl_type_of(a) == mkcl_t_array)
 	    ? MKCL_MAKE_FIXNUM(a->array.rank)
 	    : MKCL_MAKE_FIXNUM(1)));
 }
@@ -1067,14 +1067,14 @@ mk_cl_array_dimension(MKCL, mkcl_object a, mkcl_object axis_number)
       a = mkcl_type_error(env, @'array-dimension', "array", a, @'array');
       goto AGAIN;
     }
-  @(return MKCL_MAKE_FIXNUM(dim));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(dim));
 }
 
 mkcl_object
 mk_cl_array_total_size(MKCL, mkcl_object a)
 {
   mkcl_call_stack_check(env);
-  @(return MKCL_MAKE_FIXNUM(mkcl_array_total_size(env, a)));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(mkcl_array_total_size(env, a)));
 }
 
 mkcl_object
@@ -1082,7 +1082,7 @@ mk_cl_adjustable_array_p(MKCL, mkcl_object a)
 {
   mkcl_call_stack_check(env);
   mkcl_assert_type_array(env, a);
-  @(return (a->array.adjustable ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((a->array.adjustable ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 /*
@@ -1174,7 +1174,7 @@ mk_cl_array_displacement(MKCL, mkcl_object a)
       mkcl_FEbad_aet(env);
     }
   }
-  @(return to_array MKCL_MAKE_FIXNUM(offset));
+  mkcl_return_2_values(to_array, MKCL_MAKE_FIXNUM(offset));
 }
 
 mkcl_object
@@ -1203,14 +1203,14 @@ mk_cl_array_has_fill_pointer_p(MKCL, mkcl_object a)
       a = mkcl_type_error(env, @'array-has-fill-pointer-p',"argument", a, @'array');
       goto AGAIN;
     }
-  @(return r);
+  mkcl_return_value(r);
 }
 
 mkcl_object
 mk_cl_fill_pointer(MKCL, mkcl_object a)
 {
   mkcl_call_stack_check(env);
-  @(return MKCL_MAKE_FIXNUM(mkcl_vector_fill_pointer(env, a)));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(mkcl_vector_fill_pointer(env, a)));
 }
 
 /*
@@ -1232,7 +1232,7 @@ mk_si_fill_pointer_set(MKCL, mkcl_object a, mkcl_object fp)
     fillp = mkcl_fixnum_to_word(fp);
   else
     fillp = mkcl_fixnum_in_range(env, @'si::fill-pointer-set', "fill pointer", fp, 0, MKCL_MOST_POSITIVE_FIXNUM);
-  @(return MKCL_MAKE_FIXNUM(mkcl_vector_fill_pointer_set(env, a, fillp)));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(mkcl_vector_fill_pointer_set(env, a, fillp)));
 }
 
 /*
@@ -1282,7 +1282,7 @@ mk_si_replace_array(MKCL, mkcl_object olda, mkcl_object newa)
     mkcl_FEerror(env, "Cannot replace the array ~S by the array ~S.", 2, olda, newa);
   }
  OUTPUT:
-  @(return olda);
+  mkcl_return_value(olda);
 }
 
 void
@@ -1552,6 +1552,6 @@ mk_si_fill_array_with_elt(MKCL, mkcl_object x, mkcl_object elt, mkcl_object star
       mkcl_FEbad_aet(env);
     }
  END:
-  @(return x);
+  mkcl_return_value(x);
 }
 

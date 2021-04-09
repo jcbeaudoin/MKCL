@@ -96,7 +96,7 @@ mkcl_current_thread(MKCL)
 
 mkcl_object mk_mt_current_thread(MKCL)
 {
-  @(return mkcl_current_thread(env));
+  mkcl_return_value(mkcl_current_thread(env));
 }
 
 /*----------------------------------------------------------------------
@@ -1683,7 +1683,7 @@ static void mkcl_create_finalization_thread(MKCL)
     init_params.lisp_temp_stack_size_limit = mkcl_integer_to_index(env, lisp_temp_stack_size_limit);
 
   thread = mkcl_make_thread(env, name, initial_bindings, &init_params);
-  @(return thread);
+  mkcl_return_value(thread);
 @)
 
 #if MKCL_PTHREADS
@@ -1715,7 +1715,7 @@ mk_mt_show_sigmask(MKCL)
   mkcl_call_stack_check(env);
   print_thread_sig_mask();
 #endif
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 mkcl_object
@@ -1730,7 +1730,7 @@ mk_mt_reset_sigmask(MKCL)
   if (pthread_sigmask(SIG_UNBLOCK, &all_signals, NULL))
     mkcl_lose(env, "mk_mt_reset_sigmask failed on pthread_sigmask");
 #endif
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 
@@ -1754,7 +1754,7 @@ mk_mt_block_signals(MKCL)
       this_thread->thread.sigmask_frs_marker = this_thread->thread.env->frs_top;
     }
 #endif
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 mkcl_object
@@ -1773,7 +1773,7 @@ mk_mt_unblock_signals(MKCL)
       this_thread->thread.sigmask_frs_marker = NULL;
     }
 #endif
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 mkcl_object
@@ -1812,7 +1812,7 @@ mk_mt_thread_preset(MKCL, mkcl_narg narg, mkcl_object thread, mkcl_object functi
     thread->thread.args = mkcl_grab_rest_args(env, args, FALSE);
     mkcl_va_end(args);
   }
-  @(return thread);
+  mkcl_return_value(thread);
 }
 
 #if MKCL_PTHREADS
@@ -2453,7 +2453,7 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
     MKCL_LIBC_NO_INTR(env, val = interrupt_thread_internal(env, thread, function, os_call_stack_size, force));
   } MKCL_UNWIND_PROTECT_EXIT {
   } MKCL_UNWIND_PROTECT_END;
-  @(return val);
+  mkcl_return_value(val);
 @)
 
 mkcl_object
@@ -2482,7 +2482,7 @@ mk_mt_thread_kill(MKCL, mkcl_object thread)
   }
 #endif
 
-  @(return val);
+  mkcl_return_value(val);
 }
 
 mkcl_object mk_mt_thread_detach(MKCL, mkcl_object thread)
@@ -2494,7 +2494,7 @@ mkcl_object mk_mt_thread_detach(MKCL, mkcl_object thread)
     thread = mkcl_type_error(env, @'mt::thread-detach', "argument", thread, @'mt::thread');
 
   if ((thread->thread.status != mkcl_thread_active) || thread->thread.detached || (thread->thread.thread == 0))
-    { @(return mk_cl_Cnil); }
+    { mkcl_return_value(mk_cl_Cnil); }
   else
     {
 #if MKCL_PTHREADS
@@ -2557,7 +2557,7 @@ mkcl_object mk_mt_thread_detach(MKCL, mkcl_object thread)
   if (thread->thread.status == mkcl_thread_done)
     mkcl_remove_thread_from_global_thread_list(env, thread);
 
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 }
 
 #if MKCL_PTHREADS
@@ -2598,7 +2598,7 @@ mk_mt_thread_join(MKCL, mkcl_object thread)
     {
       if (thread->thread.status == mkcl_thread_done)
 	mkcl_remove_thread_from_global_thread_list(env, thread);
-      @(return @':detached');
+      mkcl_return_value(@':detached');
     }
   else if (thread == mkcl_core.initial_thread)
     {
@@ -2623,7 +2623,7 @@ mk_mt_thread_join(MKCL, mkcl_object thread)
   thread->thread.tid = 0;
   thread->thread.status = mkcl_thread_initialized;
 
-  @(return result_value);
+  mkcl_return_value(result_value);
 }
 
 #elif MKCL_WINDOWS
@@ -2670,7 +2670,7 @@ mk_mt_thread_join(MKCL, mkcl_object thread)
     { 
       if (thread->thread.status == mkcl_thread_done)
 	mkcl_remove_thread_from_global_thread_list(env, thread);
-      @(return @':detached');
+      mkcl_return_value(@':detached');
     }
   else
     {
@@ -2716,7 +2716,7 @@ mk_mt_thread_join(MKCL, mkcl_object thread)
 
   thread->thread.status = mkcl_thread_initialized;
 
-  @(return result_value);
+  mkcl_return_value(result_value);
 }
 
 #endif /* MKCL_WINDOWS */
@@ -2731,7 +2731,7 @@ mk_mt_thread_yield(MKCL)
 #else
   MKCL_LIBC_NO_INTR(env, sleep(0)); /* Use sleep(0) to yield to a >= priority thread */
 #endif
-  @(return);
+  mkcl_return_no_value;
 }
 
 #if MKCL_WINDOWS
@@ -2749,7 +2749,7 @@ mk_mt_thread_enable(MKCL, mkcl_object thread)
   mk_mt_test_for_thread_shutdown(env);
 
   if (!mkcl_Null(mkcl_core.shutdown_thread) && (thread != mkcl_core.shutdown_thread)) /* There is a shutdown in progress */
-    { @(return mk_cl_Cnil); }
+    { mkcl_return_value(mk_cl_Cnil); }
 
   if (thread->thread.thread)  /* This thread was most probably reused. */
     MKCL_LIBC_NO_INTR(env, CloseHandle(thread->thread.thread));
@@ -2775,7 +2775,7 @@ mk_mt_thread_enable(MKCL, mkcl_object thread)
   if (old_suspend_count != 1) /* 1 is the only right answer here, everything else is an error of some kind. */
     mkcl_FEwin32_error(env, "create_interrupt_thread failed on ResumeThead for thread ~A", 1, thread);    
 
-  @(return output);
+  mkcl_return_value(output);
 }
 
 #elif MKCL_PTHREADS
@@ -2794,7 +2794,7 @@ mk_mt_thread_enable(MKCL, mkcl_object thread)
   mk_mt_test_for_thread_shutdown(env);
 
   if (!mkcl_Null(mkcl_core.shutdown_thread) && (thread != mkcl_core.shutdown_thread)) /* There is a shutdown in progress */
-    { @(return mk_cl_Cnil); }
+    { mkcl_return_value(mk_cl_Cnil); }
 
   /* make sure the rest of the status info is not carried over. */
   thread->thread.shutdown_requested = FALSE;
@@ -2897,7 +2897,7 @@ mk_mt_thread_enable(MKCL, mkcl_object thread)
       output = mk_cl_Cnil;
       break;
     }
-  @(return output);
+  mkcl_return_value(output);
 }
 #endif /* MKCL_PTHREADS */
 
@@ -3053,7 +3053,7 @@ mk_mt_all_threads(MKCL)
   /* No race condition here because this list is never destructively
    * modified. When we add or remove threads, we create new lists. */
   mkcl_call_stack_check(env);
-  @(return mk_cl_copy_list(env, mkcl_core.threads));
+  mkcl_return_value(mk_cl_copy_list(env, mkcl_core.threads));
 }
 
 mkcl_object
@@ -3061,7 +3061,7 @@ mk_mt_thread_name(MKCL, mkcl_object thread)
 {
   mkcl_call_stack_check(env);
   mkcl_assert_type_thread(env, thread);
-  @(return thread->thread.name);
+  mkcl_return_value(thread->thread.name);
 }
 
 mkcl_object
@@ -3069,7 +3069,7 @@ mk_mt_thread_active_p(MKCL, mkcl_object thread)
 {
   mkcl_call_stack_check(env);
   mkcl_assert_type_thread(env, thread);
-  @(return ((thread->thread.status == mkcl_thread_active) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value(((thread->thread.status == mkcl_thread_active) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 #if 0
@@ -3078,7 +3078,7 @@ mk_mt_thread_whostate(MKCL, mkcl_object thread)
 {
   mkcl_call_stack_check(env);
   mkcl_assert_type_thread(env, thread);
-  @(return (mkcl_core.empty_base_string));
+  mkcl_return_value((mkcl_core.empty_base_string));
 }
 #endif
 
@@ -3107,7 +3107,7 @@ mk_mt_thread_status(MKCL, mkcl_object thread)
       status = @':unknown';
       break;
     }
-  @(return status);
+  mkcl_return_value(status);
 }
 
 
@@ -3180,7 +3180,7 @@ mk_mt_thread_run_function(MKCL, mkcl_narg narg, mkcl_object name, mkcl_object fu
   }
 #endif
   mk_si_set_finalizer(env, output, mk_cl_Ct);
-  @(return output);
+  mkcl_return_value(output);
 @)
 
 mkcl_object
@@ -3189,7 +3189,7 @@ mk_mt_recursive_lock_p(MKCL, mkcl_object lock)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(lock) != mkcl_t_lock)
     mkcl_FEwrong_type_argument(env, @'mt::lock', lock);
-  @(return (lock->lock.recursive ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((lock->lock.recursive ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
@@ -3198,7 +3198,7 @@ mk_mt_lock_name(MKCL, mkcl_object lock)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(lock) != mkcl_t_lock)
     mkcl_FEwrong_type_argument(env, @'mt::lock', lock);
-  @(return lock->lock.name);
+  mkcl_return_value(lock->lock.name);
 }
 
 mkcl_object
@@ -3207,7 +3207,7 @@ mk_mt_lock_holder(MKCL, mkcl_object lock)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(lock) != mkcl_t_lock)
     mkcl_FEwrong_type_argument(env, @'mt::lock', lock);
-  @(return lock->lock.holder);
+  mkcl_return_value(lock->lock.holder);
 }
 
 mkcl_object
@@ -3274,7 +3274,7 @@ mk_mt_giveup_lock(MKCL, mkcl_object lock)
 #else
 # error Incomplete mk_mt_giveup_lock().
 #endif
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 }
 
 static const mkcl_base_string_object(timeout_format_control_string_obj, "Timeout value ~S is not a positive real number.");
@@ -3288,7 +3288,7 @@ static const mkcl_object timeout_format_control_string = (mkcl_object) &timeout_
   /* already held recursive lock in an interrupted thread */
   if (lock->lock.recursive && (lock->lock.holder == env->own_thread) && (env->own_thread->thread.interrupt_count != 0)) {
     lock->lock.counter++;
-    @(return mk_cl_Ct);
+    mkcl_return_value(mk_cl_Ct);
   }
 
 #if MKCL_WINDOWS
@@ -3347,7 +3347,7 @@ static const mkcl_object timeout_format_control_string = (mkcl_object) &timeout_
       }
     mk_mt_test_for_thread_shutdown(env);
 
-    @(return output);
+    mkcl_return_value(output);
   }
 #elif MKCL_PTHREADS
   int rc;
@@ -3357,7 +3357,7 @@ static const mkcl_object timeout_format_control_string = (mkcl_object) &timeout_
       MKCL_LIBC_NO_INTR(env, rc = pthread_mutex_trylock(lock->lock.mutex));
 
       if (rc == EBUSY)
-	{ @(return mk_cl_Cnil); }
+	{ mkcl_return_value(mk_cl_Cnil); }
     }
   else if (timeout == mk_cl_Ct)
     {
@@ -3400,7 +3400,7 @@ static const mkcl_object timeout_format_control_string = (mkcl_object) &timeout_
 	mk_mt_abandon_thread(env, @':aborted'); /* broken mutex! must abort right now! */
 
       if (rc == ETIMEDOUT)
-	{ @(return mk_cl_Cnil); }
+	{ mkcl_return_value(mk_cl_Cnil); }
     }
 
   switch (rc)
@@ -3414,7 +3414,7 @@ static const mkcl_object timeout_format_control_string = (mkcl_object) &timeout_
       lock->lock.counter++;
       break;
     }
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 #else
 # error Incomplete mt::get-lock 
 #endif /* MKCL_WINDOWS */
@@ -3457,7 +3457,7 @@ mkcl_object mk_mt_make_rwlock(MKCL)
 #else
 # error Incomplete mk_mt_make_rwlock().
 #endif
-  @(return output);
+  mkcl_return_value(output);
 }
 
 @(defun mt::giveup-rwlock (rwlock &optional (read_or_write @':read'))
@@ -3491,7 +3491,7 @@ mkcl_object mk_mt_make_rwlock(MKCL)
 #else
 # error Incomplete mt::giveup-rwlock.
 #endif
-    @(return mk_cl_Ct);
+    mkcl_return_value(mk_cl_Ct);
   }
 @)
 
@@ -3515,7 +3515,7 @@ mkcl_object mk_mt_make_rwlock(MKCL)
       MKCL_LIBC_NO_INTR(env, rc = pthread_rwlock_tryrdlock(rwlock->rwlock.rwlock));
 
       if (rc == EBUSY)
-	{ @(return mk_cl_Cnil); }
+	{ mkcl_return_value(mk_cl_Cnil); }
     }
   else if (timeout == mk_cl_Ct)
     {
@@ -3557,7 +3557,7 @@ mkcl_object mk_mt_make_rwlock(MKCL)
 	mk_mt_abandon_thread(env, @':aborted'); /* broken rwlock! must abort right now! */
 
       if (rc == ETIMEDOUT)
-	{ @(return mk_cl_Cnil); }
+	{ mkcl_return_value(mk_cl_Cnil); }
     }
 
   switch (rc)
@@ -3571,7 +3571,7 @@ mkcl_object mk_mt_make_rwlock(MKCL)
 #else
 # error Incomplete mt::get-read-rwlock.
 #endif
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 @(defun mt::get-write-rwlock (rwlock &optional (timeout mk_cl_Ct))
@@ -3593,7 +3593,7 @@ mkcl_object mk_mt_make_rwlock(MKCL)
       MKCL_LIBC_NO_INTR(env, rc = pthread_rwlock_trywrlock(rwlock->rwlock.rwlock));
 
       if (rc == EBUSY)
-	{ @(return mk_cl_Cnil); }
+	{ mkcl_return_value(mk_cl_Cnil); }
     }
   else if (timeout == mk_cl_Ct)
     {
@@ -3635,7 +3635,7 @@ mkcl_object mk_mt_make_rwlock(MKCL)
 	mk_mt_abandon_thread(env, @':aborted'); /* broken rwlock! must abort right now! */
 
       if (rc == ETIMEDOUT)
-	{ @(return mk_cl_Cnil); }
+	{ mkcl_return_value(mk_cl_Cnil); }
     }
 
   switch (rc)
@@ -3649,7 +3649,7 @@ mkcl_object mk_mt_make_rwlock(MKCL)
 #else
 # error Incomplete mt::get-write-rwlock.
 #endif
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 
@@ -3699,7 +3699,7 @@ mkcl_object mk_mt_make_rwlock(MKCL)
 
   mk_si_set_finalizer(env, output, mk_cl_Ct);
 
-  @(return output);
+  mkcl_return_value(output);
 @)
 
 mkcl_object mk_mt_semaphore_count(MKCL, mkcl_object sem)
@@ -3739,7 +3739,7 @@ mkcl_object mk_mt_semaphore_count(MKCL, mkcl_object sem)
 # error Incomplete mk_mt_semaphore_count.
 #endif
     sem->semaphore.count = count;
-    @(return mkcl_make_integer(env, count));
+    mkcl_return_value(mkcl_make_integer(env, count));
   }
 }
 
@@ -3783,7 +3783,7 @@ mkcl_object mk_mt_semaphore_count(MKCL, mkcl_object sem)
 # error Incomplete mt::semaphore-signal.
 #endif
   sem->semaphore.count += c_count;
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 @(defun mt::semaphore-wait (sem &optional (timeout mk_cl_Ct))
@@ -3821,7 +3821,7 @@ mkcl_object mk_mt_semaphore_count(MKCL, mkcl_object sem)
       case WAIT_OBJECT_0:
 	break;
       case WAIT_TIMEOUT: 
-	@(return mk_cl_Cnil);
+	mkcl_return_value(mk_cl_Cnil);
 	break;
       case WAIT_FAILED:
       default:
@@ -3839,7 +3839,7 @@ mkcl_object mk_mt_semaphore_count(MKCL, mkcl_object sem)
       while (rc && errno == EINTR);
 
       if (rc && errno == EAGAIN)
-	{ @(return mk_cl_Cnil); }
+	{ mkcl_return_value(mk_cl_Cnil); }
     }
   else if (timeout == mk_cl_Ct)
     {
@@ -3881,7 +3881,7 @@ mkcl_object mk_mt_semaphore_count(MKCL, mkcl_object sem)
       mk_mt_test_for_thread_shutdown(env);
 
       if (rc && errno == ETIMEDOUT)
-	{ @(return mk_cl_Cnil); }
+	{ mkcl_return_value(mk_cl_Cnil); }
     }
 
   if (rc)
@@ -3894,7 +3894,7 @@ mkcl_object mk_mt_semaphore_count(MKCL, mkcl_object sem)
 # error Incomplete mt::semaphore-wait.
 #endif
 
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 
@@ -3909,7 +3909,7 @@ mk_mt_make_condition_variable(MKCL)
   mkcl_call_stack_check(env);
 #if MKCL_WINDOWS
   mkcl_FEerror(env, "Condition variables are not supported under Windows", 0);
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 #elif MKCL_PTHREADS
   mkcl_object output = mkcl_alloc_raw_condition_variable(env);
 
@@ -3924,7 +3924,7 @@ mk_mt_make_condition_variable(MKCL)
 #endif
 
   mk_si_set_finalizer(env, output, mk_cl_Ct);
-  @(return output);
+  mkcl_return_value(output);
 #else
 # error Incomplete mt::semaphore-wait().
 #endif
@@ -3985,7 +3985,7 @@ mk_mt_make_condition_variable(MKCL)
       if (rc == 0)
 	lock->lock.holder = mkcl_current_thread(env);
       else if (rc == ETIMEDOUT || rc == EINTR) /* EINTR seems to be a Linux special, in direct contradiction to POSIX! */
-	{ @(return mk_cl_Cnil); }
+	{ mkcl_return_value(mk_cl_Cnil); }
     }
   
   switch (rc)
@@ -3998,7 +3998,7 @@ mk_mt_make_condition_variable(MKCL)
 #else
 # error Incomplete mt::semaphore-wait.
 #endif
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 }
 @)
 
@@ -4024,7 +4024,7 @@ mk_mt_condition_signal(MKCL, mkcl_object cv)
 #else
 # error Incomplete mk_mt_condition_signal().
 #endif
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 }
 
 mkcl_object
@@ -4049,7 +4049,7 @@ mk_mt_condition_broadcast(MKCL, mkcl_object cv)
 #else
 # error Incomplete mk_mt_condition_broadcast().
 #endif
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 }
 
 /*----------------------------------------------------------------------
@@ -4357,7 +4357,7 @@ mkcl_object mk_mt_thread_plist(MKCL, mkcl_object thread)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(thread) != mkcl_t_thread)
     mkcl_FEwrong_type_argument(env, @'mt::thread', thread);
-  @(return thread->thread.plist);
+  mkcl_return_value(thread->thread.plist);
 }
 
 mkcl_object mk_mt_set_thread_plist(MKCL, mkcl_object thread, mkcl_object plist)
@@ -4365,7 +4365,7 @@ mkcl_object mk_mt_set_thread_plist(MKCL, mkcl_object thread, mkcl_object plist)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(thread) != mkcl_t_thread)
     mkcl_FEwrong_type_argument(env, @'mt::thread', thread);
-  @(return (thread->thread.plist = plist));
+  mkcl_return_value((thread->thread.plist = plist));
 }
 
 #if 0
@@ -4431,7 +4431,7 @@ mkcl_object mk_mt_test_for_thread_shutdown(MKCL)
       mk_mt_exit_thread(env, output = @':terminated');
     }
 
-  @(return output);
+  mkcl_return_value(output);
 }
 
 
@@ -4441,7 +4441,7 @@ mk_mt_request_thread_shutdown(MKCL, mkcl_object thread)
   mkcl_call_stack_check(env);
   mkcl_assert_type_thread(env, thread);
   if (thread->thread.status == mkcl_thread_done)
-    { @(return mk_cl_Cnil); }
+    { mkcl_return_value(mk_cl_Cnil); }
   else
     {
 #if 0
@@ -4449,7 +4449,7 @@ mk_mt_request_thread_shutdown(MKCL, mkcl_object thread)
       fflush(stderr);
 #endif
       thread->thread.shutdown_requested = TRUE;
-      @(return mk_cl_Ct);
+      mkcl_return_value(mk_cl_Ct);
     }
 }
 
@@ -4458,7 +4458,7 @@ mk_mt_thread_shutdown_requested_p(MKCL, mkcl_object thread)
 {
   mkcl_call_stack_check(env);
   mkcl_assert_type_thread(env, thread);
-  @(return ((thread->thread.shutdown_requested == TRUE) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value(((thread->thread.shutdown_requested == TRUE) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 
@@ -4479,5 +4479,5 @@ mk_si_non_interactive_thread_debugger_trap(MKCL, mkcl_object condition, mkcl_obj
   mkcl_terpri(env, mkcl_core.error_output);
   mkcl_finish_output(env, mkcl_core.error_output);
   mk_mt_abandon_thread(env, @':terminated');
-  @(return); /* should never be reached! */
+  mkcl_return_no_value; /* should never be reached! */
 }

@@ -120,13 +120,13 @@ mk_si_set_heap_size_limit(MKCL, mkcl_object size_limit) /* This function should 
     MKCL_GC_NO_INTR(env, MK_GC_FREE(mkcl_core.safety_region));
     mkcl_core.safety_region = NULL;
   }
-  @(return size_limit);
+  mkcl_return_value(size_limit);
 }
 
 mkcl_object
 mk_si_get_heap_size_limit(MKCL) /* This function should acquire the OOM lock. */
 {
-  @(return mkcl_make_unsigned_integer(env, mkcl_core.max_heap_size));
+  mkcl_return_value(mkcl_make_unsigned_integer(env, mkcl_core.max_heap_size));
 }
 
 static void
@@ -936,7 +936,7 @@ static struct mkcl_alloc_stats * mkcl_alloc_alloc_stats(MKCL)
 mkcl_object mk_si_reset_allocation_statistics(MKCL)
 {
   if (env->alloc) *(env->alloc) = blank_alloc_stats;
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 #endif
 
@@ -1409,7 +1409,7 @@ mk_si_get_finalizer(MKCL, mkcl_object o)
   } else {
     output = mk_cl_Cnil;
   }
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
@@ -1424,7 +1424,7 @@ mk_si_set_finalizer(MKCL, mkcl_object obj, mkcl_object finalizer)
   } else {
     MKCL_GC_NO_INTR(env, MK_GC_register_finalizer_no_order(obj, call_finalizer_on_mkcl_object, finalizer, &ofn, &odata));
   }
-  @(return);
+  mkcl_return_no_value;
 }
 
 mkcl_object
@@ -1477,10 +1477,9 @@ mk_si_gc_stats(MKCL, mkcl_object enable)
     bytes = new_bytes;
   }
   
-  @(return
-    _mkcl_big_register_normalize(env, mkcl_core.bytes_consed)
-    _mkcl_big_register_normalize(env, mkcl_core.gc_counter)
-    old_status);
+  mkcl_return_3_values(_mkcl_big_register_normalize(env, mkcl_core.bytes_consed),
+                       _mkcl_big_register_normalize(env, mkcl_core.gc_counter),
+                       old_status);
 }
 
 mkcl_object
@@ -1490,11 +1489,9 @@ mk_si_mem_stats(MKCL)
   size_t heap_size = MK_GC_get_heap_size();
   size_t free_bytes = MK_GC_get_free_bytes();
 
-  @(return
-    mkcl_make_unsigned_integer(env, heap_size)
-    mkcl_make_unsigned_integer(env, free_bytes)
-    (MK_GC_get_parallel() ? mk_cl_Ct : mk_cl_Cnil)
-    );
+  mkcl_return_3_values(mkcl_make_unsigned_integer(env, heap_size),
+                       mkcl_make_unsigned_integer(env, free_bytes),
+                       (MK_GC_get_parallel() ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 size_t mkcl_GC_get_total_bytes(void)
@@ -1530,7 +1527,7 @@ mkcl_object mk_si_scrub_values(MKCL)
   env->nvalues = MKCL_MULTIPLE_VALUES_LIMIT;
   for (i = 0; i < MKCL_MULTIPLE_VALUES_LIMIT; i++)
     env->values[i] = mk_cl_Cnil;
-  @(return);
+  mkcl_return_no_value;
 }
 
 @(defun si::gc (&optional area)
@@ -1538,28 +1535,28 @@ mkcl_object mk_si_scrub_values(MKCL)
   mk_si_trim_dynamic_cons_stack(env);
   mk_si_scrub_values(env);
   MKCL_GC_NO_INTR(env, MK_GC_gcollect());
-  @(return);
+  mkcl_return_no_value;
 @)
 
 mkcl_object
 mk_si_gc_dump(MKCL)
 {
   MKCL_GC_NO_INTR(env, MK_GC_dump());
-  @(return);
+  mkcl_return_no_value;
 }
 
 mkcl_object
 mk_si_gc_off(MKCL)
 {
   MKCL_GC_NO_INTR(env, MK_GC_disable());
-  @(return);
+  mkcl_return_no_value;
 }
 
 mkcl_object
 mk_si_gc_on(MKCL)
 {
   MKCL_GC_NO_INTR(env, MK_GC_enable());
-  @(return);
+  mkcl_return_no_value;
 }
 
 static void mkcl_GC_abort(const char * const msg)
@@ -1737,7 +1734,7 @@ mkcl_object mk_si_sample_allocation_statistics(MKCL)
     if (alloc.cons)
       stats = mkcl_cons(env, mkcl_cons(env, @'cons', mkcl_make_unsigned_integer(env, alloc.cons)), stats);
   }
-  @(return stats);
+  mkcl_return_value(stats);
 }
 
 
@@ -1833,7 +1830,7 @@ mk_si_room_report(MKCL, mkcl_object label)
       fprintf(stderr, "\tcons: %lu\n", (unsigned long) alloc.cons);
     fflush(stderr);
   }
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 

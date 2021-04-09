@@ -128,7 +128,7 @@ mk_cl_make_symbol(MKCL, mkcl_object str)
   x->symbol.sys_plist = mk_cl_Cnil;
   x->symbol.properly_named_class = mk_cl_Cnil;
 
-  @(return x);
+  mkcl_return_value(x);
 }
 
 /*
@@ -216,7 +216,7 @@ mk_si_put_f(MKCL, mkcl_object place, mkcl_object value, mkcl_object indicator)
       break;
     if (MKCL_CONS_CAR(l) == indicator) {
       MKCL_RPLACA(cdr_l, value);
-      @(return place);
+      mkcl_return_value(place);
     }
     if (slow_l == l && n != 0)
       mkcl_FEcircular_list(env, place);
@@ -227,7 +227,7 @@ mk_si_put_f(MKCL, mkcl_object place, mkcl_object value, mkcl_object indicator)
   if (l != mk_cl_Cnil)
     mkcl_FEtype_error_plist(env, place);
   place = MKCL_CONS(env, value, place);
-  @(return MKCL_CONS(env, indicator, place));
+  mkcl_return_value(MKCL_CONS(env, indicator, place));
 }
 
 /*
@@ -284,7 +284,7 @@ mkcl_keywordp(mkcl_object s)
   mkcl_object *plist;
 @
   plist = mkcl_symbol_plist(env, sym);
-  @(return mkcl_getf(env, *plist, indicator, deflt));
+  mkcl_return_value(mkcl_getf(env, *plist, indicator, deflt));
 @)
 
 mkcl_object
@@ -294,19 +294,19 @@ mk_cl_remprop(MKCL, mkcl_object sym, mkcl_object prop)
 
   mkcl_call_stack_check(env);
   plist = mkcl_symbol_plist(env, sym);
-  @(return (remf(env, plist, prop)? mk_cl_Ct: mk_cl_Cnil));
+  mkcl_return_value((remf(env, plist, prop)? mk_cl_Ct: mk_cl_Cnil));
 }
 
 mkcl_object
 mk_cl_symbol_plist(MKCL, mkcl_object sym)
 {
   mkcl_call_stack_check(env);
-  @(return *mkcl_symbol_plist(env, sym));
+  mkcl_return_value(*mkcl_symbol_plist(env, sym));
 }
 
 @(defun getf (place indicator &optional deflt)
 @
-  @(return mkcl_getf(env, place, indicator, deflt))
+  mkcl_return_value(mkcl_getf(env, place, indicator, deflt))
 @)
 
 mkcl_object
@@ -321,7 +321,7 @@ mk_cl_get_properties(MKCL, mkcl_object place, mkcl_object indicator_list)
     if (!MKCL_CONSP(cdr_l))
       break;
     if (mkcl_member_eq(env, MKCL_CONS_CAR(l), indicator_list))
-      @(return MKCL_CONS_CAR(l) MKCL_CONS_CAR(cdr_l) l);
+      mkcl_return_3_values(MKCL_CONS_CAR(l), MKCL_CONS_CAR(cdr_l), l);
     if (slow_l == l && n != 0)
       mkcl_FEcircular_list(env, place);
     if (n & 1)
@@ -330,14 +330,14 @@ mk_cl_get_properties(MKCL, mkcl_object place, mkcl_object indicator_list)
   }
   if (l != mk_cl_Cnil)
     mkcl_FEtype_error_plist(env, place);
-  @(return mk_cl_Cnil mk_cl_Cnil mk_cl_Cnil);
+  mkcl_return_3_values(mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil);
 }
 
 mkcl_object
 mk_cl_symbol_name(MKCL, mkcl_object x)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_symbol_name(env, x));
+  mkcl_return_value(mkcl_symbol_name(env, x));
 }
 
 @(defun copy_symbol (sym &optional cp)
@@ -354,7 +354,7 @@ mk_cl_symbol_name(MKCL, mkcl_object x)
     x->symbol.plist = mk_cl_copy_list(env, sym->symbol.plist);
     /* FIXME!!! We should also copy the system property list */
   }
-  @(return x);
+  mkcl_return_value(x);
 @)
 
 @(defun gensym (&optional (prefix mkcl_core.gensym_prefix))
@@ -391,7 +391,7 @@ mk_cl_symbol_name(MKCL, mkcl_object x)
   output = mk_cl_make_symbol(env, mk_cl_get_output_stream_string(env, output));
   if (increment)
     MKCL_SETQ(env, @'*gensym-counter*',mkcl_one_plus(env, counter));
-  @(return output);
+  mkcl_return_value(output);
  }
 @)
 
@@ -448,21 +448,21 @@ ONCE_MORE:
   s = mkcl_intern(env, mkcl_copy_string(env, mk_cl_get_output_stream_string(env, output)), pack, &intern_flag);
   if (intern_flag != 0)
     goto ONCE_MORE;
-  @(return s);
+  mkcl_return_value(s);
 @)
 
 mkcl_object
 mk_cl_symbol_package(MKCL, mkcl_object sym)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_symbol_package(env, sym));
+  mkcl_return_value(mkcl_symbol_package(env, sym));
 }
 
 mkcl_object
 mk_cl_keywordp(MKCL, mkcl_object sym)
 {
   mkcl_call_stack_check(env);
-  @(return (mkcl_keywordp(sym) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_keywordp(sym) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 /*
@@ -481,7 +481,7 @@ mk_si_rem_f(MKCL, mkcl_object plist, mkcl_object indicator)
 {
   mkcl_call_stack_check(env);
   bool found = remf(env, &plist, indicator);
-  @(return plist (found ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_2_values(plist, (found ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
@@ -489,7 +489,7 @@ mk_si_set_symbol_plist(MKCL, mkcl_object sym, mkcl_object plist)
 {
   mkcl_call_stack_check(env);
   *mkcl_symbol_plist(env, sym) = plist;
-  @(return plist);
+  mkcl_return_value(plist);
 }
 
 mkcl_object
@@ -498,7 +498,7 @@ mk_si_putprop(MKCL, mkcl_object sym, mkcl_object value, mkcl_object indicator)
   mkcl_call_stack_check(env);
   mkcl_object *plist = mkcl_symbol_plist(env, sym);
   *plist = mk_si_put_f(env, *plist, value, indicator);
-  @(return value);
+  mkcl_return_value(value);
 }
 
 /* Added for defstruct. Beppe */
@@ -510,7 +510,7 @@ mk_si_putprop(MKCL, mkcl_object sym, mkcl_object value, mkcl_object indicator)
     narg--;
   }
   mkcl_va_end(ind_values);
-  @(return sym);
+  mkcl_return_value(sym);
 @)
 
 mkcl_object
@@ -521,7 +521,7 @@ mkcl_object
     mkcl_FEerror(env, "~S is a constant.", 1, sym);
   mkcl_symbol_type_set(env, sym, type | mkcl_stp_special);
   mk_cl_remprop(env, sym, @'si::symbol-macro');
-  @(return sym);
+  mkcl_return_value(sym);
 }
 
 mkcl_object
@@ -533,7 +533,7 @@ mkcl_object
 	    1, sym);
   mkcl_symbol_type_set(env, sym, type | mkcl_stp_constant);
   MKCL_SET(sym, val);
-  @(return sym);
+  mkcl_return_value(sym);
 }
 
 void

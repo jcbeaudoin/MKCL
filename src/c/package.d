@@ -355,7 +355,7 @@ mk_si_coerce_to_package(MKCL, mkcl_object p)
   if (mkcl_Null(pp)) {
     mkcl_FEpackage_error(env, p, "There exists no package with name ~S", 0);
   }
-  @(return pp);
+  mkcl_return_value(pp);
 }
 
 mkcl_object
@@ -660,7 +660,7 @@ mk_cl_delete_package(MKCL, mkcl_object p)
     mkcl_CEpackage_error(env, p,
 			 "Package ~S not found. Cannot delete it.",
 			 "Ignore error and continue", 0);
-    @(return mk_cl_Cnil);
+    mkcl_return_value(mk_cl_Cnil);
   }
   if (p->pack.closed)
     mkcl_CEpackage_error(env, p,
@@ -674,7 +674,7 @@ mk_cl_delete_package(MKCL, mkcl_object p)
    *    and empty the package.
    */
   if (mkcl_Null(p->pack.name)) {
-    @(return mk_cl_Cnil);
+    mkcl_return_value(mk_cl_Cnil);
   }
   list = p->pack.uses;
   mkcl_loop_for_on_unsafe(list) {
@@ -722,7 +722,7 @@ mk_cl_delete_package(MKCL, mkcl_object p)
   } MKCL_UNWIND_PROTECT_EXIT {
     if (locked) MKCL_PACKAGE_LIST_UNLOCK();
   } MKCL_UNWIND_PROTECT_END;
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 }
 
 void
@@ -981,7 +981,7 @@ mkcl_unuse_package(MKCL, mkcl_object x, mkcl_object p)
 @(defun make_package (pack_name &key nicknames (use MKCL_CONS(env, mkcl_core.lisp_package, mk_cl_Cnil)))
 @
   /* INV: mkcl_make_package() performs type checking */
-  @(return mkcl_make_package(env, pack_name, nicknames, use))
+  mkcl_return_value(mkcl_make_package(env, pack_name, nicknames, use))
 @)
 
 mkcl_object
@@ -989,7 +989,7 @@ mk_si_select_package(MKCL, mkcl_object pack_name)
 {
   mkcl_call_stack_check(env);
   mkcl_object p = mk_si_coerce_to_package(env, pack_name);
-  @(return (MKCL_SETQ(env, @'*package*', p)));
+  mkcl_return_value((MKCL_SETQ(env, @'*package*', p)));
 }
 
 mkcl_object
@@ -1006,7 +1006,7 @@ mk_cl_find_package(MKCL, mkcl_object p)
     if (locked) MKCL_PACKAGE_LIST_UNLOCK();
   } MKCL_UNWIND_PROTECT_END;
 
-  @(return package);
+  mkcl_return_value(package);
 }
 
 mkcl_object
@@ -1014,7 +1014,7 @@ mk_cl_package_name(MKCL, mkcl_object p)
 {
   mkcl_call_stack_check(env);
   p = mk_si_coerce_to_package(env, p);
-  @(return mkcl_copy_string(env, p->pack.name));
+  mkcl_return_value(mkcl_copy_string(env, p->pack.name));
 }
 
 mkcl_object
@@ -1023,13 +1023,13 @@ mk_cl_package_nicknames(MKCL, mkcl_object p)
   mkcl_call_stack_check(env);
   /* FIXME: list should be a fresh one */
   p = mk_si_coerce_to_package(env, p);
-  @(return mk_cl_copy_list(env, p->pack.nicknames));
+  mkcl_return_value(mk_cl_copy_list(env, p->pack.nicknames));
 }
 
 @(defun rename_package (pack new_name &o new_nicknames)
 @
   /* INV: mkcl_rename_package() type checks and coerces pack to package */
-  @(return mkcl_rename_package(env, pack, new_name, new_nicknames))
+  mkcl_return_value(mkcl_rename_package(env, pack, new_name, new_nicknames))
 @)
 
 mkcl_object
@@ -1059,7 +1059,7 @@ mk_si_close_package(MKCL, mkcl_object p)
   mkcl_call_stack_check(env);
   p = mk_si_coerce_to_package(env, p);
   p->pack.closed = TRUE;
-  @(return p);
+  mkcl_return_value(p);
 }
 
 mkcl_object
@@ -1068,7 +1068,7 @@ mk_si_reopen_package(MKCL, mkcl_object p)
   mkcl_call_stack_check(env);
   p = mk_si_coerce_to_package(env, p);
   p->pack.closed = FALSE;
-  @(return p);
+  mkcl_return_value(p);
 }
 
 mkcl_object
@@ -1076,7 +1076,7 @@ mk_si_package_closed_p(MKCL, mkcl_object p)
 {
   mkcl_call_stack_check(env);
   p = mk_si_coerce_to_package(env, p);
-  @(return (p->pack.closed ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((p->pack.closed ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
@@ -1093,7 +1093,7 @@ mk_cl_list_all_packages(MKCL)
     if (locked) MKCL_PACKAGE_LIST_UNLOCK();
   } MKCL_UNWIND_PROTECT_END;
 
-  @(return packages);
+  mkcl_return_value(packages);
 }
 
 @(defun intern (strng &optional (p mkcl_current_package(env)))
@@ -1102,13 +1102,13 @@ mk_cl_list_all_packages(MKCL)
 @
   sym = mkcl_intern(env, strng, p, &intern_flag);
   if (intern_flag == MKCL_SYMBOL_IS_INTERNAL)
-    { @(return sym @':internal'); }
+    { mkcl_return_2_values(sym, @':internal'); }
   else if (intern_flag == MKCL_SYMBOL_IS_EXTERNAL)
-    { @(return sym @':external'); }
+    { mkcl_return_2_values(sym, @':external'); }
   else if (intern_flag == MKCL_SYMBOL_IS_INHERITED)
-    { @(return sym @':inherited'); }
+    { mkcl_return_2_values(sym, @':inherited'); }
   else
-    { @(return sym mk_cl_Cnil); }
+    { mkcl_return_2_values(sym, mk_cl_Cnil); }
 @)
 
 @(defun find_symbol (strng &optional (p mkcl_current_package(env)))
@@ -1117,18 +1117,18 @@ mk_cl_list_all_packages(MKCL)
 @
   x = mkcl_find_symbol(env, strng, p, &intern_flag);
   if (intern_flag == MKCL_SYMBOL_IS_INTERNAL)
-    { @(return x @':internal'); }
+    { mkcl_return_2_values(x, @':internal'); }
   else if (intern_flag == MKCL_SYMBOL_IS_EXTERNAL)
-    { @(return x @':external'); }
+    { mkcl_return_2_values(x, @':external'); }
   else if (intern_flag == MKCL_SYMBOL_IS_INHERITED)
-    { @(return x @':inherited'); }
+    { mkcl_return_2_values(x, @':inherited'); }
   else
-    { @(return mk_cl_Cnil mk_cl_Cnil); }
+    { mkcl_return_2_values(mk_cl_Cnil, mk_cl_Cnil); }
 @)
 
 @(defun unintern (symbl &optional (p mkcl_current_package(env)))
 @
-  @(return (mkcl_unintern(env, symbl, p) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_unintern(env, symbl, p) ? mk_cl_Ct : mk_cl_Cnil));
 @)
 
 @(defun export (symbols &o (pack mkcl_current_package(env)))
@@ -1152,7 +1152,7 @@ BEGIN:
 			     mk_cl_list(env, 3, @'or', @'symbol', @'list'));
     goto BEGIN;
   }
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 @(defun unexport (symbols &o (pack mkcl_current_package(env)))
@@ -1176,7 +1176,7 @@ BEGIN:
 			     mk_cl_list(env, 3, @'or', @'symbol', @'list'));
     goto BEGIN;
   }
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 @(defun import (symbols &o (pack mkcl_current_package(env)))
@@ -1200,7 +1200,7 @@ BEGIN:
 			     mk_cl_list(env, 3, @'or', @'symbol', @'list'));
     goto BEGIN;
   }
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 @(defun shadowing_import (symbols &o (pack mkcl_current_package(env)))
@@ -1224,7 +1224,7 @@ BEGIN:
 			     mk_cl_list(env, 3, @'or', @'symbol', @'list'));
     goto BEGIN;
   }
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 @(defun shadow (symbols &o (pack mkcl_current_package(env)))
@@ -1251,7 +1251,7 @@ BEGIN:
 			     mk_cl_list(env, 3, @'or', @'symbol', @'list'));
     goto BEGIN;
   }
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 @(defun use_package (pack &o (pa mkcl_current_package(env)))
@@ -1278,7 +1278,7 @@ BEGIN:
     mkcl_assert_type_package(env, pack);
     goto BEGIN;
   }
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 @(defun unuse_package (pack &o (pa mkcl_current_package(env)))
@@ -1305,7 +1305,7 @@ BEGIN:
     mkcl_assert_type_package(env, pack);
     goto BEGIN;
   }
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 mkcl_object
@@ -1325,7 +1325,7 @@ mk_si_package_hash_tables(MKCL, mkcl_object p)
   } MKCL_UNWIND_PROTECT_EXIT {
     if (locked) MKCL_PACKAGE_UNLOCK(p);
   } MKCL_UNWIND_PROTECT_END;
-  @(return he hi u);
+  mkcl_return_3_values(he, hi, u);
 }
 
 mkcl_object mk_si_packages_in_waiting(MKCL)
@@ -1341,6 +1341,6 @@ mkcl_object mk_si_packages_in_waiting(MKCL)
   } MKCL_UNWIND_PROTECT_EXIT {
     if (locked) MKCL_PACKAGE_LIST_UNLOCK();
   } MKCL_UNWIND_PROTECT_END;
-  @(return x);
+  mkcl_return_value(x);
 }
 

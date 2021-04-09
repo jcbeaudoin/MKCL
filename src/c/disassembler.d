@@ -607,9 +607,9 @@ mk_si_bc_disassemble(MKCL, mkcl_object v)
   }
   if (mkcl_type_of(v) == mkcl_t_bytecode) {
     disassemble_lambda(env, v);
-    @(return v);
+    mkcl_return_value(v);
   }
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 mkcl_object
@@ -625,11 +625,11 @@ mk_si_bc_split(MKCL, mkcl_object b)
 		b = b->bclosure.code;
 	}
 	if (mkcl_type_of(b) != mkcl_t_bytecode)
-	  @(return mk_cl_Cnil mk_cl_Cnil);
+	  mkcl_return_2_values(mk_cl_Cnil, mk_cl_Cnil);
 	vector = mkcl_alloc_simple_vector(env, b->bytecode.code_size, mkcl_aet_b8);
 	vector->vector.self.b8 = (uint8_t*)b->bytecode.code;
 	data = mkcl_alloc_simple_vector(env, b->bytecode.data_size, mkcl_aet_object);
 	data->vector.self.t = b->bytecode.data;
-	@(return lex vector data)
+	mkcl_return_3_values(lex, vector, data)
 }
 

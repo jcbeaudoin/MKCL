@@ -505,5 +505,5 @@ mk_cl_type_of(MKCL, mkcl_object x)
   default:
     t = mkcl_type_to_symbol(env, tx);
   }
-  @(return t);
+  mkcl_return_value(t);
 }

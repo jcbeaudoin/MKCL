@@ -785,7 +785,7 @@ mkcl_extend_hashtable(MKCL, mkcl_object hashtable)
 			 (rehash_threshold mkcl_make_singlefloat(env, 0.7))
 			 )
 @
-  @(return mk_cl__make_hash_table(env, test, size, rehash_size, rehash_threshold));
+  mkcl_return_value(mk_cl__make_hash_table(env, test, size, rehash_size, rehash_threshold));
 @)
 
 static void
@@ -997,14 +997,14 @@ mk_si_hash_tables_statistics(MKCL)
 #else
   mkcl_princ_str(env, "\nThere is no hashtable statistics!\n", mk_cl_Ct);
 #endif
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 mkcl_object
 mk_cl_hash_table_p(MKCL, mkcl_object ht)
 {
   mkcl_call_stack_check(env);
-  @(return ((mkcl_type_of(ht) == mkcl_t_hashtable) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value(((mkcl_type_of(ht) == mkcl_t_hashtable) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 @(defun gethash (key ht &optional (no_value mk_cl_Cnil))
@@ -1013,9 +1013,9 @@ mk_cl_hash_table_p(MKCL, mkcl_object ht)
   mkcl_assert_type_hash_table(env, ht);
   e = mkcl_search_hash(env, key, ht);
   if (e != NULL)
-    { @(return e->value mk_cl_Ct); }
+    { mkcl_return_2_values(e->value, mk_cl_Ct); }
   else
-    { @(return no_value mk_cl_Cnil); }
+    { mkcl_return_2_values(no_value, mk_cl_Cnil); }
 @)
 
 mkcl_object
@@ -1024,7 +1024,7 @@ mk_si_hash_set(MKCL, mkcl_object key, mkcl_object ht, mkcl_object val)
   mkcl_call_stack_check(env);
   /* INV: mkcl_sethash() checks the type of hashtable */
   mkcl_sethash(env, key, ht, val);
-  @(return val);
+  mkcl_return_value(val);
 }
 
 /* The content of mkcl_search_hash is largely duplicated inside
@@ -1142,7 +1142,7 @@ mk_cl_remhash(MKCL, mkcl_object key, mkcl_object ht)
 {
   mkcl_call_stack_check(env);
   /* INV: mkcl_search_hash() checks the type of hashtable */
-  @(return (mkcl_remhash(env, key, ht)? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_remhash(env, key, ht)? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
@@ -1153,7 +1153,7 @@ mk_cl_clrhash(MKCL, mkcl_object ht)
   if (ht->hash.entries) {
     do_clrhash(ht);
   }
-  @(return ht);
+  mkcl_return_value(ht);
 }
 
 mkcl_object
@@ -1170,7 +1170,7 @@ mk_cl_hash_table_test(MKCL, mkcl_object ht)
   case mkcl_htt_package:
   default: output = @'equal';
   }
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
@@ -1178,7 +1178,7 @@ mk_cl_hash_table_size(MKCL, mkcl_object ht)
 {
   mkcl_call_stack_check(env);
   mkcl_assert_type_hash_table(env, ht);
-  @(return MKCL_MAKE_FIXNUM(ht->hash.size));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(ht->hash.size));
 }
 
 mkcl_object
@@ -1186,7 +1186,7 @@ mk_cl_hash_table_count(MKCL, mkcl_object ht)
 {
   mkcl_call_stack_check(env);
   mkcl_assert_type_hash_table(env, ht);
-  @(return (MKCL_MAKE_FIXNUM(ht->hash.entries)));
+  mkcl_return_value((MKCL_MAKE_FIXNUM(ht->hash.entries)));
 }
 
 static mkcl_object
@@ -1209,7 +1209,7 @@ mkcl_hash_table_iterate(MKCL, mkcl_narg narg)
 	if (e->key != MKCL_OBJNULL) { /* next in bucket. Pop and return it. */
           /* bucket_index has not changed. */
           next_wrapper->foreign.data = (void *) e->next;
-          @(return mk_cl_Ct e->key e->value);
+          mkcl_return_3_values(mk_cl_Ct, e->key, e->value);
         }      
     }
   else if (bucket_index < hsize)
@@ -1225,14 +1225,14 @@ mkcl_hash_table_iterate(MKCL, mkcl_narg narg)
             const mkcl_object _bucket_index = MKCL_MAKE_FIXNUM(bucket_index);
             closure_display->display.level[0]->lblock.var[2] = _bucket_index;
             next_wrapper->foreign.data = (void *) e->next;
-            @(return mk_cl_Ct e->key e->value);
+            mkcl_return_3_values(mk_cl_Ct, e->key, e->value);
           }      
       }
   }     
   /* If we reach here then the iteration is complete. */
   closure_display->display.level[0]->lblock.var[2] = MKCL_MAKE_FIXNUM(bucket_index);
   next_wrapper->foreign.data = NULL;
-  @(return mk_cl_Cnil mk_cl_Cnil mk_cl_Cnil);
+  mkcl_return_3_values(mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil);
 }
 
 mkcl_object
@@ -1257,7 +1257,7 @@ mk_si_hash_table_iterator(MKCL, mkcl_object ht)
     closure_syms_block->lblock.var[1] = mkcl_make_simple_base_string(env, "si::next-wrapper");
     closure_syms_block->lblock.var[2] = mkcl_make_simple_base_string(env, "si::bucket-index");
 
-    @(return mkcl_make_cclosure_va(env, mk_cl_Cnil, (mkcl_objectfn)mkcl_hash_table_iterate, 1,
+    mkcl_return_value(mkcl_make_cclosure_va(env, mk_cl_Cnil, (mkcl_objectfn)mkcl_hash_table_iterate, 1,
 				   closure_syms_block, closure_block,
 				   @'si::hash-table-iterator', -1));
   }
@@ -1268,7 +1268,7 @@ mk_cl_hash_table_rehash_size(MKCL, mkcl_object ht)
 {
   mkcl_call_stack_check(env);
   mkcl_assert_type_hash_table(env, ht);
-  @(return ht->hash.rehash_size);
+  mkcl_return_value(ht->hash.rehash_size);
 }
 
 mkcl_object
@@ -1276,7 +1276,7 @@ mk_cl_hash_table_rehash_threshold(MKCL, mkcl_object ht)
 {
   mkcl_call_stack_check(env);
   mkcl_assert_type_hash_table(env, ht);
-  @(return ht->hash.threshold);
+  mkcl_return_value(ht->hash.threshold);
 }
 
 mkcl_object
@@ -1285,7 +1285,7 @@ mk_cl_sxhash(MKCL, mkcl_object key)
   mkcl_call_stack_check(env);
   mkcl_index output = _hash_equal(3, 0, key);
   const mkcl_index mask = ((mkcl_index)1 << (MKCL_WORD_BITS - 3)) - 1;
-  @(return MKCL_MAKE_FIXNUM(output & mask));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(output & mask));
 }
 
 @(defun si::hash-eql (&rest args)
@@ -1296,7 +1296,7 @@ mk_cl_sxhash(MKCL, mkcl_object key)
     h = _hash_eql(h, o);
   }
   mkcl_va_end(args);
-  @(return MKCL_MAKE_FIXNUM(h))
+  mkcl_return_value(MKCL_MAKE_FIXNUM(h))
 @)
 
 @(defun si::hash-equal (&rest args)
@@ -1307,7 +1307,7 @@ mk_cl_sxhash(MKCL, mkcl_object key)
     h = _hash_equal(3, h, o);
   }
   mkcl_va_end(args);
-  @(return MKCL_MAKE_FIXNUM(h))
+  mkcl_return_value(MKCL_MAKE_FIXNUM(h))
 @)
 
 @(defun si::hash-equalp (&rest args)
@@ -1318,7 +1318,7 @@ mk_cl_sxhash(MKCL, mkcl_object key)
     h = _hash_equalp(env, 3, h, o);
   }
   mkcl_va_end(args);
-  @(return MKCL_MAKE_FIXNUM(h));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(h));
 @)
 
 mkcl_object
@@ -1345,7 +1345,7 @@ mk_cl_maphash(MKCL, mkcl_object fun, mkcl_object ht)
           e = next;
         }
   }
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 static struct mkcl_hashtable_entry *
@@ -1405,5 +1405,5 @@ mk_si_copy_hash_table(MKCL, mkcl_object orig)
   }
   hash->hash.entries = orig->hash.entries;
 
-  @(return hash);
+  mkcl_return_value(hash);
 }

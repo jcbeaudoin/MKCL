@@ -34,23 +34,23 @@
 
 mkcl_object mk_si_disable_interrupts(MKCL)
 { /* Returns T if interrupts were enabled, NIL otherwise. */
-  @(return ((env->disable_interrupts) ? mk_cl_Cnil : (mkcl_disable_interrupts(env), mk_cl_Ct)));
+  mkcl_return_value(((env->disable_interrupts) ? mk_cl_Cnil : (mkcl_disable_interrupts(env), mk_cl_Ct)));
 }
 
 mkcl_object mk_si_enable_interrupts(MKCL)
 {
-  @(return (mkcl_enable_interrupts(env), mk_cl_Cnil));
+  mkcl_return_value((mkcl_enable_interrupts(env), mk_cl_Cnil));
 }
 
 mkcl_object mk_si_interrupt_status(MKCL)
 {
 #if MKCL_DEBUG_INTERRUPT_MASK
   mkcl_call_stack_check(env);
-  @(return ((env->disable_interrupts) ? @':disabled' : @':enabled')
-           mkcl_cstring_to_string(env, env->interrupt_disabler_file)
-           mkcl_make_unsigned_integer(env, env->interrupt_disabler_lineno));
+  mkcl_return_3_values(((env->disable_interrupts) ? @':disabled' : @':enabled'),
+                       mkcl_cstring_to_string(env, env->interrupt_disabler_file),
+                       mkcl_make_unsigned_integer(env, env->interrupt_disabler_lineno));
 #else
-  @(return ((env->disable_interrupts) ? @':disabled' : @':enabled'));
+  mkcl_return_value(((env->disable_interrupts) ? @':disabled' : @':enabled'));
 #endif
 }
 
@@ -252,14 +252,14 @@ mkcl_object
 mk_si_trace_specials(MKCL)
 {
   mkcl_trace_specials = TRUE;
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 }
 
 mkcl_object
 mk_si_untrace_specials(MKCL)
 {
   mkcl_trace_specials = FALSE;
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 
@@ -407,14 +407,14 @@ get_bds_ptr(MKCL, mkcl_object x)
 mkcl_object
 mk_si_bds_top(MKCL)
 {
-  @(return MKCL_MAKE_FIXNUM(env->bds_top - env->bds_org));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(env->bds_top - env->bds_org));
 }
 
 mkcl_object
 mk_si_bds_var(MKCL, mkcl_object arg)
 {
   mkcl_call_stack_check(env);
-  @(return get_bds_ptr(env, arg)->symbol);
+  mkcl_return_value(get_bds_ptr(env, arg)->symbol);
 }
 
 mkcl_object
@@ -422,7 +422,7 @@ mk_si_bds_val(MKCL, mkcl_object arg)
 {
   mkcl_call_stack_check(env);
   mkcl_object v = get_bds_ptr(env, arg)->value;
-  @(return ((v == MKCL_OBJNULL || v == MKCL_END_OF_BDS_CHAIN) ? MKCL_UNBOUND : v));
+  mkcl_return_value(((v == MKCL_OBJNULL || v == MKCL_END_OF_BDS_CHAIN) ? MKCL_UNBOUND : v));
 }
 
 /******************** INVOCATION STACK **********************/
@@ -473,48 +473,48 @@ mkcl_object
 mk_si_ihs_top_function_name(MKCL)
 {
   mkcl_call_stack_check(env);
-  @(return ihs_function_name(env->ihs_top->function));
+  mkcl_return_value(ihs_function_name(env->ihs_top->function));
 }
 
 mkcl_object
 mk_si_ihs_top(MKCL)
 {
-  @(return MKCL_MAKE_FIXNUM(env->ihs_top->index));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(env->ihs_top->index));
 }
 
 mkcl_object
 mk_si_ihs_prev(MKCL, mkcl_object x)
 {
   mkcl_call_stack_check(env);
-  @(return mk_cl_1M(env, x));
+  mkcl_return_value(mk_cl_1M(env, x));
 }
 
 mkcl_object
 mk_si_ihs_next(MKCL, mkcl_object x)
 {
   mkcl_call_stack_check(env);
-  @(return mk_cl_1P(env, x));
+  mkcl_return_value(mk_cl_1P(env, x));
 }
 
 mkcl_object
 mk_si_ihs_fun(MKCL, mkcl_object arg)
 {
   mkcl_call_stack_check(env);
-  @(return get_ihs_ptr(env, mkcl_integer_to_index(env, arg))->function);
+  mkcl_return_value(get_ihs_ptr(env, mkcl_integer_to_index(env, arg))->function);
 }
 
 mkcl_object
 mk_si_ihs_env(MKCL, mkcl_object arg)
 {
   mkcl_call_stack_check(env);
-  @(return get_ihs_ptr(env, mkcl_integer_to_index(env, arg))->lex_env);
+  mkcl_return_value(get_ihs_ptr(env, mkcl_integer_to_index(env, arg))->lex_env);
 }
 
 mkcl_object
 mk_si_ihs_bds_marker(MKCL, mkcl_object arg)
 {
   mkcl_call_stack_check(env);
-  @(return MKCL_MAKE_FIXNUM(get_ihs_ptr(env, mkcl_integer_to_index(env, arg))->bds_marker));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(get_ihs_ptr(env, mkcl_integer_to_index(env, arg))->bds_marker));
 }
 
 /********************** FRAME STACK *************************/
@@ -676,28 +676,28 @@ get_frame_ptr(MKCL, mkcl_object x)
 mkcl_object
 mk_si_frs_top(MKCL)
 {
-  @(return MKCL_MAKE_FIXNUM(env->frs_top - env->frs_org)); /* Any overflow detection? JCB */
+  mkcl_return_value(MKCL_MAKE_FIXNUM(env->frs_top - env->frs_org)); /* Any overflow detection? JCB */
 }
 
 mkcl_object
 mk_si_frs_bds(MKCL, mkcl_object arg)
 {
   mkcl_call_stack_check(env);
-  @(return MKCL_MAKE_FIXNUM(get_frame_ptr(env, arg)->frs_bds_top_index));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(get_frame_ptr(env, arg)->frs_bds_top_index));
 }
 
 mkcl_object
 mk_si_frs_tag(MKCL, mkcl_object arg)
 {
   mkcl_call_stack_check(env);
-  @(return get_frame_ptr(env, arg)->frs_val);
+  mkcl_return_value(get_frame_ptr(env, arg)->frs_val);
 }
 
 mkcl_object
 mk_si_frs_ihs(MKCL, mkcl_object arg)
 {
   mkcl_call_stack_check(env);
-  @(return MKCL_MAKE_FIXNUM(get_frame_ptr(env, arg)->frs_ihs->index));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(get_frame_ptr(env, arg)->frs_ihs->index));
 }
 
 mkcl_object
@@ -711,7 +711,7 @@ mk_si_sch_frs_base(MKCL, mkcl_object fr, mkcl_object ihs)
        x <= env->frs_top && x->frs_ihs->index < y;
        x++)
     ; /* This ; is all alone on its own line in order to please clang, and convince it of our intent. */
-  @(return ((x > env->frs_top) ? mk_cl_Cnil : MKCL_MAKE_FIXNUM(x - env->frs_org)));
+  mkcl_return_value(((x > env->frs_top) ? mk_cl_Cnil : MKCL_MAKE_FIXNUM(x - env->frs_org)));
 }
 
 /************************************************************/
@@ -737,7 +737,7 @@ mk_si_set_binding_stack_limit(MKCL, mkcl_object size_limit)
 
   env->bds_size_limit = the_size_limit;
   env->bds_upper_bound = env->bds_org + the_size_limit;
-  @(return mkcl_make_unsigned_integer(env, the_size_limit));
+  mkcl_return_value(mkcl_make_unsigned_integer(env, the_size_limit));
 }
 
 mkcl_object
@@ -752,7 +752,7 @@ mk_si_set_frame_stack_limit(MKCL, mkcl_object size_limit)
 
   env->frs_size_limit = the_size_limit;
   env->frs_upper_bound = env->frs_org + the_size_limit;
-  @(return mkcl_make_unsigned_integer(env, the_size_limit));
+  mkcl_return_value(mkcl_make_unsigned_integer(env, the_size_limit));
 }
 
 mkcl_object
@@ -767,7 +767,7 @@ mk_si_set_lisp_temp_stack_limit(MKCL, mkcl_object size_limit)
 
   env->temp_stack_size_limit = the_size_limit;
   env->temp_stack_upper_bound = env->temp_stack + the_size_limit;
-  @(return mkcl_make_unsigned_integer(env, the_size_limit));
+  mkcl_return_value(mkcl_make_unsigned_integer(env, the_size_limit));
 }
 
 mkcl_object
@@ -781,21 +781,21 @@ mk_si_get_call_stack_limit(MKCL)
 #endif
 
   mkcl_call_stack_check(env);
-  @(return mkcl_make_unsigned_integer(env, cs_size) mkcl_make_unsigned_integer(env, cs_top_index));
+  mkcl_return_2_values(mkcl_make_unsigned_integer(env, cs_size), mkcl_make_unsigned_integer(env, cs_top_index));
 }
 
 mkcl_object
 mk_si_get_binding_stack_limit(MKCL)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_make_unsigned_integer(env, env->bds_size_limit) mk_si_bds_top(env));
+  mkcl_return_2_values(mkcl_make_unsigned_integer(env, env->bds_size_limit), mk_si_bds_top(env));
 }
 
 mkcl_object
 mk_si_get_frame_stack_limit(MKCL)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_make_unsigned_integer(env, env->frs_size_limit) mk_si_frs_top(env));
+  mkcl_return_2_values(mkcl_make_unsigned_integer(env, env->frs_size_limit), mk_si_frs_top(env));
 }
 
 mkcl_object
@@ -804,7 +804,7 @@ mk_si_get_lisp_temp_stack_limit(MKCL)
   mkcl_index temp_stack_top_index = env->temp_stack_top - env->temp_stack;
 
   mkcl_call_stack_check(env);
-  @(return mkcl_make_unsigned_integer(env, env->temp_stack_size_limit) mkcl_make_unsigned_integer(env, temp_stack_top_index));
+  mkcl_return_2_values(mkcl_make_unsigned_integer(env, env->temp_stack_size_limit), mkcl_make_unsigned_integer(env, temp_stack_top_index));
 }
 
 

@@ -25,7 +25,7 @@ mkcl_object
 mk_cl_elt(MKCL, mkcl_object x, mkcl_object i)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_elt(env, x, mkcl_integer_to_word(env, i)));
+  mkcl_return_value(mkcl_elt(env, x, mkcl_integer_to_word(env, i)));
 }
 
 mkcl_object
@@ -77,7 +77,7 @@ mkcl_object
 mk_si_elt_set(MKCL, mkcl_object seq, mkcl_object index, mkcl_object val)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_elt_set(env, seq, mkcl_integer_to_word(env, index), val));
+  mkcl_return_value(mkcl_elt_set(env, seq, mkcl_integer_to_word(env, index), val));
 }
 
 mkcl_object
@@ -146,7 +146,7 @@ mkcl_elt_set(MKCL, mkcl_object seq, mkcl_word index, mkcl_object val)
       goto ILLEGAL_START_END;
     if (e > 0)
       goto ILLEGAL_START_END;
-    @(return mk_cl_Cnil);
+    mkcl_return_value(mk_cl_Cnil);
   }
   switch (mkcl_type_of(sequence))
     {
@@ -169,7 +169,7 @@ mkcl_elt_set(MKCL, mkcl_object seq, mkcl_word index, mkcl_object val)
 	  sequence = MKCL_CDR(sequence);
 	}
       }
-      @(return x);
+      mkcl_return_value(x);
 
     case mkcl_t_string:
       if (s > sequence->string.fillp)
@@ -180,7 +180,7 @@ mkcl_elt_set(MKCL, mkcl_object seq, mkcl_word index, mkcl_object val)
 	goto ILLEGAL_START_END;
       x = mkcl_alloc_simple_vector(env, e - s, mkcl_array_elttype(env, sequence));
       mkcl_copy_subarray(env, x, 0, sequence, s, e-s);
-      @(return x);
+      mkcl_return_value(x);
 
     case mkcl_t_vector:
     case mkcl_t_bitvector:
@@ -192,7 +192,7 @@ mkcl_elt_set(MKCL, mkcl_object seq, mkcl_word index, mkcl_object val)
 	goto ILLEGAL_START_END;
       x = mkcl_alloc_simple_vector(env, e - s, mkcl_array_elttype(env, sequence));
       mkcl_copy_subarray(env, x, 0, sequence, s, e-s);
-      @(return x);
+      mkcl_return_value(x);
     case mkcl_t_base_string:
       if (s > sequence->base_string.fillp)
 	goto ILLEGAL_START_END;
@@ -202,7 +202,7 @@ mkcl_elt_set(MKCL, mkcl_object seq, mkcl_word index, mkcl_object val)
 	goto ILLEGAL_START_END;
       x = mkcl_alloc_simple_vector(env, e - s, mkcl_array_elttype(env, sequence));
       mkcl_copy_subarray(env, x, 0, sequence, s, e-s);
-      @(return x);
+      mkcl_return_value(x);
       
     default:
       mkcl_FEtype_error_sequence(env, sequence);
@@ -225,7 +225,7 @@ mkcl_object
 mk_cl_length(MKCL, mkcl_object x)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_make_unsigned_integer(env, mkcl_length(env, x)));
+  mkcl_return_value(mkcl_make_unsigned_integer(env, mkcl_length(env, x)));
 }
 
 mkcl_index
@@ -330,7 +330,7 @@ mk_cl_reverse(MKCL, mkcl_object seq)
     E:
       mkcl_FEtype_error_sequence(env, seq);
     }
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
@@ -368,5 +368,5 @@ mk_cl_nreverse(MKCL, mkcl_object seq)
     default:
       mkcl_FEtype_error_sequence(env, seq);
     }
-  @(return seq);
+  mkcl_return_value(seq);
 }

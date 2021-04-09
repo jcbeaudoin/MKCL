@@ -443,83 +443,83 @@ mkcl_word_bit_length(mkcl_word i)
 @(defun logior (&rest nums)
 @
   if (narg == 0)
-    { mkcl_va_end(nums); @(return MKCL_MAKE_FIXNUM(0)); }
+    { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(0)); }
   /* INV: log_op() checks types and outputs first argument as default. */
   mkcl_object val = log_op(env, narg, MKCL_BOOLIOR, nums);
   mkcl_va_end(nums);
-  @(return val)
+  mkcl_return_value(val)
 @)
 
 @(defun logxor (&rest nums)
 @
   if (narg == 0)
-    { mkcl_va_end(nums); @(return MKCL_MAKE_FIXNUM(0)); }
+    { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(0)); }
   /* INV: log_op() checks types and outputs first argument as default. */
   mkcl_object val = log_op(env, narg, MKCL_BOOLXOR, nums);
   mkcl_va_end(nums);
-  @(return val);
+  mkcl_return_value(val);
 @)
 
 @(defun logand (&rest nums)
 @
   if (narg == 0)
-    { mkcl_va_end(nums); @(return MKCL_MAKE_FIXNUM(-1)); }
+    { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(-1)); }
   /* INV: log_op() checks types and outputs first argument as default. */
   mkcl_object val = log_op(env, narg, MKCL_BOOLAND, nums);
   mkcl_va_end(nums);
-  @(return val);
+  mkcl_return_value(val);
 @)
 
 @(defun logeqv (&rest nums)
 @
   if (narg == 0)
-    { mkcl_va_end(nums); @(return MKCL_MAKE_FIXNUM(-1)); }
+    { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(-1)); }
   /* INV: log_op() checks types and outputs first argument as default. */
   mkcl_object val = log_op(env, narg, MKCL_BOOLEQV, nums);
   mkcl_va_end(nums);
-  @(return val)
+  mkcl_return_value(val)
 @)
 
 mkcl_object
 mk_cl_lognand(MKCL, mkcl_object x, mkcl_object y)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_boole(env, MKCL_BOOLNAND, x, y));
+  mkcl_return_value(mkcl_boole(env, MKCL_BOOLNAND, x, y));
 }
 
 mkcl_object
 mk_cl_lognor(MKCL, mkcl_object x, mkcl_object y)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_boole(env, MKCL_BOOLNOR, x, y));
+  mkcl_return_value(mkcl_boole(env, MKCL_BOOLNOR, x, y));
 }
 
 mkcl_object
 mk_cl_logandc1(MKCL, mkcl_object x, mkcl_object y)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_boole(env, MKCL_BOOLANDC1, x, y));
+  mkcl_return_value(mkcl_boole(env, MKCL_BOOLANDC1, x, y));
 }
 
 mkcl_object
 mk_cl_logandc2(MKCL, mkcl_object x, mkcl_object y)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_boole(env, MKCL_BOOLANDC2, x, y));
+  mkcl_return_value(mkcl_boole(env, MKCL_BOOLANDC2, x, y));
 }
 
 mkcl_object
 mk_cl_logorc1(MKCL, mkcl_object x, mkcl_object y)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_boole(env, MKCL_BOOLORC1, x, y));
+  mkcl_return_value(mkcl_boole(env, MKCL_BOOLORC1, x, y));
 }
 
 mkcl_object
 mk_cl_logorc2(MKCL, mkcl_object x, mkcl_object y)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_boole(env, MKCL_BOOLORC2, x, y));
+  mkcl_return_value(mkcl_boole(env, MKCL_BOOLORC2, x, y));
 }
 
 static int
@@ -537,7 +537,7 @@ mk_cl_boole(MKCL, mkcl_object o, mkcl_object x, mkcl_object y)
 {
   mkcl_call_stack_check(env);
   /* INV: log_op2() checks types */
-  @(return mkcl_boole(env, coerce_to_logical_operator(env, o), x, y))
+  mkcl_return_value(mkcl_boole(env, coerce_to_logical_operator(env, o), x, y))
 }
 
 mkcl_object
@@ -566,7 +566,7 @@ mk_cl_logbitp(MKCL, mkcl_object p, mkcl_object x)
     else
       i = (_mkcl_big_sign(x) < 0);
   }
-  @(return (i ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((i ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
@@ -605,14 +605,14 @@ mk_cl_ash(MKCL, mkcl_object x, mkcl_object y)
     else
       mkcl_FEerror(env, "Insufficient memory.", 0);
   }
-  @(return r);
+  mkcl_return_value(r);
 }
 
 mkcl_object
 mk_cl_logcount(MKCL, mkcl_object x)
 {
   mkcl_call_stack_check(env);
-  @(return MKCL_MAKE_FIXNUM(count_bits(env, x)));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(count_bits(env, x)));
 }
 
 mkcl_index
@@ -641,7 +641,7 @@ mkcl_object
 mk_cl_integer_length(MKCL, mkcl_object x)
 {
   mkcl_call_stack_check(env);
-  @(return MKCL_MAKE_FIXNUM(mkcl_integer_length(env, x)));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(mkcl_integer_length(env, x)));
 }
 
 mkcl_object
@@ -773,7 +773,7 @@ mk_si_bit_array_op(MKCL, mkcl_object o, mkcl_object x, mkcl_object y, mkcl_objec
     if ((j = d%8) > 0)
       set_high(rp[n], j, (*op)(xp[n], yp[n]));
     if (!replace)
-      @(return r);
+      mkcl_return_value(r);
   } else {
     for (n = d/8, i = 0;  i <= n;  i++) {
       extract_byte(xi, xp, i, xo);
@@ -788,7 +788,7 @@ mk_si_bit_array_op(MKCL, mkcl_object o, mkcl_object x, mkcl_object y, mkcl_objec
       store_byte(rp, i, ro, ri);
     }
     if (!replace)
-      @(return r);
+      mkcl_return_value(r);
   }
   rp = r0->vector.self.bit;
   ro = r0->vector.bit_offset;
@@ -802,7 +802,7 @@ mk_si_bit_array_op(MKCL, mkcl_object o, mkcl_object x, mkcl_object y, mkcl_objec
       ri = r->vector.self.bit[i];
     store_byte(rp, i, ro, ri);
   }
-  @(return r0);
+  mkcl_return_value(r0);
  _MKCL_ERROR:
   mkcl_FEerror(env, "Illegal arguments for bit-array operation.", 0);
 }

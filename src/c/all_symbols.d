@@ -201,10 +201,10 @@ mkcl_object mk_si_mangle_string(MKCL, mkcl_object string)
       
       dest = push_mangled_string(string, dest);
       
-      @(return output);
+      mkcl_return_value(output);
     }
   else
-    @(return mk_cl_Cnil);
+    mkcl_return_value(mk_cl_Cnil);
 }
 
 /* Universal prefix for ManKai Common Lisp. JCB */
@@ -270,9 +270,9 @@ mkcl_object mk_si_mangle_symbol(MKCL, mkcl_object symbol)
 {
   mkcl_call_stack_check(env);
   if (MKCL_SYMBOLP(symbol))
-    { @(return mangle_full_symbol_name(env, symbol, "")); }
+    { mkcl_return_value(mangle_full_symbol_name(env, symbol, "")); }
   else
-    { @(return mk_cl_Cnil); }
+    { mkcl_return_value(mk_cl_Cnil); }
 }
 
 
@@ -280,20 +280,20 @@ mkcl_object mk_si_mangle_name(MKCL, mkcl_object symbol)
 {
   mkcl_call_stack_check(env);
   if (symbol == mk_cl_Cnil)
-    { @(return mk_cl_Ct mkcl_make_simple_base_string(env, "mk_cl_Cnil")); }
+    { mkcl_return_2_values(mk_cl_Ct, mkcl_make_simple_base_string(env, "mk_cl_Cnil")); }
   else if (symbol == mk_cl_Ct)
-    { @(return mk_cl_Ct mkcl_make_simple_base_string(env, "mk_cl_Ct")); }
+    { mkcl_return_2_values(mk_cl_Ct, mkcl_make_simple_base_string(env, "mk_cl_Ct")); }
 
   mkcl_index p  = (mkcl_symbol_initializer*)symbol - mkcl_root_symbols;
   if (/* p >= 0 && */ p <= mkcl_root_symbols_count) {
     mkcl_object output = mk_cl_format(env, 4, mk_cl_Cnil,
 				      mkcl_make_simple_base_string(env, "MKCL_SYM(~S,~D)"),
 				      mkcl_symbol_name(env, symbol), MKCL_MAKE_FIXNUM(p));
-    @(return mk_cl_Ct output);
+    mkcl_return_2_values(mk_cl_Ct, output);
   }
 
   mkcl_object output = mangle_full_symbol_name(env, symbol, "_symbol");  
-  @(return mk_cl_Cnil output);
+  mkcl_return_2_values(mk_cl_Cnil, output);
 }
 
 mkcl_object mk_si_mangle_function_name(MKCL, mkcl_object symbol)
@@ -304,7 +304,7 @@ mkcl_object mk_si_mangle_function_name(MKCL, mkcl_object symbol)
 
   mkcl_call_stack_check(env);
   if (mkcl_Null(symbol)) symbol = mk_cl_Cnil_symbol;
-  else if (!MKCL_SYMBOLP(symbol)) { @(return mk_cl_Cnil mk_cl_Cnil); }
+  else if (!MKCL_SYMBOLP(symbol)) { mkcl_return_2_values(mk_cl_Cnil, mk_cl_Cnil); }
 
   if (((mkcl_object) &(mkcl_root_symbols[0].data)) <= symbol
       && symbol < ((mkcl_object) &(mkcl_root_symbols[NB_STATIC_SYMBOLS-1].data)))
@@ -325,11 +325,11 @@ mkcl_object mk_si_mangle_function_name(MKCL, mkcl_object symbol)
 	{
 	  found = output = mk_cl_Cnil;
 	}
-      @(return found output minarg maxarg);
+      mkcl_return_4_values(found, output, minarg, maxarg);
     }
   
   mkcl_object output = mangle_full_symbol_name(env, symbol, "");
-  @(return found output minarg maxarg);
+  mkcl_return_4_values(found, output, minarg, maxarg);
 }
 
 

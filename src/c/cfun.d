@@ -236,14 +236,14 @@ mkcl_object
 mk_si_trace_closure_creation(MKCL)
 {
   mkcl_trace_closure_creation = TRUE;
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 }
 
 mkcl_object
 mk_si_untrace_closure_creation(MKCL)
 {
   mkcl_trace_closure_creation = FALSE;
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 #endif
 
@@ -553,7 +553,7 @@ mkcl_clone_cclosure(MKCL, mkcl_object c0, mkcl_object new_cenv)
     }
   }
     mkcl_va_end(args);
-  @(return head);
+  mkcl_return_value(head);
 @)
 
 mkcl_object
@@ -563,9 +563,9 @@ mk_si_closure_siblings_p(MKCL, mkcl_object c1, mkcl_object c2)
   mkcl_object c1_env = mk_si_closure_env(env, c1);
 
   if (mkcl_Null(c1_env))
-    { @(return mk_cl_Cnil); }
+    { mkcl_return_value(mk_cl_Cnil); }
   else
-    { @(return ((c1_env == mk_si_closure_env(env, c2)) ? mk_cl_Ct : mk_cl_Cnil)); }
+    { mkcl_return_value(((c1_env == mk_si_closure_env(env, c2)) ? mk_cl_Ct : mk_cl_Cnil)); }
 }
 
 
@@ -582,7 +582,7 @@ mk_si_closure_depth(MKCL, mkcl_object disp)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(disp) != mkcl_t_cdisplay)
     mkcl_FEinvalid_cdisplay(env, disp);
-  @(return mkcl_make_unsigned_integer(env, disp->display.nb_levels));
+  mkcl_return_value(mkcl_make_unsigned_integer(env, disp->display.nb_levels));
 }
 
 mkcl_object
@@ -595,9 +595,9 @@ mk_si_closure_level(MKCL, mkcl_object disp, mkcl_object i)
     mkcl_FEinvalid_cdisplay(env, disp);
 
   if (disp->display.nb_levels > index)
-    { @(return disp->display.level[index]); }
+    { mkcl_return_value(disp->display.level[index]); }
   else
-    { @(return mk_cl_Cnil); }
+    { mkcl_return_value(mk_cl_Cnil); }
 }
 
 mkcl_object
@@ -606,7 +606,7 @@ mk_si_closure_level_size(MKCL, mkcl_object level)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(level) != mkcl_t_clevel_block)
     mkcl_FEwrong_type_argument(env, @'si::compiled-closure-level', level);
-  @(return mkcl_make_unsigned_integer(env, level->lblock.nb_vars));
+  mkcl_return_value(mkcl_make_unsigned_integer(env, level->lblock.nb_vars));
 }
 
 mkcl_object
@@ -619,9 +619,9 @@ mk_si_closure_level_var(MKCL, mkcl_object level, mkcl_object i)
     mkcl_FEwrong_type_argument(env, @'si::compiled-closure-level', level);
 
   if (level->lblock.nb_vars > index)
-    { @(return level->lblock.var[index]); }
+    { mkcl_return_value(level->lblock.var[index]); }
   else
-    { @(return MKCL_OBJNULL); }
+    { mkcl_return_value(MKCL_OBJNULL); }
 }
 
 mkcl_object
@@ -636,7 +636,7 @@ mk_si_closure_level_set_var(MKCL, mkcl_object level, mkcl_object i, mkcl_object 
   if (level->lblock.nb_vars > index)
     level->lblock.var[index] = val;
     
-  @(return val);
+  mkcl_return_value(val);
 }
 
 mkcl_object
@@ -645,7 +645,7 @@ mk_si_closure_level_outer_level(MKCL, mkcl_object level)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(level) != mkcl_t_clevel_block)
     mkcl_FEwrong_type_argument(env, @'si::compiled-closure-level', level);
-  @(return level->lblock.outer);
+  mkcl_return_value(level->lblock.outer);
 }
 
 void
@@ -690,7 +690,7 @@ mk_si_compiled_function_name(MKCL, mkcl_object fun)
   default:
     mkcl_FEinvalid_function(env, fun);
   }
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
@@ -709,7 +709,7 @@ mk_si_set_compiled_function_name(MKCL, mkcl_object fun, mkcl_object name)
   default:
     mkcl_FEinvalid_function(env, fun);
   }
-  @(return name);
+  mkcl_return_value(name);
 }
 
 mkcl_object
@@ -755,7 +755,7 @@ mk_cl_function_lambda_expression(MKCL, mkcl_object fun)
   default:
     mkcl_FEinvalid_function(env, fun);
   }
-  @(return lambda_expr closure_p name);
+  mkcl_return_3_values(lambda_expr, closure_p, name);
 }
 
 mkcl_object
@@ -766,8 +766,8 @@ mk_si_closurep(MKCL, mkcl_object fun)
     {
     case mkcl_t_bclosure:
     case mkcl_t_cclosure:
-      @(return mk_cl_Ct);
-    default: @(return mk_cl_Cnil);
+      mkcl_return_value(mk_cl_Ct);
+    default: mkcl_return_value(mk_cl_Cnil);
     }
 }
 
@@ -778,10 +778,10 @@ mk_si_closure_env(MKCL, mkcl_object fun)
   switch(mkcl_type_of(fun))
     {
     case mkcl_t_bclosure:
-      @(return fun->bclosure.lex mk_cl_Cnil);
+      mkcl_return_2_values(fun->bclosure.lex, mk_cl_Cnil);
     case mkcl_t_cclosure:
-      @(return fun->cclosure.cenv fun->cclosure.syms_cenv);
-    default: @(return mk_cl_Cnil mk_cl_Cnil);
+      mkcl_return_2_values(fun->cclosure.cenv, fun->cclosure.syms_cenv);
+    default: mkcl_return_2_values(mk_cl_Cnil, mk_cl_Cnil);
     }
 }
 
@@ -792,10 +792,10 @@ mk_si_closure_producer(MKCL, mkcl_object fun)
   switch(mkcl_type_of(fun))
     {
     case mkcl_t_bclosure:
-      @(return fun->bclosure.producer);
+      mkcl_return_value(fun->bclosure.producer);
     case mkcl_t_cclosure:
-      @(return fun->cclosure.producer);
-    default: @(return mk_cl_Cnil);
+      mkcl_return_value(fun->cclosure.producer);
+    default: mkcl_return_value(mk_cl_Cnil);
     }
 }
 
@@ -813,7 +813,7 @@ mk_si_compiled_function_block(MKCL, mkcl_object fun)
   default:
     mkcl_FEerror(env, "~S is not a C compiled function.", 1, fun);
   }
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
@@ -826,13 +826,13 @@ mk_si_compiled_function_file(MKCL, mkcl_object b)
     b = b->bclosure.code;
     goto BEGIN;
   case mkcl_t_bytecode:
-    @(return b->bytecode.file b->bytecode.file_position);
+    mkcl_return_2_values(b->bytecode.file, b->bytecode.file_position);
   case mkcl_t_cfun:
-    @(return b->cfun.file b->cfun.file_position);
+    mkcl_return_2_values(b->cfun.file, b->cfun.file_position);
   case mkcl_t_cclosure:
-    @(return b->cclosure.file b->cclosure.file_position);
+    mkcl_return_2_values(b->cclosure.file, b->cclosure.file_position);
   default:
-    @(return mk_cl_Cnil mk_cl_Cnil);
+    mkcl_return_2_values(mk_cl_Cnil, mk_cl_Cnil);
   }
 }
 
@@ -879,7 +879,7 @@ mk_si_compiled_function_owner(MKCL, mkcl_object fun)
   default:
     mkcl_FEinvalid_function(env, fun);
   }
-  @(return owner);
+  mkcl_return_value(owner);
 }
 
 mkcl_object
@@ -898,7 +898,7 @@ mk_si_set_compiled_function_owner(MKCL, mkcl_object fun, mkcl_object owner)
   default:
     mkcl_FEinvalid_function(env, fun);
   }
-  @(return owner);
+  mkcl_return_value(owner);
 }
 
 void
@@ -1122,7 +1122,7 @@ mkcl_object mk_si_get_fun_ref_sym(MKCL, mkcl_object fun, mkcl_object index)
   default:
     mkcl_FEinvalid_function(env, fun);
   }
-  @(return output);
+  mkcl_return_value(output);
 }
 
 int mkcl_fun_refs_trap(MKCL, mkcl_object fun, const mkcl_object * const fun_refs, mkcl_index i) /* debug JCB */
@@ -1204,13 +1204,13 @@ mkcl_object mk_si_update_function_references(MKCL, mkcl_object fun)
     {
     case mkcl_t_bclosure:
     case mkcl_t_bytecode:
-      @(return fun);
+      mkcl_return_value(fun);
     case mkcl_t_cfun:
       fun->cfun.fun_refs = mkcl_build_fun_refs_from_syms(env, fun, fun->cfun.fun_ref_syms, fun->cfun.nb_fun_refs);
-      @(return fun);      
+      mkcl_return_value(fun);      
     case mkcl_t_cclosure:
       fun->cclosure.fun_refs = mkcl_build_fun_refs_from_syms(env, fun, fun->cclosure.fun_ref_syms, fun->cclosure.nb_fun_refs);
-      @(return fun);
+      mkcl_return_value(fun);
     default:
       mkcl_FEerror(env, "In mk_si_update_function_references ~S is not a function.", 1, fun);
     }

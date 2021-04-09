@@ -255,7 +255,7 @@ quasiquote_macro(MKCL, mkcl_object whole, mkcl_object lex_env)
 {
   if (mkcl_length(env, whole) != 2)
     mkcl_FEprogram_error(env, "Syntax error: ~S.", 1, whole);
-  @(return backq(env, MKCL_CADR(whole)));
+  mkcl_return_value(backq(env, MKCL_CADR(whole)));
 }
 
 void

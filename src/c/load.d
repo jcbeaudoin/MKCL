@@ -472,7 +472,7 @@ mk_si_load_binary(MKCL, mkcl_object filename, mkcl_object verbose, mkcl_object p
   } MKCL_UNWIND_PROTECT_EXIT {
     if (!mkcl_Null(locked)) mk_mt_giveup_lock(env, l_c_lock);
   } MKCL_UNWIND_PROTECT_END;
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
@@ -495,7 +495,7 @@ mk_si_load_source(MKCL, mkcl_object source, mkcl_object verbose, mkcl_object pri
       strm = mkcl_open_stream(env, source, mkcl_smm_input, mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil, external_format);
 #endif
       if (mkcl_Null(strm))
-	@(return mk_cl_Cnil); /* Silently?! JCB */
+	mkcl_return_value(mk_cl_Cnil); /* Silently?! JCB */
     }
   else
     strm = source;     /* INV: if "source" is not a valid stream, file.d will complain */
@@ -534,7 +534,7 @@ mk_si_load_source(MKCL, mkcl_object source, mkcl_object verbose, mkcl_object pri
     if (strm != source)
       mk_cl_close(env, 3, strm, @':abort', @'t');
   } MKCL_UNWIND_PROTECT_END;
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 @(defun load (source
@@ -585,7 +585,7 @@ mk_si_load_source(MKCL, mkcl_object source, mkcl_object verbose, mkcl_object pri
 				    @':external-format', external_format,
 				    @':search-list', mk_cl_Cnil);
 	if (!mkcl_Null(ok)) {
-	  @(return ok);
+	  mkcl_return_value(ok);
 	}
       } mkcl_end_loop_for_in;
     }
@@ -625,7 +625,7 @@ mk_si_load_source(MKCL, mkcl_object source, mkcl_object verbose, mkcl_object pri
     } mkcl_end_loop_for_in;
   if (mkcl_Null(filename)) {
     if (mkcl_Null(if_does_not_exist))
-      { @(return mk_cl_Cnil); }
+      { mkcl_return_value(mk_cl_Cnil); }
     else
       mkcl_FEcannot_open(env, source);
   }
@@ -675,7 +675,7 @@ mk_si_load_source(MKCL, mkcl_object source, mkcl_object verbose, mkcl_object pri
     static const mkcl_base_string_object(loaded_str_obj, "~&;;; Loaded ~s~%");
     mk_cl_format(env, 3, mk_cl_Ct, (mkcl_object) &loaded_str_obj, filename);
   }
-  @(return filename);
+  mkcl_return_value(filename);
 @)
 
 mkcl_object mk_si_list_libraries(MKCL)
@@ -692,6 +692,6 @@ mkcl_object mk_si_list_libraries(MKCL)
     if (!mkcl_Null(locked)) mk_mt_giveup_lock(env, l_c_lock);
   } MKCL_UNWIND_PROTECT_END;
 
-  @(return output);
+  mkcl_return_value(output);
 }
 

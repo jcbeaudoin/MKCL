@@ -2444,7 +2444,7 @@ c_listA(MKCL, mkcl_object args, int flags)
 	}
 	/* END: SEARCH DECLARE */
 
-	@(return declarations body documentation specials)
+  mkcl_return_4_values(declarations, body, documentation, specials)
 @)
 
 #if 0
@@ -2679,18 +2679,32 @@ mk_si_process_lambda_list(MKCL, mkcl_object org_lambda_list, mkcl_object context
         ))
     goto TOO_LONG_LAMBDA;
 
-  @(return
-    mk_cl_nreverse(env, reqs)
-    MKCL_MAKE_FIXNUM(nreq)
-    mk_cl_nreverse(env, opts)
-    MKCL_MAKE_FIXNUM(nopt)
-    rest
-    key_flag
-    mk_cl_nreverse(env, keys)
-    MKCL_MAKE_FIXNUM(nkey)
-    allow_other_keys
-    mk_cl_nreverse(env, auxs)
-    MKCL_MAKE_FIXNUM(naux));
+    {
+      const mkcl_object _t0__ = mk_cl_nreverse(env, reqs);
+      const mkcl_object _t1__ = MKCL_MAKE_FIXNUM(nreq);
+      const mkcl_object _t2__ = mk_cl_nreverse(env, opts);
+      const mkcl_object _t3__ = MKCL_MAKE_FIXNUM(nopt);
+      const mkcl_object _t4__ = rest;
+      const mkcl_object _t5__ = key_flag;
+      const mkcl_object _t6__ = mk_cl_nreverse(env, keys);
+      const mkcl_object _t7__ = MKCL_MAKE_FIXNUM(nkey);
+      const mkcl_object _t8__ = allow_other_keys;
+      const mkcl_object _t9__ = mk_cl_nreverse(env, auxs);
+      const mkcl_object _t10__ = MKCL_MAKE_FIXNUM(naux);
+      env->values[0] = _t0__;
+      env->values[1] = _t1__;
+      env->values[2] = _t2__;
+      env->values[3] = _t3__;
+      env->values[4] = _t4__;
+      env->values[5] = _t5__;
+      env->values[6] = _t6__;
+      env->values[7] = _t7__;
+      env->values[8] = _t8__;
+      env->values[9] = _t9__;
+      env->values[10] = _t10__;
+      env->nvalues = 11;
+      return(_t0__);
+    }
 
  ILLEGAL_LAMBDA:
   mkcl_FEprogram_error(env, "LAMBDA: Illegal lambda list ~S.", 1, org_lambda_list);
@@ -2860,14 +2874,14 @@ mk_si_function_block_name(MKCL, mkcl_object name)
   mkcl_object output = mkcl_function_block_name(name);
   if (output == MKCL_OBJNULL)
     mkcl_FEinvalid_function_name(env, name);
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
 mk_si_valid_function_name_p(MKCL, mkcl_object name)
 {
   mkcl_call_stack_check(env);
-  @(return ((MKCL_OBJNULL != mkcl_function_block_name(name)) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value(((MKCL_OBJNULL != mkcl_function_block_name(name)) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
@@ -2885,7 +2899,7 @@ mk_si_make_lambda(MKCL, mkcl_object name, mkcl_object rest)
   } MKCL_UNWIND_PROTECT_EXIT {
     the_env->c_env = old_c_env;
   } MKCL_UNWIND_PROTECT_END;
-  @(return lambda);
+  mkcl_return_value(lambda);
 }
 
 @(defun si::eval-in-env (form 
@@ -2928,7 +2942,7 @@ mk_si_make_lambda(MKCL, mkcl_object name, mkcl_object rest)
     memset(&new_c_env, 0, sizeof(new_c_env));
   } MKCL_UNWIND_PROTECT_END;
   if (mkcl_Null(execute)) {
-    @(return bytecode);
+    mkcl_return_value(bytecode);
   }
   /*
    * Interpret using the given lexical environment.

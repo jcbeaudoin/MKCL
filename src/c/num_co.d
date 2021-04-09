@@ -101,7 +101,7 @@ number_remainder(MKCL, mkcl_object x, mkcl_object y, mkcl_object q)
     x = mkcl_type_error(env, @'float',"argument",x,@'real');
     goto AGAIN;
   }
-  @(return x);
+  mkcl_return_value(x);
 @)
 
 mkcl_object
@@ -120,7 +120,7 @@ mk_cl_numerator(MKCL, mkcl_object x)
     x = mkcl_type_error(env, @'numerator',"argument",x,@'rational');
     goto AGAIN;
   }
-  @(return x);
+  mkcl_return_value(x);
 }
 
 mkcl_object
@@ -140,7 +140,7 @@ mk_cl_denominator(MKCL, mkcl_object x)
     x = mkcl_type_error(env, @'numerator',"argument",x,@'rational');
     goto AGAIN;
   }
-  @(return x);
+  mkcl_return_value(x);
 }
 
 mkcl_object
@@ -185,7 +185,7 @@ mkcl_floor1(MKCL, mkcl_object x)
     x = mkcl_type_error(env, @'floor', "argument", x, @'real');
     goto AGAIN;
   }
-  @(return v0 v1);
+  mkcl_return_2_values(v0, v1);
 }
 
 mkcl_object
@@ -383,7 +383,7 @@ mkcl_floor2(MKCL, mkcl_object x, mkcl_object y)
     x = mkcl_type_error(env, @'floor',"argument",x,@'real');
     goto AGAIN;
   }
-  @(return v0 v1);
+  mkcl_return_2_values(v0, v1);
 }
 
 @(defun floor (x &optional (y MKCL_OBJNULL))
@@ -437,7 +437,7 @@ mkcl_ceiling1(MKCL, mkcl_object x)
     x = mkcl_type_error(env, @'ceiling',"argument",x,@'real');
     goto AGAIN;
   }
-  @(return v0 v1);
+  mkcl_return_2_values(v0, v1);
 }
 
 mkcl_object
@@ -632,7 +632,7 @@ mkcl_ceiling2(MKCL, mkcl_object x, mkcl_object y)
     x = mkcl_type_error(env, @'ceiling',"argument",x,@'real');
     goto AGAIN;
   }
-  @(return v0 v1);
+  mkcl_return_2_values(v0, v1);
 }
 
 @(defun ceiling (x &optional (y MKCL_OBJNULL))
@@ -686,7 +686,7 @@ mkcl_truncate1(MKCL, mkcl_object x)
     x = mkcl_type_error(env, @'truncate',"argument",x,@'real');
     goto AGAIN;
   }
-  @(return v0 v1);
+  mkcl_return_2_values(v0, v1);
 }
 
 mkcl_object
@@ -789,7 +789,7 @@ mkcl_round1(MKCL, mkcl_object x)
     x = mkcl_type_error(env, @'round',"argument",x,@'real');
     goto AGAIN;
   }
-  @(return v0 v1);
+  mkcl_return_2_values(v0, v1);
 }
 
 mkcl_object
@@ -827,7 +827,7 @@ mkcl_round2(MKCL, mkcl_object x, mkcl_object y)
     v0 = q = mkcl_round1(env, q);
     v1 = number_remainder(env, x, y, q);
   }
-  @(return v0 v1);
+  mkcl_return_2_values(v0, v1);
 }
 
 @(defun round (x &optional (y MKCL_OBJNULL))
@@ -846,7 +846,7 @@ mk_cl_mod(MKCL, mkcl_object x, mkcl_object y)
   mkcl_call_stack_check(env);
   /* INV: #'floor always outputs two values */
   @floor(env, 2, x, y);
-  @(return MKCL_VALUES(1));
+  mkcl_return_value(MKCL_VALUES(1));
 }
 
 mkcl_object
@@ -854,7 +854,7 @@ mk_cl_rem(MKCL, mkcl_object x, mkcl_object y)
 {
   mkcl_call_stack_check(env);
   @truncate(env, 2, x, y);
-  @(return MKCL_VALUES(1));
+  mkcl_return_value(MKCL_VALUES(1));
 }
 
 mkcl_object
@@ -911,7 +911,7 @@ mk_cl_decode_float(MKCL, mkcl_object x)
     x = mkcl_type_error(env, @'decode-float',"argument",x,@'float');
     goto AGAIN;
   }
-  @(return x MKCL_MAKE_FIXNUM(e) sign);
+  mkcl_return_3_values(x, MKCL_MAKE_FIXNUM(e), sign);
 }
 
 mkcl_object
@@ -943,7 +943,7 @@ mk_cl_scale_float(MKCL, mkcl_object x, mkcl_object y)
     x = mkcl_type_error(env, @'scale-float', "argument", x, @'float');
     goto AGAIN;
   }
-  @(return x);
+  mkcl_return_value(x);
 }
 
 mkcl_object
@@ -953,7 +953,7 @@ mk_cl_float_radix(MKCL, mkcl_object x)
   while (mk_cl_floatp(env, x) != mk_cl_Ct) {
     x = mkcl_type_error(env, @'float-radix', "argument", x, @'float');
   }
-  @(return MKCL_MAKE_FIXNUM(FLT_RADIX));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(FLT_RADIX));
 }
 
 @(defun float_sign (x &optional (y x yp))
@@ -1004,7 +1004,7 @@ mk_cl_float_radix(MKCL, mkcl_object x)
     y = mkcl_type_error(env, @'float-sign', "prototype", y, @'float');
     goto AGAIN;
   }
-  @(return y);
+  mkcl_return_value(y);
 @)
 
 mkcl_object
@@ -1028,7 +1028,7 @@ mk_cl_float_digits(MKCL, mkcl_object x)
     x = mkcl_type_error(env, @'float-digits', "argument", x, @'float');
     goto AGAIN;
   }
-  @(return x);
+  mkcl_return_value(x);
 }
 
 mkcl_object
@@ -1093,7 +1093,7 @@ mk_cl_float_precision(MKCL, mkcl_object x)
     x = mkcl_type_error(env, @'float-precision', "argument", x, @'float');
     goto AGAIN;
   }
-  @(return MKCL_MAKE_FIXNUM(precision));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(precision));
 }
 
 mkcl_object
@@ -1162,13 +1162,13 @@ mk_cl_integer_decode_float(MKCL, mkcl_object x)
     x = mkcl_type_error(env, @'integer-decode-float', "argument", x, @'float');
     goto AGAIN;
   }
-  @(return x MKCL_MAKE_FIXNUM(e) MKCL_MAKE_FIXNUM(s));
+  mkcl_return_3_values(x, MKCL_MAKE_FIXNUM(e), MKCL_MAKE_FIXNUM(s));
 }
 
 
 @(defun complex (r &optional (i MKCL_MAKE_FIXNUM(0)))
 @	/* INV: mkcl_make_complex() checks types */
-  @(return mkcl_make_complex(env, r, i));
+  mkcl_return_value(mkcl_make_complex(env, r, i));
 @)
 
 mkcl_object
@@ -1193,7 +1193,7 @@ mk_cl_realpart(MKCL, mkcl_object x)
     x = mkcl_type_error(env, @'realpart', "argument", x, @'number');
     goto AGAIN;
   }
-  @(return x);
+  mkcl_return_value(x);
 }
 
 mkcl_object
@@ -1234,6 +1234,6 @@ mk_cl_imagpart(MKCL, mkcl_object x)
     x = mkcl_type_error(env, @'imagpart', "argument", x, @'number');
     goto AGAIN;
   }
-  @(return x);
+  mkcl_return_value(x);
 }
 

@@ -191,7 +191,7 @@ static mkcl_object mkcl_true_self(MKCL)
 
 mkcl_object mk_si_self_truename(MKCL)
 {
-  @(return mkcl_core.self_truename);
+  mkcl_return_value(mkcl_core.self_truename);
 }
 
 static const mkcl_object initial_thread_bindings[] =
@@ -833,7 +833,7 @@ mkcl_object mk_si_shutdown_mkcl(MKCL, mkcl_object code, mkcl_object watchdog_thr
       /* we cannot do a normal return since we just uninitialized all the machinery needed to do so. */
       mkcl_thread_exit(env, status);
     }
-  @(return val);
+  mkcl_return_value(val);
 }
 
 long mkcl_exit_status(MKCL)
@@ -864,7 +864,7 @@ long mkcl_exit_status(MKCL)
 
 mkcl_object mk_si_shutdown_in_progress_p(MKCL) /* to be called with si::+shutdown-gate+ held. */
 {
-  @(return (mkcl_Null(mkcl_core.shutdown_thread) ? mk_cl_Cnil : mk_cl_Ct));
+  mkcl_return_value((mkcl_Null(mkcl_core.shutdown_thread) ? mk_cl_Cnil : mk_cl_Ct));
 }
 
 mkcl_object mk_si_register_shutdown_thread(MKCL, mkcl_object shutdown_thread) /* to be called with si::+shutdown-gate+ held. */
@@ -872,7 +872,7 @@ mkcl_object mk_si_register_shutdown_thread(MKCL, mkcl_object shutdown_thread) /*
   if (mkcl_type_of(shutdown_thread) != mkcl_t_thread)
     mkcl_FEwrong_type_argument(env, @'mt::thread', shutdown_thread);
   mkcl_core.shutdown_thread = shutdown_thread;
-  @(return shutdown_thread);
+  mkcl_return_value(shutdown_thread);
 }
 
 mkcl_object mk_si_register_shutdown_watchdog_thread(MKCL, mkcl_object watchdog_thread, mkcl_object will_clean_up)
@@ -885,12 +885,12 @@ mkcl_object mk_si_register_shutdown_watchdog_thread(MKCL, mkcl_object watchdog_t
   mkcl_core.shutdown_watchdog_thread = watchdog_thread;
   mkcl_core.shutdown_watchdog_will_clean_up = will_clean_up;
   mk_mt_giveup_lock(env, mkcl_core.shutdown_gate);
-  @(return watchdog_thread);
+  mkcl_return_value(watchdog_thread);
 }
 
 mkcl_object mk_si_shutdown_watchdog_thread(MKCL) /* to be called with si::+shutdown-gate+ held. */
 {
-  @(return mkcl_core.shutdown_watchdog_thread mkcl_core.shutdown_watchdog_will_clean_up);
+  mkcl_return_2_values(mkcl_core.shutdown_watchdog_thread, mkcl_core.shutdown_watchdog_will_clean_up);
 }
 
 static mkcl_object join_thread(MKCL, mkcl_object shutdown_thread)
@@ -1032,7 +1032,7 @@ mkcl_index mkcl_argc(void)
 mkcl_object
 mk_mkcl_argc(MKCL)
 {
-  @(return MKCL_MAKE_FIXNUM(ARGC));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(ARGC));
 }
 
 mkcl_object
@@ -1062,7 +1062,7 @@ mk_mkcl_argv(MKCL, mkcl_object index)
   if (MKCL_FIXNUMP(index) && MKCL_FIXNUM_PLUSP(index)) {
     mkcl_index _ndx = mkcl_fixnum_to_word(index);
     mkcl_object it = mkcl_argv(env, _ndx);
-    @(return it);
+    mkcl_return_value(it);
   }
   else
     mkcl_FEerror(env, "Invalid type for command line argument index: ~S. Must be a positive integer.", 1, index);
@@ -1179,14 +1179,14 @@ mk_mkcl_getenv(MKCL, mkcl_object var)
   mkcl_call_stack_check(env);
   while (!MKCL_STRINGP(var))
     var = mkcl_type_error(env, @'mkcl::getenv', "argument", var, @'string');
-  @(return mkcl_getenv(env, var));
+  mkcl_return_value(mkcl_getenv(env, var));
 }
 
 mkcl_object
 mkcl_setenv(MKCL, mkcl_object var, mkcl_object value)
 {
 #if !(defined(HAVE_SETENV) || defined(HAVE_PUTENV))
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 #else
 #ifndef HAVE_SETENV
   mkcl_object os_var = mkcl_string_to_OSstring(env, var);
@@ -1225,7 +1225,7 @@ mkcl_setenv(MKCL, mkcl_object var, mkcl_object value)
   }
   if (ret_val)
     mkcl_FElibc_error(env, "MKCL:SETENV failed: var = ~S, value = ~S.", 2, var, value);
-  @(return value);
+  mkcl_return_value(value);
 #endif
 }
 
@@ -1238,7 +1238,7 @@ mk_mkcl_setenv(MKCL, mkcl_object var, mkcl_object value)
   if (!mkcl_Null(value))
     while (!MKCL_STRINGP(value))
       value = mkcl_type_error(env, @'mkcl::setenv', "argument", value, @'string');
-  @(return mkcl_setenv(env, var, value));
+  mkcl_return_value(mkcl_setenv(env, var, value));
 }
 
 mkcl_object
@@ -1246,6 +1246,6 @@ mk_si_gdb(MKCL)
 {
   /* A simple do-nothing function that allows for an easy escape
      from the REPL down into gdb. */
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 

@@ -42,7 +42,7 @@ mk_cl_symbol_function(MKCL, mkcl_object sym)
       } else if (sym_type & mkcl_stp_macro) {
 	output = MKCL_CONS(env, @'si::macro', output);
       }
-      @(return output);
+      mkcl_return_value(output);
     }
 }
 
@@ -50,7 +50,7 @@ mkcl_object
 mk_cl_fdefinition(MKCL, mkcl_object fname)
 {
   mkcl_call_stack_check(env);
-  @(return ((MKCL_SYMBOLP(fname)) ? mk_cl_symbol_function(env, fname) : mkcl_fdefinition(env, fname)));
+  mkcl_return_value(((MKCL_SYMBOLP(fname)) ? mk_cl_symbol_function(env, fname) : mkcl_fdefinition(env, fname)));
 }
 
 mkcl_object
@@ -61,7 +61,7 @@ mk_cl_fboundp(MKCL, mkcl_object fname)
     fname = mk_cl_Cnil_symbol;
 
   if (MKCL_SYMBOLP(fname)) {
-    @(return (((fname->symbol.stype & mkcl_stp_special_form)
+    mkcl_return_value((((fname->symbol.stype & mkcl_stp_special_form)
 	       || MKCL_SYM_FUN(fname) != mk_cl_Cnil) ? mk_cl_Ct : mk_cl_Cnil));
   } else if (MKCL_LISTP(fname)) {
     if (MKCL_CAR(fname) == @'setf') {
@@ -69,7 +69,7 @@ mk_cl_fboundp(MKCL, mkcl_object fname)
       if (MKCL_CONSP(sym) && MKCL_CDR(sym) == mk_cl_Cnil) {
 	sym = MKCL_CAR(sym);
 	if (MKCL_SYMBOLP(sym))
-	  @(return mk_si_get_sysprop(env, sym, @'si::setf-symbol'));
+	  mkcl_return_value(mk_si_get_sysprop(env, sym, @'si::setf-symbol'));
       }
     }
   }
@@ -130,7 +130,7 @@ mk_si_coerce_to_function(MKCL, mkcl_object fun)
 	)) {
     fun = mkcl_fdefinition(env, fun);
   }
-  @(return fun);
+  mkcl_return_value(fun);
 }
 
 mkcl_object
@@ -149,7 +149,7 @@ mk_cl_symbol_value(MKCL, mkcl_object sym)
     if (value == MKCL_OBJNULL)
       mkcl_FEunbound_variable(env, sym);
   }
-  @(return value);
+  mkcl_return_value(value);
 }
 
 mkcl_object
@@ -168,7 +168,7 @@ mk_cl_boundp(MKCL, mkcl_object sym)
     else
       output = mk_cl_Ct;
   }
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
@@ -178,5 +178,5 @@ mk_cl_special_operator_p(MKCL, mkcl_object form)
 
   mkcl_call_stack_check(env);
   special = mkcl_symbol_type(env, form) & mkcl_stp_special_form;
-  @(return (special ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((special ? mk_cl_Ct : mk_cl_Cnil));
 }

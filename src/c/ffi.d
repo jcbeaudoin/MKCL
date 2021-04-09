@@ -95,12 +95,12 @@ mkcl_object
 mk_si_pointer(MKCL, mkcl_object x)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_make_unsigned_integer(env, (mkcl_index)x));
+  mkcl_return_value(mkcl_make_unsigned_integer(env, (mkcl_index)x));
 }
 
 mkcl_object mk_si_foreignp(MKCL, mkcl_object x)
 {
-  @(return (mkcl_foreignp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_foreignp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
@@ -173,7 +173,7 @@ mk_si_allocate_foreign_data(MKCL, mkcl_object tag, mkcl_object size)
   mkcl_index bytes = mkcl_integer_to_index(env, size);
   mkcl_object output = mkcl_allocate_foreign_data(env, tag, bytes);
 
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
@@ -185,7 +185,7 @@ mk_si_make_foreign_null_pointer(MKCL)
   output->foreign.tag = @':void';
   output->foreign.size = 0;
   output->foreign.data = NULL;
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
@@ -201,7 +201,7 @@ mk_si_free_foreign_data(MKCL, mkcl_object f)
   }
   f->foreign.size = 0;
   f->foreign.data = NULL;
-  @(return );
+  mkcl_return_no_value;
 }
 
 mkcl_object
@@ -228,7 +228,7 @@ mk_si_make_foreign_data_from_array(MKCL, mkcl_object array)
 		 1, mkcl_elttype_to_symbol(env, array->array.elttype));
     break;
   }
-  @(return mkcl_make_foreign(env, tag, 0, array->array.self.bc));
+  mkcl_return_value(mkcl_make_foreign(env, tag, 0, array->array.self.bc));
 }
 
 mkcl_object
@@ -238,7 +238,7 @@ mk_si_foreign_address(MKCL, mkcl_object f)
   if (mkcl_type_of(f) != mkcl_t_foreign) {
     mkcl_FEwrong_type_argument(env, @'si::foreign', f);
   }
-  @(return mkcl_make_unsigned_integer(env, (mkcl_index)f->foreign.data));
+  mkcl_return_value(mkcl_make_unsigned_integer(env, (mkcl_index)f->foreign.data));
 }
 
 mkcl_object
@@ -248,7 +248,7 @@ mk_si_foreign_tag(MKCL, mkcl_object f)
   if (mkcl_type_of(f) != mkcl_t_foreign) {
     mkcl_FEwrong_type_argument(env, @'si::foreign', f);
   }
-  @(return f->foreign.tag);
+  mkcl_return_value(f->foreign.tag);
 }
 
 mkcl_object
@@ -269,7 +269,7 @@ mk_si_foreign_indexed(MKCL, mkcl_object f, mkcl_object andx, mkcl_object asize, 
   output->foreign.tag = tag;
   output->foreign.size = size;
   output->foreign.data = f->foreign.data + ndx;
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
@@ -287,7 +287,7 @@ mk_si_foreign_ref(MKCL, mkcl_object f, mkcl_object andx, mkcl_object asize, mkcl
     mkcl_FEerror(env, "Out of bounds reference into foreign data type ~A.", 1, f);
   }
   output = mkcl_make_foreign(env, tag, size, f->foreign.data + ndx);
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
@@ -309,7 +309,7 @@ mk_si_foreign_set(MKCL, mkcl_object f, mkcl_object andx, mkcl_object value)
     mkcl_FEerror(env, "Out of bounds reference into foreign data type ~A.", 1, f);
   }
   memcpy(f->foreign.data + ndx, value->foreign.data, size);
-  @(return value);
+  mkcl_return_value(value);
 }
 
 enum mkcl_ffi_tag
@@ -469,7 +469,7 @@ mk_si_foreign_ref_elt(MKCL, mkcl_object f, mkcl_object andx, mkcl_object type)
   if (mkcl_type_of(f) != mkcl_t_foreign) {
     mkcl_FEwrong_type_argument(env, @'si::foreign', f);
   }
-  @(return mkcl_foreign_ref_elt(env, (void*)(f->foreign.data + ndx), tag));
+  mkcl_return_value(mkcl_foreign_ref_elt(env, (void*)(f->foreign.data + ndx), tag));
 }
 
 mkcl_object
@@ -486,7 +486,7 @@ mk_si_foreign_set_elt(MKCL, mkcl_object f, mkcl_object andx, mkcl_object type, m
     mkcl_FEwrong_type_argument(env, @'si::foreign', f);
   }
   mkcl_foreign_set_elt(env, (void*)(f->foreign.data + ndx), tag, value);
-  @(return value);
+  mkcl_return_value(value);
 }
 
 mkcl_object
@@ -494,7 +494,7 @@ mk_si_size_of_foreign_elt_type(MKCL, mkcl_object type)
 {
   mkcl_call_stack_check(env);
   enum mkcl_ffi_tag tag = mkcl_foreign_type_code(env, type);
-  @(return MKCL_MAKE_FIXNUM(mkcl_foreign_type_size[tag]));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(mkcl_foreign_type_size[tag]));
 }
 
 mkcl_object
@@ -503,7 +503,7 @@ mk_si_null_pointer_p(MKCL, mkcl_object f)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(f) != mkcl_t_foreign)
     mkcl_FEwrong_type_argument(env, @'si::foreign', f);
-  @(return ((f->foreign.data == NULL) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value(((f->foreign.data == NULL) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
@@ -514,7 +514,7 @@ mk_si_foreign_recast(MKCL, mkcl_object f, mkcl_object size, mkcl_object tag)
     mkcl_FEwrong_type_argument(env, @'si::foreign', f);
   f->foreign.size = mkcl_integer_to_index(env, size);
   f->foreign.tag = tag;
-  @(return f);
+  mkcl_return_value(f);
 }
 
 mkcl_object
@@ -549,7 +549,7 @@ mk_si_load_foreign_module(MKCL, mkcl_object filename)
   }
   output->cblock.locked |= 1;
   output->cblock.source = @':foreign';
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
@@ -585,7 +585,7 @@ mk_si_unload_foreign_module(MKCL, mkcl_object module)
     } MKCL_UNWIND_PROTECT_END;
   }
 
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
@@ -614,7 +614,7 @@ mk_si_find_foreign_symbol(MKCL, mkcl_object var, mkcl_object module, mkcl_object
 
   if (mkcl_type_of(output) != mkcl_t_foreign)
     mkcl_FEerror(env, "FIND-FOREIGN-SYMBOL: Could not load foreign symbol ~S from module ~S (Error: ~S)", 3, var, module, output);
-  @(return output);
+  mkcl_return_value(output);
 }
 
 static void
@@ -653,14 +653,14 @@ mk_si_trim_ffi_arguments_staging_area(MKCL)
   fficall->buffer_size = MKCL_FFICALL_ARGS_STAGING_AREA_INITIAL_SIZE;
   fficall->buffer = mkcl_alloc(env, MKCL_FFICALL_ARGS_STAGING_AREA_INITIAL_SIZE);
   fficall->buffer_sp = fficall->buffer;
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 mkcl_object
 mk_si_release_ffi_area(MKCL)
 {
   env->fficall = NULL;
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 struct mkcl_fficall *
@@ -750,13 +750,13 @@ void mkcl_fficall_align16(MKCL)
   mkcl_fficall_execute(env, cfun, fficall, return_type_tag);
 
   if (return_type_tag == MKCL_FFI_VOID)
-    { @(return); }
+    { mkcl_return_no_value; }
   else
     {
       mkcl_object return_value = mkcl_foreign_ref_elt(env, &fficall->output, return_type_tag);
   
       fficall->buffer_sp = fficall->buffer;  
-      @(return return_value);
+      mkcl_return_value(return_value);
     }
 @)
 
@@ -768,6 +768,6 @@ void mkcl_fficall_align16(MKCL)
   cbk  = mkcl_make_foreign(env, @':void', 0, mkcl_dynamic_callback_make(env, data, mkcl_foreign_cc_code(env, cctype)));
 
   mk_si_put_sysprop(env, sym, @':callback', MKCL_CONS(env, cbk, data));
-  @(return cbk);
+  mkcl_return_value(cbk);
 @)
 

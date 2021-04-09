@@ -404,7 +404,35 @@ extern "C" {
   { env->nvalues = 1; return (env->values[0] = x); }
 #define mkcl_return1(x) return (__mkcl_return1(env, (x)))
 #define mkcl_returnn(x) return x
-
+#define mkcl_return_no_value { env->values[0] = mk_cl_Cnil; env->nvalues=0; return(mk_cl_Cnil); }
+#define mkcl_return_value(val) { const mkcl_object _t__ = (val); env->values[0] = _t__; env->nvalues=1; return(_t__); }
+#define mkcl_return_2_values(val0, val1)        \
+  { const mkcl_object _t0__ = (val0);           \
+    const mkcl_object _t1__ = (val1);           \
+    env->values[0] = _t0__;                     \
+    env->values[1] = _t1__;                     \
+    env->nvalues=2;                             \
+    return(_t0__); }
+#define mkcl_return_3_values(val0, val1, val2)                          \
+  { const mkcl_object _t0__ = (val0);                                   \
+    const mkcl_object _t1__ = (val1);                                   \
+    const mkcl_object _t2__ = (val2);                                   \
+    env->values[0] = _t0__;                                             \
+    env->values[1] = _t1__;                                             \
+    env->values[2] = _t2__;                                             \
+    env->nvalues=3;                                                     \
+    return(_t0__); }
+#define mkcl_return_4_values(val0, val1, val2, val3)                    \
+  { const mkcl_object _t0__ = (val0);                                   \
+    const mkcl_object _t1__ = (val1);                                   \
+    const mkcl_object _t2__ = (val2);                                   \
+    const mkcl_object _t3__ = (val3);                                   \
+    env->values[0] = _t0__;                                             \
+    env->values[1] = _t1__;                                             \
+    env->values[2] = _t2__;                                             \
+    env->values[3] = _t3__;                                             \
+    env->nvalues=4;                                                     \
+    return(_t0__); }
 
 
 /*************

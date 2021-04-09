@@ -67,7 +67,7 @@ mk_si_get_buffer_string(MKCL)
     env->string_pool = MKCL_CDR(pool);
   }
   TOKEN_STRING_FILLP(output) = 0;
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
@@ -86,7 +86,7 @@ mk_si_put_buffer_string(MKCL, mkcl_object string)
       env->string_pool = MKCL_CONS(env, string, pool);
     }
   }
-  @(return);
+  mkcl_return_no_value;
 }
 
 static void extra_argument (MKCL, int c, mkcl_object stream, mkcl_object d);
@@ -709,7 +709,7 @@ static mkcl_object
 left_parenthesis_reader(MKCL, mkcl_object in, mkcl_object character)
 {
   const char c = ')';
-  @(return do_read_delimited_list(env, c, in, 0));
+  mkcl_return_value(do_read_delimited_list(env, c, in, 0));
 }
 
 /*
@@ -749,9 +749,9 @@ mkcl_object backquote_reader(MKCL, mkcl_object in, mkcl_object c)
   in = mkcl_read_object(env, in);
   MKCL_SETQ(env, @'si::*backq-level*', MKCL_MAKE_FIXNUM(backq_level));
 #if 0
-  @(return mk_cl_macroexpand_1(env, 2, mk_cl_list(env, 2, @'si::quasiquote', in), mk_cl_Cnil));
+  mkcl_return_value(mk_cl_macroexpand_1(env, 2, mk_cl_list(env, 2, @'si::quasiquote', in), mk_cl_Cnil));
 #else
-  @(return mk_cl_list(env, 2,@'si::quasiquote',in));
+  mkcl_return_value(mk_cl_list(env, 2,@'si::quasiquote',in));
 #endif
 }
 
@@ -809,7 +809,7 @@ double_quote_reader(MKCL, mkcl_object in, mkcl_object c)
   else
     output = mk_cl_copy_seq(env, token);
   mk_si_put_buffer_string(env, token);
-  @(return output);
+  mkcl_return_value(output);
 }
 
 static mkcl_object
@@ -859,14 +859,14 @@ single_quote_reader(MKCL, mkcl_object in, mkcl_object c)
   c = mkcl_read_object(env, in);
   if (c == MKCL_OBJNULL)
     mkcl_FEend_of_file(env, in);
-  @(return mk_cl_list(env, 2, @'quote', c));
+  mkcl_return_value(mk_cl_list(env, 2, @'quote', c));
 }
 
 static mkcl_object
 void_reader(MKCL, mkcl_object in, mkcl_object c)
 {
   /*  no result  */
-  @(return);
+  mkcl_return_no_value;
 }
 
 static mkcl_object
@@ -878,7 +878,7 @@ semicolon_reader(MKCL, mkcl_object in, mkcl_object c)
     auxc = mkcl_read_char(env, in);
   while (auxc != '\n' && auxc != EOF);
   /*  no result  */
-  @(return);
+  mkcl_return_no_value;
 }
 
 /*
@@ -896,14 +896,14 @@ sharp_C_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
   if (x == MKCL_OBJNULL)
     mkcl_FEend_of_file(env, in);
   if (read_suppress(env))
-    @(return mk_cl_Cnil);
+    mkcl_return_value(mk_cl_Cnil);
   if (mkcl_Null(x) || mkcl_type_of(x) != mkcl_t_cons || mkcl_length(env, x) != 2)
     mkcl_FEreader_error(env, "Reader macro #C should be followed by a list",
 		   in, 0);
   real = MKCL_CAR(x);
   imag = MKCL_CADR(x);
   x = mkcl_make_complex(env, real, imag);
-  @(return x);
+  mkcl_return_value(x);
 }
 
 static mkcl_object
@@ -934,7 +934,7 @@ sharp_backslash_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
     c = nc;
   }
   mk_si_put_buffer_string(env, token);
-  @(return c);
+  mkcl_return_value(c);
 }
 
 static mkcl_object
@@ -951,7 +951,7 @@ sharp_single_quote_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
   } else {
     c = mk_cl_list(env, 2, @'function', c);
   }
-  @(return c);
+  mkcl_return_value(c);
 }
 
 
@@ -1021,7 +1021,7 @@ sharp_left_parenthesis_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d
       mkcl_vset_index(env, v, i, last);
     }
   }
-  @(return v);
+  mkcl_return_value(v);
 }
 
 static mkcl_object
@@ -1035,7 +1035,7 @@ sharp_asterisk_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
 
   if (read_suppress(env)) {
     read_constituent(env, in);
-    @(return mk_cl_Cnil);
+    mkcl_return_value(mk_cl_Cnil);
   }
   for (dimcount = 0 ;; dimcount++) {
     mkcl_character x = mkcl_read_char(env, in);
@@ -1073,7 +1073,7 @@ sharp_asterisk_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
       mkcl_bit_bundle(x->vector.self.bit, i) |= mkcl_bundle_bit_mask(i);
   }
   MKCL_TEMP_STACK_POP_N_UNSAFE(env, dimcount);
-  @(return x);
+  mkcl_return_value(x);
 }
 
 static mkcl_object
@@ -1131,7 +1131,7 @@ sharp_colon_reader(MKCL, mkcl_object in, mkcl_object ch, mkcl_object d)
     output = mk_cl_make_symbol(env, token);
   }
   mk_si_put_buffer_string(env, token);
-  @(return output);
+  mkcl_return_value(output);
 }
 
 static mkcl_object
@@ -1143,11 +1143,11 @@ sharp_dot_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
   if (c == MKCL_OBJNULL)
     mkcl_FEend_of_file(env, in);
   if (read_suppress(env))
-    @(return mk_cl_Cnil);
+    mkcl_return_value(mk_cl_Cnil);
   if (mkcl_symbol_value(env, @'*read-eval*') == mk_cl_Cnil)
     mkcl_FEreader_error(env, "Cannot evaluate the form #.~A", in, 1, c);
   c = mk_si_eval_in_env(env, 1, c);
-  @(return c);
+  mkcl_return_value(c);
 }
 
 static mkcl_object
@@ -1178,7 +1178,7 @@ sharp_B_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
 {
   if(d != mk_cl_Cnil && !read_suppress(env))
     extra_argument(env, 'B', in, d);
-  @(return (read_number(env, in, 2, MKCL_CODE_CHAR('B'))));
+  mkcl_return_value((read_number(env, in, 2, MKCL_CODE_CHAR('B'))));
 }
 
 static mkcl_object
@@ -1186,7 +1186,7 @@ sharp_O_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
 {
   if(d != mk_cl_Cnil && !read_suppress(env))
     extra_argument(env, 'O', in, d);
-  @(return (read_number(env, in, 8, MKCL_CODE_CHAR('O'))));
+  mkcl_return_value((read_number(env, in, 8, MKCL_CODE_CHAR('O'))));
 }
 
 static mkcl_object
@@ -1194,7 +1194,7 @@ sharp_X_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
 {
   if(d != mk_cl_Cnil && !read_suppress(env))
     extra_argument(env, 'X', in, d);
-  @(return (read_number(env, in, 16, MKCL_CODE_CHAR('X'))));
+  mkcl_return_value((read_number(env, in, 16, MKCL_CODE_CHAR('X'))));
 }
 
 static mkcl_object
@@ -1210,7 +1210,7 @@ sharp_R_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
   } else {
     mkcl_FEreader_error(env, "No radix was supplied in the #R readmacro.", in, 0);
   }
-  @(return (read_number(env, in, radix, MKCL_CODE_CHAR('R'))));
+  mkcl_return_value((read_number(env, in, radix, MKCL_CODE_CHAR('R'))));
 }
 
 #define sharp_A_reader void_reader
@@ -1308,7 +1308,7 @@ sharp_eq_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
   mkcl_object pending_sharp_labels = MKCL_SYM_VAL(env, @'si::*pending-sharp-labels*');
   mkcl_object sharp_labels = MKCL_SYM_VAL(env, @'si::*sharp-labels*');
 
-  if (read_suppress(env)) { @(return); } /* Why is it returning nothing? JCB */
+  if (read_suppress(env)) { mkcl_return_no_value; } /* Why is it returning nothing? JCB */
   if (mkcl_Null(d))
     mkcl_FEreader_error(env, "The #= readmacro requires an argument.", in, 0);
   if ((mkcl_assql(env, d, sharp_labels) != mk_cl_Cnil)
@@ -1332,23 +1332,23 @@ sharp_eq_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
                                                    mkcl_make_singlefloat(env, 0.75f)); /* rehash-threshold */
   sharp_nsubst(env, visit_table, marker, value, value);
 
-  @(return value);
+  mkcl_return_value(value);
 }
 
 static mkcl_object
 sharp_sharp_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
 {
-  if (read_suppress(env)) { @(return mk_cl_Cnil); }
+  if (read_suppress(env)) { mkcl_return_value(mk_cl_Cnil); }
   if (mkcl_Null(d))
     mkcl_FEreader_error(env, "The ## readmacro requires an argument.", in, 0);
 
   mkcl_object label = mkcl_assql(env, d, MKCL_SYM_VAL(env, @'si::*sharp-labels*'));
 
   if (label != mk_cl_Cnil)
-    @(return label_value(env, label));
+    mkcl_return_value(label_value(env, label));
   label = mkcl_assql(env, d, MKCL_SYM_VAL(env, @'si::*pending-sharp-labels*'));
   if (label != mk_cl_Cnil)
-    @(return pending_label_marker(env, label));
+    mkcl_return_value(pending_label_marker(env, label));
   mkcl_FEreader_error(env, "#~D# is undefined.", in, 1, d);
 }
 
@@ -1386,7 +1386,7 @@ sharp_vertical_bar_reader(MKCL, mkcl_object in, mkcl_object ch, mkcl_object d)
 	goto L;
     }
   }
-  @(return);
+  mkcl_return_no_value;
   /*  no result  */
 }
 
@@ -1411,7 +1411,7 @@ sharp_P_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
   } else {
     d = mk_cl_parse_namestring(env, 3, d, mk_cl_Cnil, mk_cl_Cnil);
   }
-  @(return d);
+  mkcl_return_value(d);
 }
 
 /*
@@ -1427,7 +1427,7 @@ sharp_dollar_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
   c = mkcl_read_object(env, in);
   rs = mkcl_alloc_raw_random(env);
   rs->random.value = c;
-  @(return rs);
+  mkcl_return_value(rs);
 }
 
 /*
@@ -1601,7 +1601,7 @@ stream_or_default_input(MKCL, mkcl_object stream)
   }
   if (x == MKCL_OBJNULL) {
     if (mkcl_Null(eof_errorp))
-      @(return eof_value);
+      mkcl_return_value(eof_value);
     mkcl_FEend_of_file(env, strm);
   }
   /* Skip whitespace characters, but stop at beginning of new line or token */
@@ -1612,7 +1612,7 @@ stream_or_default_input(MKCL, mkcl_object stream)
       mkcl_unread_char(env, c, strm);
     }
   }
-  @(return x);
+  mkcl_return_value(x);
 @)
 
 @(defun read_preserving_whitespace
@@ -1630,10 +1630,10 @@ stream_or_default_input(MKCL, mkcl_object stream)
   }
   if (x == MKCL_OBJNULL) {
     if (mkcl_Null(eof_errorp))
-      @(return eof_value)
+      mkcl_return_value(eof_value)
 	mkcl_FEend_of_file(env, strm);
   }
-  @(return x);
+  mkcl_return_value(x);
 @)
 
 static mkcl_object
@@ -1693,7 +1693,7 @@ do_read_delimited_list(MKCL, int d, mkcl_object in, bool proper_list)
     l = do_read_delimited_list(env, delimiter, strm, 1);
     mkcl_bds_unwind_n(env, 3);
   }
-  @(return l);
+  mkcl_return_value(l);
 @)
 
 @(defun read_line (&optional (strm mk_cl_Cnil) (eof_errorp mk_cl_Ct) eof_value recursivep)
@@ -1735,7 +1735,7 @@ do_read_delimited_list(MKCL, int d, mkcl_object in, bool proper_list)
     value1 = (c == EOF? mk_cl_Ct : mk_cl_Cnil);
   }
   mk_si_put_buffer_string(env, token);
-  @(return value0 value1);
+  mkcl_return_2_values(value0, value1);
 @)
 
 @(defun read-char (&optional (strm mk_cl_Cnil) (eof_errorp mk_cl_Ct) eof_value recursivep)
@@ -1750,7 +1750,7 @@ do_read_delimited_list(MKCL, int d, mkcl_object in, bool proper_list)
     output = eof_value;
   else
     mkcl_FEend_of_file(env, strm);
-  @(return output);
+  mkcl_return_value(output);
 @)
 
 @(defun unread_char (c &optional (strm mk_cl_Cnil))
@@ -1758,7 +1758,7 @@ do_read_delimited_list(MKCL, int d, mkcl_object in, bool proper_list)
   /* INV: unread_char() checks the type `c' */
   strm = stream_or_default_input(env, strm);
   mkcl_unread_char(env, mkcl_char_code(env, c), strm);
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 @)
 
 @(defun peek-char (&optional peek_type (strm mk_cl_Cnil) (eof_errorp mk_cl_Ct) eof_value recursivep)
@@ -1796,13 +1796,13 @@ do_read_delimited_list(MKCL, int d, mkcl_object in, bool proper_list)
   } else if (!mkcl_Null(eof_errorp)) {
     mkcl_FEend_of_file(env, strm);
   }
-  @(return eof_value);
+  mkcl_return_value(eof_value);
 @)
 
 @(defun listen (&optional (strm mk_cl_Cnil))
 @
   strm = stream_or_default_input(env, strm);
-  @(return ((mkcl_listen_stream(env, strm) == MKCL_LISTEN_AVAILABLE) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value(((mkcl_listen_stream(env, strm) == MKCL_LISTEN_AVAILABLE) ? mk_cl_Ct : mk_cl_Cnil));
 @)
 
 @(defun read_char_no_hang (&optional (strm mk_cl_Cnil) (eof_errorp mk_cl_Ct) eof_value recursivep)
@@ -1813,21 +1813,21 @@ do_read_delimited_list(MKCL, int d, mkcl_object in, bool proper_list)
     mkcl_object output = mkcl_funcall1(env, @+'gray::stream-read-char-no-hang', strm);
     if (output == @':eof')
       goto END_OF_FILE;
-    @(return output);
+    mkcl_return_value(output);
   }
   f = mkcl_listen_stream(env, strm);
   if (f == MKCL_LISTEN_AVAILABLE) {
     mkcl_character c = mkcl_read_char(env, strm);
     if (c != EOF) {
-      @(return MKCL_CODE_CHAR(c));
+      mkcl_return_value(MKCL_CODE_CHAR(c));
     }
   } else if (f == MKCL_LISTEN_NO_CHAR) {
-    @(return @'nil');
+    mkcl_return_value(@'nil');
   }
   /* We reach here if there was an EOF */
  END_OF_FILE:
   if (mkcl_Null(eof_errorp))
-    { @(return eof_value); }
+    { mkcl_return_value(eof_value); }
   else
     mkcl_FEend_of_file(env, strm);
 @)
@@ -1836,7 +1836,7 @@ do_read_delimited_list(MKCL, int d, mkcl_object in, bool proper_list)
 @
   strm = stream_or_default_input(env, strm);
   mkcl_clear_input(env, strm);
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 @)
 
 @(defun parse_integer (strng
@@ -1857,20 +1857,20 @@ do_read_delimited_list(MKCL, int d, mkcl_object in, bool proper_list)
   while (s < e && mkcl_readtable_get(env, rtbl, mkcl_char(env, strng, s), NULL) == mkcl_cat_whitespace) s++;
   if (s >= e) {
     if (junk_allowed != mk_cl_Cnil)
-      { @(return mk_cl_Cnil MKCL_MAKE_FIXNUM(s)); }
+      { mkcl_return_2_values(mk_cl_Cnil, MKCL_MAKE_FIXNUM(s)); }
     else
       goto CANNOT_PARSE;
   }
   x = mkcl_parse_integer(env, strng, s, e, &ep, mkcl_fixnum_to_word(radix));
   if (x == MKCL_OBJNULL) {
     if (junk_allowed != mk_cl_Cnil) {
-      @(return mk_cl_Cnil MKCL_MAKE_FIXNUM(ep));
+      mkcl_return_2_values(mk_cl_Cnil, MKCL_MAKE_FIXNUM(ep));
     } else {
       goto CANNOT_PARSE;
     }
   }
   if (junk_allowed != mk_cl_Cnil) {
-    @(return x MKCL_MAKE_FIXNUM(ep));
+    mkcl_return_2_values(x, MKCL_MAKE_FIXNUM(ep));
   }
   for (s = ep; s < e; s++)
     {
@@ -1881,7 +1881,7 @@ do_read_delimited_list(MKCL, int d, mkcl_object in, bool proper_list)
 			     mk_cl_Cnil, 1, strng);
 	}
     }
-  @(return x MKCL_MAKE_FIXNUM(e));
+  mkcl_return_2_values(x, MKCL_MAKE_FIXNUM(e));
  }
 @)
 
@@ -1891,11 +1891,11 @@ do_read_delimited_list(MKCL, int d, mkcl_object in, bool proper_list)
   c = mkcl_read_byte(env, binary_input_stream);
   if (c == mk_cl_Cnil) {
     if (mkcl_Null(eof_errorp))
-      { @(return eof_value); }
+      { mkcl_return_value(eof_value); }
     else
       mkcl_FEend_of_file(env, binary_input_stream);
   }
-  @(return c);
+  mkcl_return_value(c);
 @)
 
 @(defun read_sequence (sequence stream &key (start MKCL_MAKE_FIXNUM(0)) end)
@@ -1914,7 +1914,7 @@ do_read_delimited_list(MKCL, int d, mkcl_object in, bool proper_list)
   } else {
     to = mkcl_copy_readtable(env, from, to);
   }
-  @(return to);
+  mkcl_return_value(to);
 @)
 
 mkcl_object
@@ -1928,7 +1928,7 @@ mk_cl_readtable_case(MKCL, mkcl_object r)
   case mkcl_case_invert: r = @':invert'; break;
   case mkcl_case_preserve: r = @':preserve';
   }
-  @(return r);
+  mkcl_return_value(r);
 }
 
 mkcl_object
@@ -1952,14 +1952,14 @@ mk_si_readtable_case_set(MKCL, mkcl_object r, mkcl_object mode)
 				  @':invert'),
 			  mode);
   }
-  @(return mode);
+  mkcl_return_value(mode);
 }
 
 mkcl_object
 mk_cl_readtablep(MKCL, mkcl_object readtable)
 {
   mkcl_call_stack_check(env);
-  @(return ((mkcl_type_of(readtable) == mkcl_t_readtable) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value(((mkcl_type_of(readtable) == mkcl_t_readtable) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 enum mkcl_chattrib 
@@ -2058,7 +2058,7 @@ mkcl_invalid_constituent_character_p(mkcl_character c)
     if (locked) READTABLE_UNLOCK(fromrdtbl);
   } MKCL_UNWIND_PROTECT_END;
   mkcl_readtable_set(env, tordtbl, tc, cat, dispatch);
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 @(defun set_macro_character (c function &optional non_terminating_p
@@ -2073,7 +2073,7 @@ mkcl_invalid_constituent_character_p(mkcl_character c)
 		     ? mkcl_cat_terminating
 		     : mkcl_cat_non_terminating,
 		     function);
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 @(defun get_macro_character (c &optional readtable)
@@ -2087,7 +2087,7 @@ mkcl_invalid_constituent_character_p(mkcl_character c)
   cat = mkcl_readtable_get(env, readtable, mkcl_char_code(env, c), &dispatch);
   if (mkcl_type_of(dispatch) == mkcl_t_hashtable)
     dispatch = mkcl_core.dispatch_reader;
-  @(return dispatch ((cat == mkcl_cat_non_terminating) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_2_values(dispatch, ((cat == mkcl_cat_non_terminating) ? mk_cl_Ct : mk_cl_Cnil));
 @)
 
 @(defun make_dispatch_macro_character (chr
@@ -2103,7 +2103,7 @@ mkcl_invalid_constituent_character_p(mkcl_character c)
 				 mkcl_make_singlefloat(env, 1.5f),
 				 mkcl_make_singlefloat(env, 0.5f));
   mkcl_readtable_set(env, readtable, c, cat, table);
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 @(defun set_dispatch_macro_character (dspchr subchr fnc
@@ -2148,7 +2148,7 @@ mkcl_invalid_constituent_character_p(mkcl_character c)
   } MKCL_UNWIND_PROTECT_EXIT {
     if (locked) READTABLE_UNLOCK(readtable);
   } MKCL_UNWIND_PROTECT_END;
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 @(defun get_dispatch_macro_character (dspchr subchr
@@ -2170,8 +2170,8 @@ mkcl_invalid_constituent_character_p(mkcl_character c)
   /* Since macro characters may take a number as argument, it is
      not allowed to turn digits into dispatch macro characters */
   if (mkcl_digitp(c, 10) >= 0)
-    { @(return mk_cl_Cnil); }
-  @(return mkcl_gethash_safe(env, subchr, table, mk_cl_Cnil));
+    { mkcl_return_value(mk_cl_Cnil); }
+  mkcl_return_value(mkcl_gethash_safe(env, subchr, table, mk_cl_Cnil));
 @)
 
 mkcl_object
@@ -2192,13 +2192,13 @@ mk_si_fast_read_from_base_string(MKCL, mkcl_object x)
   x = mkcl_read_object(env, in);
   if (x == MKCL_OBJNULL)
     mkcl_FEend_of_file(env, in);
-  @(return x);
+  mkcl_return_value(x);
 }
 
 mkcl_object
 mk_si_standard_readtable(MKCL)
 {
-  @(return mkcl_core.standard_readtable)
+  mkcl_return_value(mkcl_core.standard_readtable)
 }
 
 static void

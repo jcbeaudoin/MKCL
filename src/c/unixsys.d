@@ -272,9 +272,9 @@ static mkcl_object read_command_output(MKCL, HANDLE child_stdout_read)
     mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
 
 #ifdef WIN64
-  { @(return MKCL_MAKE_FIXNUM(ExitCode) output); }
+  { mkcl_return_2_values(MKCL_MAKE_FIXNUM(ExitCode), output); }
 #else
-  { @(return mkcl_make_unsigned_integer(env, ExitCode) output); }
+  { mkcl_return_2_values(mkcl_make_unsigned_integer(env, ExitCode), output); }
 #endif
 @)
 
@@ -589,11 +589,11 @@ static int my_exec_command(mkcl_char8 * cmd_real_name, mkcl_char8 * cmd_line)
   } /* end of quote from Stevens. */
 
   if (WIFEXITED(status))
-    { @(return MKCL_MAKE_FIXNUM(WEXITSTATUS(status)) output); }
+    { mkcl_return_2_values(MKCL_MAKE_FIXNUM(WEXITSTATUS(status)), output); }
   else if (WIFSIGNALED(status))
-    { @(return mkcl_signum_to_signal_name(env, WTERMSIG(status))); }
+    { mkcl_return_value(mkcl_signum_to_signal_name(env, WTERMSIG(status))); }
   else
-    { @(return mk_cl_Cnil output); }
+    { mkcl_return_2_values(mk_cl_Cnil, output); }
 @)
 
 #endif /* MKCL_UNIX */
@@ -628,16 +628,16 @@ mkcl_object mk_mkcl_system (MKCL, mkcl_object cmd_string)
       mkcl_FElibc_error(env, "mkcl::system unable to fork subprocess to execute command: ~A", 1, cmd_string);
 
 #if MKCL_WINDOWS
-    { @(return MKCL_MAKE_FIXNUM(code)); }
+    { mkcl_return_value(MKCL_MAKE_FIXNUM(code)); }
 #elif MKCL_UNIX
     if (WIFEXITED(code))
-      { @(return MKCL_MAKE_FIXNUM(WEXITSTATUS(code))); }
+      { mkcl_return_value(MKCL_MAKE_FIXNUM(WEXITSTATUS(code))); }
     else if (WIFSIGNALED(code))
-      { @(return mkcl_signum_to_signal_name(env, WTERMSIG(code))); }
+      { mkcl_return_value(mkcl_signum_to_signal_name(env, WTERMSIG(code))); }
     else
-      { @(return mk_cl_Cnil); }
+      { mkcl_return_value(mk_cl_Cnil); }
 #else
-    { @(return mk_cl_Cnil); }
+    { mkcl_return_value(mk_cl_Cnil); }
 #endif
   }
 }
@@ -648,9 +648,9 @@ mk_mkcl_getpid(MKCL)
 {
   mkcl_call_stack_check(env);
 #if MKCL_WINDOWS
-  @(return MKCL_MAKE_FIXNUM(_getpid()));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(_getpid()));
 #else
-  @(return MKCL_MAKE_FIXNUM(getpid()));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(getpid()));
 #endif
 }
 
@@ -671,7 +671,7 @@ mkcl_object
 mk_mkcl_gettid(MKCL)
 {
   mkcl_call_stack_check(env);
-  @(return MKCL_MAKE_FIXNUM(mkcl_gettid()));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(mkcl_gettid()));
 }
 
 mkcl_object
@@ -680,11 +680,11 @@ mk_mkcl_getuid(MKCL)
   mkcl_call_stack_check(env);
 #if MKCL_WINDOWS
   /* GetUserName() followed by LookupAccountName(). JCB */
-  @(return MKCL_MAKE_FIXNUM(0));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(0));
 #elif MKCL_UNIX
-  @(return mkcl_make_integer(env, getuid()));
+  mkcl_return_value(mkcl_make_integer(env, getuid()));
 #else
-  @(return MKCL_MAKE_FIXNUM(0));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(0));
 #endif
 }
 
@@ -718,7 +718,7 @@ mk_mkcl_make_pipe(MKCL) /* Any user of this? JCB */ /* Without :element-type or 
 
     output = mk_cl_make_two_way_stream(env, in, out);
   }
-  @(return output);
+  mkcl_return_value(output);
 }
 
 static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object argv)
@@ -1362,11 +1362,11 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
     stream_error = mkcl_core.null_stream;
   }
   subprocess->process.error = stream_error;
-  @(return ((parent_read || parent_write)
-	    ? mk_cl_make_two_way_stream(env, stream_read, stream_write)
-	    : mk_cl_Cnil)
-    subprocess
-    exit_status);
+  mkcl_return_3_values(((parent_read || parent_write)
+                        ? mk_cl_make_two_way_stream(env, stream_read, stream_write)
+                        : mk_cl_Cnil),
+                       subprocess,
+                       exit_status);
 @)
 
 
@@ -1391,7 +1391,7 @@ mkcl_object mk_mkcl_process_command(MKCL, mkcl_object proc)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
     mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
-  @(return proc->process.command);
+  mkcl_return_value(proc->process.command);
 }
 
 mkcl_object mk_mkcl_process_argv(MKCL, mkcl_object proc)
@@ -1399,7 +1399,7 @@ mkcl_object mk_mkcl_process_argv(MKCL, mkcl_object proc)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
     mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
-  @(return proc->process.argv);
+  mkcl_return_value(proc->process.argv);
 }
 
 mkcl_object mk_mkcl_process_id(MKCL, mkcl_object proc)
@@ -1408,22 +1408,22 @@ mkcl_object mk_mkcl_process_id(MKCL, mkcl_object proc)
   if (mkcl_type_of(proc) != mkcl_t_process)
     mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
   else if (proc->process.detached)
-    { @(return @':detached'); }
+    { mkcl_return_value(@':detached'); }
 
 #if MKCL_WINDOWS
 # if defined(__MINGW32__) && !(_WIN32_WINNT >= 0x0501) /* Requires WinXP SP1 or later. */
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 # else
   if (proc->process.ident)
-    { @(return mkcl_make_integer(env, GetProcessId(proc->process.ident))); }
+    { mkcl_return_value(mkcl_make_integer(env, GetProcessId(proc->process.ident))); }
   else
-    { @(return mk_cl_Cnil); }
+    { mkcl_return_value(mk_cl_Cnil); }
 # endif
 #else
   if (proc->process.ident)
-    { @(return mkcl_make_integer(env, proc->process.ident)); }
+    { mkcl_return_value(mkcl_make_integer(env, proc->process.ident)); }
   else
-    { @(return mk_cl_Cnil); }
+    { mkcl_return_value(mk_cl_Cnil); }
 #endif
 }
 
@@ -1433,7 +1433,7 @@ mkcl_object mk_mkcl_process_input(MKCL, mkcl_object proc)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
     mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
-  @(return proc->process.input);
+  mkcl_return_value(proc->process.input);
 }
 
 mkcl_object mk_mkcl_process_output(MKCL, mkcl_object proc)
@@ -1441,7 +1441,7 @@ mkcl_object mk_mkcl_process_output(MKCL, mkcl_object proc)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
     mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
-  @(return proc->process.output);
+  mkcl_return_value(proc->process.output);
 }
 
 mkcl_object mk_mkcl_process_error(MKCL, mkcl_object proc)
@@ -1449,7 +1449,7 @@ mkcl_object mk_mkcl_process_error(MKCL, mkcl_object proc)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
     mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
-  @(return proc->process.error);
+  mkcl_return_value(proc->process.error);
 }
 
 mkcl_object mk_mkcl_process_status(MKCL, mkcl_object proc)
@@ -1458,9 +1458,9 @@ mkcl_object mk_mkcl_process_status(MKCL, mkcl_object proc)
   if (mkcl_type_of(proc) != mkcl_t_process)
     mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
   else if (proc->process.detached)
-    { @(return @':detached'); }
+    { mkcl_return_value(@':detached'); }
   else if (proc->process.ident == 0)
-    { @(return @':invalid'); }
+    { mkcl_return_value(@':invalid'); }
 
 #if MKCL_UNIX
   if (proc->process.status != @':exited')
@@ -1506,7 +1506,7 @@ mkcl_object mk_mkcl_process_status(MKCL, mkcl_object proc)
     }
 #endif
   
-  @(return proc->process.status);
+  mkcl_return_value(proc->process.status);
 }
 
 mkcl_object mk_mkcl_process_exit_code(MKCL, mkcl_object proc)
@@ -1519,29 +1519,29 @@ mkcl_object mk_mkcl_process_exit_code(MKCL, mkcl_object proc)
   if (proc->process.status != @':exited')
     mk_mkcl_process_status(env, proc);
   else if (proc->process.detached)
-    { @(return @':detached'); }
+    { mkcl_return_value(@':detached'); }
 
   exit_code = proc->process.exit_code;
 
 #if MKCL_UNIX
   if (WIFEXITED(exit_code))
-    { @(return MKCL_MAKE_FIXNUM(WEXITSTATUS(exit_code))); }
+    { mkcl_return_value(MKCL_MAKE_FIXNUM(WEXITSTATUS(exit_code))); }
   else if (WIFSIGNALED(exit_code))
-    { @(return mkcl_signum_to_signal_name(env, WTERMSIG(exit_code))); }
+    { mkcl_return_value(mkcl_signum_to_signal_name(env, WTERMSIG(exit_code))); }
   else if (WIFSTOPPED(exit_code))
-    { @(return mkcl_signum_to_signal_name(env, WSTOPSIG(exit_code))); }
+    { mkcl_return_value(mkcl_signum_to_signal_name(env, WSTOPSIG(exit_code))); }
   else if (WIFCONTINUED(exit_code))
-    { @(return mkcl_signum_to_signal_name(env, SIGCONT)); }
+    { mkcl_return_value(mkcl_signum_to_signal_name(env, SIGCONT)); }
   else
-    { @(return mk_cl_Cnil); }
+    { mkcl_return_value(mk_cl_Cnil); }
 #else
-  @(return MKCL_MAKE_FIXNUM(exit_code));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(exit_code));
 #endif
 }
 
 mkcl_object mk_mkcl_process_p(MKCL, mkcl_object proc)
 {
-  @(return ((mkcl_type_of(proc) == mkcl_t_process) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value(((mkcl_type_of(proc) == mkcl_t_process) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object mk_mkcl_process_plist(MKCL, mkcl_object proc)
@@ -1549,7 +1549,7 @@ mkcl_object mk_mkcl_process_plist(MKCL, mkcl_object proc)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
     mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
-  @(return proc->process.plist);
+  mkcl_return_value(proc->process.plist);
 }
 
 mkcl_object mk_mkcl_set_process_plist(MKCL, mkcl_object proc, mkcl_object plist)
@@ -1557,7 +1557,7 @@ mkcl_object mk_mkcl_set_process_plist(MKCL, mkcl_object proc, mkcl_object plist)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
     mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
-  @(return (proc->process.plist = plist));
+  mkcl_return_value((proc->process.plist = plist));
 }
 
 mkcl_object mk_mkcl_process_to_worker(MKCL, mkcl_object proc)
@@ -1565,7 +1565,7 @@ mkcl_object mk_mkcl_process_to_worker(MKCL, mkcl_object proc)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
     mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
-  @(return proc->process.to_worker);
+  mkcl_return_value(proc->process.to_worker);
 }
 
 mkcl_object mk_mkcl_set_process_to_worker(MKCL, mkcl_object proc, mkcl_object to_worker)
@@ -1573,7 +1573,7 @@ mkcl_object mk_mkcl_set_process_to_worker(MKCL, mkcl_object proc, mkcl_object to
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
     mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
-  @(return (proc->process.to_worker = to_worker));
+  mkcl_return_value((proc->process.to_worker = to_worker));
 }
 
 mkcl_object mk_mkcl_process_from_worker(MKCL, mkcl_object proc)
@@ -1581,7 +1581,7 @@ mkcl_object mk_mkcl_process_from_worker(MKCL, mkcl_object proc)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
     mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
-  @(return proc->process.from_worker);
+  mkcl_return_value(proc->process.from_worker);
 }
 
 mkcl_object mk_mkcl_set_process_from_worker(MKCL, mkcl_object proc, mkcl_object from_worker)
@@ -1589,7 +1589,7 @@ mkcl_object mk_mkcl_set_process_from_worker(MKCL, mkcl_object proc, mkcl_object 
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
     mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
-  @(return (proc->process.from_worker = from_worker));
+  mkcl_return_value((proc->process.from_worker = from_worker));
 }
 
 mkcl_object mk_mkcl_process_error_from_worker(MKCL, mkcl_object proc)
@@ -1597,7 +1597,7 @@ mkcl_object mk_mkcl_process_error_from_worker(MKCL, mkcl_object proc)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
     mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
-  @(return proc->process.error_from_worker);
+  mkcl_return_value(proc->process.error_from_worker);
 }
 
 mkcl_object mk_mkcl_set_process_error_from_worker(MKCL, mkcl_object proc, mkcl_object error_from_worker)
@@ -1605,7 +1605,7 @@ mkcl_object mk_mkcl_set_process_error_from_worker(MKCL, mkcl_object proc, mkcl_o
   mkcl_call_stack_check(env);
   if (mkcl_type_of(proc) != mkcl_t_process)
     mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
-  @(return (proc->process.error_from_worker = error_from_worker));
+  mkcl_return_value((proc->process.error_from_worker = error_from_worker));
 }
 
 
@@ -1638,7 +1638,7 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
   if (proc->process.status == @':exited')
     return mk_mkcl_process_exit_code(env, proc);
   else if (proc->process.detached)
-    { @(return @':detached'); }
+    { mkcl_return_value(@':detached'); }
 
 #if MKCL_UNIX
   mkcl_os_process_t pid = proc->process.ident;
@@ -1702,13 +1702,13 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
 
 #if MKCL_UNIX
   if (WIFEXITED(exit_code))
-    { @(return MKCL_MAKE_FIXNUM(WEXITSTATUS(exit_code))); }
+    { mkcl_return_value(MKCL_MAKE_FIXNUM(WEXITSTATUS(exit_code))); }
   else if (WIFSIGNALED(exit_code))
-    { @(return mkcl_signum_to_signal_name(env, WTERMSIG(exit_code))); }
+    { mkcl_return_value(mkcl_signum_to_signal_name(env, WTERMSIG(exit_code))); }
   else
-    { @(return mk_cl_Cnil); }
+    { mkcl_return_value(mk_cl_Cnil); }
 #elif MKCL_WINDOWS
-  @(return mkcl_make_integer(env, proc->process.exit_code));
+  mkcl_return_value(mkcl_make_integer(env, proc->process.exit_code));
 #else
 # error Incomplete implementation of mk_mkcl_join_process().
 #endif
@@ -1722,7 +1722,7 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
 
   if (proc->process.status == @':exited' /* || proc->process.detached */
       || proc->process.ident == 0)
-    { @(return mk_cl_Cnil); }
+    { mkcl_return_value(mk_cl_Cnil); }
 
 #if MKCL_UNIX
   if (mkcl_Null(force))
@@ -1741,7 +1741,7 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
 # error Incomplete implementation of mk_mkcl_terminate_process().
 #endif
 
-  @(return mk_cl_Cnil);  
+  mkcl_return_value(mk_cl_Cnil);  
 @)
 
 static void detach_worker(MKCL, mkcl_object worker)
@@ -1778,7 +1778,7 @@ mkcl_object mk_mkcl_detach_process(MKCL, mkcl_object proc)
   detach_worker(env, proc->process.from_worker);
   detach_worker(env, proc->process.error_from_worker);
   proc->process.detached = TRUE;
-  @(return proc);
+  mkcl_return_value(proc);
 }
 
 mkcl_object mk_mkcl_process_detached_p(MKCL, mkcl_object proc)
@@ -1787,12 +1787,12 @@ mkcl_object mk_mkcl_process_detached_p(MKCL, mkcl_object proc)
   if (mkcl_type_of(proc) != mkcl_t_process)
     mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
 
-  @(return (proc->process.detached ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((proc->process.detached ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object mk_si_list_all_children(MKCL) /* debug JCB */
 {
-  @(return mkcl_core.children mkcl_core.detached_children);
+  mkcl_return_2_values(mkcl_core.children, mkcl_core.detached_children);
 }
 
 
@@ -1804,7 +1804,7 @@ mkcl_object mk_si_uname(MKCL)
 {
   mkcl_call_stack_check(env);
 #if MKCL_WINDOWS
-  @(return);
+  mkcl_return_no_value;
 #elif MKCL_UNIX
   mkcl_object output;
   struct utsname aux;
@@ -1814,16 +1814,22 @@ mkcl_object mk_si_uname(MKCL)
   if (rc < 0)
     { 
       mkcl_FElibc_error(env, "uname() failed.", 0);
-      @(return);
+      mkcl_return_no_value;
     }
   else
     {
-      @(return
-	mkcl_make_base_string_copy(env, aux.sysname)
-	mkcl_make_base_string_copy(env, aux.nodename)
-	mkcl_make_base_string_copy(env, aux.release)
-	mkcl_make_base_string_copy(env, aux.version)
-	mkcl_make_base_string_copy(env, aux.machine));
+      const mkcl_object _t0__ = mkcl_make_base_string_copy(env, aux.sysname);
+      const mkcl_object _t1__ = mkcl_make_base_string_copy(env, aux.nodename);
+      const mkcl_object _t2__ = mkcl_make_base_string_copy(env, aux.release);
+      const mkcl_object _t3__ = mkcl_make_base_string_copy(env, aux.version);
+      const mkcl_object _t4__ = mkcl_make_base_string_copy(env, aux.machine);
+      env->values[0] = _t0__;
+      env->values[1] = _t1__;
+      env->values[2] = _t2__;
+      env->values[3] = _t3__;
+      env->values[4] = _t4__;
+      env->nvalues=5;
+      return(_t0__);
     }
 #else
 # error Incomplete mk_si_uname().

@@ -1140,7 +1140,7 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
   if (x == MKCL_OBJNULL) {
     if (mkcl_print_readably(env)) mkcl_FEprint_not_readable(env, x);
     write_str(env, "#<OBJNULL>", stream);
-    @(return x);
+    mkcl_return_value(x);
   }
   switch (mkcl_type_of(x)) {
 
@@ -1782,7 +1782,7 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
     mkcl_write_char(env, '>', stream);
     break;
   }
-  @(return x);
+  mkcl_return_value(x);
 }
 
 mkcl_object
@@ -1794,14 +1794,14 @@ mk_si_write_object(MKCL, mkcl_object x, mkcl_object stream)
   if (x == MKCL_OBJNULL) {
     if (mkcl_print_readably(env)) mkcl_FEprint_not_readable(env, x);
     write_str(env, "#<OBJNULL>", stream);
-    @(return x);
+    mkcl_return_value(x);
   }
 
   if (mkcl_symbol_value(env, @'*print-pretty*') != mk_cl_Cnil) {
     mkcl_object f = mkcl_funcall1(env, @+'pprint-dispatch', x);
     if (MKCL_VALUES(1) != mk_cl_Cnil) {
       mkcl_funcall2(env, f, stream, x);
-      @(return x);
+      mkcl_return_value(x);
     }
   }
   circle = mkcl_print_circle(env);
@@ -1823,13 +1823,13 @@ mk_si_write_object(MKCL, mkcl_object x, mkcl_object stream)
 	mk_si_write_object(env, x, stream);
 	mk_cl_clrhash(env, hash);
 	mkcl_bds_unwind_n(env, 2);
-	@(return x);
+	mkcl_return_value(x);
       }
       code = search_print_circle(env, x);
       if (!MKCL_FIXNUMP(circle_counter)) {
 	/* We are only inspecting the object to be printed. */
 	/* Only run X if it was not referenced before */
-	if (code != 0) @(return x);
+	if (code != 0) mkcl_return_value(x);
       } else if (code == 0) {
 	/* Object is not referenced twice */
       } else if (code < 0) {
@@ -1842,10 +1842,10 @@ mk_si_write_object(MKCL, mkcl_object x, mkcl_object stream)
 	mkcl_write_char(env, '#', stream);
 	write_decimal(env, code, stream);
 	mkcl_write_char(env, '#', stream);
-	@(return x);
+	mkcl_return_value(x);
       }
     }
-  @(return mk_si_write_ugly_object(env, x, stream));
+  mkcl_return_value(mk_si_write_ugly_object(env, x, stream));
 }
 
 
@@ -2006,19 +2006,19 @@ potential_number_p(MKCL, mkcl_object strng, mkcl_word base)
     
   /* The count here must match the number of mkcl_bds_bind just above. */
   mkcl_bds_unwind_n(env, 15);
-  @(return x);
+  mkcl_return_value(x);
 @)
 
 @(defun prin1 (obj &optional strm)
 @
   mkcl_prin1(env, obj, strm);
-  @(return obj);
+  mkcl_return_value(obj);
 @)
 
 @(defun print (obj &optional strm)
 @
   mkcl_print(env, obj, strm);
-  @(return obj);
+  mkcl_return_value(obj);
 @)
 
 @(defun pprint (obj &optional strm)
@@ -2031,13 +2031,13 @@ potential_number_p(MKCL, mkcl_object strng, mkcl_word base)
   mk_si_write_object(env, obj, strm);
   
   mkcl_bds_unwind_n(the_env, 2);
-  @(return);
+  mkcl_return_no_value;
 @)
 
 @(defun princ (obj &optional strm)
 @
   mkcl_princ(env, obj, strm);
-  @(return obj);
+  mkcl_return_value(obj);
 @)
 
 @(defun write-char (c &optional strm)
@@ -2045,7 +2045,7 @@ potential_number_p(MKCL, mkcl_object strng, mkcl_word base)
 	/* INV: mkcl_char_code() checks the type of `c' */
   strm = stream_or_default_output(env, strm);
   mkcl_write_char(env, mkcl_char_code(env, c), strm);
-  @(return c);
+  mkcl_return_value(c);
 @)
 
 @(defun write-string (strng &o strm &k (start MKCL_MAKE_FIXNUM(0)) end)
@@ -2056,7 +2056,7 @@ potential_number_p(MKCL, mkcl_object strng, mkcl_word base)
     mkcl_funcall4(env, @+'gray::stream-write-string', strm, strng, start, end);
   else
     mk_si_do_write_sequence(env, strng, strm, start, end);
-  @(return strng);
+  mkcl_return_value(strng);
 @)
 
 @(defun write-line (strng &o strm &k (start MKCL_MAKE_FIXNUM(0)) end)
@@ -2068,13 +2068,13 @@ potential_number_p(MKCL, mkcl_object strng, mkcl_word base)
   else
     mk_si_do_write_sequence(env, strng, strm, start, end);
   mkcl_terpri(env, strm);
-  @(return strng);
+  mkcl_return_value(strng);
 @)
 
 @(defun terpri (&optional strm)
 @
   mkcl_terpri(env, strm);
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 @)
 
 @(defun fresh-line (&optional strm)
@@ -2084,9 +2084,9 @@ potential_number_p(MKCL, mkcl_object strng, mkcl_word base)
     return mkcl_funcall1(env, @+'gray::stream-fresh-line', strm);
   }
   if (mkcl_file_column(env, strm) == 0)
-    { @(return mk_cl_Cnil); }
+    { mkcl_return_value(mk_cl_Cnil); }
   mkcl_write_char(env, '\n', strm);
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 @(defun finish-output (&o strm)
@@ -2096,21 +2096,21 @@ potential_number_p(MKCL, mkcl_object strng, mkcl_word base)
     return mkcl_funcall1(env, @+'gray::stream-finish-output', strm);
   }
   mkcl_force_output(env, strm);
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 @)
 
 @(defun force-output (&o strm)
 @
   strm = stream_or_default_output(env, strm);
   mkcl_force_output(env, strm);
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 @)
 
 @(defun clear-output (&o strm)
 @
   strm = stream_or_default_output(env, strm);
   mkcl_clear_output(env, strm);
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 @)
 
 mkcl_object
@@ -2118,7 +2118,7 @@ mk_cl_write_byte(MKCL, mkcl_object integer, mkcl_object binary_output_stream)
 {
   mkcl_call_stack_check(env);
   mkcl_write_byte(env, integer, binary_output_stream);
-  @(return integer);
+  mkcl_return_value(integer);
 }
 
 @(defun write-sequence (sequence stream &key (start MKCL_MAKE_FIXNUM(0)) end)

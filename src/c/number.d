@@ -827,7 +827,7 @@ mk_cl_rational(MKCL, mkcl_object x)
     x = mkcl_type_error(env, @'rational',"argument",x,@'number');
     goto AGAIN;
   }
-  @(return x);
+  mkcl_return_value(x);
 }
 
 mkcl_object

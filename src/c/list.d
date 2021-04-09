@@ -144,7 +144,7 @@ extern inline mkcl_object mk_cl_cdr(MKCL, mkcl_object x);
     }
   }
   mkcl_va_end(args);
-  @(return head);
+  mkcl_return_value(head);
 @)
 
 @(defun list* (&rest args)
@@ -163,7 +163,7 @@ extern inline mkcl_object mk_cl_cdr(MKCL, mkcl_object x);
     MKCL_RPLACD(tail, mkcl_va_arg(args));
   }
   mkcl_va_end(args);
-  @(return head);
+  mkcl_return_value(head);
 @)
 
 
@@ -229,7 +229,7 @@ static mkcl_object copy_proper_tail(MKCL, mkcl_object * cursor_ptr)
 
     }
   mkcl_va_end(rest);
-  @(return head);
+  mkcl_return_value(head);
 @)
 
 
@@ -340,7 +340,7 @@ tree_equal(MKCL, struct cl_test *t, mkcl_object x, mkcl_object y)
   setup_test(env, &t, mk_cl_Cnil, test, test_not, mk_cl_Cnil);
   output = tree_equal(env, &t, x, y) ? mk_cl_Ct : mk_cl_Cnil;
   close_test(&t);
-  @(return output);
+  mkcl_return_value(output);
 @)
 
 mkcl_object
@@ -348,9 +348,9 @@ mk_cl_endp(MKCL, mkcl_object x)
 {
   mkcl_call_stack_check(env);
   if (mkcl_Null(x))
-    { @(return mk_cl_Ct); }
+    { mkcl_return_value(mk_cl_Ct); }
   else if (MKCL_LISTP(x))
-    { @(return mk_cl_Cnil); }
+    { mkcl_return_value(mk_cl_Cnil); }
   else
     mkcl_FEtype_error_list(env, x);
 }
@@ -379,19 +379,19 @@ mk_cl_list_length(MKCL, mkcl_object x)
     if (!MKCL_LISTP(fast)) {
       mkcl_FEtype_error_list(env, fast);
     }
-    if (slow == fast && n != 0) { @(return mk_cl_Cnil); } /* Circular list! */
+    if (slow == fast && n != 0) { mkcl_return_value(mk_cl_Cnil); } /* Circular list! */
     if (n & 1) { /* move only on odd beat. */
       slow = MKCL_CONS_CDR(slow);
     }
   }
-  @(return MKCL_MAKE_FIXNUM(n));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(n));
 }
 
 mkcl_object
 mk_cl_nth(MKCL, mkcl_object n, mkcl_object x)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_nth(env, mkcl_safe_fixnum_to_word(env, n), x));
+  mkcl_return_value(mkcl_nth(env, mkcl_safe_fixnum_to_word(env, n), x));
 }
 
 mkcl_object
@@ -416,7 +416,7 @@ mkcl_object
 mk_cl_nthcdr(MKCL, mkcl_object n, mkcl_object x)
 {
   mkcl_call_stack_check(env);
-  @(return mkcl_nthcdr(env, mkcl_safe_fixnum_to_word(env, n), x));
+  mkcl_return_value(mkcl_nthcdr(env, mkcl_safe_fixnum_to_word(env, n), x));
 }
 
 mkcl_object
@@ -465,9 +465,9 @@ mkcl_last(MKCL, mkcl_object l, mkcl_index n)
 @(defun last (l &optional (k MKCL_MAKE_FIXNUM(1)))
 @
   if (mkcl_type_of(k) == mkcl_t_bignum)
-    { @(return l); }
+    { mkcl_return_value(l); }
   else
-    { @(return mkcl_last(env, l, mkcl_integer_to_index(env, k))); }
+    { mkcl_return_value(mkcl_last(env, l, mkcl_integer_to_index(env, k))); }
 @)
 
 @(defun make_list (size &key initial_element)
@@ -478,7 +478,7 @@ mkcl_last(MKCL, mkcl_object l, mkcl_index n)
   i = mkcl_integer_to_index(env, size);
   while (i-- > 0)
     x = MKCL_CONS(env, initial_element, x);
-  @(return x);
+  mkcl_return_value(x);
 @)
 
 mkcl_object
@@ -522,7 +522,7 @@ mk_cl_copy_list(MKCL, mkcl_object x)
     }
     MKCL_RPLACD(tail, x);
   }
-  @(return copy);
+  mkcl_return_value(copy);
 }
 
 mkcl_object mkcl_reverse_proper_list(MKCL, mkcl_object x)
@@ -580,7 +580,7 @@ mk_cl_copy_alist(MKCL, mkcl_object x)
       }
     }
   }
-  @(return copy);
+  mkcl_return_value(copy);
 }
 
 static mkcl_object
@@ -598,7 +598,7 @@ mkcl_object
 mk_cl_copy_tree(MKCL, mkcl_object x)
 {
   mkcl_call_stack_check(env);
-  @(return do_copy_tree(env, x));
+  mkcl_return_value(do_copy_tree(env, x));
 }
 
 mkcl_object
@@ -608,7 +608,7 @@ mk_cl_revappend(MKCL, mkcl_object x, mkcl_object y)
   mkcl_loop_for_in(env, x) {
     y = MKCL_CONS(env, MKCL_CONS_CAR(x),y);
   } mkcl_end_loop_for_in;
-  @(return y);
+  mkcl_return_value(y);
 }
 
 @(defun nconc (&rest lists)
@@ -632,7 +632,7 @@ mk_cl_revappend(MKCL, mkcl_object x, mkcl_object y)
     tail = new_tail;
   }
   mkcl_va_end(lists);
-  @(return head);
+  mkcl_return_value(head);
 @)
 
 mkcl_object
@@ -663,7 +663,7 @@ mk_cl_nreconc(MKCL, mkcl_object l, mkcl_object y)
     MKCL_RPLACD(z, y);
     y = z;
   }
-  @(return y);
+  mkcl_return_value(y);
 }
 
 mkcl_object
@@ -699,10 +699,10 @@ mkcl_butlast(MKCL, mkcl_object l, mkcl_index n)
 @
   /* INV: No list has more than MKCL_MOST_POSITIVE_FIXNUM elements */
   if (mkcl_type_of(nn) == mkcl_t_bignum)
-    { @(return mk_cl_Cnil); }
+    { mkcl_return_value(mk_cl_Cnil); }
   else
     /* INV: mkcl_integer_to_index() signals a type-error if NN is not an integer >=0 */
-    { @(return mkcl_butlast(env, lis, mkcl_integer_to_index(env, nn))); }
+    { mkcl_return_value(mkcl_butlast(env, lis, mkcl_integer_to_index(env, nn))); }
 @)
 
 mkcl_object
@@ -731,10 +731,10 @@ mkcl_nbutlast(MKCL, mkcl_object l, mkcl_index n)
 @
   /* INV: No list has more than MKCL_MOST_POSITIVE_FIXNUM elements */
   if (mkcl_type_of(nn) == mkcl_t_bignum)
-    { @(return mk_cl_Cnil); }
+    { mkcl_return_value(mk_cl_Cnil); }
   else
     /* INV: mkcl_integer_to_index() signas a type-error if NN is not an integer >=0 */
-    { @(return mkcl_nbutlast(env, lis, mkcl_integer_to_index(env, nn))); }
+    { mkcl_return_value(mkcl_nbutlast(env, lis, mkcl_integer_to_index(env, nn))); }
 @)
 
 mkcl_object
@@ -766,7 +766,7 @@ mk_cl_ldiff(MKCL, mkcl_object x, mkcl_object y)
       }
     }
   }
-  @(return head);
+  mkcl_return_value(head);
 }
 
 mkcl_object
@@ -775,7 +775,7 @@ mk_cl_rplaca(MKCL, mkcl_object x, mkcl_object v)
   mkcl_call_stack_check(env);
   mkcl_assert_type_cons(env, x);
   MKCL_RPLACA(x, v);
-  @(return x);
+  mkcl_return_value(x);
 }
 
 mkcl_object
@@ -784,7 +784,7 @@ mk_cl_rplacd(MKCL, mkcl_object x, mkcl_object v)
   mkcl_call_stack_check(env);
   mkcl_assert_type_cons(env, x);
   MKCL_RPLACD(x, v);
-  @(return x);
+  mkcl_return_value(x);
 }
 
 
@@ -813,7 +813,7 @@ do_assoc(MKCL, struct cl_test *t, mkcl_object a_list)
   setup_test(env, &t, item, test, test_not, key);
   a_list = do_assoc(env, &t, a_list);
   close_test(&t);
-  @(return a_list);
+  mkcl_return_value(a_list);
 @)
 
 
@@ -852,7 +852,7 @@ subst(MKCL, struct cl_test *t, mkcl_object new_obj, mkcl_object tree)
   setup_test(env, &t, old_obj, test, test_not, key);
   output = subst(env, &t, new_obj, tree);
   close_test(&t);
-  @(return output);
+  mkcl_return_value(output);
 @)
 
 
@@ -893,7 +893,7 @@ nsubst(MKCL, struct cl_test *t, mkcl_object new_obj, mkcl_object tree)
   setup_test(env, &t, old_obj, test, test_not, key);
   tree = nsubst(env, &t, new_obj, tree);
   close_test(&t);
-  @(return tree);
+  mkcl_return_value(tree);
 @)
 
 /*
@@ -930,7 +930,7 @@ sublis(MKCL, struct cl_test *t, mkcl_object alist, mkcl_object tree)
   tree = sublis(env, t, alist, tree);
   close_test(t+1);
   close_test(t);
-  @(return tree);
+  mkcl_return_value(tree);
 @)
 
 /*
@@ -967,7 +967,7 @@ nsublis(MKCL, struct cl_test *t, mkcl_object alist, mkcl_object tree)
   tree = nsublis(env, t, alist, tree);
   close_test(t+1);
   close_test(t);
-  @(return tree);
+  mkcl_return_value(tree);
 @)
 
 @(defun member (item list &key test test_not key)
@@ -979,7 +979,7 @@ nsublis(MKCL, struct cl_test *t, mkcl_object alist, mkcl_object tree)
       break;
   } mkcl_end_loop_for_in;
   close_test(&t);
-  @(return list);
+  mkcl_return_value(list);
 @)
 
 bool
@@ -1008,9 +1008,9 @@ mk_si_memq(MKCL, mkcl_object x, mkcl_object l)
   mkcl_call_stack_check(env);
   mkcl_loop_for_in(env, l) {
     if (x == MKCL_CONS_CAR(l))
-      { @(return l); }
+      { mkcl_return_value(l); }
   } mkcl_end_loop_for_in;
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 
 /* Added for use by the compiler, instead of open coding them. Beppe */
@@ -1051,7 +1051,7 @@ mk_si_member1(MKCL,
       break;
   } mkcl_end_loop_for_in;
   close_test(&t);
-  @(return list);
+  mkcl_return_value(list);
 }
 
 mkcl_object
@@ -1060,7 +1060,7 @@ mk_cl_tailp(MKCL, mkcl_object y, mkcl_object x)
   mkcl_call_stack_check(env);
   mkcl_loop_for_on(env, x) {
     if (mkcl_eql(env, x, y))
-      { @(return mk_cl_Ct); }
+      { mkcl_return_value(mk_cl_Ct); }
   } mkcl_end_loop_for_on;
   return mk_cl_eql(env, x, y);
 }
@@ -1105,7 +1105,7 @@ mkcl_adjoin(MKCL, mkcl_object item, mkcl_object list)
 	else
 	  output = list;
       }
-    @(return output);
+    mkcl_return_value(output);
   }
 @)
 
@@ -1113,14 +1113,14 @@ mkcl_object
 mk_cl_cons(MKCL, mkcl_object x, mkcl_object y)
 {
   mkcl_call_stack_check(env);
-  @(return MKCL_CONS(env, x, y));
+  mkcl_return_value(MKCL_CONS(env, x, y));
 }
 
 mkcl_object
 mk_cl_acons(MKCL, mkcl_object x, mkcl_object y, mkcl_object z)
 {
   mkcl_call_stack_check(env);
-  @(return MKCL_CONS(env, MKCL_CONS(env, x, y), z));
+  mkcl_return_value(MKCL_CONS(env, MKCL_CONS(env, x, y), z));
 }
 
 @(defun pairlis (keys data &optional a_list)
@@ -1137,7 +1137,7 @@ mk_cl_acons(MKCL, mkcl_object x, mkcl_object y, mkcl_object z)
   if (!mkcl_endp(env, d))
 error:	    mkcl_FEerror(env, "The keys ~S and the data ~S are not of the same length",
 		    2, keys, data);
-  @(return a_list);
+  mkcl_return_value(a_list);
 @)
 
 
@@ -1157,7 +1157,7 @@ error:	    mkcl_FEerror(env, "The keys ~S and the data ~S are not of the same le
     }
   } mkcl_end_loop_for_in;
   close_test(&t);
-  @(return a_list);
+  mkcl_return_value(a_list);
 @)
 
 mkcl_object
@@ -1258,7 +1258,7 @@ mk_si_dyn_cons(MKCL, mkcl_object car, mkcl_object cdr)
     MKCL_RPLACA(it, car);
     MKCL_RPLACD(it, cdr);
 
-    @(return it);
+    mkcl_return_value(it);
   }
 }
 
@@ -1275,6 +1275,6 @@ mkcl_object mk_si_trim_dynamic_cons_stack(MKCL)
   else
     MKCL_RPLACD(stack_cell, mk_cl_Cnil);
 
-  @(return mk_cl_Cnil);
+  mkcl_return_value(mk_cl_Cnil);
 }
 

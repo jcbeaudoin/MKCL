@@ -24,7 +24,7 @@ mk_cl_standard_char_p(MKCL, mkcl_object c)
   mkcl_call_stack_check(env);
   /* INV: mkcl_char_code() checks the type */
   mkcl_word i = mkcl_char_code(env, c);
-  @(return (mkcl_standard_char_p(i)? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_standard_char_p(i)? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
@@ -32,7 +32,7 @@ mk_cl_graphic_char_p(MKCL, mkcl_object c)
 {
   mkcl_call_stack_check(env);
   /* INV: mkcl_char_code() checks the type */
-  @(return (mkcl_graphic_char_p(mkcl_char_code(env, c))? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_graphic_char_p(mkcl_char_code(env, c))? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
@@ -40,7 +40,7 @@ mk_cl_alpha_char_p(MKCL, mkcl_object c)
 {
   mkcl_call_stack_check(env);
   /* INV: mkcl_char_code() checks the type */
-  @(return (mkcl_alpha_char_p(mkcl_char_code(env, c))? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_alpha_char_p(mkcl_char_code(env, c))? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
@@ -48,7 +48,7 @@ mk_cl_upper_case_p(MKCL, mkcl_object c)
 {
   mkcl_call_stack_check(env);
   /* INV: mkcl_char_code() checks the type */
-  @(return (mkcl_upper_case_p(mkcl_char_code(env, c))? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_upper_case_p(mkcl_char_code(env, c))? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
@@ -56,7 +56,7 @@ mk_cl_lower_case_p(MKCL, mkcl_object c)
 {
   mkcl_call_stack_check(env);
   /* INV: mkcl_char_code() checks the type */
-  @(return (mkcl_lower_case_p(mkcl_char_code(env, c))? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_lower_case_p(mkcl_char_code(env, c))? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
@@ -64,7 +64,7 @@ mk_cl_both_case_p(MKCL, mkcl_object c)
 {
   mkcl_call_stack_check(env);
   /* INV: mkcl_char_code() checks the type */
-  @(return (mkcl_both_case_p(mkcl_char_code(env, c))? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_both_case_p(mkcl_char_code(env, c))? mk_cl_Ct : mk_cl_Cnil));
 }
 
 enum mkcl_string_case
@@ -121,7 +121,7 @@ mkcl_string_case(const mkcl_object str)
   {
     mkcl_word basis = mkcl_fixnum_in_range(env, @'digit-char-p',"radix", radix, 2, 36);
     mkcl_word value = mkcl_digitp(mkcl_char_code(env, c), basis);
-    @(return ((value < 0)? mk_cl_Cnil: MKCL_MAKE_FIXNUM(value)));
+    mkcl_return_value(((value < 0)? mk_cl_Cnil: MKCL_MAKE_FIXNUM(value)));
   } 
 @)
 
@@ -153,7 +153,7 @@ mk_cl_alphanumericp(MKCL, mkcl_object c)
   mkcl_call_stack_check(env);
   /* INV: mkcl_char_code() checks type of `c' */
   mkcl_character i = mkcl_char_code(env, c);
-  @(return (mkcl_alphanumericp(i) ? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_alphanumericp(i) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 @(defun char= (c &rest cs)
@@ -161,9 +161,9 @@ mk_cl_alphanumericp(MKCL, mkcl_object c)
   /* INV: mkcl_char_eq() checks types of `c' and `cs' */
   while (--narg)
   if (!mkcl_char_eq(env, c, mkcl_va_arg(cs)))
-    { mkcl_va_end(cs); @(return mk_cl_Cnil); }
+    { mkcl_va_end(cs); mkcl_return_value(mk_cl_Cnil); }
   mkcl_va_end(cs);
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 bool
@@ -186,11 +186,11 @@ mkcl_char_eq(MKCL, mkcl_object x, mkcl_object y)
     c = mkcl_va_arg(cs);
     for (j = 1; j<i; j++)
       if (mkcl_char_eq(env, mkcl_va_arg(ds), c))
-        { mkcl_va_end(cs); mkcl_va_end(ds); @(return mk_cl_Cnil); }
+        { mkcl_va_end(cs); mkcl_va_end(ds); mkcl_return_value(mk_cl_Cnil); }
     mkcl_va_end(ds);
   }
   mkcl_va_end(cs);
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 static mkcl_object
@@ -204,9 +204,9 @@ Lchar_cmp(MKCL, mkcl_narg narg, int s, int t, mkcl_va_list args)
   for (; --narg; c = d) {
     d = mkcl_va_arg(args);
     if (s*mkcl_char_cmp(env, d, c) < t)
-      { @(return mk_cl_Cnil); }
+      { mkcl_return_value(mk_cl_Cnil); }
   }
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 }
 
 int
@@ -252,10 +252,10 @@ mkcl_char_cmp(MKCL, mkcl_object x, mkcl_object y)
   /* INV: mkcl_char_equal() checks the type of its arguments */
   for (narg--, i = 0;  i < narg;  i++) {
     if (!mkcl_char_equal(env, c, mkcl_va_arg(cs)))
-      { mkcl_va_end(cs); @(return mk_cl_Cnil); }
+      { mkcl_va_end(cs); mkcl_return_value(mk_cl_Cnil); }
   }
   mkcl_va_end(cs);
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 #define char_equal_code(e, x) mkcl_char_upcase(mkcl_char_code(e, x))
@@ -280,11 +280,11 @@ mkcl_char_equal(MKCL, mkcl_object x, mkcl_object y)
     c = mkcl_va_arg(cs);
     for (j=1;  j<i;  j++)
       if (mkcl_char_equal(env, c, mkcl_va_arg(ds)))
-        { mkcl_va_end(cs); mkcl_va_end(ds); @(return mk_cl_Cnil); }
+        { mkcl_va_end(cs); mkcl_va_end(ds); mkcl_return_value(mk_cl_Cnil); }
     mkcl_va_end(ds);
   }
   mkcl_va_end(cs);
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 @)
 
 static mkcl_object
@@ -299,9 +299,9 @@ Lchar_compare(MKCL, mkcl_narg narg, int s, int t, mkcl_va_list args)
   for (; --narg; c = d) {
     d = mkcl_va_arg(args);
     if (s*mkcl_char_compare(env, d, c) < t)
-      { @(return mk_cl_Cnil); }
+      { mkcl_return_value(mk_cl_Cnil); }
   }
-  @(return mk_cl_Ct);
+  mkcl_return_value(mk_cl_Ct);
 }
 
 int
@@ -380,7 +380,7 @@ mk_cl_character(MKCL, mkcl_object x)
 							 " (ARRAY BASE-CHAR (1)))")));
     goto AGAIN;
   }
-  @(return x);
+  mkcl_return_value(x);
 }
 
 mkcl_object
@@ -388,7 +388,7 @@ mk_cl_char_code(MKCL, mkcl_object c)
 {
   mkcl_call_stack_check(env);
   /* INV: mkcl_char_code() checks the type of `c' */
-  @(return MKCL_MAKE_FIXNUM(mkcl_char_code(env, c)));
+  mkcl_return_value(MKCL_MAKE_FIXNUM(mkcl_char_code(env, c)));
 }
 
 mkcl_object
@@ -412,7 +412,7 @@ mk_cl_code_char(MKCL, mkcl_object c)
   default:
     mkcl_FEtype_error_integer(env, c);
   }
-  @(return c);
+  mkcl_return_value(c);
 }
 
 mkcl_object
@@ -421,7 +421,7 @@ mk_cl_char_upcase(MKCL, mkcl_object c)
   mkcl_call_stack_check(env);
   /* INV: mkcl_char_code() checks the type of `c' */
   mkcl_word code = mkcl_char_code(env, c);
-  @(return MKCL_CODE_CHAR(mkcl_char_upcase(code)));
+  mkcl_return_value(MKCL_CODE_CHAR(mkcl_char_upcase(code)));
 }
 
 mkcl_object
@@ -430,7 +430,7 @@ mk_cl_char_downcase(MKCL, mkcl_object c)
   mkcl_call_stack_check(env);
   /* INV: mkcl_char_code() checks the type of `c' */
   mkcl_word code = mkcl_char_code(env, c);
-  @(return MKCL_CODE_CHAR(mkcl_char_downcase(code)));
+  mkcl_return_value(MKCL_CODE_CHAR(mkcl_char_downcase(code)));
 }
 
 @(defun digit_char (weight &optional (radix MKCL_MAKE_FIXNUM(10)))
@@ -455,7 +455,7 @@ mk_cl_char_downcase(MKCL, mkcl_object c)
       weight = mkcl_type_error(env, @'digit-char',"weight",weight,@'integer');
       goto AGAIN;
     }
-    @(return output);
+    mkcl_return_value(output);
   } @)
 
 short
@@ -509,7 +509,7 @@ mk_cl_char_name(MKCL, mkcl_object c)
           output = mkcl_make_base_string_copy(env, name);
         }
     }
-  @(return output);
+  mkcl_return_value(output);
 }
 
 mkcl_object
@@ -522,19 +522,19 @@ mk_cl_name_char(MKCL, mkcl_object name)
   name = mk_cl_string(env, name);
   c = mkcl_gethash_safe(env, name, mkcl_core.base_char_names, mk_cl_Cnil);
   if (c != mk_cl_Cnil) {
-    @(return MKCL_CODE_CHAR(mkcl_fixnum_to_word(c)));
+    mkcl_return_value(MKCL_CODE_CHAR(mkcl_fixnum_to_word(c)));
   } else {
     mkcl_object ext_names = MKCL_SYM_VAL(env, @'si::*extended-character-names*');
 
     if (ext_names != mk_cl_Cnil) c = mkcl_gethash_safe(env, name, ext_names, mk_cl_Cnil);
     if (c != mk_cl_Cnil) {
-      @(return MKCL_CODE_CHAR(mkcl_fixnum_to_word(c)));
+      mkcl_return_value(MKCL_CODE_CHAR(mkcl_fixnum_to_word(c)));
     } else if (mkcl_stringp(env, name) && (l = mkcl_length(env, name))) {
       c = mk_cl_char(env, name, MKCL_MAKE_FIXNUM(0));
       if (l == 1) {
-        @(return mk_cl_Cnil);
+        mkcl_return_value(mk_cl_Cnil);
       } else if (c != MKCL_CODE_CHAR('u') && c != MKCL_CODE_CHAR('U')) {
-        @(return mk_cl_Cnil);
+        mkcl_return_value(mk_cl_Cnil);
       } else {
         mkcl_index used_l;
         mkcl_index end = name->base_string.fillp;
@@ -543,18 +543,18 @@ mk_cl_name_char(MKCL, mkcl_object name)
         used_l = real_end;
         if (!MKCL_FIXNUMP(c) /* Bignum? */
             || (used_l < l)) /* Was character name cut short? JCB */
-          { @(return mk_cl_Cnil); } 
+          { mkcl_return_value(mk_cl_Cnil); } 
         else
           {
             mkcl_character code = mkcl_fixnum_to_word(c);
             
             if (/* (code < 0) || */ (code >= MKCL_CHAR_CODE_LIMIT)) /* Outside valid character code range? */
-              { @(return mk_cl_Cnil); }
+              { mkcl_return_value(mk_cl_Cnil); }
             else
-              { @(return MKCL_CODE_CHAR(code)); }
+              { mkcl_return_value(MKCL_CODE_CHAR(code)); }
           }
       }
     }
   }
-  @(return mk_cl_Cnil); /* Just in case. Should not be reached. JCB */
+  mkcl_return_value(mk_cl_Cnil); /* Just in case. Should not be reached. JCB */
 }
