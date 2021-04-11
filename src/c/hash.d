@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2016, Jean-Claude Beaudoin
+    Copyright (c) 2010-2016,2021 Jean-Claude Beaudoin
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -1288,38 +1288,57 @@ mk_cl_sxhash(MKCL, mkcl_object key)
   mkcl_return_value(MKCL_MAKE_FIXNUM(output & mask));
 }
 
-@(defun si::hash-eql (&rest args)
+mkcl_object mk_si_hash_eql(MKCL, mkcl_narg narg, ...)
+{
   mkcl_index h;
-@
+
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'si::hash-eql', 0, narg, narg, args);
+
   for (h = 0; narg; narg--) {
     mkcl_object o = mkcl_va_arg(args);
     h = _hash_eql(h, o);
   }
   mkcl_va_end(args);
-  mkcl_return_value(MKCL_MAKE_FIXNUM(h))
-@)
+  mkcl_return_value(MKCL_MAKE_FIXNUM(h));
+  }
+}
 
-@(defun si::hash-equal (&rest args)
+
+mkcl_object mk_si_hash_equal(MKCL, mkcl_narg narg, ...)
+{
   mkcl_index h;
-@
+
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'si::hash-equal', 0, narg, narg, args);
+
   for (h = 0; narg; narg--) {
     mkcl_object o = mkcl_va_arg(args);
     h = _hash_equal(3, h, o);
   }
   mkcl_va_end(args);
-  mkcl_return_value(MKCL_MAKE_FIXNUM(h))
-@)
-
-@(defun si::hash-equalp (&rest args)
-  mkcl_index h;
-@
-  for (h = 0; narg; narg--) {
-    mkcl_object o = mkcl_va_arg(args);
-    h = _hash_equalp(env, 3, h, o);
-  }
-  mkcl_va_end(args);
   mkcl_return_value(MKCL_MAKE_FIXNUM(h));
-@)
+  }
+}
+
+mkcl_object mk_si_hash_equalp(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_index h;
+
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'si::hash-equalp', 0, narg, narg, args);
+
+    for (h = 0; narg; narg--) {
+      mkcl_object o = mkcl_va_arg(args);
+      h = _hash_equalp(env, 3, h, o);
+    }
+    mkcl_va_end(args);
+    mkcl_return_value(MKCL_MAKE_FIXNUM(h));
+  }
+}
 
 mkcl_object
 mk_cl_maphash(MKCL, mkcl_object fun, mkcl_object ht)

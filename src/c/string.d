@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2016, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2016,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under thep terms of the GNU Lesser General Public
@@ -1083,55 +1083,106 @@ string_compare(MKCL, mkcl_narg narg, int sign1, int sign2, int case_sensitive, m
 #undef end2
 }
 
-@(defun string< (&rest args)
-@
-  return string_compare(env, narg, -1, -1, 1, args);
-@)
+mkcl_object mk_cl_stringL(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'string<', 0, narg, narg, args);
 
-@(defun string> (&rest args)
-@
-  return string_compare(env, narg, +1, +1, 1, args);
-@)
+    return string_compare(env, narg, -1, -1, 1, args);
+  }
+}
 
-@(defun string<= (&rest args)
-@
-  return string_compare(env, narg, -1, 0, 1, args);
-@)
+mkcl_object mk_cl_stringG(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'string>', 0, narg, narg, args);
 
-@(defun string>= (&rest args)
-@
-  return string_compare(env, narg, 0, +1, 1, args);
-@)
+    return string_compare(env, narg, +1, +1, 1, args);
+  }
+}
 
-@(defun string/= (&rest args)
-@
-  return string_compare(env, narg, -1, +1, 1, args);
-@)
+mkcl_object mk_cl_stringLE(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'string<=', 0, narg, narg, args);
 
-@(defun string-lessp (&rest args)
-@
-  return string_compare(env, narg, -1, -1, 0, args);
-@)
+    return string_compare(env, narg, -1, 0, 1, args);
+  }
+}
 
-@(defun string-greaterp (&rest args)
-@
+mkcl_object mk_cl_stringGE(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'string>=', 0, narg, narg, args);
+
+    return string_compare(env, narg, 0, +1, 1, args);
+  }
+}
+
+
+mkcl_object mk_cl_stringNE(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'string/=', 0, narg, narg, args);
+
+    return string_compare(env, narg, -1, +1, 1, args);
+  }
+}
+
+mkcl_object mk_cl_string_lessp(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'string-lessp', 0, narg, narg, args);
+
+    return string_compare(env, narg, -1, -1, 0, args);
+  }
+}
+
+mkcl_object mk_cl_string_greaterp(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'string-greaterp', 0, narg, narg, args);
+
   return string_compare(env, narg, +1, +1, 0, args);
-@)
+  }
+}
 
-@(defun string-not-greaterp (&rest args)
-@
-  return string_compare(env, narg, -1, 0, 0, args);
-@)
+mkcl_object mk_cl_string_not_greaterp(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'string-not-greaterp', 0, narg, narg, args);
 
-@(defun string-not-lessp (&rest args)
-@
-  return string_compare(env, narg, 0, +1, 0, args);
-@)
+    return string_compare(env, narg, -1, 0, 0, args);
+  }
+}
 
-@(defun string-not-equal (&rest args)
-@
-  return string_compare(env, narg, -1, +1, 0, args);
-@)
+mkcl_object mk_cl_string_not_lessp(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'string-not-lessp', 0, narg, narg, args);
+
+    return string_compare(env, narg, 0, +1, 0, args);
+  }
+}
+
+mkcl_object mk_cl_string_not_equal(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'string-not-equal', 0, narg, narg, args);
+
+    return string_compare(env, narg, -1, +1, 0, args);
+  }
+}
 
 
 mkcl_object mkcl_base_string_L(MKCL, mkcl_object str1, mkcl_object str2)
@@ -1335,10 +1386,15 @@ char_upcase(mkcl_character c, bool *bp)
   return mkcl_char_upcase(c);
 }
 
-@(defun string-upcase (&rest args)
-@
-  return string_case(env, narg, char_upcase, args);
-@)
+mkcl_object mk_cl_string_upcase(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'string-upcase', 0, narg, narg, args);
+
+    return string_case(env, narg, char_upcase, args);
+  }
+}
 
 static mkcl_character
 char_downcase(mkcl_character c, bool *bp)
@@ -1346,10 +1402,15 @@ char_downcase(mkcl_character c, bool *bp)
   return mkcl_char_downcase(c);
 }
 
-@(defun string-downcase (&rest args)
-@
-  return string_case(env, narg, char_downcase, args);
-@)
+mkcl_object mk_cl_string_downcase(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'string-downcase', 0, narg, narg, args);
+
+    return string_case(env, narg, char_downcase, args);
+  }
+}
 
 static mkcl_character
 char_capitalize(mkcl_character c, bool *bp)
@@ -1368,10 +1429,15 @@ char_capitalize(mkcl_character c, bool *bp)
   return c;
 }
 
-@(defun string-capitalize (&rest args)
-@
-  return string_case(env, narg, char_capitalize, args);
-@)
+mkcl_object mk_cl_string_capitalize(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'string-capitalize', 0, narg, narg, args);
+
+    return string_case(env, narg, char_capitalize, args);
+  }
+}
 
 
 static mkcl_object
@@ -1409,70 +1475,91 @@ nstring_case(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_casefun casefun, mkcl_v
 #undef end
 }
 
-@(defun nstring-upcase (&rest args)
-@
-  return nstring_case(env, narg, @'nstring-upcase', char_upcase, args);
-@)
+mkcl_object mk_cl_nstring_upcase(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'nstring-upcase', 0, narg, narg, args);
 
-@(defun nstring-downcase (&rest args)
-@
-  return nstring_case(env, narg, @'nstring-downcase', char_downcase, args);
-@)
+    return nstring_case(env, narg, @'nstring-upcase', char_upcase, args);
+  }
+}
 
-@(defun nstring-capitalize (&rest args)
-@
-  return nstring_case(env, narg, @'nstring-capitalize', char_capitalize, args);
-@)
+mkcl_object mk_cl_nstring_downcase(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'nstring-downcase', 0, narg, narg, args);
 
-@(defun si::concatenate_base_strings (&rest args)
+    return nstring_case(env, narg, @'nstring-downcase', char_downcase, args);
+  }
+}
+
+mkcl_object mk_cl_nstring_capitalize(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'nstring-capitalize', 0, narg, narg, args);
+
+    return nstring_case(env, narg, @'nstring-capitalize', char_capitalize, args);
+  }
+}
+
+mkcl_object mk_si_concatenate_base_strings(MKCL, mkcl_narg narg, ...)
+{
   mkcl_object output;
-@
-  if (narg == 1) {
-    mkcl_object arg = mkcl_va_arg(args);
-    
-    if (MKCL_BASE_STRING_P(arg))
-      output = mkcl_copy_base_string(env, arg);
-    else if (mkcl_Null(arg))
-      output = mkcl_core.empty_base_string;
-    else if (MKCL_STRINGP(arg) || MKCL_CONSP(arg) || MKCL_VECTORP(arg))
-      output = mkcl_coerce_to_simple_base_string(env, arg);
-    else
-      mkcl_FEtype_error_sequence(env, arg);
-  } else {
-    mkcl_index l;
-    mkcl_narg i;
 
-    /* Compute final size and store NONEMPTY coerced strings. */
-    for (i = 0, l = 0; i < narg; i++) {
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'si::concatenate-base-strings', 0, narg, narg, args);
+
+    if (narg == 1) {
       mkcl_object arg = mkcl_va_arg(args);
-      mkcl_object s;
 
       if (MKCL_BASE_STRING_P(arg))
-        s = arg;
+        output = mkcl_copy_base_string(env, arg);
       else if (mkcl_Null(arg))
-        s = mkcl_core.empty_base_string;
+        output = mkcl_core.empty_base_string;
       else if (MKCL_STRINGP(arg) || MKCL_CONSP(arg) || MKCL_VECTORP(arg))
-        s = mkcl_coerce_to_simple_base_string(env, arg);
+        output = mkcl_coerce_to_simple_base_string(env, arg);
       else
         mkcl_FEtype_error_sequence(env, arg);
+    } else {
+      mkcl_index l;
+      mkcl_narg i;
 
-      if (s->base_string.fillp) {
-	MKCL_TEMP_STACK_PUSH(env, s);
-	l += s->base_string.fillp;
+      /* Compute final size and store NONEMPTY coerced strings. */
+      for (i = 0, l = 0; i < narg; i++) {
+        mkcl_object arg = mkcl_va_arg(args);
+        mkcl_object s;
+
+        if (MKCL_BASE_STRING_P(arg))
+          s = arg;
+        else if (mkcl_Null(arg))
+          s = mkcl_core.empty_base_string;
+        else if (MKCL_STRINGP(arg) || MKCL_CONSP(arg) || MKCL_VECTORP(arg))
+          s = mkcl_coerce_to_simple_base_string(env, arg);
+        else
+          mkcl_FEtype_error_sequence(env, arg);
+
+        if (s->base_string.fillp) {
+          MKCL_TEMP_STACK_PUSH(env, s);
+          l += s->base_string.fillp;
+        }
+      }
+      /* Do actual copying by recovering those strings */
+      output = mkcl_alloc_simple_base_string(env, l);
+      while (l) {
+        mkcl_object s = MKCL_TEMP_STACK_POP_UNSAFE(env);
+        size_t bytes = s->base_string.fillp;
+        l -= bytes;
+        memcpy(output->base_string.self + l, s->base_string.self, bytes);
       }
     }
-    /* Do actual copying by recovering those strings */
-    output = mkcl_alloc_simple_base_string(env, l);
-    while (l) {
-      mkcl_object s = MKCL_TEMP_STACK_POP_UNSAFE(env);
-      size_t bytes = s->base_string.fillp;
-      l -= bytes;
-      memcpy(output->base_string.self + l, s->base_string.self, bytes);
-    }
+    mkcl_va_end(args);
+    mkcl_return_value(output);
   }
-  mkcl_va_end(args);
-  mkcl_return_value(output);
-@)
+}
 
 mkcl_object mkcl_concatenate_2_base_strings(MKCL, mkcl_object str1, mkcl_object str2)
 {
@@ -1507,55 +1594,61 @@ mkcl_object mkcl_concatenate_3_base_strings(MKCL, mkcl_object str1, mkcl_object 
   return new;
 }
 
-@(defun si::concatenate_strings (&rest args)
+mkcl_object mk_si_concatenate_strings(MKCL, mkcl_narg narg, ...)
+{
   mkcl_object output;
-@
-  if (narg == 1) {
-    mkcl_object arg = mkcl_va_arg(args);
-    
-    if (MKCL_CHARACTER_STRING_P(arg))
-      output = mkcl_copy_string(env, arg);
-    else if (mkcl_Null(arg))
-      output = mkcl_core.empty_string;
-    else if (MKCL_BASE_STRING_P(arg) || MKCL_CONSP(arg) || MKCL_VECTORP(arg))
-      output = mkcl_coerce_to_simple_character_string(env, arg);
-    else
-      mkcl_FEtype_error_sequence(env, arg);
-  } else {
-    mkcl_index l;
-    mkcl_narg i;
 
-    /* Compute final size and store NONEMPTY coerced strings. */
-    for (i = 0, l = 0; i < narg; i++) {
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'si::concatenate-strings', 0, narg, narg, args);
+
+    if (narg == 1) {
       mkcl_object arg = mkcl_va_arg(args);
-      mkcl_object s;
 
       if (MKCL_CHARACTER_STRING_P(arg))
-        s = arg;
+        output = mkcl_copy_string(env, arg);
       else if (mkcl_Null(arg))
-        s = mkcl_core.empty_string;
+        output = mkcl_core.empty_string;
       else if (MKCL_BASE_STRING_P(arg) || MKCL_CONSP(arg) || MKCL_VECTORP(arg))
-        s = mkcl_coerce_to_simple_character_string(env, arg);
+        output = mkcl_coerce_to_simple_character_string(env, arg);
       else
         mkcl_FEtype_error_sequence(env, arg);
+    } else {
+      mkcl_index l;
+      mkcl_narg i;
 
-      if (s->string.fillp) {
-	MKCL_TEMP_STACK_PUSH(env, s);
-	l += s->string.fillp;
+      /* Compute final size and store NONEMPTY coerced strings. */
+      for (i = 0, l = 0; i < narg; i++) {
+        mkcl_object arg = mkcl_va_arg(args);
+        mkcl_object s;
+
+        if (MKCL_CHARACTER_STRING_P(arg))
+          s = arg;
+        else if (mkcl_Null(arg))
+          s = mkcl_core.empty_string;
+        else if (MKCL_BASE_STRING_P(arg) || MKCL_CONSP(arg) || MKCL_VECTORP(arg))
+          s = mkcl_coerce_to_simple_character_string(env, arg);
+        else
+          mkcl_FEtype_error_sequence(env, arg);
+
+        if (s->string.fillp) {
+          MKCL_TEMP_STACK_PUSH(env, s);
+          l += s->string.fillp;
+        }
+      }
+      /* Do actual copying by recovering those strings */
+      output = mkcl_alloc_simple_character_string(env, l);
+      while (l) {
+        mkcl_object s = MKCL_TEMP_STACK_POP_UNSAFE(env);
+        size_t bytes = s->string.fillp;
+        l -= bytes;
+        (void) mkcl_wmemcpy((output->string.self + l), s->string.self, bytes);
       }
     }
-    /* Do actual copying by recovering those strings */
-    output = mkcl_alloc_simple_character_string(env, l);
-    while (l) {
-      mkcl_object s = MKCL_TEMP_STACK_POP_UNSAFE(env);
-      size_t bytes = s->string.fillp;
-      l -= bytes;
-      (void) mkcl_wmemcpy((output->string.self + l), s->string.self, bytes);
-    }
+    mkcl_va_end(args);
+    mkcl_return_value(output);
   }
-  mkcl_va_end(args);
-  mkcl_return_value(output);
-@)
+}
 
 mkcl_object mkcl_concatenate_2_strings(MKCL, mkcl_object str1, mkcl_object str2)
 {
@@ -2593,54 +2686,58 @@ mkcl_object mk_si_utf_8_char(MKCL, mkcl_object utf_8, mkcl_object index_fix)
                        (invalid ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-@(defun si::utf-8+ (&rest args)
+mkcl_object mk_si_utf_8Plus(MKCL, mkcl_narg narg, ...)
+{
   mkcl_index len;
   int i;
   mkcl_object output;
-@
+
+  mkcl_call_stack_check(env);
   {
+    mkcl_setup_for_rest(env, @'si::utf-8+', 0, narg, narg, args);
+
     if (narg == 1) {
       mkcl_object s = mkcl_va_arg(args);
       
       if (MKCL_UTF_8_P(s))
-	{
-	  mkcl_index dim = s->UTF_8.fillp;
+        {
+          mkcl_index dim = s->UTF_8.fillp;
 	  
-	  output = mkcl_alloc_utf_8(env, dim);
-	  if (dim)
-	    memcpy(output->UTF_8.self, s->UTF_8.self, dim);
-	  output->UTF_8.self[dim] = '\0';
-	  output->UTF_8.fillp = dim;
-	}
+          output = mkcl_alloc_utf_8(env, dim);
+          if (dim)
+            memcpy(output->UTF_8.self, s->UTF_8.self, dim);
+          output->UTF_8.self[dim] = '\0';
+          output->UTF_8.fillp = dim;
+        }
       else
-	output = mk_si_utf_8(env, s);
+        output = mk_si_utf_8(env, s);
     } else {
       /* Compute final size and store NONEMPTY coerced strings. */
       len = 0;
       for (i = 0; i < narg; i++) {
-	mkcl_object arg = mkcl_va_arg(args);
-	mkcl_object s = (MKCL_UTF_8_P(arg) ? arg : mk_si_utf_8(env, arg));
-	mkcl_index dim = s->UTF_8.fillp;
-	if (dim) {
-	  MKCL_TEMP_STACK_PUSH(env, s);
-	  len += dim;
-	}
+        mkcl_object arg = mkcl_va_arg(args);
+        mkcl_object s = (MKCL_UTF_8_P(arg) ? arg : mk_si_utf_8(env, arg));
+        mkcl_index dim = s->UTF_8.fillp;
+        if (dim) {
+          MKCL_TEMP_STACK_PUSH(env, s);
+          len += dim;
+        }
       }
       /* Do actual copying by recovering those strings */
       output = mkcl_alloc_utf_8(env, len);
       output->UTF_8.self[len] = '\0'; /* string terminator for C. */
       output->UTF_8.fillp = len;
       while (len > 0) {
-	mkcl_object s = MKCL_TEMP_STACK_POP_UNSAFE(env);
-	size_t bytes = s->UTF_8.fillp;
-	len -= bytes;
-	memcpy((output->UTF_8.self + len), s->UTF_8.self, bytes);
+        mkcl_object s = MKCL_TEMP_STACK_POP_UNSAFE(env);
+        size_t bytes = s->UTF_8.fillp;
+        len -= bytes;
+        memcpy((output->UTF_8.self + len), s->UTF_8.self, bytes);
       }
     }
     mkcl_va_end(args);
     mkcl_return_value(output);
   }
-@)
+}
 
 
 mkcl_object mk_si_utf_8E(MKCL, mkcl_object u1, mkcl_object u2)
@@ -3077,64 +3174,68 @@ mkcl_object mk_si_utf_16_char(MKCL, mkcl_object utf_16, mkcl_object index_fix)
                        (invalid ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-@(defun si::utf-16+ (&rest args)
+mkcl_object mk_si_utf_16Plus(MKCL, mkcl_narg narg, ...)
+{
   mkcl_index len;
   int i;
   mkcl_object output;
-@
+
+  mkcl_call_stack_check(env);
   {
+    mkcl_setup_for_rest(env, @'si::utf-16+', 0, narg, narg, args);
+
     if (narg == 1) {
       mkcl_object s = mkcl_va_arg(args);
       
       if (MKCL_UTF_16_P(s))
-	{
-	  mkcl_index dim = s->UTF_16.fillp;
+        {
+          mkcl_index dim = s->UTF_16.fillp;
 	  
-	  output = mkcl_alloc_utf_16(env, dim);
-	  if (dim)
-	    {
-	      mkcl_char16 * to = output->UTF_16.self, * from = s->UTF_16.self;
-	      mkcl_index i;
-	      for (i = 0; i < dim; i++) to[i] = from[i];
-	    }
-	    /* memcpy(output->UTF_16.self, s->UTF_16.self, dim); */
-	  output->UTF_16.self[dim] = '\0';
-	  output->UTF_16.fillp = dim;
-	}
+          output = mkcl_alloc_utf_16(env, dim);
+          if (dim)
+            {
+              mkcl_char16 * to = output->UTF_16.self, * from = s->UTF_16.self;
+              mkcl_index i;
+              for (i = 0; i < dim; i++) to[i] = from[i];
+            }
+          /* memcpy(output->UTF_16.self, s->UTF_16.self, dim); */
+          output->UTF_16.self[dim] = '\0';
+          output->UTF_16.fillp = dim;
+        }
       else
-	output = mk_si_utf_16(env, s);
+        output = mk_si_utf_16(env, s);
     } else {
       /* Compute final size and store NONEMPTY coerced strings. */
       len = 0;
       for (i = 0; i < narg; i++) {
-	mkcl_object arg = mkcl_va_arg(args);
-	mkcl_object s = (MKCL_UTF_16_P(arg) ? arg : mk_si_utf_16(env, arg));
-	mkcl_index dim = s->UTF_16.fillp;
-	if (dim) {
-	  MKCL_TEMP_STACK_PUSH(env, s);
-	  len += dim;
-	}
+        mkcl_object arg = mkcl_va_arg(args);
+        mkcl_object s = (MKCL_UTF_16_P(arg) ? arg : mk_si_utf_16(env, arg));
+        mkcl_index dim = s->UTF_16.fillp;
+        if (dim) {
+          MKCL_TEMP_STACK_PUSH(env, s);
+          len += dim;
+        }
       }
       /* Do actual copying by recovering those strings */
       output = mkcl_alloc_utf_16(env, len);
       output->UTF_16.self[len] = 0; /* string terminator for C. */
       output->UTF_16.fillp = len;
       while (len > 0) {
-	mkcl_object s = MKCL_TEMP_STACK_POP_UNSAFE(env);
-	size_t bytes = s->UTF_16.fillp;
-	len -= bytes;
-	{
-	  mkcl_char16 * to = output->UTF_16.self + len, * from = s->UTF_16.self;
-	  mkcl_index i;
-	  for (i = 0; i < bytes; i++) to[i] = from[i];
-	}
-	/* memcpy((output->UTF_16.self + len), s->UTF_16.self, bytes); */
+        mkcl_object s = MKCL_TEMP_STACK_POP_UNSAFE(env);
+        size_t bytes = s->UTF_16.fillp;
+        len -= bytes;
+        {
+          mkcl_char16 * to = output->UTF_16.self + len, * from = s->UTF_16.self;
+          mkcl_index i;
+          for (i = 0; i < bytes; i++) to[i] = from[i];
+        }
+        /* memcpy((output->UTF_16.self + len), s->UTF_16.self, bytes); */
       }
     }
     mkcl_va_end(args);
     mkcl_return_value(output);
   }
-@)
+}
 
 
 mkcl_object mk_si_utf_16E(MKCL, mkcl_object u1, mkcl_object u2)

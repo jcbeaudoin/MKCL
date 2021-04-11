@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2000, Juan Jose Garcia-Ripoll
-    Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2012,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -392,6 +392,13 @@ extern "C" {
 
 #define mkcl_va_end(a) va_end(a[0].args)
 #define	mkcl_check_arg(e,n) do { if (narg != (n)) mkcl_FEwrong_num_arguments_anonym(e, n, n, narg);} while(0)
+
+#define mkcl_setup_for_rest(env, fun_name, min_arg, narg, last_fixed_arg, rest_varname) \
+  mkcl_va_list rest_varname;                                            \
+  mkcl_va_start(env, rest_varname, last_fixed_arg, (narg), (min_arg)); \
+  if ((narg) < (min_arg)) mkcl_FEwrong_num_arguments(env, (fun_name), (min_arg), -1, (narg)); else {}
+
+
 
 /***********************
  * RETURN VALUES STACK

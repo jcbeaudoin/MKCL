@@ -5,7 +5,7 @@
 /*
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2014, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2014,2021 Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -75,13 +75,18 @@ mk_si_find_relative_package(MKCL, mkcl_object package)
   mkcl_return_value(mk_cl_Cnil);
 }
 
-@(defun cerror (cformat eformat &rest args)
-@
-  const mkcl_object rest = mkcl_grab_rest_args(env, args, FALSE);
-  mkcl_va_end(args);
-  mkcl_object val = mk_cl_apply(env, 3, @+'error', eformat, rest);
-  mkcl_return_value(val);
-@)
+mkcl_object mk_cl_cerror(MKCL, mkcl_narg narg, mkcl_object cformat, mkcl_object eformat, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'cerror', 2, narg, eformat, args);
+
+    const mkcl_object rest = mkcl_grab_rest_args(env, args, FALSE);
+    mkcl_va_end(args);
+    mkcl_object val = mk_cl_apply(env, 3, @+'error', eformat, rest);
+    mkcl_return_value(val);
+  }
+}
 
 
 static mkcl_object mk_si_simple_toplevel(MKCL)

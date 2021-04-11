@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016,2021 Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -547,14 +547,19 @@ mkcl_FEwin32_stream_error(MKCL, mkcl_object stream, const char *msg, int narg, .
  * Higher level interface to errors *
  ************************************/
 
-@(defun error (datum &rest args)
-@
-  mkcl_object rest = mkcl_grab_rest_args(env, args, FALSE);
+mkcl_object mk_cl_error(MKCL, mkcl_narg narg, mkcl_object datum, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'error', 1, narg, datum, args);
 
-  mkcl_va_end(args);
-  mkcl_funcall2(env, @+'si::universal-error-handler', datum, rest);
-  mkcl_lose(env, "Should not have returned from universal-error-handler");
-@)
+    mkcl_object rest = mkcl_grab_rest_args(env, args, FALSE);
+
+    mkcl_va_end(args);
+    mkcl_funcall2(env, @+'si::universal-error-handler', datum, rest);
+    mkcl_lose(env, "Should not have returned from universal-error-handler");
+  }
+}
 
 
 void

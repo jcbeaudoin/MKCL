@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2017, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2017,2021 Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -2272,29 +2272,35 @@ static const struct mkcl_file_ops broadcast_ops = {
   generic_close
 };
 
-@(defun make_broadcast_stream (&rest ap)
+mkcl_object mk_cl_make_broadcast_stream(MKCL, mkcl_narg narg, ...)
+{
   mkcl_object x, streams;
   int i;
-@
-  streams = mk_cl_Cnil;
-  for (i = 0; i < narg; i++) {
-    x = mkcl_va_arg(ap);
-    if (!mkcl_output_stream_p(env, x))
-      not_an_output_stream(env, x);
-    streams = MKCL_CONS(env, x, streams);
+
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'make-broadcast-stream', 0, narg, narg, ap);
+
+    streams = mk_cl_Cnil;
+    for (i = 0; i < narg; i++) {
+      x = mkcl_va_arg(ap);
+      if (!mkcl_output_stream_p(env, x))
+        not_an_output_stream(env, x);
+      streams = MKCL_CONS(env, x, streams);
+    }
+    mkcl_va_end(ap);
+    x = alloc_stream(env);
+    if (mkcl_Null(streams)) {
+      x->stream.format = @':default';
+    } else {
+      x->stream.format = mk_cl_stream_external_format(env, MKCL_CONS_CAR(streams));
+    }
+    x->stream.ops = duplicate_dispatch_table(env, &broadcast_ops);
+    x->stream.mode = mkcl_smm_broadcast;
+    MKCL_BROADCAST_STREAM_LIST(x) = mk_cl_nreverse(env, streams);
+    mkcl_return_value(x);
   }
-  mkcl_va_end(ap);
-  x = alloc_stream(env);
-  if (mkcl_Null(streams)) {
-    x->stream.format = @':default';
-  } else {
-    x->stream.format = mk_cl_stream_external_format(env, MKCL_CONS_CAR(streams));
-  }
-  x->stream.ops = duplicate_dispatch_table(env, &broadcast_ops);
-  x->stream.mode = mkcl_smm_broadcast;
-  MKCL_BROADCAST_STREAM_LIST(x) = mk_cl_nreverse(env, streams);
-  mkcl_return_value(x);
-@)
+}
 
 mkcl_object
 mk_cl_broadcast_stream_streams(MKCL, mkcl_object strm)
@@ -2589,29 +2595,35 @@ static const struct mkcl_file_ops concatenated_ops = {
   generic_close
 };
 
-@(defun make_concatenated_stream (&rest ap)
+mkcl_object mk_cl_make_concatenated_stream(MKCL, mkcl_narg narg, ...)
+{
   mkcl_object x, streams;
   int i;
-@
-  streams = mk_cl_Cnil;
-  for (i = 0; i < narg; i++) {
-    x = mkcl_va_arg(ap);
-    if (!mkcl_input_stream_p(env, x))
-      not_an_input_stream(env, x);
-    streams = MKCL_CONS(env, x, streams);
+
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'make-concatenated-stream', 0, narg, narg, ap);
+
+    streams = mk_cl_Cnil;
+    for (i = 0; i < narg; i++) {
+      x = mkcl_va_arg(ap);
+      if (!mkcl_input_stream_p(env, x))
+        not_an_input_stream(env, x);
+      streams = MKCL_CONS(env, x, streams);
+    }
+    mkcl_va_end(ap);
+    x = alloc_stream(env);
+    if (mkcl_Null(streams)) {
+      x->stream.format = @':default';
+    } else {
+      x->stream.format = mk_cl_stream_external_format(env, MKCL_CONS_CAR(streams));
+    }
+    x->stream.mode = mkcl_smm_concatenated;
+    x->stream.ops = duplicate_dispatch_table(env, &concatenated_ops);
+    MKCL_CONCATENATED_STREAM_LIST(x) = mk_cl_nreverse(env, streams);
+    mkcl_return_value(x);
   }
-  mkcl_va_end(ap);
-  x = alloc_stream(env);
-  if (mkcl_Null(streams)) {
-    x->stream.format = @':default';
-  } else {
-    x->stream.format = mk_cl_stream_external_format(env, MKCL_CONS_CAR(streams));
-  }
-  x->stream.mode = mkcl_smm_concatenated;
-  x->stream.ops = duplicate_dispatch_table(env, &concatenated_ops);
-  MKCL_CONCATENATED_STREAM_LIST(x) = mk_cl_nreverse(env, streams);
-  mkcl_return_value(x);
-@)
+}
 
 mkcl_object
 mk_cl_concatenated_stream_streams(MKCL, mkcl_object strm)

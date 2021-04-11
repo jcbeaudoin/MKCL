@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016,2021 Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -486,75 +486,79 @@ mkcl_clone_cclosure(MKCL, mkcl_object c0, mkcl_object new_cenv)
    must be twin closures (ie: they were closed over the same environment).
    Any other object will be passed through as is to the value list without any cloning.
 */
-@(defun si::clone-closure (&rest args)
-  mkcl_object head = mk_cl_Cnil;
-@
+mkcl_object mk_si_clone_closure(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
   {
-    mkcl_object tail;
-    mkcl_object c0;
-    mkcl_object c0_env = mk_cl_Cnil;
-    mkcl_object clone;
-    mkcl_object clone_env;
-    mkcl_object (* cloner)(MKCL, mkcl_object c0, mkcl_object new_env);
+    mkcl_object head = mk_cl_Cnil;
+    mkcl_setup_for_rest(env, @'si::clone-closure', 0, narg, narg, args);
+    {
+      mkcl_object tail;
+      mkcl_object c0;
+      mkcl_object c0_env = mk_cl_Cnil;
+      mkcl_object clone;
+      mkcl_object clone_env;
+      mkcl_object (* cloner)(MKCL, mkcl_object c0, mkcl_object new_env);
 
-    while (narg && mkcl_Null(c0_env))
-      {
-	c0 = mkcl_va_arg(args);
-	switch(mkcl_type_of(c0))
-	  {
-	  case mkcl_t_bclosure:
-	    c0_env = c0->bclosure.lex;
-	    cloner = mkcl_clone_bclosure;
-	    clone = cloner(env, c0, mk_cl_Cnil);
-	    clone_env = clone->bclosure.lex;
-	    break;
-	  case mkcl_t_cclosure:
-	    c0_env = c0->cclosure.cenv;
-	    cloner = mkcl_clone_cclosure;
-	    clone = cloner(env, c0, mk_cl_Cnil);
-	    clone_env = clone->cclosure.cenv;
-	    break;
-	  default:
-	    clone = c0;
-	    break;
-	  }
-	if (mkcl_Null(head))
-	  {
-	    tail = head = mkcl_list1(env, clone);
-	  }
-	else
-	  {
-	    mkcl_object cons = mkcl_list1(env, clone);
-	    MKCL_RPLACD(tail, cons);
-	    tail = cons;
-	  }
-	narg--;
-      }
+      while (narg && mkcl_Null(c0_env))
+        {
+          c0 = mkcl_va_arg(args);
+          switch(mkcl_type_of(c0))
+            {
+            case mkcl_t_bclosure:
+              c0_env = c0->bclosure.lex;
+              cloner = mkcl_clone_bclosure;
+              clone = cloner(env, c0, mk_cl_Cnil);
+              clone_env = clone->bclosure.lex;
+              break;
+            case mkcl_t_cclosure:
+              c0_env = c0->cclosure.cenv;
+              cloner = mkcl_clone_cclosure;
+              clone = cloner(env, c0, mk_cl_Cnil);
+              clone_env = clone->cclosure.cenv;
+              break;
+            default:
+              clone = c0;
+              break;
+            }
+          if (mkcl_Null(head))
+            {
+              tail = head = mkcl_list1(env, clone);
+            }
+          else
+            {
+              mkcl_object cons = mkcl_list1(env, clone);
+              MKCL_RPLACD(tail, cons);
+              tail = cons;
+            }
+          narg--;
+        }
     
-    while (narg--) {
-      mkcl_object c1 = mkcl_va_arg(args);
-      mkcl_object c1_env;
+      while (narg--) {
+        mkcl_object c1 = mkcl_va_arg(args);
+        mkcl_object c1_env;
 
-      switch(mkcl_type_of(c1))
-	{
-	case mkcl_t_bclosure: c1_env = c1->bclosure.lex; break;
-	case mkcl_t_cclosure: c1_env = c1->cclosure.cenv; break;
-	default: c1_env = mk_cl_Cnil; break;
-	}
+        switch(mkcl_type_of(c1))
+          {
+          case mkcl_t_bclosure: c1_env = c1->bclosure.lex; break;
+          case mkcl_t_cclosure: c1_env = c1->cclosure.cenv; break;
+          default: c1_env = mk_cl_Cnil; break;
+          }
       
-      if ( c0_env == c1_env ) /* Twin closures? */
-	clone = cloner(env, c1, clone_env);
-      else
-	clone = c1;
+        if ( c0_env == c1_env ) /* Twin closures? */
+          clone = cloner(env, c1, clone_env);
+        else
+          clone = c1;
 
-      mkcl_object cons = mkcl_list1(env, clone);
-      MKCL_RPLACD(tail, cons);
-      tail = cons;
+        mkcl_object cons = mkcl_list1(env, clone);
+        MKCL_RPLACD(tail, cons);
+        tail = cons;
+      }
     }
-  }
     mkcl_va_end(args);
-  mkcl_return_value(head);
-@)
+    mkcl_return_value(head);
+  }
+}
 
 mkcl_object
 mk_si_closure_siblings_p(MKCL, mkcl_object c1, mkcl_object c2)

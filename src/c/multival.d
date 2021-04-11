@@ -5,6 +5,7 @@
 /*
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
+    Copyright (c) 2021, Jean-Claude Beaudoin.
 
     ECoLisp is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -17,19 +18,25 @@
 
 #include <mkcl/mkcl.h>
 
-@(defun values (&rest args)
-	int i;
-@
-  if (narg > MKCL_MULTIPLE_VALUES_LIMIT)
-    mkcl_FEerror(env, "Too many values in VALUES",0);
-  MKCL_NVALUES = narg;
-  if (narg == 0)
-    MKCL_VALUES(0) = mk_cl_Cnil;
-  else for (i = 0; i < narg; i++)
-	 MKCL_VALUES(i) = mkcl_va_arg(args);
-  mkcl_va_end(args);
-  mkcl_returnn(MKCL_VALUES(0));
-@)
+mkcl_object mk_cl_values(MKCL, mkcl_narg narg, ...)
+{
+  int i;
+
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'values', 0, narg, narg, args);
+
+    if (narg > MKCL_MULTIPLE_VALUES_LIMIT)
+      mkcl_FEerror(env, "Too many values in VALUES",0);
+    MKCL_NVALUES = narg;
+    if (narg == 0)
+      MKCL_VALUES(0) = mk_cl_Cnil;
+    else for (i = 0; i < narg; i++)
+           MKCL_VALUES(i) = mkcl_va_arg(args);
+    mkcl_va_end(args);
+    mkcl_returnn(MKCL_VALUES(0));
+  }
+}
 
 mkcl_object
 mk_cl_values_list(MKCL, mkcl_object list)

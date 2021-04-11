@@ -4,7 +4,7 @@
 */
 /*
     Copyright (c) 1993, Giuseppe Attardi.
-    Copyright (c) 2001, Juan Jose Garcia Ripoll.
+    Copyright (c) 2001,2021 Juan Jose Garcia Ripoll.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -30,165 +30,201 @@
     mkcl_FEprogram_error(env, "MAP*: Too few arguments", 0);		\
   }
 
-@(defun mapcar (fun &rest lists)
-	mkcl_object res, *val = &res;
-@ 
+mkcl_object mk_cl_mapcar(MKCL, mkcl_narg narg, mkcl_object fun, ...)
+{
+  mkcl_object res, *val = &res;
+
+  mkcl_call_stack_check(env);
   {
-    PREPARE_MAP(env, lists, cdrs_frame, cars_frame, narg);
-    res = mk_cl_Cnil;
-    while (TRUE) {
-      mkcl_index i;
-      for (i = 0;  i < narg;  i++) {
-	mkcl_object cdr = MKCL_TEMP_STACK_FRAME_REF(cdrs_frame, i);
-	if (!MKCL_LISTP(cdr))
-	  mkcl_FEtype_error_list(env, cdr);
-	if (mkcl_Null(cdr)) {
-	  mkcl_temp_stack_frame_close(env, cars_frame);
-	  mkcl_temp_stack_frame_close(env, cdrs_frame);
-          mkcl_va_end(lists);
-	  mkcl_return_value(res);
-	}
-	MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, MKCL_CONS_CAR(cdr));
-	MKCL_TEMP_STACK_FRAME_SET(cdrs_frame, i, MKCL_CONS_CDR(cdr));
+    mkcl_setup_for_rest(env, @'mapcar', 1, narg, fun, lists);
+
+    {
+      PREPARE_MAP(env, lists, cdrs_frame, cars_frame, narg);
+      res = mk_cl_Cnil;
+      while (TRUE) {
+        mkcl_index i;
+        for (i = 0;  i < narg;  i++) {
+          mkcl_object cdr = MKCL_TEMP_STACK_FRAME_REF(cdrs_frame, i);
+          if (!MKCL_LISTP(cdr))
+            mkcl_FEtype_error_list(env, cdr);
+          if (mkcl_Null(cdr)) {
+            mkcl_temp_stack_frame_close(env, cars_frame);
+            mkcl_temp_stack_frame_close(env, cdrs_frame);
+            mkcl_va_end(lists);
+            mkcl_return_value(res);
+          }
+          MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, MKCL_CONS_CAR(cdr));
+          MKCL_TEMP_STACK_FRAME_SET(cdrs_frame, i, MKCL_CONS_CDR(cdr));
+        }
+        *val = mkcl_list1(env, mkcl_apply_from_temp_stack_frame(env, cars_frame, fun));
+        val = &MKCL_CONS_CDR(*val);
       }
-      *val = mkcl_list1(env, mkcl_apply_from_temp_stack_frame(env, cars_frame, fun));
-      val = &MKCL_CONS_CDR(*val);
     }
   }
-@)
+}
 
-@(defun maplist (fun &rest lists)
-	mkcl_object res, *val = &res;
-@
+mkcl_object mk_cl_maplist(MKCL, mkcl_narg narg, mkcl_object fun, ...)
+{
+  mkcl_object res, *val = &res;
+
+  mkcl_call_stack_check(env);
   {
-    PREPARE_MAP(env, lists, cdrs_frame, cars_frame, narg);
-    res = mk_cl_Cnil;
-    while (TRUE) {
-      mkcl_index i;
-      for (i = 0;  i < narg;  i++) {
-	mkcl_object cdr = MKCL_TEMP_STACK_FRAME_REF(cdrs_frame, i);
-	if (!MKCL_LISTP(cdr))
-	  mkcl_FEtype_error_list(env, cdr);
-	if (mkcl_Null(cdr)) {
-	  mkcl_temp_stack_frame_close(env, cars_frame);
-	  mkcl_temp_stack_frame_close(env, cdrs_frame);
-          mkcl_va_end(lists);
-	  mkcl_return_value(res);
-	}
-	MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, cdr);
-	MKCL_TEMP_STACK_FRAME_SET(cdrs_frame, i, MKCL_CONS_CDR(cdr));
+    mkcl_setup_for_rest(env, @'maplist', 1, narg, fun, lists);
+
+    {
+      PREPARE_MAP(env, lists, cdrs_frame, cars_frame, narg);
+      res = mk_cl_Cnil;
+      while (TRUE) {
+        mkcl_index i;
+        for (i = 0;  i < narg;  i++) {
+          mkcl_object cdr = MKCL_TEMP_STACK_FRAME_REF(cdrs_frame, i);
+          if (!MKCL_LISTP(cdr))
+            mkcl_FEtype_error_list(env, cdr);
+          if (mkcl_Null(cdr)) {
+            mkcl_temp_stack_frame_close(env, cars_frame);
+            mkcl_temp_stack_frame_close(env, cdrs_frame);
+            mkcl_va_end(lists);
+            mkcl_return_value(res);
+          }
+          MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, cdr);
+          MKCL_TEMP_STACK_FRAME_SET(cdrs_frame, i, MKCL_CONS_CDR(cdr));
+        }
+        *val = mkcl_list1(env, mkcl_apply_from_temp_stack_frame(env, cars_frame, fun));
+        val = &MKCL_CONS_CDR(*val);
       }
-      *val = mkcl_list1(env, mkcl_apply_from_temp_stack_frame(env, cars_frame, fun));
-      val = &MKCL_CONS_CDR(*val);
     }
   }
-@)
+}
 
-@(defun mapc (fun &rest lists)
-	mkcl_object onelist;
-@ 
-  {
-    PREPARE_MAP(env, lists, cdrs_frame, cars_frame, narg);
-    onelist = MKCL_TEMP_STACK_FRAME_REF(cdrs_frame, 0);
-    while (TRUE) {
-      mkcl_index i;
-      for (i = 0;  i < narg;  i++) {
-	mkcl_object cdr = MKCL_TEMP_STACK_FRAME_REF(cdrs_frame, i);
-	if (!MKCL_LISTP(cdr))
-	  mkcl_FEtype_error_list(env, cdr);
-	if (mkcl_Null(cdr)) {
-	  mkcl_temp_stack_frame_close(env, cars_frame);
-	  mkcl_temp_stack_frame_close(env, cdrs_frame);
-          mkcl_va_end(lists);
-	  mkcl_return_value(onelist);
-	}
-	MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, MKCL_CONS_CAR(cdr));
-	MKCL_TEMP_STACK_FRAME_SET(cdrs_frame, i, MKCL_CONS_CDR(cdr));
-      }
-      mkcl_apply_from_temp_stack_frame(env, cars_frame, fun);
-    }
-  } 
-@)
+mkcl_object mk_cl_mapc(MKCL, mkcl_narg narg, mkcl_object fun, ...)
+{
+  mkcl_object onelist;
 
-@(defun mapl (fun &rest lists)
-	mkcl_object onelist;
-@ 
+  mkcl_call_stack_check(env);
   {
-    PREPARE_MAP(env, lists, cdrs_frame, cars_frame, narg);
-    onelist = MKCL_TEMP_STACK_FRAME_REF(cdrs_frame, 0);
-    while (TRUE) {
-      mkcl_index i;
-      for (i = 0;  i < narg;  i++) {
-	mkcl_object cdr = MKCL_TEMP_STACK_FRAME_REF(cdrs_frame, i);
-	if (!MKCL_LISTP(cdr))
-	  mkcl_FEtype_error_list(env, cdr);
-	if (mkcl_Null(cdr)) {
-	  mkcl_temp_stack_frame_close(env, cars_frame);
-	  mkcl_temp_stack_frame_close(env, cdrs_frame);
-          mkcl_va_end(lists);
-	  mkcl_return_value(onelist);
-	}
-	MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, cdr);
-	MKCL_TEMP_STACK_FRAME_SET(cdrs_frame, i, MKCL_CONS_CDR(cdr));
+    mkcl_setup_for_rest(env, @'mapc', 1, narg, fun, lists);
+
+    {
+      PREPARE_MAP(env, lists, cdrs_frame, cars_frame, narg);
+      onelist = MKCL_TEMP_STACK_FRAME_REF(cdrs_frame, 0);
+      while (TRUE) {
+        mkcl_index i;
+        for (i = 0;  i < narg;  i++) {
+          mkcl_object cdr = MKCL_TEMP_STACK_FRAME_REF(cdrs_frame, i);
+          if (!MKCL_LISTP(cdr))
+            mkcl_FEtype_error_list(env, cdr);
+          if (mkcl_Null(cdr)) {
+            mkcl_temp_stack_frame_close(env, cars_frame);
+            mkcl_temp_stack_frame_close(env, cdrs_frame);
+            mkcl_va_end(lists);
+            mkcl_return_value(onelist);
+          }
+          MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, MKCL_CONS_CAR(cdr));
+          MKCL_TEMP_STACK_FRAME_SET(cdrs_frame, i, MKCL_CONS_CDR(cdr));
+        }
+        mkcl_apply_from_temp_stack_frame(env, cars_frame, fun);
       }
-      mkcl_apply_from_temp_stack_frame(env, cars_frame, fun);
     }
   }
-@)
+}
 
-@(defun mapcan (fun &rest lists)
-	mkcl_object res, *val = &res;
-@ 
-  {
-    PREPARE_MAP(env, lists, cdrs_frame, cars_frame, narg);
-    res = mk_cl_Cnil;
-    while (TRUE) {
-      mkcl_index i;
-      for (i = 0;  i < narg;  i++) {
-	mkcl_object cdr = MKCL_TEMP_STACK_FRAME_REF(cdrs_frame, i);
-	if (!MKCL_LISTP(cdr))
-	  mkcl_FEtype_error_list(env, cdr);
-	if (mkcl_Null(cdr)) {
-	  mkcl_temp_stack_frame_close(env, cars_frame);
-	  mkcl_temp_stack_frame_close(env, cdrs_frame);
-          mkcl_va_end(lists);
-	  mkcl_return_value(res);
-	}
-	MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, MKCL_CONS_CAR(cdr));
-	MKCL_TEMP_STACK_FRAME_SET(cdrs_frame, i, MKCL_CONS_CDR(cdr));
-      }
-      *val = mkcl_apply_from_temp_stack_frame(env, cars_frame, fun);
-      while (MKCL_CONSP(*val))
-	val = &MKCL_CONS_CDR(*val);
-    }
-  } 
-@)
+mkcl_object mk_cl_mapl(MKCL, mkcl_narg narg, mkcl_object fun, ...)
+{
+  mkcl_object onelist;
 
-@(defun mapcon (fun &rest lists)
-	mkcl_object res, *val = &res;
-@ 
+  mkcl_call_stack_check(env);
   {
-    PREPARE_MAP(env, lists, cdrs_frame, cars_frame, narg);
-    res = mk_cl_Cnil;
-    while (TRUE) {
-      mkcl_index i;
-      for (i = 0;  i < narg;  i++) {
-	mkcl_object cdr = MKCL_TEMP_STACK_FRAME_REF(cdrs_frame, i);
-	if (!MKCL_LISTP(cdr))
-	  mkcl_FEtype_error_list(env, cdr);
-	if (mkcl_Null(cdr)) {
-	  mkcl_temp_stack_frame_close(env, cars_frame);
-	  mkcl_temp_stack_frame_close(env, cdrs_frame);
-          mkcl_va_end(lists);
-	  mkcl_return_value(res);
-	}
-	MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, cdr);
-	MKCL_TEMP_STACK_FRAME_SET(cdrs_frame, i, MKCL_CONS_CDR(cdr));
+    mkcl_setup_for_rest(env, @'mapl', 1, narg, fun, lists);
+
+    {
+      PREPARE_MAP(env, lists, cdrs_frame, cars_frame, narg);
+      onelist = MKCL_TEMP_STACK_FRAME_REF(cdrs_frame, 0);
+      while (TRUE) {
+        mkcl_index i;
+        for (i = 0;  i < narg;  i++) {
+          mkcl_object cdr = MKCL_TEMP_STACK_FRAME_REF(cdrs_frame, i);
+          if (!MKCL_LISTP(cdr))
+            mkcl_FEtype_error_list(env, cdr);
+          if (mkcl_Null(cdr)) {
+            mkcl_temp_stack_frame_close(env, cars_frame);
+            mkcl_temp_stack_frame_close(env, cdrs_frame);
+            mkcl_va_end(lists);
+            mkcl_return_value(onelist);
+          }
+          MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, cdr);
+          MKCL_TEMP_STACK_FRAME_SET(cdrs_frame, i, MKCL_CONS_CDR(cdr));
+        }
+        mkcl_apply_from_temp_stack_frame(env, cars_frame, fun);
       }
-      *val = mkcl_apply_from_temp_stack_frame(env, cars_frame, fun);
-      while (MKCL_CONSP(*val))
-	val = &MKCL_CONS_CDR(*val);
     }
   }
-@)
+}
+
+mkcl_object mk_cl_mapcan(MKCL, mkcl_narg narg, mkcl_object fun, ...)
+{
+  mkcl_object res, *val = &res;
+
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'mapcan', 1, narg, fun, lists);
+
+    {
+      PREPARE_MAP(env, lists, cdrs_frame, cars_frame, narg);
+      res = mk_cl_Cnil;
+      while (TRUE) {
+        mkcl_index i;
+        for (i = 0;  i < narg;  i++) {
+          mkcl_object cdr = MKCL_TEMP_STACK_FRAME_REF(cdrs_frame, i);
+          if (!MKCL_LISTP(cdr))
+            mkcl_FEtype_error_list(env, cdr);
+          if (mkcl_Null(cdr)) {
+            mkcl_temp_stack_frame_close(env, cars_frame);
+            mkcl_temp_stack_frame_close(env, cdrs_frame);
+            mkcl_va_end(lists);
+            mkcl_return_value(res);
+          }
+          MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, MKCL_CONS_CAR(cdr));
+          MKCL_TEMP_STACK_FRAME_SET(cdrs_frame, i, MKCL_CONS_CDR(cdr));
+        }
+        *val = mkcl_apply_from_temp_stack_frame(env, cars_frame, fun);
+        while (MKCL_CONSP(*val))
+          val = &MKCL_CONS_CDR(*val);
+      }
+    }
+  }
+}
+
+mkcl_object mk_cl_mapcon(MKCL, mkcl_narg narg, mkcl_object fun, ...)
+{
+  mkcl_object res, *val = &res;
+
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'mapcon', 1, narg, fun, lists);
+
+    {
+      PREPARE_MAP(env, lists, cdrs_frame, cars_frame, narg);
+      res = mk_cl_Cnil;
+      while (TRUE) {
+        mkcl_index i;
+        for (i = 0;  i < narg;  i++) {
+          mkcl_object cdr = MKCL_TEMP_STACK_FRAME_REF(cdrs_frame, i);
+          if (!MKCL_LISTP(cdr))
+            mkcl_FEtype_error_list(env, cdr);
+          if (mkcl_Null(cdr)) {
+            mkcl_temp_stack_frame_close(env, cars_frame);
+            mkcl_temp_stack_frame_close(env, cdrs_frame);
+            mkcl_va_end(lists);
+            mkcl_return_value(res);
+          }
+          MKCL_TEMP_STACK_FRAME_SET(cars_frame, i, cdr);
+          MKCL_TEMP_STACK_FRAME_SET(cdrs_frame, i, MKCL_CONS_CDR(cdr));
+        }
+        *val = mkcl_apply_from_temp_stack_frame(env, cars_frame, fun);
+        while (MKCL_CONSP(*val))
+          val = &MKCL_CONS_CDR(*val);
+      }
+    }
+  }
+}
 

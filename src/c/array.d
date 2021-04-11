@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2017, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2017,2021 Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -192,48 +192,52 @@ mk_si_row_major_aset(MKCL, mkcl_object x, mkcl_object indx, mkcl_object val)
   mkcl_return_value(mkcl_aset_index(env, x, j, val));
 }
 
-@(defun array-row-major-index (x &rest indx)
-@
+mkcl_object mk_cl_array_row_major_index(MKCL, const mkcl_narg narg, mkcl_object x, ...)
+{
+  mkcl_call_stack_check(env);
   {
-    mkcl_index i, j;
-    mkcl_index r = narg - 1;
-  AGAIN:
-    switch (mkcl_type_of(x)) {
-    case mkcl_t_array:
-      if (r != x->array.rank)
-	mkcl_FEerror(env, "Wrong number of indices.", 0);
-      for (i = j = 0;  i < r;  i++) {
-	mkcl_object index = mkcl_va_arg(indx);
-	mkcl_index dim = x->array.dims[i];
-	mkcl_index s;
+    mkcl_setup_for_rest(env, @'array-row-major-index', 1, narg, x, indx);
+    {
+      mkcl_index i, j;
+      mkcl_index r = narg - 1;
+    AGAIN:
+      switch (mkcl_type_of(x)) {
+      case mkcl_t_array:
+        if (r != x->array.rank)
+          mkcl_FEerror(env, "Wrong number of indices.", 0);
+        for (i = j = 0;  i < r;  i++) {
+          mkcl_object index = mkcl_va_arg(indx);
+          mkcl_index dim = x->array.dims[i];
+          mkcl_index s;
 
-	if (!(MKCL_FIXNUMP(index) && ((s = mkcl_fixnum_to_word(index)) < dim)))
-	  s = mkcl_fixnum_in_range(env, @'array-row-major-index', "index", index, 0, (mkcl_word)dim-1);
-	j = j*dim + s;
-      }
-      break;
-    case mkcl_t_vector:
-    case mkcl_t_string:
-    case mkcl_t_base_string:
-    case mkcl_t_bitvector:
-      if (r != 1)
-	mkcl_FEerror(env, "Wrong number of indices.", 0);
-      {
-	mkcl_object index = mkcl_va_arg(indx);
+          if (!(MKCL_FIXNUMP(index) && ((s = mkcl_fixnum_to_word(index)) < dim)))
+            s = mkcl_fixnum_in_range(env, @'array-row-major-index', "index", index, 0, (mkcl_word)dim-1);
+          j = j*dim + s;
+        }
+        break;
+      case mkcl_t_vector:
+      case mkcl_t_string:
+      case mkcl_t_base_string:
+      case mkcl_t_bitvector:
+        if (r != 1)
+          mkcl_FEerror(env, "Wrong number of indices.", 0);
+        {
+          mkcl_object index = mkcl_va_arg(indx);
 
-	if (!(MKCL_FIXNUMP(index) && ((j = mkcl_fixnum_to_word(index)) < x->vector.dim)))
-	  j = mkcl_fixnum_in_range(env, @'array-row-major-index', "index", index, 0, (mkcl_word)x->vector.dim-1);
+          if (!(MKCL_FIXNUMP(index) && ((j = mkcl_fixnum_to_word(index)) < x->vector.dim)))
+            j = mkcl_fixnum_in_range(env, @'array-row-major-index', "index", index, 0, (mkcl_word)x->vector.dim-1);
+        }
+        break;
+      default:
+        x = mkcl_type_error(env, @'aref',"argument",x,@'array');
+        goto AGAIN;
       }
-      break;
-    default:
-      x = mkcl_type_error(env, @'aref',"argument",x,@'array');
-      goto AGAIN;
+      mkcl_va_end(indx);
+      /* By construction, "j" is a valid array index and should thus be within the range of fixnum. */
+      mkcl_return_value(MKCL_MAKE_FIXNUM(j));
     }
-    mkcl_va_end(indx);
-    /* By construction, "j" is a valid array index and should thus be within the range of fixnum. */
-    mkcl_return_value(MKCL_MAKE_FIXNUM(j));
-  } 
-@)
+  }
+}
 
 mkcl_index mkcl_array_row_major_index_2_t(MKCL, mkcl_object a, mkcl_object i, mkcl_object j)
 {
@@ -297,47 +301,52 @@ mkcl_index mkcl_array_row_major_index_3_t(MKCL, mkcl_object a, mkcl_object i, mk
     }
 }
 
-@(defun aref (x &rest indx)
-@
+mkcl_object mk_cl_aref(MKCL, const mkcl_narg narg, mkcl_object x, ...)
+{
+  mkcl_call_stack_check(env);
   {
-    mkcl_index i, j;
-    mkcl_index r = narg - 1;
-  AGAIN:
-    switch (mkcl_type_of(x)) {
-    case mkcl_t_array:
-      if (r != x->array.rank)
-	mkcl_FEerror(env, "Wrong number of indices.", 0);
-      for (i = j = 0;  i < r;  i++) {
-	mkcl_object index = mkcl_va_arg(indx);
-	mkcl_index dim = x->array.dims[i];
-	mkcl_index s;
+    mkcl_setup_for_rest(env, @'aref', 1, narg, x, indx);
+    {
+      mkcl_index i, j;
+      mkcl_index r = narg - 1;
+    AGAIN:
+      switch (mkcl_type_of(x)) {
+      case mkcl_t_array:
+        if (r != x->array.rank)
+          mkcl_FEerror(env, "Wrong number of indices.", 0);
+        for (i = j = 0;  i < r;  i++) {
+          mkcl_object index = mkcl_va_arg(indx);
+          mkcl_index dim = x->array.dims[i];
+          mkcl_index s;
 
-	if (!(MKCL_FIXNUMP(index) && ((s = mkcl_fixnum_to_word(index)) < dim)))
-	  s = mkcl_fixnum_in_range(env, @'aref', "index", index, 0, (mkcl_word)dim-1);
-	j = j*dim + s;
-      }
-      break;
-    case mkcl_t_vector:
-    case mkcl_t_string:
-    case mkcl_t_base_string:
-    case mkcl_t_bitvector:
-      if (r != 1)
-	mkcl_FEerror(env, "Wrong number of indices.", 0);
-      {
-	mkcl_object index = mkcl_va_arg(indx);
+          if (!(MKCL_FIXNUMP(index) && ((s = mkcl_fixnum_to_word(index)) < dim)))
+            s = mkcl_fixnum_in_range(env, @'aref', "index", index, 0, (mkcl_word)dim-1);
+          j = j*dim + s;
+        }
+        break;
+      case mkcl_t_vector:
+      case mkcl_t_string:
+      case mkcl_t_base_string:
+      case mkcl_t_bitvector:
+        if (r != 1)
+          mkcl_FEerror(env, "Wrong number of indices.", 0);
+        {
+          mkcl_object index = mkcl_va_arg(indx);
 
-	if (!(MKCL_FIXNUMP(index) && ((j = mkcl_fixnum_to_word(index)) < x->vector.dim)))
-	  j = mkcl_fixnum_in_range(env, @'aref', "index", index, 0, (mkcl_word)x->vector.dim-1);
+          if (!(MKCL_FIXNUMP(index) && ((j = mkcl_fixnum_to_word(index)) < x->vector.dim)))
+            j = mkcl_fixnum_in_range(env, @'aref', "index", index, 0, (mkcl_word)x->vector.dim-1);
+        }
+        break;
+      default:
+        x = mkcl_type_error(env, @'aref',"argument",x,@'array');
+        goto AGAIN;
       }
-      break;
-    default:
-      x = mkcl_type_error(env, @'aref',"argument",x,@'array');
-      goto AGAIN;
+      mkcl_va_end(indx);
+      mkcl_return_value(mkcl_aref_index(env, x, j));
     }
-    mkcl_va_end(indx);
-    mkcl_return_value(mkcl_aref_index(env, x, j));
-  } 
-@)
+  }
+}
+
 
 mkcl_object
 mkcl_aref(MKCL, mkcl_object x, mkcl_object index)
@@ -373,47 +382,51 @@ mkcl_vref(MKCL, mkcl_object v, mkcl_object index)
 
 		(si:aset value array dim0 ... dimN)
 */
-@(defun si::aset (v x &rest dims)
-@ 
+mkcl_object mk_si_aset(MKCL, const mkcl_narg narg, mkcl_object v, mkcl_object x, ...)
+{
+  mkcl_call_stack_check(env);
   {
-    mkcl_index i, j;
-    mkcl_index r = narg - 2;
-  AGAIN:
-    switch (mkcl_type_of(x)) {
-    case mkcl_t_array:
-      if (r != x->array.rank)
-	mkcl_FEerror(env, "Wrong number of indices.", 0);
-      for (i = j = 0;  i < r;  i++) {
-	mkcl_object index = mkcl_va_arg(dims);
-	mkcl_index dim = x->array.dims[i];
-	mkcl_index s;
+    mkcl_setup_for_rest(env, @'si::aset', 2, narg, x, dims);
+    {
+      mkcl_index i, j;
+      mkcl_index r = narg - 2;
+    AGAIN:
+      switch (mkcl_type_of(x)) {
+      case mkcl_t_array:
+        if (r != x->array.rank)
+          mkcl_FEerror(env, "Wrong number of indices.", 0);
+        for (i = j = 0;  i < r;  i++) {
+          mkcl_object index = mkcl_va_arg(dims);
+          mkcl_index dim = x->array.dims[i];
+          mkcl_index s;
 
-	if (!(MKCL_FIXNUMP(index) && ((s = mkcl_fixnum_to_word(index)) < dim)))
-	  s =mkcl_fixnum_in_range(env, @'si::aset', "index", index, 0, (mkcl_word)dim-1);
-	j = j*dim + s;
-      }
-      break;
-    case mkcl_t_vector:
-    case mkcl_t_string:
-    case mkcl_t_base_string:
-    case mkcl_t_bitvector:
-      if (r != 1)
-	mkcl_FEerror(env, "Wrong number of indices.", 0);
-      {
-	mkcl_object index = mkcl_va_arg(dims);
+          if (!(MKCL_FIXNUMP(index) && ((s = mkcl_fixnum_to_word(index)) < dim)))
+            s =mkcl_fixnum_in_range(env, @'si::aset', "index", index, 0, (mkcl_word)dim-1);
+          j = j*dim + s;
+        }
+        break;
+      case mkcl_t_vector:
+      case mkcl_t_string:
+      case mkcl_t_base_string:
+      case mkcl_t_bitvector:
+        if (r != 1)
+          mkcl_FEerror(env, "Wrong number of indices.", 0);
+        {
+          mkcl_object index = mkcl_va_arg(dims);
 
-	if (!(MKCL_FIXNUMP(index) && ((j = mkcl_fixnum_to_word(index)) < x->vector.dim)))
-	  j = mkcl_fixnum_in_range(env, @'si::aset',"index", index, 0, (mkcl_word)x->vector.dim - 1);
+          if (!(MKCL_FIXNUMP(index) && ((j = mkcl_fixnum_to_word(index)) < x->vector.dim)))
+            j = mkcl_fixnum_in_range(env, @'si::aset',"index", index, 0, (mkcl_word)x->vector.dim - 1);
+        }
+        break;
+      default:
+        x = mkcl_type_error(env, @'si::aset',"destination",v,@'array');
+        goto AGAIN;
       }
-      break;
-    default:
-      x = mkcl_type_error(env, @'si::aset',"destination",v,@'array');
-      goto AGAIN;
+      mkcl_va_end(dims);
+      mkcl_return_value(mkcl_aset_index(env, x, j, v));
     }
-    mkcl_va_end(dims);
-    mkcl_return_value(mkcl_aset_index(env, x, j, v));
-  } 
-@)
+  }
+}
 
 mkcl_index mkcl_ensure_index_for_array_row_major_index(MKCL, mkcl_index i, mkcl_index dim)
 {

@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2012, Jean-Claude Beaudoin.
+    Copyright (c) 2012,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -440,45 +440,65 @@ mkcl_word_bit_length(mkcl_word i)
   return count;
 }
 
-@(defun logior (&rest nums)
-@
-  if (narg == 0)
-    { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(0)); }
-  /* INV: log_op() checks types and outputs first argument as default. */
-  mkcl_object val = log_op(env, narg, MKCL_BOOLIOR, nums);
-  mkcl_va_end(nums);
-  mkcl_return_value(val)
-@)
+mkcl_object mk_cl_logior(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'logior', 0, narg, narg, nums);
 
-@(defun logxor (&rest nums)
-@
-  if (narg == 0)
-    { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(0)); }
-  /* INV: log_op() checks types and outputs first argument as default. */
-  mkcl_object val = log_op(env, narg, MKCL_BOOLXOR, nums);
-  mkcl_va_end(nums);
-  mkcl_return_value(val);
-@)
+    if (narg == 0)
+      { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(0)); }
+    /* INV: log_op() checks types and outputs first argument as default. */
+    mkcl_object val = log_op(env, narg, MKCL_BOOLIOR, nums);
+    mkcl_va_end(nums);
+    mkcl_return_value(val);
+  }
+}
 
-@(defun logand (&rest nums)
-@
-  if (narg == 0)
-    { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(-1)); }
-  /* INV: log_op() checks types and outputs first argument as default. */
-  mkcl_object val = log_op(env, narg, MKCL_BOOLAND, nums);
-  mkcl_va_end(nums);
-  mkcl_return_value(val);
-@)
+mkcl_object mk_cl_logxor(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'logxor', 0, narg, narg, nums);
 
-@(defun logeqv (&rest nums)
-@
-  if (narg == 0)
-    { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(-1)); }
-  /* INV: log_op() checks types and outputs first argument as default. */
-  mkcl_object val = log_op(env, narg, MKCL_BOOLEQV, nums);
-  mkcl_va_end(nums);
-  mkcl_return_value(val)
-@)
+    if (narg == 0)
+      { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(0)); }
+    /* INV: log_op() checks types and outputs first argument as default. */
+    mkcl_object val = log_op(env, narg, MKCL_BOOLXOR, nums);
+    mkcl_va_end(nums);
+    mkcl_return_value(val);
+  }
+}
+
+mkcl_object mk_cl_logand(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'logand', 0, narg, narg, nums);
+
+    if (narg == 0)
+      { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(-1)); }
+    /* INV: log_op() checks types and outputs first argument as default. */
+    mkcl_object val = log_op(env, narg, MKCL_BOOLAND, nums);
+    mkcl_va_end(nums);
+    mkcl_return_value(val);
+  }
+}
+
+mkcl_object mk_cl_logeqv(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'logeqv', 0, narg, narg, nums);
+
+    if (narg == 0)
+      { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(-1)); }
+    /* INV: log_op() checks types and outputs first argument as default. */
+    mkcl_object val = log_op(env, narg, MKCL_BOOLEQV, nums);
+    mkcl_va_end(nums);
+    mkcl_return_value(val);
+  }
+}
 
 mkcl_object
 mk_cl_lognand(MKCL, mkcl_object x, mkcl_object y)

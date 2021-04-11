@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011, Jean-Claude Beaudoin.
+    Copyright (c) 2011,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -78,17 +78,24 @@ long_double_fix_compare(mkcl_word n, long double d)
 }
 #endif
 
-@(defun = (num &rest nums)
-	int i;
-@
-  /* ANSI: Need not signal error for 1 argument */
-  /* INV: For >= 2 arguments, mkcl_number_equalp() performs checks */
-  for (i = 1; i < narg; i++)
-    if (!mkcl_number_equalp(env, num, mkcl_va_arg(nums)))
-      { mkcl_va_end(nums); mkcl_return_value(mk_cl_Cnil); }
-  mkcl_va_end(nums);
-  mkcl_return_value(mk_cl_Ct);
-@)
+mkcl_object mk_cl_E(MKCL, mkcl_narg narg, mkcl_object num, ...)
+{
+  int i;
+
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'=', 1, narg, num, nums);
+
+    /* ANSI: Need not signal error for 1 argument */
+    /* INV: For >= 2 arguments, mkcl_number_equalp() performs checks */
+    for (i = 1; i < narg; i++)
+      if (!mkcl_number_equalp(env, num, mkcl_va_arg(nums)))
+        { mkcl_va_end(nums); mkcl_return_value(mk_cl_Cnil); }
+    mkcl_va_end(nums);
+    mkcl_return_value(mk_cl_Ct);
+  }
+}
+
 
 /* Returns 1 if both numbers compare to equal */
 int
@@ -391,25 +398,31 @@ mkcl_number_compare(MKCL, mkcl_object x, mkcl_object y)
   }
 }
 
-@(defun /= (&rest nums)
+mkcl_object mk_cl_NE(MKCL, mkcl_narg narg, ...)
+{
   mkcl_object numi = mk_cl_Cnil;
   int i, j;
-@
-  if (narg == 0)
-    mkcl_FEwrong_num_arguments_anonym(env, 1, -1, narg);
-  numi = mkcl_va_arg(nums);
-  for (i = 2; i<=narg; i++) {
-    mkcl_va_list numb;
-    mkcl_va_start(env, numb, narg, narg, 0);
+
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'/=', 0, narg, narg, nums);
+
+    if (narg == 0)
+      mkcl_FEwrong_num_arguments_anonym(env, 1, -1, narg);
     numi = mkcl_va_arg(nums);
-    for (j = 1; j<i; j++)
-      if (mkcl_number_equalp(env, numi, mkcl_va_arg(numb)))
-	{ mkcl_va_end(nums); mkcl_va_end(numb); mkcl_return_value(mk_cl_Cnil); }
-    mkcl_va_end(numb);
+    for (i = 2; i<=narg; i++) {
+      mkcl_va_list numb;
+      mkcl_va_start(env, numb, narg, narg, 0);
+      numi = mkcl_va_arg(nums);
+      for (j = 1; j<i; j++)
+        if (mkcl_number_equalp(env, numi, mkcl_va_arg(numb)))
+          { mkcl_va_end(nums); mkcl_va_end(numb); mkcl_return_value(mk_cl_Cnil); }
+      mkcl_va_end(numb);
+    }
+    mkcl_va_end(nums);
+    mkcl_return_value(mk_cl_Ct);
   }
-  mkcl_va_end(nums);
-  mkcl_return_value(mk_cl_Ct);
-@)
+}
 
 static mkcl_object
 monotonic(MKCL, int s, int t, int narg, mkcl_va_list nums)
@@ -438,33 +451,43 @@ mkcl_object @>= MONOTONIC(-1, 0)
 mkcl_object @<  MONOTONIC( 1, 1)
 mkcl_object @>  MONOTONIC(-1, 1)
 
-@(defun max (max &rest nums)
-@
-  /* INV: type check occurs in mkcl_number_compare() for the rest of
-     numbers, but for the first argument it happens in mkcl_zerop(). */
-  if (narg-- == 1) {
-    mkcl_zerop(env, max);
-  } else do {
-    mkcl_object numi = mkcl_va_arg(nums);
-    if (mkcl_number_compare(env, max, numi) < 0)
-      max = numi;
-  } while (--narg);
-  mkcl_va_end(nums);
-  mkcl_return_value(max);
-@)
+mkcl_object mk_cl_max(MKCL, mkcl_narg narg, mkcl_object max, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'max', 1, narg, max, nums);
 
-@(defun min (min &rest nums)
-@
-  /* INV: type check occurs in mkcl_number_compare() for the rest of
-     numbers, but for the first argument it happens in mkcl_zerop(). */
-  if (narg-- == 1) {
-    mkcl_zerop(env, min);
-  } else do {
-    mkcl_object numi = mkcl_va_arg(nums);
-    if (mkcl_number_compare(env, min, numi) > 0)
-      min = numi;
-  } while (--narg);
-  mkcl_va_end(nums);
-  mkcl_return_value(min);
-@)
+    /* INV: type check occurs in mkcl_number_compare() for the rest of
+       numbers, but for the first argument it happens in mkcl_zerop(). */
+    if (narg-- == 1) {
+      mkcl_zerop(env, max);
+    } else do {
+        mkcl_object numi = mkcl_va_arg(nums);
+        if (mkcl_number_compare(env, max, numi) < 0)
+          max = numi;
+      } while (--narg);
+    mkcl_va_end(nums);
+    mkcl_return_value(max);
+  }
+}
+
+mkcl_object mk_cl_min(MKCL, mkcl_narg narg, mkcl_object min, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'min', 1, narg, min, nums);
+
+    /* INV: type check occurs in mkcl_number_compare() for the rest of
+       numbers, but for the first argument it happens in mkcl_zerop(). */
+    if (narg-- == 1) {
+      mkcl_zerop(env, min);
+    } else do {
+        mkcl_object numi = mkcl_va_arg(nums);
+        if (mkcl_number_compare(env, min, numi) > 0)
+          min = numi;
+      } while (--narg);
+    mkcl_va_end(nums);
+    mkcl_return_value(min);
+  }
+}
 

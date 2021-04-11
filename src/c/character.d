@@ -5,7 +5,7 @@
 /*
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
-    Copyright (c) 2012-2019, Jean-Claude Beaudoin.
+    Copyright (c) 2012-2019,2021 Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -156,15 +156,20 @@ mk_cl_alphanumericp(MKCL, mkcl_object c)
   mkcl_return_value((mkcl_alphanumericp(i) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-@(defun char= (c &rest cs)
-@
-  /* INV: mkcl_char_eq() checks types of `c' and `cs' */
-  while (--narg)
-  if (!mkcl_char_eq(env, c, mkcl_va_arg(cs)))
-    { mkcl_va_end(cs); mkcl_return_value(mk_cl_Cnil); }
-  mkcl_va_end(cs);
-  mkcl_return_value(mk_cl_Ct);
-@)
+mkcl_object mk_cl_charE(MKCL, mkcl_narg narg, mkcl_object c, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'char=', 1, narg, c, cs);
+
+    /* INV: mkcl_char_eq() checks types of `c' and `cs' */
+    while (--narg)
+      if (!mkcl_char_eq(env, c, mkcl_va_arg(cs)))
+        { mkcl_va_end(cs); mkcl_return_value(mk_cl_Cnil); }
+    mkcl_va_end(cs);
+    mkcl_return_value(mk_cl_Ct);
+  }
+}
 
 bool
 mkcl_char_eq(MKCL, mkcl_object x, mkcl_object y)
@@ -172,26 +177,32 @@ mkcl_char_eq(MKCL, mkcl_object x, mkcl_object y)
   return mkcl_char_code(env, x) == mkcl_char_code(env, y);
 }
 
-@(defun char/= (&rest cs)
-	int i, j;
-	mkcl_object c;
-@
-  /* INV: mkcl_char_eq() checks types of its arguments */
-  if (narg == 0)
-    mkcl_FEwrong_num_arguments(env, @'char/=', 1, -1, 0);
-  c = mkcl_va_arg(cs);
-  for (i = 2; i<=narg; i++) {
-    mkcl_va_list ds;
-    mkcl_va_start(env, ds, narg, narg, 0);
+mkcl_object mk_cl_charNE(MKCL, const mkcl_narg narg, ...)
+{
+  int i, j;
+  mkcl_object c;
+
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'char=', 0, narg, narg, cs);
+
+    /* INV: mkcl_char_eq() checks types of its arguments */
+    if (narg == 0)
+      mkcl_FEwrong_num_arguments(env, @'char/=', 1, -1, 0);
     c = mkcl_va_arg(cs);
-    for (j = 1; j<i; j++)
-      if (mkcl_char_eq(env, mkcl_va_arg(ds), c))
-        { mkcl_va_end(cs); mkcl_va_end(ds); mkcl_return_value(mk_cl_Cnil); }
-    mkcl_va_end(ds);
+    for (i = 2; i<=narg; i++) {
+      mkcl_va_list ds;
+      mkcl_va_start(env, ds, narg, narg, 0);
+      c = mkcl_va_arg(cs);
+      for (j = 1; j<i; j++)
+        if (mkcl_char_eq(env, mkcl_va_arg(ds), c))
+          { mkcl_va_end(cs); mkcl_va_end(ds); mkcl_return_value(mk_cl_Cnil); }
+      mkcl_va_end(ds);
+    }
+    mkcl_va_end(cs);
+    mkcl_return_value(mk_cl_Ct);
   }
-  mkcl_va_end(cs);
-  mkcl_return_value(mk_cl_Ct);
-@)
+}
 
 static mkcl_object
 Lchar_cmp(MKCL, mkcl_narg narg, int s, int t, mkcl_va_list args)
@@ -218,45 +229,70 @@ mkcl_char_cmp(MKCL, mkcl_object x, mkcl_object y)
   return mkcl_char_code(env, x) - mkcl_char_code(env, y);
 }
 
-@(defun char< (&rest args)
-@
-  mkcl_object val = Lchar_cmp(env, narg, 1, 1, args);
-  mkcl_va_end(args);
-  return val;
-@)
+mkcl_object mk_cl_charL(MKCL, const mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'char<', 0, narg, narg, args);
 
-@(defun char> (&rest args)
-@
-  mkcl_object val = Lchar_cmp(env, narg,-1, 1, args);
-  mkcl_va_end(args);
-  return val;
-@)
-
-@(defun char<= (&rest args)
-@
-  mkcl_object val = Lchar_cmp(env, narg, 1, 0, args);
-  mkcl_va_end(args);
-  return val;
-@)
-
-@(defun char>= (&rest args)
-@
-  mkcl_object val = Lchar_cmp(env, narg,-1, 0, args);
-  mkcl_va_end(args);
-  return val;
-@)
-
-@(defun char_equal (c &rest cs)
-	int i;
-@
-  /* INV: mkcl_char_equal() checks the type of its arguments */
-  for (narg--, i = 0;  i < narg;  i++) {
-    if (!mkcl_char_equal(env, c, mkcl_va_arg(cs)))
-      { mkcl_va_end(cs); mkcl_return_value(mk_cl_Cnil); }
+    mkcl_object val = Lchar_cmp(env, narg, 1, 1, args);
+    mkcl_va_end(args);
+    return val;
   }
-  mkcl_va_end(cs);
-  mkcl_return_value(mk_cl_Ct);
-@)
+}
+
+mkcl_object mk_cl_charG(MKCL, const mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'char>', 0, narg, narg, args);
+
+    mkcl_object val = Lchar_cmp(env, narg, -1, 1, args);
+    mkcl_va_end(args);
+    return val;
+  }
+}
+
+mkcl_object mk_cl_charLE(MKCL, const mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'char<=', 0, narg, narg, args);
+
+    mkcl_object val = Lchar_cmp(env, narg, 1, 0, args);
+    mkcl_va_end(args);
+    return val;
+  }
+}
+
+mkcl_object mk_cl_charGE(MKCL, const mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'char>=', 0, narg, narg, args);
+
+    mkcl_object val = Lchar_cmp(env, narg, -1, 0, args);
+    mkcl_va_end(args);
+    return val;
+  }
+}
+
+mkcl_object mk_cl_char_equal(MKCL, mkcl_narg narg, mkcl_object c, ...)
+{
+  mkcl_narg i;
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'char-equal', 1, narg, c, cs);
+
+    /* INV: mkcl_char_equal() checks the type of its arguments */
+    for (narg--, i = 0;  i < narg;  i++) {
+      if (!mkcl_char_equal(env, c, mkcl_va_arg(cs)))
+        { mkcl_va_end(cs); mkcl_return_value(mk_cl_Cnil); }
+    }
+    mkcl_va_end(cs);
+    mkcl_return_value(mk_cl_Ct);
+  }
+}
 
 #define char_equal_code(e, x) mkcl_char_upcase(mkcl_char_code(e, x))
 
@@ -266,26 +302,31 @@ mkcl_char_equal(MKCL, mkcl_object x, mkcl_object y)
   return char_equal_code(env, x) == char_equal_code(env, y);
 }
 
-@(defun char-not-equal (&rest cs)
+mkcl_object mk_cl_char_not_equal(MKCL, mkcl_narg narg, ...)
+{
   int i, j;
   mkcl_object c;
-@
-  /* INV: mkcl_char_equal() checks the type of its arguments */
-  if (narg == 0)
-    mkcl_FEwrong_num_arguments(env, @'char-not-equal', 1, -1, narg);
-  c = mkcl_va_arg(cs);
-  for (i = 2;  i<=narg;  i++) {
-    mkcl_va_list ds;
-    mkcl_va_start(env, ds, narg, narg, 0);
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'char-not-equal', 0, narg, narg, cs);
+
+    /* INV: mkcl_char_equal() checks the type of its arguments */
+    if (narg == 0)
+      mkcl_FEwrong_num_arguments(env, @'char-not-equal', 1, -1, narg);
     c = mkcl_va_arg(cs);
-    for (j=1;  j<i;  j++)
-      if (mkcl_char_equal(env, c, mkcl_va_arg(ds)))
-        { mkcl_va_end(cs); mkcl_va_end(ds); mkcl_return_value(mk_cl_Cnil); }
-    mkcl_va_end(ds);
+    for (i = 2;  i<=narg;  i++) {
+      mkcl_va_list ds;
+      mkcl_va_start(env, ds, narg, narg, 0);
+      c = mkcl_va_arg(cs);
+      for (j=1;  j<i;  j++)
+        if (mkcl_char_equal(env, c, mkcl_va_arg(ds)))
+          { mkcl_va_end(cs); mkcl_va_end(ds); mkcl_return_value(mk_cl_Cnil); }
+      mkcl_va_end(ds);
+    }
+    mkcl_va_end(cs);
+    mkcl_return_value(mk_cl_Ct);
   }
-  mkcl_va_end(cs);
-  mkcl_return_value(mk_cl_Ct);
-@)
+}
 
 static mkcl_object
 Lchar_compare(MKCL, mkcl_narg narg, int s, int t, mkcl_va_list args)
@@ -318,33 +359,53 @@ mkcl_char_compare(MKCL, mkcl_object x, mkcl_object y)
     return(1);
 }
 
-@(defun char-lessp (&rest args)
-@
-  mkcl_object val = Lchar_compare(env, narg, 1, 1, args);
-  mkcl_va_end(args);
-  return val;
-@)
+mkcl_object mk_cl_char_lessp(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'char-lessp', 0, narg, narg, args);
 
-@(defun char-greaterp (&rest args)
-@
-  mkcl_object val = Lchar_compare(env, narg,-1, 1, args);
-  mkcl_va_end(args);
-  return val;
-@)
+    mkcl_object val = Lchar_compare(env, narg, 1, 1, args);
+    mkcl_va_end(args);
+    return val;
+  }
+}
 
-@(defun char-not-greaterp (&rest args)
-@
-  mkcl_object val = Lchar_compare(env, narg, 1, 0, args);
-  mkcl_va_end(args);
-  return val;
-@)
+mkcl_object mk_cl_char_greaterp(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'char-greaterp', 0, narg, narg, args);
 
-@(defun char-not-lessp (&rest args)
-@
-  mkcl_object val = Lchar_compare(env, narg,-1, 0, args);
-  mkcl_va_end(args);
-  return val;
-@)
+    mkcl_object val = Lchar_compare(env, narg,-1, 1, args);
+    mkcl_va_end(args);
+    return val;
+  }
+}
+
+mkcl_object mk_cl_char_not_greaterp(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'char-not-greaterp', 0, narg, narg, args);
+
+    mkcl_object val = Lchar_compare(env, narg, 1, 0, args);
+    mkcl_va_end(args);
+    return val;
+  }
+}
+
+mkcl_object mk_cl_char_not_lessp(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'char-not-lessp', 0, narg, narg, args);
+
+    mkcl_object val = Lchar_compare(env, narg,-1, 0, args);
+    mkcl_va_end(args);
+    return val;
+  }
+}
 
 
 mkcl_object

@@ -57,17 +57,23 @@ mk_si_structure_subtype_p(MKCL, mkcl_object x, mkcl_object y)
 	     && _mkcl_structure_subtypep(MKCL_STYPE(x), y)) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-@(defun si::make_structure (type &rest args)
-	mkcl_object x;
-	int i;
-@
-  x = mkcl_alloc_raw_structure(env, type, --narg);
+mkcl_object mk_si_make_structure(MKCL, mkcl_narg narg, mkcl_object type, ...)
+{
+  mkcl_object x;
+  int i;
 
-  for (i = 0;  i < narg;  i++)
-    MKCL_SLOT(x, i) = mkcl_va_arg(args);
-  mkcl_va_end(args);
-  mkcl_return_value(x);
-@)
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'si::make-structure', 0, narg, type, args);
+
+    x = mkcl_alloc_raw_structure(env, type, --narg);
+
+    for (i = 0;  i < narg;  i++)
+      MKCL_SLOT(x, i) = mkcl_va_arg(args);
+    mkcl_va_end(args);
+    mkcl_return_value(x);
+  }
+}
 
 #define mkcl_copy_structure mk_si_copy_instance
 

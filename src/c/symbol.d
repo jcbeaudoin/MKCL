@@ -502,16 +502,21 @@ mk_si_putprop(MKCL, mkcl_object sym, mkcl_object value, mkcl_object indicator)
 }
 
 /* Added for defstruct. Beppe */
-@(defun si::put_properties (sym &rest ind_values)
-@
-  while (--narg >= 2) {
-    mkcl_object prop = mkcl_va_arg(ind_values);
-    mk_si_putprop(env, sym, mkcl_va_arg(ind_values), prop);
-    narg--;
+mkcl_object mk_si_put_properties(MKCL, mkcl_narg narg, mkcl_object sym, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'si::put-properties', 0, narg, sym, ind_values);
+
+    while (--narg >= 2) {
+      mkcl_object prop = mkcl_va_arg(ind_values);
+      mk_si_putprop(env, sym, mkcl_va_arg(ind_values), prop);
+      narg--;
+    }
+    mkcl_va_end(ind_values);
+    mkcl_return_value(sym);
   }
-  mkcl_va_end(ind_values);
-  mkcl_return_value(sym);
-@)
+}
 
 mkcl_object
 @si::*make_special(MKCL, mkcl_object sym)

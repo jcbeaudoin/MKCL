@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2012, Jean-Claude Beaudoin
+    Copyright (c) 2010-2012,2021 Jean-Claude Beaudoin
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -132,39 +132,51 @@ extern inline mkcl_object mk_cl_car(MKCL, mkcl_object x);
 
 extern inline mkcl_object mk_cl_cdr(MKCL, mkcl_object x);
 
-@(defun list (&rest args)
+mkcl_object mk_cl_list(MKCL, mkcl_narg narg, ...)
+{
   mkcl_object head = mk_cl_Cnil;
-@
-  if (narg--) {
-    mkcl_object tail = head = mkcl_list1(env, mkcl_va_arg(args));
-    while (narg--) {
-      mkcl_object cons = mkcl_list1(env, mkcl_va_arg(args));
-      MKCL_RPLACD(tail, cons);
-      tail = cons;
-    }
-  }
-  mkcl_va_end(args);
-  mkcl_return_value(head);
-@)
 
-@(defun list* (&rest args)
-  mkcl_object head;
-@
-  if (narg == 0)
-  mkcl_FEwrong_num_arguments(env, @'list*', 1, -1, narg);
-  head = mkcl_va_arg(args);
-  if (--narg) {
-    mkcl_object tail = head = mkcl_list1(env, head);
-    while (--narg) {
-      mkcl_object cons = mkcl_list1(env, mkcl_va_arg(args));
-      MKCL_RPLACD(tail, cons);
-      tail = cons;
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'list', 0, narg, narg, args);
+
+    if (narg--) {
+      mkcl_object tail = head = mkcl_list1(env, mkcl_va_arg(args));
+      while (narg--) {
+        mkcl_object cons = mkcl_list1(env, mkcl_va_arg(args));
+        MKCL_RPLACD(tail, cons);
+        tail = cons;
+      }
     }
-    MKCL_RPLACD(tail, mkcl_va_arg(args));
+    mkcl_va_end(args);
+    mkcl_return_value(head);
   }
-  mkcl_va_end(args);
-  mkcl_return_value(head);
-@)
+}
+
+mkcl_object mk_cl_listX(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_object head;
+
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'list*', 0, narg, narg, args);
+
+    if (narg == 0)
+      mkcl_FEwrong_num_arguments(env, @'list*', 1, -1, narg);
+    head = mkcl_va_arg(args);
+    if (--narg) {
+      mkcl_object tail = head = mkcl_list1(env, head);
+      while (--narg) {
+        mkcl_object cons = mkcl_list1(env, mkcl_va_arg(args));
+        MKCL_RPLACD(tail, cons);
+        tail = cons;
+      }
+      MKCL_RPLACD(tail, mkcl_va_arg(args));
+    }
+    mkcl_va_end(args);
+    mkcl_return_value(head);
+  }
+}
 
 
 static mkcl_object copy_proper_tail(MKCL, mkcl_object * cursor_ptr)
@@ -196,41 +208,47 @@ static mkcl_object copy_proper_tail(MKCL, mkcl_object * cursor_ptr)
   return root;
 }
 
-@(defun append (&rest rest)
+mkcl_object mk_cl_append(MKCL, mkcl_narg narg, ...)
+{
   mkcl_object head = mk_cl_Cnil;
-@
-  if ( narg == 1 )
-    head = mkcl_va_arg(rest);
-  else if ( narg > 1 )
-    {
-      mkcl_object tail = mk_cl_Cnil;
 
-      while (--narg)
-	{
-	  mkcl_object arg = mkcl_va_arg(rest);
-	  if (mkcl_Null(arg))
-	    continue;
-	  else if (mkcl_Null(tail))
-	    {
-	      tail = arg;
-	      head = copy_proper_tail(env, &tail);
-	    }
-	  else
-	    {
-	      MKCL_RPLACD(tail, copy_proper_tail(env, &arg));
-	      tail = arg;
-	    }
-	}
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'append', 0, narg, narg, rest);
 
-      if (mkcl_Null(tail))
-	head = mkcl_va_arg(rest);
-      else
-	MKCL_RPLACD(tail, mkcl_va_arg(rest));
+    if ( narg == 1 )
+      head = mkcl_va_arg(rest);
+    else if ( narg > 1 )
+      {
+        mkcl_object tail = mk_cl_Cnil;
 
-    }
-  mkcl_va_end(rest);
-  mkcl_return_value(head);
-@)
+        while (--narg)
+          {
+            mkcl_object arg = mkcl_va_arg(rest);
+            if (mkcl_Null(arg))
+              continue;
+            else if (mkcl_Null(tail))
+              {
+                tail = arg;
+                head = copy_proper_tail(env, &tail);
+              }
+            else
+              {
+                MKCL_RPLACD(tail, copy_proper_tail(env, &arg));
+                tail = arg;
+              }
+          }
+
+        if (mkcl_Null(tail))
+          head = mkcl_va_arg(rest);
+        else
+          MKCL_RPLACD(tail, mkcl_va_arg(rest));
+
+      }
+    mkcl_va_end(rest);
+    mkcl_return_value(head);
+  }
+}
 
 
 mkcl_object
@@ -611,29 +629,35 @@ mk_cl_revappend(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_value(y);
 }
 
-@(defun nconc (&rest lists)
+mkcl_object mk_cl_nconc(MKCL, mkcl_narg narg, ...)
+{
   mkcl_object head = mk_cl_Cnil, tail = mk_cl_Cnil;
-@	
-  while (narg--) {
-    mkcl_object new_tail, other = mkcl_va_arg(lists);
-    if (mkcl_Null(other)) {
-      new_tail = tail;
-    } else if (MKCL_CONSP(other)) {
-      new_tail = mkcl_last(env, other, 1);
-    } else {
-      if (narg) mkcl_FEtype_error_list(env, other);
-      new_tail = tail;
+
+  mkcl_call_stack_check(env);
+  {
+    mkcl_setup_for_rest(env, @'nconc', 0, narg, narg, lists);
+
+    while (narg--) {
+      mkcl_object new_tail, other = mkcl_va_arg(lists);
+      if (mkcl_Null(other)) {
+        new_tail = tail;
+      } else if (MKCL_CONSP(other)) {
+        new_tail = mkcl_last(env, other, 1);
+      } else {
+        if (narg) mkcl_FEtype_error_list(env, other);
+        new_tail = tail;
+      }
+      if (mkcl_Null(head)) {
+        head = other;
+      } else {
+        MKCL_RPLACD(tail, other);
+      }
+      tail = new_tail;
     }
-    if (mkcl_Null(head)) {
-      head = other;
-    } else {
-      MKCL_RPLACD(tail, other);
-    }
-    tail = new_tail;
+    mkcl_va_end(lists);
+    mkcl_return_value(head);
   }
-  mkcl_va_end(lists);
-  mkcl_return_value(head);
-@)
+}
 
 mkcl_object
 mkcl_nconc(MKCL, mkcl_object l, mkcl_object y)
