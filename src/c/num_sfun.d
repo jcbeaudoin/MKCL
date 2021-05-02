@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011, Jean-Claude Beaudoin.
+    Copyright (c) 2011,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -809,21 +809,33 @@ mk_cl_tanh(MKCL, mkcl_object x)
   mkcl_return_value(output);
 }
 
-@(defun log (x &optional (y MKCL_OBJNULL))
-@
-  /* INV: type check in mkcl_log1() and mkcl_log2() */
-  if (y == MKCL_OBJNULL)
-    { mkcl_return_value(mkcl_log1(env, x)); }
-  mkcl_return_value(mkcl_log2(env, y, x));
-@)
+mkcl_object mk_cl_log(MKCL, mkcl_narg narg, mkcl_object x, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object y = MKCL_OBJNULL;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'log', narg, 1, x, &y);
 
-@(defun atan (x &optional (y MKCL_OBJNULL))
-@
-  /* INV: type check in mkcl_atan() & mkcl_atan2() */
-  /* FIXME mkcl_atan() and mkcl_atan2() produce generic errors
-     without recovery and function information. */
-  if (y == MKCL_OBJNULL)
-    { mkcl_return_value(mkcl_atan1(env, x)); }
-  mkcl_return_value(mkcl_atan2(env, x, y));
-@)
+    /* INV: type check in mkcl_log1() and mkcl_log2() */
+    if (y == MKCL_OBJNULL)
+      { mkcl_return_value(mkcl_log1(env, x)); }
+    mkcl_return_value(mkcl_log2(env, y, x));
+  }
+}
+
+mkcl_object mk_cl_atan(MKCL, mkcl_narg narg, mkcl_object x, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object y = MKCL_OBJNULL;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'atan', narg, 1, x, &y);
+
+    /* INV: type check in mkcl_atan() & mkcl_atan2() */
+    /* FIXME mkcl_atan() and mkcl_atan2() produce generic errors
+       without recovery and function information. */
+    if (y == MKCL_OBJNULL)
+      { mkcl_return_value(mkcl_atan1(env, x)); }
+    mkcl_return_value(mkcl_atan2(env, x, y));
+  }
+}
 

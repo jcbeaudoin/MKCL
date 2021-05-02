@@ -5,7 +5,7 @@
 /*
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2017, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2017,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -244,33 +244,40 @@ mk_si_copy_instance(MKCL, mkcl_object x)
   mkcl_return_value(y);
 }
 
-@(defun find-class (name &optional (errorp mk_cl_Ct) lex_env)
-	mkcl_object class, hash;
-@
-  do {
-    if (mkcl_Null(name)) {
-      if (mkcl_Null(errorp))
-        { mkcl_return_value(mk_cl_Cnil); }
-      else
-	mkcl_FEerror(env, "No class named ~S.", 1, name);
-    }
-    else if (mkcl_type_of(name) == mkcl_t_symbol)
-      {
-	class = name->symbol.properly_named_class;
-	if (mkcl_Null(class))
-	  {
-	    if (mkcl_Null(errorp))
-	      { mkcl_return_value(mk_cl_Cnil); }
-	    else
-	      mkcl_FEerror(env, "No class named ~S.", 1, name);
-	  }
-	else
-	  { mkcl_return_value(class); }
+mkcl_object mk_cl_find_class(MKCL, mkcl_narg narg, mkcl_object name, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object class, hash;
+    mkcl_object errorp = mk_cl_Ct;
+    mkcl_object lex_env = mk_cl_Cnil;
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, @'find-class', narg, 1, name, &errorp, &lex_env);
+
+    do {
+      if (mkcl_Null(name)) {
+        if (mkcl_Null(errorp))
+          { mkcl_return_value(mk_cl_Cnil); }
+        else
+          mkcl_FEerror(env, "No class named ~S.", 1, name);
       }
-    else
-      name = mkcl_type_error(env, @'find-class', "symbol", name, @'symbol');
-  } while(1);
-@)
+      else if (mkcl_type_of(name) == mkcl_t_symbol)
+        {
+          class = name->symbol.properly_named_class;
+          if (mkcl_Null(class))
+            {
+              if (mkcl_Null(errorp))
+                { mkcl_return_value(mk_cl_Cnil); }
+              else
+                mkcl_FEerror(env, "No class named ~S.", 1, name);
+            }
+          else
+            { mkcl_return_value(class); }
+        }
+      else
+        name = mkcl_type_error(env, @'find-class', "symbol", name, @'symbol');
+    } while(1);
+  }
+}
 
 mkcl_object mk_si_set_class_proper_name(MKCL, mkcl_object sym, mkcl_object class)
 {

@@ -268,28 +268,34 @@ mk_cl_eval(MKCL, mkcl_object form)
   return mk_si_eval_in_env(env, 1, form);
 }
 
-@(defun constantp (arg &optional lex_env)
-  mkcl_object flag;
-@
-  switch (mkcl_type_of(arg)) {
-  case mkcl_t_cons:
-    if (MKCL_CAR(arg) == @'quote') {
+mkcl_object mk_cl_constantp(MKCL, mkcl_narg narg, mkcl_object arg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object flag;
+    mkcl_object lex_env = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'constantp', narg, 1, arg, &lex_env);
+
+    switch (mkcl_type_of(arg)) {
+    case mkcl_t_cons:
+      if (MKCL_CAR(arg) == @'quote') {
+        flag = mk_cl_Ct;
+      } else {
+        flag = mk_cl_Cnil;
+      }
+      break;
+    case mkcl_t_symbol:
+      if (mkcl_Null(arg))
+        flag = mk_cl_Ct;
+      else
+        flag = (arg->symbol.stype & mkcl_stp_constant) ? mk_cl_Ct : mk_cl_Cnil;
+          break;
+    default:
       flag = mk_cl_Ct;
-    } else {
-      flag = mk_cl_Cnil;
     }
-    break;
-  case mkcl_t_symbol:
-    if (mkcl_Null(arg))
-      flag = mk_cl_Ct;
-    else
-      flag = (arg->symbol.stype & mkcl_stp_constant) ? mk_cl_Ct : mk_cl_Cnil;
-	break;
-  default:
-    flag = mk_cl_Ct;
+    mkcl_return_value(flag);
   }
-  mkcl_return_value(flag);
-@)
+}
 
 
 extern inline MKCL_API mkcl_object mkcl_validate_function(MKCL, mkcl_object fun);

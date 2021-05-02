@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2019, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2019,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -402,22 +402,30 @@ file_kind(MKCL, mkcl_object os_filename, bool follow_links)
 }
 
 
-@(defun si::file-kind (filespec &key follow_symlinks signal_error)
-@
-  mkcl_object filename = mk_si_coerce_to_filename(env, filespec);
-  mkcl_dynamic_extent_OSstring(env, os_filename, filename);
-  mkcl_object kind = file_kind(env, os_filename, !mkcl_Null(follow_symlinks));
+mkcl_object mk_si_file_kind(MKCL, mkcl_narg narg, mkcl_object filespec, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object follow_symlinks = mk_cl_Cnil;
+    mkcl_object signal_error = mk_cl_Cnil;
 
-  if (mkcl_Null(kind) && !mkcl_Null(signal_error))
-    {
+    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, @'si::file-kind', narg, 1, filespec, @':follow-symlinks', &follow_symlinks, @':signal-error', &signal_error);
+
+    mkcl_object filename = mk_si_coerce_to_filename(env, filespec);
+    mkcl_dynamic_extent_OSstring(env, os_filename, filename);
+    mkcl_object kind = file_kind(env, os_filename, !mkcl_Null(follow_symlinks));
+
+    if (mkcl_Null(kind) && !mkcl_Null(signal_error))
+      {
 #if MKCL_WINDOWS
-      mkcl_FEwin32_file_error(env, os_filename, "GetFileAttributes() failed in file_kind()", 0);
+        mkcl_FEwin32_file_error(env, os_filename, "GetFileAttributes() failed in file_kind()", 0);
 #else
-      mkcl_FElibc_file_error(env, os_filename, "stat() failed in file_kind()", 0);
+        mkcl_FElibc_file_error(env, os_filename, "stat() failed in file_kind()", 0);
 #endif
-    }
-  mkcl_return_value(kind);
-@)
+      }
+    mkcl_return_value(kind);
+  }
+}
 
 
 
@@ -942,11 +950,17 @@ mkcl_homedir_pathname(MKCL, mkcl_object user)
   return mk_cl_parse_namestring(env, 3, namestring, mk_cl_Cnil, mk_cl_Cnil);
 }
 
-@(defun user_homedir_pathname (&optional host)
-@
-  /* Ignore optional host argument. */
-  mkcl_return_value(mkcl_homedir_pathname(env, mk_cl_Cnil));
-@)
+mkcl_object mk_cl_user_homedir_pathname(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object host = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'user-homedir-pathname', narg, 0, narg, &host);
+
+    /* Ignore optional host argument. */
+    mkcl_return_value(mkcl_homedir_pathname(env, mk_cl_Cnil));
+  }
+}
 
 #if MKCL_UNIX
 #define not_eq_ch(c1, c2) ((c1) != (c2))
@@ -1449,69 +1463,81 @@ dir_recursive(MKCL, bool follow_symlinks, struct OSpath * wd_path, mkcl_object p
   return output;
 }
 
-@(defun directory (pathspec &key (follow_symlinks mk_cl_Cnil) &allow_other_keys)
-  mkcl_object output;
-@
+mkcl_object mk_cl_directory(MKCL, mkcl_narg narg, mkcl_object pathspec, ...)
+{
+  mkcl_call_stack_check(env);
   {
-    mkcl_object path_spec = mkcl_coerce_to_file_pathname(env, pathspec);
-    mkcl_object dir_spec = path_spec->pathname.directory;
-    /* mkcl_object path = init_OSpath(env) */;
-    struct OSpath wd_path;
+    mkcl_object follow_symlinks = mk_cl_Cnil;
+    MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, @'directory', narg, 1, pathspec, @':follow-symlinks', &follow_symlinks);
+    {
+      mkcl_object path_spec = mkcl_coerce_to_file_pathname(env, pathspec);
+      mkcl_object dir_spec = path_spec->pathname.directory;
+      /* mkcl_object path = init_OSpath(env) */;
+      struct OSpath wd_path;
 
-    if (MKCL_PATHNAMEP(pathspec)
-        && (mkcl_Null(pathspec->pathname.version) || pathspec->pathname.version == @':unspecific'))
-      path_spec->pathname.version = @':wild';
+      if (MKCL_PATHNAMEP(pathspec)
+          && (mkcl_Null(pathspec->pathname.version) || pathspec->pathname.version == @':unspecific'))
+        path_spec->pathname.version = @':wild';
 
-    if (MKCL_CAR(dir_spec) == @':absolute')
-      init_absolute_OSpath(env, &wd_path);
-    else /* if (MKCL_CAR(dir_spec) == @':relative') */
-      init_relative_OSpath(env, &wd_path);
+      if (MKCL_CAR(dir_spec) == @':absolute')
+        init_absolute_OSpath(env, &wd_path);
+      else /* if (MKCL_CAR(dir_spec) == @':relative') */
+        init_relative_OSpath(env, &wd_path);
 
-    wd_path.pathname->pathname.host = path_spec->pathname.host;
-    wd_path.pathname->pathname.device = path_spec->pathname.device;
+      wd_path.pathname->pathname.host = path_spec->pathname.host;
+      wd_path.pathname->pathname.device = path_spec->pathname.device;
 
-    output = dir_recursive(env, !mkcl_Null(follow_symlinks), &wd_path, path_spec, MKCL_CDR(dir_spec));
+      mkcl_object output = dir_recursive(env, !mkcl_Null(follow_symlinks), &wd_path, path_spec, MKCL_CDR(dir_spec));
+      mkcl_return_value(output);
+    }
   }
-  mkcl_return_value(output);
-@)
+}
 
-@(defun mkcl::getcwd (&key (change_default_pathname_defaults mk_cl_Cnil) (all_drives mk_cl_Cnil))
-  mkcl_object output;
-@
-  output = mk_cl_parse_namestring(env, 3, current_dir(env), mk_cl_Cnil, mk_cl_Cnil);
-  if (!mkcl_Null(change_default_pathname_defaults)) {
-    MKCL_SETQ(env, @'*default-pathname-defaults*', output);
-  }
+mkcl_object mk_mkcl_getcwd(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object output;
+    mkcl_object change_default_pathname_defaults = mk_cl_Cnil;
+    mkcl_object all_drives = mk_cl_Cnil;
+  
+    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, @'mkcl::getcwd', narg, 0, narg, @':change-default-pathname-defaults', &change_default_pathname_defaults, @':all-drives', &all_drives);
+
+    output = mk_cl_parse_namestring(env, 3, current_dir(env), mk_cl_Cnil, mk_cl_Cnil);
+    if (!mkcl_Null(change_default_pathname_defaults)) {
+      MKCL_SETQ(env, @'*default-pathname-defaults*', output);
+    }
 
 #if MKCL_WINDOWS
-  {
-    mkcl_object all_cwd = mk_cl_Cnil;
-    ULONG uDriveMask = _getdrives();
-    int drive = 1;
+    {
+      mkcl_object all_cwd = mk_cl_Cnil;
+      ULONG uDriveMask = _getdrives();
+      int drive = 1;
 
-    while (uDriveMask)
-      {
-	if (uDriveMask & 1)
-	  {
-	    if (!mkcl_Null(all_drives) || drive > 2) /* Skip floppies. */
-	      {
-		mkcl_object cwd = current_dir_on_drive(env, drive);
+      while (uDriveMask)
+        {
+          if (uDriveMask & 1)
+            {
+              if (!mkcl_Null(all_drives) || drive > 2) /* Skip floppies. */
+                {
+                  mkcl_object cwd = current_dir_on_drive(env, drive);
 	      
-		cwd = mk_cl_parse_namestring(env, 3, cwd, mk_cl_Cnil, mk_cl_Cnil);
-		all_cwd = MKCL_CONS(env, cwd, all_cwd);
-	      }
-	  }
-	drive++;
-	uDriveMask >>= 1;
-      }
+                  cwd = mk_cl_parse_namestring(env, 3, cwd, mk_cl_Cnil, mk_cl_Cnil);
+                  all_cwd = MKCL_CONS(env, cwd, all_cwd);
+                }
+            }
+          drive++;
+          uDriveMask >>= 1;
+        }
 
 
-    mkcl_return_2_values(output, mk_cl_nreverse(env, all_cwd));
-  }
+      mkcl_return_2_values(output, mk_cl_nreverse(env, all_cwd));
+    }
 #else /*  MKCL_WINDOWS */
-  mkcl_return_value(output);
+    mkcl_return_value(output);
 #endif /*  MKCL_WINDOWS */
-@)
+  }
+}
 
 static void warn_early(MKCL, char * msg)
 {
@@ -1592,23 +1618,29 @@ mk_si_get_SYS_library_pathname(MKCL)
   mkcl_return_value(SYS_libdir);
 }
 
-@(defun mkcl::chdir (directory &optional (change_d_p_d mk_cl_Cnil))
+mkcl_object mk_mkcl_chdir(MKCL, mkcl_narg narg, mkcl_object directory, ...)
+{
+  mkcl_call_stack_check(env);
+  {
   mkcl_object previous = mk_mkcl_getcwd(env, 0);
   mkcl_object namestring;
-@
-  /* This will fail if the new directory does not exist */
-  directory = mk_cl_pathname(env, directory);
-  directory = mkcl_coerce_to_physical_pathname(env, directory);
-  namestring = mkcl_namestring(env, directory, TRUE);
-  if (namestring == mk_cl_Cnil) {
-    mkcl_FEerror(env, "Pathname ~A does not have a physical namestring", 1, directory);
+    mkcl_object change_d_p_d = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'mkcl::chdir', narg, 1, directory, &change_d_p_d);
+
+    /* This will fail if the new directory does not exist */
+    directory = mk_cl_pathname(env, directory);
+    directory = mkcl_coerce_to_physical_pathname(env, directory);
+    namestring = mkcl_namestring(env, directory, TRUE);
+    if (namestring == mk_cl_Cnil) {
+      mkcl_FEerror(env, "Pathname ~A does not have a physical namestring", 1, directory);
+    }
+    if (safe_chdir(env, namestring) == -1)
+      mkcl_FElibc_file_error(env, namestring, "Can't change the current directory to ~A", 1, namestring);
+    if (change_d_p_d != mk_cl_Cnil)
+      MKCL_SETQ(env, @'*default-pathname-defaults*', directory);
+    mkcl_return_2_values(mk_mkcl_getcwd(env, 0), previous);
   }
-  if (safe_chdir(env, namestring) == -1)
-    mkcl_FElibc_file_error(env, namestring, "Can't change the current directory to ~A", 1, namestring);
-  if (change_d_p_d != mk_cl_Cnil)
-    MKCL_SETQ(env, @'*default-pathname-defaults*', directory);
-  mkcl_return_2_values(mk_mkcl_getcwd(env, 0), previous);
-@)
+}
 
 mkcl_object
 mk_mkcl_mkdir(MKCL, mkcl_object directory, mkcl_object mode)
@@ -1633,85 +1665,92 @@ mk_mkcl_mkdir(MKCL, mkcl_object directory, mkcl_object mode)
 }
 
 /* For #'si:mkstemp we follow the same keyword argument defaults as #'cl:open. */
-@(defun mkcl::mkstemp (template &key (element_type @'base-char') (external_format @':default'))
-@
+mkcl_object mk_mkcl_mkstemp(MKCL, mkcl_narg narg, mkcl_object template, ...)
+{
+  mkcl_call_stack_check(env);
   {
-    mkcl_object tmp_stream;
-    mkcl_object tmp_filename;
+    mkcl_object element_type = @'base-char';
+    mkcl_object external_format = @':default';
+    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, @'mkcl::mkstemp', narg, 1, template, @':element-type', &element_type, @':external-format', &external_format);
+
+    {
+      mkcl_object tmp_stream;
+      mkcl_object tmp_filename;
 
 #if MKCL_WINDOWS
-    mkcl_object phys, dir, file;
-    mkcl_char16 strTempDir[MAX_PATH];
-    mkcl_char16 strTempFileName[MAX_PATH];
-    /* char *s; */
-    UINT unique_val = 0;
-    bool first_try = TRUE;
+      mkcl_object phys, dir, file;
+      mkcl_char16 strTempDir[MAX_PATH];
+      mkcl_char16 strTempFileName[MAX_PATH];
+      /* char *s; */
+      UINT unique_val = 0;
+      bool first_try = TRUE;
 
-    phys = mk_cl_translate_logical_pathname(env, 1, template);
-    dir = mk_cl_make_pathname(env, 8,
-			      @':name', mk_cl_Cnil,
-			      @':type', mk_cl_Cnil,
-			      @':version', mk_cl_Cnil,
-			      @':defaults', phys);
-    dir = mk_si_coerce_to_filename(env, dir);
-    file = mk_cl_file_namestring(env, phys);
+      phys = mk_cl_translate_logical_pathname(env, 1, template);
+      dir = mk_cl_make_pathname(env, 8,
+                                @':name', mk_cl_Cnil,
+                                @':type', mk_cl_Cnil,
+                                @':version', mk_cl_Cnil,
+                                @':defaults', phys);
+      dir = mk_si_coerce_to_filename(env, dir);
+      file = mk_cl_file_namestring(env, phys);
 	
-    {
-      mkcl_dynamic_extent_OSstring(env, os_file, file);
-      mkcl_dynamic_extent_OSstring(env, os_dir, dir);
+      {
+        mkcl_dynamic_extent_OSstring(env, os_file, file);
+        mkcl_dynamic_extent_OSstring(env, os_dir, dir);
 
-    AGAIN:
-      if (mkcl_OSstring_size(os_dir) <= (MAX_PATH - 14))
-	MKCL_LIBC_NO_INTR(env, unique_val = GetTempFileNameW(mkcl_OSstring_self(os_dir),
-							mkcl_OSstring_self(os_file),
-							0,
-							strTempFileName));
-      if (unique_val == 0) {
-	tmp_stream = mk_cl_Cnil;
-      } else {
-	tmp_filename = mkcl_cstring16_to_string(env, strTempFileName);
+      AGAIN:
+        if (mkcl_OSstring_size(os_dir) <= (MAX_PATH - 14))
+          MKCL_LIBC_NO_INTR(env, unique_val = GetTempFileNameW(mkcl_OSstring_self(os_dir),
+                                                               mkcl_OSstring_self(os_file),
+                                                               0,
+                                                               strTempFileName));
+        if (unique_val == 0) {
+          tmp_stream = mk_cl_Cnil;
+        } else {
+          tmp_filename = mkcl_cstring16_to_string(env, strTempFileName);
 
-	/* Yes, there is a gaping hole between name creation and file opening, but there does not
-	   seem to be any way provided by Microsoft to make this atomic. */
-	int fd; /* This one should give better performance */
+          /* Yes, there is a gaping hole between name creation and file opening, but there does not
+             seem to be any way provided by Microsoft to make this atomic. */
+          int fd; /* This one should give better performance */
 
-	MKCL_LIBC_NO_INTR(env, fd = _wopen(strTempFileName,
-				      _O_RDWR | _O_CREAT | /*_O_EXCL | */ _O_TRUNC | _O_BINARY | _O_SHORT_LIVED,
-				      _S_IREAD | _S_IWRITE));
+          MKCL_LIBC_NO_INTR(env, fd = _wopen(strTempFileName,
+                                             _O_RDWR | _O_CREAT | /*_O_EXCL | */ _O_TRUNC | _O_BINARY | _O_SHORT_LIVED,
+                                             _S_IREAD | _S_IWRITE));
 
-	if (fd == -1)
-	  if ((errno == EEXIST) && first_try)
-	    { first_try = FALSE; goto AGAIN; }
-	  else
-	    { mkcl_return_3_values(mk_cl_Cnil, mk_cl_Cnil, MKCL_MAKE_FIXNUM(errno)); }
+          if (fd == -1)
+            if ((errno == EEXIST) && first_try)
+              { first_try = FALSE; goto AGAIN; }
+            else
+              { mkcl_return_3_values(mk_cl_Cnil, mk_cl_Cnil, MKCL_MAKE_FIXNUM(errno)); }
 
-	tmp_stream = mkcl_make_stream_from_fd(env, tmp_filename, fd, mkcl_smm_io, element_type, external_format);
+          tmp_stream = mkcl_make_stream_from_fd(env, tmp_filename, fd, mkcl_smm_io, element_type, external_format);
+        }
       }
-    }
 #else /*  MKCL_WINDOWS */
-    int fd;
-    int i;
+      int fd;
+      int i;
 
-    template = mk_si_coerce_to_filename(env, template);
+      template = mk_si_coerce_to_filename(env, template);
 
-    mkcl_object os_template = mkcl_string_to_OSstring(env, template);
+      mkcl_object os_template = mkcl_string_to_OSstring(env, template);
 
-    for (i = 0; i < 6; i++)
-      mkcl_OSstring_push_extend(env, os_template, 'X'); /* add "XXXXXX" to the end of the template. */
+      for (i = 0; i < 6; i++)
+        mkcl_OSstring_push_extend(env, os_template, 'X'); /* add "XXXXXX" to the end of the template. */
 
-    MKCL_LIBC_NO_INTR(env, fd = mkstemp((char *) mkcl_OSstring_self(os_template)));
+      MKCL_LIBC_NO_INTR(env, fd = mkstemp((char *) mkcl_OSstring_self(os_template)));
 
-    if (fd == -1) {
-      mkcl_return_3_values(mk_cl_Cnil, mk_cl_Cnil, MKCL_MAKE_FIXNUM(errno));
-    } else {
-      tmp_filename = mkcl_OSstring_to_string(env, os_template);
-      tmp_stream = mkcl_make_stream_from_fd(env, tmp_filename, fd, mkcl_smm_io, element_type, external_format);
-    }
+      if (fd == -1) {
+        mkcl_return_3_values(mk_cl_Cnil, mk_cl_Cnil, MKCL_MAKE_FIXNUM(errno));
+      } else {
+        tmp_filename = mkcl_OSstring_to_string(env, os_template);
+        tmp_stream = mkcl_make_stream_from_fd(env, tmp_filename, fd, mkcl_smm_io, element_type, external_format);
+      }
 #endif /* else  MKCL_WINDOWS */
 
-    mkcl_return_2_values(tmp_stream, tmp_filename);
+      mkcl_return_2_values(tmp_stream, tmp_filename);
+    }
   }
-@)
+}
 
 mkcl_object
 mk_mkcl_rmdir(MKCL, mkcl_object directory)

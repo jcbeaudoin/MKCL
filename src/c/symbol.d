@@ -280,12 +280,18 @@ mkcl_keywordp(mkcl_object s)
   return (mkcl_type_of(s) == mkcl_t_symbol) && (s->symbol.hpack == mkcl_core.keyword_package);
 }
 
-@(defun get (sym indicator &optional deflt)
-  mkcl_object *plist;
-@
-  plist = mkcl_symbol_plist(env, sym);
-  mkcl_return_value(mkcl_getf(env, *plist, indicator, deflt));
-@)
+mkcl_object mk_cl_get(MKCL, mkcl_narg narg, mkcl_object sym, mkcl_object indicator, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object *plist;
+    mkcl_object deflt = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'get', narg, 2, indicator, &deflt);
+
+    plist = mkcl_symbol_plist(env, sym);
+    mkcl_return_value(mkcl_getf(env, *plist, indicator, deflt));
+  }
+}
 
 mkcl_object
 mk_cl_remprop(MKCL, mkcl_object sym, mkcl_object prop)
@@ -304,10 +310,16 @@ mk_cl_symbol_plist(MKCL, mkcl_object sym)
   mkcl_return_value(*mkcl_symbol_plist(env, sym));
 }
 
-@(defun getf (place indicator &optional deflt)
-@
-  mkcl_return_value(mkcl_getf(env, place, indicator, deflt))
-@)
+mkcl_object mk_cl_getf(MKCL, mkcl_narg narg, mkcl_object place, mkcl_object indicator, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object deflt = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'getf', narg, 2, indicator, &deflt);
+
+    mkcl_return_value(mkcl_getf(env, place, indicator, deflt));
+  }
+}
 
 mkcl_object
 mk_cl_get_properties(MKCL, mkcl_object place, mkcl_object indicator_list)
@@ -340,60 +352,72 @@ mk_cl_symbol_name(MKCL, mkcl_object x)
   mkcl_return_value(mkcl_symbol_name(env, x));
 }
 
-@(defun copy_symbol (sym &optional cp)
-  mkcl_object x = mk_cl_Cnil;
-@
-  if (mkcl_Null(sym))
-    sym = mk_cl_Cnil_symbol;
-  x = mk_cl_make_symbol(env, mkcl_symbol_name(env, sym));
-  if (!mkcl_Null(cp)) {
-    x->symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;
-    x->symbol.stype = sym->symbol.stype;
-    x->symbol.value = sym->symbol.value;
-    x->symbol.gfdef = sym->symbol.gfdef;
-    x->symbol.plist = mk_cl_copy_list(env, sym->symbol.plist);
-    /* FIXME!!! We should also copy the system property list */
+mkcl_object mk_cl_copy_symbol(MKCL, mkcl_narg narg, mkcl_object sym, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object x = mk_cl_Cnil;
+    mkcl_object cp = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'copy-symbol', narg, 1, sym, &cp);
+
+    if (mkcl_Null(sym))
+      sym = mk_cl_Cnil_symbol;
+    x = mk_cl_make_symbol(env, mkcl_symbol_name(env, sym));
+    if (!mkcl_Null(cp)) {
+      x->symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;
+      x->symbol.stype = sym->symbol.stype;
+      x->symbol.value = sym->symbol.value;
+      x->symbol.gfdef = sym->symbol.gfdef;
+      x->symbol.plist = mk_cl_copy_list(env, sym->symbol.plist);
+      /* FIXME!!! We should also copy the system property list */
+    }
+    mkcl_return_value(x);
   }
-  mkcl_return_value(x);
-@)
+}
 
-@(defun gensym (&optional (prefix mkcl_core.gensym_prefix))
-	mkcl_type t;
-	mkcl_object counter, output;
-	bool increment;
-@ {
- AGAIN:
-  if (mkcl_stringp(env, prefix)) {
-    counter = MKCL_SYM_VAL(env, @'*gensym-counter*');
-    increment = 1;
-  } else if ((t = mkcl_type_of(prefix)) == mkcl_t_fixnum || t == mkcl_t_bignum) {
-    counter = prefix;
-    prefix = mkcl_core.gensym_prefix;
-    increment = 0;
-  } else {
-    prefix = mkcl_type_error(env, @'gensym',"prefix",prefix,
-			     mk_cl_list(env, 3, @'or', @'string', @'integer'));
-    goto AGAIN;
+mkcl_object mk_cl_gensym(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_type t;
+    mkcl_object counter, output;
+    bool increment;
+    mkcl_object prefix = mkcl_core.gensym_prefix;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'gensym', narg, 0, narg, &prefix);
+    {
+    AGAIN:
+      if (mkcl_stringp(env, prefix)) {
+        counter = MKCL_SYM_VAL(env, @'*gensym-counter*');
+        increment = 1;
+      } else if ((t = mkcl_type_of(prefix)) == mkcl_t_fixnum || t == mkcl_t_bignum) {
+        counter = prefix;
+        prefix = mkcl_core.gensym_prefix;
+        increment = 0;
+      } else {
+        prefix = mkcl_type_error(env, @'gensym',"prefix",prefix,
+                                 mk_cl_list(env, 3, @'or', @'string', @'integer'));
+        goto AGAIN;
+      }
+      output = mkcl_make_string_output_stream(env, 64, TRUE, @':default');
+
+      mkcl_bds_bind(env, @'*print-escape*', mk_cl_Cnil);
+      mkcl_bds_bind(env, @'*print-readably*', mk_cl_Cnil);
+      mkcl_bds_bind(env, @'*print-base*', MKCL_MAKE_FIXNUM(10));
+      mkcl_bds_bind(env, @'*print-radix*', mk_cl_Cnil);
+      mk_si_write_ugly_object(env, prefix, output);
+      mk_si_write_ugly_object(env, MKCL_CODE_CHAR('-'), output);
+      mk_si_write_ugly_object(env, MKCL_MAKE_FIXNUM(env->own_thread->thread.tid), output);
+      mk_si_write_ugly_object(env, MKCL_CODE_CHAR('-'), output);
+      mk_si_write_ugly_object(env, counter, output);
+      mkcl_bds_unwind_n(env, 4);
+
+      output = mk_cl_make_symbol(env, mk_cl_get_output_stream_string(env, output));
+      if (increment)
+        MKCL_SETQ(env, @'*gensym-counter*',mkcl_one_plus(env, counter));
+      mkcl_return_value(output);
+    }
   }
-  output = mkcl_make_string_output_stream(env, 64, TRUE, @':default');
-
-  mkcl_bds_bind(env, @'*print-escape*', mk_cl_Cnil);
-  mkcl_bds_bind(env, @'*print-readably*', mk_cl_Cnil);
-  mkcl_bds_bind(env, @'*print-base*', MKCL_MAKE_FIXNUM(10));
-  mkcl_bds_bind(env, @'*print-radix*', mk_cl_Cnil);
-  mk_si_write_ugly_object(env, prefix, output);
-  mk_si_write_ugly_object(env, MKCL_CODE_CHAR('-'), output);
-  mk_si_write_ugly_object(env, MKCL_MAKE_FIXNUM(env->own_thread->thread.tid), output);
-  mk_si_write_ugly_object(env, MKCL_CODE_CHAR('-'), output);
-  mk_si_write_ugly_object(env, counter, output);
-  mkcl_bds_unwind_n(env, 4);
-
-  output = mk_cl_make_symbol(env, mk_cl_get_output_stream_string(env, output));
-  if (increment)
-    MKCL_SETQ(env, @'*gensym-counter*',mkcl_one_plus(env, counter));
-  mkcl_return_value(output);
- }
-@)
+}
 
 #if MKCL_WINDOWS
 static CRITICAL_SECTION gentemp_lock;
@@ -401,55 +425,62 @@ static CRITICAL_SECTION gentemp_lock;
 static pthread_mutex_t gentemp_lock;
 #endif
 
-@(defun gentemp (&optional (prefix mkcl_core.gentemp_prefix) (pack mkcl_current_package(env)))
-  mkcl_object output, s;
-  int intern_flag;
-@
-  prefix = mkcl_check_type_string(env, @'gentemp', prefix);
-  pack = mk_si_coerce_to_package(env, pack);
-ONCE_MORE:
-  output = mkcl_make_string_output_stream(env, 64, TRUE, @':default');
-
-  mkcl_bds_bind(env, @'*print-escape*', mk_cl_Cnil);
-  mkcl_bds_bind(env, @'*print-readably*', mk_cl_Cnil);
-  mkcl_bds_bind(env, @'*print-base*', MKCL_MAKE_FIXNUM(10));
-  mkcl_bds_bind(env, @'*print-radix*', mk_cl_Cnil);
-  mk_si_write_ugly_object(env, prefix, output);
-
+mkcl_object mk_cl_gentemp(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
   {
-    bool not_ok;
-    volatile bool locked = false;
+    mkcl_object output, s;
+    int intern_flag;
+    mkcl_object prefix = mkcl_core.gentemp_prefix;
+    mkcl_object pack = (((narg == 0) || (narg == 1)) ? mkcl_current_package(env) : mk_cl_Cnil);
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, @'gentemp', narg, 0, narg, &prefix, &pack);
 
-    MKCL_UNWIND_PROTECT_BEGIN(env) {
+    prefix = mkcl_check_type_string(env, @'gentemp', prefix);
+    pack = mk_si_coerce_to_package(env, pack);
+  ONCE_MORE:
+    output = mkcl_make_string_output_stream(env, 64, TRUE, @':default');
+
+    mkcl_bds_bind(env, @'*print-escape*', mk_cl_Cnil);
+    mkcl_bds_bind(env, @'*print-readably*', mk_cl_Cnil);
+    mkcl_bds_bind(env, @'*print-base*', MKCL_MAKE_FIXNUM(10));
+    mkcl_bds_bind(env, @'*print-radix*', mk_cl_Cnil);
+    mk_si_write_ugly_object(env, prefix, output);
+
+    {
+      bool not_ok;
+      volatile bool locked = false;
+
+      MKCL_UNWIND_PROTECT_BEGIN(env) {
 #if MKCL_WINDOWS
-      EnterCriticalSection(&gentemp_lock);
+        EnterCriticalSection(&gentemp_lock);
 #elif MKCL_PTHREADS
-      MKCL_LIBC_NO_INTR(env, not_ok = pthread_mutex_lock(&gentemp_lock));
-      if (not_ok)
-	mkcl_lose(env, "Failed to acquire lock in mk_cl_gentemp().");
+        MKCL_LIBC_NO_INTR(env, not_ok = pthread_mutex_lock(&gentemp_lock));
+        if (not_ok)
+          mkcl_lose(env, "Failed to acquire lock in mk_cl_gentemp().");
 #endif
-      locked = true;
-      mk_si_write_ugly_object(env, mkcl_core.gentemp_counter, output);
-      mkcl_core.gentemp_counter = mkcl_one_plus(env, mkcl_core.gentemp_counter);
-    } MKCL_UNWIND_PROTECT_EXIT {
+        locked = true;
+        mk_si_write_ugly_object(env, mkcl_core.gentemp_counter, output);
+        mkcl_core.gentemp_counter = mkcl_one_plus(env, mkcl_core.gentemp_counter);
+      } MKCL_UNWIND_PROTECT_EXIT {
 #if MKCL_WINDOWS
-      if (locked)
-	LeaveCriticalSection(&gentemp_lock);
+        if (locked)
+          LeaveCriticalSection(&gentemp_lock);
 #elif MKCL_PTHREADS
-      if (locked)
-	if (pthread_mutex_unlock(&gentemp_lock))
-	  mkcl_lose(env, "Failed to release lock in mk_cl_gentemp()");
+        if (locked)
+          if (pthread_mutex_unlock(&gentemp_lock))
+            mkcl_lose(env, "Failed to release lock in mk_cl_gentemp()");
 #endif
-    } MKCL_UNWIND_PROTECT_END;
+      } MKCL_UNWIND_PROTECT_END;
+    }
+
+    mkcl_bds_unwind_n(env, 4);
+
+    s = mkcl_intern(env, mkcl_copy_string(env, mk_cl_get_output_stream_string(env, output)), pack, &intern_flag);
+    if (intern_flag != 0)
+      goto ONCE_MORE;
+    mkcl_return_value(s);
   }
-
-  mkcl_bds_unwind_n(env, 4);
-
-  s = mkcl_intern(env, mkcl_copy_string(env, mk_cl_get_output_stream_string(env, output)), pack, &intern_flag);
-  if (intern_flag != 0)
-    goto ONCE_MORE;
-  mkcl_return_value(s);
-@)
+}
 
 mkcl_object
 mk_cl_symbol_package(MKCL, mkcl_object sym)

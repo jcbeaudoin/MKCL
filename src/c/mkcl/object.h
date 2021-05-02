@@ -5,7 +5,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -32,7 +32,7 @@
    Changes in FASL layout should be rare and well motivated
    since they destroy binary upward compatibility of FASLs.
 */
-#define MKCL_FASL_VERSION 7 /* for post MKCL 1.1.11 */
+#define MKCL_FASL_VERSION 8 /* 7 was for post MKCL 1.1.11 */
 
 #ifdef __cplusplus
 extern "C" {

@@ -4,7 +4,7 @@
 */
 /*
     Copyright (c) 2003, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2019, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2019,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -1649,42 +1649,59 @@ static void mkcl_create_finalization_thread(MKCL)
 
 /*************************************************************/
 
-@(defun mt::make-thread (&key
-			 name
-			 ((:initial-bindings initial_bindings) mk_cl_Ct)
-			 call_stack_size
-			 binding_stack_initial_size
-			 binding_stack_size_limit
-			 frame_stack_initial_size
-			 frame_stack_size_limit
-			 lisp_temp_stack_initial_size
-			 lisp_temp_stack_size_limit
-			 sigaltstack_size
-			 )
-  mkcl_object thread;
-@
-  struct mkcl_thread_init_parameters init_params = { 0 };
+mkcl_object mk_mt_make_thread(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object thread;
+    mkcl_object name = mk_cl_Cnil;
+    mkcl_object initial_bindings = mk_cl_Ct;
+    mkcl_object call_stack_size = mk_cl_Cnil;
+    mkcl_object binding_stack_initial_size = mk_cl_Cnil;
+    mkcl_object binding_stack_size_limit = mk_cl_Cnil;
+    mkcl_object frame_stack_initial_size = mk_cl_Cnil;
+    mkcl_object frame_stack_size_limit = mk_cl_Cnil;
+    mkcl_object lisp_temp_stack_initial_size = mk_cl_Cnil;
+    mkcl_object lisp_temp_stack_size_limit = mk_cl_Cnil;
+    mkcl_object sigaltstack_size = mk_cl_Cnil;
+    struct mkcl_key_param_spec key_params[] =
+      {
+       { @':name', &name, false },
+       { @':initial-bindings', &initial_bindings, false },
+       { @':call-stack-size', &call_stack_size, false },
+       { @':binding-stack-initial-size', &binding_stack_initial_size, false },
+       { @':binding-stack-size-limit', &binding_stack_size_limit, false },
+       { @':frame-stack-initial-size', &frame_stack_initial_size, false },
+       { @':frame-stack-size-limit', &frame_stack_size_limit, false },
+       { @':lisp-temp-stack-initial-size', &lisp_temp_stack_initial_size, false },
+       { @':lisp-temp-stack-size-limit', &lisp_temp_stack_size_limit, false },
+       { @':sigaltstack-size', &sigaltstack_size, false },
+      };
+    MKCL_RECEIVE_N_KEYWORD_ARGUMENTS(env, @'mt::make-thread', narg, 0, narg, key_params);
 
-  if (!mkcl_Null(call_stack_size))
-    init_params.call_stack_size = mkcl_integer_to_index(env, call_stack_size);
-  if (!mkcl_Null(sigaltstack_size))
-    init_params.sigaltstack_size = mkcl_integer_to_index(env, sigaltstack_size);
-  if (!mkcl_Null(binding_stack_initial_size))
-    init_params.binding_stack_initial_size = mkcl_integer_to_index(env, binding_stack_initial_size);
-  if (!(mkcl_Null(binding_stack_size_limit) || (binding_stack_size_limit == @':unlimited')))
-    init_params.binding_stack_size_limit = mkcl_integer_to_index(env, binding_stack_size_limit);
-  if (!mkcl_Null(frame_stack_initial_size))
-    init_params.frame_stack_initial_size = mkcl_integer_to_index(env, frame_stack_initial_size);
-  if (!(mkcl_Null(frame_stack_size_limit) || (frame_stack_size_limit == @':unlimited')))
-    init_params.frame_stack_size_limit = mkcl_integer_to_index(env, frame_stack_size_limit);
-  if (!mkcl_Null(lisp_temp_stack_initial_size))
-    init_params.lisp_temp_stack_initial_size = mkcl_integer_to_index(env, lisp_temp_stack_initial_size);
-  if (!(mkcl_Null(lisp_temp_stack_size_limit) || (lisp_temp_stack_size_limit == @':unlimited')))
-    init_params.lisp_temp_stack_size_limit = mkcl_integer_to_index(env, lisp_temp_stack_size_limit);
+    struct mkcl_thread_init_parameters init_params = { 0 };
 
-  thread = mkcl_make_thread(env, name, initial_bindings, &init_params);
-  mkcl_return_value(thread);
-@)
+    if (!mkcl_Null(call_stack_size))
+      init_params.call_stack_size = mkcl_integer_to_index(env, call_stack_size);
+    if (!mkcl_Null(sigaltstack_size))
+      init_params.sigaltstack_size = mkcl_integer_to_index(env, sigaltstack_size);
+    if (!mkcl_Null(binding_stack_initial_size))
+      init_params.binding_stack_initial_size = mkcl_integer_to_index(env, binding_stack_initial_size);
+    if (!(mkcl_Null(binding_stack_size_limit) || (binding_stack_size_limit == @':unlimited')))
+      init_params.binding_stack_size_limit = mkcl_integer_to_index(env, binding_stack_size_limit);
+    if (!mkcl_Null(frame_stack_initial_size))
+      init_params.frame_stack_initial_size = mkcl_integer_to_index(env, frame_stack_initial_size);
+    if (!(mkcl_Null(frame_stack_size_limit) || (frame_stack_size_limit == @':unlimited')))
+      init_params.frame_stack_size_limit = mkcl_integer_to_index(env, frame_stack_size_limit);
+    if (!mkcl_Null(lisp_temp_stack_initial_size))
+      init_params.lisp_temp_stack_initial_size = mkcl_integer_to_index(env, lisp_temp_stack_initial_size);
+    if (!(mkcl_Null(lisp_temp_stack_size_limit) || (lisp_temp_stack_size_limit == @':unlimited')))
+      init_params.lisp_temp_stack_size_limit = mkcl_integer_to_index(env, lisp_temp_stack_size_limit);
+
+    thread = mkcl_make_thread(env, name, initial_bindings, &init_params);
+    mkcl_return_value(thread);
+  }
+ }
 
 #if MKCL_PTHREADS
 static void print_sig_mask(sigset_t * set)
@@ -2439,22 +2456,32 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
 
 #endif /* MKCL_PTHREADS */
 
-@(defun mt::interrupt-thread (thread function &key (force mk_cl_Cnil) call_stack_size)
-@
-  mkcl_object val;
-  mkcl_index os_call_stack_size;
+mkcl_object mk_mt_interrupt_thread(MKCL, mkcl_narg narg, mkcl_object thread, mkcl_object function, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object force = mk_cl_Cnil;
+    mkcl_object call_stack_size = mk_cl_Cnil;
 
-  if (!mkcl_Null(call_stack_size))
-    os_call_stack_size = mkcl_integer_to_index(env, call_stack_size);
-  else
-    os_call_stack_size = mkcl_get_option(MKCL_OPT_INTERRUPT_THREAD_CALL_STACK_SIZE);
+    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, @'mt::interrupt-thread', narg, 2, function, @':force', &force, @':call-stack-size', &call_stack_size);
 
-  MKCL_UNWIND_PROTECT_BEGIN(env) {
-    MKCL_LIBC_NO_INTR(env, val = interrupt_thread_internal(env, thread, function, os_call_stack_size, force));
-  } MKCL_UNWIND_PROTECT_EXIT {
-  } MKCL_UNWIND_PROTECT_END;
-  mkcl_return_value(val);
-@)
+    {
+      mkcl_object val;
+      mkcl_index os_call_stack_size;
+
+      if (!mkcl_Null(call_stack_size))
+        os_call_stack_size = mkcl_integer_to_index(env, call_stack_size);
+      else
+        os_call_stack_size = mkcl_get_option(MKCL_OPT_INTERRUPT_THREAD_CALL_STACK_SIZE);
+
+      MKCL_UNWIND_PROTECT_BEGIN(env) {
+        MKCL_LIBC_NO_INTR(env, val = interrupt_thread_internal(env, thread, function, os_call_stack_size, force));
+      } MKCL_UNWIND_PROTECT_EXIT {
+      } MKCL_UNWIND_PROTECT_END;
+      mkcl_return_value(val);
+    }
+  }
+}
 
 mkcl_object
 mk_mt_thread_kill(MKCL, mkcl_object thread)
@@ -3139,49 +3166,58 @@ mk_mt_thread_run_function(MKCL, mkcl_narg narg, mkcl_object name, mkcl_object fu
  * LOCKS or MUTEX
  */
 
-@(defun mt::make-lock (&key name ((:recursive recursive) mk_cl_Cnil) fast)
-  mkcl_object output;
-@
-#if MKCL_WINDOWS
-  HANDLE mutex;
-
-  MKCL_LIBC_NO_INTR(env, mutex = CreateMutex(NULL, FALSE, mkcl_handle_debug_name(env, "mutex")));
-  if ( mutex == NULL )
-    mkcl_FEwin32_error(env, "mt::make-lock failed to create lock: ~A", 1, name);
-
-  output = mkcl_alloc_raw_lock(env);
-  output->lock.name = name;
-  output->lock.mutex = mutex;
-  output->lock.holder = mk_cl_Cnil;
-  output->lock.counter = 0;
-  output->lock.recursive = (recursive != mk_cl_Cnil);
-#else
+mkcl_object mk_mt_make_lock(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
   {
-    const pthread_mutexattr_t * mutexattr = NULL;
-    int rc;
+    mkcl_object output;
+    mkcl_object name = mk_cl_Cnil;
+    mkcl_object recursive = mk_cl_Cnil;
+    mkcl_object fast = mk_cl_Cnil;
+
+    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, @'mt::make-lock', narg, 0, narg, @':name', &name, @':recursive', &recursive, @':fast', &fast);
+
+#if MKCL_WINDOWS
+    HANDLE mutex;
+
+    MKCL_LIBC_NO_INTR(env, mutex = CreateMutex(NULL, FALSE, mkcl_handle_debug_name(env, "mutex")));
+    if ( mutex == NULL )
+      mkcl_FEwin32_error(env, "mt::make-lock failed to create lock: ~A", 1, name);
 
     output = mkcl_alloc_raw_lock(env);
     output->lock.name = name;
+    output->lock.mutex = mutex;
     output->lock.holder = mk_cl_Cnil;
     output->lock.counter = 0;
-    output->lock.mutex = &output->lock.mutex_obj;
-    if (recursive == mk_cl_Cnil) {
-      if (mkcl_Null(fast)) {
-	mutexattr = mkcl_errorcheck_mutexattr;
+    output->lock.recursive = (recursive != mk_cl_Cnil);
+#else
+    {
+      const pthread_mutexattr_t * mutexattr = NULL;
+      int rc;
+
+      output = mkcl_alloc_raw_lock(env);
+      output->lock.name = name;
+      output->lock.holder = mk_cl_Cnil;
+      output->lock.counter = 0;
+      output->lock.mutex = &output->lock.mutex_obj;
+      if (recursive == mk_cl_Cnil) {
+        if (mkcl_Null(fast)) {
+          mutexattr = mkcl_errorcheck_mutexattr;
+        }
+        output->lock.recursive = FALSE;
+      } else {
+        mutexattr = mkcl_recursive_mutexattr;
+        output->lock.recursive = TRUE;
       }
-      output->lock.recursive = FALSE;
-    } else {
-      mutexattr = mkcl_recursive_mutexattr;
-      output->lock.recursive = TRUE;
+      MKCL_LIBC_NO_INTR(env, rc = pthread_mutex_init(output->lock.mutex, mutexattr));
+      if (rc)
+        { errno = rc; mkcl_FElibc_error(env, "mk_mt_make_lock failed on pthread_mutex_init", 0); }
     }
-    MKCL_LIBC_NO_INTR(env, rc = pthread_mutex_init(output->lock.mutex, mutexattr));
-    if (rc)
-      { errno = rc; mkcl_FElibc_error(env, "mk_mt_make_lock failed on pthread_mutex_init", 0); }
-  }
 #endif
-  mk_si_set_finalizer(env, output, mk_cl_Ct);
-  mkcl_return_value(output);
-@)
+    mk_si_set_finalizer(env, output, mk_cl_Ct);
+    mkcl_return_value(output);
+  }
+}
 
 mkcl_object
 mk_mt_recursive_lock_p(MKCL, mkcl_object lock)
@@ -3280,145 +3316,151 @@ mk_mt_giveup_lock(MKCL, mkcl_object lock)
 static const mkcl_base_string_object(timeout_format_control_string_obj, "Timeout value ~S is not a positive real number.");
 static const mkcl_object timeout_format_control_string = (mkcl_object) &timeout_format_control_string_obj;
 
-@(defun mt::get-lock (lock &optional (timeout mk_cl_Ct))
-@
-  if (mkcl_type_of(lock) != mkcl_t_lock)
-    mkcl_FEwrong_type_argument(env, @'mt::lock', lock);
+mkcl_object mk_mt_get_lock(MKCL, mkcl_narg narg, mkcl_object lock, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object timeout = mk_cl_Ct;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'mt::get-lock', narg, 1, lock, &timeout);
 
-  /* already held recursive lock in an interrupted thread */
-  if (lock->lock.recursive && (lock->lock.holder == env->own_thread) && (env->own_thread->thread.interrupt_count != 0)) {
-    lock->lock.counter++;
-    mkcl_return_value(mk_cl_Ct);
-  }
+    if (mkcl_type_of(lock) != mkcl_t_lock)
+      mkcl_FEwrong_type_argument(env, @'mt::lock', lock);
+
+    /* already held recursive lock in an interrupted thread */
+    if (lock->lock.recursive && (lock->lock.holder == env->own_thread) && (env->own_thread->thread.interrupt_count != 0)) {
+      lock->lock.counter++;
+      mkcl_return_value(mk_cl_Ct);
+    }
 
 #if MKCL_WINDOWS
-  {
-    mkcl_object output = mk_cl_Cnil;
-    DWORD delai = INFINITE;
-    DWORD val;
+    {
+      mkcl_object output = mk_cl_Cnil;
+      DWORD delai = INFINITE;
+      DWORD val;
 
-    /* In Windows, all locks are recursive. We simulate the other case. */
-    /* We complain if recursive=0 and this is an attempt to lock recursively. */
-    /* FIXME: Should probably be moved after the lock has been acquired. JCB */
-    if (!lock->lock.recursive && (lock->lock.holder == env->own_thread)) {
-      mkcl_FEerror(env, "A recursive attempt was made to hold non-recursive lock ~S", 1, lock);
+      /* In Windows, all locks are recursive. We simulate the other case. */
+      /* We complain if recursive=0 and this is an attempt to lock recursively. */
+      /* FIXME: Should probably be moved after the lock has been acquired. JCB */
+      if (!lock->lock.recursive && (lock->lock.holder == env->own_thread)) {
+        mkcl_FEerror(env, "A recursive attempt was made to hold non-recursive lock ~S", 1, lock);
+      }
+
+      if (mkcl_Null(timeout) || (MKCL_MAKE_FIXNUM(0) == timeout))
+        delai = 0;
+      else if (timeout == mk_cl_Ct)
+        delai = INFINITE;
+      else
+        {
+          /* INV: mkcl_minusp() makes sure `timeout' is real */
+          if (mkcl_minusp(env, timeout))
+            mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+                        timeout_format_control_string,
+                        @':format-arguments', mkcl_list1(env, timeout),
+                        @':expected-type', @'real', @':datum', timeout);
+
+          { 
+            double r = mkcl_to_double(env, timeout);
+
+            delai = floor(r * 1000.0); /* in milliseconds. */
+          }
+        }
+
+      do {
+        MKCL_LIBC_Zzz(env, @':io', val = WaitForSingleObjectEx(lock->lock.mutex, delai, TRUE));
+      } while (val == WAIT_IO_COMPLETION);
+      switch (val)
+        {
+        case WAIT_OBJECT_0:
+          lock->lock.holder = env->own_thread;
+          lock->lock.counter++;
+          output = mk_cl_Ct;
+          break;
+        case WAIT_TIMEOUT:
+          output = mk_cl_Cnil;
+          break;
+        case WAIT_ABANDONED:
+          mkcl_FEwin32_error(env, "Mutex was abandoned in a locked state", 0);
+          break;
+        case WAIT_FAILED:
+        default:
+          mkcl_FEwin32_error(env, "Unable to lock Win32 Mutex: ~S", 1, lock);
+          break;
+        }
+      mk_mt_test_for_thread_shutdown(env);
+
+      mkcl_return_value(output);
     }
+#elif MKCL_PTHREADS
+    int rc;
 
     if (mkcl_Null(timeout) || (MKCL_MAKE_FIXNUM(0) == timeout))
-      delai = 0;
+      {
+        MKCL_LIBC_NO_INTR(env, rc = pthread_mutex_trylock(lock->lock.mutex));
+
+        if (rc == EBUSY)
+          { mkcl_return_value(mk_cl_Cnil); }
+      }
     else if (timeout == mk_cl_Ct)
-      delai = INFINITE;
+      {
+        mkcl_os_mutex_ref mutex = lock->lock.mutex;
+
+        MKCL_LIBC_NO_INTR(env, rc = pthread_mutex_lock(mutex));
+        if (mutex != lock->lock.mutex)
+          mk_mt_abandon_thread(env, @':aborted'); /* broken mutex! must abort right now! */
+      }
     else
       {
-	/* INV: mkcl_minusp() makes sure `timeout' is real */
-	if (mkcl_minusp(env, timeout))
-	  mk_cl_error(env, 9, @'simple-type-error', @':format-control',
-		      timeout_format_control_string,
-		      @':format-arguments', mkcl_list1(env, timeout),
-		      @':expected-type', @'real', @':datum', timeout);
+        mkcl_os_mutex_ref mutex = lock->lock.mutex;
+        struct timespec ts;
+        int error;
 
-	{ 
-	  double r = mkcl_to_double(env, timeout);
+        /* INV: mkcl_minusp() makes sure `timeout' is real */
+        if (mkcl_minusp(env, timeout))
+          mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+                      timeout_format_control_string,
+                      @':format-arguments', mk_cl_list(env, 1, timeout),
+                      @':expected-type', @'real', @':datum', timeout);
 
-	  delai = floor(r * 1000.0); /* in milliseconds. */
-	}
+        MKCL_LIBC_NO_INTR(env, error = clock_gettime(CLOCK_REALTIME, &ts));
+        if (error)
+          mkcl_FElibc_error(env, "mk_mt_get_lock failed on clock_gettime", 0);
+
+        /* Add `timeout' delta */
+        { 
+          double r = mkcl_to_double(env, timeout);
+          ts.tv_sec += floor(r);
+          ts.tv_nsec += ((r - floor(r)) * 1e9);
+        }
+        if (ts.tv_nsec >= 1000000000) {
+          ts.tv_nsec -= 1000000000;
+          ts.tv_sec++;
+        }
+
+        MKCL_LIBC_NO_INTR(env, rc = pthread_mutex_timedlock(mutex, &ts));
+        if (mutex != lock->lock.mutex)
+          mk_mt_abandon_thread(env, @':aborted'); /* broken mutex! must abort right now! */
+
+        if (rc == ETIMEDOUT)
+          { mkcl_return_value(mk_cl_Cnil); }
       }
 
-    do {
-      MKCL_LIBC_Zzz(env, @':io', val = WaitForSingleObjectEx(lock->lock.mutex, delai, TRUE));
-    } while (val == WAIT_IO_COMPLETION);
-    switch (val)
+    switch (rc)
       {
-      case WAIT_OBJECT_0:
-	lock->lock.holder = env->own_thread;
-	lock->lock.counter++;
-	output = mk_cl_Ct;
-	break;
-      case WAIT_TIMEOUT:
-	output = mk_cl_Cnil;
-	break;
-      case WAIT_ABANDONED:
-	mkcl_FEwin32_error(env, "Mutex was abandoned in a locked state", 0);
-	break;
-      case WAIT_FAILED:
-      default:
-	mkcl_FEwin32_error(env, "Unable to lock Win32 Mutex: ~S", 1, lock);
-	break;
+      case EINVAL: mkcl_FEerror(env, "get-lock: Invalid lock: ~S", 1, lock); break;
+      case EAGAIN: mkcl_FEerror(env, "get-lock: Out of available locks: ~S", 1, lock); break;
+      case EDEADLK: mkcl_FEerror(env, "get-lock: Would deadlock: ~S", 1, lock); break;
+      default: mkcl_lose(env, "mk_mt_get_lock failed on pthread_mutex_lock"); break;
+      case 0:
+        lock->lock.holder = env->own_thread;
+        lock->lock.counter++;
+        break;
       }
-    mk_mt_test_for_thread_shutdown(env);
-
-    mkcl_return_value(output);
-  }
-#elif MKCL_PTHREADS
-  int rc;
-
-  if (mkcl_Null(timeout) || (MKCL_MAKE_FIXNUM(0) == timeout))
-    {
-      MKCL_LIBC_NO_INTR(env, rc = pthread_mutex_trylock(lock->lock.mutex));
-
-      if (rc == EBUSY)
-	{ mkcl_return_value(mk_cl_Cnil); }
-    }
-  else if (timeout == mk_cl_Ct)
-    {
-      mkcl_os_mutex_ref mutex = lock->lock.mutex;
-
-      MKCL_LIBC_NO_INTR(env, rc = pthread_mutex_lock(mutex));
-      if (mutex != lock->lock.mutex)
-	mk_mt_abandon_thread(env, @':aborted'); /* broken mutex! must abort right now! */
-    }
-  else
-    {
-      mkcl_os_mutex_ref mutex = lock->lock.mutex;
-      struct timespec ts;
-      int error;
-
-      /* INV: mkcl_minusp() makes sure `timeout' is real */
-      if (mkcl_minusp(env, timeout))
-	mk_cl_error(env, 9, @'simple-type-error', @':format-control',
-		    timeout_format_control_string,
-		    @':format-arguments', mk_cl_list(env, 1, timeout),
-		    @':expected-type', @'real', @':datum', timeout);
-
-      MKCL_LIBC_NO_INTR(env, error = clock_gettime(CLOCK_REALTIME, &ts));
-      if (error)
-	mkcl_FElibc_error(env, "mk_mt_get_lock failed on clock_gettime", 0);
-
-      /* Add `timeout' delta */
-      { 
-	double r = mkcl_to_double(env, timeout);
-	ts.tv_sec += floor(r);
-	ts.tv_nsec += ((r - floor(r)) * 1e9);
-      }
-      if (ts.tv_nsec >= 1000000000) {
-	ts.tv_nsec -= 1000000000;
-	ts.tv_sec++;
-      }
-
-      MKCL_LIBC_NO_INTR(env, rc = pthread_mutex_timedlock(mutex, &ts));
-      if (mutex != lock->lock.mutex)
-	mk_mt_abandon_thread(env, @':aborted'); /* broken mutex! must abort right now! */
-
-      if (rc == ETIMEDOUT)
-	{ mkcl_return_value(mk_cl_Cnil); }
-    }
-
-  switch (rc)
-    {
-    case EINVAL: mkcl_FEerror(env, "get-lock: Invalid lock: ~S", 1, lock); break;
-    case EAGAIN: mkcl_FEerror(env, "get-lock: Out of available locks: ~S", 1, lock); break;
-    case EDEADLK: mkcl_FEerror(env, "get-lock: Would deadlock: ~S", 1, lock); break;
-    default: mkcl_lose(env, "mk_mt_get_lock failed on pthread_mutex_lock"); break;
-    case 0:
-      lock->lock.holder = env->own_thread;
-      lock->lock.counter++;
-      break;
-    }
-  mkcl_return_value(mk_cl_Ct);
+    mkcl_return_value(mk_cl_Ct);
 #else
 # error Incomplete mt::get-lock 
 #endif /* MKCL_WINDOWS */
-@)
+  }
+}
 
 
 /*----------------------------------------------------------------------
@@ -3460,247 +3502,271 @@ mkcl_object mk_mt_make_rwlock(MKCL)
   mkcl_return_value(output);
 }
 
-@(defun mt::giveup-rwlock (rwlock &optional (read_or_write @':read'))
-@
+mkcl_object mk_mt_giveup_rwlock(MKCL, mkcl_narg narg, mkcl_object rwlock, ...)
+{
+  mkcl_call_stack_check(env);
   {
+    mkcl_object read_or_write = @':read';
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'mt::giveup-rwlock', narg, 1, rwlock, &read_or_write);
+
+    {
+      if (mkcl_type_of(rwlock) != mkcl_t_rwlock)
+        mkcl_FEwrong_type_argument(env, @'mt::rwlock', rwlock);
+
+#if MKCL_WINDOWS
+# if defined(_MSC_VER) && (defined(WinVista) || defined(Win7))
+      if (MKCL_EQ(read_or_write, @':read'))
+        { MKCL_LIBC_NO_INTR(env, ReleaseSRWLockShared(&rwlock->rwlock.rwlock)); }
+      else if (MKCL_EQ(read_or_write, @':write'))
+        { MKCL_LIBC_NO_INTR(env, ReleaseSRWLockExclusive(&rwlock->rwlock.rwlock)); }
+      else
+        mkcl_FEerror(env, "Invalid second argument to mt::giveup-rwlock", 0);
+# else
+      mkcl_FEerror(env, "RWLocks are supported under Windows Vista and successors", 0);
+# endif
+#elif MKCL_PTHREADS
+      int rc;
+
+      MKCL_LIBC_NO_INTR(env, rc = pthread_rwlock_unlock(rwlock->rwlock.rwlock));
+      switch (rc)
+        {
+        case EINVAL: mkcl_FEerror(env, "giveup-rwlock: Invalid lock: ~S", 1, rwlock); break;
+        case EPERM: mkcl_FEerror(env, "giveup-rwlock: Not owner of lock: ~S", 1, rwlock); break;
+        default: mkcl_lose(env, "mk_mt_giveup_rwlock failed on pthread_rwlock_unlock"); break;
+        case 0: break;
+        }
+#else
+# error Incomplete mt::giveup-rwlock.
+#endif
+      mkcl_return_value(mk_cl_Ct);
+    }
+  }
+}
+
+
+mkcl_object mk_mt_get_read_rwlock(MKCL, mkcl_narg narg, mkcl_object rwlock, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object timeout = mk_cl_Ct;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'mt::get-read-rwlock', narg, 1, rwlock, &timeout);
+
     if (mkcl_type_of(rwlock) != mkcl_t_rwlock)
       mkcl_FEwrong_type_argument(env, @'mt::rwlock', rwlock);
 
 #if MKCL_WINDOWS
 # if defined(_MSC_VER) && (defined(WinVista) || defined(Win7))
-    if (MKCL_EQ(read_or_write, @':read'))
-      { MKCL_LIBC_NO_INTR(env, ReleaseSRWLockShared(&rwlock->rwlock.rwlock)); }
-    else if (MKCL_EQ(read_or_write, @':write'))
-      { MKCL_LIBC_NO_INTR(env, ReleaseSRWLockExclusive(&rwlock->rwlock.rwlock)); }
-    else
-      mkcl_FEerror(env, "Invalid second argument to mt::giveup-rwlock", 0);
+    MKCL_LIBC_NO_INTR(env, AcquireSRWLockShared(&rwlock->rwlock.rwlock));
 # else
     mkcl_FEerror(env, "RWLocks are supported under Windows Vista and successors", 0);
 # endif
 #elif MKCL_PTHREADS
     int rc;
 
-    MKCL_LIBC_NO_INTR(env, rc = pthread_rwlock_unlock(rwlock->rwlock.rwlock));
+    if (mkcl_Null(timeout) || (MKCL_MAKE_FIXNUM(0) == timeout))
+      {
+        MKCL_LIBC_NO_INTR(env, rc = pthread_rwlock_tryrdlock(rwlock->rwlock.rwlock));
+
+        if (rc == EBUSY)
+          { mkcl_return_value(mk_cl_Cnil); }
+      }
+    else if (timeout == mk_cl_Ct)
+      {
+        mkcl_os_rwlock_ref os_rwlock = rwlock->rwlock.rwlock;
+
+        MKCL_LIBC_NO_INTR(env, rc = pthread_rwlock_rdlock(os_rwlock));
+        if (os_rwlock != rwlock->rwlock.rwlock)
+          mk_mt_abandon_thread(env, @':aborted'); /* broken rwlock! must abort right now! */
+      }
+    else
+      {
+        mkcl_os_rwlock_ref os_rwlock = rwlock->rwlock.rwlock;
+        struct timespec   ts;
+
+        /* INV: mkcl_minusp() makes sure `timeout' is real */
+        if (mkcl_minusp(env, timeout))
+          mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+                      timeout_format_control_string,
+                      @':format-arguments', mk_cl_list(env, 1, timeout),
+                      @':expected-type', @'real', @':datum', timeout);
+
+        MKCL_LIBC_NO_INTR(env, rc = clock_gettime(CLOCK_REALTIME, &ts));
+        if (rc)
+          mkcl_FElibc_error(env, "mk_mt_get_read_rwlock failed on clock_gettime", 0);
+
+        /* Add `timeout' delta */
+        { 
+          double r = mkcl_to_double(env, timeout);
+          ts.tv_sec += floor(r);
+          ts.tv_nsec += ((r - floor(r)) * 1e9);
+        }
+        if (ts.tv_nsec >= 1000000000) {
+          ts.tv_nsec -= 1000000000;
+          ts.tv_sec++;
+        }
+
+        MKCL_LIBC_NO_INTR(env, rc = pthread_rwlock_timedrdlock(os_rwlock, &ts));
+        if (os_rwlock != rwlock->rwlock.rwlock)
+          mk_mt_abandon_thread(env, @':aborted'); /* broken rwlock! must abort right now! */
+
+        if (rc == ETIMEDOUT)
+          { mkcl_return_value(mk_cl_Cnil); }
+      }
+
     switch (rc)
       {
-      case EINVAL: mkcl_FEerror(env, "giveup-rwlock: Invalid lock: ~S", 1, rwlock); break;
-      case EPERM: mkcl_FEerror(env, "giveup-rwlock: Not owner of lock: ~S", 1, rwlock); break;
-      default: mkcl_lose(env, "mk_mt_giveup_rwlock failed on pthread_rwlock_unlock"); break;
+      case EINVAL: mkcl_FEerror(env, "get-read-rwlock: Invalid lock: ~S", 1, rwlock); break;
+      case EAGAIN: mkcl_FEerror(env, "get-read-rwlock: Out of available locks: ~S", 1, rwlock); break;
+      case EDEADLK: mkcl_FEerror(env, "get-read-rwlock: Would deadlock: ~S", 1, rwlock); break;
+      default: mkcl_lose(env, "mk_mt_get_read_rwlock failed on pthread_rwlock_rdlock"); break;
       case 0: break;
       }
 #else
-# error Incomplete mt::giveup-rwlock.
+# error Incomplete mt::get-read-rwlock.
 #endif
     mkcl_return_value(mk_cl_Ct);
   }
-@)
+}
 
+mkcl_object mk_mt_get_write_rwlock(MKCL, mkcl_narg narg, mkcl_object rwlock, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object timeout = mk_cl_Ct;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'mt::get-write-rwlock', narg, 1, rwlock, &timeout);
 
-@(defun mt::get-read-rwlock (rwlock &optional (timeout mk_cl_Ct))
-@
-  if (mkcl_type_of(rwlock) != mkcl_t_rwlock)
-    mkcl_FEwrong_type_argument(env, @'mt::rwlock', rwlock);
-
-#if MKCL_WINDOWS
-# if defined(_MSC_VER) && (defined(WinVista) || defined(Win7))
-  MKCL_LIBC_NO_INTR(env, AcquireSRWLockShared(&rwlock->rwlock.rwlock));
-# else
-  mkcl_FEerror(env, "RWLocks are supported under Windows Vista and successors", 0);
-# endif
-#elif MKCL_PTHREADS
-  int rc;
-
-  if (mkcl_Null(timeout) || (MKCL_MAKE_FIXNUM(0) == timeout))
-    {
-      MKCL_LIBC_NO_INTR(env, rc = pthread_rwlock_tryrdlock(rwlock->rwlock.rwlock));
-
-      if (rc == EBUSY)
-	{ mkcl_return_value(mk_cl_Cnil); }
-    }
-  else if (timeout == mk_cl_Ct)
-    {
-      mkcl_os_rwlock_ref os_rwlock = rwlock->rwlock.rwlock;
-
-      MKCL_LIBC_NO_INTR(env, rc = pthread_rwlock_rdlock(os_rwlock));
-      if (os_rwlock != rwlock->rwlock.rwlock)
-	mk_mt_abandon_thread(env, @':aborted'); /* broken rwlock! must abort right now! */
-    }
-  else
-    {
-      mkcl_os_rwlock_ref os_rwlock = rwlock->rwlock.rwlock;
-      struct timespec   ts;
-
-      /* INV: mkcl_minusp() makes sure `timeout' is real */
-      if (mkcl_minusp(env, timeout))
-	mk_cl_error(env, 9, @'simple-type-error', @':format-control',
-		    timeout_format_control_string,
-		    @':format-arguments', mk_cl_list(env, 1, timeout),
-		    @':expected-type', @'real', @':datum', timeout);
-
-      MKCL_LIBC_NO_INTR(env, rc = clock_gettime(CLOCK_REALTIME, &ts));
-      if (rc)
-	mkcl_FElibc_error(env, "mk_mt_get_read_rwlock failed on clock_gettime", 0);
-
-      /* Add `timeout' delta */
-      { 
-	double r = mkcl_to_double(env, timeout);
-	ts.tv_sec += floor(r);
-	ts.tv_nsec += ((r - floor(r)) * 1e9);
-      }
-      if (ts.tv_nsec >= 1000000000) {
-	ts.tv_nsec -= 1000000000;
-	ts.tv_sec++;
-      }
-
-      MKCL_LIBC_NO_INTR(env, rc = pthread_rwlock_timedrdlock(os_rwlock, &ts));
-      if (os_rwlock != rwlock->rwlock.rwlock)
-	mk_mt_abandon_thread(env, @':aborted'); /* broken rwlock! must abort right now! */
-
-      if (rc == ETIMEDOUT)
-	{ mkcl_return_value(mk_cl_Cnil); }
-    }
-
-  switch (rc)
-    {
-    case EINVAL: mkcl_FEerror(env, "get-read-rwlock: Invalid lock: ~S", 1, rwlock); break;
-    case EAGAIN: mkcl_FEerror(env, "get-read-rwlock: Out of available locks: ~S", 1, rwlock); break;
-    case EDEADLK: mkcl_FEerror(env, "get-read-rwlock: Would deadlock: ~S", 1, rwlock); break;
-    default: mkcl_lose(env, "mk_mt_get_read_rwlock failed on pthread_rwlock_rdlock"); break;
-    case 0: break;
-    }
-#else
-# error Incomplete mt::get-read-rwlock.
-#endif
-  mkcl_return_value(mk_cl_Ct);
-@)
-
-@(defun mt::get-write-rwlock (rwlock &optional (timeout mk_cl_Ct))
-@
-  if (mkcl_type_of(rwlock) != mkcl_t_rwlock)
-    mkcl_FEwrong_type_argument(env, @'mt::rwlock', rwlock);
+    if (mkcl_type_of(rwlock) != mkcl_t_rwlock)
+      mkcl_FEwrong_type_argument(env, @'mt::rwlock', rwlock);
 
 #if MKCL_WINDOWS
 # if defined(_MSC_VER) && (defined(WinVista) || defined(Win7))
-  MKCL_LIBC_NO_INTR(env, AcquireSRWLockExclusive(&rwlock->rwlock.rwlock));
+    MKCL_LIBC_NO_INTR(env, AcquireSRWLockExclusive(&rwlock->rwlock.rwlock));
 # else
-  mkcl_FEerror(env, "RWLocks are supported under Windows Vista and successors", 0);
+    mkcl_FEerror(env, "RWLocks are supported under Windows Vista and successors", 0);
 # endif
 #elif MKCL_PTHREADS
-  int rc;
+    int rc;
 
-  if (mkcl_Null(timeout) || (MKCL_MAKE_FIXNUM(0) == timeout))
-    {
-      MKCL_LIBC_NO_INTR(env, rc = pthread_rwlock_trywrlock(rwlock->rwlock.rwlock));
+    if (mkcl_Null(timeout) || (MKCL_MAKE_FIXNUM(0) == timeout))
+      {
+        MKCL_LIBC_NO_INTR(env, rc = pthread_rwlock_trywrlock(rwlock->rwlock.rwlock));
 
-      if (rc == EBUSY)
-	{ mkcl_return_value(mk_cl_Cnil); }
-    }
-  else if (timeout == mk_cl_Ct)
-    {
-      mkcl_os_rwlock_ref os_rwlock = rwlock->rwlock.rwlock;
-
-      MKCL_LIBC_NO_INTR(env, rc = pthread_rwlock_wrlock(os_rwlock));
-      if (os_rwlock != rwlock->rwlock.rwlock)
-	mk_mt_abandon_thread(env, @':aborted'); /* broken rwlock! must abort right now! */
-    }
-  else
-    {
-      mkcl_os_rwlock_ref os_rwlock = rwlock->rwlock.rwlock;
-      struct timespec ts;
-
-      /* INV: mkcl_minusp() makes sure `timeout' is real */
-      if (mkcl_minusp(env, timeout))
-	mk_cl_error(env, 9, @'simple-type-error', @':format-control',
-		    timeout_format_control_string,
-		    @':format-arguments', mk_cl_list(env, 1, timeout),
-		    @':expected-type', @'real', @':datum', timeout);
-
-      MKCL_LIBC_NO_INTR(env, rc = clock_gettime(CLOCK_REALTIME, &ts));
-      if (rc)
-	mkcl_FElibc_error(env, "mk_mt_get_write_rwlock failed on clock_gettime", 0);
-
-      /* Add `timeout' delta */
-      { 
-	double r = mkcl_to_double(env, timeout);
-	ts.tv_sec += floor(r);
-	ts.tv_nsec += ((r - floor(r)) * 1e9);
+        if (rc == EBUSY)
+          { mkcl_return_value(mk_cl_Cnil); }
       }
-      if (ts.tv_nsec >= 1000000000) {
-	ts.tv_nsec -= 1000000000;
-	ts.tv_sec++;
+    else if (timeout == mk_cl_Ct)
+      {
+        mkcl_os_rwlock_ref os_rwlock = rwlock->rwlock.rwlock;
+
+        MKCL_LIBC_NO_INTR(env, rc = pthread_rwlock_wrlock(os_rwlock));
+        if (os_rwlock != rwlock->rwlock.rwlock)
+          mk_mt_abandon_thread(env, @':aborted'); /* broken rwlock! must abort right now! */
+      }
+    else
+      {
+        mkcl_os_rwlock_ref os_rwlock = rwlock->rwlock.rwlock;
+        struct timespec ts;
+
+        /* INV: mkcl_minusp() makes sure `timeout' is real */
+        if (mkcl_minusp(env, timeout))
+          mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+                      timeout_format_control_string,
+                      @':format-arguments', mk_cl_list(env, 1, timeout),
+                      @':expected-type', @'real', @':datum', timeout);
+
+        MKCL_LIBC_NO_INTR(env, rc = clock_gettime(CLOCK_REALTIME, &ts));
+        if (rc)
+          mkcl_FElibc_error(env, "mk_mt_get_write_rwlock failed on clock_gettime", 0);
+
+        /* Add `timeout' delta */
+        { 
+          double r = mkcl_to_double(env, timeout);
+          ts.tv_sec += floor(r);
+          ts.tv_nsec += ((r - floor(r)) * 1e9);
+        }
+        if (ts.tv_nsec >= 1000000000) {
+          ts.tv_nsec -= 1000000000;
+          ts.tv_sec++;
+        }
+
+        MKCL_LIBC_NO_INTR(env, rc = pthread_rwlock_timedwrlock(os_rwlock, &ts));
+        if (os_rwlock != rwlock->rwlock.rwlock)
+          mk_mt_abandon_thread(env, @':aborted'); /* broken rwlock! must abort right now! */
+
+        if (rc == ETIMEDOUT)
+          { mkcl_return_value(mk_cl_Cnil); }
       }
 
-      MKCL_LIBC_NO_INTR(env, rc = pthread_rwlock_timedwrlock(os_rwlock, &ts));
-      if (os_rwlock != rwlock->rwlock.rwlock)
-	mk_mt_abandon_thread(env, @':aborted'); /* broken rwlock! must abort right now! */
-
-      if (rc == ETIMEDOUT)
-	{ mkcl_return_value(mk_cl_Cnil); }
-    }
-
-  switch (rc)
-    {
-    case EINVAL: mkcl_FEerror(env, "get-write-rwlock: Invalid lock: ~S", 1, rwlock); break;
-    case EAGAIN: mkcl_FEerror(env, "get-write-rwlock: Out of available locks: ~S", 1, rwlock); break;
-    case EDEADLK: mkcl_FEerror(env, "get-write-rwlock: Would deadlock: ~S", 1, rwlock); break;
-    default: mkcl_lose(env, "mk_mt_get_write_rwlock failed on pthread_rwlock_wrlock"); break;
-    case 0: break;
-    }
+    switch (rc)
+      {
+      case EINVAL: mkcl_FEerror(env, "get-write-rwlock: Invalid lock: ~S", 1, rwlock); break;
+      case EAGAIN: mkcl_FEerror(env, "get-write-rwlock: Out of available locks: ~S", 1, rwlock); break;
+      case EDEADLK: mkcl_FEerror(env, "get-write-rwlock: Would deadlock: ~S", 1, rwlock); break;
+      default: mkcl_lose(env, "mk_mt_get_write_rwlock failed on pthread_rwlock_wrlock"); break;
+      case 0: break;
+      }
 #else
 # error Incomplete mt::get-write-rwlock.
 #endif
-  mkcl_return_value(mk_cl_Ct);
-@)
+    mkcl_return_value(mk_cl_Ct);
+  }
+}
 
 
 /*----------------------------------------------------------------------
  * SEMAPHORES
  */
 
-@(defun mt::make-semaphore (&optional count)
-@
-  mkcl_object output = mkcl_alloc_raw_semaphore(env);
-  unsigned int value = 0;
+mkcl_object mk_mt_make_semaphore(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object count = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'mt::make-semaphore', narg, 0, narg, &count);
 
-  if (!mkcl_Null(count))
-    {
-      if (!MKCL_FIXNUMP(count))
-	count = mkcl_type_error(env, @'mt::make-semaphore', "count",
-				count, @'integer'); /* FIXME: should be (unsigned-byte 32) instead. JCB */
-      value = mkcl_fixnum_to_word(count);
-    }
+    mkcl_object output = mkcl_alloc_raw_semaphore(env);
+    unsigned int value = 0;
+
+    if (!mkcl_Null(count))
+      {
+        if (!MKCL_FIXNUMP(count))
+          count = mkcl_type_error(env, @'mt::make-semaphore', "count",
+                                  count, @'integer'); /* FIXME: should be (unsigned-byte 32) instead. JCB */
+        value = mkcl_fixnum_to_word(count);
+      }
 
 #if MKCL_WINDOWS
-  {
-    HANDLE sem;
+    {
+      HANDLE sem;
 
-    MKCL_LIBC_NO_INTR(env, sem = CreateSemaphore(NULL, value, LONG_MAX, mkcl_handle_debug_name(env, "semaphore")));
-    if (sem == NULL)
-      mkcl_FEwin32_error(env, "mt::make-semaphore failed on CreateSemaphore", 0);
+      MKCL_LIBC_NO_INTR(env, sem = CreateSemaphore(NULL, value, LONG_MAX, mkcl_handle_debug_name(env, "semaphore")));
+      if (sem == NULL)
+        mkcl_FEwin32_error(env, "mt::make-semaphore failed on CreateSemaphore", 0);
 
-    output->semaphore.sem = sem;
+      output->semaphore.sem = sem;
+      output->semaphore.name = mk_cl_Cnil;
+      output->semaphore.count = value;
+      output->semaphore.max_count = LONG_MAX;
+    }
+#elif MKCL_PTHREADS
+    int rc;
+
+    output->semaphore.sem = &output->semaphore.sem_obj;
+
+    MKCL_LIBC_NO_INTR(env, rc = sem_init(output->semaphore.sem, FALSE, value));
+    if (rc) mkcl_FElibc_error(env, "mt::make-semaphore failed on sem_init", 0);
     output->semaphore.name = mk_cl_Cnil;
     output->semaphore.count = value;
-    output->semaphore.max_count = LONG_MAX;
-  }
-#elif MKCL_PTHREADS
-  int rc;
-
-  output->semaphore.sem = &output->semaphore.sem_obj;
-
-  MKCL_LIBC_NO_INTR(env, rc = sem_init(output->semaphore.sem, FALSE, value));
-  if (rc) mkcl_FElibc_error(env, "mt::make-semaphore failed on sem_init", 0);
-  output->semaphore.name = mk_cl_Cnil;
-  output->semaphore.count = value;
-  output->semaphore.max_count = SEM_VALUE_MAX;
+    output->semaphore.max_count = SEM_VALUE_MAX;
 #else
 # error Incomplete mt::make-semaphore.
 #endif
 
-  mk_si_set_finalizer(env, output, mk_cl_Ct);
+    mk_si_set_finalizer(env, output, mk_cl_Ct);
 
-  mkcl_return_value(output);
-@)
+    mkcl_return_value(output);
+  }
+}
 
 mkcl_object mk_mt_semaphore_count(MKCL, mkcl_object sem)
 {
@@ -3743,159 +3809,173 @@ mkcl_object mk_mt_semaphore_count(MKCL, mkcl_object sem)
   }
 }
 
-@(defun mt::semaphore-signal (sem &optional count)
-@
-  int c_count = 0;
+mkcl_object mk_mt_semaphore_signal(MKCL, mkcl_narg narg, mkcl_object sem, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object count = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'mt::semaphore-signal', narg, 1, sem, &count);
 
-  if (mkcl_type_of(sem) != mkcl_t_semaphore)
-    mkcl_FEwrong_type_argument(env, @'mt::semaphore', sem);
+    {
+      int c_count = 0;
+
+      if (mkcl_type_of(sem) != mkcl_t_semaphore)
+        mkcl_FEwrong_type_argument(env, @'mt::semaphore', sem);
   
-  if (mkcl_Null(count))
-    c_count = 1;
-  else if (!MKCL_FIXNUMP(count) || ((c_count = mkcl_fixnum_to_word(count)) < 0))
-    mk_cl_error(env, 9, @'simple-type-error', @':format-control',
-		timeout_format_control_string,
-		@':format-arguments', mkcl_list1(env, count),
-		@':expected-type', @'integer', @':datum', count);
+      if (mkcl_Null(count))
+        c_count = 1;
+      else if (!MKCL_FIXNUMP(count) || ((c_count = mkcl_fixnum_to_word(count)) < 0))
+        mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+                    timeout_format_control_string,
+                    @':format-arguments', mkcl_list1(env, count),
+                    @':expected-type', @'integer', @':datum', count);
   
 #if MKCL_WINDOWS
-  {
-    BOOL ok;
-    long prev_count;
+      {
+        BOOL ok;
+        long prev_count;
 
-    MKCL_LIBC_NO_INTR(env, ok = ReleaseSemaphore(sem->semaphore.sem, c_count, &prev_count));
-    if (!ok)
-      mkcl_FEwin32_error(env, "mk_mt_semaphore_count failed on ReleaseSemaphore", 0);
-    sem->semaphore.count = prev_count;
-  }
+        MKCL_LIBC_NO_INTR(env, ok = ReleaseSemaphore(sem->semaphore.sem, c_count, &prev_count));
+        if (!ok)
+          mkcl_FEwin32_error(env, "mk_mt_semaphore_count failed on ReleaseSemaphore", 0);
+        sem->semaphore.count = prev_count;
+      }
 #elif MKCL_PTHREADS
-  int i;
+      int i;
 
-  for (i = 0; i < c_count; i++)
-    {
-      int rc;
+      for (i = 0; i < c_count; i++)
+        {
+          int rc;
 
-      MKCL_LIBC_NO_INTR(env, rc = sem_post(sem->semaphore.sem));
-      if (rc)
-	mkcl_FElibc_error(env, "mk_mt_semaphore_signal failed, invalid semaphore", 0);
-    }
+          MKCL_LIBC_NO_INTR(env, rc = sem_post(sem->semaphore.sem));
+          if (rc)
+            mkcl_FElibc_error(env, "mk_mt_semaphore_signal failed, invalid semaphore", 0);
+        }
 #else
 # error Incomplete mt::semaphore-signal.
 #endif
-  sem->semaphore.count += c_count;
-  mkcl_return_value(mk_cl_Ct);
-@)
+      sem->semaphore.count += c_count;
+      mkcl_return_value(mk_cl_Ct);
+    }
+  }
+}
 
-@(defun mt::semaphore-wait (sem &optional (timeout mk_cl_Ct))
-@
-  if (mkcl_type_of(sem) != mkcl_t_semaphore)
-    mkcl_FEwrong_type_argument(env, @'mt::semaphore', sem);
+mkcl_object mk_mt_semaphore_wait(MKCL, mkcl_narg narg, mkcl_object sem, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object timeout = mk_cl_Ct;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'mt::semaphore-wait', narg, 1, sem, &timeout);
+
+    if (mkcl_type_of(sem) != mkcl_t_semaphore)
+      mkcl_FEwrong_type_argument(env, @'mt::semaphore', sem);
   
 #if MKCL_WINDOWS
-  {
-    DWORD milliSeconds;
-    DWORD wait_val;
+    {
+      DWORD milliSeconds;
+      DWORD wait_val;
 
-    if (mkcl_Null(timeout))
-      milliSeconds = 0;
+      if (mkcl_Null(timeout))
+        milliSeconds = 0;
+      else if (timeout == mk_cl_Ct)
+        milliSeconds = INFINITE;
+      else
+        {
+          /* INV: mkcl_minusp() makes sure `timeout' is real */
+          if (mkcl_minusp(env, timeout))
+            mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+                        timeout_format_control_string,
+                        @':format-arguments', mkcl_list1(env, timeout),
+                        @':expected-type', @'real', @':datum', timeout);
+	
+          double r = mkcl_to_double(env, timeout);
+          milliSeconds = r * 1000;
+        }
+
+      do {
+        MKCL_LIBC_Zzz(env, @':io', wait_val = WaitForSingleObjectEx(sem->semaphore.sem, milliSeconds, TRUE));
+      } while (wait_val == WAIT_IO_COMPLETION);
+      switch (wait_val)
+        {
+        case WAIT_OBJECT_0:
+          break;
+        case WAIT_TIMEOUT: 
+          mkcl_return_value(mk_cl_Cnil);
+          break;
+        case WAIT_FAILED:
+        default:
+          mkcl_FEwin32_error(env, "mk_mt_semaphore_wait failed on WaitForSingleObject", 0);
+        }
+      mk_mt_test_for_thread_shutdown(env);
+    }
+#elif MKCL_PTHREADS
+    int rc;
+
+    if (mkcl_Null(timeout) || (MKCL_MAKE_FIXNUM(0) == timeout))
+      {
+        do
+          { MKCL_LIBC_NO_INTR(env, rc = sem_trywait(sem->semaphore.sem)); }
+        while (rc && errno == EINTR);
+
+        if (rc && errno == EAGAIN)
+          { mkcl_return_value(mk_cl_Cnil); }
+      }
     else if (timeout == mk_cl_Ct)
-      milliSeconds = INFINITE;
+      {
+        do
+          { MKCL_LIBC_Zzz(env, @':io', rc = sem_wait(sem->semaphore.sem)); }
+        while (rc && errno == EINTR);
+        mk_mt_test_for_thread_shutdown(env);
+      }
     else
       {
-	/* INV: mkcl_minusp() makes sure `timeout' is real */
-	if (mkcl_minusp(env, timeout))
-	  mk_cl_error(env, 9, @'simple-type-error', @':format-control',
-		      timeout_format_control_string,
-		      @':format-arguments', mkcl_list1(env, timeout),
-		      @':expected-type', @'real', @':datum', timeout);
-	
-	double r = mkcl_to_double(env, timeout);
-	milliSeconds = r * 1000;
-      }
+        struct timespec   ts;
 
-    do {
-      MKCL_LIBC_Zzz(env, @':io', wait_val = WaitForSingleObjectEx(sem->semaphore.sem, milliSeconds, TRUE));
-    } while (wait_val == WAIT_IO_COMPLETION);
-    switch (wait_val)
-      {
-      case WAIT_OBJECT_0:
-	break;
-      case WAIT_TIMEOUT: 
-	mkcl_return_value(mk_cl_Cnil);
-	break;
-      case WAIT_FAILED:
-      default:
-	mkcl_FEwin32_error(env, "mk_mt_semaphore_wait failed on WaitForSingleObject", 0);
-      }
-    mk_mt_test_for_thread_shutdown(env);
-  }
-#elif MKCL_PTHREADS
-  int rc;
-
-  if (mkcl_Null(timeout) || (MKCL_MAKE_FIXNUM(0) == timeout))
-    {
-      do
-	{ MKCL_LIBC_NO_INTR(env, rc = sem_trywait(sem->semaphore.sem)); }
-      while (rc && errno == EINTR);
-
-      if (rc && errno == EAGAIN)
-	{ mkcl_return_value(mk_cl_Cnil); }
-    }
-  else if (timeout == mk_cl_Ct)
-    {
-      do
-	{ MKCL_LIBC_Zzz(env, @':io', rc = sem_wait(sem->semaphore.sem)); }
-      while (rc && errno == EINTR);
-      mk_mt_test_for_thread_shutdown(env);
-    }
-  else
-    {
-      struct timespec   ts;
-
-      /* INV: mkcl_minusp() makes sure `timeout' is real */
-      if (mkcl_minusp(env, timeout))
-	mk_cl_error(env, 9, @'simple-type-error', @':format-control',
-		    timeout_format_control_string,
-		    @':format-arguments', mk_cl_list(env, 1, timeout),
-		    @':expected-type', @'real', @':datum', timeout);
+        /* INV: mkcl_minusp() makes sure `timeout' is real */
+        if (mkcl_minusp(env, timeout))
+          mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+                      timeout_format_control_string,
+                      @':format-arguments', mk_cl_list(env, 1, timeout),
+                      @':expected-type', @'real', @':datum', timeout);
       
-      MKCL_LIBC_NO_INTR(env, rc = clock_gettime(CLOCK_REALTIME, &ts));
-      if (rc) 
-	mkcl_FElibc_error(env, "mk_mt_semaphore_wait failed on clock_gettime", 0);
+        MKCL_LIBC_NO_INTR(env, rc = clock_gettime(CLOCK_REALTIME, &ts));
+        if (rc) 
+          mkcl_FElibc_error(env, "mk_mt_semaphore_wait failed on clock_gettime", 0);
 
-      /* Add `timeout' delta */
-      { 
-	double r = mkcl_to_double(env, timeout);
-	double r_sec = floor(r);
+        /* Add `timeout' delta */
+        { 
+          double r = mkcl_to_double(env, timeout);
+          double r_sec = floor(r);
 
-	ts.tv_sec += r_sec;
-	ts.tv_nsec += ((r - r_sec) * 1e9);
+          ts.tv_sec += r_sec;
+          ts.tv_nsec += ((r - r_sec) * 1e9);
+        }
+        if (ts.tv_nsec >= 1000000000) {
+          ts.tv_nsec -= 1000000000;
+          ts.tv_sec++;
+        }
+        do
+          { MKCL_LIBC_Zzz(env, @':io', rc = sem_timedwait(sem->semaphore.sem, &ts)); }
+        while (rc && (errno == EINTR));
+        mk_mt_test_for_thread_shutdown(env);
+
+        if (rc && errno == ETIMEDOUT)
+          { mkcl_return_value(mk_cl_Cnil); }
       }
-      if (ts.tv_nsec >= 1000000000) {
-	ts.tv_nsec -= 1000000000;
-	ts.tv_sec++;
-      }
-      do
-	{ MKCL_LIBC_Zzz(env, @':io', rc = sem_timedwait(sem->semaphore.sem, &ts)); }
-      while (rc && (errno == EINTR));
-      mk_mt_test_for_thread_shutdown(env);
 
-      if (rc && errno == ETIMEDOUT)
-	{ mkcl_return_value(mk_cl_Cnil); }
-    }
-
-  if (rc)
-    switch (errno)
-      {
-      case EINVAL: mkcl_FEerror(env, "Invalid semaphore", 0); break;
-      default: mkcl_C_lose(env, "mk_mt_semaphore_wait failed on sem_wait"); break;
-      }
+    if (rc)
+      switch (errno)
+        {
+        case EINVAL: mkcl_FEerror(env, "Invalid semaphore", 0); break;
+        default: mkcl_C_lose(env, "mk_mt_semaphore_wait failed on sem_wait"); break;
+        }
 #else
 # error Incomplete mt::semaphore-wait.
 #endif
 
-  mkcl_return_value(mk_cl_Ct);
-@)
+    mkcl_return_value(mk_cl_Ct);
+  }
+}
 
 
 
@@ -3930,77 +4010,83 @@ mk_mt_make_condition_variable(MKCL)
 #endif
 }
 
-@(defun mt::condition-wait (cv lock &optional (timeout mk_cl_Ct))
-@
+mkcl_object mk_mt_condition_wait(MKCL, mkcl_narg narg, mkcl_object cv, mkcl_object lock, ...)
 {
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object timeout = mk_cl_Ct;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'mt::condition-wait', narg, 2, lock, &timeout);
+
+    {
 #if MKCL_WINDOWS
-  mkcl_FEerror(env, "Condition variables are not supported under Windows", 0);
+      mkcl_FEerror(env, "Condition variables are not supported under Windows", 0);
 #elif MKCL_PTHREADS
-  int rc;
+      int rc;
 
-  if (mkcl_type_of(cv) != mkcl_t_condition_variable)
-    mkcl_FEwrong_type_argument(env, @'mt::condition-variable', cv);
-  if (mkcl_type_of(lock) != mkcl_t_lock)
-    mkcl_FEwrong_type_argument(env, @'mt::lock', lock);
+      if (mkcl_type_of(cv) != mkcl_t_condition_variable)
+        mkcl_FEwrong_type_argument(env, @'mt::condition-variable', cv);
+      if (mkcl_type_of(lock) != mkcl_t_lock)
+        mkcl_FEwrong_type_argument(env, @'mt::lock', lock);
 
-  if (mkcl_Null(timeout))
-    timeout = MKCL_MAKE_FIXNUM(0);
+      if (mkcl_Null(timeout))
+        timeout = MKCL_MAKE_FIXNUM(0);
 
-  if (timeout == mk_cl_Ct)
-    {
-      MKCL_LIBC_Zzz(env, cv, rc = pthread_cond_wait(&cv->condition_variable.cv, lock->lock.mutex));
-      mk_mt_test_for_thread_shutdown(env);
-      if (rc == 0)
-	lock->lock.holder = mkcl_current_thread(env);
-    }
-  else
-    {
-      struct timespec   ts;
-      /* INV: mkcl_minusp() makes sure `timeout' is real */
-      if (mkcl_minusp(env, timeout))
-	mk_cl_error(env, 9, @'simple-type-error', @':format-control',
-		    timeout_format_control_string,
-		    @':format-arguments', mk_cl_list(env, 1, timeout),
-		    @':expected-type', @'real', @':datum', timeout);
+      if (timeout == mk_cl_Ct)
+        {
+          MKCL_LIBC_Zzz(env, cv, rc = pthread_cond_wait(&cv->condition_variable.cv, lock->lock.mutex));
+          mk_mt_test_for_thread_shutdown(env);
+          if (rc == 0)
+            lock->lock.holder = mkcl_current_thread(env);
+        }
+      else
+        {
+          struct timespec   ts;
+          /* INV: mkcl_minusp() makes sure `timeout' is real */
+          if (mkcl_minusp(env, timeout))
+            mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+                        timeout_format_control_string,
+                        @':format-arguments', mk_cl_list(env, 1, timeout),
+                        @':expected-type', @'real', @':datum', timeout);
 
-      MKCL_LIBC_NO_INTR(env, rc = clock_gettime(CLOCK_REALTIME, &ts));
-      if (rc)
-	mkcl_FElibc_error(env, "mk_mt_condition_wait failed on clock_gettime", 0);
+          MKCL_LIBC_NO_INTR(env, rc = clock_gettime(CLOCK_REALTIME, &ts));
+          if (rc)
+            mkcl_FElibc_error(env, "mk_mt_condition_wait failed on clock_gettime", 0);
 
-      /* Add `timeout' delta */
-      {
-	double r = mkcl_to_double(env, timeout);
+          /* Add `timeout' delta */
+          {
+            double r = mkcl_to_double(env, timeout);
 
-	ts.tv_sec += floor(r);
-	ts.tv_nsec += ((r - floor(r)) * 1e9);
-      }
-      if (ts.tv_nsec >= 1000000000) {
-	ts.tv_nsec -= 1000000000;
-	ts.tv_sec++;
-      }
+            ts.tv_sec += floor(r);
+            ts.tv_nsec += ((r - floor(r)) * 1e9);
+          }
+          if (ts.tv_nsec >= 1000000000) {
+            ts.tv_nsec -= 1000000000;
+            ts.tv_sec++;
+          }
       
-      MKCL_LIBC_Zzz(env, cv, rc = pthread_cond_timedwait(&cv->condition_variable.cv, lock->lock.mutex, &ts));
-      mk_mt_test_for_thread_shutdown(env);
+          MKCL_LIBC_Zzz(env, cv, rc = pthread_cond_timedwait(&cv->condition_variable.cv, lock->lock.mutex, &ts));
+          mk_mt_test_for_thread_shutdown(env);
 
-      if (rc == 0)
-	lock->lock.holder = mkcl_current_thread(env);
-      else if (rc == ETIMEDOUT || rc == EINTR) /* EINTR seems to be a Linux special, in direct contradiction to POSIX! */
-	{ mkcl_return_value(mk_cl_Cnil); }
-    }
+          if (rc == 0)
+            lock->lock.holder = mkcl_current_thread(env);
+          else if (rc == ETIMEDOUT || rc == EINTR) /* EINTR seems to be a Linux special, in direct contradiction to POSIX! */
+            { mkcl_return_value(mk_cl_Cnil); }
+        }
   
-  switch (rc)
-    {
-    case EINVAL: mkcl_FEerror(env, "condition-wait: Invalid condition variable or lock", 0); break;
-    case EPERM: mkcl_FEerror(env, "condition-wait: Not lock owner: ~S", 1, lock); break;
-    default: mkcl_lose(env, "mk_mt_condition_wait failed on pthread_cond_wait"); break;
-    case 0: break;
-    }
+      switch (rc)
+        {
+        case EINVAL: mkcl_FEerror(env, "condition-wait: Invalid condition variable or lock", 0); break;
+        case EPERM: mkcl_FEerror(env, "condition-wait: Not lock owner: ~S", 1, lock); break;
+        default: mkcl_lose(env, "mk_mt_condition_wait failed on pthread_cond_wait"); break;
+        case 0: break;
+        }
 #else
 # error Incomplete mt::semaphore-wait.
 #endif
-  mkcl_return_value(mk_cl_Ct);
+      mkcl_return_value(mk_cl_Ct);
+    }
+  }
 }
-@)
 
 mkcl_object
 mk_mt_condition_signal(MKCL, mkcl_object cv)

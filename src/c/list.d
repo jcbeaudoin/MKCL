@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2012,2021 Jean-Claude Beaudoin
+    Copyright (c) 2010-2012,2021, Jean-Claude Beaudoin
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -351,15 +351,23 @@ tree_equal(MKCL, struct cl_test *t, mkcl_object x, mkcl_object y)
   }
 }
 
-@(defun tree_equal (x y &key test test_not)
-	struct cl_test t;
-	mkcl_object output;
-@
-  setup_test(env, &t, mk_cl_Cnil, test, test_not, mk_cl_Cnil);
-  output = tree_equal(env, &t, x, y) ? mk_cl_Ct : mk_cl_Cnil;
-  close_test(&t);
-  mkcl_return_value(output);
-@)
+mkcl_object mk_cl_tree_equal(MKCL, mkcl_narg narg, mkcl_object x, mkcl_object y, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+
+    struct cl_test t;
+    mkcl_object output;
+    mkcl_object test;
+    mkcl_object test_not;
+    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, @'tree-equal', narg, 2, y, @':test', &test, @':test_not', &test_not);
+
+    setup_test(env, &t, mk_cl_Cnil, test, test_not, mk_cl_Cnil);
+    output = tree_equal(env, &t, x, y) ? mk_cl_Ct : mk_cl_Cnil;
+    close_test(&t);
+    mkcl_return_value(output);
+  }
+ }
 
 mkcl_object
 mk_cl_endp(MKCL, mkcl_object x)
@@ -480,24 +488,34 @@ mkcl_last(MKCL, mkcl_object l, mkcl_index n)
   }
 }
 
-@(defun last (l &optional (k MKCL_MAKE_FIXNUM(1)))
-@
-  if (mkcl_type_of(k) == mkcl_t_bignum)
-    { mkcl_return_value(l); }
-  else
-    { mkcl_return_value(mkcl_last(env, l, mkcl_integer_to_index(env, k))); }
-@)
+mkcl_object mk_cl_last(MKCL, mkcl_narg narg, mkcl_object l, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object k = MKCL_MAKE_FIXNUM(1);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'last', narg, 1, l, &k);
 
-@(defun make_list (size &key initial_element)
+    if (mkcl_type_of(k) == mkcl_t_bignum)
+      { mkcl_return_value(l); }
+    else
+      { mkcl_return_value(mkcl_last(env, l, mkcl_integer_to_index(env, k))); }
+  }
+}
+
+mkcl_object mk_cl_make_list(MKCL, mkcl_narg narg, mkcl_object size, ...)
+{
   mkcl_word i;
   mkcl_object x = mk_cl_Cnil;
-@
+  mkcl_object initial_element = mk_cl_Cnil;
+
+  mkcl_call_stack_check(env);
+  MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, @'make-list', narg, 1, size, @':initial-element', &initial_element);
   /* INV: mkcl_integer_to_index() signals a type-error if SIZE is not a integer >=0 */
   i = mkcl_integer_to_index(env, size);
   while (i-- > 0)
     x = MKCL_CONS(env, initial_element, x);
   mkcl_return_value(x);
-@)
+}
 
 mkcl_object
 mkcl_copy_proper_list(MKCL, mkcl_object x)
@@ -719,15 +737,22 @@ mkcl_butlast(MKCL, mkcl_object l, mkcl_index n)
   }
 }
 
-@(defun butlast (lis &optional (nn MKCL_MAKE_FIXNUM(1)))
-@
-  /* INV: No list has more than MKCL_MOST_POSITIVE_FIXNUM elements */
-  if (mkcl_type_of(nn) == mkcl_t_bignum)
-    { mkcl_return_value(mk_cl_Cnil); }
-  else
-    /* INV: mkcl_integer_to_index() signals a type-error if NN is not an integer >=0 */
-    { mkcl_return_value(mkcl_butlast(env, lis, mkcl_integer_to_index(env, nn))); }
-@)
+mkcl_object mk_cl_butlast(MKCL, mkcl_narg narg, mkcl_object lis, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object nn = MKCL_MAKE_FIXNUM(1);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'butlast', narg, 1, lis, &nn);
+
+    /* INV: No list has more than MKCL_MOST_POSITIVE_FIXNUM elements */
+    if (mkcl_type_of(nn) == mkcl_t_bignum)
+      { mkcl_return_value(mk_cl_Cnil); }
+    else
+      /* INV: mkcl_integer_to_index() signals a type-error if NN is not an integer >=0 */
+      { mkcl_return_value(mkcl_butlast(env, lis, mkcl_integer_to_index(env, nn))); }
+  }
+}
+
 
 mkcl_object
 mkcl_nbutlast(MKCL, mkcl_object l, mkcl_index n)
@@ -751,15 +776,21 @@ mkcl_nbutlast(MKCL, mkcl_object l, mkcl_index n)
   return mk_cl_Cnil;
 }
 
-@(defun nbutlast (lis &optional (nn MKCL_MAKE_FIXNUM(1)))
-@
-  /* INV: No list has more than MKCL_MOST_POSITIVE_FIXNUM elements */
-  if (mkcl_type_of(nn) == mkcl_t_bignum)
-    { mkcl_return_value(mk_cl_Cnil); }
-  else
-    /* INV: mkcl_integer_to_index() signas a type-error if NN is not an integer >=0 */
-    { mkcl_return_value(mkcl_nbutlast(env, lis, mkcl_integer_to_index(env, nn))); }
-@)
+mkcl_object mk_cl_nbutlast(MKCL, mkcl_narg narg, mkcl_object lis, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object nn = MKCL_MAKE_FIXNUM(1);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'butlast', narg, 1, lis, &nn);
+
+    /* INV: No list has more than MKCL_MOST_POSITIVE_FIXNUM elements */
+    if (mkcl_type_of(nn) == mkcl_t_bignum)
+      { mkcl_return_value(mk_cl_Cnil); }
+    else
+      /* INV: mkcl_integer_to_index() signas a type-error if NN is not an integer >=0 */
+      { mkcl_return_value(mkcl_nbutlast(env, lis, mkcl_integer_to_index(env, nn))); }
+  }
+}
 
 mkcl_object
 mk_cl_ldiff(MKCL, mkcl_object x, mkcl_object y)
@@ -831,14 +862,23 @@ do_assoc(MKCL, struct cl_test *t, mkcl_object a_list)
 }
 
 
-@(defun assoc (item a_list &key test test_not key)
-  struct cl_test t;
-@
-  setup_test(env, &t, item, test, test_not, key);
-  a_list = do_assoc(env, &t, a_list);
-  close_test(&t);
-  mkcl_return_value(a_list);
-@)
+mkcl_object mk_cl_assoc(MKCL, mkcl_narg narg, mkcl_object item, mkcl_object a_list, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    struct cl_test t;
+    mkcl_object test = mk_cl_Cnil;
+    mkcl_object test_not = mk_cl_Cnil;
+    mkcl_object key = mk_cl_Cnil;
+
+    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, @'assoc', narg, 2, a_list, @':test', &test, @':test_not', &test_not, @':key', &key);
+
+    setup_test(env, &t, item, test, test_not, key);
+    a_list = do_assoc(env, &t, a_list);
+    close_test(&t);
+    mkcl_return_value(a_list);
+  }
+}
 
 
 static mkcl_object
@@ -869,15 +909,24 @@ subst(MKCL, struct cl_test *t, mkcl_object new_obj, mkcl_object tree)
   }
 }
 
-@(defun subst (new_obj old_obj tree &key test test_not key)
-	struct cl_test t;
-	mkcl_object output;
-@
-  setup_test(env, &t, old_obj, test, test_not, key);
-  output = subst(env, &t, new_obj, tree);
-  close_test(&t);
-  mkcl_return_value(output);
-@)
+mkcl_object mk_cl_subst(MKCL, mkcl_narg narg, mkcl_object new_obj, mkcl_object old_obj, mkcl_object tree, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    struct cl_test t;
+    mkcl_object output;
+    mkcl_object test = mk_cl_Cnil;
+    mkcl_object test_not = mk_cl_Cnil;
+    mkcl_object key = mk_cl_Cnil;
+
+    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, @'subst', narg, 3, tree, @':test', &test, @':test_not', &test_not, @':key', &key);
+
+    setup_test(env, &t, old_obj, test, test_not, key);
+    output = subst(env, &t, new_obj, tree);
+    close_test(&t);
+    mkcl_return_value(output);
+  }
+}
 
 
 static mkcl_object
@@ -911,14 +960,23 @@ nsubst(MKCL, struct cl_test *t, mkcl_object new_obj, mkcl_object tree)
   return tree;
 }
 
-@(defun nsubst (new_obj old_obj tree &key test test_not key)
-  struct cl_test t;
-@
-  setup_test(env, &t, old_obj, test, test_not, key);
-  tree = nsubst(env, &t, new_obj, tree);
-  close_test(&t);
-  mkcl_return_value(tree);
-@)
+mkcl_object mk_cl_nsubst(MKCL, mkcl_narg narg, mkcl_object new_obj, mkcl_object old_obj, mkcl_object tree, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    struct cl_test t;
+    mkcl_object test = mk_cl_Cnil;
+    mkcl_object test_not = mk_cl_Cnil;
+    mkcl_object key = mk_cl_Cnil;
+    
+    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, @'subst', narg, 3, tree, @':test', &test, @':test_not', &test_not, @':key', &key);
+
+    setup_test(env, &t, old_obj, test, test_not, key);
+    tree = nsubst(env, &t, new_obj, tree);
+    close_test(&t);
+    mkcl_return_value(tree);
+  }
+}
 
 /*
 	Sublis(alist, tree) returns
@@ -942,20 +1000,30 @@ sublis(MKCL, struct cl_test *t, mkcl_object alist, mkcl_object tree)
   return tree;
 }
 
-@(defun sublis (alist tree &key test test_not key)
-	/* t[0] is the test for the objects in the tree, configured
-	   with test, test_not and key. t[1] is the test for searching
-	   in the association list.
-	 */
-  struct cl_test t[2];
-@
-  setup_test(env, t, mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil, key);
-  setup_test(env, t+1, mk_cl_Cnil, test, test_not, mk_cl_Cnil);
-  tree = sublis(env, t, alist, tree);
-  close_test(t+1);
-  close_test(t);
-  mkcl_return_value(tree);
-@)
+mkcl_object mk_cl_sublis(MKCL, mkcl_narg narg, mkcl_object alist, mkcl_object tree, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+
+    /* t[0] is the test for the objects in the tree, configured
+       with test, test_not and key. t[1] is the test for searching
+       in the association list.
+    */
+    struct cl_test t[2];
+    mkcl_object test = mk_cl_Cnil;
+    mkcl_object test_not = mk_cl_Cnil;
+    mkcl_object key = mk_cl_Cnil;
+    
+    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, @'sublis', narg, 2, tree, @':test', &test, @':test_not', &test_not, @':key', &key);
+
+    setup_test(env, t, mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil, key);
+    setup_test(env, t+1, mk_cl_Cnil, test, test_not, mk_cl_Cnil);
+    tree = sublis(env, t, alist, tree);
+    close_test(t+1);
+    close_test(t);
+    mkcl_return_value(tree);
+  }
+}
 
 /*
 	Nsublis(alist, treep) stores
@@ -979,32 +1047,52 @@ nsublis(MKCL, struct cl_test *t, mkcl_object alist, mkcl_object tree)
   return tree;
 }
 
-@(defun nsublis (alist tree &key test test_not key)
-  /* t[0] is the test for the objects in the tree, configured
-     with test, test_not and key. t[1] is the test for searching
-     in the association list.
-  */
-  struct cl_test t[2];
-@
-  setup_test(env, t, mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil, key);
-  setup_test(env, t+1, mk_cl_Cnil, test, test_not, mk_cl_Cnil);
-  tree = nsublis(env, t, alist, tree);
-  close_test(t+1);
-  close_test(t);
-  mkcl_return_value(tree);
-@)
+mkcl_object mk_cl_nsublis(MKCL, mkcl_narg narg, mkcl_object alist, mkcl_object tree, ...)
+{
+  mkcl_call_stack_check(env);
+  {
 
-@(defun member (item list &key test test_not key)
-  struct cl_test t;
-@
-  setup_test(env, &t, item, test, test_not, key);
-  mkcl_loop_for_in(env, list) {
-    if (TEST(env, &t, MKCL_CONS_CAR(list)))
-      break;
-  } mkcl_end_loop_for_in;
-  close_test(&t);
-  mkcl_return_value(list);
-@)
+    /* t[0] is the test for the objects in the tree, configured
+       with test, test_not and key. t[1] is the test for searching
+       in the association list.
+    */
+    struct cl_test t[2];
+    mkcl_object test = mk_cl_Cnil;
+    mkcl_object test_not = mk_cl_Cnil;
+    mkcl_object key = mk_cl_Cnil;
+    
+    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, @'nsublis', narg, 2, tree, @':test', &test, @':test_not', &test_not, @':key', &key);
+
+    setup_test(env, t, mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil, key);
+    setup_test(env, t+1, mk_cl_Cnil, test, test_not, mk_cl_Cnil);
+    tree = nsublis(env, t, alist, tree);
+    close_test(t+1);
+    close_test(t);
+    mkcl_return_value(tree);
+  }
+}
+
+mkcl_object mk_cl_member(MKCL, mkcl_narg narg, mkcl_object item, mkcl_object list, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+
+    struct cl_test t;
+    mkcl_object test = mk_cl_Cnil;
+    mkcl_object test_not = mk_cl_Cnil;
+    mkcl_object key = mk_cl_Cnil;
+    
+    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, @'member', narg, 2, list, @':test', &test, @':test_not', &test_not, @':key', &key);
+
+    setup_test(env, &t, item, test, test_not, key);
+    mkcl_loop_for_in(env, list) {
+      if (TEST(env, &t, MKCL_CONS_CAR(list)))
+        break;
+    } mkcl_end_loop_for_in;
+    close_test(&t);
+    mkcl_return_value(list);
+  }
+}
 
 bool
 mkcl_member_eq(MKCL, mkcl_object x, mkcl_object l)
@@ -1113,25 +1201,35 @@ mkcl_adjoin(MKCL, mkcl_object item, mkcl_object list)
   return output;
 }
 
-@(defun adjoin (item list &key test test_not key)
-  mkcl_object output;
-@
+mkcl_object mk_cl_adjoin(MKCL, mkcl_narg narg, mkcl_object item, mkcl_object list, ...)
+{
+  mkcl_call_stack_check(env);
   {
-    if (narg == 2)
-      output = mkcl_adjoin(env, item, list);
-    else if (narg < 2)
-      mkcl_FEwrong_num_arguments(env, @'adjoin', 2, -1, narg);
-    else
-      {
-	output = @si::member1(env, item, list, test, test_not, key);
-	if (mkcl_Null(output))
-	  output = MKCL_CONS(env, item, list);
-	else
-	  output = list;
-      }
-    mkcl_return_value(output);
+
+    mkcl_object output;
+    mkcl_object test = mk_cl_Cnil;
+    mkcl_object test_not = mk_cl_Cnil;
+    mkcl_object key = mk_cl_Cnil;
+    
+    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, @'adjoin', narg, 2, list, @':test', &test, @':test_not', &test_not, @':key', &key);
+
+    {
+      if (narg == 2)
+        output = mkcl_adjoin(env, item, list);
+      else if (narg < 2)
+        mkcl_FEwrong_num_arguments(env, @'adjoin', 2, -1, narg);
+      else
+        {
+          output = @si::member1(env, item, list, test, test_not, key);
+          if (mkcl_Null(output))
+            output = MKCL_CONS(env, item, list);
+          else
+            output = list;
+        }
+      mkcl_return_value(output);
+    }
   }
-@)
+}
 
 mkcl_object
 mk_cl_cons(MKCL, mkcl_object x, mkcl_object y)
@@ -1147,42 +1245,57 @@ mk_cl_acons(MKCL, mkcl_object x, mkcl_object y, mkcl_object z)
   mkcl_return_value(MKCL_CONS(env, MKCL_CONS(env, x, y), z));
 }
 
-@(defun pairlis (keys data &optional a_list)
-  mkcl_object k, d;
-@
-  k = keys;
-  d = data;
-  mkcl_loop_for_in(env, k) {
-    if (mkcl_endp(env, d))
-      goto error;
-    a_list = MKCL_CONS(env, MKCL_CONS(env, MKCL_CONS_CAR(k), MKCL_CONS_CAR(d)), a_list);
-    d = MKCL_CDR(d);
-  } mkcl_end_loop_for_in;
-  if (!mkcl_endp(env, d))
-error:	    mkcl_FEerror(env, "The keys ~S and the data ~S are not of the same length",
-		    2, keys, data);
-  mkcl_return_value(a_list);
-@)
+mkcl_object mk_cl_pairlis(MKCL, mkcl_narg narg, mkcl_object keys, mkcl_object data, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object k, d;
+    mkcl_object a_list = MKCL_MAKE_FIXNUM(1);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'pairlis', narg, 2, data, &a_list);
+
+    k = keys;
+    d = data;
+    mkcl_loop_for_in(env, k) {
+      if (mkcl_endp(env, d))
+        goto error;
+      a_list = MKCL_CONS(env, MKCL_CONS(env, MKCL_CONS_CAR(k), MKCL_CONS_CAR(d)), a_list);
+      d = MKCL_CDR(d);
+    } mkcl_end_loop_for_in;
+    if (!mkcl_endp(env, d))
+    error:	    mkcl_FEerror(env, "The keys ~S and the data ~S are not of the same length",
+                                 2, keys, data);
+    mkcl_return_value(a_list);
+  }
+}
 
 
-@(defun rassoc (item a_list &key test test_not key)
-  struct cl_test t;
-@
-  setup_test(env, &t, item, test, test_not, key);
-  mkcl_loop_for_in(env, a_list) {
-    mkcl_object pair = MKCL_CONS_CAR(a_list);
-    if (!mkcl_Null(pair)) {
-      if (!MKCL_LISTP(pair))
-	mkcl_FEtype_error_list(env, pair);
-      if (TEST(env, &t, MKCL_CONS_CDR(pair))) {
-	a_list = pair;
-	break;
+mkcl_object mk_cl_rassoc(MKCL, mkcl_narg narg, mkcl_object item, mkcl_object a_list, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    struct cl_test t;
+    mkcl_object test = mk_cl_Cnil;
+    mkcl_object test_not = mk_cl_Cnil;
+    mkcl_object key = mk_cl_Cnil;
+    
+    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, @'rassoc', narg, 2, a_list, @':test', &test, @':test_not', &test_not, @':key', &key);
+
+    setup_test(env, &t, item, test, test_not, key);
+    mkcl_loop_for_in(env, a_list) {
+      mkcl_object pair = MKCL_CONS_CAR(a_list);
+      if (!mkcl_Null(pair)) {
+        if (!MKCL_LISTP(pair))
+          mkcl_FEtype_error_list(env, pair);
+        if (TEST(env, &t, MKCL_CONS_CDR(pair))) {
+          a_list = pair;
+          break;
+        }
       }
-    }
-  } mkcl_end_loop_for_in;
-  close_test(&t);
-  mkcl_return_value(a_list);
-@)
+    } mkcl_end_loop_for_in;
+    close_test(&t);
+    mkcl_return_value(a_list);
+  }
+}
 
 mkcl_object
 mkcl_remove_eq(MKCL, mkcl_object x, mkcl_object l)

@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2017, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2017,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -137,146 +137,152 @@ static mkcl_object read_command_output(MKCL, HANDLE child_stdout_read)
   return output;
 }
 
-@(defun mkcl::run-command (command directory &key real_name)
-@
-  mkcl_dynamic_extent_OSstring(env, os_command, command);
-  mkcl_dynamic_extent_OSstring(env, os_new_directory, (mkcl_Null(directory) ? mkcl_core.empty_base_string : directory));
-  wchar_t * os_raw_new_directory = NULL;
-  mkcl_object output;
-  STARTUPINFOW StartUp;
-  PROCESS_INFORMATION ProcInfo;
-  DWORD ExitCode;
-  BOOL success;
-
-  HANDLE child_stdout_read, child_stdout_read_tmp, child_stdout_write;
-  HANDLE child_stdin, child_stderr;
-  SECURITY_ATTRIBUTES sec_attr;
-  HANDLE current = GetCurrentProcess(); /* pseudo handle */
-
-  sec_attr.nLength = sizeof(SECURITY_ATTRIBUTES);
-  sec_attr.lpSecurityDescriptor = NULL;
-  sec_attr.bInheritHandle = TRUE;
-
-  /* create stdout */
-  if (!CreatePipe(&child_stdout_read_tmp, &child_stdout_write, &sec_attr, 0))
-    mkcl_FEwin32_error(env, "mkcl::run-command failed on CreatePipe", 0);
-
-  /* create stderr, handle has bInheritHandle to TRUE. */
-  if (!DuplicateHandle(current, child_stdout_write, current, &child_stderr,
-		       0, TRUE, DUPLICATE_SAME_ACCESS))
-    mkcl_FEwin32_error(env, "mkcl::run-command failed on DuplicateHandle", 0);
-
-  /* create stdin */
-  child_stdin = CreateFileW(L"NUL", GENERIC_READ,
-			    FILE_SHARE_READ | FILE_SHARE_WRITE,
-			    &sec_attr, OPEN_EXISTING, 0, NULL);
-  if (child_stdin == INVALID_HANDLE_VALUE)
-    mkcl_FEwin32_error(env, "mkcl::run-command failed to open NUL device", 0);
-
-  /* create stderr, handle has bInheritHandle to FALSE. */
-  if (!DuplicateHandle(current, child_stdout_read_tmp, current, &child_stdout_read,
-		       0, FALSE, DUPLICATE_SAME_ACCESS))
-    mkcl_FEwin32_error(env, "mkcl::run-command failed on DuplicateHandle", 0);
-  if (!CloseHandle(child_stdout_read_tmp))
-    mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
-
-
-  ZeroMemory(&StartUp, sizeof(STARTUPINFO));
-  StartUp.cb = sizeof(STARTUPINFO);
-  StartUp.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
-  StartUp.wShowWindow = SW_HIDE;
-  StartUp.hStdOutput = child_stdout_write;
-  StartUp.hStdInput = child_stdin;
-  StartUp.hStdError = child_stderr;
-
-  /* Microsoft's documentation says that the maximum size for
-     the "command" string is 32768 characters, all included.
-     And the first component of it must be less than MAX_PATH.
-     FIXME!
-  */
-  if (!mkcl_Null(directory))
-    {
-      os_raw_new_directory = mkcl_OSstring_self(os_new_directory);
-    }
-
-  if (!mkcl_Null(real_name))
-    {
-      mkcl_dynamic_extent_OSstring(env, os_command_real_name, real_name);
-
-      success = CreateProcessW(mkcl_OSstring_self(os_command_real_name),
-			       mkcl_OSstring_self(os_command),
-			       NULL,
-			       NULL,
-			       TRUE, /* bInheritHandles */
-			       CREATE_NEW_CONSOLE, /* dwCreationFlags */
-			       NULL,
-			       os_raw_new_directory,
-			       &StartUp,
-			       &ProcInfo);
-    }
-  else
-    success = CreateProcessW(NULL,
-			     mkcl_OSstring_self(os_command),
-			     NULL,
-			     NULL,
-			     TRUE, /* bInheritHandles */
-			     CREATE_NEW_CONSOLE, /* dwCreationFlags */
-			     NULL,
-			     os_raw_new_directory,
-			     &StartUp,
-			     &ProcInfo);
-  if (success == 0)
-    mkcl_FEwin32_error(env,
-		       "unable to create subprocess to execute command: ~A", 
-		       1, command);
-
-  if (!CloseHandle(ProcInfo.hThread))
-    mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
-
-  if (!CloseHandle(child_stdin))
-    mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
-  if (!CloseHandle(child_stdout_write))
-    mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
-  if (!CloseHandle(child_stderr))
-    mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
-
-  /* Recover child output. */
-  output = read_command_output(env, child_stdout_read);
-
+mkcl_object mk_mkcl_run_command(MKCL, mkcl_narg narg, mkcl_object command, mkcl_object directory, ...)
+{
+  mkcl_call_stack_check(env);
   {
-    DWORD wait_val;
+    mkcl_object real_name = mk_cl_Cnil;
+    
+    MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, @'mkcl::run-command', narg, 2, directory, @':real-name', &real_name);
+    mkcl_dynamic_extent_OSstring(env, os_command, command);
+    mkcl_dynamic_extent_OSstring(env, os_new_directory, (mkcl_Null(directory) ? mkcl_core.empty_base_string : directory));
+    wchar_t * os_raw_new_directory = NULL;
+    mkcl_object output;
+    STARTUPINFOW StartUp;
+    PROCESS_INFORMATION ProcInfo;
+    DWORD ExitCode;
+    BOOL success;
+
+    HANDLE child_stdout_read, child_stdout_read_tmp, child_stdout_write;
+    HANDLE child_stdin, child_stderr;
+    SECURITY_ATTRIBUTES sec_attr;
+    HANDLE current = GetCurrentProcess(); /* pseudo handle */
+
+    sec_attr.nLength = sizeof(SECURITY_ATTRIBUTES);
+    sec_attr.lpSecurityDescriptor = NULL;
+    sec_attr.bInheritHandle = TRUE;
+
+    /* create stdout */
+    if (!CreatePipe(&child_stdout_read_tmp, &child_stdout_write, &sec_attr, 0))
+      mkcl_FEwin32_error(env, "mkcl::run-command failed on CreatePipe", 0);
+
+    /* create stderr, handle has bInheritHandle to TRUE. */
+    if (!DuplicateHandle(current, child_stdout_write, current, &child_stderr,
+                         0, TRUE, DUPLICATE_SAME_ACCESS))
+      mkcl_FEwin32_error(env, "mkcl::run-command failed on DuplicateHandle", 0);
+
+    /* create stdin */
+    child_stdin = CreateFileW(L"NUL", GENERIC_READ,
+                              FILE_SHARE_READ | FILE_SHARE_WRITE,
+                              &sec_attr, OPEN_EXISTING, 0, NULL);
+    if (child_stdin == INVALID_HANDLE_VALUE)
+      mkcl_FEwin32_error(env, "mkcl::run-command failed to open NUL device", 0);
+
+    /* create stderr, handle has bInheritHandle to FALSE. */
+    if (!DuplicateHandle(current, child_stdout_read_tmp, current, &child_stdout_read,
+                         0, FALSE, DUPLICATE_SAME_ACCESS))
+      mkcl_FEwin32_error(env, "mkcl::run-command failed on DuplicateHandle", 0);
+    if (!CloseHandle(child_stdout_read_tmp))
+      mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
+
+
+    ZeroMemory(&StartUp, sizeof(STARTUPINFO));
+    StartUp.cb = sizeof(STARTUPINFO);
+    StartUp.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+    StartUp.wShowWindow = SW_HIDE;
+    StartUp.hStdOutput = child_stdout_write;
+    StartUp.hStdInput = child_stdin;
+    StartUp.hStdError = child_stderr;
+
+    /* Microsoft's documentation says that the maximum size for
+       the "command" string is 32768 characters, all included.
+       And the first component of it must be less than MAX_PATH.
+       FIXME!
+    */
+    if (!mkcl_Null(directory))
+      {
+        os_raw_new_directory = mkcl_OSstring_self(os_new_directory);
+      }
+
+    if (!mkcl_Null(real_name))
+      {
+        mkcl_dynamic_extent_OSstring(env, os_command_real_name, real_name);
+
+        success = CreateProcessW(mkcl_OSstring_self(os_command_real_name),
+                                 mkcl_OSstring_self(os_command),
+                                 NULL,
+                                 NULL,
+                                 TRUE, /* bInheritHandles */
+                                 CREATE_NEW_CONSOLE, /* dwCreationFlags */
+                                 NULL,
+                                 os_raw_new_directory,
+                                 &StartUp,
+                                 &ProcInfo);
+      }
+    else
+      success = CreateProcessW(NULL,
+                               mkcl_OSstring_self(os_command),
+                               NULL,
+                               NULL,
+                               TRUE, /* bInheritHandles */
+                               CREATE_NEW_CONSOLE, /* dwCreationFlags */
+                               NULL,
+                               os_raw_new_directory,
+                               &StartUp,
+                               &ProcInfo);
+    if (success == 0)
+      mkcl_FEwin32_error(env,
+                         "unable to create subprocess to execute command: ~A", 
+                         1, command);
+
+    if (!CloseHandle(ProcInfo.hThread))
+      mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
+
+    if (!CloseHandle(child_stdin))
+      mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
+    if (!CloseHandle(child_stdout_write))
+      mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
+    if (!CloseHandle(child_stderr))
+      mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
+
+    /* Recover child output. */
+    output = read_command_output(env, child_stdout_read);
+
+    {
+      DWORD wait_val;
     
 #if 0
-    MKCL_LIBC_NO_INTR(env, wait_val = WaitForSingleObject(ProcInfo.hProcess, INFINITE));
+      MKCL_LIBC_NO_INTR(env, wait_val = WaitForSingleObject(ProcInfo.hProcess, INFINITE));
 #else
-    do {
-      MKCL_LIBC_Zzz(env, @':io', wait_val = WaitForSingleObjectEx(ProcInfo.hProcess, INFINITE, TRUE));
-    } while (wait_val == WAIT_IO_COMPLETION);
+      do {
+        MKCL_LIBC_Zzz(env, @':io', wait_val = WaitForSingleObjectEx(ProcInfo.hProcess, INFINITE, TRUE));
+      } while (wait_val == WAIT_IO_COMPLETION);
 #endif
-    switch (wait_val)
-      {
-      case WAIT_OBJECT_0: break;
-      default:
-	mkcl_FEwin32_error(env, "mkcl::run-command failed on WaitForSingleObject", 0);
-      }
-    mk_mt_test_for_thread_shutdown(env);
-  }
+      switch (wait_val)
+        {
+        case WAIT_OBJECT_0: break;
+        default:
+          mkcl_FEwin32_error(env, "mkcl::run-command failed on WaitForSingleObject", 0);
+        }
+      mk_mt_test_for_thread_shutdown(env);
+    }
 
-  if (!GetExitCodeProcess(ProcInfo.hProcess, &ExitCode))
-    mkcl_FEwin32_error(env, "mkcl::run-command failed on GetExitCodeProcess", 0);
+    if (!GetExitCodeProcess(ProcInfo.hProcess, &ExitCode))
+      mkcl_FEwin32_error(env, "mkcl::run-command failed on GetExitCodeProcess", 0);
 
-  if (!CloseHandle(child_stdout_read))
-    mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
+    if (!CloseHandle(child_stdout_read))
+      mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
 
-  if (!CloseHandle(ProcInfo.hProcess))
-    mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
+    if (!CloseHandle(ProcInfo.hProcess))
+      mkcl_FEwin32_error(env, "mkcl::run-command failed on CloseHandle", 0);
 
 #ifdef WIN64
-  { mkcl_return_2_values(MKCL_MAKE_FIXNUM(ExitCode), output); }
+    { mkcl_return_2_values(MKCL_MAKE_FIXNUM(ExitCode), output); }
 #else
-  { mkcl_return_2_values(mkcl_make_unsigned_integer(env, ExitCode), output); }
+    { mkcl_return_2_values(mkcl_make_unsigned_integer(env, ExitCode), output); }
 #endif
-@)
+  }
+}
 
 
 #elif MKCL_UNIX  /* MKCL_WINDOWS */
@@ -442,159 +448,166 @@ static int my_exec_command(mkcl_char8 * cmd_real_name, mkcl_char8 * cmd_line)
   }
 }
 
-@(defun mkcl::run-command (cmd_string directory &key real_name)
-@
-  static const mkcl_base_string_object(dummy_real_name, "");
-  mkcl_object real_name_proxy = (mkcl_Null(real_name) ? (mkcl_object)&dummy_real_name : real_name);
-  int parent_read;
-  int child_stdin, child_stdout, child_stderr;
-  int parent_to_child_in, parent_to_child_out;
-  int fd[2];
-  int status;
-  pid_t pid;
-  char msg[sizeof(intptr_t)];
-  mkcl_object output = mk_cl_Cnil;
-#if 0
-  mkcl_object os_cmd = mkcl_string_to_OSstring(env, cmd_string);
-  mkcl_object os_new_directory;
-#else
-  mkcl_dynamic_extent_OSstring(env, os_cmd, cmd_string);
-  mkcl_dynamic_extent_OSstring(env, os_new_directory, directory);
-  mkcl_dynamic_extent_OSstring(env, os_cmd_real_name, real_name_proxy);  
-#endif
-  char * os_raw_new_directory = (char *) mkcl_OSstring_self(os_new_directory);
-
-  if (mkcl_OSstring_size(os_cmd) >= mkcl_core.arg_max)
-    mkcl_FEerror(env, "Too long command line: ~S.", 1, cmd_string);
-
-  /* prepare redirection of stdout (and stderr). */
-  if (pipe(fd) < 0)
-    mkcl_FElibc_error(env, "mkcl:run-command failed on pipe [output].", 0);
-  parent_read = fd[0];
-  child_stdout = fd[1];
-  child_stderr = child_stdout;
-
-  /* build synchronization pipe */
-  if (pipe(fd) < 0)
-    mkcl_FElibc_error(env, "mkcl:run-command failed on pipe [output].", 0);
-  parent_to_child_in = fd[0];
-  parent_to_child_out = fd[1];
-
-  /* This code paragraph comes from the book
-     "Advanced Programming in the UNIX Environment"
-     by Richard Stevens, page 223.
-
-     Redirection of stdin, stdout, stderr was added later.
-  */
-  if ((pid = fork()) < 0) { /* error */
-    int saved_errno = errno;
-    mkcl_safe_close(env, parent_to_child_in, mk_cl_Cnil);
-    mkcl_safe_close(env, parent_to_child_out, mk_cl_Cnil);
-
-    mkcl_safe_close(env, parent_read, mk_cl_Cnil);
-    mkcl_safe_close(env, child_stdout, mk_cl_Cnil);
-
-    mkcl_FElibc_error(env, "mkcl:run-command unable to fork subprocess to execute command: ~A", 1, cmd_string);
-  } else if (pid == 0) { /* child */
-    int rc;
-
-    while (((rc = read(parent_to_child_out, msg, 1)) < 0) && (errno == EINTR));
-
-    mkcl_safe_close(env, parent_to_child_in, mk_cl_Cnil);
-    mkcl_safe_close(env, parent_to_child_out, mk_cl_Cnil);
-
-    /* redirect stdin to /dev/null. */
-    mkcl_safe_close(env, 0, mk_cl_Cnil);
-    if ((child_stdin = open("/dev/null", O_RDONLY)) < 0)
-      mkcl_FElibc_error(env, "mkcl:run-command child failed on open. [child_stdin].", 0);
-    /* redirect stdout. */
-    mkcl_safe_close(env, 1, mk_cl_Cnil);
-    if (dup(child_stdout) == -1)
-      mkcl_FElibc_error(env, "mkcl:run-command child failed on dup(child_stdout).", 0);;
-    /* redirect stderr. */
-    mkcl_safe_close(env, 2, mk_cl_Cnil);
-    if (dup(child_stderr) == -1)
-      mkcl_FElibc_error(env, "mkcl:run-command child failed on dup(child_stderr).", 0);
+mkcl_object mk_mkcl_run_command(MKCL, mkcl_narg narg, mkcl_object cmd_string, mkcl_object directory, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object real_name = mk_cl_Cnil;
     
-    mkcl_safe_close(env, child_stdout, mk_cl_Cnil);
-    mkcl_safe_close(env, parent_read, mk_cl_Cnil);
+    MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, @'mkcl::run-command', narg, 2, directory, @':real-name', &real_name);
 
-    if (chdir(os_raw_new_directory))
-      {
-	fprintf(stderr, "\nMKCL: mkcl::run-command: chdir(%s): ", os_raw_new_directory);
-      }
-    else 
-      {
+    static const mkcl_base_string_object(dummy_real_name, "");
+    mkcl_object real_name_proxy = (mkcl_Null(real_name) ? (mkcl_object)&dummy_real_name : real_name);
+    int parent_read;
+    int child_stdin, child_stdout, child_stderr;
+    int parent_to_child_in, parent_to_child_out;
+    int fd[2];
+    int status;
+    pid_t pid;
+    char msg[sizeof(intptr_t)];
+    mkcl_object output = mk_cl_Cnil;
 #if 0
-	execl("/bin/sh", "sh", "-c", mkcl_OSstring_self(os_cmd), (char *) 0);
+    mkcl_object os_cmd = mkcl_string_to_OSstring(env, cmd_string);
+    mkcl_object os_new_directory;
 #else
-	if (mkcl_Null(real_name))
-	  my_exec_command(NULL, mkcl_OSstring_self(os_cmd));
-	else
-	  my_exec_command(mkcl_OSstring_self(os_cmd_real_name), mkcl_OSstring_self(os_cmd));
+    mkcl_dynamic_extent_OSstring(env, os_cmd, cmd_string);
+    mkcl_dynamic_extent_OSstring(env, os_new_directory, directory);
+    mkcl_dynamic_extent_OSstring(env, os_cmd_real_name, real_name_proxy);  
 #endif
-	fprintf(stderr, "\nMKCL: mkcl::run-command: %s: ", mkcl_OSstring_self(os_cmd));
-      }
-    perror(NULL);
-    fflush(stderr);
-    _exit(127); /* execl failed! Let's report it like system() does. */
-  } else { /* parent */
-    int rc;
+    char * os_raw_new_directory = (char *) mkcl_OSstring_self(os_new_directory);
 
-    {
-      volatile bool locked = false;
+    if (mkcl_OSstring_size(os_cmd) >= mkcl_core.arg_max)
+      mkcl_FEerror(env, "Too long command line: ~S.", 1, cmd_string);
+
+    /* prepare redirection of stdout (and stderr). */
+    if (pipe(fd) < 0)
+      mkcl_FElibc_error(env, "mkcl:run-command failed on pipe [output].", 0);
+    parent_read = fd[0];
+    child_stdout = fd[1];
+    child_stderr = child_stdout;
+
+    /* build synchronization pipe */
+    if (pipe(fd) < 0)
+      mkcl_FElibc_error(env, "mkcl:run-command failed on pipe [output].", 0);
+    parent_to_child_in = fd[0];
+    parent_to_child_out = fd[1];
+
+    /* This code paragraph comes from the book
+       "Advanced Programming in the UNIX Environment"
+       by Richard Stevens, page 223.
+
+       Redirection of stdin, stdout, stderr was added later.
+    */
+    if ((pid = fork()) < 0) { /* error */
+      int saved_errno = errno;
+      mkcl_safe_close(env, parent_to_child_in, mk_cl_Cnil);
+      mkcl_safe_close(env, parent_to_child_out, mk_cl_Cnil);
+
+      mkcl_safe_close(env, parent_read, mk_cl_Cnil);
+      mkcl_safe_close(env, child_stdout, mk_cl_Cnil);
+
+      mkcl_FElibc_error(env, "mkcl:run-command unable to fork subprocess to execute command: ~A", 1, cmd_string);
+    } else if (pid == 0) { /* child */
+      int rc;
+
+      while (((rc = read(parent_to_child_out, msg, 1)) < 0) && (errno == EINTR));
+
+      mkcl_safe_close(env, parent_to_child_in, mk_cl_Cnil);
+      mkcl_safe_close(env, parent_to_child_out, mk_cl_Cnil);
+
+      /* redirect stdin to /dev/null. */
+      mkcl_safe_close(env, 0, mk_cl_Cnil);
+      if ((child_stdin = open("/dev/null", O_RDONLY)) < 0)
+        mkcl_FElibc_error(env, "mkcl:run-command child failed on open. [child_stdin].", 0);
+      /* redirect stdout. */
+      mkcl_safe_close(env, 1, mk_cl_Cnil);
+      if (dup(child_stdout) == -1)
+        mkcl_FElibc_error(env, "mkcl:run-command child failed on dup(child_stdout).", 0);;
+      /* redirect stderr. */
+      mkcl_safe_close(env, 2, mk_cl_Cnil);
+      if (dup(child_stderr) == -1)
+        mkcl_FElibc_error(env, "mkcl:run-command child failed on dup(child_stderr).", 0);
+    
+      mkcl_safe_close(env, child_stdout, mk_cl_Cnil);
+      mkcl_safe_close(env, parent_read, mk_cl_Cnil);
+
+      if (chdir(os_raw_new_directory))
+        {
+          fprintf(stderr, "\nMKCL: mkcl::run-command: chdir(%s): ", os_raw_new_directory);
+        }
+      else 
+        {
+#if 0
+          execl("/bin/sh", "sh", "-c", mkcl_OSstring_self(os_cmd), (char *) 0);
+#else
+          if (mkcl_Null(real_name))
+            my_exec_command(NULL, mkcl_OSstring_self(os_cmd));
+          else
+            my_exec_command(mkcl_OSstring_self(os_cmd_real_name), mkcl_OSstring_self(os_cmd));
+#endif
+          fprintf(stderr, "\nMKCL: mkcl::run-command: %s: ", mkcl_OSstring_self(os_cmd));
+        }
+      perror(NULL);
+      fflush(stderr);
+      _exit(127); /* execl failed! Let's report it like system() does. */
+    } else { /* parent */
+      int rc;
+
+      {
+        volatile bool locked = false;
       
-      MKCL_UNWIND_PROTECT_BEGIN(env) {
-	MKCL_LIBC_NO_INTR(env, (CHILDREN_LIST_LOCK(env), locked = TRUE));
-	mkcl_core.children = mkcl_cons(env, mkcl_make_integer(env, pid), mkcl_core.children);
-      } MKCL_UNWIND_PROTECT_EXIT {
-	if (locked) CHILDREN_LIST_UNLOCK(env);
-      } MKCL_UNWIND_PROTECT_END;
-    }
+        MKCL_UNWIND_PROTECT_BEGIN(env) {
+          MKCL_LIBC_NO_INTR(env, (CHILDREN_LIST_LOCK(env), locked = TRUE));
+          mkcl_core.children = mkcl_cons(env, mkcl_make_integer(env, pid), mkcl_core.children);
+        } MKCL_UNWIND_PROTECT_EXIT {
+          if (locked) CHILDREN_LIST_UNLOCK(env);
+        } MKCL_UNWIND_PROTECT_END;
+      }
     
-    while ((rc = write(parent_to_child_in, "!", 1)) < 1)
-      if ((rc == -1) && (errno != EINTR)) break;
+      while ((rc = write(parent_to_child_in, "!", 1)) < 1)
+        if ((rc == -1) && (errno != EINTR)) break;
     
-    mkcl_safe_close(env, parent_to_child_in, mk_cl_Cnil);
-    mkcl_safe_close(env, parent_to_child_out, mk_cl_Cnil);
+      mkcl_safe_close(env, parent_to_child_in, mk_cl_Cnil);
+      mkcl_safe_close(env, parent_to_child_out, mk_cl_Cnil);
 
-    mkcl_safe_close(env, child_stdout, mk_cl_Cnil);
+      mkcl_safe_close(env, child_stdout, mk_cl_Cnil);
 
-    /* Here we must read what the child wrote to its stdout. */
-    output = read_command_output(env, parent_read);
+      /* Here we must read what the child wrote to its stdout. */
+      output = read_command_output(env, parent_read);
 
-    mkcl_safe_close(env, parent_read, mk_cl_Cnil);
+      mkcl_safe_close(env, parent_read, mk_cl_Cnil);
 
 #if 0
-    while (((rc = waitpid(pid, &status, 0)) == -1) && (errno == EINTR));
+      while (((rc = waitpid(pid, &status, 0)) == -1) && (errno == EINTR));
 
-    if ((rc == pid) && (WIFEXITED(status) || WIFSIGNALED(status)))
-      delete_pid_from_children(env, pid);
-    /* else this should probably be reported as a libc error result. */
+      if ((rc == pid) && (WIFEXITED(status) || WIFSIGNALED(status)))
+        delete_pid_from_children(env, pid);
+      /* else this should probably be reported as a libc error result. */
 #else
-    for (;;)
-      {
-	int rc;
+      for (;;)
+        {
+          int rc;
 
-	MKCL_LIBC_Zzz(env, @':io', rc = waitpid(pid, &status, 0));
-	mk_mt_test_for_thread_shutdown(env);
-	if ((rc == pid) && (WIFEXITED(status) || WIFSIGNALED(status)))
-	  break;
-	else if ((rc == -1) && (errno != EINTR))
-	  mkcl_FElibc_error(env, "mkcl:run-command failed on waitpid(), pid = ~S", 1, mkcl_make_integer(env, pid));
-      }
+          MKCL_LIBC_Zzz(env, @':io', rc = waitpid(pid, &status, 0));
+          mk_mt_test_for_thread_shutdown(env);
+          if ((rc == pid) && (WIFEXITED(status) || WIFSIGNALED(status)))
+            break;
+          else if ((rc == -1) && (errno != EINTR))
+            mkcl_FElibc_error(env, "mkcl:run-command failed on waitpid(), pid = ~S", 1, mkcl_make_integer(env, pid));
+        }
 
-    delete_pid_from_children(env, pid);
+      delete_pid_from_children(env, pid);
 #endif
-  } /* end of quote from Stevens. */
+    } /* end of quote from Stevens. */
 
-  if (WIFEXITED(status))
-    { mkcl_return_2_values(MKCL_MAKE_FIXNUM(WEXITSTATUS(status)), output); }
-  else if (WIFSIGNALED(status))
-    { mkcl_return_value(mkcl_signum_to_signal_name(env, WTERMSIG(status))); }
-  else
-    { mkcl_return_2_values(mk_cl_Cnil, output); }
-@)
+    if (WIFEXITED(status))
+      { mkcl_return_2_values(MKCL_MAKE_FIXNUM(WEXITSTATUS(status)), output); }
+    else if (WIFSIGNALED(status))
+      { mkcl_return_value(mkcl_signum_to_signal_name(env, WTERMSIG(status))); }
+    else
+      { mkcl_return_2_values(mk_cl_Cnil, output); }
+  }
+}
 
 #endif /* MKCL_UNIX */
 
@@ -740,634 +753,660 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
   return mkcl_funcall2(env, @+'coerce', os_argv_list, @'vector');
 }
 
-@(defun mkcl::run-program-1 (command argv
-                             &key
-                             (input @':stream') (output @':stream') (error @'t')
-                             (external_format @':default') (element_type @'character') (environment @'nil')
-                             (directory @'nil') (search @'t') (wait @'t') (detached @'nil'))
-  int parent_write = 0, parent_read = 0, parent_error = 0;
-  mkcl_object stream_write;
-  mkcl_object stream_read;
-  mkcl_object stream_error;
-  const mkcl_object subprocess = mkcl_alloc_raw_process(env);
-  mkcl_object exit_status = mk_cl_Cnil;
-@
-  /* 'environment' is the last keyword argument that we need to add. FIXME soon. */
-  /* keyword arguments 'external-format' and 'element-type' are not used yet. FIXME soon. */
-  subprocess->process.detached = mkcl_Null(detached) ? FALSE : TRUE;
-  subprocess->process.command = command;
-  subprocess->process.argv = argv;
-  subprocess->process.ident = 0;
-  subprocess->process.exit_code = -1;
-  subprocess->process.plist = mk_cl_Cnil;
-  subprocess->process.status = mk_cl_Cnil;
-  subprocess->process.input = mk_cl_Cnil;
-  subprocess->process.output = mk_cl_Cnil;
-  subprocess->process.error = mk_cl_Cnil;
-  subprocess->process.to_worker = mk_cl_Cnil;
-  subprocess->process.from_worker = mk_cl_Cnil;
-  subprocess->process.error_from_worker = mk_cl_Cnil;
-  mk_si_set_finalizer(env, subprocess, mk_cl_Ct);
-#if MKCL_WINDOWS
+mkcl_object mk_mkcl_run_program_1(MKCL, mkcl_narg narg, mkcl_object command, mkcl_object argv, ...)
+{
+  mkcl_call_stack_check(env);
   {
-    mkcl_object command_line;
-    BOOL ok;
-    STARTUPINFOW st_info;
-    PROCESS_INFORMATION pr_info;
-    HANDLE child_stdout, child_stdin, child_stderr;
-    HANDLE current = GetCurrentProcess();
-    SECURITY_ATTRIBUTES attr;
-    mkcl_dynamic_extent_OSstring(env, os_command, command);
+
+    int parent_write = 0, parent_read = 0, parent_error = 0;
+    mkcl_object stream_write;
+    mkcl_object stream_read;
+    mkcl_object stream_error;
+    const mkcl_object subprocess = mkcl_alloc_raw_process(env);
+    mkcl_object exit_status = mk_cl_Cnil;
+
+    mkcl_object input = @':stream';
+    mkcl_object output = @':stream';
+    mkcl_object error = @'t';
+    mkcl_object external_format = @':default';
+    mkcl_object element_type = @'character';
+    mkcl_object environment = @'nil';
+    mkcl_object directory = @'nil';
+    mkcl_object search = @'t';
+    mkcl_object wait = @'t';
+    mkcl_object detached = @'nil';
+    struct mkcl_key_param_spec key_params[] =
+      {
+       { @':input', &input, false },
+       { @':output', &output, false },
+       { @':error', &error, false },
+       { @':external-format', &external_format, false },
+       { @':element-type', &element_type, false },
+       { @':environment', &environment, false },
+       { @':directory', &directory, false },
+       { @':search', &search, false },
+       { @':wait', &wait, false },
+       { @':detached', &detached, false },
+      };
+    MKCL_RECEIVE_N_KEYWORD_ARGUMENTS(env, @'mkcl::run-program-1', narg, 2, argv, key_params);
+
+    /* 'environment' is the last keyword argument that we need to add. FIXME soon. */
+    /* keyword arguments 'external-format' and 'element-type' are not used yet. FIXME soon. */
+    subprocess->process.detached = mkcl_Null(detached) ? FALSE : TRUE;
+    subprocess->process.command = command;
+    subprocess->process.argv = argv;
+    subprocess->process.ident = 0;
+    subprocess->process.exit_code = -1;
+    subprocess->process.plist = mk_cl_Cnil;
+    subprocess->process.status = mk_cl_Cnil;
+    subprocess->process.input = mk_cl_Cnil;
+    subprocess->process.output = mk_cl_Cnil;
+    subprocess->process.error = mk_cl_Cnil;
+    subprocess->process.to_worker = mk_cl_Cnil;
+    subprocess->process.from_worker = mk_cl_Cnil;
+    subprocess->process.error_from_worker = mk_cl_Cnil;
+    mk_si_set_finalizer(env, subprocess, mk_cl_Ct);
+#if MKCL_WINDOWS
+    {
+      mkcl_object command_line;
+      BOOL ok;
+      STARTUPINFOW st_info;
+      PROCESS_INFORMATION pr_info;
+      HANDLE child_stdout, child_stdin, child_stderr;
+      HANDLE current = GetCurrentProcess();
+      SECURITY_ATTRIBUTES attr;
+      mkcl_dynamic_extent_OSstring(env, os_command, command);
     
 
-    {
-      mkcl_bds_bind(env, @'*print-escape*', mk_cl_Cnil);
-      mkcl_bds_bind(env, @'*print-gensym*', mk_cl_Cnil);
-      mkcl_bds_bind(env, @'*print-readably*', mk_cl_Cnil); /* Among others we want #:foo to be printed without package prefix. */
+      {
+        mkcl_bds_bind(env, @'*print-escape*', mk_cl_Cnil);
+        mkcl_bds_bind(env, @'*print-gensym*', mk_cl_Cnil);
+        mkcl_bds_bind(env, @'*print-readably*', mk_cl_Cnil); /* Among others we want #:foo to be printed without package prefix. */
       
-      static const mkcl_base_string_object(format_control_string_obj, "~A~{ ~A~}");
-      command_line = mk_cl_format(env, 4, mk_cl_Cnil, (mkcl_object) &format_control_string_obj, command, argv);
-      mkcl_bds_unwind_n(env, 3);
-    }
+        static const mkcl_base_string_object(format_control_string_obj, "~A~{ ~A~}");
+        command_line = mk_cl_format(env, 4, mk_cl_Cnil, (mkcl_object) &format_control_string_obj, command, argv);
+        mkcl_bds_unwind_n(env, 3);
+      }
 
-    attr.nLength = sizeof(SECURITY_ATTRIBUTES);
-    attr.lpSecurityDescriptor = NULL;
-    attr.bInheritHandle = TRUE;
-    if (input == @':stream') {
-      /* Creates a pipe that we can read from what the child
-	 writes to it. We duplicate one end of the pipe
-	 so that the child does not inherit it. */
-      HANDLE tmp;
-      ok = CreatePipe(&child_stdin, &tmp, &attr, 0);
-      if (ok) {
-	ok = DuplicateHandle(current, tmp, current,
-			     &tmp, 0, FALSE,
-			     DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS);
-	if (ok) {
-	  parent_write = _open_osfhandle((intptr_t) tmp, _O_WRONLY /*| _O_TEXT*/);
-	  if (parent_write == -1)
-	    mkcl_FElibc_error(env, "mkcl:run-program failed on open_osfhandle() for parent_write", 0);
-	}
-	else
-	  mkcl_FEwin32_error(env, "mkcl:run-program failed on DuplicateHandle() for parent_write", 0);
-      }
-      else
-	mkcl_FEwin32_error(env, "mkcl:run-program failed on CreatePipe() for child_stdin", 0);
-    } else if (input == @'t') {
-      /* The child inherits a duplicate of our input
-	 handle. Creating a duplicate avoids problems when
-	 the child closes it */
-      mkcl_object input_stream = mkcl_symbol_value(env, @'*standard-input*');
-      int stream_handle = mkcl_stream_to_handle(env, input_stream, 0);
-      if (stream_handle >= 0)
-	{
-	  ok = DuplicateHandle(current,
-			       (HANDLE) _get_osfhandle(stream_handle),
-			       current,
-			       &child_stdin,
-			       0,
-			       TRUE,
-			       DUPLICATE_SAME_ACCESS);
-	  if (!ok) mkcl_FEwin32_error(env, "mkcl:run-program failed on DuplicateHandle() for child_stdin", 0);
-	}
-      else {
-	child_stdin = CreateFileW(L"NUL", GENERIC_READ,
-				  FILE_SHARE_READ | FILE_SHARE_WRITE,
-				  &attr, OPEN_EXISTING, 0, NULL);
-	if (child_stdin == INVALID_HANDLE_VALUE)
-	  mkcl_FEwin32_error(env, "mkcl:run-program failed to open NUL device for child_stdin", 0);
-      }
-    } else if (mkcl_Null(input)) {
-      child_stdin = CreateFileW(L"NUL", GENERIC_READ,
-				FILE_SHARE_READ | FILE_SHARE_WRITE,
-				&attr, OPEN_EXISTING, 0, NULL);
-      if (child_stdin == INVALID_HANDLE_VALUE)
-	mkcl_FEwin32_error(env, "mkcl:run-program failed to open NUL device for child_stdin", 0);
-    } else
-      mkcl_FEerror(env, "mkcl:run-program, :input argument value invalid (~S), must be one of (:STREAM T NIL)", 1, input);
+      attr.nLength = sizeof(SECURITY_ATTRIBUTES);
+      attr.lpSecurityDescriptor = NULL;
+      attr.bInheritHandle = TRUE;
+      if (input == @':stream') {
+        /* Creates a pipe that we can read from what the child
+           writes to it. We duplicate one end of the pipe
+           so that the child does not inherit it. */
+        HANDLE tmp;
+        ok = CreatePipe(&child_stdin, &tmp, &attr, 0);
+        if (ok) {
+          ok = DuplicateHandle(current, tmp, current,
+                               &tmp, 0, FALSE,
+                               DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS);
+          if (ok) {
+            parent_write = _open_osfhandle((intptr_t) tmp, _O_WRONLY /*| _O_TEXT*/);
+            if (parent_write == -1)
+              mkcl_FElibc_error(env, "mkcl:run-program failed on open_osfhandle() for parent_write", 0);
+          }
+          else
+            mkcl_FEwin32_error(env, "mkcl:run-program failed on DuplicateHandle() for parent_write", 0);
+        }
+        else
+          mkcl_FEwin32_error(env, "mkcl:run-program failed on CreatePipe() for child_stdin", 0);
+      } else if (input == @'t') {
+        /* The child inherits a duplicate of our input
+           handle. Creating a duplicate avoids problems when
+           the child closes it */
+        mkcl_object input_stream = mkcl_symbol_value(env, @'*standard-input*');
+        int stream_handle = mkcl_stream_to_handle(env, input_stream, 0);
+        if (stream_handle >= 0)
+          {
+            ok = DuplicateHandle(current,
+                                 (HANDLE) _get_osfhandle(stream_handle),
+                                 current,
+                                 &child_stdin,
+                                 0,
+                                 TRUE,
+                                 DUPLICATE_SAME_ACCESS);
+            if (!ok) mkcl_FEwin32_error(env, "mkcl:run-program failed on DuplicateHandle() for child_stdin", 0);
+          }
+        else {
+          child_stdin = CreateFileW(L"NUL", GENERIC_READ,
+                                    FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                    &attr, OPEN_EXISTING, 0, NULL);
+          if (child_stdin == INVALID_HANDLE_VALUE)
+            mkcl_FEwin32_error(env, "mkcl:run-program failed to open NUL device for child_stdin", 0);
+        }
+      } else if (mkcl_Null(input)) {
+        child_stdin = CreateFileW(L"NUL", GENERIC_READ,
+                                  FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                  &attr, OPEN_EXISTING, 0, NULL);
+        if (child_stdin == INVALID_HANDLE_VALUE)
+          mkcl_FEwin32_error(env, "mkcl:run-program failed to open NUL device for child_stdin", 0);
+      } else
+        mkcl_FEerror(env, "mkcl:run-program, :input argument value invalid (~S), must be one of (:STREAM T NIL)", 1, input);
 
-    if (output == @':stream') {
-      /* Creates a pipe that we can write to and the
-	 child reads from. We duplicate one end of the
-	 pipe so that the child does not inherit it. */
-      HANDLE tmp;
-      ok = CreatePipe(&tmp, &child_stdout, &attr, 0);
-      if (ok) {
-	ok = DuplicateHandle(current, tmp, current,
-			     &tmp, 0, FALSE,
-			     DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS);
-	if (ok) {
-	  parent_read = _open_osfhandle((intptr_t) tmp, _O_RDONLY /*| _O_TEXT*/);
-	  if (parent_read == -1)
-	    mkcl_FElibc_error(env, "mkcl:run-program failed on open_osfhandle() for parent_read", 0);
-	}
-	else
-	  mkcl_FEwin32_error(env, "mkcl:run-program failed on DuplicateHandle() for parent_read", 0);
-      }
-      else
-	mkcl_FEwin32_error(env, "mkcl:run-program failed on CreatePipe() for child_stdout", 0);
-    } else if (output == @'t') {
-      /* The child inherits a duplicate of our output
-	 handle. Creating a duplicate avoids problems when
-	 the child closes it */
-      mkcl_object output_stream = mkcl_symbol_value(env, @'*standard-output*');
-      int stream_handle = mkcl_stream_to_handle(env, output_stream, 1);
-      if (stream_handle >= 0)
-	{
-	  ok = DuplicateHandle(current,
-			       (HANDLE) _get_osfhandle(stream_handle),
-			       current, &child_stdout, 0, TRUE,
-			       DUPLICATE_SAME_ACCESS);
-	  if (!ok) mkcl_FEwin32_error(env, "mkcl:run-program failed on DuplicateHandle() for child_stdout", 0);
-	}	  
-      else {
-	child_stdout = CreateFileW(L"NUL", GENERIC_WRITE,
-				   FILE_SHARE_READ | FILE_SHARE_WRITE,
-				   &attr, OPEN_EXISTING, 0, NULL);
-	if (child_stdout == INVALID_HANDLE_VALUE)
-	  mkcl_FEwin32_error(env, "mkcl:run-program failed to open NUL device for child_stdout", 0);
-      }
-    } else if (mkcl_Null(output)) {
-      child_stdout = CreateFileW(L"NUL", GENERIC_WRITE,
-				 FILE_SHARE_READ | FILE_SHARE_WRITE,
-				 &attr, OPEN_EXISTING, 0, NULL);
-      if (child_stdout == INVALID_HANDLE_VALUE)
-	mkcl_FEwin32_error(env, "mkcl:run-program failed to open NUL device for child_stdout", 0);
-    } else
-      mkcl_FEerror(env, "mkcl:run-program, :output argument value invalid (~S), must be one of (:STREAM T NIL)", 1, output);
+      if (output == @':stream') {
+        /* Creates a pipe that we can write to and the
+           child reads from. We duplicate one end of the
+           pipe so that the child does not inherit it. */
+        HANDLE tmp;
+        ok = CreatePipe(&tmp, &child_stdout, &attr, 0);
+        if (ok) {
+          ok = DuplicateHandle(current, tmp, current,
+                               &tmp, 0, FALSE,
+                               DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS);
+          if (ok) {
+            parent_read = _open_osfhandle((intptr_t) tmp, _O_RDONLY /*| _O_TEXT*/);
+            if (parent_read == -1)
+              mkcl_FElibc_error(env, "mkcl:run-program failed on open_osfhandle() for parent_read", 0);
+          }
+          else
+            mkcl_FEwin32_error(env, "mkcl:run-program failed on DuplicateHandle() for parent_read", 0);
+        }
+        else
+          mkcl_FEwin32_error(env, "mkcl:run-program failed on CreatePipe() for child_stdout", 0);
+      } else if (output == @'t') {
+        /* The child inherits a duplicate of our output
+           handle. Creating a duplicate avoids problems when
+           the child closes it */
+        mkcl_object output_stream = mkcl_symbol_value(env, @'*standard-output*');
+        int stream_handle = mkcl_stream_to_handle(env, output_stream, 1);
+        if (stream_handle >= 0)
+          {
+            ok = DuplicateHandle(current,
+                                 (HANDLE) _get_osfhandle(stream_handle),
+                                 current, &child_stdout, 0, TRUE,
+                                 DUPLICATE_SAME_ACCESS);
+            if (!ok) mkcl_FEwin32_error(env, "mkcl:run-program failed on DuplicateHandle() for child_stdout", 0);
+          }	  
+        else {
+          child_stdout = CreateFileW(L"NUL", GENERIC_WRITE,
+                                     FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                     &attr, OPEN_EXISTING, 0, NULL);
+          if (child_stdout == INVALID_HANDLE_VALUE)
+            mkcl_FEwin32_error(env, "mkcl:run-program failed to open NUL device for child_stdout", 0);
+        }
+      } else if (mkcl_Null(output)) {
+        child_stdout = CreateFileW(L"NUL", GENERIC_WRITE,
+                                   FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                   &attr, OPEN_EXISTING, 0, NULL);
+        if (child_stdout == INVALID_HANDLE_VALUE)
+          mkcl_FEwin32_error(env, "mkcl:run-program failed to open NUL device for child_stdout", 0);
+      } else
+        mkcl_FEerror(env, "mkcl:run-program, :output argument value invalid (~S), must be one of (:STREAM T NIL)", 1, output);
 
-    if (error == @':stream') {
-      /* Creates a pipe that we can write to and the
-	 child reads from. We duplicate one end of the
-	 pipe so that the child does not inherit it. */
-      HANDLE tmp;
-      ok = CreatePipe(&tmp, &child_stderr, &attr, 0);
-      if (ok) {
-	ok = DuplicateHandle(current, tmp, current,
-			     &tmp, 0, FALSE,
-			     DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS);
-	if (ok) {
-	  parent_error = _open_osfhandle((intptr_t) tmp, _O_RDONLY /*| _O_TEXT*/);
-	  if (parent_error == -1)
-	    mkcl_FElibc_error(env, "mkcl:run-program failed on open_osfhandle() for parent_error", 0);
-	}
-	else
-	  mkcl_FEwin32_error(env, "mkcl:run-program failed on DuplicateHandle() for parent_error", 0);
-      }
-      else
-	mkcl_FEwin32_error(env, "mkcl:run-program failed on CreatePipe() for child_stderr", 0);
-    } else if (error == @':output') {
-      /* The child inherits a duplicate of its own output handle.*/
-      ok = DuplicateHandle(current, child_stdout, current,
-			   &child_stderr, 0, TRUE,
-			   DUPLICATE_SAME_ACCESS);
-      if (!ok) mkcl_FEwin32_error(env, "mkcl:run-program failed on DuplicateHandle() for child_stderr", 0);
-    } else if (error == @'t') {
-      /* The child inherits a duplicate of our output
-	 handle. Creating a duplicate avoids problems when
-	 the child closes it */
-      mkcl_object error_stream = mkcl_symbol_value(env, @'*error-output*');
-      int stream_handle = mkcl_stream_to_handle(env, error_stream, 1);
-      if (stream_handle >= 0)
-	{
-	  ok = DuplicateHandle(current,
-			       (HANDLE) _get_osfhandle(stream_handle),
-			       current, &child_stderr, 0, TRUE,
-			       DUPLICATE_SAME_ACCESS);
-	  if (!ok) mkcl_FEwin32_error(env, "mkcl:run-program failed on DuplicateHandle() for child_stderr", 0);
-	}
-      else {
-	child_stderr = CreateFileW(L"NUL", GENERIC_WRITE,
-				   FILE_SHARE_READ | FILE_SHARE_WRITE,
-				   &attr, OPEN_EXISTING, 0, NULL);
-	if (child_stderr == INVALID_HANDLE_VALUE)
-	  mkcl_FEwin32_error(env, "mkcl:run-program failed to open NUL device for child_stderr", 0);
-      }
-    } else if (mkcl_Null(error)) {
-      child_stderr = CreateFileW(L"NUL", GENERIC_WRITE,
-				 FILE_SHARE_READ | FILE_SHARE_WRITE,
-				 &attr, OPEN_EXISTING, 0, NULL);
-      if (child_stderr == INVALID_HANDLE_VALUE)
-	mkcl_FEwin32_error(env, "mkcl:run-program failed to open NUL device for child_stderr", 0);
-    } else
-      mkcl_FEerror(env, "mkcl:run-program, :error argument value invalid (~S), must be one of (:STREAM :OUTPUT T NIL)", 1, error);
+      if (error == @':stream') {
+        /* Creates a pipe that we can write to and the
+           child reads from. We duplicate one end of the
+           pipe so that the child does not inherit it. */
+        HANDLE tmp;
+        ok = CreatePipe(&tmp, &child_stderr, &attr, 0);
+        if (ok) {
+          ok = DuplicateHandle(current, tmp, current,
+                               &tmp, 0, FALSE,
+                               DUPLICATE_CLOSE_SOURCE | DUPLICATE_SAME_ACCESS);
+          if (ok) {
+            parent_error = _open_osfhandle((intptr_t) tmp, _O_RDONLY /*| _O_TEXT*/);
+            if (parent_error == -1)
+              mkcl_FElibc_error(env, "mkcl:run-program failed on open_osfhandle() for parent_error", 0);
+          }
+          else
+            mkcl_FEwin32_error(env, "mkcl:run-program failed on DuplicateHandle() for parent_error", 0);
+        }
+        else
+          mkcl_FEwin32_error(env, "mkcl:run-program failed on CreatePipe() for child_stderr", 0);
+      } else if (error == @':output') {
+        /* The child inherits a duplicate of its own output handle.*/
+        ok = DuplicateHandle(current, child_stdout, current,
+                             &child_stderr, 0, TRUE,
+                             DUPLICATE_SAME_ACCESS);
+        if (!ok) mkcl_FEwin32_error(env, "mkcl:run-program failed on DuplicateHandle() for child_stderr", 0);
+      } else if (error == @'t') {
+        /* The child inherits a duplicate of our output
+           handle. Creating a duplicate avoids problems when
+           the child closes it */
+        mkcl_object error_stream = mkcl_symbol_value(env, @'*error-output*');
+        int stream_handle = mkcl_stream_to_handle(env, error_stream, 1);
+        if (stream_handle >= 0)
+          {
+            ok = DuplicateHandle(current,
+                                 (HANDLE) _get_osfhandle(stream_handle),
+                                 current, &child_stderr, 0, TRUE,
+                                 DUPLICATE_SAME_ACCESS);
+            if (!ok) mkcl_FEwin32_error(env, "mkcl:run-program failed on DuplicateHandle() for child_stderr", 0);
+          }
+        else {
+          child_stderr = CreateFileW(L"NUL", GENERIC_WRITE,
+                                     FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                     &attr, OPEN_EXISTING, 0, NULL);
+          if (child_stderr == INVALID_HANDLE_VALUE)
+            mkcl_FEwin32_error(env, "mkcl:run-program failed to open NUL device for child_stderr", 0);
+        }
+      } else if (mkcl_Null(error)) {
+        child_stderr = CreateFileW(L"NUL", GENERIC_WRITE,
+                                   FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                   &attr, OPEN_EXISTING, 0, NULL);
+        if (child_stderr == INVALID_HANDLE_VALUE)
+          mkcl_FEwin32_error(env, "mkcl:run-program failed to open NUL device for child_stderr", 0);
+      } else
+        mkcl_FEerror(env, "mkcl:run-program, :error argument value invalid (~S), must be one of (:STREAM :OUTPUT T NIL)", 1, error);
 
-    ZeroMemory(&st_info, sizeof(STARTUPINFO));
-    st_info.cb = sizeof(STARTUPINFO);
-    st_info.lpTitle = NULL; /* No window title, just exec name */
-    st_info.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW; /* Specify std{in,out,err} */
-    st_info.wShowWindow = SW_HIDE;
-    st_info.hStdInput = child_stdin;
-    st_info.hStdOutput = child_stdout;
-    st_info.hStdError = child_stderr;
-    ZeroMemory(&pr_info, sizeof(PROCESS_INFORMATION));
-    {
+      ZeroMemory(&st_info, sizeof(STARTUPINFO));
+      st_info.cb = sizeof(STARTUPINFO);
+      st_info.lpTitle = NULL; /* No window title, just exec name */
+      st_info.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW; /* Specify std{in,out,err} */
+      st_info.wShowWindow = SW_HIDE;
+      st_info.hStdInput = child_stdin;
+      st_info.hStdOutput = child_stdout;
+      st_info.hStdError = child_stderr;
+      ZeroMemory(&pr_info, sizeof(PROCESS_INFORMATION));
+      {
 #if 0
-      mkcl_object os_command_line = mkcl_string_to_OSstring(env, command_line);
+        mkcl_object os_command_line = mkcl_string_to_OSstring(env, command_line);
 #else
-      mkcl_dynamic_extent_OSstring(env, os_command_line, command_line);
+        mkcl_dynamic_extent_OSstring(env, os_command_line, command_line);
 #endif
+        mkcl_object os_new_directory;
+        wchar_t * os_raw_new_directory = NULL;
+        wchar_t * os_raw_command = NULL;
+
+        if (!mkcl_Null(directory))
+          {
+            os_new_directory = mkcl_string_to_OSstring(env, directory);
+            os_raw_new_directory = mkcl_OSstring_self(os_new_directory);
+          }
+
+        if (mkcl_Null(search))
+          os_raw_command = mkcl_OSstring_self(os_command);
+
+
+        ok = CreateProcessW(os_raw_command,
+                            mkcl_OSstring_self(os_command_line),
+                            NULL, /* lpProcessAttributes */
+                            NULL, /* lpThreadAttributes */
+                            TRUE, /* Inherit handles (for files) */
+                            /*CREATE_NEW_CONSOLE |*/
+                            0 /*(input == mk_cl_Ct || output == mk_cl_Ct || error == mk_cl_Ct ? 0 : CREATE_NO_WINDOW)*/,
+                            NULL, /* Inherit environment */
+                            os_raw_new_directory, /* Current directory */
+                            &st_info, /* Startup info */
+                            &pr_info); /* Process info */
+      }
+
+      /* Child handles must be closed in the parent process */
+      /* otherwise the created pipes are never closed       */
+      if (child_stdin) CloseHandle(child_stdin);
+      if (child_stdout) CloseHandle(child_stdout);
+      if (child_stderr) CloseHandle(child_stderr);
+      if (ok) {
+        DWORD exitcode;
+        CloseHandle(pr_info.hThread);
+        subprocess->process.ident = pr_info.hProcess;
+        subprocess->process.status = @':running';
+
+        if (wait != mk_cl_Cnil) {
+          DWORD wait_val;
+
+#if 0
+          MKCL_LIBC_NO_INTR(env, wait_val = WaitForSingleObject(pr_info.hProcess, INFINITE));
+#else
+          do {
+            MKCL_LIBC_Zzz(env, @':io', wait_val = WaitForSingleObjectEx(pr_info.hProcess, INFINITE, TRUE));
+          } while (wait_val == WAIT_IO_COMPLETION);
+#endif
+          switch (wait_val)
+            {
+            case WAIT_OBJECT_0: break;
+            default:
+              mkcl_FEwin32_error(env, "mkcl:run-program failed on WaitForSingleObject() for subprocess", 0);
+            }
+          mk_mt_test_for_thread_shutdown(env);
+
+          if (GetExitCodeProcess(pr_info.hProcess, &exitcode)) {
+            if (STILL_ACTIVE != exitcode)
+              exit_status = MKCL_MAKE_FIXNUM(exitcode);
+            /* else should we go back and wait again for process completion? Is this case really possible? JCB */
+          } else mkcl_FEwin32_error(env, "mkcl::run-program failed on GetExitCodeProcess", 0);
+          subprocess->process.status = @':exited';
+          subprocess->process.exit_code = exitcode;
+          subprocess->process.ident = NULL;
+          CloseHandle(pr_info.hProcess);
+        }
+      } else {
+        if (parent_write) 
+          if (_close(parent_write))
+            mkcl_FElibc_error(env, "mkcl:run-program failed on _close(parent_write).", 0);
+        if (parent_read) 
+          if (_close(parent_read))
+            mkcl_FElibc_error(env, "mkcl:run-program failed on _close(parent_read).", 0);
+        parent_write = 0;
+        parent_read = 0;
+        mkcl_FEerror(env, "mkcl:run-program could not spawn subprocess to run ~S.", 1, command);
+      }
+    }
+#elif MKCL_UNIX /* MKCL_WINDOWS */
+    {
+      pid_t child_pid;
+      int rc;
+      int child_stdin, child_stdout, child_stderr;
+      int parent_to_child_in, parent_to_child_out;
+      int child_to_parent_in, child_to_parent_out;
+      char msg[sizeof(intptr_t)]; /* parent-child synchronization device */
+      mkcl_object os_command = mkcl_string_to_OSstring(env, command);
+      mkcl_object os_argv = build_unix_os_argv(env, os_command, argv);
       mkcl_object os_new_directory;
-      wchar_t * os_raw_new_directory = NULL;
-      wchar_t * os_raw_command = NULL;
+      char * os_raw_new_directory = NULL;
+
+      if (input == @':stream') {
+        int fd[2];
+        if (pipe(fd) < 0)
+          mkcl_FElibc_error(env, "mkcl:run-program failed on pipe [input].", 0);
+        parent_write = fd[1];
+        child_stdin = fd[0];
+      } else {
+        if (input == @'t') {
+          mkcl_object input_stream = mkcl_symbol_value(env, @'*standard-input*');
+          child_stdin = mkcl_stream_to_handle(env, input_stream, 0);
+        }
+        else if (mkcl_Null(input))
+          child_stdin = -1;
+        else
+          mkcl_FEerror(env, "mkcl:run-program, :input argument value invalid (~S), must be one of (:STREAM T NIL)", 1, input);
+        if (child_stdin >= 0) {
+          if ((child_stdin = dup(child_stdin)) < 0)
+            mkcl_FElibc_error(env, "mkcl:run-program failed on dup(child_stdin).", 0);
+        } else {
+          if ((child_stdin = open("/dev/null", O_RDONLY)) < 0)
+            mkcl_FElibc_error(env, "mkcl:run-program failed on open. [child_stdin].", 0);
+        }
+      }
+      if (output == @':stream') {
+        int fd[2];
+        if (pipe(fd) < 0)
+          mkcl_FElibc_error(env, "mkcl:run-program failed on pipe [output].", 0);
+        parent_read = fd[0];
+        child_stdout = fd[1];
+      } else {
+        if (output == @'t') {
+          mkcl_object output_stream = mkcl_symbol_value(env, @'*standard-output*');
+          child_stdout = mkcl_stream_to_handle(env, output_stream, 1);
+        }
+        else if (mkcl_Null(output))
+          child_stdout = -1;
+        else
+          mkcl_FEerror(env, "mkcl:run-program, :output argument value invalid (~S), must be one of (:STREAM T NIL)", 1, output);
+        if (child_stdout >= 0) {
+          if ((child_stdout = dup(child_stdout)) < 0)
+            mkcl_FElibc_error(env, "mkcl:run-program failed on dup(child_stdout).", 0);
+        } else {
+          if ((child_stdout = open("/dev/null", O_WRONLY)) < 0)
+            mkcl_FElibc_error(env, "mkcl:run-program failed on open. [child_stdout].", 0);
+        }
+      }
+      if (error == @':stream')
+        {
+          int fd[2];
+          if (pipe(fd) < 0)
+            mkcl_FElibc_error(env, "mkcl:run-program failed on pipe [error].", 0);
+          parent_error = fd[0];
+          child_stderr = fd[1];
+        }
+      else
+        {
+          if (error == @':output') {
+            child_stderr = child_stdout;
+          } else if (error == @'t') {
+            mkcl_object error_stream = mkcl_symbol_value(env, @'*error-output*');
+            child_stderr = mkcl_stream_to_handle(env, error_stream, 1);
+          } else if (mkcl_Null(error)) {
+            child_stderr = -1;
+          } else
+            mkcl_FEerror(env, "mkcl:run-program, :error argument value invalid (~S), must be one of (:STREAM :OUTPUT T NIL)", 1, error);
+
+          if (child_stderr < 0) {
+            if ((child_stderr = open("/dev/null", O_WRONLY)) < 0)
+              mkcl_FElibc_error(env, "mkcl:run-program failed on open. [child_stderr].", 0);
+          } else {
+            if ((child_stderr = dup(child_stderr)) < 0)
+              mkcl_FElibc_error(env, "mkcl:run-program failed on dup(child_stderr).", 0);
+          }
+        }
+      {
+        int fd[2];
+        if (pipe(fd) < 0)
+          mkcl_FElibc_error(env, "mkcl:run-program failed on pipe [error].", 0);
+        parent_to_child_in = fd[0];
+        parent_to_child_out = fd[1];
+
+        if (pipe(fd) < 0)
+          mkcl_FElibc_error(env, "mkcl:run-program failed on pipe [error].", 0);
+        child_to_parent_in = fd[0];
+        child_to_parent_out = fd[1];
+      }
 
       if (!mkcl_Null(directory))
-	{
-	  os_new_directory = mkcl_string_to_OSstring(env, directory);
-	  os_raw_new_directory = mkcl_OSstring_self(os_new_directory);
-	}
-
-      if (mkcl_Null(search))
-	os_raw_command = mkcl_OSstring_self(os_command);
-
-
-      ok = CreateProcessW(os_raw_command,
-			  mkcl_OSstring_self(os_command_line),
-			  NULL, /* lpProcessAttributes */
-			  NULL, /* lpThreadAttributes */
-			  TRUE, /* Inherit handles (for files) */
-			  /*CREATE_NEW_CONSOLE |*/
-			  0 /*(input == mk_cl_Ct || output == mk_cl_Ct || error == mk_cl_Ct ? 0 : CREATE_NO_WINDOW)*/,
-			  NULL, /* Inherit environment */
-			  os_raw_new_directory, /* Current directory */
-			  &st_info, /* Startup info */
-			  &pr_info); /* Process info */
-    }
-
-    /* Child handles must be closed in the parent process */
-    /* otherwise the created pipes are never closed       */
-    if (child_stdin) CloseHandle(child_stdin);
-    if (child_stdout) CloseHandle(child_stdout);
-    if (child_stderr) CloseHandle(child_stderr);
-    if (ok) {
-      DWORD exitcode;
-      CloseHandle(pr_info.hThread);
-      subprocess->process.ident = pr_info.hProcess;
-      subprocess->process.status = @':running';
-
-      if (wait != mk_cl_Cnil) {
-	DWORD wait_val;
-
-#if 0
-	MKCL_LIBC_NO_INTR(env, wait_val = WaitForSingleObject(pr_info.hProcess, INFINITE));
-#else
-	do {
-	  MKCL_LIBC_Zzz(env, @':io', wait_val = WaitForSingleObjectEx(pr_info.hProcess, INFINITE, TRUE));
-	} while (wait_val == WAIT_IO_COMPLETION);
-#endif
-	switch (wait_val)
-	  {
-	  case WAIT_OBJECT_0: break;
-	  default:
-	    mkcl_FEwin32_error(env, "mkcl:run-program failed on WaitForSingleObject() for subprocess", 0);
-	  }
-	mk_mt_test_for_thread_shutdown(env);
-
-	if (GetExitCodeProcess(pr_info.hProcess, &exitcode)) {
-	  if (STILL_ACTIVE != exitcode)
-	    exit_status = MKCL_MAKE_FIXNUM(exitcode);
-	  /* else should we go back and wait again for process completion? Is this case really possible? JCB */
-	} else mkcl_FEwin32_error(env, "mkcl::run-program failed on GetExitCodeProcess", 0);
-	subprocess->process.status = @':exited';
-	subprocess->process.exit_code = exitcode;
-	subprocess->process.ident = NULL;
-	CloseHandle(pr_info.hProcess);
-      }
-    } else {
-      if (parent_write) 
-	if (_close(parent_write))
-	  mkcl_FElibc_error(env, "mkcl:run-program failed on _close(parent_write).", 0);
-      if (parent_read) 
-	if (_close(parent_read))
-	  mkcl_FElibc_error(env, "mkcl:run-program failed on _close(parent_read).", 0);
-      parent_write = 0;
-      parent_read = 0;
-      mkcl_FEerror(env, "mkcl:run-program could not spawn subprocess to run ~S.", 1, command);
-    }
-  }
-#elif MKCL_UNIX /* MKCL_WINDOWS */
-  {
-    pid_t child_pid;
-    int rc;
-    int child_stdin, child_stdout, child_stderr;
-    int parent_to_child_in, parent_to_child_out;
-    int child_to_parent_in, child_to_parent_out;
-    char msg[sizeof(intptr_t)]; /* parent-child synchronization device */
-    mkcl_object os_command = mkcl_string_to_OSstring(env, command);
-    mkcl_object os_argv = build_unix_os_argv(env, os_command, argv);
-    mkcl_object os_new_directory;
-    char * os_raw_new_directory = NULL;
-
-    if (input == @':stream') {
-      int fd[2];
-      if (pipe(fd) < 0)
-	mkcl_FElibc_error(env, "mkcl:run-program failed on pipe [input].", 0);
-      parent_write = fd[1];
-      child_stdin = fd[0];
-    } else {
-      if (input == @'t') {
-	mkcl_object input_stream = mkcl_symbol_value(env, @'*standard-input*');
-	child_stdin = mkcl_stream_to_handle(env, input_stream, 0);
-      }
-      else if (mkcl_Null(input))
-	child_stdin = -1;
-      else
-	mkcl_FEerror(env, "mkcl:run-program, :input argument value invalid (~S), must be one of (:STREAM T NIL)", 1, input);
-      if (child_stdin >= 0) {
-	if ((child_stdin = dup(child_stdin)) < 0)
-	  mkcl_FElibc_error(env, "mkcl:run-program failed on dup(child_stdin).", 0);
-      } else {
-	if ((child_stdin = open("/dev/null", O_RDONLY)) < 0)
-	  mkcl_FElibc_error(env, "mkcl:run-program failed on open. [child_stdin].", 0);
-      }
-    }
-    if (output == @':stream') {
-      int fd[2];
-      if (pipe(fd) < 0)
-	mkcl_FElibc_error(env, "mkcl:run-program failed on pipe [output].", 0);
-      parent_read = fd[0];
-      child_stdout = fd[1];
-    } else {
-      if (output == @'t') {
-	mkcl_object output_stream = mkcl_symbol_value(env, @'*standard-output*');
-	child_stdout = mkcl_stream_to_handle(env, output_stream, 1);
-      }
-      else if (mkcl_Null(output))
-	child_stdout = -1;
-      else
-	mkcl_FEerror(env, "mkcl:run-program, :output argument value invalid (~S), must be one of (:STREAM T NIL)", 1, output);
-      if (child_stdout >= 0) {
-	if ((child_stdout = dup(child_stdout)) < 0)
-	  mkcl_FElibc_error(env, "mkcl:run-program failed on dup(child_stdout).", 0);
-      } else {
-	if ((child_stdout = open("/dev/null", O_WRONLY)) < 0)
-	  mkcl_FElibc_error(env, "mkcl:run-program failed on open. [child_stdout].", 0);
-      }
-    }
-    if (error == @':stream')
-      {
-	int fd[2];
-	if (pipe(fd) < 0)
-	  mkcl_FElibc_error(env, "mkcl:run-program failed on pipe [error].", 0);
-	parent_error = fd[0];
-	child_stderr = fd[1];
-      }
-    else
-      {
-	if (error == @':output') {
-	  child_stderr = child_stdout;
-	} else if (error == @'t') {
-	  mkcl_object error_stream = mkcl_symbol_value(env, @'*error-output*');
-	  child_stderr = mkcl_stream_to_handle(env, error_stream, 1);
-	} else if (mkcl_Null(error)) {
-	  child_stderr = -1;
-	} else
-	  mkcl_FEerror(env, "mkcl:run-program, :error argument value invalid (~S), must be one of (:STREAM :OUTPUT T NIL)", 1, error);
-
-	if (child_stderr < 0) {
-	  if ((child_stderr = open("/dev/null", O_WRONLY)) < 0)
-	    mkcl_FElibc_error(env, "mkcl:run-program failed on open. [child_stderr].", 0);
-	} else {
-	  if ((child_stderr = dup(child_stderr)) < 0)
-	    mkcl_FElibc_error(env, "mkcl:run-program failed on dup(child_stderr).", 0);
-	}
-      }
-    {
-      int fd[2];
-      if (pipe(fd) < 0)
-	mkcl_FElibc_error(env, "mkcl:run-program failed on pipe [error].", 0);
-      parent_to_child_in = fd[0];
-      parent_to_child_out = fd[1];
-
-      if (pipe(fd) < 0)
-	mkcl_FElibc_error(env, "mkcl:run-program failed on pipe [error].", 0);
-      child_to_parent_in = fd[0];
-      child_to_parent_out = fd[1];
-    }
-
-    if (!mkcl_Null(directory))
-      {
-	os_new_directory = mkcl_string_to_OSstring(env, directory);
-	os_raw_new_directory = (char *) mkcl_OSstring_self(os_new_directory);
-      }
+        {
+          os_new_directory = mkcl_string_to_OSstring(env, directory);
+          os_raw_new_directory = (char *) mkcl_OSstring_self(os_new_directory);
+        }
     
-    child_pid = fork();
-    if (child_pid == 0)
-      {	/* Child */
-	size_t j;
-	const size_t exec_argc = os_argv->vector.fillp;
-	char * exec_argv[exec_argc]; /* a VLA. */
+      child_pid = fork();
+      if (child_pid == 0)
+        {	/* Child */
+          size_t j;
+          const size_t exec_argc = os_argv->vector.fillp;
+          char * exec_argv[exec_argc]; /* a VLA. */
 
-	while ((rc = write(child_to_parent_in, "?", 1)) < 1)
-	  if ((rc == -1) && (errno != EINTR)) break;
+          while ((rc = write(child_to_parent_in, "?", 1)) < 1)
+            if ((rc == -1) && (errno != EINTR)) break;
 
-	while (((rc = read(parent_to_child_out, msg, 1)) < 0) && (errno == EINTR));
+          while (((rc = read(parent_to_child_out, msg, 1)) < 0) && (errno == EINTR));
 
-	mkcl_safe_close(env, parent_to_child_in, mk_cl_Cnil);
-	mkcl_safe_close(env, parent_to_child_out, mk_cl_Cnil);
-	mkcl_safe_close(env, child_to_parent_in, mk_cl_Cnil);
-	mkcl_safe_close(env, child_to_parent_out, mk_cl_Cnil);
+          mkcl_safe_close(env, parent_to_child_in, mk_cl_Cnil);
+          mkcl_safe_close(env, parent_to_child_out, mk_cl_Cnil);
+          mkcl_safe_close(env, child_to_parent_in, mk_cl_Cnil);
+          mkcl_safe_close(env, child_to_parent_out, mk_cl_Cnil);
 
-	mkcl_safe_close(env, 0, mk_cl_Cnil);
-	if (dup(child_stdin) == -1)
-	  mkcl_FElibc_error(env, "mkcl:run-program child failed on dup(child_stdin).", 0);
-	if (parent_write) mkcl_safe_close(env, parent_write, mk_cl_Cnil);
-	mkcl_safe_close(env, 1, mk_cl_Cnil);
-	if (dup(child_stdout) == -1)
-	  mkcl_FElibc_error(env, "mkcl:run-program child failed on dup(child_stdout).", 0);;
-	if (parent_read) mkcl_safe_close(env, parent_read, mk_cl_Cnil);
-	mkcl_safe_close(env, 2, mk_cl_Cnil);
-	if (dup(child_stderr) == -1)
-	  mkcl_FElibc_error(env, "mkcl:run-program child failed on dup(child_stderr).", 0);
-	if (parent_error) mkcl_safe_close(env, parent_error, mk_cl_Cnil);
+          mkcl_safe_close(env, 0, mk_cl_Cnil);
+          if (dup(child_stdin) == -1)
+            mkcl_FElibc_error(env, "mkcl:run-program child failed on dup(child_stdin).", 0);
+          if (parent_write) mkcl_safe_close(env, parent_write, mk_cl_Cnil);
+          mkcl_safe_close(env, 1, mk_cl_Cnil);
+          if (dup(child_stdout) == -1)
+            mkcl_FElibc_error(env, "mkcl:run-program child failed on dup(child_stdout).", 0);;
+          if (parent_read) mkcl_safe_close(env, parent_read, mk_cl_Cnil);
+          mkcl_safe_close(env, 2, mk_cl_Cnil);
+          if (dup(child_stderr) == -1)
+            mkcl_FElibc_error(env, "mkcl:run-program child failed on dup(child_stderr).", 0);
+          if (parent_error) mkcl_safe_close(env, parent_error, mk_cl_Cnil);
 
-	for (j = 0; j < exec_argc; j++) {
-	  mkcl_object arg = os_argv->vector.self.t[j];
-	  if (mkcl_Null(arg)) {
-	    exec_argv[j] = NULL;
-	  } else {
-	    exec_argv[j] = (char *) mkcl_OSstring_self(arg);
-	  }
-	}
+          for (j = 0; j < exec_argc; j++) {
+            mkcl_object arg = os_argv->vector.self.t[j];
+            if (mkcl_Null(arg)) {
+              exec_argv[j] = NULL;
+            } else {
+              exec_argv[j] = (char *) mkcl_OSstring_self(arg);
+            }
+          }
 
-	if (os_raw_new_directory && chdir(os_raw_new_directory))
-	  {
-	    fprintf(stderr, "\nMKCL: mkcl::run-program: chdir(%s): ", os_raw_new_directory);
-	  }
-	else 
-	  {
-	    if (mkcl_Null(search))
-	      execv((char *) mkcl_OSstring_self(os_command), exec_argv);
-	    else
-	      execvp((char *) mkcl_OSstring_self(os_command), exec_argv);
-	    fprintf(stderr, "\nMKCL: mkcl::run-program: %s: ", mkcl_OSstring_self(os_command));
-	  }
-	/* at this point exec has failed */
-	perror(NULL);
-	fflush(stderr);
-	_exit(127); /* We have nothing else left to do but to terminate this child process. */
-      } 
-    else if (child_pid > 0) 
-      {	/* Parent */
-	while (((rc = read(child_to_parent_out, msg, 1)) < 0) && (errno == EINTR))
-	  mk_mt_test_for_thread_shutdown(env);
+          if (os_raw_new_directory && chdir(os_raw_new_directory))
+            {
+              fprintf(stderr, "\nMKCL: mkcl::run-program: chdir(%s): ", os_raw_new_directory);
+            }
+          else 
+            {
+              if (mkcl_Null(search))
+                execv((char *) mkcl_OSstring_self(os_command), exec_argv);
+              else
+                execvp((char *) mkcl_OSstring_self(os_command), exec_argv);
+              fprintf(stderr, "\nMKCL: mkcl::run-program: %s: ", mkcl_OSstring_self(os_command));
+            }
+          /* at this point exec has failed */
+          perror(NULL);
+          fflush(stderr);
+          _exit(127); /* We have nothing else left to do but to terminate this child process. */
+        } 
+      else if (child_pid > 0) 
+        {	/* Parent */
+          while (((rc = read(child_to_parent_out, msg, 1)) < 0) && (errno == EINTR))
+            mk_mt_test_for_thread_shutdown(env);
 
-	subprocess->process.ident = child_pid;
-	subprocess->process.status = @':running';
+          subprocess->process.ident = child_pid;
+          subprocess->process.status = @':running';
 
-	if (mkcl_Null(detached))
-	  {
-	    volatile bool locked = false;
+          if (mkcl_Null(detached))
+            {
+              volatile bool locked = false;
 
-	    MKCL_UNWIND_PROTECT_BEGIN(env) {
-	      MKCL_LIBC_NO_INTR(env, (CHILDREN_LIST_LOCK(env), locked = TRUE));
-	      mkcl_core.children = mkcl_cons(env, mkcl_make_integer(env, child_pid), mkcl_core.children);
-	    } MKCL_UNWIND_PROTECT_EXIT {
-	      if (locked) CHILDREN_LIST_UNLOCK(env);
-	    } MKCL_UNWIND_PROTECT_END;
+              MKCL_UNWIND_PROTECT_BEGIN(env) {
+                MKCL_LIBC_NO_INTR(env, (CHILDREN_LIST_LOCK(env), locked = TRUE));
+                mkcl_core.children = mkcl_cons(env, mkcl_make_integer(env, child_pid), mkcl_core.children);
+              } MKCL_UNWIND_PROTECT_EXIT {
+                if (locked) CHILDREN_LIST_UNLOCK(env);
+              } MKCL_UNWIND_PROTECT_END;
 
 	    
-	    while ((rc = write(parent_to_child_in, "!", 1)) < 1)
-	      if ((rc == -1) && (errno != EINTR)) break;
-	      else mk_mt_test_for_thread_shutdown(env);
+              while ((rc = write(parent_to_child_in, "!", 1)) < 1)
+                if ((rc == -1) && (errno != EINTR)) break;
+                else mk_mt_test_for_thread_shutdown(env);
 	    
-	    mkcl_safe_close(env, child_stdin, mk_cl_Cnil);
-	    mkcl_safe_close(env, child_stdout, mk_cl_Cnil);
-	    mkcl_safe_close(env, child_stderr, mk_cl_Cnil);
-	    mkcl_safe_close(env, parent_to_child_in, mk_cl_Cnil);
-	    mkcl_safe_close(env, parent_to_child_out, mk_cl_Cnil);
-	    mkcl_safe_close(env, child_to_parent_in, mk_cl_Cnil);
-	    mkcl_safe_close(env, child_to_parent_out, mk_cl_Cnil);
+              mkcl_safe_close(env, child_stdin, mk_cl_Cnil);
+              mkcl_safe_close(env, child_stdout, mk_cl_Cnil);
+              mkcl_safe_close(env, child_stderr, mk_cl_Cnil);
+              mkcl_safe_close(env, parent_to_child_in, mk_cl_Cnil);
+              mkcl_safe_close(env, parent_to_child_out, mk_cl_Cnil);
+              mkcl_safe_close(env, child_to_parent_in, mk_cl_Cnil);
+              mkcl_safe_close(env, child_to_parent_out, mk_cl_Cnil);
 	    
 	    
-	    if (wait != mk_cl_Cnil) {
-	      int status;
+              if (wait != mk_cl_Cnil) {
+                int status;
 #if 0
-	      while (((rc = waitpid(child_pid, &status, 0)) == -1) && (errno == EINTR));
-	      if (rc == -1)
-		mkcl_FElibc_error(env, "mkcl:run-program failed on waitpid().", 0);
-	      else if (WIFEXITED(status))
-		exit_status = MKCL_MAKE_FIXNUM(WEXITSTATUS(status));
-	      else if (WIFSIGNALED(status))
-		exit_status = mkcl_signum_to_signal_name(env, WTERMSIG(status));
-	      else
-		exit_status = mk_cl_Cnil;
+                while (((rc = waitpid(child_pid, &status, 0)) == -1) && (errno == EINTR));
+                if (rc == -1)
+                  mkcl_FElibc_error(env, "mkcl:run-program failed on waitpid().", 0);
+                else if (WIFEXITED(status))
+                  exit_status = MKCL_MAKE_FIXNUM(WEXITSTATUS(status));
+                else if (WIFSIGNALED(status))
+                  exit_status = mkcl_signum_to_signal_name(env, WTERMSIG(status));
+                else
+                  exit_status = mk_cl_Cnil;
 	      
-	      if ((rc == child_pid) && (WIFEXITED(status) || WIFSIGNALED(status)))
-		{
-		  delete_pid_from_children(env, child_pid);
-		  subprocess->process.status = @':exited';
-		  subprocess->process.exit_code = status;
-		}
+                if ((rc == child_pid) && (WIFEXITED(status) || WIFSIGNALED(status)))
+                  {
+                    delete_pid_from_children(env, child_pid);
+                    subprocess->process.status = @':exited';
+                    subprocess->process.exit_code = status;
+                  }
 #else
-	      for (;;)
-		{
-		  int rc;
-		  MKCL_LIBC_Zzz(env, @':io', rc = waitpid(child_pid, &status, 0));
-		  mk_mt_test_for_thread_shutdown(env);
-		  if ((rc == child_pid) && (WIFEXITED(status) || WIFSIGNALED(status)))
-		    break;
-		  else if ((rc == -1) && (errno != EINTR))
-		    mkcl_FElibc_error(env, "mkcl:run-program failed on waitpid(), pid = ~S", 1, mkcl_make_integer(env, child_pid));
-		}
+                for (;;)
+                  {
+                    int rc;
+                    MKCL_LIBC_Zzz(env, @':io', rc = waitpid(child_pid, &status, 0));
+                    mk_mt_test_for_thread_shutdown(env);
+                    if ((rc == child_pid) && (WIFEXITED(status) || WIFSIGNALED(status)))
+                      break;
+                    else if ((rc == -1) && (errno != EINTR))
+                      mkcl_FElibc_error(env, "mkcl:run-program failed on waitpid(), pid = ~S", 1, mkcl_make_integer(env, child_pid));
+                  }
 	      
-	      delete_pid_from_children(env, child_pid);
-	      subprocess->process.status = @':exited';
-	      subprocess->process.exit_code = status;
-	      if (WIFEXITED(status))
-		exit_status = MKCL_MAKE_FIXNUM(WEXITSTATUS(status));
-	      else if (WIFSIGNALED(status))
-		exit_status = mkcl_signum_to_signal_name(env, WTERMSIG(status));
-	      else
-		exit_status = mk_cl_Cnil;
+                delete_pid_from_children(env, child_pid);
+                subprocess->process.status = @':exited';
+                subprocess->process.exit_code = status;
+                if (WIFEXITED(status))
+                  exit_status = MKCL_MAKE_FIXNUM(WEXITSTATUS(status));
+                else if (WIFSIGNALED(status))
+                  exit_status = mkcl_signum_to_signal_name(env, WTERMSIG(status));
+                else
+                  exit_status = mk_cl_Cnil;
 #endif	  
-	    }
-	  }
-	else
-	  { /* detached */
-	    volatile bool locked = false;
+              }
+            }
+          else
+            { /* detached */
+              volatile bool locked = false;
 
-	    MKCL_UNWIND_PROTECT_BEGIN(env) {
-	      MKCL_LIBC_NO_INTR(env, (CHILDREN_LIST_LOCK(env), locked = TRUE));
-	      mkcl_core.detached_children = mkcl_cons(env, mkcl_make_integer(env, child_pid), mkcl_core.detached_children);
-	    } MKCL_UNWIND_PROTECT_EXIT {
-	      if (locked) CHILDREN_LIST_UNLOCK(env);
-	    } MKCL_UNWIND_PROTECT_END;
+              MKCL_UNWIND_PROTECT_BEGIN(env) {
+                MKCL_LIBC_NO_INTR(env, (CHILDREN_LIST_LOCK(env), locked = TRUE));
+                mkcl_core.detached_children = mkcl_cons(env, mkcl_make_integer(env, child_pid), mkcl_core.detached_children);
+              } MKCL_UNWIND_PROTECT_EXIT {
+                if (locked) CHILDREN_LIST_UNLOCK(env);
+              } MKCL_UNWIND_PROTECT_END;
 	    
-	    while ((rc = write(parent_to_child_in, "!", 1)) < 1)
-	      if ((rc == -1) && (errno != EINTR)) break;
-	      else mk_mt_test_for_thread_shutdown(env);
+              while ((rc = write(parent_to_child_in, "!", 1)) < 1)
+                if ((rc == -1) && (errno != EINTR)) break;
+                else mk_mt_test_for_thread_shutdown(env);
 	    
-	    mkcl_safe_close(env, child_stdin, mk_cl_Cnil);
-	    mkcl_safe_close(env, child_stdout, mk_cl_Cnil);
-	    mkcl_safe_close(env, child_stderr, mk_cl_Cnil);
-	    mkcl_safe_close(env, parent_to_child_in, mk_cl_Cnil);
-	    mkcl_safe_close(env, parent_to_child_out, mk_cl_Cnil);
-	    mkcl_safe_close(env, child_to_parent_in, mk_cl_Cnil);
-	    mkcl_safe_close(env, child_to_parent_out, mk_cl_Cnil);
+              mkcl_safe_close(env, child_stdin, mk_cl_Cnil);
+              mkcl_safe_close(env, child_stdout, mk_cl_Cnil);
+              mkcl_safe_close(env, child_stderr, mk_cl_Cnil);
+              mkcl_safe_close(env, parent_to_child_in, mk_cl_Cnil);
+              mkcl_safe_close(env, parent_to_child_out, mk_cl_Cnil);
+              mkcl_safe_close(env, child_to_parent_in, mk_cl_Cnil);
+              mkcl_safe_close(env, child_to_parent_out, mk_cl_Cnil);
 
-	    exit_status = @':detached';
-	  }
-      }
-    else if (child_pid < 0)
-      { /* Error */
-	int fork_errno = errno;
+              exit_status = @':detached';
+            }
+        }
+      else if (child_pid < 0)
+        { /* Error */
+          int fork_errno = errno;
 
-	mkcl_safe_close(env, child_stdin, mk_cl_Cnil);
-	mkcl_safe_close(env, child_stdout, mk_cl_Cnil);
-	mkcl_safe_close(env, child_stderr, mk_cl_Cnil);
-	mkcl_safe_close(env, parent_to_child_in, mk_cl_Cnil);
-	mkcl_safe_close(env, parent_to_child_out, mk_cl_Cnil);
-	mkcl_safe_close(env, child_to_parent_in, mk_cl_Cnil);
-	mkcl_safe_close(env, child_to_parent_out, mk_cl_Cnil);
+          mkcl_safe_close(env, child_stdin, mk_cl_Cnil);
+          mkcl_safe_close(env, child_stdout, mk_cl_Cnil);
+          mkcl_safe_close(env, child_stderr, mk_cl_Cnil);
+          mkcl_safe_close(env, parent_to_child_in, mk_cl_Cnil);
+          mkcl_safe_close(env, parent_to_child_out, mk_cl_Cnil);
+          mkcl_safe_close(env, child_to_parent_in, mk_cl_Cnil);
+          mkcl_safe_close(env, child_to_parent_out, mk_cl_Cnil);
 
-	if (parent_write) mkcl_safe_close(env, parent_write, mk_cl_Cnil);
-	if (parent_read) mkcl_safe_close(env, parent_read, mk_cl_Cnil);
-	if (parent_error) mkcl_safe_close(env, parent_error, mk_cl_Cnil);
-	parent_write = 0;
-	parent_read = 0;
-	parent_error = 0;
-	errno = fork_errno;
-	mkcl_FElibc_error(env, "mkcl:run-program could not spawn subprocess to run ~S.", 1, command);
-      }
-  }
+          if (parent_write) mkcl_safe_close(env, parent_write, mk_cl_Cnil);
+          if (parent_read) mkcl_safe_close(env, parent_read, mk_cl_Cnil);
+          if (parent_error) mkcl_safe_close(env, parent_error, mk_cl_Cnil);
+          parent_write = 0;
+          parent_read = 0;
+          parent_error = 0;
+          errno = fork_errno;
+          mkcl_FElibc_error(env, "mkcl:run-program could not spawn subprocess to run ~S.", 1, command);
+        }
+    }
 #endif  /* MKCL_UNIX */
-  if (parent_write > 0) {
-    stream_write = mkcl_make_stream_from_fd(env, command, parent_write,
-					    mkcl_smm_output, mk_cl_Cnil,
-					    /* MKCL_STREAM_DEFAULT_FORMAT, mk_cl_Ct */
-					    /* MKCL_STREAM_TEXT, */ @':default');
-  } else {
-    parent_write = 0;
-    stream_write = mkcl_core.null_stream;
+    if (parent_write > 0) {
+      stream_write = mkcl_make_stream_from_fd(env, command, parent_write,
+                                              mkcl_smm_output, mk_cl_Cnil,
+                                              /* MKCL_STREAM_DEFAULT_FORMAT, mk_cl_Ct */
+                                              /* MKCL_STREAM_TEXT, */ @':default');
+    } else {
+      parent_write = 0;
+      stream_write = mkcl_core.null_stream;
+    }
+    subprocess->process.input = stream_write;
+    if (parent_read > 0) {
+      stream_read = mkcl_make_stream_from_fd(env, command, parent_read,
+                                             mkcl_smm_input, mk_cl_Cnil,
+                                             /* MKCL_STREAM_DEFAULT_FORMAT, mk_cl_Ct */
+                                             /* MKCL_STREAM_TEXT, */ @':default');
+    } else {
+      parent_read = 0;
+      stream_read = mkcl_core.null_stream;
+    }
+    subprocess->process.output = stream_read;
+    if (parent_error > 0) {
+      stream_error = mkcl_make_stream_from_fd(env, command, parent_error,
+                                              mkcl_smm_input, mk_cl_Cnil,
+                                              /* MKCL_STREAM_DEFAULT_FORMAT, mk_cl_Ct */
+                                              /* MKCL_STREAM_TEXT, */ @':default');
+    } else {
+      parent_error = 0;
+      stream_error = mkcl_core.null_stream;
+    }
+    subprocess->process.error = stream_error;
+    mkcl_return_3_values(((parent_read || parent_write)
+                          ? mk_cl_make_two_way_stream(env, stream_read, stream_write)
+                          : mk_cl_Cnil),
+                         subprocess,
+                         exit_status);
   }
-  subprocess->process.input = stream_write;
-  if (parent_read > 0) {
-    stream_read = mkcl_make_stream_from_fd(env, command, parent_read,
-					   mkcl_smm_input, mk_cl_Cnil,
-					   /* MKCL_STREAM_DEFAULT_FORMAT, mk_cl_Ct */
-					   /* MKCL_STREAM_TEXT, */ @':default');
-  } else {
-    parent_read = 0;
-    stream_read = mkcl_core.null_stream;
-  }
-  subprocess->process.output = stream_read;
-  if (parent_error > 0) {
-    stream_error = mkcl_make_stream_from_fd(env, command, parent_error,
-					    mkcl_smm_input, mk_cl_Cnil,
-					    /* MKCL_STREAM_DEFAULT_FORMAT, mk_cl_Ct */
-					    /* MKCL_STREAM_TEXT, */ @':default');
-  } else {
-    parent_error = 0;
-    stream_error = mkcl_core.null_stream;
-  }
-  subprocess->process.error = stream_error;
-  mkcl_return_3_values(((parent_read || parent_write)
-                        ? mk_cl_make_two_way_stream(env, stream_read, stream_write)
-                        : mk_cl_Cnil),
-                       subprocess,
-                       exit_status);
-@)
+}
 
 
 void mkcl_finalize_process(MKCL, mkcl_object proc)
@@ -1715,34 +1754,41 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
 }
 
 
-@(defun mkcl::terminate-process (proc &key force)
-@
-  if (mkcl_type_of(proc) != mkcl_t_process)
-    mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
+mkcl_object mk_mkcl_terminate_process(MKCL, mkcl_narg narg, mkcl_object proc, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object force = mk_cl_Cnil;
+  
+    MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, @'mkcl::terminate-process', narg, 1, proc, @':force', &force);
+    if (mkcl_type_of(proc) != mkcl_t_process)
+      mkcl_FEwrong_type_argument(env, @'mkcl::process', proc);
 
-  if (proc->process.status == @':exited' /* || proc->process.detached */
-      || proc->process.ident == 0)
-    { mkcl_return_value(mk_cl_Cnil); }
+    if (proc->process.status == @':exited' /* || proc->process.detached */
+        || proc->process.ident == 0)
+      { mkcl_return_value(mk_cl_Cnil); }
 
 #if MKCL_UNIX
-  if (mkcl_Null(force))
-    {
-      if (kill(proc->process.ident, SIGTERM))
-	mkcl_FElibc_error(env, "mkcl:terminate-process failed on kill().", 0);
-    }
-  else
-    if (kill(proc->process.ident, SIGKILL))
-      mkcl_FElibc_error(env, "mkcl:terminate-process failed on kill().", 0);
+    if (mkcl_Null(force))
+      {
+        if (kill(proc->process.ident, SIGTERM))
+          mkcl_FElibc_error(env, "mkcl:terminate-process failed on kill().", 0);
+      }
+    else
+      if (kill(proc->process.ident, SIGKILL))
+        mkcl_FElibc_error(env, "mkcl:terminate-process failed on kill().", 0);
 
 #elif MKCL_WINDOWS
-  if (!TerminateProcess(proc->process.ident, -1))
-    mkcl_FEwin32_error(env, "mkcl:terminate-process failed on TerminateProcess()", 0);
+    if (!TerminateProcess(proc->process.ident, -1))
+      mkcl_FEwin32_error(env, "mkcl:terminate-process failed on TerminateProcess()", 0);
 #else
 # error Incomplete implementation of mk_mkcl_terminate_process().
 #endif
 
-  mkcl_return_value(mk_cl_Cnil);  
-@)
+    mkcl_return_value(mk_cl_Cnil);
+  }
+}
+
 
 static void detach_worker(MKCL, mkcl_object worker)
 {

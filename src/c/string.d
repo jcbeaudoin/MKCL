@@ -108,30 +108,38 @@ do_make_string(MKCL, mkcl_index s, mkcl_character code)
   return x;
 }
 
-@(defun make_string (size &key (initial_element MKCL_CODE_CHAR(' '))
-		     (element_type @'character'))
-  mkcl_index s;
-  mkcl_object x;
-@
-  s = mkcl_to_array_index(env, size);
-  /* INV: mkcl_[base_]char_code() checks the type of initial_element() */
-  if (element_type == @'base-char' || element_type == @'standard-char') {
-    int code = mkcl_base_char_code(env, initial_element);
-    x = do_make_base_string(env, s, code);
-  } else if (element_type == @'character') {
-    mkcl_index code = mkcl_char_code(env, initial_element);
-    x = do_make_string(env, s, code);
-  } else if (mkcl_funcall2(env, @+'subtypep', element_type, @'base-char') == mk_cl_Ct) {
-    int code = mkcl_base_char_code(env, initial_element);
-    x = do_make_base_string(env, s, code);
-  } else if (mkcl_funcall2(env, @+'subtypep', element_type, @'character') == mk_cl_Ct) {
-    mkcl_index code = mkcl_char_code(env, initial_element);
-    x = do_make_string(env, s, code);
-  } else {
-    mkcl_FEerror(env, "The type ~S is not a valid string char type.", 1, element_type);
+mkcl_object mk_cl_make_string(MKCL, mkcl_narg narg, mkcl_object size, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+
+    mkcl_index s;
+    mkcl_object x;
+    mkcl_object initial_element = MKCL_CODE_CHAR(' ');
+    mkcl_object element_type = @'character';
+
+    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, @'make-string', narg, 1, size, @':initial-element', &initial_element, @':element-type', &element_type);
+
+    s = mkcl_to_array_index(env, size);
+    /* INV: mkcl_[base_]char_code() checks the type of initial_element() */
+    if (element_type == @'base-char' || element_type == @'standard-char') {
+      int code = mkcl_base_char_code(env, initial_element);
+      x = do_make_base_string(env, s, code);
+    } else if (element_type == @'character') {
+      mkcl_index code = mkcl_char_code(env, initial_element);
+      x = do_make_string(env, s, code);
+    } else if (mkcl_funcall2(env, @+'subtypep', element_type, @'base-char') == mk_cl_Ct) {
+      int code = mkcl_base_char_code(env, initial_element);
+      x = do_make_base_string(env, s, code);
+    } else if (mkcl_funcall2(env, @+'subtypep', element_type, @'character') == mk_cl_Ct) {
+      mkcl_index code = mkcl_char_code(env, initial_element);
+      x = do_make_string(env, s, code);
+    } else {
+      mkcl_FEerror(env, "The type ~S is not a valid string char type.", 1, element_type);
+    }
+    mkcl_return_value(x);
   }
-  mkcl_return_value(x);
-@)
+}
 
 mkcl_object
 mkcl_alloc_simple_base_string(MKCL, mkcl_index length)
@@ -900,52 +908,60 @@ compare_base(unsigned char *s1, mkcl_index l1, unsigned char *s2, mkcl_index l2,
   }
 }
 
-@(defun string= (string1 string2 &key (start1 MKCL_MAKE_FIXNUM(0)) end1
-		                      (start2 MKCL_MAKE_FIXNUM(0)) end2)
-	mkcl_index s1, e1, s2, e2;
-@
-  /* AGAIN: */
-  string1 = mk_cl_string(env, string1);
-  string2 = mk_cl_string(env, string2);
-  mkcl_get_string_start_end(env, string1, start1, end1, &s1, &e1);
-  mkcl_get_string_start_end(env, string2, start2, end2, &s2, &e2);
-  if (e1 - s1 != e2 - s2)
-    { mkcl_return_value(mk_cl_Cnil); }
-  switch(mkcl_type_of(string1)) {
-  case mkcl_t_string:
-    switch(mkcl_type_of(string2)) {
+mkcl_object mk_cl_stringE(MKCL, mkcl_narg narg, mkcl_object string1, mkcl_object string2, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_index s1, e1, s2, e2;
+    mkcl_object start1 = MKCL_MAKE_FIXNUM(0);
+    mkcl_object end1 = mk_cl_Cnil;
+    mkcl_object start2 = MKCL_MAKE_FIXNUM(0);
+    mkcl_object end2 = mk_cl_Cnil;
+    MKCL_RECEIVE_4_KEYWORD_ARGUMENTS(env, @'string=', narg, 2, string2, @':start1', &start1, @':end1', &end1, @':start2', &start2, @':end2', &end2);
+
+    /* AGAIN: */
+    string1 = mk_cl_string(env, string1);
+    string2 = mk_cl_string(env, string2);
+    mkcl_get_string_start_end(env, string1, start1, end1, &s1, &e1);
+    mkcl_get_string_start_end(env, string2, start2, end2, &s2, &e2);
+    if (e1 - s1 != e2 - s2)
+      { mkcl_return_value(mk_cl_Cnil); }
+    switch(mkcl_type_of(string1)) {
     case mkcl_t_string:
-      while (s1 < e1)
-	if (string1->string.self[s1++] != string2->string.self[s2++])
-	  { mkcl_return_value(mk_cl_Cnil); }
-      mkcl_return_value(mk_cl_Ct);
+      switch(mkcl_type_of(string2)) {
+      case mkcl_t_string:
+        while (s1 < e1)
+          if (string1->string.self[s1++] != string2->string.self[s2++])
+            { mkcl_return_value(mk_cl_Cnil); }
+        mkcl_return_value(mk_cl_Ct);
+      case mkcl_t_base_string:
+        while (s1 < e1)
+          if (string1->string.self[s1++] != string2->base_string.self[s2++])
+            { mkcl_return_value(mk_cl_Cnil); }
+        mkcl_return_value(mk_cl_Ct);
+      default: break; /* a useless no-op to please clang. */
+      }
+      break;
     case mkcl_t_base_string:
-      while (s1 < e1)
-	if (string1->string.self[s1++] != string2->base_string.self[s2++])
-	  { mkcl_return_value(mk_cl_Cnil); }
-      mkcl_return_value(mk_cl_Ct);
+      switch(mkcl_type_of(string2)) {
+      case mkcl_t_string:
+        while (s1 < e1)
+          if (string1->base_string.self[s1++] != string2->string.self[s2++])
+            { mkcl_return_value(mk_cl_Cnil); }
+        mkcl_return_value(mk_cl_Ct);
+      case mkcl_t_base_string:
+        while (s1 < e1)
+          if (string1->base_string.self[s1++] != string2->base_string.self[s2++])
+            { mkcl_return_value(mk_cl_Cnil); }
+        mkcl_return_value(mk_cl_Ct);
+      default: break; /* a useless no-op to please clang. */
+      }
+      break;
     default: break; /* a useless no-op to please clang. */
     }
-    break;
-  case mkcl_t_base_string:
-    switch(mkcl_type_of(string2)) {
-    case mkcl_t_string:
-      while (s1 < e1)
-	if (string1->base_string.self[s1++] != string2->string.self[s2++])
-	  { mkcl_return_value(mk_cl_Cnil); }
-      mkcl_return_value(mk_cl_Ct);
-    case mkcl_t_base_string:
-      while (s1 < e1)
-	if (string1->base_string.self[s1++] != string2->base_string.self[s2++])
-	  { mkcl_return_value(mk_cl_Cnil); }
-      mkcl_return_value(mk_cl_Ct);
-    default: break; /* a useless no-op to please clang. */
-    }
-    break;
-  default: break; /* a useless no-op to please clang. */
+    mkcl_return_value(mk_cl_Ct);
   }
-  mkcl_return_value(mk_cl_Ct);
-@)
+}
 
 /*
 	This correponds to string= (just the string equality).
@@ -1009,26 +1025,36 @@ mkcl_string_E(MKCL, mkcl_object x, mkcl_object y)
 }
 
 
-@(defun string_equal (string1 string2 &key (start1 MKCL_MAKE_FIXNUM(0)) end1
-		                           (start2 MKCL_MAKE_FIXNUM(0)) end2)
-	mkcl_index s1, e1, s2, e2;
-	int output;
-@
-/* AGAIN: */
-  string1 = mk_cl_string(env, string1);
-  string2 = mk_cl_string(env, string2);
-  mkcl_get_string_start_end(env, string1, start1, end1, &s1, &e1);
-  mkcl_get_string_start_end(env, string2, start2, end2, &s2, &e2);
-  if (e1 - s1 != e2 - s2)
-    { mkcl_return_value(mk_cl_Cnil); }
-  if (mkcl_type_of(string1) != mkcl_t_base_string || mkcl_type_of(string2) != mkcl_t_base_string) {
-    output = compare_strings(env, string1, s1, e1, string2, s2, e2, 0, &e1);
-  } else
-    output = compare_base(string1->base_string.self + s1, e1 - s1,
-			  string2->base_string.self + s2, e2 - s2,
-			  0, &e1);
-  mkcl_return_value(((output == 0) ? mk_cl_Ct : mk_cl_Cnil));
-@)
+mkcl_object mk_cl_string_equal(MKCL, mkcl_narg narg, mkcl_object string1, mkcl_object string2, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+
+    mkcl_index s1, e1, s2, e2;
+    int output;
+    mkcl_object start1 = MKCL_MAKE_FIXNUM(0);
+    mkcl_object end1 = mk_cl_Cnil;
+    mkcl_object start2 = MKCL_MAKE_FIXNUM(0);
+    mkcl_object end2 = mk_cl_Cnil;
+
+    MKCL_RECEIVE_4_KEYWORD_ARGUMENTS(env, @'string-equal', narg, 2, string2, @':start1', &start1, @':end1', &end1, @':start2', &start2, @':end2', &end2);
+
+    /* AGAIN: */
+    string1 = mk_cl_string(env, string1);
+    string2 = mk_cl_string(env, string2);
+    mkcl_get_string_start_end(env, string1, start1, end1, &s1, &e1);
+    mkcl_get_string_start_end(env, string2, start2, end2, &s2, &e2);
+    if (e1 - s1 != e2 - s2)
+      { mkcl_return_value(mk_cl_Cnil); }
+    if (mkcl_type_of(string1) != mkcl_t_base_string || mkcl_type_of(string2) != mkcl_t_base_string) {
+      output = compare_strings(env, string1, s1, e1, string2, s2, e2, 0, &e1);
+    } else
+      output = compare_base(string1->base_string.self + s1, e1 - s1,
+                            string2->base_string.self + s2, e2 - s2,
+                            0, &e1);
+    mkcl_return_value(((output == 0) ? mk_cl_Ct : mk_cl_Cnil));
+  }
+}
 
 static mkcl_object
 string_compare(MKCL, mkcl_narg narg, int sign1, int sign2, int case_sensitive, mkcl_va_list ARGS)

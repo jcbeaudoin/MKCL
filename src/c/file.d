@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2017,2021 Jean-Claude Beaudoin.
+    Copyright (c) 2010-2017,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -1684,29 +1684,37 @@ mkcl_make_string_output_stream(MKCL, mkcl_index line_length, bool extended, mkcl
 
 #define DEFAULT_OUTPUT_STRING_LENGTH 128
 
-@(defun make-string-output-stream (&key (element_type @'character') (encoding @':default'))
-  bool extended = FALSE;
-@
+mkcl_object mk_cl_make_string_output_stream(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
   {
-    if (element_type == @'base-char') {
-      extended = FALSE;
-    } else if (element_type == @'character') {
-      extended = TRUE;
-      encoding = @':UTF-32';
-    } else if (!mkcl_Null(mkcl_funcall2(env, @+'subtypep', element_type, @'base-char'))) {
-      extended = FALSE;
-    } else if (!mkcl_Null(mkcl_funcall2(env, @+'subtypep', element_type, @'character'))) {
-      extended = TRUE;
-      encoding = @':UTF-32';
-    } else {
-      mkcl_FEerror(env,
-		   "In MAKE-STRING-OUTPUT-STREAM, the argument :ELEMENT-TYPE "
-		   "(~A) must be a subtype of character",
-		   1, element_type);
+    mkcl_object element_type = @'character';
+    mkcl_object encoding = @':default';
+    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, @'make-string-output-stream', narg, 0, narg, @':element-type', &element_type, @':encoding', &encoding);
+
+    {
+      bool extended = FALSE;
+
+      if (element_type == @'base-char') {
+        extended = FALSE;
+      } else if (element_type == @'character') {
+        extended = TRUE;
+        encoding = @':UTF-32';
+      } else if (!mkcl_Null(mkcl_funcall2(env, @+'subtypep', element_type, @'base-char'))) {
+        extended = FALSE;
+      } else if (!mkcl_Null(mkcl_funcall2(env, @+'subtypep', element_type, @'character'))) {
+        extended = TRUE;
+        encoding = @':UTF-32';
+      } else {
+        mkcl_FEerror(env,
+                     "In MAKE-STRING-OUTPUT-STREAM, the argument :ELEMENT-TYPE "
+                     "(~A) must be a subtype of character",
+                     1, element_type);
+      }
+      mkcl_return_value(mkcl_make_string_output_stream(env, DEFAULT_OUTPUT_STRING_LENGTH, extended, encoding));
     }
-    mkcl_return_value(mkcl_make_string_output_stream(env, DEFAULT_OUTPUT_STRING_LENGTH, extended, encoding));
   }
-@)
+}
 
 mkcl_object
 mk_cl_get_output_stream_string(MKCL, mkcl_object strm)
@@ -1920,30 +1928,48 @@ mkcl_make_string_input_stream(MKCL, mkcl_object strng, mkcl_index istart, mkcl_i
   return strm;
 }
 
-@(defun make_string_input_stream (strng &o (istart MKCL_MAKE_FIXNUM(0)) (iend mk_cl_Cnil) &key (encoding @':default'))
-  mkcl_index s, e;
-@
-  strng = mk_cl_string(env, strng);
-  if (!MKCL_FIXNUMP(istart) || MKCL_FIXNUM_MINUSP(istart))
-    goto E;
-  else
-    s = (mkcl_index)mkcl_fixnum_to_word(istart);
-  if (mkcl_Null(iend))
-    e = strng->base_string.fillp;
-  else if (!MKCL_FIXNUMP(iend) || MKCL_FIXNUM_MINUSP(iend))
-    goto E;
-  else
-    e = (mkcl_index)mkcl_fixnum_to_word(iend);
-  if (e > strng->base_string.fillp || s > e)
-    goto E;
-  mkcl_return_value((mkcl_make_string_input_stream(env, strng, s, e, encoding)));
+mkcl_object mk_cl_make_string_input_stream(MKCL, mkcl_narg narg, mkcl_object strng, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_index s, e;
 
- E:
-  mkcl_FEerror(env,
-	       "~S and ~S are illegal as :START and :END~%"
-	       "for the string ~S.",
-	       3, istart, iend, strng);
-@)
+    mkcl_object istart = MKCL_MAKE_FIXNUM(0);
+    mkcl_object iend = mk_cl_Cnil;
+    mkcl_object encoding = @':default';
+    mkcl_check_minimal_arg_count(env, @'make-string-input-stream', narg, 1);
+    if (narg > 1) {
+      mkcl_va_list ARGS;
+      mkcl_va_start(env, ARGS, strng, narg, 1);
+      istart = mkcl_va_arg(ARGS);
+      if (narg > 2) iend = mkcl_va_arg(ARGS);
+      if (narg > 3)
+        mkcl_receive_1_keyword_argument(env, @'make-string-input-stream', ARGS, @':encoding', &encoding);
+      mkcl_va_end(ARGS);
+    }
+
+    strng = mk_cl_string(env, strng);
+    if (!MKCL_FIXNUMP(istart) || MKCL_FIXNUM_MINUSP(istart))
+      goto E;
+    else
+      s = (mkcl_index)mkcl_fixnum_to_word(istart);
+    if (mkcl_Null(iend))
+      e = strng->base_string.fillp;
+    else if (!MKCL_FIXNUMP(iend) || MKCL_FIXNUM_MINUSP(iend))
+      goto E;
+    else
+      e = (mkcl_index)mkcl_fixnum_to_word(iend);
+    if (e > strng->base_string.fillp || s > e)
+      goto E;
+    mkcl_return_value((mkcl_make_string_input_stream(env, strng, s, e, encoding)));
+
+  E:
+    mkcl_FEerror(env,
+                 "~S and ~S are illegal as :START and :END~%"
+                 "for the string ~S.",
+                 3, istart, iend, strng);
+  }
+}
 
 /**********************************************************************
  * TWO WAY STREAM
@@ -4882,24 +4908,31 @@ mk_cl_file_length(MKCL, mkcl_object strm)
 }
 
 
-@(defun file-position (file_stream &o position)
-  mkcl_object output;
-@
-  mkcl_object character_position = mk_cl_Cnil;
+mkcl_object mk_cl_file_position(MKCL, mkcl_narg narg, mkcl_object file_stream, ...)
+{
+  mkcl_call_stack_check(env);
+  {
 
-  if (mkcl_Null(position)) {
-    output = mkcl_file_position(env, file_stream);
-    character_position = MKCL_VALUES(1);
-  } else {
-    if (position == @':start') {
-      position = MKCL_MAKE_FIXNUM(0);
-    } else if (position == @':end') {
-      position = mk_cl_Cnil;
+    mkcl_object output;
+    mkcl_object position = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'file-position', narg, 1, file_stream, &position);
+
+    mkcl_object character_position = mk_cl_Cnil;
+
+    if (mkcl_Null(position)) {
+      output = mkcl_file_position(env, file_stream);
+      character_position = MKCL_VALUES(1);
+    } else {
+      if (position == @':start') {
+        position = MKCL_MAKE_FIXNUM(0);
+      } else if (position == @':end') {
+        position = mk_cl_Cnil;
+      }
+      output = mkcl_file_position_set(env, file_stream, position);
     }
-    output = mkcl_file_position_set(env, file_stream, position);
+    mkcl_return_2_values(output, character_position);
   }
-  mkcl_return_2_values(output, character_position);
-@)
+}
 
 mkcl_object
 mk_cl_input_stream_p(MKCL, mkcl_object strm)
@@ -5195,72 +5228,90 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
 }
 
 /* shouldn't it be "character" instead as default value for element-type? JCB */
-@(defun open (filename
-	      &key
-	      (direction @':input')
-	      (element_type @'base-char')
-	      (if_exists mk_cl_Cnil iesp)
-	      (if_does_not_exist mk_cl_Cnil idnesp)
-	      (external_format @':default')
-	      (stdio_stream mk_cl_Ct))
-  mkcl_object strm = mk_cl_Cnil;
-  enum mkcl_smmode smm;
-  int flags = 0;
-@
-  /* INV: mkcl_open_stream() checks types */
-  if (direction == @':input') {
-    if (mkcl_Null(stdio_stream))
-      smm = mkcl_smm_input_file;
-    else
-      smm = mkcl_smm_input;
-    if (!idnesp)
-      if_does_not_exist = @':error';
-  } else if (direction == @':output') {
-    if (mkcl_Null(stdio_stream))
-      smm = mkcl_smm_output_file;
-    else
-      smm = mkcl_smm_output;
-    if (!iesp)
-      if_exists = @':new_version';
-    if (!idnesp) {
-      if (if_exists == @':overwrite' ||
-	  if_exists == @':append')
-	if_does_not_exist = @':error';
+mkcl_object mk_cl_open(MKCL, mkcl_narg narg, mkcl_object filename, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+
+    mkcl_object strm = mk_cl_Cnil;
+    enum mkcl_smmode smm;
+    int flags = 0;
+    mkcl_object direction = @':input';
+    mkcl_object element_type = @'base-char'; /* shouldn't it be "character" instead? JCB */
+    mkcl_object if_exists = mk_cl_Cnil;
+    mkcl_object if_does_not_exist = mk_cl_Cnil;
+    mkcl_object external_format = @':default';
+    mkcl_object stdio_stream = mk_cl_Ct;
+    struct mkcl_key_param_spec key_params[] =
+      {
+       { @':direction', &direction, false },
+       { @':element-type', &element_type, false },
+       { @':if-exists', &if_exists, false },
+       { @':if-does-not-exist', &if_does_not_exist, false },
+       { @':external-format', &external_format, false },
+       { @':stdio-stream', &stdio_stream, false },
+      };
+    MKCL_RECEIVE_N_KEYWORD_ARGUMENTS(env, @'open', narg, 1, filename, key_params);
+    bool iesp = key_params[2].key_arg_seen;
+    bool idnesp = key_params[3].key_arg_seen;
+
+    /* INV: mkcl_open_stream() checks types */
+    if (direction == @':input') {
+      if (mkcl_Null(stdio_stream))
+        smm = mkcl_smm_input_file;
       else
-	if_does_not_exist = @':create';
-    }
-  } else if (direction == @':io') {
-    if (mkcl_Null(stdio_stream))
-      smm = mkcl_smm_io_file;
-    else
-      smm = mkcl_smm_io;
-    if (!iesp)
-      if_exists = @':new_version';
-    if (!idnesp) {
-      if (if_exists == @':overwrite' ||
-	  if_exists == @':append')
-	if_does_not_exist = @':error';
+        smm = mkcl_smm_input;
+      if (!idnesp)
+        if_does_not_exist = @':error';
+    } else if (direction == @':output') {
+      if (mkcl_Null(stdio_stream))
+        smm = mkcl_smm_output_file;
       else
-	if_does_not_exist = @':create';
+        smm = mkcl_smm_output;
+      if (!iesp)
+        if_exists = @':new_version';
+      if (!idnesp) {
+        if (if_exists == @':overwrite' ||
+            if_exists == @':append')
+          if_does_not_exist = @':error';
+        else
+          if_does_not_exist = @':create';
+      }
+    } else if (direction == @':io') {
+      if (mkcl_Null(stdio_stream))
+        smm = mkcl_smm_io_file;
+      else
+        smm = mkcl_smm_io;
+      if (!iesp)
+        if_exists = @':new_version';
+      if (!idnesp) {
+        if (if_exists == @':overwrite' ||
+            if_exists == @':append')
+          if_does_not_exist = @':error';
+        else
+          if_does_not_exist = @':create';
+      }
+    } else if (direction == @':probe') {
+      smm = mkcl_smm_probe;
+      if (!idnesp)
+        if_does_not_exist = mk_cl_Cnil;
+    } else {
+      mkcl_FEerror(env, "~S is an illegal DIRECTION for OPEN.", 1, direction);
     }
-  } else if (direction == @':probe') {
-    smm = mkcl_smm_probe;
-    if (!idnesp)
-      if_does_not_exist = mk_cl_Cnil;
-  } else {
-    mkcl_FEerror(env, "~S is an illegal DIRECTION for OPEN.", 1, direction);
+
+    strm = mkcl_open_stream(env, filename, smm, if_exists, if_does_not_exist, element_type, external_format);
+
+    mkcl_return_value(strm);
   }
+ }
 
-  strm = mkcl_open_stream(env, filename, smm, if_exists, if_does_not_exist, element_type, external_format);
+mkcl_object mk_cl_close(MKCL, mkcl_narg narg, mkcl_object strm, ...)
+{
+  mkcl_object abort = mk_cl_Cnil;
 
-  mkcl_return_value(strm);
-@)
-
-
-@(defun close (strm &key (abort @'nil'))
-@
+  MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, @'close', narg, 1, strm, @':abort', &abort);
   mkcl_return_value(stream_dispatch_table(env, strm)->close(env, strm));
-@)
+}
 
 /**********************************************************************
  * BACKEND

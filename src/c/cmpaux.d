@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016,2021 Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -166,7 +166,7 @@ mkcl_grab_rest_args(MKCL, mkcl_va_list args, bool dynamic)
   return rest;
 }
 
-void
+void /* old, swiss knife version. JCB */
 mkcl_parse_key(MKCL,
                mkcl_va_list args,       /* actual args */
                const mkcl_word nkey,	/* number of keywords */
@@ -221,6 +221,248 @@ mkcl_parse_key(MKCL,
        supplied_allow_other_keys == MKCL_OBJNULL))
     mkcl_FEprogram_error(env, "Unknown keyword ~S", 1, unknown_keyword);
 }
+
+/* new, targeted version. JCB */
+void mkcl_receive_1_keyword_argument(MKCL, const mkcl_object fname, mkcl_va_list ARGS, const mkcl_object key_arg_symbol, mkcl_object * const key_var_ref)
+{
+  bool key_arg_seen = false;
+  bool extra_would_be_keyword_seen = false;
+  mkcl_object extra_would_be_keyword = mk_cl_Cnil;
+  bool allow_other_keys_argument_seen = false;
+  mkcl_object allow_other_keys_argument_value = mk_cl_Cnil;
+  
+  if (ARGS[0].narg % 2) mkcl_FEprogram_error(env, "Function ~S received an odd number of arguments for &key", 1, fname);
+
+  do {
+    const mkcl_object keyword = mkcl_va_arg(ARGS);
+    const mkcl_object value = mkcl_va_arg(ARGS);
+
+    if (keyword == key_arg_symbol)
+      {
+        if (!key_arg_seen)
+        { *key_var_ref = value; key_arg_seen = true; }
+      }
+    else if (keyword == @':allow-other-keys')
+      {
+        if (!allow_other_keys_argument_seen)
+          { allow_other_keys_argument_value = value; allow_other_keys_argument_seen = true; }
+      }
+    else if (!extra_would_be_keyword_seen)
+      { extra_would_be_keyword = keyword; extra_would_be_keyword_seen = true; }
+  } while (ARGS[0].narg > 0);
+
+  if (extra_would_be_keyword_seen)
+    if (!allow_other_keys_argument_seen || (allow_other_keys_argument_value == mk_cl_Cnil))
+      mkcl_FEprogram_error(env, "In LAMBDA-LIST &KEY part of ~S: expected ~S, instead got ~S.", 3, fname, key_arg_symbol, extra_would_be_keyword);    
+}
+
+void mkcl_receive_0_keyword_arguments(MKCL, const mkcl_object fname, mkcl_va_list ARGS)
+{
+  bool extra_would_be_keyword_seen = false;
+  mkcl_object extra_would_be_keyword = mk_cl_Cnil;
+  bool allow_other_keys_argument_seen = false;
+  mkcl_object allow_other_keys_argument_value = mk_cl_Cnil;
+  
+  if (ARGS[0].narg % 2) mkcl_FEprogram_error(env, "Function ~S received an odd number of arguments for &key", 1, fname);
+
+  do {
+    const mkcl_object keyword = mkcl_va_arg(ARGS);
+    const mkcl_object value = mkcl_va_arg(ARGS);
+
+    if (keyword == @':allow-other-keys')
+      {
+        if (!allow_other_keys_argument_seen)
+          { allow_other_keys_argument_value = value; allow_other_keys_argument_seen = true; }
+      }
+    else if (!extra_would_be_keyword_seen)
+      { extra_would_be_keyword = keyword; extra_would_be_keyword_seen = true; }
+  } while (ARGS[0].narg > 0);
+
+  if (extra_would_be_keyword_seen)
+    if (!allow_other_keys_argument_seen || (allow_other_keys_argument_value == mk_cl_Cnil))
+      mkcl_FEprogram_error(env, "In LAMBDA-LIST &KEY part of ~S: expected no keyword, instead got ~S.", 2, fname, extra_would_be_keyword);    
+}
+
+void mkcl_receive_2_keyword_arguments(MKCL, const mkcl_object fname, mkcl_va_list ARGS, const mkcl_object key1_arg_symbol, mkcl_object * const key1_var_ref, const mkcl_object key2_arg_symbol, mkcl_object * const key2_var_ref)
+{
+  bool key1_arg_seen = false;
+  bool key2_arg_seen = false;
+  bool extra_would_be_keyword_seen = false;
+  mkcl_object extra_would_be_keyword = mk_cl_Cnil;
+  bool allow_other_keys_argument_seen = false;
+  mkcl_object allow_other_keys_argument_value = mk_cl_Cnil;
+  
+  if (ARGS[0].narg % 2) mkcl_FEprogram_error(env, "Function ~S received an odd number of arguments for &key", 1, fname);
+
+  do {
+    const mkcl_object keyword = mkcl_va_arg(ARGS);
+    const mkcl_object value = mkcl_va_arg(ARGS);
+
+    if (keyword == key1_arg_symbol)
+      {
+        if (!key1_arg_seen)
+        { *key1_var_ref = value; key1_arg_seen = true; }
+      }
+    else if (keyword == key2_arg_symbol)
+      {
+        if (!key2_arg_seen)
+        { *key2_var_ref = value; key2_arg_seen = true; }
+      }
+    else if (keyword == @':allow-other-keys')
+      {
+        if (!allow_other_keys_argument_seen)
+          { allow_other_keys_argument_value = value; allow_other_keys_argument_seen = true; }
+      }
+    else if (!extra_would_be_keyword_seen)
+      { extra_would_be_keyword = keyword; extra_would_be_keyword_seen = true; }
+  } while (ARGS[0].narg > 0);
+
+  if (extra_would_be_keyword_seen)
+    if (!allow_other_keys_argument_seen || (allow_other_keys_argument_value == mk_cl_Cnil))
+      mkcl_FEprogram_error(env, "In LAMBDA-LIST &KEY part of ~S: expected ~S or ~S, instead got ~S.", 4, fname, key1_arg_symbol, key2_arg_symbol, extra_would_be_keyword);    
+}
+
+void mkcl_receive_3_keyword_arguments(MKCL, const mkcl_object fname, mkcl_va_list ARGS, const mkcl_object key1_arg_symbol, mkcl_object * const key1_var_ref, const mkcl_object key2_arg_symbol, mkcl_object * const key2_var_ref, const mkcl_object key3_arg_symbol, mkcl_object * const key3_var_ref)
+{
+  bool key1_arg_seen = false;
+  bool key2_arg_seen = false;
+  bool key3_arg_seen = false;
+  bool extra_would_be_keyword_seen = false;
+  mkcl_object extra_would_be_keyword = mk_cl_Cnil;
+  bool allow_other_keys_argument_seen = false;
+  mkcl_object allow_other_keys_argument_value = mk_cl_Cnil;
+  
+  if (ARGS[0].narg % 2) mkcl_FEprogram_error(env, "Function ~S received an odd number of arguments for &key", 1, fname);
+
+  do {
+    const mkcl_object keyword = mkcl_va_arg(ARGS);
+    const mkcl_object value = mkcl_va_arg(ARGS);
+
+    if (keyword == key1_arg_symbol)
+      {
+        if (!key1_arg_seen)
+        { *key1_var_ref = value; key1_arg_seen = true; }
+      }
+    else if (keyword == key2_arg_symbol)
+      {
+        if (!key2_arg_seen)
+        { *key2_var_ref = value; key2_arg_seen = true; }
+      }
+    else if (keyword == key3_arg_symbol)
+      {
+        if (!key3_arg_seen)
+        { *key3_var_ref = value; key3_arg_seen = true; }
+      }
+    else if (keyword == @':allow-other-keys')
+      {
+        if (!allow_other_keys_argument_seen)
+          { allow_other_keys_argument_value = value; allow_other_keys_argument_seen = true; }
+      }
+    else if (!extra_would_be_keyword_seen)
+      { extra_would_be_keyword = keyword; extra_would_be_keyword_seen = true; }
+  } while (ARGS[0].narg > 0);
+
+  if (extra_would_be_keyword_seen)
+    if (!allow_other_keys_argument_seen || (allow_other_keys_argument_value == mk_cl_Cnil))
+      mkcl_FEprogram_error(env, "In LAMBDA-LIST &KEY part of ~S: expected ~S or ~S or ~S, instead got ~S.", 5, fname, key1_arg_symbol, key2_arg_symbol, key3_arg_symbol, extra_would_be_keyword);    
+}
+
+void mkcl_receive_4_keyword_arguments(MKCL, const mkcl_object fname, mkcl_va_list ARGS, const mkcl_object key1_arg_symbol, mkcl_object * const key1_var_ref, const mkcl_object key2_arg_symbol, mkcl_object * const key2_var_ref, const mkcl_object key3_arg_symbol, mkcl_object * const key3_var_ref, const mkcl_object key4_arg_symbol, mkcl_object * const key4_var_ref)
+{
+  bool key1_arg_seen = false;
+  bool key2_arg_seen = false;
+  bool key3_arg_seen = false;
+  bool key4_arg_seen = false;
+  bool extra_would_be_keyword_seen = false;
+  mkcl_object extra_would_be_keyword = mk_cl_Cnil;
+  bool allow_other_keys_argument_seen = false;
+  mkcl_object allow_other_keys_argument_value = mk_cl_Cnil;
+  
+  if (ARGS[0].narg % 2) mkcl_FEprogram_error(env, "Function ~S received an odd number of arguments for &key", 1, fname);
+
+  do {
+    const mkcl_object keyword = mkcl_va_arg(ARGS);
+    const mkcl_object value = mkcl_va_arg(ARGS);
+
+    if (keyword == key1_arg_symbol)
+      {
+        if (!key1_arg_seen)
+        { *key1_var_ref = value; key1_arg_seen = true; }
+      }
+    else if (keyword == key2_arg_symbol)
+      {
+        if (!key2_arg_seen)
+        { *key2_var_ref = value; key2_arg_seen = true; }
+      }
+    else if (keyword == key3_arg_symbol)
+      {
+        if (!key3_arg_seen)
+        { *key3_var_ref = value; key3_arg_seen = true; }
+      }
+    else if (keyword == key4_arg_symbol)
+      {
+        if (!key4_arg_seen)
+        { *key4_var_ref = value; key4_arg_seen = true; }
+      }
+    else if (keyword == @':allow-other-keys')
+      {
+        if (!allow_other_keys_argument_seen)
+          { allow_other_keys_argument_value = value; allow_other_keys_argument_seen = true; }
+      }
+    else if (!extra_would_be_keyword_seen)
+      { extra_would_be_keyword = keyword; extra_would_be_keyword_seen = true; }
+  } while (ARGS[0].narg > 0);
+
+  if (extra_would_be_keyword_seen)
+    if (!allow_other_keys_argument_seen || (allow_other_keys_argument_value == mk_cl_Cnil))
+      mkcl_FEprogram_error(env, "In LAMBDA-LIST &KEY part of ~S: expected ~S or ~S or ~S or ~S, instead got ~S.", 6, fname, key1_arg_symbol, key2_arg_symbol, key3_arg_symbol, key4_arg_symbol, extra_would_be_keyword);    
+}
+
+
+
+
+void mkcl_receive_N_keyword_arguments(MKCL, const mkcl_object fname, mkcl_va_list ARGS, const long key_param_count, struct mkcl_key_param_spec key_params[])
+{
+  bool extra_would_be_keyword_seen = false;
+  mkcl_object extra_would_be_keyword = mk_cl_Cnil;
+  bool allow_other_keys_argument_seen = false;
+  mkcl_object allow_other_keys_argument_value = mk_cl_Cnil;
+
+  long i;
+  
+  if (ARGS[0].narg % 2) mkcl_FEprogram_error(env, "Function ~S received an odd number of arguments for &key", 1, fname);
+
+  do {
+    const mkcl_object keyword = mkcl_va_arg(ARGS);
+    const mkcl_object value = mkcl_va_arg(ARGS);
+
+    for (i = 0; i < key_param_count; i++)
+      {
+        if (keyword == key_params[i].key_symbol)
+          if (!key_params[i].key_arg_seen)
+            { *(key_params[i].key_var_ref) = value; key_params[i].key_arg_seen = true; goto NEXT_ARG; }
+      }
+    if (keyword == @':allow-other-keys')
+      {
+        if (!allow_other_keys_argument_seen)
+          { allow_other_keys_argument_value = value; allow_other_keys_argument_seen = true; }
+      }
+    else if (!extra_would_be_keyword_seen)
+      { extra_would_be_keyword = keyword; extra_would_be_keyword_seen = true; }
+    
+  NEXT_ARG:;
+  } while (ARGS[0].narg > 0);
+
+  if (extra_would_be_keyword_seen)
+    if (!allow_other_keys_argument_seen || (allow_other_keys_argument_value == mk_cl_Cnil))
+      {
+        mkcl_object key_list = mk_cl_Cnil;
+        for (i = 0; i < key_param_count; i++) key_list = mkcl_cons(env, key_params[i].key_symbol, key_list);
+        mkcl_FEprogram_error(env, "In LAMBDA-LIST &KEY part of ~S: expected one of ~S, instead got ~S.", 3, fname, key_list, extra_would_be_keyword);
+      }
+}
+
+
 
 static mkcl_object convert_cmp_lexical_info(MKCL, mkcl_object cmp_env)
 {

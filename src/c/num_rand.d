@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2016, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2016,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -206,16 +206,28 @@ mkcl_make_random_state(MKCL, mkcl_object rs)
   return(z);
 }
 
-@(defun random (x &optional (rs mkcl_symbol_value(env, @'*random-state*')))
-@
-  rs = mkcl_check_cl_type(env, @'random', rs, mkcl_t_random);
-  mkcl_return_value(rando(env, x, rs));
-@)
+mkcl_object mk_cl_random(MKCL, mkcl_narg narg, mkcl_object x, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object rs = ((narg == 1) ? mkcl_symbol_value(env, @'*random-state*') : mk_cl_Cnil);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'random', narg, 1, x, &rs);
 
-@(defun make_random_state (&optional (rs mk_cl_Cnil))
-@
-  mkcl_return_value(mkcl_make_random_state(env, rs));
-@)
+    rs = mkcl_check_cl_type(env, @'random', rs, mkcl_t_random);
+    mkcl_return_value(rando(env, x, rs));
+  }
+}
+
+mkcl_object mk_cl_make_random_state(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object rs = mkcl_symbol_value(env, @'*random-state*');
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'random', narg, 0, narg, &rs);
+
+    mkcl_return_value(mkcl_make_random_state(env, rs));
+  }
+}
 
 mkcl_object
 mk_cl_random_state_p(MKCL, mkcl_object x)

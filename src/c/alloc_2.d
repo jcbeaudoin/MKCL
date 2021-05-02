@@ -4,7 +4,7 @@
 */
 /*
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2016, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2016,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -1530,13 +1530,18 @@ mkcl_object mk_si_scrub_values(MKCL)
   mkcl_return_no_value;
 }
 
-@(defun si::gc (&optional area)
-@
-  mk_si_trim_dynamic_cons_stack(env);
-  mk_si_scrub_values(env);
-  MKCL_GC_NO_INTR(env, MK_GC_gcollect());
-  mkcl_return_no_value;
-@)
+mkcl_object mk_si_gc(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object area = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'si::gc', narg, 0, narg, &area);
+    mk_si_trim_dynamic_cons_stack(env);
+    mk_si_scrub_values(env);
+    MKCL_GC_NO_INTR(env, MK_GC_gcollect());
+    mkcl_return_no_value;
+  }
+}
 
 mkcl_object
 mk_si_gc_dump(MKCL)

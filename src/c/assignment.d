@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2017, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2017,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -50,46 +50,53 @@ mk_cl_set(MKCL, mkcl_object var, mkcl_object val)
   mkcl_return1(val);
 }
 
-@(defun si::fset (fname def &optional macro pprint)
-  mkcl_object sym = mk_si_function_block_name(env, fname);
-  mkcl_object pack;
-  bool mflag;
-  int type;
-@
-  if (mkcl_Null(sym)) sym = mk_cl_Cnil_symbol;
-  if (mkcl_Null(mk_cl_functionp(env, def))) mkcl_FEinvalid_function(env, def);
-  pack = mkcl_symbol_package(env, sym);
-  if (pack != mk_cl_Cnil && pack->pack.closed) {
-    mkcl_CEpackage_error(env, pack,
-			 "Attempt to redefine function ~S in closed package ~S.",
-			 "Ignore closing and proceed", 2, fname, pack);
-  }
-  mflag = !mkcl_Null(macro);
-  type = mkcl_symbol_type(env, sym);
-  if ((type & mkcl_stp_special_form) && !mflag) {
-    mkcl_FEerror(env, "Given that ~S is a special form, ~S cannot be defined as a function.",
-		 2, sym, fname);
-  }
-  if (MKCL_SYMBOLP(fname)) {
-    if (mflag) {
-      type |= mkcl_stp_macro;
-    } else {
-      type &= ~mkcl_stp_macro;
+mkcl_object mk_si_fset(MKCL, mkcl_narg narg, mkcl_object fname, mkcl_object def, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object sym = mk_si_function_block_name(env, fname);
+    mkcl_object pack;
+    bool mflag;
+    int type;
+    mkcl_object macro = mk_cl_Cnil;
+    mkcl_object pprint = mk_cl_Cnil;
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, @'si::fset', narg, 2, def, &macro, &pprint);
+
+    if (mkcl_Null(sym)) sym = mk_cl_Cnil_symbol;
+    if (mkcl_Null(mk_cl_functionp(env, def))) mkcl_FEinvalid_function(env, def);
+    pack = mkcl_symbol_package(env, sym);
+    if (pack != mk_cl_Cnil && pack->pack.closed) {
+      mkcl_CEpackage_error(env, pack,
+                           "Attempt to redefine function ~S in closed package ~S.",
+                           "Ignore closing and proceed", 2, fname, pack);
     }
-    mkcl_symbol_type_set(env, sym, type);
-    MKCL_SYM_FUN(sym) = def;
-    if (!MKCL_INSTANCEP(def) && mkcl_Null(mk_si_compiled_function_name(env, def)))
-      mk_si_set_compiled_function_name(env, def, sym);
-  } else {
-    if (mflag)
-      mkcl_FEerror(env, "~S is not a valid name for a macro.", 1, fname);
-    mk_si_put_sysprop(env, sym, @'si::setf-symbol', def);
-    mk_si_rem_sysprop(env, sym, @'si::setf-lambda');
-    mk_si_rem_sysprop(env, sym, @'si::setf-method');
-    mk_si_rem_sysprop(env, sym, @'si::setf-update');
+    mflag = !mkcl_Null(macro);
+    type = mkcl_symbol_type(env, sym);
+    if ((type & mkcl_stp_special_form) && !mflag) {
+      mkcl_FEerror(env, "Given that ~S is a special form, ~S cannot be defined as a function.",
+                   2, sym, fname);
+    }
+    if (MKCL_SYMBOLP(fname)) {
+      if (mflag) {
+        type |= mkcl_stp_macro;
+      } else {
+        type &= ~mkcl_stp_macro;
+      }
+      mkcl_symbol_type_set(env, sym, type);
+      MKCL_SYM_FUN(sym) = def;
+      if (!MKCL_INSTANCEP(def) && mkcl_Null(mk_si_compiled_function_name(env, def)))
+        mk_si_set_compiled_function_name(env, def, sym);
+    } else {
+      if (mflag)
+        mkcl_FEerror(env, "~S is not a valid name for a macro.", 1, fname);
+      mk_si_put_sysprop(env, sym, @'si::setf-symbol', def);
+      mk_si_rem_sysprop(env, sym, @'si::setf-lambda');
+      mk_si_rem_sysprop(env, sym, @'si::setf-method');
+      mk_si_rem_sysprop(env, sym, @'si::setf-update');
+    }
+    mkcl_return_value(def);
   }
-  mkcl_return_value(def);
-@)
+ }
 
 mkcl_object
 mk_cl_makunbound(MKCL, mkcl_object sym)

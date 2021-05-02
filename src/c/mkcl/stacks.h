@@ -391,12 +391,171 @@ extern "C" {
 #endif
 
 #define mkcl_va_end(a) va_end(a[0].args)
-#define	mkcl_check_arg(e,n) do { if (narg != (n)) mkcl_FEwrong_num_arguments_anonym(e, n, n, narg);} while(0)
 
+#if 0
+#define	mkcl_check_arg(e,n) do { if (narg != (n)) mkcl_FEwrong_num_arguments_anonym(e, n, n, narg);} while(0)
+#else
+#define	mkcl_check_minimal_arg_count(env, fname, narg, min) \
+  ((narg < (min)) ? (mkcl_FEwrong_num_arguments(env, fname, min, -1, narg), 0) : 0)
+#endif
+
+#if 0
 #define mkcl_setup_for_rest(env, fun_name, min_arg, narg, last_fixed_arg, rest_varname) \
   mkcl_va_list rest_varname;                                            \
   mkcl_va_start(env, rest_varname, last_fixed_arg, (narg), (min_arg)); \
   if ((narg) < (min_arg)) mkcl_FEwrong_num_arguments(env, (fun_name), (min_arg), -1, (narg)); else {}
+#else
+#define mkcl_setup_for_rest(env, fun_name, min_arg, narg, last_fixed_arg, rest_varname) \
+  mkcl_va_list rest_varname;                                            \
+  mkcl_va_start(env, rest_varname, last_fixed_arg, (narg), (min_arg)); \
+  mkcl_check_minimal_arg_count(env, fun_name, narg, min_arg);
+#endif
+
+#define MKCL_RECEIVE_0_KEYWORD_ARGUMENTS(env, fname, narg, nreq, last_fixed_arg) \
+  mkcl_check_minimal_arg_count(env, fname, narg, nreq);                 \
+  if ((narg) > (nreq)) {                                                \
+    mkcl_va_list ARGS;                                                  \
+    mkcl_va_start(env, ARGS, last_fixed_arg, narg, nreq);               \
+    mkcl_receive_0_keyword_arguments(env, fname, ARGS);                \
+    mkcl_va_end(ARGS);                                                  \
+  }
+
+#define MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, fname, narg, nreq, last_fixed_arg, key, key_var_ref) \
+  mkcl_check_minimal_arg_count(env, fname, narg, nreq);                 \
+  if ((narg) > (nreq)) {                                                \
+    mkcl_va_list ARGS;                                                  \
+    mkcl_va_start(env, ARGS, last_fixed_arg, narg, nreq);               \
+    mkcl_receive_1_keyword_argument(env, fname, ARGS, key, key_var_ref); \
+    mkcl_va_end(ARGS);                                                  \
+  }
+
+#define MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, fname, narg, nreq, last_fixed_arg, key1, key1_var_ref, key2, key2_var_ref) \
+  mkcl_check_minimal_arg_count(env, fname, narg, nreq);                 \
+  if ((narg) > (nreq)) {                                                \
+    mkcl_va_list ARGS;                                                  \
+    mkcl_va_start(env, ARGS, last_fixed_arg, narg, nreq);               \
+    mkcl_receive_2_keyword_arguments(env, fname, ARGS, key1, key1_var_ref, key2, key2_var_ref); \
+    mkcl_va_end(ARGS);                                                  \
+  }
+
+#define MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, fname, narg, nreq, last_fixed_arg, key1, key1_var_ref, key2, key2_var_ref, key3, key3_var_ref) \
+  mkcl_check_minimal_arg_count(env, fname, narg, nreq);                 \
+  if ((narg) > (nreq)) {                                                \
+    mkcl_va_list ARGS;                                                  \
+    mkcl_va_start(env, ARGS, last_fixed_arg, narg, nreq);               \
+    mkcl_receive_3_keyword_arguments(env, fname, ARGS, key1, key1_var_ref, key2, key2_var_ref, key3, key3_var_ref); \
+    mkcl_va_end(ARGS);                                                  \
+  }
+
+#define MKCL_RECEIVE_4_KEYWORD_ARGUMENTS(env, fname, narg, nreq, last_fixed_arg, key1, key1_var_ref, key2, key2_var_ref, key3, key3_var_ref, key4, key4_var_ref) \
+  mkcl_check_minimal_arg_count(env, fname, narg, nreq);                 \
+  if ((narg) > (nreq)) {                                                \
+    mkcl_va_list ARGS;                                                  \
+    mkcl_va_start(env, ARGS, last_fixed_arg, narg, nreq);               \
+    mkcl_receive_4_keyword_arguments(env, fname, ARGS, key1, key1_var_ref, key2, key2_var_ref, key3, key3_var_ref, key4, key4_var_ref); \
+    mkcl_va_end(ARGS);                                                  \
+  }
+
+#define MKCL_RECEIVE_N_KEYWORD_ARGUMENTS(env, fname, narg, nreq, last_fixed_arg, key_params) \
+  mkcl_check_minimal_arg_count(env, fname, narg, nreq);                 \
+  if ((narg) > (nreq)) {                                                \
+    mkcl_va_list ARGS;                                                  \
+    mkcl_va_start(env, ARGS, last_fixed_arg, narg, nreq);               \
+    mkcl_receive_N_keyword_arguments(env, fname, ARGS, MKCL_NB_ELEMS(key_params), key_params); \
+    mkcl_va_end(ARGS);                                                  \
+  }
+
+
+
+#define MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, fname, narg, nreq, last_fixed_arg, var_ref) \
+  mkcl_check_minimal_arg_count(env, fname, narg, nreq);                 \
+  if ((narg) > (nreq + 1))                                              \
+    mkcl_FEwrong_num_arguments(env, fname, (nreq), (nreq)+1, narg);     \
+  else if ((narg) > (nreq)) {                                           \
+    mkcl_va_list ARGS;                                                  \
+    mkcl_va_start(env, ARGS, last_fixed_arg, narg, nreq);               \
+    *(var_ref) = mkcl_va_arg(ARGS);                                     \
+    mkcl_va_end(ARGS);                                                  \
+  }
+
+#define MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, fname, narg, nreq, last_fixed_arg, var1_ref, var2_ref) \
+  mkcl_check_minimal_arg_count(env, fname, narg, nreq);                 \
+  if ((narg) > (nreq)) {                                                \
+    const mkcl_narg nopt = (narg) - (nreq);                             \
+    mkcl_va_list ARGS;                                                  \
+    mkcl_va_start(env, ARGS, last_fixed_arg, narg, nreq);               \
+    switch (nopt)                                                       \
+      {                                                                 \
+      case 1:                                                           \
+        *(var1_ref) = mkcl_va_arg(ARGS);                                \
+        break;                                                          \
+      case 2:                                                           \
+        *(var1_ref) = mkcl_va_arg(ARGS);                                \
+        *(var2_ref) = mkcl_va_arg(ARGS);                                \
+        break;                                                          \
+      default:                                                          \
+        mkcl_FEwrong_num_arguments(env, fname, (nreq), (nreq)+2, narg); \
+      }                                                                 \
+    mkcl_va_end(ARGS);                                                  \
+  }
+
+#define MKCL_RECEIVE_3_OPTIONAL_ARGUMENTS(env, fname, narg, nreq, last_fixed_arg, var1_ref, var2_ref, var3_ref) \
+  mkcl_check_minimal_arg_count(env, fname, narg, nreq);                 \
+  if ((narg) > (nreq)) {                                                \
+    const mkcl_narg nopt = (narg) - (nreq);                             \
+    mkcl_va_list ARGS;                                                  \
+    mkcl_va_start(env, ARGS, last_fixed_arg, narg, nreq);               \
+    switch (nopt)                                                       \
+      {                                                                 \
+      case 1:                                                           \
+        *(var1_ref) = mkcl_va_arg(ARGS);                                \
+        break;                                                          \
+      case 2:                                                           \
+        *(var1_ref) = mkcl_va_arg(ARGS);                                \
+        *(var2_ref) = mkcl_va_arg(ARGS);                                \
+        break;                                                          \
+      case 3:                                                           \
+        *(var1_ref) = mkcl_va_arg(ARGS);                                \
+        *(var2_ref) = mkcl_va_arg(ARGS);                                \
+        *(var3_ref) = mkcl_va_arg(ARGS);                                \
+        break;                                                          \
+      default:                                                          \
+        mkcl_FEwrong_num_arguments(env, fname, (nreq), (nreq)+3, narg); \
+      }                                                                 \
+    mkcl_va_end(ARGS);                                                  \
+  }
+
+#define MKCL_RECEIVE_4_OPTIONAL_ARGUMENTS(env, fname, narg, nreq, last_fixed_arg, var1_ref, var2_ref, var3_ref, var4_ref) \
+  mkcl_check_minimal_arg_count(env, fname, narg, nreq);                 \
+  if ((narg) > (nreq)) {                                                \
+    const mkcl_narg nopt = (narg) - (nreq);                             \
+    mkcl_va_list ARGS;                                                  \
+    mkcl_va_start(env, ARGS, last_fixed_arg, narg, nreq);               \
+    switch (nopt)                                                       \
+      {                                                                 \
+      case 1:                                                           \
+        *(var1_ref) = mkcl_va_arg(ARGS);                                \
+        break;                                                          \
+      case 2:                                                           \
+        *(var1_ref) = mkcl_va_arg(ARGS);                                \
+        *(var2_ref) = mkcl_va_arg(ARGS);                                \
+        break;                                                          \
+      case 3:                                                           \
+        *(var1_ref) = mkcl_va_arg(ARGS);                                \
+        *(var2_ref) = mkcl_va_arg(ARGS);                                \
+        *(var3_ref) = mkcl_va_arg(ARGS);                                \
+        break;                                                          \
+      case 4:                                                           \
+        *(var1_ref) = mkcl_va_arg(ARGS);                                \
+        *(var2_ref) = mkcl_va_arg(ARGS);                                \
+        *(var3_ref) = mkcl_va_arg(ARGS);                                \
+        *(var4_ref) = mkcl_va_arg(ARGS);                                \
+        break;                                                          \
+      default:                                                          \
+        mkcl_FEwrong_num_arguments(env, fname, (nreq), (nreq)+4, narg); \
+      }                                                                 \
+    mkcl_va_end(ARGS);                                                  \
+  }
 
 
 

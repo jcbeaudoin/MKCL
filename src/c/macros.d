@@ -6,6 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
+    Copyright (c) 2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -85,10 +86,16 @@ search_macro_function(MKCL, mkcl_object name, mkcl_object lex_env)
     return mk_cl_Cnil;
 }
 
-@(defun macro_function (sym &optional lex_env)
-@
-  mkcl_return_value((search_macro_function(env, sym, lex_env)));
-@)
+mkcl_object mk_cl_macro_function(MKCL, mkcl_narg narg, mkcl_object sym, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object lex_env = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'macro-function', narg, 1, sym, &lex_env);
+
+    mkcl_return_value((search_macro_function(env, sym, lex_env)));
+  }
+}
 
 /*
 	Analyze a form and expand it once if it is a macro form.
@@ -96,50 +103,62 @@ search_macro_function(MKCL, mkcl_object name, mkcl_object lex_env)
 	MKCL_VALUES(1) is true when there was a macroexpansion.
 */
 
-@(defun macroexpand_1 (form &optional (lex_env mk_cl_Cnil))
-  mkcl_object exp_fun = mk_cl_Cnil;
-@
-  if (MKCL_ATOM(form))
-    {
-      if (MKCL_SYMBOLP(form))
-	exp_fun = search_symbol_macro(env, form, lex_env);
-    }
-  else
-    {
-      mkcl_object head = MKCL_CAR(form);
-      if (MKCL_SYMBOLP(head))
-	exp_fun = search_macro_function(env, head, lex_env);
-    }
-  if (!mkcl_Null(exp_fun)) {
-    mkcl_object hook = mkcl_symbol_value(env, @'*macroexpand-hook*');
-    if (hook == @'funcall')
-      form = mkcl_funcall2(env, exp_fun, form, lex_env);
+mkcl_object mk_cl_macroexpand_1(MKCL, mkcl_narg narg, mkcl_object form, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object exp_fun = mk_cl_Cnil;
+    mkcl_object lex_env = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'macroexpand-1', narg, 1, form, &lex_env);
+
+    if (MKCL_ATOM(form))
+      {
+        if (MKCL_SYMBOLP(form))
+          exp_fun = search_symbol_macro(env, form, lex_env);
+      }
     else
-      form = mkcl_funcall3(env, hook, exp_fun, form, lex_env);
+      {
+        mkcl_object head = MKCL_CAR(form);
+        if (MKCL_SYMBOLP(head))
+          exp_fun = search_macro_function(env, head, lex_env);
+      }
+    if (!mkcl_Null(exp_fun)) {
+      mkcl_object hook = mkcl_symbol_value(env, @'*macroexpand-hook*');
+      if (hook == @'funcall')
+        form = mkcl_funcall2(env, exp_fun, form, lex_env);
+      else
+        form = mkcl_funcall3(env, hook, exp_fun, form, lex_env);
+    }
+    mkcl_return_2_values(form, exp_fun);
   }
-  mkcl_return_2_values(form, exp_fun);
-@)
+}
 
 /*
 	Expands a form as many times as possible and returns the
 	finally expanded form.
 */
-@(defun macroexpand (form &optional lex_env)
-  mkcl_object done, old_form;
-@
-  done = mk_cl_Cnil;
-  do {
-    form = mk_cl_macroexpand_1(env, 2, old_form = form, lex_env);
-    if (MKCL_VALUES(1) == mk_cl_Cnil) {
-      break;
-    } else if (old_form == form) {
-      mkcl_FEerror(env, "Infinite loop when expanding macro form ~A", 1, old_form);
-    } else {
-      done = mk_cl_Ct;
-    }
-  } while (1);
-  mkcl_return_2_values(form, done);
-@)
+mkcl_object mk_cl_macroexpand(MKCL, mkcl_narg narg, mkcl_object form, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object done, old_form;
+    mkcl_object lex_env = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'macroexpand', narg, 1, form, &lex_env);
+
+    done = mk_cl_Cnil;
+    do {
+      form = mk_cl_macroexpand_1(env, 2, old_form = form, lex_env);
+      if (MKCL_VALUES(1) == mk_cl_Cnil) {
+        break;
+      } else if (old_form == form) {
+        mkcl_FEerror(env, "Infinite loop when expanding macro form ~A", 1, old_form);
+      } else {
+        done = mk_cl_Ct;
+      }
+    } while (1);
+    mkcl_return_2_values(form, done);
+  }
+}
 
 static mkcl_object
 or_macro(MKCL, mkcl_object whole, mkcl_object lex_env)

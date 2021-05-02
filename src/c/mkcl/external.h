@@ -2,7 +2,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2017, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2017,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -675,6 +675,20 @@ extern "C" {
                                       const bool allow_other_keys, const bool dynamic);
   extern MKCL_API mkcl_object mkcl_grab_rest_args(MKCL, mkcl_va_list args, bool dynamic);
   extern MKCL_API mkcl_object mk_si_convert_cmp_lexical_info(MKCL, mkcl_object cmp_env);
+  extern MKCL_API void mkcl_receive_0_keyword_arguments(MKCL, const mkcl_object fname, mkcl_va_list ARGS);
+  extern MKCL_API void mkcl_receive_1_keyword_argument(MKCL, const mkcl_object fname, mkcl_va_list ARGS, const mkcl_object key_arg_symbol, mkcl_object * const key_var_ref);
+  extern MKCL_API void mkcl_receive_2_keyword_arguments(MKCL, const mkcl_object fname, mkcl_va_list ARGS, const mkcl_object key1_arg_symbol, mkcl_object * const key1_var_ref, const mkcl_object key2_arg_symbol, mkcl_object * const key2_var_ref);
+  extern MKCL_API void mkcl_receive_3_keyword_arguments(MKCL, const mkcl_object fname, mkcl_va_list ARGS, const mkcl_object key1_arg_symbol, mkcl_object * const key1_var_ref, const mkcl_object key2_arg_symbol, mkcl_object * const key2_var_ref, const mkcl_object key3_arg_symbol, mkcl_object * const key3_var_ref);
+  extern MKCL_API void mkcl_receive_4_keyword_arguments(MKCL, const mkcl_object fname, mkcl_va_list ARGS, const mkcl_object key1_arg_symbol, mkcl_object * const key1_var_ref, const mkcl_object key2_arg_symbol, mkcl_object * const key2_var_ref, const mkcl_object key3_arg_symbol, mkcl_object * const key3_var_ref, const mkcl_object key4_arg_symbol, mkcl_object * const key4_var_ref);
+
+  struct mkcl_key_param_spec
+  {
+    mkcl_object key_symbol;
+    mkcl_object * key_var_ref;
+    bool key_arg_seen;
+  };
+  
+  extern MKCL_API void mkcl_receive_N_keyword_arguments(MKCL, const mkcl_object fname, mkcl_va_list ARGS, const long key_param_count, struct mkcl_key_param_spec *key_params);
 
   /* compiler.c */
 
@@ -690,7 +704,9 @@ extern "C" {
 
   /* interpreter.c */
 
+#if 0
   extern MKCL_API mkcl_object mk_si_interpreter_stack(MKCL, mkcl_narg narg);
+#endif
   extern MKCL_API mkcl_object mkcl_temp_stack_frame_open(MKCL, mkcl_object f, mkcl_index size);
   extern MKCL_API void mkcl_temp_stack_frame_push(MKCL, mkcl_object f, mkcl_object o);
   extern MKCL_API void mkcl_temp_stack_frame_push_values(MKCL, mkcl_object f);
@@ -2239,6 +2255,7 @@ extern "C" {
   extern MKCL_API mkcl_object mk_mkcl_chdir(MKCL, mkcl_narg narg, mkcl_object directory, ...);
   extern MKCL_API mkcl_object mk_mkcl_mkdir(MKCL, mkcl_object directory, mkcl_object mode);
   extern MKCL_API mkcl_object mk_cl_directory(MKCL, mkcl_narg narg, mkcl_object directory, ...);
+  extern MKCL_API mkcl_object mk_si_directory(MKCL, mkcl_object directory, mkcl_object follow_symlinks);
   extern MKCL_API mkcl_object mk_cl_user_homedir_pathname(MKCL, mkcl_narg narg, ...);
   extern MKCL_API mkcl_object mk_mkcl_mkstemp(MKCL, mkcl_narg narg, mkcl_object template, ...);
   extern MKCL_API mkcl_object mk_mkcl_rmdir(MKCL, mkcl_object directory);

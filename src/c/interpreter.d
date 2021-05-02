@@ -4,7 +4,7 @@
 */
 /*
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2012, Jean-Claude Beaudoin.
+    Copyright (c) 2012,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -1363,7 +1363,4 @@ mkcl_interpret(MKCL, mkcl_object frame, mkcl_object lex_env, mkcl_object bytecod
   }
 }
 
-@(defun si::interpreter_stack ()
-@
-	mkcl_return_value(mk_cl_Cnil)
-@)
+

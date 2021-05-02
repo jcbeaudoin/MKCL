@@ -778,15 +778,19 @@ mkcl_extend_hashtable(MKCL, mkcl_object hashtable)
 }
 
 
-@(defun make_hash_table (&key 
-			 (test @'eql')
-			 (size MKCL_MAKE_FIXNUM(1024))
-			 (rehash_size mkcl_make_singlefloat(env, 1.5))
-			 (rehash_threshold mkcl_make_singlefloat(env, 0.7))
-			 )
-@
-  mkcl_return_value(mk_cl__make_hash_table(env, test, size, rehash_size, rehash_threshold));
-@)
+mkcl_object mk_cl_make_hash_table(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object test = @'eql';
+    mkcl_object size = MKCL_MAKE_FIXNUM(1024);
+    mkcl_object rehash_size = mkcl_make_singlefloat(env, 1.5);
+    mkcl_object rehash_threshold = mkcl_make_singlefloat(env, 0.7);
+    MKCL_RECEIVE_4_KEYWORD_ARGUMENTS(env, @'make-hash-table', narg, 0, narg, @':test', &test, @':size', &size, @':rehash-size', &rehash_size, @':rehash-threshold', &rehash_threshold);
+
+    mkcl_return_value(mk_cl__make_hash_table(env, test, size, rehash_size, rehash_threshold));
+  }
+}
 
 static void
 do_clrhash(mkcl_object ht)
@@ -1007,16 +1011,23 @@ mk_cl_hash_table_p(MKCL, mkcl_object ht)
   mkcl_return_value(((mkcl_type_of(ht) == mkcl_t_hashtable) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-@(defun gethash (key ht &optional (no_value mk_cl_Cnil))
-	struct mkcl_hashtable_entry *e;
-@
-  mkcl_assert_type_hash_table(env, ht);
-  e = mkcl_search_hash(env, key, ht);
-  if (e != NULL)
-    { mkcl_return_2_values(e->value, mk_cl_Ct); }
-  else
-    { mkcl_return_2_values(no_value, mk_cl_Cnil); }
-@)
+mkcl_object mk_cl_gethash(MKCL, mkcl_narg narg, mkcl_object key, mkcl_object ht, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    struct mkcl_hashtable_entry *e;
+    mkcl_object no_value = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'gethash', narg, 2, ht, &no_value);
+
+    mkcl_assert_type_hash_table(env, ht);
+    e = mkcl_search_hash(env, key, ht);
+    if (e != NULL)
+      { mkcl_return_2_values(e->value, mk_cl_Ct); }
+    else
+      { mkcl_return_2_values(no_value, mk_cl_Cnil); }
+  }
+}
+
 
 mkcl_object
 mk_si_hash_set(MKCL, mkcl_object key, mkcl_object ht, mkcl_object val)

@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2012, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2012,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -130,89 +130,96 @@ mkcl_elt_set(MKCL, mkcl_object seq, mkcl_word index, mkcl_object val)
   mkcl_FEtype_error_seq_index(env, seq, MKCL_MAKE_FIXNUM(index));
 }
 
-@(defun subseq (sequence start &optional end)
-  mkcl_object x = mk_cl_Cnil;
-	mkcl_word s, e;
-	mkcl_word i;
-@
-  s = mkcl_integer_to_index(env, start);
-  if (mkcl_Null(end))
-    e = -1;
-  else
-    e = mkcl_integer_to_index(env, end);
+mkcl_object mk_cl_subseq(MKCL, mkcl_narg narg, mkcl_object sequence, mkcl_object start, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+
+    mkcl_object x = mk_cl_Cnil;
+    mkcl_word s, e;
+    mkcl_word i;
+    mkcl_object end = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'listen', narg, 2, start, &end);
+
+    s = mkcl_integer_to_index(env, start);
+    if (mkcl_Null(end))
+      e = -1;
+    else
+      e = mkcl_integer_to_index(env, end);
   
-  if (mkcl_Null(sequence)) {
-    if (s > 0)
-      goto ILLEGAL_START_END;
-    if (e > 0)
-      goto ILLEGAL_START_END;
-    mkcl_return_value(mk_cl_Cnil);
-  }
-  switch (mkcl_type_of(sequence))
-    {
-    case mkcl_t_cons:
-      if (e >= 0)
-	if ((e -= s) < 0)
-	  goto ILLEGAL_START_END;
-      while (s-- > 0) {
-	if (MKCL_ATOM(sequence))
-	  goto ILLEGAL_START_END;
-	sequence = MKCL_CDR(sequence);
-      }
-      if (e < 0)
-	return mk_cl_copy_list(env, sequence);
-      { mkcl_object *z = &x;
-	for (i = 0;  i < e;  i++) {
-	  if (MKCL_ATOM(sequence))
-	    goto ILLEGAL_START_END;
-	  z = &MKCL_CONS_CDR(*z = mkcl_list1(env, MKCL_CAR(sequence)));
-	  sequence = MKCL_CDR(sequence);
-	}
-      }
-      mkcl_return_value(x);
-
-    case mkcl_t_string:
-      if (s > sequence->string.fillp)
-	goto ILLEGAL_START_END;
-      if (e < 0)
-	e = sequence->string.fillp;
-      else if (e < s || e > sequence->string.fillp)
-	goto ILLEGAL_START_END;
-      x = mkcl_alloc_simple_vector(env, e - s, mkcl_array_elttype(env, sequence));
-      mkcl_copy_subarray(env, x, 0, sequence, s, e-s);
-      mkcl_return_value(x);
-
-    case mkcl_t_vector:
-    case mkcl_t_bitvector:
-      if (s > sequence->vector.fillp)
-	goto ILLEGAL_START_END;
-      if (e < 0)
-	e = sequence->vector.fillp;
-      else if (e < s || e > sequence->vector.fillp)
-	goto ILLEGAL_START_END;
-      x = mkcl_alloc_simple_vector(env, e - s, mkcl_array_elttype(env, sequence));
-      mkcl_copy_subarray(env, x, 0, sequence, s, e-s);
-      mkcl_return_value(x);
-    case mkcl_t_base_string:
-      if (s > sequence->base_string.fillp)
-	goto ILLEGAL_START_END;
-      if (e < 0)
-	e = sequence->base_string.fillp;
-      else if (e < s || e > sequence->base_string.fillp)
-	goto ILLEGAL_START_END;
-      x = mkcl_alloc_simple_vector(env, e - s, mkcl_array_elttype(env, sequence));
-      mkcl_copy_subarray(env, x, 0, sequence, s, e-s);
-      mkcl_return_value(x);
-      
-    default:
-      mkcl_FEtype_error_sequence(env, sequence);
+    if (mkcl_Null(sequence)) {
+      if (s > 0)
+        goto ILLEGAL_START_END;
+      if (e > 0)
+        goto ILLEGAL_START_END;
+      mkcl_return_value(mk_cl_Cnil);
     }
+    switch (mkcl_type_of(sequence))
+      {
+      case mkcl_t_cons:
+        if (e >= 0)
+          if ((e -= s) < 0)
+            goto ILLEGAL_START_END;
+        while (s-- > 0) {
+          if (MKCL_ATOM(sequence))
+            goto ILLEGAL_START_END;
+          sequence = MKCL_CDR(sequence);
+        }
+        if (e < 0)
+          return mk_cl_copy_list(env, sequence);
+        { mkcl_object *z = &x;
+          for (i = 0;  i < e;  i++) {
+            if (MKCL_ATOM(sequence))
+              goto ILLEGAL_START_END;
+            z = &MKCL_CONS_CDR(*z = mkcl_list1(env, MKCL_CAR(sequence)));
+            sequence = MKCL_CDR(sequence);
+          }
+        }
+        mkcl_return_value(x);
 
- ILLEGAL_START_END:
-  mkcl_FEerror(env,
-	       "~S and ~S are illegal as :START and :END~%"
-	       "for the sequence ~S.", 3, start, end, sequence);
-@)
+      case mkcl_t_string:
+        if (s > sequence->string.fillp)
+          goto ILLEGAL_START_END;
+        if (e < 0)
+          e = sequence->string.fillp;
+        else if (e < s || e > sequence->string.fillp)
+          goto ILLEGAL_START_END;
+        x = mkcl_alloc_simple_vector(env, e - s, mkcl_array_elttype(env, sequence));
+        mkcl_copy_subarray(env, x, 0, sequence, s, e-s);
+        mkcl_return_value(x);
+
+      case mkcl_t_vector:
+      case mkcl_t_bitvector:
+        if (s > sequence->vector.fillp)
+          goto ILLEGAL_START_END;
+        if (e < 0)
+          e = sequence->vector.fillp;
+        else if (e < s || e > sequence->vector.fillp)
+          goto ILLEGAL_START_END;
+        x = mkcl_alloc_simple_vector(env, e - s, mkcl_array_elttype(env, sequence));
+        mkcl_copy_subarray(env, x, 0, sequence, s, e-s);
+        mkcl_return_value(x);
+      case mkcl_t_base_string:
+        if (s > sequence->base_string.fillp)
+          goto ILLEGAL_START_END;
+        if (e < 0)
+          e = sequence->base_string.fillp;
+        else if (e < s || e > sequence->base_string.fillp)
+          goto ILLEGAL_START_END;
+        x = mkcl_alloc_simple_vector(env, e - s, mkcl_array_elttype(env, sequence));
+        mkcl_copy_subarray(env, x, 0, sequence, s, e-s);
+        mkcl_return_value(x);
+      
+      default:
+        mkcl_FEtype_error_sequence(env, sequence);
+      }
+
+  ILLEGAL_START_END:
+    mkcl_FEerror(env,
+                 "~S and ~S are illegal as :START and :END~%"
+                 "for the sequence ~S.", 3, start, end, sequence);
+  }
+}
 
 mkcl_object
 mk_cl_copy_seq(MKCL, mkcl_object x)

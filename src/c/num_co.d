@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011, Jean-Claude Beaudoin.
+    Copyright (c) 2011,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -59,50 +59,56 @@ number_remainder(MKCL, mkcl_object x, mkcl_object y, mkcl_object q)
 /* Coerce non-float X to single-float if one arg,
    otherwise coerce to same float type as second arg */
 
-@(defun float (x &optional (y MKCL_OBJNULL))
-  mkcl_type ty, tx;
-@
+mkcl_object mk_cl_float(MKCL, mkcl_narg narg, mkcl_object x, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_type ty, tx;
+    mkcl_object y = MKCL_OBJNULL;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'float', narg, 1, x, &y);
+
   AGAIN:
-  if (y != MKCL_OBJNULL) {
-    ty = mkcl_type_of(y);
-  } else {
-    ty = mkcl_t_singlefloat;
-  }
-  switch (tx = mkcl_type_of(x)) {
-  case mkcl_t_singlefloat:
-  case mkcl_t_doublefloat:
-#ifdef MKCL_LONG_FLOAT
-  case mkcl_t_longfloat:
-#endif
-    if (y == MKCL_OBJNULL || ty == tx)
-      break;
-  case mkcl_t_fixnum:
-  case mkcl_t_bignum:
-  case mkcl_t_ratio:
-    switch (ty) {
+    if (y != MKCL_OBJNULL) {
+      ty = mkcl_type_of(y);
+    } else {
+      ty = mkcl_t_singlefloat;
+    }
+    switch (tx = mkcl_type_of(x)) {
     case mkcl_t_singlefloat:
-      x = mkcl_make_singlefloat(env, mkcl_to_float(env, x));
-      /* x = mkcl_make_singlefloat(env, mkcl_to_double(env, x)); */
-      break;
     case mkcl_t_doublefloat:
-      x = mkcl_make_doublefloat(env, mkcl_to_double(env, x));
-      break;
 #ifdef MKCL_LONG_FLOAT
     case mkcl_t_longfloat:
-      x = mkcl_make_longfloat(env, mkcl_to_long_double(env, x));
-      break;
 #endif
+      if (y == MKCL_OBJNULL || ty == tx)
+        break;
+    case mkcl_t_fixnum:
+    case mkcl_t_bignum:
+    case mkcl_t_ratio:
+      switch (ty) {
+      case mkcl_t_singlefloat:
+        x = mkcl_make_singlefloat(env, mkcl_to_float(env, x));
+        /* x = mkcl_make_singlefloat(env, mkcl_to_double(env, x)); */
+        break;
+      case mkcl_t_doublefloat:
+        x = mkcl_make_doublefloat(env, mkcl_to_double(env, x));
+        break;
+#ifdef MKCL_LONG_FLOAT
+      case mkcl_t_longfloat:
+        x = mkcl_make_longfloat(env, mkcl_to_long_double(env, x));
+        break;
+#endif
+      default:
+        y = mkcl_type_error(env, @'float',"prototype",y,@'float');
+        goto AGAIN;
+      }
+      break;
     default:
-      y = mkcl_type_error(env, @'float',"prototype",y,@'float');
+      x = mkcl_type_error(env, @'float',"argument",x,@'real');
       goto AGAIN;
     }
-    break;
-  default:
-    x = mkcl_type_error(env, @'float',"argument",x,@'real');
-    goto AGAIN;
+    mkcl_return_value(x);
   }
-  mkcl_return_value(x);
-@)
+}
 
 mkcl_object
 mk_cl_numerator(MKCL, mkcl_object x)
@@ -386,14 +392,20 @@ mkcl_floor2(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_2_values(v0, v1);
 }
 
-@(defun floor (x &optional (y MKCL_OBJNULL))
-@
-  if (narg == 1)
-    x = mkcl_floor1(env, x);
-  else
-    x = mkcl_floor2(env, x, y);
-  mkcl_returnn(x);
-@)
+mkcl_object mk_cl_floor(MKCL, mkcl_narg narg, mkcl_object x, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object y = MKCL_OBJNULL;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'floor', narg, 1, x, &y);
+
+    if (narg == 1)
+      x = mkcl_floor1(env, x);
+    else
+      x = mkcl_floor2(env, x, y);
+    mkcl_returnn(x);
+  }
+}
 
 mkcl_object
 mkcl_ceiling1(MKCL, mkcl_object x)
@@ -635,14 +647,20 @@ mkcl_ceiling2(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_2_values(v0, v1);
 }
 
-@(defun ceiling (x &optional (y MKCL_OBJNULL))
-@
-  if (narg == 1)
-    x = mkcl_ceiling1(env, x);
-  else
-    x = mkcl_ceiling2(env, x, y);
-  mkcl_returnn(x);
-@)
+mkcl_object mk_cl_ceiling(MKCL, mkcl_narg narg, mkcl_object x, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object y = MKCL_OBJNULL;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'ceiling', narg, 1, x, &y);
+
+    if (narg == 1)
+      x = mkcl_ceiling1(env, x);
+    else
+      x = mkcl_ceiling2(env, x, y);
+    mkcl_returnn(x);
+  }
+}
 
 mkcl_object
 mkcl_truncate1(MKCL, mkcl_object x)
@@ -698,14 +716,20 @@ mkcl_truncate2(MKCL, mkcl_object x, mkcl_object y)
     return mkcl_floor2(env, x, y);
 }
 
-@(defun truncate (x &optional (y MKCL_OBJNULL))
-@
-  if (narg == 1)
-    x = mkcl_truncate1(env, x);
-  else
-    x = mkcl_truncate2(env, x, y);
-  mkcl_returnn(x);
-@)
+mkcl_object mk_cl_truncate(MKCL, mkcl_narg narg, mkcl_object x, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object y = MKCL_OBJNULL;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'truncate', narg, 1, x, &y);
+
+    if (narg == 1)
+      x = mkcl_truncate1(env, x);
+    else
+      x = mkcl_truncate2(env, x, y);
+    mkcl_returnn(x);
+  }
+}
 
 static double
 round_double(double d)
@@ -830,14 +854,20 @@ mkcl_round2(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_2_values(v0, v1);
 }
 
-@(defun round (x &optional (y MKCL_OBJNULL))
-@
-  if (narg == 1)
-    x = mkcl_round1(env, x);
-  else
-    x = mkcl_round2(env, x, y);
-  mkcl_returnn(x);
-@)
+mkcl_object mk_cl_round(MKCL, mkcl_narg narg, mkcl_object x, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object y = MKCL_OBJNULL;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'round', narg, 1, x, &y);
+
+    if (narg == 1)
+      x = mkcl_round1(env, x);
+    else
+      x = mkcl_round2(env, x, y);
+    mkcl_returnn(x);
+  }
+}
 
 
 mkcl_object
@@ -956,56 +986,60 @@ mk_cl_float_radix(MKCL, mkcl_object x)
   mkcl_return_value(MKCL_MAKE_FIXNUM(FLT_RADIX));
 }
 
-@(defun float_sign (x &optional (y x yp))
-  int negativep;
-@
-  if (!yp) {
-    y = mk_cl_float(env, 2, MKCL_MAKE_FIXNUM(1), x);
-  }
- AGAIN:
-  switch (mkcl_type_of(x)) {
-  case mkcl_t_singlefloat:
-    negativep = signbit(mkcl_single_float(x));
-    break;
-  case mkcl_t_doublefloat:
-    negativep = signbit(mkcl_double_float(x));
-    break;
+mkcl_object mk_cl_float_sign(MKCL, mkcl_narg narg, mkcl_object x, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+
+    int negativep;
+    mkcl_object y = mk_cl_float(env, 2, MKCL_MAKE_FIXNUM(1), x);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'float-sign', narg, 1, x, &y);
+
+  AGAIN:
+    switch (mkcl_type_of(x)) {
+    case mkcl_t_singlefloat:
+      negativep = signbit(mkcl_single_float(x));
+      break;
+    case mkcl_t_doublefloat:
+      negativep = signbit(mkcl_double_float(x));
+      break;
 #ifdef MKCL_LONG_FLOAT
-  case mkcl_t_longfloat:
-    negativep = signbit(mkcl_long_float(x));
-    break;
+    case mkcl_t_longfloat:
+      negativep = signbit(mkcl_long_float(x));
+      break;
 #endif
-  default:
-    x = mkcl_type_error(env, @'float-sign',"argument",x,@'float');
-    goto AGAIN;
-  }
-  switch (mkcl_type_of(y)) {
-  case mkcl_t_singlefloat:
-    {
-      float f = mkcl_single_float(y);
-      if (signbit(f) != negativep) y = mkcl_make_singlefloat(env, -f);
+    default:
+      x = mkcl_type_error(env, @'float-sign',"argument",x,@'float');
+      goto AGAIN;
     }
-    break;
-  case mkcl_t_doublefloat:
-    {
-      double f = mkcl_double_float(y);
-      if (signbit(f) != negativep) y = mkcl_make_doublefloat(env, -f);
-    }
-    break;
+    switch (mkcl_type_of(y)) {
+    case mkcl_t_singlefloat:
+      {
+        float f = mkcl_single_float(y);
+        if (signbit(f) != negativep) y = mkcl_make_singlefloat(env, -f);
+      }
+      break;
+    case mkcl_t_doublefloat:
+      {
+        double f = mkcl_double_float(y);
+        if (signbit(f) != negativep) y = mkcl_make_doublefloat(env, -f);
+      }
+      break;
 #ifdef MKCL_LONG_FLOAT
-  case mkcl_t_longfloat:
-    {
-      long double f = mkcl_long_float(y);
-      if (signbit(f) != negativep) y = mkcl_make_longfloat(env, -f);
-    }
-    break;
+    case mkcl_t_longfloat:
+      {
+        long double f = mkcl_long_float(y);
+        if (signbit(f) != negativep) y = mkcl_make_longfloat(env, -f);
+      }
+      break;
 #endif
-  default:
-    y = mkcl_type_error(env, @'float-sign', "prototype", y, @'float');
-    goto AGAIN;
+    default:
+      y = mkcl_type_error(env, @'float-sign', "prototype", y, @'float');
+      goto AGAIN;
+    }
+    mkcl_return_value(y);
   }
-  mkcl_return_value(y);
-@)
+}
 
 mkcl_object
 mk_cl_float_digits(MKCL, mkcl_object x)
@@ -1166,10 +1200,16 @@ mk_cl_integer_decode_float(MKCL, mkcl_object x)
 }
 
 
-@(defun complex (r &optional (i MKCL_MAKE_FIXNUM(0)))
-@	/* INV: mkcl_make_complex() checks types */
-  mkcl_return_value(mkcl_make_complex(env, r, i));
-@)
+mkcl_object mk_cl_complex(MKCL, mkcl_narg narg, mkcl_object r, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object i = MKCL_MAKE_FIXNUM(0);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'floor', narg, 1, r, &i);
+
+    mkcl_return_value(mkcl_make_complex(env, r, i));
+  }
+}
 
 mkcl_object
 mk_cl_realpart(MKCL, mkcl_object x)

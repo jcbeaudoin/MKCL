@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2017, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2017,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -1590,51 +1590,64 @@ stream_or_default_input(MKCL, mkcl_object stream)
   return stream;
 }
 
-@(defun read (&optional (strm mk_cl_Cnil) (eof_errorp mk_cl_Ct) eof_value recursivep)
-  mkcl_object x;
-@
-  strm = stream_or_default_input(env, strm);
-  if (mkcl_Null(recursivep)) {
-    x = mkcl_read_object_non_recursive(env, strm);
-  } else {
-    x = mkcl_read_object(env, strm);
-  }
-  if (x == MKCL_OBJNULL) {
-    if (mkcl_Null(eof_errorp))
-      mkcl_return_value(eof_value);
-    mkcl_FEend_of_file(env, strm);
-  }
-  /* Skip whitespace characters, but stop at beginning of new line or token */
-  if (mkcl_Null(recursivep)) {
-    mkcl_object rtbl = mkcl_current_readtable(env);
-    mkcl_character c = mkcl_read_char(env, strm);
-    if (c != EOF && (mkcl_readtable_get(env, rtbl, c, NULL) != mkcl_cat_whitespace)) {
-      mkcl_unread_char(env, c, strm);
-    }
-  }
-  mkcl_return_value(x);
-@)
+mkcl_object mk_cl_read(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object x;
+    mkcl_object strm = mk_cl_Cnil;
+    mkcl_object eof_errorp = mk_cl_Ct;
+    mkcl_object eof_value = mk_cl_Cnil;
+    mkcl_object recursivep = mk_cl_Cnil;
+    MKCL_RECEIVE_4_OPTIONAL_ARGUMENTS(env, @'read', narg, 0, narg, &strm, &eof_errorp, &eof_value, &recursivep);
 
-@(defun read_preserving_whitespace
-	(&optional (strm mk_cl_Cnil)
-		   (eof_errorp mk_cl_Ct)
-		   eof_value
-		   recursivep)
-  mkcl_object x;
-@
-  strm = stream_or_default_input(env, strm);
-  if (mkcl_Null(recursivep)) {
-    x = mkcl_read_object_non_recursive(env, strm);
-  } else {
-    x = mkcl_read_object(env, strm);
+    strm = stream_or_default_input(env, strm);
+    if (mkcl_Null(recursivep)) {
+      x = mkcl_read_object_non_recursive(env, strm);
+    } else {
+      x = mkcl_read_object(env, strm);
+    }
+    if (x == MKCL_OBJNULL) {
+      if (mkcl_Null(eof_errorp))
+        mkcl_return_value(eof_value);
+      mkcl_FEend_of_file(env, strm);
+    }
+    /* Skip whitespace characters, but stop at beginning of new line or token */
+    if (mkcl_Null(recursivep)) {
+      mkcl_object rtbl = mkcl_current_readtable(env);
+      mkcl_character c = mkcl_read_char(env, strm);
+      if (c != EOF && (mkcl_readtable_get(env, rtbl, c, NULL) != mkcl_cat_whitespace)) {
+        mkcl_unread_char(env, c, strm);
+      }
+    }
+    mkcl_return_value(x);
   }
-  if (x == MKCL_OBJNULL) {
-    if (mkcl_Null(eof_errorp))
-      mkcl_return_value(eof_value)
-	mkcl_FEend_of_file(env, strm);
+}
+
+mkcl_object mk_cl_read_preserving_whitespace(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object x;
+    mkcl_object strm = mk_cl_Cnil;
+    mkcl_object eof_errorp = mk_cl_Ct;
+    mkcl_object eof_value = mk_cl_Cnil;
+    mkcl_object recursivep = mk_cl_Cnil;
+    MKCL_RECEIVE_4_OPTIONAL_ARGUMENTS(env, @'read-preserving-whitespace', narg, 0, narg, &strm, &eof_errorp, &eof_value, &recursivep);
+    strm = stream_or_default_input(env, strm);
+    if (mkcl_Null(recursivep)) {
+      x = mkcl_read_object_non_recursive(env, strm);
+    } else {
+      x = mkcl_read_object(env, strm);
+    }
+    if (x == MKCL_OBJNULL) {
+      if (mkcl_Null(eof_errorp))
+        mkcl_return_value(eof_value)
+          mkcl_FEend_of_file(env, strm);
+    }
+    mkcl_return_value(x);
   }
-  mkcl_return_value(x);
-@)
+}
 
 static mkcl_object
 do_read_delimited_list(MKCL, int d, mkcl_object in, bool proper_list)
@@ -1678,244 +1691,372 @@ do_read_delimited_list(MKCL, int d, mkcl_object in, bool proper_list)
   } while (1);
 }
 
-@(defun read_delimited_list (d &optional (strm mk_cl_Cnil) recursivep)
-  mkcl_object l;
-  int delimiter;
-@
-  delimiter = mkcl_char_code(env, d);
-  strm = stream_or_default_input(env, strm);
-  if (!mkcl_Null(recursivep)) {
-    l = do_read_delimited_list(env, delimiter, strm, 1);
-  } else {
-    mkcl_bds_bind(env, @'si::*pending-sharp-labels*', mk_cl_Cnil);
-    mkcl_bds_bind(env, @'si::*sharp-labels*', mk_cl_Cnil);
-    mkcl_bds_bind(env, @'si::*backq-level*', MKCL_MAKE_FIXNUM(0));
-    l = do_read_delimited_list(env, delimiter, strm, 1);
-    mkcl_bds_unwind_n(env, 3);
-  }
-  mkcl_return_value(l);
-@)
+mkcl_object mk_cl_read_delimited_list(MKCL, mkcl_narg narg, mkcl_object d, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object l;
+    int delimiter;
+    mkcl_object strm = mk_cl_Cnil;
+    mkcl_object recursivep = mk_cl_Cnil;
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, @'read-delimited-list', narg, 1, d, &strm, &recursivep);
 
-@(defun read_line (&optional (strm mk_cl_Cnil) (eof_errorp mk_cl_Ct) eof_value recursivep)
-	mkcl_character c;
-	mkcl_object token, value0, value1;
-@
-  strm = stream_or_default_input(env, strm);
-  if (mkcl_type_of(strm) != mkcl_t_stream) {
-    token = mkcl_funcall1(env, @+'gray::stream-read-line', strm);
-    if (!mkcl_Null(MKCL_VALUES(1))) {
-      c = EOF;
-      goto EOFCHK;
+    delimiter = mkcl_char_code(env, d);
+    strm = stream_or_default_input(env, strm);
+    if (!mkcl_Null(recursivep)) {
+      l = do_read_delimited_list(env, delimiter, strm, 1);
+    } else {
+      mkcl_bds_bind(env, @'si::*pending-sharp-labels*', mk_cl_Cnil);
+      mkcl_bds_bind(env, @'si::*sharp-labels*', mk_cl_Cnil);
+      mkcl_bds_bind(env, @'si::*backq-level*', MKCL_MAKE_FIXNUM(0));
+      l = do_read_delimited_list(env, delimiter, strm, 1);
+      mkcl_bds_unwind_n(env, 3);
     }
-    return token;
+    mkcl_return_value(l);
   }
-  token = mk_si_get_buffer_string(env);
-  do {
-    c = mkcl_read_char(env, strm);
-    if (c == EOF || c == '\n')
-      break;
-    mkcl_string_push_extend(env, token, c);
-  } while(1);
- EOFCHK:
-  if (c == EOF && TOKEN_STRING_FILLP(token) == 0) {
-    if (!mkcl_Null(eof_errorp))
-      mkcl_FEend_of_file(env, strm);
-    value0 = eof_value;
-    value1 = mk_cl_Ct;
-  } else {
+}
+
+mkcl_object mk_cl_read_line(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_character c;
+    mkcl_object token, value0, value1;
+    mkcl_object strm = mk_cl_Cnil;
+    mkcl_object eof_errorp = mk_cl_Ct;
+    mkcl_object eof_value = mk_cl_Cnil;
+    mkcl_object recursivep = mk_cl_Cnil;
+    MKCL_RECEIVE_4_OPTIONAL_ARGUMENTS(env, @'read-line', narg, 0, narg, &strm, &eof_errorp, &eof_value, &recursivep);
+
+    strm = stream_or_default_input(env, strm);
+    if (mkcl_type_of(strm) != mkcl_t_stream) {
+      token = mkcl_funcall1(env, @+'gray::stream-read-line', strm);
+      if (!mkcl_Null(MKCL_VALUES(1))) {
+        c = EOF;
+        goto EOFCHK;
+      }
+      return token;
+    }
+    token = mk_si_get_buffer_string(env);
+    do {
+      c = mkcl_read_char(env, strm);
+      if (c == EOF || c == '\n')
+        break;
+      mkcl_string_push_extend(env, token, c);
+    } while(1);
+  EOFCHK:
+    if (c == EOF && TOKEN_STRING_FILLP(token) == 0) {
+      if (!mkcl_Null(eof_errorp))
+        mkcl_FEend_of_file(env, strm);
+      value0 = eof_value;
+      value1 = mk_cl_Ct;
+    } else {
 #ifdef MKCL_NEWLINE_IS_CRLF	/* From \r\n, ignore \r */
-    if (TOKEN_STRING_FILLP(token) > 0 &&
-	TOKEN_STRING_CHAR_CMP(token,TOKEN_STRING_FILLP(token)-1,'\r'))
-      TOKEN_STRING_FILLP(token)--;
+      if (TOKEN_STRING_FILLP(token) > 0 &&
+          TOKEN_STRING_CHAR_CMP(token,TOKEN_STRING_FILLP(token)-1,'\r'))
+        TOKEN_STRING_FILLP(token)--;
 #endif
 #ifdef MKCL_NEWLINE_IS_LFCR	/* From \n\r, ignore \r */
-    mkcl_read_char(strm);
+      mkcl_read_char(strm);
 #endif
-    value0 = mk_cl_copy_seq(env, token);
-    value1 = (c == EOF? mk_cl_Ct : mk_cl_Cnil);
-  }
-  mk_si_put_buffer_string(env, token);
-  mkcl_return_2_values(value0, value1);
-@)
-
-@(defun read-char (&optional (strm mk_cl_Cnil) (eof_errorp mk_cl_Ct) eof_value recursivep)
-	mkcl_character c;
-	mkcl_object output;
-@
-  strm = stream_or_default_input(env, strm);
-  c = mkcl_read_char(env, strm);
-  if (c != EOF)
-    output = MKCL_CODE_CHAR(c);
-  else if (mkcl_Null(eof_errorp))
-    output = eof_value;
-  else
-    mkcl_FEend_of_file(env, strm);
-  mkcl_return_value(output);
-@)
-
-@(defun unread_char (c &optional (strm mk_cl_Cnil))
-@
-  /* INV: unread_char() checks the type `c' */
-  strm = stream_or_default_input(env, strm);
-  mkcl_unread_char(env, mkcl_char_code(env, c), strm);
-  mkcl_return_value(mk_cl_Cnil);
-@)
-
-@(defun peek-char (&optional peek_type (strm mk_cl_Cnil) (eof_errorp mk_cl_Ct) eof_value recursivep)
-  mkcl_character c;
-  mkcl_object rtbl = mkcl_current_readtable(env);
-@
-  strm = stream_or_default_input(env, strm);
-  c = mkcl_peek_char(env, strm);
-  if (c != EOF && !mkcl_Null(peek_type)) {
-    if (peek_type == mk_cl_Ct) {
-      do {
-	/* If the character is not a whitespace, output */
-	if (mkcl_readtable_get(env, rtbl, c, NULL) != mkcl_cat_whitespace)
-	  break;
-	/* Otherwise, read the whitespace and peek the
-	 * next character */
-	mkcl_read_char(env, strm);
-	c = mkcl_peek_char(env, strm);
-      } while (c != EOF);
-    } else {
-      do {
-	/* If the character belongs to the given class,
-	 * we're done. */
-	if (mkcl_char_eq(env, MKCL_CODE_CHAR(c), peek_type))
-	  break;
-	/* Otherwise, consume the character and
-	 * peek the next one. */
-	mkcl_read_char(env, strm);
-	c = mkcl_peek_char(env, strm);
-      } while (c != EOF);
+      value0 = mk_cl_copy_seq(env, token);
+      value1 = (c == EOF? mk_cl_Ct : mk_cl_Cnil);
     }
+    mk_si_put_buffer_string(env, token);
+    mkcl_return_2_values(value0, value1);
   }
-  if (c != EOF) {
-    eof_value = MKCL_CODE_CHAR(c);
-  } else if (!mkcl_Null(eof_errorp)) {
-    mkcl_FEend_of_file(env, strm);
-  }
-  mkcl_return_value(eof_value);
-@)
+}
 
-@(defun listen (&optional (strm mk_cl_Cnil))
-@
-  strm = stream_or_default_input(env, strm);
-  mkcl_return_value(((mkcl_listen_stream(env, strm) == MKCL_LISTEN_AVAILABLE) ? mk_cl_Ct : mk_cl_Cnil));
-@)
+mkcl_object mk_cl_read_char(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_character c;
+    mkcl_object output;
+    mkcl_object strm = mk_cl_Cnil;
+    mkcl_object eof_errorp = mk_cl_Ct;
+    mkcl_object eof_value = mk_cl_Cnil;
+    mkcl_object recursivep = mk_cl_Cnil;
+    MKCL_RECEIVE_4_OPTIONAL_ARGUMENTS(env, @'read-char', narg, 0, narg, &strm, &eof_errorp, &eof_value, &recursivep);
 
-@(defun read_char_no_hang (&optional (strm mk_cl_Cnil) (eof_errorp mk_cl_Ct) eof_value recursivep)
-  int f;
-@
-  strm = stream_or_default_input(env, strm);
-  if (mkcl_type_of(strm) != mkcl_t_stream) {
-    mkcl_object output = mkcl_funcall1(env, @+'gray::stream-read-char-no-hang', strm);
-    if (output == @':eof')
-      goto END_OF_FILE;
+    strm = stream_or_default_input(env, strm);
+    c = mkcl_read_char(env, strm);
+    if (c != EOF)
+      output = MKCL_CODE_CHAR(c);
+    else if (mkcl_Null(eof_errorp))
+      output = eof_value;
+    else
+      mkcl_FEend_of_file(env, strm);
     mkcl_return_value(output);
   }
-  f = mkcl_listen_stream(env, strm);
-  if (f == MKCL_LISTEN_AVAILABLE) {
-    mkcl_character c = mkcl_read_char(env, strm);
-    if (c != EOF) {
-      mkcl_return_value(MKCL_CODE_CHAR(c));
-    }
-  } else if (f == MKCL_LISTEN_NO_CHAR) {
-    mkcl_return_value(@'nil');
-  }
-  /* We reach here if there was an EOF */
- END_OF_FILE:
-  if (mkcl_Null(eof_errorp))
-    { mkcl_return_value(eof_value); }
-  else
-    mkcl_FEend_of_file(env, strm);
-@)
+}
 
-@(defun clear_input (&optional (strm mk_cl_Cnil))
-@
-  strm = stream_or_default_input(env, strm);
-  mkcl_clear_input(env, strm);
-  mkcl_return_value(mk_cl_Cnil);
-@)
-
-@(defun parse_integer (strng
-		       &key (start MKCL_MAKE_FIXNUM(0))
-			    end
-			    (radix MKCL_MAKE_FIXNUM(10))
-			    junk_allowed)
-  mkcl_object x = mk_cl_Cnil;
-  mkcl_index s, e, ep;
-  mkcl_object rtbl = mkcl_current_readtable(env);
-@ 
+mkcl_object mk_cl_unread_char(MKCL, mkcl_narg narg, mkcl_object c, ...)
 {
-  strng = mkcl_check_type_string(env, @'parse-integer', strng);
-  mkcl_get_string_start_end(env, strng, start, end, &s, &e);
-  if (!MKCL_FIXNUMP(radix) ||
-      mkcl_fixnum_to_word(radix) < 2 || mkcl_fixnum_to_word(radix) > 36)
-    mkcl_FEerror(env, "~S is an illegal radix.", 1, radix);
-  while (s < e && mkcl_readtable_get(env, rtbl, mkcl_char(env, strng, s), NULL) == mkcl_cat_whitespace) s++;
-  if (s >= e) {
-    if (junk_allowed != mk_cl_Cnil)
-      { mkcl_return_2_values(mk_cl_Cnil, MKCL_MAKE_FIXNUM(s)); }
-    else
-      goto CANNOT_PARSE;
-  }
-  x = mkcl_parse_integer(env, strng, s, e, &ep, mkcl_fixnum_to_word(radix));
-  if (x == MKCL_OBJNULL) {
-    if (junk_allowed != mk_cl_Cnil) {
-      mkcl_return_2_values(mk_cl_Cnil, MKCL_MAKE_FIXNUM(ep));
-    } else {
-      goto CANNOT_PARSE;
-    }
-  }
-  if (junk_allowed != mk_cl_Cnil) {
-    mkcl_return_2_values(x, MKCL_MAKE_FIXNUM(ep));
-  }
-  for (s = ep; s < e; s++)
-    {
-      if (mkcl_readtable_get(env, rtbl, mkcl_char(env, strng, s), NULL) != mkcl_cat_whitespace)
-	{
-	CANNOT_PARSE:		
-	  mkcl_FEparse_error(env, "Cannot parse an integer in the string ~S.",
-			     mk_cl_Cnil, 1, strng);
-	}
-    }
-  mkcl_return_2_values(x, MKCL_MAKE_FIXNUM(e));
- }
-@)
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object strm = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'unread-char', narg, 1, c, &strm);
 
-@(defun read_byte (binary_input_stream &optional (eof_errorp mk_cl_Ct) eof_value)
-	mkcl_object c;
-@
-  c = mkcl_read_byte(env, binary_input_stream);
-  if (c == mk_cl_Cnil) {
+    /* INV: unread_char() checks the type `c' */
+    strm = stream_or_default_input(env, strm);
+    mkcl_unread_char(env, mkcl_char_code(env, c), strm);
+    mkcl_return_value(mk_cl_Cnil);
+  }
+}
+
+mkcl_object mk_cl_peek_char(MKCL, mkcl_narg narg, ...)
+{
+
+  mkcl_call_stack_check(env);
+  {
+
+    mkcl_character c;
+    mkcl_object rtbl = mkcl_current_readtable(env);
+    mkcl_object peek_type = mk_cl_Cnil;
+    mkcl_object strm = mk_cl_Cnil;
+    mkcl_object eof_errorp = mk_cl_Ct;
+    mkcl_object eof_value = mk_cl_Cnil;
+    mkcl_object recursivep = mk_cl_Cnil;
+    mkcl_check_minimal_arg_count(env, @'peek-char', narg, 0);
+    if ((narg) > 0) {
+      mkcl_va_list ARGS;
+      mkcl_va_start(env, ARGS, narg, narg, 0);
+      switch (narg)
+        {
+        case 1:
+          peek_type = mkcl_va_arg(ARGS);
+          break;
+        case 2:
+          peek_type = mkcl_va_arg(ARGS);
+          strm = mkcl_va_arg(ARGS);
+          break;
+        case 3:
+          peek_type = mkcl_va_arg(ARGS);
+          strm = mkcl_va_arg(ARGS);
+          eof_errorp = mkcl_va_arg(ARGS);
+          break;
+        case 4:
+          peek_type = mkcl_va_arg(ARGS);
+          strm = mkcl_va_arg(ARGS);
+          eof_errorp = mkcl_va_arg(ARGS);
+          eof_value = mkcl_va_arg(ARGS);
+          break;
+        case 5:
+          peek_type = mkcl_va_arg(ARGS);
+          strm = mkcl_va_arg(ARGS);
+          eof_errorp = mkcl_va_arg(ARGS);
+          eof_value = mkcl_va_arg(ARGS);
+          recursivep = mkcl_va_arg(ARGS);
+          break;
+        default:
+          mkcl_FEwrong_num_arguments(env, @'peek-char', 0, 5, narg);
+        }
+      mkcl_va_end(ARGS);
+    }
+
+    strm = stream_or_default_input(env, strm);
+    c = mkcl_peek_char(env, strm);
+    if (c != EOF && !mkcl_Null(peek_type)) {
+      if (peek_type == mk_cl_Ct) {
+        do {
+          /* If the character is not a whitespace, output */
+          if (mkcl_readtable_get(env, rtbl, c, NULL) != mkcl_cat_whitespace)
+            break;
+          /* Otherwise, read the whitespace and peek the
+           * next character */
+          mkcl_read_char(env, strm);
+          c = mkcl_peek_char(env, strm);
+        } while (c != EOF);
+      } else {
+        do {
+          /* If the character belongs to the given class,
+           * we're done. */
+          if (mkcl_char_eq(env, MKCL_CODE_CHAR(c), peek_type))
+            break;
+          /* Otherwise, consume the character and
+           * peek the next one. */
+          mkcl_read_char(env, strm);
+          c = mkcl_peek_char(env, strm);
+        } while (c != EOF);
+      }
+    }
+    if (c != EOF) {
+      eof_value = MKCL_CODE_CHAR(c);
+    } else if (!mkcl_Null(eof_errorp)) {
+      mkcl_FEend_of_file(env, strm);
+    }
+    mkcl_return_value(eof_value);
+  }
+}
+
+mkcl_object mk_cl_listen(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object strm = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'listen', narg, 0, narg, &strm);
+
+    strm = stream_or_default_input(env, strm);
+    mkcl_return_value(((mkcl_listen_stream(env, strm) == MKCL_LISTEN_AVAILABLE) ? mk_cl_Ct : mk_cl_Cnil));
+  }
+}
+
+mkcl_object mk_cl_read_char_no_hang(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    int f;
+    mkcl_object strm = mk_cl_Cnil;
+    mkcl_object eof_errorp = mk_cl_Ct;
+    mkcl_object eof_value = mk_cl_Cnil;
+    mkcl_object recursivep = mk_cl_Cnil;
+    MKCL_RECEIVE_4_OPTIONAL_ARGUMENTS(env, @'read-char-no-hang', narg, 0, narg, &strm, &eof_errorp, &eof_value, &recursivep);
+
+    strm = stream_or_default_input(env, strm);
+    if (mkcl_type_of(strm) != mkcl_t_stream) {
+      mkcl_object output = mkcl_funcall1(env, @+'gray::stream-read-char-no-hang', strm);
+      if (output == @':eof')
+        goto END_OF_FILE;
+      mkcl_return_value(output);
+    }
+    f = mkcl_listen_stream(env, strm);
+    if (f == MKCL_LISTEN_AVAILABLE) {
+      mkcl_character c = mkcl_read_char(env, strm);
+      if (c != EOF) {
+        mkcl_return_value(MKCL_CODE_CHAR(c));
+      }
+    } else if (f == MKCL_LISTEN_NO_CHAR) {
+      mkcl_return_value(@'nil');
+    }
+    /* We reach here if there was an EOF */
+  END_OF_FILE:
     if (mkcl_Null(eof_errorp))
       { mkcl_return_value(eof_value); }
     else
-      mkcl_FEend_of_file(env, binary_input_stream);
+      mkcl_FEend_of_file(env, strm);
   }
-  mkcl_return_value(c);
-@)
+}
 
-@(defun read_sequence (sequence stream &key (start MKCL_MAKE_FIXNUM(0)) end)
-@
-  if (mkcl_type_of(stream) != mkcl_t_stream)
-    return mkcl_funcall4(env, @+'gray::stream-read-sequence', stream, sequence, start, end);
-  else
-    return mk_si_do_read_sequence(env, sequence, stream, start, end);
-@)
+mkcl_object mk_cl_clear_input(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object strm = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'clear-input', narg, 0, narg, &strm);
 
-
-@(defun copy_readtable (&o (from mkcl_current_readtable(env)) to)
-@
-  if (mkcl_Null(from)) {
-    to = mkcl_copy_readtable(env, mkcl_core.standard_readtable, to);
-  } else {
-    to = mkcl_copy_readtable(env, from, to);
+    strm = stream_or_default_input(env, strm);
+    mkcl_clear_input(env, strm);
+    mkcl_return_value(mk_cl_Cnil);
   }
-  mkcl_return_value(to);
-@)
+}
+
+mkcl_object mk_cl_parse_integer(MKCL, mkcl_narg narg, mkcl_object strng, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+  
+    mkcl_object x = mk_cl_Cnil;
+    mkcl_index s, e, ep;
+    mkcl_object rtbl = mkcl_current_readtable(env);
+    mkcl_object start = MKCL_MAKE_FIXNUM(0);
+    mkcl_object end = mk_cl_Cnil;
+    mkcl_object radix = MKCL_MAKE_FIXNUM(10);
+    mkcl_object junk_allowed = mk_cl_Cnil;
+    MKCL_RECEIVE_4_KEYWORD_ARGUMENTS(env, @'parse-integer', narg, 1, strng, @':start', &start, @':end', &end, @':radix', &radix, @':junk-allowed', &junk_allowed);
+
+    {
+      strng = mkcl_check_type_string(env, @'parse-integer', strng);
+      mkcl_get_string_start_end(env, strng, start, end, &s, &e);
+      if (!MKCL_FIXNUMP(radix) ||
+          mkcl_fixnum_to_word(radix) < 2 || mkcl_fixnum_to_word(radix) > 36)
+        mkcl_FEerror(env, "~S is an illegal radix.", 1, radix);
+      while (s < e && mkcl_readtable_get(env, rtbl, mkcl_char(env, strng, s), NULL) == mkcl_cat_whitespace) s++;
+      if (s >= e) {
+        if (junk_allowed != mk_cl_Cnil)
+          { mkcl_return_2_values(mk_cl_Cnil, MKCL_MAKE_FIXNUM(s)); }
+        else
+          goto CANNOT_PARSE;
+      }
+      x = mkcl_parse_integer(env, strng, s, e, &ep, mkcl_fixnum_to_word(radix));
+      if (x == MKCL_OBJNULL) {
+        if (junk_allowed != mk_cl_Cnil) {
+          mkcl_return_2_values(mk_cl_Cnil, MKCL_MAKE_FIXNUM(ep));
+        } else {
+          goto CANNOT_PARSE;
+        }
+      }
+      if (junk_allowed != mk_cl_Cnil) {
+        mkcl_return_2_values(x, MKCL_MAKE_FIXNUM(ep));
+      }
+      for (s = ep; s < e; s++)
+        {
+          if (mkcl_readtable_get(env, rtbl, mkcl_char(env, strng, s), NULL) != mkcl_cat_whitespace)
+            {
+            CANNOT_PARSE:		
+              mkcl_FEparse_error(env, "Cannot parse an integer in the string ~S.",
+                                 mk_cl_Cnil, 1, strng);
+            }
+        }
+      mkcl_return_2_values(x, MKCL_MAKE_FIXNUM(e));
+    }
+  }
+}
+
+mkcl_object mk_cl_read_byte(MKCL, mkcl_narg narg, mkcl_object binary_input_stream, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object c;
+    mkcl_object eof_errorp = mk_cl_Ct;
+    mkcl_object eof_value = mk_cl_Cnil;
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, @'read-byte', narg, 1, binary_input_stream, &eof_errorp, &eof_value);
+
+    c = mkcl_read_byte(env, binary_input_stream);
+    if (c == mk_cl_Cnil) {
+      if (mkcl_Null(eof_errorp))
+        { mkcl_return_value(eof_value); }
+      else
+        mkcl_FEend_of_file(env, binary_input_stream);
+    }
+    mkcl_return_value(c);
+  }
+}
+
+mkcl_object mk_cl_read_sequence(MKCL, mkcl_narg narg, mkcl_object sequence, mkcl_object stream, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+
+    mkcl_object start = MKCL_MAKE_FIXNUM(0);
+    mkcl_object end = mk_cl_Cnil;
+
+    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, @'read-sequence', narg, 2, stream, @':start', &start, @':end', &end);
+
+    if (mkcl_type_of(stream) != mkcl_t_stream)
+      return mkcl_funcall4(env, @+'gray::stream-read-sequence', stream, sequence, start, end);
+    else
+      return mk_si_do_read_sequence(env, sequence, stream, start, end);
+  }
+}
+
+
+mkcl_object mk_cl_copy_readtable(MKCL, mkcl_narg narg, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object from = ((narg == 0) ? mkcl_current_readtable(env) : mk_cl_Cnil);
+    mkcl_object to = mk_cl_Cnil;
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, @'copy-readtable', narg, 0, narg, &from, &to);
+
+    if (mkcl_Null(from)) {
+      to = mkcl_copy_readtable(env, mkcl_core.standard_readtable, to);
+    } else {
+      to = mkcl_copy_readtable(env, from, to);
+    }
+    mkcl_return_value(to);
+  }
+}
 
 mkcl_object
 mk_cl_readtable_case(MKCL, mkcl_object r)
@@ -2026,153 +2167,187 @@ mkcl_invalid_constituent_character_p(mkcl_character c)
   return (c <= 32) || (c == 127);
 }
 
-@(defun set_syntax_from_char (tochr fromchr
-			      &o (tordtbl mkcl_current_readtable(env))
-				 fromrdtbl)
-	enum mkcl_chattrib cat;
-	mkcl_object dispatch;
-	mkcl_word fc, tc;
-@
-  volatile bool locked = false;
+mkcl_object mk_cl_set_syntax_from_char(MKCL, mkcl_narg narg, mkcl_object tochr, mkcl_object fromchr, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    enum mkcl_chattrib cat;
+    mkcl_object dispatch;
+    mkcl_word fc, tc;
+    mkcl_object tordtbl = ((narg == 2) ? mkcl_current_readtable(env) : mk_cl_Cnil);
+    mkcl_object fromrdtbl = mk_cl_Cnil;
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, @'set-syntax-from-char', narg, 2, fromchr, &tordtbl, &fromrdtbl);
 
-  if (mkcl_Null(fromrdtbl))
-    fromrdtbl = mkcl_core.standard_readtable;
-  mkcl_assert_type_readtable(env, fromrdtbl);
-  mkcl_assert_type_readtable(env, tordtbl);
-  fc = mkcl_char_code(env, fromchr);
-  tc = mkcl_char_code(env, tochr);
+    volatile bool locked = false;
 
-  MKCL_UNWIND_PROTECT_BEGIN(env) {
-    mkcl_interrupt_status old_intr;
+    if (mkcl_Null(fromrdtbl))
+      fromrdtbl = mkcl_core.standard_readtable;
+    mkcl_assert_type_readtable(env, fromrdtbl);
+    mkcl_assert_type_readtable(env, tordtbl);
+    fc = mkcl_char_code(env, fromchr);
+    tc = mkcl_char_code(env, tochr);
 
-    mkcl_get_interrupt_status(env, &old_intr);
-    mkcl_disable_interrupts(env);
-    READTABLE_LOCK(fromrdtbl); locked = true;
-    mkcl_set_interrupt_status(env, &old_intr);
+    MKCL_UNWIND_PROTECT_BEGIN(env) {
+      mkcl_interrupt_status old_intr;
 
-    cat = mkcl_readtable_get(env, fromrdtbl, fc, &dispatch);
-    if (mkcl_type_of(dispatch) == mkcl_t_hashtable) {
-      dispatch = mk_si_copy_hash_table(env, dispatch);
-    }
-  } MKCL_UNWIND_PROTECT_EXIT {
-    if (locked) READTABLE_UNLOCK(fromrdtbl);
-  } MKCL_UNWIND_PROTECT_END;
-  mkcl_readtable_set(env, tordtbl, tc, cat, dispatch);
-  mkcl_return_value(mk_cl_Ct);
-@)
+      mkcl_get_interrupt_status(env, &old_intr);
+      mkcl_disable_interrupts(env);
+      READTABLE_LOCK(fromrdtbl); locked = true;
+      mkcl_set_interrupt_status(env, &old_intr);
 
-@(defun set_macro_character (c function &optional non_terminating_p
-			     (readtable mkcl_current_readtable(env)))
-@
-  if (mkcl_Null(readtable))
-    readtable = mkcl_core.standard_readtable;
-  else
+      cat = mkcl_readtable_get(env, fromrdtbl, fc, &dispatch);
+      if (mkcl_type_of(dispatch) == mkcl_t_hashtable) {
+        dispatch = mk_si_copy_hash_table(env, dispatch);
+      }
+    } MKCL_UNWIND_PROTECT_EXIT {
+      if (locked) READTABLE_UNLOCK(fromrdtbl);
+    } MKCL_UNWIND_PROTECT_END;
+    mkcl_readtable_set(env, tordtbl, tc, cat, dispatch);
+    mkcl_return_value(mk_cl_Ct);
+  }
+}
+
+mkcl_object mk_cl_set_macro_character(MKCL, mkcl_narg narg, mkcl_object c, mkcl_object function, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object non_terminating_p = mk_cl_Cnil;
+    mkcl_object readtable = (((narg == 2) || (narg == 3)) ? mkcl_current_readtable(env) : mk_cl_Cnil);
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, @'set-macro-character', narg, 2, function, &non_terminating_p, &readtable);
+
+    if (mkcl_Null(readtable))
+      readtable = mkcl_core.standard_readtable;
+    else
+      mkcl_assert_type_readtable(env, readtable);
+    mkcl_readtable_set(env, readtable, mkcl_char_code(env, c),
+                       mkcl_Null(non_terminating_p)
+                       ? mkcl_cat_terminating
+                       : mkcl_cat_non_terminating,
+                       function);
+    mkcl_return_value(mk_cl_Ct);
+  }
+}
+
+mkcl_object mk_cl_get_macro_character(MKCL, mkcl_narg narg, mkcl_object c, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    enum mkcl_chattrib cat;
+    mkcl_object dispatch;
+    mkcl_object readtable = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'get-macro-character', narg, 1, c, &readtable);
+
+    if (mkcl_Null(readtable))
+      readtable = mkcl_core.standard_readtable;
+    else
+      mkcl_assert_type_readtable(env, readtable);
+    cat = mkcl_readtable_get(env, readtable, mkcl_char_code(env, c), &dispatch);
+    if (mkcl_type_of(dispatch) == mkcl_t_hashtable)
+      dispatch = mkcl_core.dispatch_reader;
+    mkcl_return_2_values(dispatch, ((cat == mkcl_cat_non_terminating) ? mk_cl_Ct : mk_cl_Cnil));
+  }
+}
+
+mkcl_object mk_cl_make_dispatch_macro_character(MKCL, mkcl_narg narg, mkcl_object chr, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+
+    enum mkcl_chattrib cat;
+    mkcl_object table;
+    int c;
+    mkcl_object non_terminating_p = mk_cl_Cnil;
+    mkcl_object readtable = (((narg == 1) || (narg == 2)) ? mkcl_current_readtable(env) : mk_cl_Cnil);
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, @'make-dispatch-macro-character', narg, 1, chr, &non_terminating_p, &readtable);
+
     mkcl_assert_type_readtable(env, readtable);
-  mkcl_readtable_set(env, readtable, mkcl_char_code(env, c),
-		     mkcl_Null(non_terminating_p)
-		     ? mkcl_cat_terminating
-		     : mkcl_cat_non_terminating,
-		     function);
-  mkcl_return_value(mk_cl_Ct);
-@)
+    c = mkcl_char_code(env, chr);
+    cat = mkcl_Null(non_terminating_p)? mkcl_cat_terminating : mkcl_cat_non_terminating;
+    table = mk_cl__make_hash_table(env, @'eql', MKCL_MAKE_FIXNUM(128),
+                                   mkcl_make_singlefloat(env, 1.5f),
+                                   mkcl_make_singlefloat(env, 0.5f));
+    mkcl_readtable_set(env, readtable, c, cat, table);
+    mkcl_return_value(mk_cl_Ct);
+  }
+}
 
-@(defun get_macro_character (c &optional readtable)
-  enum mkcl_chattrib cat;
-  mkcl_object dispatch;
-@
-  if (mkcl_Null(readtable))
-    readtable = mkcl_core.standard_readtable;
-  else
+mkcl_object mk_cl_set_dispatch_macro_character(MKCL, mkcl_narg narg, mkcl_object dspchr, mkcl_object subchr, mkcl_object fnc, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object table;
+    mkcl_word subcode;
+    mkcl_object readtable = ((narg == 3) ? mkcl_current_readtable(env) : mk_cl_Cnil);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'set-dispatch-macro-character', narg, 3, fnc, &readtable);
+
+    volatile bool locked = false;
+
+    if (mkcl_Null(readtable))
+      readtable = mkcl_core.standard_readtable;
     mkcl_assert_type_readtable(env, readtable);
-  cat = mkcl_readtable_get(env, readtable, mkcl_char_code(env, c), &dispatch);
-  if (mkcl_type_of(dispatch) == mkcl_t_hashtable)
-    dispatch = mkcl_core.dispatch_reader;
-  mkcl_return_2_values(dispatch, ((cat == mkcl_cat_non_terminating) ? mk_cl_Ct : mk_cl_Cnil));
-@)
-
-@(defun make_dispatch_macro_character (chr
-	&optional non_terminating_p (readtable mkcl_current_readtable(env)))
-	enum mkcl_chattrib cat;
-	mkcl_object table;
-	int c;
-@
-  mkcl_assert_type_readtable(env, readtable);
-  c = mkcl_char_code(env, chr);
-  cat = mkcl_Null(non_terminating_p)? mkcl_cat_terminating : mkcl_cat_non_terminating;
-  table = mk_cl__make_hash_table(env, @'eql', MKCL_MAKE_FIXNUM(128),
-				 mkcl_make_singlefloat(env, 1.5f),
-				 mkcl_make_singlefloat(env, 0.5f));
-  mkcl_readtable_set(env, readtable, c, cat, table);
-  mkcl_return_value(mk_cl_Ct);
-@)
-
-@(defun set_dispatch_macro_character (dspchr subchr fnc
-				      &optional (readtable mkcl_current_readtable(env)))
-  mkcl_object table;
-  mkcl_word subcode;
-@
-  volatile bool locked = false;
-
-  if (mkcl_Null(readtable))
-    readtable = mkcl_core.standard_readtable;
-  mkcl_assert_type_readtable(env, readtable);
-  mkcl_readtable_get(env, readtable, mkcl_char_code(env, dspchr), &table);
-  if (mkcl_type_of(table) != mkcl_t_hashtable) {
-    mkcl_FEerror(env, "~S is not a dispatch character.", 1, dspchr);
-  }
-
-  MKCL_UNWIND_PROTECT_BEGIN(env) {
-    mkcl_interrupt_status old_intr;
-
-    mkcl_get_interrupt_status(env, &old_intr);
-    mkcl_disable_interrupts(env);
-    READTABLE_LOCK(readtable); locked = true;
-    mkcl_set_interrupt_status(env, &old_intr);
-
-    subcode = mkcl_char_code(env, subchr);
-    if (mkcl_Null(fnc)) {
-      mkcl_remhash(env, MKCL_CODE_CHAR(subcode), table);
-    } else {
-      mkcl_sethash(env, MKCL_CODE_CHAR(subcode), table, fnc);
+    mkcl_readtable_get(env, readtable, mkcl_char_code(env, dspchr), &table);
+    if (mkcl_type_of(table) != mkcl_t_hashtable) {
+      mkcl_FEerror(env, "~S is not a dispatch character.", 1, dspchr);
     }
-    if (mkcl_lower_case_p(subcode)) {
-      subcode = mkcl_char_upcase(subcode);
-    } else if (mkcl_upper_case_p(subcode)) {
-      subcode = mkcl_char_downcase(subcode);
-    }
-    if (mkcl_Null(fnc)) {
-      mkcl_remhash(env, MKCL_CODE_CHAR(subcode), table);
-    } else {
-      mkcl_sethash(env, MKCL_CODE_CHAR(subcode), table, fnc);
-    }
-  } MKCL_UNWIND_PROTECT_EXIT {
-    if (locked) READTABLE_UNLOCK(readtable);
-  } MKCL_UNWIND_PROTECT_END;
-  mkcl_return_value(mk_cl_Ct);
-@)
 
-@(defun get_dispatch_macro_character (dspchr subchr
-				      &optional (readtable mkcl_current_readtable(env)))
-  mkcl_object table;
-  mkcl_word c;
-@
-  if (mkcl_Null(readtable)) {
-    readtable = mkcl_core.standard_readtable;
+    MKCL_UNWIND_PROTECT_BEGIN(env) {
+      mkcl_interrupt_status old_intr;
+
+      mkcl_get_interrupt_status(env, &old_intr);
+      mkcl_disable_interrupts(env);
+      READTABLE_LOCK(readtable); locked = true;
+      mkcl_set_interrupt_status(env, &old_intr);
+
+      subcode = mkcl_char_code(env, subchr);
+      if (mkcl_Null(fnc)) {
+        mkcl_remhash(env, MKCL_CODE_CHAR(subcode), table);
+      } else {
+        mkcl_sethash(env, MKCL_CODE_CHAR(subcode), table, fnc);
+      }
+      if (mkcl_lower_case_p(subcode)) {
+        subcode = mkcl_char_upcase(subcode);
+      } else if (mkcl_upper_case_p(subcode)) {
+        subcode = mkcl_char_downcase(subcode);
+      }
+      if (mkcl_Null(fnc)) {
+        mkcl_remhash(env, MKCL_CODE_CHAR(subcode), table);
+      } else {
+        mkcl_sethash(env, MKCL_CODE_CHAR(subcode), table, fnc);
+      }
+    } MKCL_UNWIND_PROTECT_EXIT {
+      if (locked) READTABLE_UNLOCK(readtable);
+    } MKCL_UNWIND_PROTECT_END;
+    mkcl_return_value(mk_cl_Ct);
   }
-  mkcl_assert_type_readtable(env, readtable);
-  c = mkcl_char_code(env, dspchr);
-  mkcl_readtable_get(env, readtable, c, &table);
-  if (mkcl_type_of(table) != mkcl_t_hashtable) {
-    mkcl_FEerror(env, "~S is not a dispatch character.", 1, dspchr);
-  }
-  c = mkcl_char_code(env, subchr);
+}
+
+mkcl_object mk_cl_get_dispatch_macro_character(MKCL, mkcl_narg narg, mkcl_object dspchr, mkcl_object subchr, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object table;
+    mkcl_word c;
+    mkcl_object readtable = ((narg == 2) ? mkcl_current_readtable(env) : mk_cl_Cnil);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'get-dispatch-macro-character', narg, 2, subchr, &readtable);
+
+    if (mkcl_Null(readtable)) {
+      readtable = mkcl_core.standard_readtable;
+    }
+    mkcl_assert_type_readtable(env, readtable);
+    c = mkcl_char_code(env, dspchr);
+    mkcl_readtable_get(env, readtable, c, &table);
+    if (mkcl_type_of(table) != mkcl_t_hashtable) {
+      mkcl_FEerror(env, "~S is not a dispatch character.", 1, dspchr);
+    }
+    c = mkcl_char_code(env, subchr);
   
-  /* Since macro characters may take a number as argument, it is
-     not allowed to turn digits into dispatch macro characters */
-  if (mkcl_digitp(c, 10) >= 0)
-    { mkcl_return_value(mk_cl_Cnil); }
-  mkcl_return_value(mkcl_gethash_safe(env, subchr, table, mk_cl_Cnil));
-@)
+    /* Since macro characters may take a number as argument, it is
+       not allowed to turn digits into dispatch macro characters */
+    if (mkcl_digitp(c, 10) >= 0)
+      { mkcl_return_value(mk_cl_Cnil); }
+    mkcl_return_value(mkcl_gethash_safe(env, subchr, table, mk_cl_Cnil));
+  }
+}
 
 mkcl_object
 mkcl_fast_read_from_cstring(MKCL, char *s)

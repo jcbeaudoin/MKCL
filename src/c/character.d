@@ -116,14 +116,19 @@ mkcl_string_case(const mkcl_object str)
   else return str_case;
 }
 
-@(defun digit_char_p (c &optional (radix MKCL_MAKE_FIXNUM(10)))
-@
+mkcl_object mk_cl_digit_char_p(MKCL, mkcl_narg narg, mkcl_object c, ...)
+{
+  mkcl_call_stack_check(env);
   {
-    mkcl_word basis = mkcl_fixnum_in_range(env, @'digit-char-p',"radix", radix, 2, 36);
-    mkcl_word value = mkcl_digitp(mkcl_char_code(env, c), basis);
-    mkcl_return_value(((value < 0)? mk_cl_Cnil: MKCL_MAKE_FIXNUM(value)));
-  } 
-@)
+    mkcl_object radix = MKCL_MAKE_FIXNUM(10);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'digit-char-p', narg, 1, c, &radix);
+    {
+      mkcl_word basis = mkcl_fixnum_in_range(env, @'digit-char-p',"radix", radix, 2, 36);
+      mkcl_word value = mkcl_digitp(mkcl_char_code(env, c), basis);
+      mkcl_return_value(((value < 0)? mk_cl_Cnil: MKCL_MAKE_FIXNUM(value)));
+    }
+  }
+}
 
 /*
 	Mkcl_Digitp(i, r) returns the weight of code i
@@ -494,30 +499,38 @@ mk_cl_char_downcase(MKCL, mkcl_object c)
   mkcl_return_value(MKCL_CODE_CHAR(mkcl_char_downcase(code)));
 }
 
-@(defun digit_char (weight &optional (radix MKCL_MAKE_FIXNUM(10)))
-@ {
-    mkcl_word basis = mkcl_fixnum_in_range(env, @'digit-char',"radix",radix,2,36);
-    mkcl_object output = mk_cl_Cnil;
-  AGAIN:
-    switch (mkcl_type_of(weight)) {
-    case mkcl_t_fixnum: {
-      mkcl_word value = mkcl_fixnum_to_word(weight);
-      if (value >= 0) {
-	int dw = mkcl_digit_char(value, basis);
-	if (dw >= 0) {
-	  output = MKCL_CODE_CHAR(dw);
-	}
+mkcl_object mk_cl_digit_char(MKCL, mkcl_narg narg, mkcl_object weight, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object radix = MKCL_MAKE_FIXNUM(10);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'digit-char', narg, 1, weight, &radix);
+
+    {
+      mkcl_word basis = mkcl_fixnum_in_range(env, @'digit-char',"radix",radix,2,36);
+      mkcl_object output = mk_cl_Cnil;
+    AGAIN:
+      switch (mkcl_type_of(weight)) {
+      case mkcl_t_fixnum: {
+        mkcl_word value = mkcl_fixnum_to_word(weight);
+        if (value >= 0) {
+          int dw = mkcl_digit_char(value, basis);
+          if (dw >= 0) {
+            output = MKCL_CODE_CHAR(dw);
+          }
+        }
+        break;
       }
-      break;
+      case mkcl_t_bignum:
+        break;
+      default:
+        weight = mkcl_type_error(env, @'digit-char',"weight",weight,@'integer');
+        goto AGAIN;
+      }
+      mkcl_return_value(output);
     }
-    case mkcl_t_bignum:
-      break;
-    default:
-      weight = mkcl_type_error(env, @'digit-char',"weight",weight,@'integer');
-      goto AGAIN;
-    }
-    mkcl_return_value(output);
-  } @)
+  }
+}
 
 short
 mkcl_digit_char(mkcl_word w, mkcl_word r)

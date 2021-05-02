@@ -4,7 +4,7 @@
 */
 /*
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2013, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2013,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -724,50 +724,63 @@ void mkcl_fficall_align16(MKCL)
   fficall->buffer_sp = (char *) (((intptr_t) (fficall->buffer_sp + 0xF)) & ~((uintptr_t)0xF));
 }
 
-@(defun si::call-cfun (fun return_type arg_types args &optional (cc_type @':cdecl'))
-  void *cfun = mkcl_foreign_raw_pointer(env, fun);
-  enum mkcl_ffi_tag return_type_tag = mkcl_foreign_type_code(env, return_type);
-@
-  struct mkcl_fficall *fficall = mkcl_fficall_prepare(env, return_type, arg_types, cc_type);
+mkcl_object mk_si_call_cfun(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_object return_type, mkcl_object arg_types, mkcl_object args, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    void *cfun = mkcl_foreign_raw_pointer(env, fun);
+    enum mkcl_ffi_tag return_type_tag = mkcl_foreign_type_code(env, return_type);
+    mkcl_object cc_type = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'si::call-cfun', narg, 4, args, &cc_type);
 
-  while (MKCL_CONSP(arg_types)) {
-    mkcl_object object;
-    enum mkcl_ffi_tag type;
-    if (!MKCL_CONSP(args)) {
-      mkcl_FEerror(env, "In SI:CALL-CFUN, mismatch between argument types and argument list: ~A vs ~A", 0);
-    }
-    type = mkcl_foreign_type_code(env, MKCL_CAR(arg_types));
-    if (type == MKCL_FFI_CSTRING) {
-      object = mkcl_null_terminated_base_string(env, MKCL_CAR(args));
-    } else {
-      object = MKCL_CAR(args);
-    }
-    mkcl_foreign_set_elt(env, &fficall->output, type, object);
-    mkcl_fficall_push_arg(env, &fficall->output, type);
-    arg_types = MKCL_CDR(arg_types);
-    args = MKCL_CDR(args);
-  }
-  mkcl_fficall_execute(env, cfun, fficall, return_type_tag);
+    struct mkcl_fficall *fficall = mkcl_fficall_prepare(env, return_type, arg_types, cc_type);
 
-  if (return_type_tag == MKCL_FFI_VOID)
-    { mkcl_return_no_value; }
-  else
-    {
-      mkcl_object return_value = mkcl_foreign_ref_elt(env, &fficall->output, return_type_tag);
+    while (MKCL_CONSP(arg_types)) {
+      mkcl_object object;
+      enum mkcl_ffi_tag type;
+      if (!MKCL_CONSP(args)) {
+        mkcl_FEerror(env, "In SI:CALL-CFUN, mismatch between argument types and argument list: ~A vs ~A", 0);
+      }
+      type = mkcl_foreign_type_code(env, MKCL_CAR(arg_types));
+      if (type == MKCL_FFI_CSTRING) {
+        object = mkcl_null_terminated_base_string(env, MKCL_CAR(args));
+      } else {
+        object = MKCL_CAR(args);
+      }
+      mkcl_foreign_set_elt(env, &fficall->output, type, object);
+      mkcl_fficall_push_arg(env, &fficall->output, type);
+      arg_types = MKCL_CDR(arg_types);
+      args = MKCL_CDR(args);
+    }
+    mkcl_fficall_execute(env, cfun, fficall, return_type_tag);
+
+    if (return_type_tag == MKCL_FFI_VOID)
+      { mkcl_return_no_value; }
+    else
+      {
+        mkcl_object return_value = mkcl_foreign_ref_elt(env, &fficall->output, return_type_tag);
   
-      fficall->buffer_sp = fficall->buffer;  
-      mkcl_return_value(return_value);
-    }
-@)
+        fficall->buffer_sp = fficall->buffer;  
+        mkcl_return_value(return_value);
+      }
+  }
+}
 
-@(defun si::make-dynamic-callback (fun sym rtype argtypes &optional (cctype @':cdecl'))
-	mkcl_object data;
-	mkcl_object cbk;
-@
-  data = mk_cl_list(env, 3, fun, rtype, argtypes);
-  cbk  = mkcl_make_foreign(env, @':void', 0, mkcl_dynamic_callback_make(env, data, mkcl_foreign_cc_code(env, cctype)));
+mkcl_object mk_si_make_dynamic_callback(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_object sym, mkcl_object rtype, mkcl_object argtypes, ...)
+{
+  mkcl_call_stack_check(env);
+  {
 
-  mk_si_put_sysprop(env, sym, @':callback', MKCL_CONS(env, cbk, data));
-  mkcl_return_value(cbk);
-@)
+    mkcl_object data;
+    mkcl_object cbk;
+    mkcl_object cctype = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'si::make-dynamic-callback', narg, 4, argtypes, &cctype);
+
+    data = mk_cl_list(env, 3, fun, rtype, argtypes);
+    cbk  = mkcl_make_foreign(env, @':void', 0, mkcl_dynamic_callback_make(env, data, mkcl_foreign_cc_code(env, cctype)));
+
+    mk_si_put_sysprop(env, sym, @':callback', MKCL_CONS(env, cbk, data));
+    mkcl_return_value(cbk);
+  }
+}
 

@@ -5,7 +5,7 @@
 /*
     Copyright (c) 1990, Giuseppe Attardi and William F. Schelter.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2017, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2017,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -537,146 +537,160 @@ mk_si_load_source(MKCL, mkcl_object source, mkcl_object verbose, mkcl_object pri
   mkcl_return_value(mk_cl_Cnil);
 }
 
-@(defun load (source
-	      &key (verbose mkcl_symbol_value(env, @'*load-verbose*'))
-	      (print mkcl_symbol_value(env, @'*load-print*'))
-	      (if_does_not_exist @':error')
-	      (external_format @':default')
-	      (search_list mkcl_symbol_value(env, @'si::*load-search-list*')))
-  mkcl_object pathname = mk_cl_Cnil;
-  mkcl_object pntype = mk_cl_Cnil;
-  mkcl_object hooks = mk_cl_Cnil;
-  mkcl_object filename = mk_cl_Cnil;
-  mkcl_object function = mk_cl_Cnil;
-  mkcl_object ok = mk_cl_Cnil;
-  bool not_a_filename = 0;
-@
-  ok = mk_cl_Cnil;
-  /* If source is a stream, read conventional lisp code from it */
-  if (mkcl_type_of(source) != mkcl_t_pathname && !mkcl_stringp(env, source)) {
-    /* INV: if "source" is not a valid stream, file.d will complain */
-    filename = source;
-    function = mk_cl_Cnil;
-    not_a_filename = 1;
-    goto NOT_A_FILENAME;
-  }
-  /* INV: mkcl_coerce_to_file_pathname() creates a fresh new pathname object */
-#if 0
-  source   = mk_cl_merge_pathnames(env, 1, source); /* will be done by mkcl_coerce_to_file_pathname(). */
-#endif
-  pathname = mkcl_coerce_to_file_pathname(env, source);
-  pntype   = pathname->pathname.type;
-  
-  filename = mk_cl_Cnil;
-  hooks = mkcl_symbol_value(env, @'si::*load-hooks*');
-  if (mkcl_Null(pathname->pathname.directory) &&
-      (mkcl_Null(pathname->pathname.host) || mkcl_string_E(env, pathname->pathname.host, mkcl_core.localhost_string)) &&
-      (mkcl_Null(pathname->pathname.device) || (pathname->pathname.device == @':unspecific')) &&
-      !mkcl_Null(search_list))
-    {
-      mkcl_loop_for_in(env, search_list) {
-	mkcl_object d = MKCL_CAR(search_list);
-	mkcl_object f = mk_cl_merge_pathnames(env, 2, pathname, d);
-	mkcl_object ok = mk_cl_load(env, 11,
-				    f,
-				    @':verbose', verbose,
-				    @':print', print,
-				    @':if-does-not-exist', mk_cl_Cnil,
-				    @':external-format', external_format,
-				    @':search-list', mk_cl_Cnil);
-	if (!mkcl_Null(ok)) {
-	  mkcl_return_value(ok);
-	}
-      } mkcl_end_loop_for_in;
-    }
-  if (!mkcl_Null(pntype) && (pntype != @':wild')) {
-    /* If filename already has an extension, make sure that the file exists */
-    filename = mk_si_coerce_to_filename(env, pathname);
-    if (mkcl_Null(mk_cl_probe_file(env, filename)))
-      filename = mk_cl_Cnil;
-    else
+mkcl_object mk_cl_load(MKCL, mkcl_narg narg, mkcl_object source, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object pathname = mk_cl_Cnil;
+    mkcl_object pntype = mk_cl_Cnil;
+    mkcl_object hooks = mk_cl_Cnil;
+    mkcl_object filename = mk_cl_Cnil;
+    mkcl_object function = mk_cl_Cnil;
+    mkcl_object ok = mk_cl_Cnil;
+    bool not_a_filename = 0;
+
+    mkcl_object verbose = mkcl_symbol_value(env, @'*load-verbose*');
+    mkcl_object print = mkcl_symbol_value(env, @'*load-print*');
+    mkcl_object if_does_not_exist = @':error';
+    mkcl_object external_format = @':default';
+    mkcl_object search_list = mkcl_symbol_value(env, @'si::*load-search-list*');
+    struct mkcl_key_param_spec key_params[] =
       {
-	mkcl_object kind = mk_si_file_kind(env, 3, filename, @':follow-symlinks', mk_cl_Ct);
-	if (kind != @':file' && kind != @':special') {
-	  /* :special really!? What is hiding under that? A pipe, a socket maybe?
-	     :special is probably too broad. JCB */
-	  filename = mk_cl_Cnil;
-	} else {
-	  function = mk_cl_cdr(env, mkcl_assoc(env, pathname->pathname.type, hooks));
-	}
-      }
-  } else mkcl_loop_for_in(env, hooks) {
-      /* Otherwise try with known extensions until a matching file is found */
-      filename = pathname;
-      filename->pathname.type = MKCL_CAAR(hooks);
-      function = MKCL_CDAR(hooks);
-      if (mkcl_Null(mk_cl_probe_file(env, filename)))
-	filename = mk_cl_Cnil;
-      else
-	{
-	  mkcl_object kind = mk_si_file_kind(env, 3, filename, @':follow-symlinks', mk_cl_Ct);
-	  if (kind == @':file' || kind == @':special')
-	    /* :special really!? What is hiding under that? A pipe, a socket maybe?
-	       :special is probably too broad. JCB */
-	    break;
-	  else
-	    filename = mk_cl_Cnil;
-	}
-    } mkcl_end_loop_for_in;
-  if (mkcl_Null(filename)) {
-    if (mkcl_Null(if_does_not_exist))
-      { mkcl_return_value(mk_cl_Cnil); }
-    else
-      mkcl_FEcannot_open(env, source);
-  }
- NOT_A_FILENAME:
-  if (verbose != mk_cl_Cnil) {
-    static const mkcl_base_string_object(loading_str_obj, "~&;;; Loading ~s~%");
-    mk_cl_format(env, 3, mk_cl_Ct, (mkcl_object) &loading_str_obj, filename);
-  }
-  mkcl_bds_bind(env, @'*package*', mkcl_symbol_value(env, @'*package*'));
-  mkcl_bds_bind(env, @'*readtable*', mkcl_symbol_value(env, @'*readtable*'));
-  mkcl_bds_bind(env, @'*load-pathname*', not_a_filename ? mk_cl_Cnil : source);
-  mkcl_bds_bind(env, @'*load-truename*', mk_cl_Cnil);
-  mkcl_bds_push(env, @'si::*dynamic-cons-stack*');
-  mkcl_bds_push(env, @'*default-pathname-defaults*');
-  mkcl_bds_push(env, @'clos::*redefine-class-in-place*');
-  MKCL_SETQ(env, @'*load-truename*', (not_a_filename ? mk_cl_Cnil : (filename = mk_cl_truename(env, filename))));
+       { @':verbose', &verbose, false },
+       { @':print', &print, false },
+       { @':if-does-not-exist', &if_does_not_exist, false },
+       { @':external-format', &external_format, false },
+       { @':search-list', &search_list, false },
+      };
+    MKCL_RECEIVE_N_KEYWORD_ARGUMENTS(env, @'load', narg, 1, source, key_params);
 
-  if (!mkcl_Null(function)) {
-    mkcl_object l_c_lock = mkcl_symbol_value(env, @'mt::+load-compile-lock+');
-    volatile mkcl_object locked = mk_cl_Cnil;
-    MKCL_UNWIND_PROTECT_BEGIN(env) {
-      mkcl_interrupt_status old_intr;
-
-      mkcl_get_interrupt_status(env, &old_intr);
-      mkcl_disable_interrupts(env);
-      locked = mk_mt_get_lock(env, 1, l_c_lock);
-      mkcl_set_interrupt_status(env, &old_intr);
-
-      ok = mkcl_funcall4(env, function, filename, verbose, print, external_format);
-    } MKCL_UNWIND_PROTECT_EXIT {
-      if (!mkcl_Null(locked)) mk_mt_giveup_lock(env, l_c_lock);
-    } MKCL_UNWIND_PROTECT_END;
-  } else {
-    if (not_a_filename) {
-      ok = mk_cl_Ct;
-    } else {
-      ok = mk_si_load_binary(env, filename, verbose, print, external_format);
+    ok = mk_cl_Cnil;
+    /* If source is a stream, read conventional lisp code from it */
+    if (mkcl_type_of(source) != mkcl_t_pathname && !mkcl_stringp(env, source)) {
+      /* INV: if "source" is not a valid stream, file.d will complain */
+      filename = source;
+      function = mk_cl_Cnil;
+      not_a_filename = 1;
+      goto NOT_A_FILENAME;
     }
-    if (!mkcl_Null(ok))
-      ok = mk_si_load_source(env, filename, verbose, print, external_format);
-  }
-  mkcl_bds_unwind_n(env, 7);
+    /* INV: mkcl_coerce_to_file_pathname() creates a fresh new pathname object */
+#if 0
+    source   = mk_cl_merge_pathnames(env, 1, source); /* will be done by mkcl_coerce_to_file_pathname(). */
+#endif
+    pathname = mkcl_coerce_to_file_pathname(env, source);
+    pntype   = pathname->pathname.type;
+  
+    filename = mk_cl_Cnil;
+    hooks = mkcl_symbol_value(env, @'si::*load-hooks*');
+    if (mkcl_Null(pathname->pathname.directory) &&
+        (mkcl_Null(pathname->pathname.host) || mkcl_string_E(env, pathname->pathname.host, mkcl_core.localhost_string)) &&
+        (mkcl_Null(pathname->pathname.device) || (pathname->pathname.device == @':unspecific')) &&
+        !mkcl_Null(search_list))
+      {
+        mkcl_loop_for_in(env, search_list) {
+          mkcl_object d = MKCL_CAR(search_list);
+          mkcl_object f = mk_cl_merge_pathnames(env, 2, pathname, d);
+          mkcl_object ok = mk_cl_load(env, 11,
+                                      f,
+                                      @':verbose', verbose,
+                                      @':print', print,
+                                      @':if-does-not-exist', mk_cl_Cnil,
+                                      @':external-format', external_format,
+                                      @':search-list', mk_cl_Cnil);
+          if (!mkcl_Null(ok)) {
+            mkcl_return_value(ok);
+          }
+        } mkcl_end_loop_for_in;
+      }
+    if (!mkcl_Null(pntype) && (pntype != @':wild')) {
+      /* If filename already has an extension, make sure that the file exists */
+      filename = mk_si_coerce_to_filename(env, pathname);
+      if (mkcl_Null(mk_cl_probe_file(env, filename)))
+        filename = mk_cl_Cnil;
+      else
+        {
+          mkcl_object kind = mk_si_file_kind(env, 3, filename, @':follow-symlinks', mk_cl_Ct);
+          if (kind != @':file' && kind != @':special') {
+            /* :special really!? What is hiding under that? A pipe, a socket maybe?
+               :special is probably too broad. JCB */
+            filename = mk_cl_Cnil;
+          } else {
+            function = mk_cl_cdr(env, mkcl_assoc(env, pathname->pathname.type, hooks));
+          }
+        }
+    } else mkcl_loop_for_in(env, hooks) {
+        /* Otherwise try with known extensions until a matching file is found */
+        filename = pathname;
+        filename->pathname.type = MKCL_CAAR(hooks);
+        function = MKCL_CDAR(hooks);
+        if (mkcl_Null(mk_cl_probe_file(env, filename)))
+          filename = mk_cl_Cnil;
+        else
+          {
+            mkcl_object kind = mk_si_file_kind(env, 3, filename, @':follow-symlinks', mk_cl_Ct);
+            if (kind == @':file' || kind == @':special')
+              /* :special really!? What is hiding under that? A pipe, a socket maybe?
+                 :special is probably too broad. JCB */
+              break;
+            else
+              filename = mk_cl_Cnil;
+          }
+      } mkcl_end_loop_for_in;
+    if (mkcl_Null(filename)) {
+      if (mkcl_Null(if_does_not_exist))
+        { mkcl_return_value(mk_cl_Cnil); }
+      else
+        mkcl_FEcannot_open(env, source);
+    }
+  NOT_A_FILENAME:
+    if (verbose != mk_cl_Cnil) {
+      static const mkcl_base_string_object(loading_str_obj, "~&;;; Loading ~s~%");
+      mk_cl_format(env, 3, mk_cl_Ct, (mkcl_object) &loading_str_obj, filename);
+    }
+    mkcl_bds_bind(env, @'*package*', mkcl_symbol_value(env, @'*package*'));
+    mkcl_bds_bind(env, @'*readtable*', mkcl_symbol_value(env, @'*readtable*'));
+    mkcl_bds_bind(env, @'*load-pathname*', not_a_filename ? mk_cl_Cnil : source);
+    mkcl_bds_bind(env, @'*load-truename*', mk_cl_Cnil);
+    mkcl_bds_push(env, @'si::*dynamic-cons-stack*');
+    mkcl_bds_push(env, @'*default-pathname-defaults*');
+    mkcl_bds_push(env, @'clos::*redefine-class-in-place*');
+    MKCL_SETQ(env, @'*load-truename*', (not_a_filename ? mk_cl_Cnil : (filename = mk_cl_truename(env, filename))));
 
-  if (!mkcl_Null(ok))
-    mkcl_FEerror(env, "LOAD: Could not load file ~S (Error: ~S)", 2, filename, ok);
-  if (print != mk_cl_Cnil) {
-    static const mkcl_base_string_object(loaded_str_obj, "~&;;; Loaded ~s~%");
-    mk_cl_format(env, 3, mk_cl_Ct, (mkcl_object) &loaded_str_obj, filename);
+    if (!mkcl_Null(function)) {
+      mkcl_object l_c_lock = mkcl_symbol_value(env, @'mt::+load-compile-lock+');
+      volatile mkcl_object locked = mk_cl_Cnil;
+      MKCL_UNWIND_PROTECT_BEGIN(env) {
+        mkcl_interrupt_status old_intr;
+
+        mkcl_get_interrupt_status(env, &old_intr);
+        mkcl_disable_interrupts(env);
+        locked = mk_mt_get_lock(env, 1, l_c_lock);
+        mkcl_set_interrupt_status(env, &old_intr);
+
+        ok = mkcl_funcall4(env, function, filename, verbose, print, external_format);
+      } MKCL_UNWIND_PROTECT_EXIT {
+        if (!mkcl_Null(locked)) mk_mt_giveup_lock(env, l_c_lock);
+      } MKCL_UNWIND_PROTECT_END;
+    } else {
+      if (not_a_filename) {
+        ok = mk_cl_Ct;
+      } else {
+        ok = mk_si_load_binary(env, filename, verbose, print, external_format);
+      }
+      if (!mkcl_Null(ok))
+        ok = mk_si_load_source(env, filename, verbose, print, external_format);
+    }
+    mkcl_bds_unwind_n(env, 7);
+
+    if (!mkcl_Null(ok))
+      mkcl_FEerror(env, "LOAD: Could not load file ~S (Error: ~S)", 2, filename, ok);
+    if (print != mk_cl_Cnil) {
+      static const mkcl_base_string_object(loaded_str_obj, "~&;;; Loaded ~s~%");
+      mk_cl_format(env, 3, mk_cl_Ct, (mkcl_object) &loaded_str_obj, filename);
+    }
+    mkcl_return_value(filename);
   }
-  mkcl_return_value(filename);
-@)
+}
 
 mkcl_object mk_si_list_libraries(MKCL)
 {

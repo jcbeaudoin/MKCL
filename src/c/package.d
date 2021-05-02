@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2016, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2016,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -978,11 +978,18 @@ mkcl_unuse_package(MKCL, mkcl_object x, mkcl_object p)
   } MKCL_UNWIND_PROTECT_END;
 }
 
-@(defun make_package (pack_name &key nicknames (use MKCL_CONS(env, mkcl_core.lisp_package, mk_cl_Cnil)))
-@
-  /* INV: mkcl_make_package() performs type checking */
-  mkcl_return_value(mkcl_make_package(env, pack_name, nicknames, use))
-@)
+mkcl_object mk_cl_make_package(MKCL, mkcl_narg narg, mkcl_object pack_name, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object nicknames = mk_cl_Cnil;
+    mkcl_object use = MKCL_CONS(env, mkcl_core.lisp_package, mk_cl_Cnil);
+    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, @'make-package', narg, 1, pack_name, @':nicknames', &nicknames, @':use', &use);
+
+    /* INV: mkcl_make_package() performs type checking */
+    mkcl_return_value(mkcl_make_package(env, pack_name, nicknames, use));
+  }
+}
 
 mkcl_object
 mk_si_select_package(MKCL, mkcl_object pack_name)
@@ -1026,11 +1033,17 @@ mk_cl_package_nicknames(MKCL, mkcl_object p)
   mkcl_return_value(mk_cl_copy_list(env, p->pack.nicknames));
 }
 
-@(defun rename_package (pack new_name &o new_nicknames)
-@
-  /* INV: mkcl_rename_package() type checks and coerces pack to package */
-  mkcl_return_value(mkcl_rename_package(env, pack, new_name, new_nicknames))
-@)
+mkcl_object mk_cl_rename_package(MKCL, mkcl_narg narg, mkcl_object pack, mkcl_object new_name, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object new_nicknames = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'rename-package', narg, 2, new_name, &new_nicknames);
+
+    /* INV: mkcl_rename_package() type checks and coerces pack to package */
+    mkcl_return_value(mkcl_rename_package(env, pack, new_name, new_nicknames));
+  }
+}
 
 mkcl_object
 mk_cl_package_use_list(MKCL, mkcl_object p)
@@ -1096,217 +1109,277 @@ mk_cl_list_all_packages(MKCL)
   mkcl_return_value(packages);
 }
 
-@(defun intern (strng &optional (p mkcl_current_package(env)))
-  mkcl_object sym = mk_cl_Cnil;
-	int intern_flag;
-@
-  sym = mkcl_intern(env, strng, p, &intern_flag);
-  if (intern_flag == MKCL_SYMBOL_IS_INTERNAL)
-    { mkcl_return_2_values(sym, @':internal'); }
-  else if (intern_flag == MKCL_SYMBOL_IS_EXTERNAL)
-    { mkcl_return_2_values(sym, @':external'); }
-  else if (intern_flag == MKCL_SYMBOL_IS_INHERITED)
-    { mkcl_return_2_values(sym, @':inherited'); }
-  else
-    { mkcl_return_2_values(sym, mk_cl_Cnil); }
-@)
+mkcl_object mk_cl_intern(MKCL, mkcl_narg narg, mkcl_object strng, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object sym = mk_cl_Cnil;
+    int intern_flag;
+    mkcl_object p = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'intern', narg, 1, strng, &p);
 
-@(defun find_symbol (strng &optional (p mkcl_current_package(env)))
-	mkcl_object x;
-	int intern_flag;
-@
-  x = mkcl_find_symbol(env, strng, p, &intern_flag);
-  if (intern_flag == MKCL_SYMBOL_IS_INTERNAL)
-    { mkcl_return_2_values(x, @':internal'); }
-  else if (intern_flag == MKCL_SYMBOL_IS_EXTERNAL)
-    { mkcl_return_2_values(x, @':external'); }
-  else if (intern_flag == MKCL_SYMBOL_IS_INHERITED)
-    { mkcl_return_2_values(x, @':inherited'); }
-  else
-    { mkcl_return_2_values(mk_cl_Cnil, mk_cl_Cnil); }
-@)
-
-@(defun unintern (symbl &optional (p mkcl_current_package(env)))
-@
-  mkcl_return_value((mkcl_unintern(env, symbl, p) ? mk_cl_Ct : mk_cl_Cnil));
-@)
-
-@(defun export (symbols &o (pack mkcl_current_package(env)))
-@
-BEGIN:
-  switch (mkcl_type_of(symbols)) {
-  case mkcl_t_symbol:
-    mkcl_export2(env, symbols, pack);
-    break;
-    
-  case mkcl_t_null:
-  case mkcl_t_cons:
-    pack = mk_si_coerce_to_package(env, pack);
-    mkcl_loop_for_in(env, symbols) {
-      mkcl_export2(env, MKCL_CONS_CAR(symbols), pack);
-    } mkcl_end_loop_for_in;
-    break;
-    
-  default:
-    symbols = mkcl_type_error(env, @'export', "argument", symbols,
-			     mk_cl_list(env, 3, @'or', @'symbol', @'list'));
-    goto BEGIN;
+    sym = mkcl_intern(env, strng, p, &intern_flag);
+    if (intern_flag == MKCL_SYMBOL_IS_INTERNAL)
+      { mkcl_return_2_values(sym, @':internal'); }
+    else if (intern_flag == MKCL_SYMBOL_IS_EXTERNAL)
+      { mkcl_return_2_values(sym, @':external'); }
+    else if (intern_flag == MKCL_SYMBOL_IS_INHERITED)
+      { mkcl_return_2_values(sym, @':inherited'); }
+    else
+      { mkcl_return_2_values(sym, mk_cl_Cnil); }
   }
-  mkcl_return_value(mk_cl_Ct);
-@)
+}
 
-@(defun unexport (symbols &o (pack mkcl_current_package(env)))
-@
-BEGIN:
-  switch (mkcl_type_of(symbols)) {
-  case mkcl_t_symbol:
-    mkcl_unexport2(env, symbols, pack);
-    break;
-    
-  case mkcl_t_null:
-  case mkcl_t_cons:
-    pack = mk_si_coerce_to_package(env, pack);
-    mkcl_loop_for_in(env, symbols) {
-      mkcl_unexport2(env, MKCL_CONS_CAR(symbols), pack);
-    } mkcl_end_loop_for_in;
-    break;
-    
-  default:
-    symbols = mkcl_type_error(env, @'unexport', "argument", symbols,
-			     mk_cl_list(env, 3, @'or', @'symbol', @'list'));
-    goto BEGIN;
-  }
-  mkcl_return_value(mk_cl_Ct);
-@)
+mkcl_object mk_cl_find_symbol(MKCL, mkcl_narg narg, mkcl_object strng, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object x;
+    int intern_flag;
+    mkcl_object p = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'find-symbol', narg, 1, strng, &p);
 
-@(defun import (symbols &o (pack mkcl_current_package(env)))
-@
-BEGIN:
-  switch (mkcl_type_of(symbols)) {
-  case mkcl_t_symbol:
-    mkcl_import2(env, symbols, pack);
-    break;
-    
-  case mkcl_t_null:
-  case mkcl_t_cons:
-    pack = mk_si_coerce_to_package(env, pack);
-    mkcl_loop_for_in(env, symbols) {
-      mkcl_import2(env, MKCL_CONS_CAR(symbols), pack);
-    } mkcl_end_loop_for_in;
-    break;
-    
-  default:
-    symbols = mkcl_type_error(env, @'import', "argument", symbols,
-			     mk_cl_list(env, 3, @'or', @'symbol', @'list'));
-    goto BEGIN;
+    x = mkcl_find_symbol(env, strng, p, &intern_flag);
+    if (intern_flag == MKCL_SYMBOL_IS_INTERNAL)
+      { mkcl_return_2_values(x, @':internal'); }
+    else if (intern_flag == MKCL_SYMBOL_IS_EXTERNAL)
+      { mkcl_return_2_values(x, @':external'); }
+    else if (intern_flag == MKCL_SYMBOL_IS_INHERITED)
+      { mkcl_return_2_values(x, @':inherited'); }
+    else
+      { mkcl_return_2_values(mk_cl_Cnil, mk_cl_Cnil); }
   }
-  mkcl_return_value(mk_cl_Ct);
-@)
+}
 
-@(defun shadowing_import (symbols &o (pack mkcl_current_package(env)))
-@
-BEGIN:
-  switch (mkcl_type_of(symbols)) {
-  case mkcl_t_symbol:
-    mkcl_shadowing_import(env, symbols, pack);
-    break;
-    
-  case mkcl_t_null:
-  case mkcl_t_cons:
-    pack = mk_si_coerce_to_package(env, pack);
-    mkcl_loop_for_in(env, symbols) {
-      mkcl_shadowing_import(env, MKCL_CONS_CAR(symbols), pack);
-    } mkcl_end_loop_for_in;
-    break;
-    
-  default:
-    symbols = mkcl_type_error(env, @'shadowing-import', "argument", symbols,
-			     mk_cl_list(env, 3, @'or', @'symbol', @'list'));
-    goto BEGIN;
-  }
-  mkcl_return_value(mk_cl_Ct);
-@)
+mkcl_object mk_cl_unintern(MKCL, mkcl_narg narg, mkcl_object symbl, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object p = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'unintern', narg, 1, symbl, &p);
 
-@(defun shadow (symbols &o (pack mkcl_current_package(env)))
-@
-BEGIN:
-  switch (mkcl_type_of(symbols)) {
-  case mkcl_t_string:
-  case mkcl_t_base_string:
-  case mkcl_t_symbol:
-  case mkcl_t_character:
-    /* Arguments to SHADOW may be: string designators ... */
-    mkcl_shadow(env, symbols, pack);
-    break;
-  case mkcl_t_null:
-  case mkcl_t_cons:
-    /* ... or lists of string designators */
-    pack = mk_si_coerce_to_package(env, pack);
-    mkcl_loop_for_in(env, symbols) {
-      mkcl_shadow(env, MKCL_CONS_CAR(symbols), pack);
-    } mkcl_end_loop_for_in;
-    break;
-  default:
-    symbols = mkcl_type_error(env, @'shadow', "", symbols,
-			     mk_cl_list(env, 3, @'or', @'symbol', @'list'));
-    goto BEGIN;
+    mkcl_return_value((mkcl_unintern(env, symbl, p) ? mk_cl_Ct : mk_cl_Cnil));
   }
-  mkcl_return_value(mk_cl_Ct);
-@)
+}
 
-@(defun use_package (pack &o (pa mkcl_current_package(env)))
-@
-BEGIN:
-  switch (mkcl_type_of(pack)) {
-  case mkcl_t_symbol:
-  case mkcl_t_character:
-  case mkcl_t_base_string:
-  case mkcl_t_string:
-  case mkcl_t_package:
-    mkcl_use_package(env, pack, pa);
-    break;
-    
-  case mkcl_t_null:
-  case mkcl_t_cons:
-    pa = mk_si_coerce_to_package(env, pa);
-    mkcl_loop_for_in(env, pack) {
-      mkcl_use_package(env, MKCL_CONS_CAR(pack), pa);
-    } mkcl_end_loop_for_in;
-    break;
-    
-  default:
-    mkcl_assert_type_package(env, pack);
-    goto BEGIN;
-  }
-  mkcl_return_value(mk_cl_Ct);
-@)
+mkcl_object mk_cl_export(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object pack = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'export', narg, 1, symbols, &pack);
 
-@(defun unuse_package (pack &o (pa mkcl_current_package(env)))
-@
-BEGIN:
-  switch (mkcl_type_of(pack)) {
-  case mkcl_t_symbol:
-  case mkcl_t_character:
-  case mkcl_t_base_string:
-  case mkcl_t_string:
-  case mkcl_t_package:
-    mkcl_unuse_package(env, pack, pa);
-    break;
+  BEGIN:
+    switch (mkcl_type_of(symbols)) {
+    case mkcl_t_symbol:
+      mkcl_export2(env, symbols, pack);
+      break;
     
-  case mkcl_t_null:
-  case mkcl_t_cons:
-    pa = mk_si_coerce_to_package(env, pa);
-    mkcl_loop_for_in(env, pack) {
-      mkcl_unuse_package(env, MKCL_CONS_CAR(pack), pa);
-    } mkcl_end_loop_for_in;
-    break;
+    case mkcl_t_null:
+    case mkcl_t_cons:
+      pack = mk_si_coerce_to_package(env, pack);
+      mkcl_loop_for_in(env, symbols) {
+        mkcl_export2(env, MKCL_CONS_CAR(symbols), pack);
+      } mkcl_end_loop_for_in;
+      break;
     
-  default:
-    mkcl_assert_type_package(env, pack);
-    goto BEGIN;
+    default:
+      symbols = mkcl_type_error(env, @'export', "argument", symbols,
+                                mk_cl_list(env, 3, @'or', @'symbol', @'list'));
+      goto BEGIN;
+    }
+    mkcl_return_value(mk_cl_Ct);
   }
-  mkcl_return_value(mk_cl_Ct);
-@)
+}
+
+mkcl_object mk_cl_unexport(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object pack = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'unexport', narg, 1, symbols, &pack);
+
+  BEGIN:
+    switch (mkcl_type_of(symbols)) {
+    case mkcl_t_symbol:
+      mkcl_unexport2(env, symbols, pack);
+      break;
+    
+    case mkcl_t_null:
+    case mkcl_t_cons:
+      pack = mk_si_coerce_to_package(env, pack);
+      mkcl_loop_for_in(env, symbols) {
+        mkcl_unexport2(env, MKCL_CONS_CAR(symbols), pack);
+      } mkcl_end_loop_for_in;
+      break;
+    
+    default:
+      symbols = mkcl_type_error(env, @'unexport', "argument", symbols,
+                                mk_cl_list(env, 3, @'or', @'symbol', @'list'));
+      goto BEGIN;
+    }
+    mkcl_return_value(mk_cl_Ct);
+  }
+}
+
+mkcl_object mk_cl_import(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object pack = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'import', narg, 1, symbols, &pack);
+
+  BEGIN:
+    switch (mkcl_type_of(symbols)) {
+    case mkcl_t_symbol:
+      mkcl_import2(env, symbols, pack);
+      break;
+    
+    case mkcl_t_null:
+    case mkcl_t_cons:
+      pack = mk_si_coerce_to_package(env, pack);
+      mkcl_loop_for_in(env, symbols) {
+        mkcl_import2(env, MKCL_CONS_CAR(symbols), pack);
+      } mkcl_end_loop_for_in;
+      break;
+    
+    default:
+      symbols = mkcl_type_error(env, @'import', "argument", symbols,
+                                mk_cl_list(env, 3, @'or', @'symbol', @'list'));
+      goto BEGIN;
+    }
+    mkcl_return_value(mk_cl_Ct);
+  }
+}
+
+mkcl_object mk_cl_shadowing_import(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object pack = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'shadowing-import', narg, 1, symbols, &pack);
+
+  BEGIN:
+    switch (mkcl_type_of(symbols)) {
+    case mkcl_t_symbol:
+      mkcl_shadowing_import(env, symbols, pack);
+      break;
+    
+    case mkcl_t_null:
+    case mkcl_t_cons:
+      pack = mk_si_coerce_to_package(env, pack);
+      mkcl_loop_for_in(env, symbols) {
+        mkcl_shadowing_import(env, MKCL_CONS_CAR(symbols), pack);
+      } mkcl_end_loop_for_in;
+      break;
+    
+    default:
+      symbols = mkcl_type_error(env, @'shadowing-import', "argument", symbols,
+                                mk_cl_list(env, 3, @'or', @'symbol', @'list'));
+      goto BEGIN;
+    }
+    mkcl_return_value(mk_cl_Ct);
+  }
+}
+
+mkcl_object mk_cl_shadow(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object pack = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'shadow', narg, 1, symbols, &pack);
+
+  BEGIN:
+    switch (mkcl_type_of(symbols)) {
+    case mkcl_t_string:
+    case mkcl_t_base_string:
+    case mkcl_t_symbol:
+    case mkcl_t_character:
+      /* Arguments to SHADOW may be: string designators ... */
+      mkcl_shadow(env, symbols, pack);
+      break;
+    case mkcl_t_null:
+    case mkcl_t_cons:
+      /* ... or lists of string designators */
+      pack = mk_si_coerce_to_package(env, pack);
+      mkcl_loop_for_in(env, symbols) {
+        mkcl_shadow(env, MKCL_CONS_CAR(symbols), pack);
+      } mkcl_end_loop_for_in;
+      break;
+    default:
+      symbols = mkcl_type_error(env, @'shadow', "", symbols,
+                                mk_cl_list(env, 3, @'or', @'symbol', @'list'));
+      goto BEGIN;
+    }
+    mkcl_return_value(mk_cl_Ct);
+  }
+}
+
+mkcl_object mk_cl_use_package(MKCL, mkcl_narg narg, mkcl_object pack, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object pa = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'use-package', narg, 1, pack, &pa);
+
+  BEGIN:
+    switch (mkcl_type_of(pack)) {
+    case mkcl_t_symbol:
+    case mkcl_t_character:
+    case mkcl_t_base_string:
+    case mkcl_t_string:
+    case mkcl_t_package:
+      mkcl_use_package(env, pack, pa);
+      break;
+    
+    case mkcl_t_null:
+    case mkcl_t_cons:
+      pa = mk_si_coerce_to_package(env, pa);
+      mkcl_loop_for_in(env, pack) {
+        mkcl_use_package(env, MKCL_CONS_CAR(pack), pa);
+      } mkcl_end_loop_for_in;
+      break;
+    
+    default:
+      mkcl_assert_type_package(env, pack);
+      goto BEGIN;
+    }
+    mkcl_return_value(mk_cl_Ct);
+  }
+}
+
+mkcl_object mk_cl_unuse_package(MKCL, mkcl_narg narg, mkcl_object pack, ...)
+{
+  mkcl_call_stack_check(env);
+  {
+    mkcl_object pa = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'unuse-package', narg, 1, pack, &pa);
+
+  BEGIN:
+    switch (mkcl_type_of(pack)) {
+    case mkcl_t_symbol:
+    case mkcl_t_character:
+    case mkcl_t_base_string:
+    case mkcl_t_string:
+    case mkcl_t_package:
+      mkcl_unuse_package(env, pack, pa);
+      break;
+    
+    case mkcl_t_null:
+    case mkcl_t_cons:
+      pa = mk_si_coerce_to_package(env, pa);
+      mkcl_loop_for_in(env, pack) {
+        mkcl_unuse_package(env, MKCL_CONS_CAR(pack), pa);
+      } mkcl_end_loop_for_in;
+      break;
+    
+    default:
+      mkcl_assert_type_package(env, pack);
+      goto BEGIN;
+    }
+    mkcl_return_value(mk_cl_Ct);
+  }
+}
 
 mkcl_object
 mk_si_package_hash_tables(MKCL, mkcl_object p)

@@ -2,7 +2,7 @@
 /*
     Copyright (c) 1990, Giuseppe Attardi and William F. Schelter.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2017, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2017,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -1128,7 +1128,6 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
   {{SYS_ "IHS-NEXT", SI_ORDINARY, mk_si_ihs_next, 1, MKCL_OBJNULL}},
   {{SYS_ "IHS-PREV", SI_ORDINARY, mk_si_ihs_prev, 1, MKCL_OBJNULL}},
   {{SYS_ "IHS-TOP", SI_ORDINARY, mk_si_ihs_top, 0, MKCL_OBJNULL}},
-  {{SYS_ "INTERPRETER-STACK", SI_ORDINARY, mk_si_interpreter_stack, -1, MKCL_OBJNULL}},
   {{SYS_ "LINK-FROM", SI_ORDINARY, NULL, -1, MKCL_OBJNULL}},
   {{SYS_ "LINK-TO", SI_ORDINARY, NULL, -1, MKCL_OBJNULL}},
   {{SYS_ "LOAD-SOURCE", SI_ORDINARY, mk_si_load_source, 4, MKCL_OBJNULL}},
@@ -1152,9 +1151,6 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
   {{SYS_ "POINTER", SI_ORDINARY, mk_si_pointer, 1, MKCL_OBJNULL}},
   {{SYS_ "PRETTY-PRINT-FORMAT", SI_ORDINARY, NULL, -1, MKCL_OBJNULL}},
   {{SYS_ "PROCESS-DECLARATIONS", SI_ORDINARY, mk_si_process_declarations, -1, MKCL_OBJNULL}},
-#if 0
-  {{SYS_ "PROCESS-LAMBDA", SI_ORDINARY, mk_si_process_lambda, 1, MKCL_OBJNULL}},
-#endif
   {{SYS_ "PROCESS-LAMBDA-LIST", SI_ORDINARY, mk_si_process_lambda_list, 2, MKCL_OBJNULL}},
   {{SYS_ "PUT-F", SI_ORDINARY, mk_si_put_f, 3, MKCL_OBJNULL}},
   {{SYS_ "PUT-PROPERTIES", SI_ORDINARY, mk_si_put_properties, -1, MKCL_OBJNULL}},
@@ -1380,11 +1376,7 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
 
   {{SYS_ "ALLOCATE-FOREIGN-DATA", SI_ORDINARY, mk_si_allocate_foreign_data, 2, MKCL_OBJNULL}},
   {{SYS_ "FIND-FOREIGN-SYMBOL", SI_ORDINARY, mk_si_find_foreign_symbol, 4, MKCL_OBJNULL}},
-#if 0
-  {{SYS_ "FOREIGN-DATA", SI_ORDINARY, NULL, -1, MKCL_OBJNULL}},
-#else
   {{SYS_ "FOREIGN", SI_ORDINARY, NULL, -1, MKCL_OBJNULL}},
-#endif
   {{SYS_ "FOREIGN-ADDRESS", SI_ORDINARY, mk_si_foreign_address, 1, MKCL_OBJNULL}},
   {{SYS_ "FOREIGN-INDEXED", SI_ORDINARY, mk_si_foreign_indexed, 4, MKCL_OBJNULL}},
   {{SYS_ "FOREIGN-RECAST", SI_ORDINARY, mk_si_foreign_recast, 3, MKCL_OBJNULL}},
@@ -1477,9 +1469,6 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
   {{MT_ "BLOCK-SIGNALS", MT_ORDINARY, mk_mt_block_signals, 0, MKCL_OBJNULL}},
   {{MT_ "UNBLOCK-SIGNALS", MT_ORDINARY, mk_mt_unblock_signals, 0, MKCL_OBJNULL}},
   {{MT_ "THREAD-RUN-FUNCTION", MT_ORDINARY, mk_mt_thread_run_function, -1, MKCL_OBJNULL}},
-#if 0
-  {{MT_ "THREAD-WHOSTATE", MT_ORDINARY, mk_mt_thread_whostate, 1, MKCL_OBJNULL}},
-#endif
   {{MT_ "MAKE-LOCK", MT_ORDINARY, mk_mt_make_lock, -1, MKCL_OBJNULL}},
   {{KEY_ "RECURSIVE", KEYWORD, NULL, -1, MKCL_OBJNULL}},
   {{MT_ "RECURSIVE-LOCK-P", MT_ORDINARY, mk_mt_recursive_lock_p, 1, MKCL_OBJNULL}},
@@ -1647,10 +1636,6 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
   {{SYS_ "LISP-TEMP-STACK", SI_ORDINARY, NULL, -1, MKCL_OBJNULL}},
   {{SYS_ "CALL-STACK", SI_ORDINARY, NULL, -1, MKCL_OBJNULL}},
   {{SYS_ "HEAP-SIZE", SI_ORDINARY, NULL, -1, MKCL_OBJNULL}},
-#if 0
-  {{SYS_ "SET-LIMIT", SI_ORDINARY, mk_si_set_limit, 2, MKCL_OBJNULL}},
-  {{SYS_ "GET-LIMIT", SI_ORDINARY, mk_si_get_limit, 1, MKCL_OBJNULL}},
-#endif
   {{MKCL_EXT_ "SEGMENTATION-VIOLATION", MKCL_EXT_ORDINARY, NULL, -1, MKCL_OBJNULL}},
   {{MKCL_EXT_ "SEGMENTATION-VIOLATION-ADDRESS", MKCL_EXT_ORDINARY, NULL, -1, MKCL_OBJNULL}},
 
@@ -1974,10 +1959,6 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
 
   {{MKCL_EXT_ "STREAM-ENCODING-ERROR", MKCL_EXT_ORDINARY, NULL, -1, MKCL_OBJNULL}},
   {{MKCL_EXT_ "STREAM-DECODING-ERROR", MKCL_EXT_ORDINARY, NULL, -1, MKCL_OBJNULL}},
-#if 0
-  {{SYS_ "STREAM-ENCODING-ERROR", SI_ORDINARY, MKCL_IN_LISP(mk_si_stream_encoding_error), 3, MKCL_OBJNULL}},
-  {{SYS_ "STREAM-DECODING-ERROR", SI_ORDINARY, MKCL_IN_LISP(mk_si_stream_decoding_error), 3, MKCL_OBJNULL}},
-#endif
 
   {{MKCL_EXT_ "BASE-CHAR-CODE-LIMIT", MKCL_EXT_CONSTANT, NULL, -1, MKCL_MAKE_FIXNUM(MKCL_BASE_CHAR_CODE_LIMIT)}},
   {{MKCL_EXT_ "BASE-CHAR-P", MKCL_EXT_ORDINARY, mk_mkcl_base_char_p, 1, MKCL_OBJNULL}},
@@ -1988,9 +1969,6 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
 
   {{SYS_ "SCRUB-VALUES", SI_ORDINARY, mk_si_scrub_values, 0, MKCL_OBJNULL}},
 
-#if 0
-  {{MT_ "SCUTTLE-THREAD", MT_ORDINARY, mk_mt_scuttle_thread, 0, MKCL_OBJNULL}},
-#endif
   {{MT_ "CANCEL-THREAD", MT_ORDINARY, mk_mt_cancel_thread, 0, MKCL_OBJNULL}},
   {{KEY_ "CANCELED", KEYWORD, NULL, -1, MKCL_OBJNULL}},
   {{KEY_ "TERMINATED", KEYWORD, NULL, -1, MKCL_OBJNULL}},
@@ -2120,6 +2098,7 @@ mkcl_symbol_initializer mkcl_root_symbols[] = {
   {{SYS_ "*PENDING-SHARP-LABELS*", SI_SPECIAL, NULL, -1, mk_cl_Cnil}},
 
   {{SYS_ "SHUTDOWN-MKCL-THREADS", SI_ORDINARY, MKCL_IN_LISP(mk_si_shutdown_mkcl_threads), 4, MKCL_OBJNULL}},
+
 
   /* Tag for end of list!
      This entry, with a first field of NULL value,

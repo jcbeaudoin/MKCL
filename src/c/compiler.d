@@ -4,7 +4,7 @@
 */
 /*
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2012-2014, Jean-Claude Beaudoin.
+    Copyright (c) 2012-2014,2021, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -2410,42 +2410,49 @@ c_listA(MKCL, mkcl_object args, int flags)
 /*
   Handles special declarations, removes declarations from body
  */
-@(defun si::process_declarations (body &optional doc)
-	mkcl_object documentation = mk_cl_Cnil, declarations = mk_cl_Cnil, specials = mk_cl_Cnil;
-	mkcl_object decls, vars, v;
-@
-	/* BEGIN: SEARCH DECLARE */
-  for (; !mkcl_endp(env, body); body = MKCL_CONS_CDR(body)) {
-	  mkcl_object form = MKCL_CONS_CAR(body);
+mkcl_object mk_si_process_declarations(MKCL, mkcl_narg narg, mkcl_object body, ...)
+{
+  mkcl_call_stack_check(env);
+  {
 
-	  if (!mkcl_Null(doc) && MKCL_STRINGP(form) && !mkcl_endp(env, MKCL_CDR(body))) {
-	    if (documentation == mk_cl_Cnil)
-	      documentation = form;
-	    else
-	      break;
-	    continue;
-	  }
+    mkcl_object documentation = mk_cl_Cnil, declarations = mk_cl_Cnil, specials = mk_cl_Cnil;
+    mkcl_object decls, vars, v;
+    mkcl_object doc = mk_cl_Cnil;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'si::process-declarations', narg, 1, body, &doc);
 
-	  if (MKCL_ATOM(form) || (MKCL_CONS_CAR(form) != @'declare'))
-	    break;
+    /* BEGIN: SEARCH DECLARE */
+    for (; !mkcl_endp(env, body); body = MKCL_CONS_CDR(body)) {
+      mkcl_object form = MKCL_CONS_CAR(body);
 
-	  for (decls = MKCL_CONS_CDR(form); !mkcl_endp(env, decls); decls = MKCL_CONS_CDR(decls)) {
-	    mkcl_object sentence = MKCL_CONS_CAR(decls);
-	    if (MKCL_ATOM(sentence))
-	      mkcl_FEill_formed_input(env);
-	    push(env, sentence, declarations);
-	    if (MKCL_CONS_CAR(sentence) == @'special')
-	      for (vars = MKCL_CONS_CDR(sentence); !mkcl_endp(env, vars); vars = MKCL_CONS_CDR(vars)) {
-		v = MKCL_CONS_CAR(vars);
-		mkcl_assert_type_symbol(env, v);
-		push(env, v,specials);
-	      }
-	  }
-	}
-	/* END: SEARCH DECLARE */
+      if (!mkcl_Null(doc) && MKCL_STRINGP(form) && !mkcl_endp(env, MKCL_CDR(body))) {
+        if (documentation == mk_cl_Cnil)
+          documentation = form;
+        else
+          break;
+        continue;
+      }
 
-  mkcl_return_4_values(declarations, body, documentation, specials)
-@)
+      if (MKCL_ATOM(form) || (MKCL_CONS_CAR(form) != @'declare'))
+        break;
+
+      for (decls = MKCL_CONS_CDR(form); !mkcl_endp(env, decls); decls = MKCL_CONS_CDR(decls)) {
+        mkcl_object sentence = MKCL_CONS_CAR(decls);
+        if (MKCL_ATOM(sentence))
+          mkcl_FEill_formed_input(env);
+        push(env, sentence, declarations);
+        if (MKCL_CONS_CAR(sentence) == @'special')
+          for (vars = MKCL_CONS_CDR(sentence); !mkcl_endp(env, vars); vars = MKCL_CONS_CDR(vars)) {
+            v = MKCL_CONS_CAR(vars);
+            mkcl_assert_type_symbol(env, v);
+            push(env, v,specials);
+          }
+      }
+    }
+    /* END: SEARCH DECLARE */
+
+    mkcl_return_4_values(declarations, body, documentation, specials);
+  }
+}
 
 #if 0
 static size_t mk_si_process_lambda_ctr = 0;
@@ -2902,65 +2909,69 @@ mk_si_make_lambda(MKCL, mkcl_object name, mkcl_object rest)
   mkcl_return_value(lambda);
 }
 
-@(defun si::eval-in-env (form 
-			   &optional
-			   (lex_env mk_cl_Cnil)
-			   (stepping mk_cl_Cnil)
-                           (compiler_env_p mk_cl_Cnil)
-			   (execute mk_cl_Ct))
-  volatile mkcl_compiler_env_ptr old_c_env;
-  struct mkcl_compiler_env new_c_env;
-  volatile mkcl_index handle;
-  mkcl_object bytecode = mk_cl_Cnil, interpreter_env, compiler_env;
-  mkcl_env the_env;
-@
-  the_env = env;
-  /*
-   * Compile to bytecode.
-   */
-  if (compiler_env_p == mk_cl_Cnil) {
-    interpreter_env = lex_env;
-    compiler_env = mk_cl_Cnil;
-  } else {
-    interpreter_env = mk_cl_Cnil;
-    compiler_env = lex_env;
-  }
-  old_c_env = the_env->c_env;
-  c_new_env(the_env, &new_c_env, compiler_env, 0);
-  guess_environment(the_env, interpreter_env);
-  new_c_env.lex_env = lex_env;
-  new_c_env.stepping = stepping != mk_cl_Cnil;
-  new_c_env.mode = mkcl_Null(execute)? MODE_LOAD : MODE_EXECUTE;
-  handle = asm_begin(the_env);
-  MKCL_UNWIND_PROTECT_BEGIN(the_env) {
-    compile_form(the_env, form, FLAG_VALUES);
-    asm_op(the_env, OP_EXIT);
-    bytecode = asm_end(the_env, handle, form);
-  } MKCL_UNWIND_PROTECT_EXIT {
-    /* Clear up */
-    the_env->c_env = old_c_env;
-    memset(&new_c_env, 0, sizeof(new_c_env));
-  } MKCL_UNWIND_PROTECT_END;
-  if (mkcl_Null(execute)) {
-    mkcl_return_value(bytecode);
-  }
-  /*
-   * Interpret using the given lexical environment.
-   */
-  MKCL_VALUES(0) = mk_cl_Cnil;
-  MKCL_NVALUES = 0;
+mkcl_object mk_si_eval_in_env(MKCL, mkcl_narg narg, mkcl_object form, ...)
+{
+  mkcl_call_stack_check(env);
   {
-    struct mkcl_temp_stack_frame frame;
-    mkcl_object output;
-    frame.t = mkcl_t_temp_stack_frame;
-    frame.stack = frame.base = 0;
-    frame.size = 0;
-    frame.env = the_env;
-    env->function = mk_cl_Cnil;
-    output = mkcl_interpret(env, (mkcl_object)&frame, interpreter_env, bytecode);
-    mkcl_dealloc(env, bytecode->bytecode.code);
-    mkcl_dealloc(env, bytecode->bytecode.data);
-    mkcl_dealloc(env, bytecode);
-    return output;
+    volatile mkcl_compiler_env_ptr old_c_env;
+    struct mkcl_compiler_env new_c_env;
+    volatile mkcl_index handle;
+    mkcl_object bytecode = mk_cl_Cnil, interpreter_env, compiler_env;
+    mkcl_env the_env;
+    mkcl_object lex_env = mk_cl_Cnil;
+    mkcl_object stepping = mk_cl_Cnil;
+    mkcl_object compiler_env_p = mk_cl_Cnil;
+    mkcl_object execute = mk_cl_Ct;
+    MKCL_RECEIVE_4_OPTIONAL_ARGUMENTS(env, @'si::eval-in-env', narg, 1, form, &lex_env, &stepping, &compiler_env_p, &execute);
+
+    the_env = env;
+    /*
+     * Compile to bytecode.
+     */
+    if (compiler_env_p == mk_cl_Cnil) {
+      interpreter_env = lex_env;
+      compiler_env = mk_cl_Cnil;
+    } else {
+      interpreter_env = mk_cl_Cnil;
+      compiler_env = lex_env;
+    }
+    old_c_env = the_env->c_env;
+    c_new_env(the_env, &new_c_env, compiler_env, 0);
+    guess_environment(the_env, interpreter_env);
+    new_c_env.lex_env = lex_env;
+    new_c_env.stepping = stepping != mk_cl_Cnil;
+    new_c_env.mode = mkcl_Null(execute)? MODE_LOAD : MODE_EXECUTE;
+    handle = asm_begin(the_env);
+    MKCL_UNWIND_PROTECT_BEGIN(the_env) {
+      compile_form(the_env, form, FLAG_VALUES);
+      asm_op(the_env, OP_EXIT);
+      bytecode = asm_end(the_env, handle, form);
+    } MKCL_UNWIND_PROTECT_EXIT {
+      /* Clear up */
+      the_env->c_env = old_c_env;
+      memset(&new_c_env, 0, sizeof(new_c_env));
+    } MKCL_UNWIND_PROTECT_END;
+    if (mkcl_Null(execute)) {
+      mkcl_return_value(bytecode);
+    }
+    /*
+     * Interpret using the given lexical environment.
+     */
+    MKCL_VALUES(0) = mk_cl_Cnil;
+    MKCL_NVALUES = 0;
+    {
+      struct mkcl_temp_stack_frame frame;
+      mkcl_object output;
+      frame.t = mkcl_t_temp_stack_frame;
+      frame.stack = frame.base = 0;
+      frame.size = 0;
+      frame.env = the_env;
+      env->function = mk_cl_Cnil;
+      output = mkcl_interpret(env, (mkcl_object)&frame, interpreter_env, bytecode);
+      mkcl_dealloc(env, bytecode->bytecode.code);
+      mkcl_dealloc(env, bytecode->bytecode.data);
+      mkcl_dealloc(env, bytecode);
+      return output;
+    }
   }
-@)
+}
