@@ -180,7 +180,7 @@ rando(MKCL, mkcl_object x, mkcl_object rs)
 #endif
   default:
   _MKCL_ERROR:
-    x = mkcl_type_error(env, @'random',"limit",x,
+    x = mkcl_type_error(env, MK_CL_random,"limit",x,
 			mkcl_fast_read_from_cstring(env, "(OR (INTEGER (0) *) (FLOAT (0) *))"));
     goto AGAIN;
   }
@@ -196,10 +196,10 @@ mkcl_make_random_state(MKCL, mkcl_object rs)
     z->random.value = mkcl_init_random_state(env);
   } else {
     if (mkcl_Null(rs)) {
-      rs = mkcl_symbol_value(env, @'*random-state*');
+      rs = mkcl_symbol_value(env, MK_CL_DYNVAR_random_state);
     }
     if (mkcl_type_of(rs) != mkcl_t_random) {
-      mkcl_FEwrong_type_argument(env, @'random-state', rs);
+      mkcl_FEwrong_type_argument(env, MK_CL_random_state, rs);
     }
     z->random.value = mk_cl_copy_seq(env, rs->random.value);
   }
@@ -210,10 +210,10 @@ mkcl_object mk_cl_random(MKCL, mkcl_narg narg, mkcl_object x, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_object rs = ((narg == 1) ? mkcl_symbol_value(env, @'*random-state*') : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'random', narg, 1, x, &rs);
+    mkcl_object rs = ((narg == 1) ? mkcl_symbol_value(env, MK_CL_DYNVAR_random_state) : mk_cl_Cnil);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_random, narg, 1, x, &rs);
 
-    rs = mkcl_check_cl_type(env, @'random', rs, mkcl_t_random);
+    rs = mkcl_check_cl_type(env, MK_CL_random, rs, mkcl_t_random);
     mkcl_return_value(rando(env, x, rs));
   }
 }
@@ -222,8 +222,8 @@ mkcl_object mk_cl_make_random_state(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_object rs = mkcl_symbol_value(env, @'*random-state*');
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'random', narg, 0, narg, &rs);
+    mkcl_object rs = mkcl_symbol_value(env, MK_CL_DYNVAR_random_state);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_random, narg, 0, narg, &rs);
 
     mkcl_return_value(mkcl_make_random_state(env, rs));
   }

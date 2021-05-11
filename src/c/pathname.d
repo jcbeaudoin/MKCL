@@ -54,33 +54,33 @@ canonicalize_directory_destructively(MKCL, mkcl_object directory, bool logical)
   mkcl_object ptr;
   int i;
 
-  if (mkcl_Null(directory) || directory == @':unspecific')
+  if (mkcl_Null(directory) || directory == MK_KEY_unspecific)
     return directory;
   if (!MKCL_LISTP(directory))
-    return @':error';
-  if (MKCL_CONS_CAR(directory) != @':absolute' &&
-      MKCL_CONS_CAR(directory) != @':relative')
-    return @':error';
+    return MK_KEY_error;
+  if (MKCL_CONS_CAR(directory) != MK_KEY_absolute &&
+      MKCL_CONS_CAR(directory) != MK_KEY_relative)
+    return MK_KEY_error;
  BEGIN:
   for (i=0, ptr=directory; MKCL_CONSP(ptr); ptr = MKCL_CONS_CDR(ptr), i++) {
     mkcl_object item = MKCL_CONS_CAR(ptr);
-    if (item == @':back') {
+    if (item == MK_KEY_back) {
       if (i == 0)
-	return @':error';
+	return MK_KEY_error;
       item = mkcl_nth(env, i-1, directory);
-      if (item == @':absolute' || item == @':wild-inferiors')
-	return @':error';
+      if (item == MK_KEY_absolute || item == MK_KEY_wild_inferiors)
+	return MK_KEY_error;
       if (i >= 2)
 	MKCL_RPLACD(mkcl_nthcdr(env, i-2, directory), MKCL_CONS_CDR(ptr));
-    } else if (item == @':up') {
+    } else if (item == MK_KEY_up) {
       if (i == 0)
-	return @':error';
+	return MK_KEY_error;
       item = mkcl_nth(env, i-1, directory);
-      if (item == @':absolute' || item == @':wild-inferiors')
-	return @':error';
-    } else if (item == @':relative' || item == @':absolute') {
+      if (item == MK_KEY_absolute || item == MK_KEY_wild_inferiors)
+	return MK_KEY_error;
+    } else if (item == MK_KEY_relative || item == MK_KEY_absolute) {
       if (i > 0)
-	return @':error';
+	return MK_KEY_error;
     } else if (mkcl_stringp(env, item)) {
       mkcl_word l = mkcl_string_length(env, item);
       if (logical)
@@ -92,16 +92,16 @@ canonicalize_directory_destructively(MKCL, mkcl_object directory, bool logical)
 	if (l == 1) {
 	  /* Single dot */
 	  if (i == 0)
-	    return @':error';
+	    return MK_KEY_error;
 	  MKCL_RPLACD(mkcl_nthcdr(env, i-1, directory), MKCL_CONS_CDR(ptr));
 	  goto BEGIN;
 	} else if (l == 2 && mkcl_char(env, item,1) == '.') {
-	  MKCL_RPLACA(ptr, @':back'); /* Why :back and not rather :up here? JCB */
+	  MKCL_RPLACA(ptr, MK_KEY_back); /* Why :back and not rather :up here? JCB */
 	  goto BEGIN;
 	}
       }
-    } else if (item != @':wild' && item != @':wild-inferiors') {
-      return @':error';
+    } else if (item != MK_KEY_wild && item != MK_KEY_wild_inferiors) {
+      return MK_KEY_error;
     }
   }
   return directory;
@@ -142,73 +142,73 @@ mkcl_make_pathname(MKCL, mkcl_object host, mkcl_object device, mkcl_object direc
   else
     {
       bad_value = host;
-      bad_component = @':host';
+      bad_component = MK_KEY_host;
       goto _MKCL_ERROR;
     }
 
   if (device == MKCL_OBJNULL)
-    device = (logical ? @':unspecific' : mk_cl_Cnil);
+    device = (logical ? MK_KEY_unspecific : mk_cl_Cnil);
 
   if (logical)
-    device = @':unspecific';
+    device = MK_KEY_unspecific;
   else if (mkcl_Null(device))
     a_component_is_nil = TRUE;
-  else if (!(mkcl_stringp(env, device) || (device == @':unspecific') || (device == @':wild')))
+  else if (!(mkcl_stringp(env, device) || (device == MK_KEY_unspecific) || (device == MK_KEY_wild)))
     {
       bad_value = device;
-      bad_component = @':device';
+      bad_component = MK_KEY_device;
       goto _MKCL_ERROR;
     }
 
   if (mkcl_Null(name))
     a_component_is_nil = TRUE;
-  else if ((logical && name == @':unspecific')
-	   || (!mkcl_stringp(env, name) && name != @':wild' && name != @':unspecific' )) {
+  else if ((logical && name == MK_KEY_unspecific)
+	   || (!mkcl_stringp(env, name) && name != MK_KEY_wild && name != MK_KEY_unspecific )) {
     bad_value = name;
-    bad_component = @':name';
+    bad_component = MK_KEY_name;
     goto _MKCL_ERROR;
   }
   if (logical && mkcl_stringp(env, name)) name = mk_cl_string_upcase(env, 1, name);
 
   if (mkcl_Null(type))
     a_component_is_nil = TRUE;
-  else if ((logical && type == @':unspecific')
-	   || (!mkcl_stringp(env, type) && type != @':wild' && type != @':unspecific')) {
+  else if ((logical && type == MK_KEY_unspecific)
+	   || (!mkcl_stringp(env, type) && type != MK_KEY_wild && type != MK_KEY_unspecific)) {
     bad_value = type;
-    bad_component = @':type';
+    bad_component = MK_KEY_type;
     goto _MKCL_ERROR;
   }
   if (logical && mkcl_stringp(env, type)) type = mk_cl_string_upcase(env, 1, type);
 
   if (mkcl_Null(version))
     a_component_is_nil = TRUE;
-  else if ((logical && version == @':unspecific')
-	   || (version != @':newest' && version != @':unspecific' && version != @':wild'
+  else if ((logical && version == MK_KEY_unspecific)
+	   || (version != MK_KEY_newest && version != MK_KEY_unspecific && version != MK_KEY_wild
 	       && !(MKCL_FIXNUMP(version) && mkcl_plusp(env, version))))
     {
       bad_value = version;
-      bad_component = @':version';
+      bad_component = MK_KEY_version;
       goto _MKCL_ERROR;
     }
 
   switch (mkcl_type_of(directory)) {
   case mkcl_t_string:
   case mkcl_t_base_string:
-    directory = mkcl_cons(env, @':absolute', mkcl_list1(env, directory));
+    directory = mkcl_cons(env, MK_KEY_absolute, mkcl_list1(env, directory));
     break;
   case mkcl_t_symbol:
     if (mkcl_Null(directory)) {
       a_component_is_nil = TRUE;
       break;
     }
-    if (!logical && directory == @':unspecific')
+    if (!logical && directory == MK_KEY_unspecific)
       break;
-    if (directory == @':wild') {
-      directory = mkcl_cons(env, @':absolute', mkcl_list1(env, @':wild-inferiors'));
+    if (directory == MK_KEY_wild) {
+      directory = mkcl_cons(env, MK_KEY_absolute, mkcl_list1(env, MK_KEY_wild_inferiors));
       break;
     }
     bad_value = directory;
-    bad_component = @':directory';
+    bad_component = MK_KEY_directory;
     goto _MKCL_ERROR;
   case mkcl_t_cons:
     /* validity of list content checked during canonicalization just here after. */
@@ -220,21 +220,21 @@ mkcl_make_pathname(MKCL, mkcl_object host, mkcl_object device, mkcl_object direc
     break;
   default:
     bad_value = directory;
-    bad_component = @':directory';
+    bad_component = MK_KEY_directory;
     goto _MKCL_ERROR;
   }
 
   {
     mkcl_object p = _make_pathname(env, logical, host, device, directory, name, type, version);
     p->pathname.logical = logical;
-    if (canonicalize_directory_destructively(env, directory, logical) == @':error') {
-      mk_cl_error(env, 3, @'file-error', @':pathname', p);
+    if (canonicalize_directory_destructively(env, directory, logical) == MK_KEY_error) {
+      mk_cl_error(env, 3, MK_CL_file_error, MK_KEY_pathname, p);
     }
 
     if (a_component_is_nil)
       p->pathname.complete = FALSE;
     else if (MKCL_CONSP(p->pathname.directory))
-      p->pathname.complete = (MKCL_CONS_CAR(p->pathname.directory) == @':absolute');
+      p->pathname.complete = (MKCL_CONS_CAR(p->pathname.directory) == MK_KEY_absolute);
     else
       p->pathname.complete = TRUE;
     return(p);
@@ -259,13 +259,13 @@ tilde_expand(MKCL, mkcl_object pathname)
   mkcl_object directory, head;
   if (pathname->pathname.logical 
       || ((pathname->pathname.host != mk_cl_Cnil) && !mkcl_string_E(env, pathname->pathname.host, mkcl_core.localhost_string))
-      || ((pathname->pathname.device != mk_cl_Cnil) && (pathname->pathname.device != @':unspecific'))
+      || ((pathname->pathname.device != mk_cl_Cnil) && (pathname->pathname.device != MK_KEY_unspecific))
       )
     return pathname;
 
   directory = pathname->pathname.directory;
   if (!MKCL_CONSP(directory) 
-      || MKCL_CONS_CAR(directory) != @':relative'
+      || MKCL_CONS_CAR(directory) != MK_KEY_relative
       || MKCL_CONS_CDR(directory) == mk_cl_Cnil) {
     return pathname;
   }
@@ -277,7 +277,7 @@ tilde_expand(MKCL, mkcl_object pathname)
     if (!mkcl_Null(homedir))
       {	/* Remove the tilde component */
 	MKCL_RPLACD(directory, MKCL_CDDR(directory));
-	pathname = mkcl_merge_pathnames(env, pathname, homedir, @':newest');
+	pathname = mkcl_merge_pathnames(env, pathname, homedir, MK_KEY_newest);
       }
   }
   return pathname;
@@ -414,7 +414,7 @@ parse_word(MKCL, mkcl_object s, delim_fn delim, int flags,
     }
     if (!valid_char) {
       *end_of_word = start;
-      return @':error';
+      return MK_KEY_error;
     }
   }
   if (i > last_delim) {
@@ -440,7 +440,7 @@ parse_word(MKCL, mkcl_object s, delim_fn delim, int flags,
       return mkcl_core.empty_base_string;
     case 1:
       if ((mkcl_char(env, s,j) == '*') && (specificity == mkcl_may_be_wild_namestring))
-        return @':wild';
+        return MK_KEY_wild;
       break;
     case 2:
       {
@@ -448,14 +448,14 @@ parse_word(MKCL, mkcl_object s, delim_fn delim, int flags,
         mkcl_character c1 = mkcl_char(env, s,j+1);
 
         if ((c0 == '*' && c1 == '*') && (specificity == mkcl_may_be_wild_namestring))
-          return @':wild-inferiors';
+          return MK_KEY_wild_inferiors;
         if (!(flags & (WORD_LOGICAL | WORD_ALLOW_LEADING_DOT)) && c0 == '.' && c1 == '.')
-          return @':up';
+          return MK_KEY_up;
       }
       break;
     default:
       if (wild_inferiors && (specificity == mkcl_may_be_wild_namestring)) /* '**' surrounded by other characters */
-        return @':error';
+        return MK_KEY_error;
     }
   {
     mkcl_object word = make_one(env, s, j, i);
@@ -489,16 +489,16 @@ parse_directories(MKCL, mkcl_object s, int flags,
   *end_of_dir = start;
   for (i = j = start; i < end; j = i) {
     mkcl_object part = parse_word(env, s, delim, flags, j, end, &i, specificity);
-    if (part == @':error' || part == mk_cl_Cnil)
+    if (part == MK_KEY_error || part == mk_cl_Cnil)
       break;
     if (part == mkcl_core.empty_base_string) {  /* "/", ";" */
       if (j != start) {
 	if (flags & WORD_LOGICAL)
-	  return @':error';
+	  return MK_KEY_error;
 	*end_of_dir = i;
 	continue;
       }
-      part = (flags & WORD_LOGICAL) ? @':relative' : @':absolute';
+      part = (flags & WORD_LOGICAL) ? MK_KEY_relative : MK_KEY_absolute;
     }
     *end_of_dir = i;
     path = mkcl_cons(env, part, path);
@@ -511,7 +511,7 @@ mkcl_logical_hostname_p(MKCL, mkcl_object host)
 {
   if ((host == mkcl_core.localhost_string) || !mkcl_stringp(env, host) || mkcl_string_E(env, host, mkcl_core.localhost_string))
     return FALSE;
-  return !mkcl_Null(@assoc(env, 4, host, mkcl_core.pathname_translations, @':test', @'string-equal'));
+  return !mkcl_Null(mk_cl_assoc(env, 4, host, mkcl_core.pathname_translations, MK_KEY_test, MK_CL_string_equal));
 }
 
 /*
@@ -552,12 +552,12 @@ mkcl_object
 mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkcl_index *ep,
                       mkcl_object default_host, enum mkcl_namestring_specificity specificity)
 {
-  mkcl_object host = @'nil';
-  mkcl_object device = @'nil';
-  mkcl_object dir = @'nil';
-  mkcl_object name = @'nil';
-  mkcl_object type = @'nil';
-  mkcl_object version = @'nil';
+  mkcl_object host = mk_cl_Cnil;
+  mkcl_object device = mk_cl_Cnil;
+  mkcl_object dir = mk_cl_Cnil;
+  mkcl_object name = mk_cl_Cnil;
+  mkcl_object type = mk_cl_Cnil;
+  mkcl_object version = mk_cl_Cnil;
   bool logical = FALSE;
 
   if ((start == end) || (mkcl_string_length(env, s) == 0)) {
@@ -573,35 +573,35 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
 		    WORD_LOGICAL | WORD_INCLUDE_DELIM | WORD_DISALLOW_SEMICOLON,
 		    start, end, ep, specificity);
   if (default_host != mk_cl_Cnil) {
-    if (host == mk_cl_Cnil || host == @':error')
+    if (host == mk_cl_Cnil || host == MK_KEY_error)
       host = default_host;
   }
 
-  if ((host != @':error') && mkcl_logical_hostname_p(env, host))
+  if ((host != MK_KEY_error) && mkcl_logical_hostname_p(env, host))
     {
       /*
        * Logical pathname format:
        *	[logical-hostname :][;][logical-directory-component ;][pathname-name][. pathname-type [. version]]
        */
       logical = TRUE;
-      device = @':unspecific';
+      device = MK_KEY_unspecific;
       dir = parse_directories(env, s, WORD_LOGICAL, *ep, end, ep, specificity);
-      if (dir == @':error')
+      if (dir == MK_KEY_error)
 	return mk_cl_Cnil;
       if (MKCL_CONSP(dir)) {
-	if (MKCL_CONS_CAR(dir) != @':relative' &&
-	    MKCL_CONS_CAR(dir) != @':absolute')
-	  dir = MKCL_CONS(env, @':absolute', dir);
+	if (MKCL_CONS_CAR(dir) != MK_KEY_relative &&
+	    MKCL_CONS_CAR(dir) != MK_KEY_absolute)
+	  dir = MKCL_CONS(env, MK_KEY_absolute, dir);
 	dir = canonicalize_directory_destructively(env, dir, TRUE);
       } else {
-	dir = MKCL_CONS(env, @':absolute', dir);
+	dir = MKCL_CONS(env, MK_KEY_absolute, dir);
       }
-      if (dir == @':error')
+      if (dir == MK_KEY_error)
 	return mk_cl_Cnil;
       name = parse_word(env, s, is_dot,
 			WORD_LOGICAL | WORD_ALLOW_ASTERISK | WORD_EMPTY_IS_NIL,
 			*ep, end, ep, specificity);
-      if (name == @':error')
+      if (name == MK_KEY_error)
 	return mk_cl_Cnil;
       type = mk_cl_Cnil;
       version = mk_cl_Cnil;
@@ -610,7 +610,7 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
       type = parse_word(env, s, is_dot,
 			WORD_LOGICAL | WORD_ALLOW_ASTERISK | WORD_EMPTY_IS_NIL,
 			*ep, end, ep, specificity);
-      if (type == @':error')
+      if (type == MK_KEY_error)
 	return mk_cl_Cnil;
       if (*ep == start || mkcl_char(env, s, *ep-1) != '.')
 	goto make_it;
@@ -620,17 +620,17 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
       aux = parse_word(env, s, is_null,
 		       WORD_LOGICAL | WORD_ALLOW_ASTERISK | WORD_EMPTY_IS_NIL,
 		       *ep, end, ep, specificity);
-      if (aux == @':error') {
+      if (aux == MK_KEY_error) {
 	return mk_cl_Cnil;
-      } else if (mkcl_Null(aux) || aux == @':wild') {
+      } else if (mkcl_Null(aux) || aux == MK_KEY_wild) {
 	version = aux;
       } else {
-	version = mk_cl_parse_integer(env, 3, aux, @':junk-allowed', mk_cl_Ct);
+	version = mk_cl_parse_integer(env, 3, aux, MK_KEY_junk_allowed, mk_cl_Ct);
 	if (mk_cl_integerp(env, version) != mk_cl_Cnil && mkcl_plusp(env, version) &&
 	    mkcl_fixnum_to_word(MKCL_VALUES(1)) == mkcl_length(env, aux))
 	  ;
-	else if (mk_cl_string_equal(env, 2, aux, @':newest') != mk_cl_Cnil)
-	  version = @':newest';
+	else if (mk_cl_string_equal(env, 2, aux, MK_KEY_newest) != mk_cl_Cnil)
+	  version = MK_KEY_newest;
 	else
 	  return mk_cl_Cnil;
       }
@@ -664,7 +664,7 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
       device = parse_word(env, s, is_colon,
 			  WORD_INCLUDE_DELIM | WORD_EMPTY_IS_NIL | WORD_DISALLOW_SLASH,
 			  start, end, ep, specificity);
-      if (device == @':error')
+      if (device == MK_KEY_error)
 	{
 	  device = mk_cl_Cnil;
 	  host = mk_cl_Cnil;
@@ -715,14 +715,14 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
 			   || ((ch >= 'a') && (ch <= 'z')))
 		       && is_colon(mkcl_char(env, s, head+1)))
 		{ /* This is the local drive form of prefix. */
-		  device = mk_cl_make_string(env, 3, MKCL_MAKE_FIXNUM(1), @':initial-element', MKCL_CODE_CHAR(ch));
+		  device = mk_cl_make_string(env, 3, MKCL_MAKE_FIXNUM(1), MK_KEY_initial_element, MKCL_CODE_CHAR(ch));
 		  host = mkcl_core.localhost_string;
 		  *ep = /* start = */ head + 2;
 		  goto done_device_and_host;
 		}
 	    }
 	  host = parse_word(env, s, is_slash, WORD_EMPTY_IS_NIL, head, end, ep, specificity);
-	  if (host == @':error') {
+	  if (host == MK_KEY_error) {
 	    host = mk_cl_Cnil;
 	  } else if (host != mk_cl_Cnil) {
 	    if (!mkcl_stringp(env, host))
@@ -739,14 +739,14 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
 
 #elif MKCL_UNIX
       host = mkcl_core.localhost_string;
-      device = @':unspecific';       /* Files have no effective device on Unix. */
+      device = MK_KEY_unspecific;       /* Files have no effective device on Unix. */
       {
 	mkcl_object maybe_host = parse_word(env, s, is_colon,
 					    WORD_INCLUDE_DELIM | WORD_EMPTY_IS_NIL | WORD_DISALLOW_SLASH,
 					    start, end, ep, specificity);
 	if (maybe_host == mk_cl_Cnil)
 	  start = *ep;
-	else if (maybe_host != @':error')
+	else if (maybe_host != MK_KEY_error)
 	  host = maybe_host;
       }
 #else
@@ -757,42 +757,42 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
     done_device_and_host:
       dir = parse_directories(env, s, 0, *ep, end, ep, specificity);
       if (MKCL_CONSP(dir)) {
-	if (!(MKCL_CONS_CAR(dir) == @':relative'
-	      || MKCL_CONS_CAR(dir) == @':absolute'))
-	  dir = MKCL_CONS(env, @':relative', dir);
+	if (!(MKCL_CONS_CAR(dir) == MK_KEY_relative
+	      || MKCL_CONS_CAR(dir) == MK_KEY_absolute))
+	  dir = MKCL_CONS(env, MK_KEY_relative, dir);
 	dir = canonicalize_directory_destructively(env, dir, FALSE);
       }
-      if (dir == @':error')
+      if (dir == MK_KEY_error)
 	return mk_cl_Cnil;
       start = *ep;
       name = parse_word(env, s, is_dot,
 			WORD_ALLOW_LEADING_DOT | WORD_SEARCH_LAST_DOT |
 			WORD_ALLOW_ASTERISK | WORD_EMPTY_IS_NIL,
 			start, end, ep, specificity);
-      if (name == @':error')
+      if (name == MK_KEY_error)
 	return mk_cl_Cnil;
       if ((*ep - start) <= 1 || mkcl_char(env, s, *ep-1) != '.') {
 	type = mk_cl_Cnil;
 	if (mkcl_Null(dir) && !mkcl_Null(mk_cl_stringE(env, 2, name, mkcl_core.dot_string)))
 	  {
-	    dir = mkcl_list1(env, @':relative');
+	    dir = mkcl_list1(env, MK_KEY_relative);
 	    name = mk_cl_Cnil;
 	  }
       } else {
 	type = parse_word(env, s, is_null, WORD_ALLOW_ASTERISK, *ep, end, ep, specificity);
-	if (type == @':error')
+	if (type == MK_KEY_error)
 	  return mk_cl_Cnil;
 	if (!mkcl_Null(mk_cl_stringE(env, 2, type, mkcl_core.empty_base_string))
 	    && !mkcl_Null(mk_cl_stringE(env, 2, name, mkcl_core.dot_string)))
 	  {
 	    if (mkcl_Null(dir))
-	      dir = MKCL_CONS(env, @':relative', mkcl_list1(env, @':up'));
+	      dir = MKCL_CONS(env, MK_KEY_relative, mkcl_list1(env, MK_KEY_up));
 	    else
-	      dir = mkcl_nconc(env, dir, mkcl_list1(env, @':up'));
+	      dir = mkcl_nconc(env, dir, mkcl_list1(env, MK_KEY_up));
 	    type = name = mk_cl_Cnil;
 	  }
       }
-      version = (name != mk_cl_Cnil || type != mk_cl_Cnil) ? @':newest' : mk_cl_Cnil;
+      version = (name != mk_cl_Cnil || type != mk_cl_Cnil) ? MK_KEY_newest : mk_cl_Cnil;
     }
 
  make_it:
@@ -803,7 +803,7 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
     
     path->pathname.complete = (host != mk_cl_Cnil && device != mk_cl_Cnil && dir != mk_cl_Cnil
 			       && name != mk_cl_Cnil && type != mk_cl_Cnil && version != mk_cl_Cnil
-			       && MKCL_CONSP(dir) && MKCL_CONS_CAR(dir) == @':absolute');
+			       && MKCL_CONSP(dir) && MKCL_CONS_CAR(dir) == MK_KEY_absolute);
     return tilde_expand(env, path);
   }
 }
@@ -829,10 +829,10 @@ mk_si_default_pathname_defaults(MKCL)
    * coerced to type PATHNAME. Special care is taken so that we do
    * not enter an infinite loop when using PARSE-NAMESTRING, because
    * this routine might itself try to use the value of this variable. */
-  mkcl_object path = mkcl_symbol_value(env, @'*default-pathname-defaults*');
+  mkcl_object path = mkcl_symbol_value(env, MK_CL_DYNVAR_default_pathname_defaults);
   while (mkcl_type_of(path) != mkcl_t_pathname) {
-      mkcl_bds_bind(env, @'*default-pathname-defaults*', mkcl_core.empty_default_pathname_defaults);
-      path = mkcl_type_error(env, @'pathname', "*default-pathname-defaults*", path, @'pathname');
+      mkcl_bds_bind(env, MK_CL_DYNVAR_default_pathname_defaults, mkcl_core.empty_default_pathname_defaults);
+      path = mkcl_type_error(env, MK_CL_pathname, "*default-pathname-defaults*", path, MK_CL_pathname);
       mkcl_bds_unwind1(env);
   }
   mkcl_return_value(path);
@@ -869,7 +869,7 @@ mk_cl_pathname(MKCL, mkcl_object x)
       ;/* Fall through to error message */
     }
   default:
-    mkcl_FEwrong_type_argument(env, mk_cl_list(env, 4, @'or', @'file-stream', @'string', @'pathname'), x);
+    mkcl_FEwrong_type_argument(env, mk_cl_list(env, 4, MK_CL_or, MK_CL_file_stream, MK_CL_string, MK_CL_pathname), x);
   }
   mkcl_return_value(x);
 }
@@ -880,11 +880,11 @@ mk_cl_logical_pathname(MKCL, mkcl_object x)
   mkcl_call_stack_check(env);
   x = mk_cl_pathname(env, x);
   if (!x->pathname.logical) {
-    mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+    mk_cl_error(env, 9, MK_CL_simple_type_error, MK_KEY_format_control,
 		mkcl_make_simple_base_string(env, "~S cannot be coerced to a logical pathname."),
-		@':format-arguments', mk_cl_list(env, 1, x),
-		@':expected-type', @'logical-pathname',
-		@':datum', x);
+		MK_KEY_format_arguments, mk_cl_list(env, 1, x),
+		MK_KEY_expected_type, MK_CL_logical_pathname,
+		MK_KEY_datum, x);
   }
   mkcl_return_value(x);
 }
@@ -895,45 +895,45 @@ mkcl_object mk_cl_wild_pathname_p(MKCL, mkcl_narg narg, mkcl_object pathname, ..
   {
     bool checked = 0;
     mkcl_object component = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'wild-pathname-p', narg, 1, pathname, &component);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_wild_pathname_p, narg, 1, pathname, &component);
 
     pathname = mk_cl_pathname(env, pathname);
-    if (component == mk_cl_Cnil || component == @':host') {
-      if (pathname->pathname.host == @':wild')
+    if (component == mk_cl_Cnil || component == MK_KEY_host) {
+      if (pathname->pathname.host == MK_KEY_wild)
         mkcl_return_value(mk_cl_Ct);
       checked = 1;
     }
-    if (component == mk_cl_Cnil || component == @':device') {
-      if (pathname->pathname.device == @':wild')
+    if (component == mk_cl_Cnil || component == MK_KEY_device) {
+      if (pathname->pathname.device == MK_KEY_wild)
         mkcl_return_value(mk_cl_Ct);
       checked = 1;
     }
-    if (component == mk_cl_Cnil || component == @':version') {
-      if (pathname->pathname.version == @':wild')
+    if (component == mk_cl_Cnil || component == MK_KEY_version) {
+      if (pathname->pathname.version == MK_KEY_wild)
         mkcl_return_value(mk_cl_Ct);
       checked = 1;
     }
-    if (component == mk_cl_Cnil || component == @':name') {
+    if (component == mk_cl_Cnil || component == MK_KEY_name) {
       mkcl_object name = pathname->pathname.name;
       if (name != mk_cl_Cnil
-          && (name == @':wild' || mkcl_pathname_component_string_is_wild_p(env, name)))
+          && (name == MK_KEY_wild || mkcl_pathname_component_string_is_wild_p(env, name)))
         mkcl_return_value(mk_cl_Ct);
       checked = 1;
     }
-    if (component == mk_cl_Cnil || component == @':type') {
+    if (component == mk_cl_Cnil || component == MK_KEY_type) {
       mkcl_object name = pathname->pathname.type;
       if (name != mk_cl_Cnil
-          && (name == @':wild' || mkcl_pathname_component_string_is_wild_p(env, name)))
+          && (name == MK_KEY_wild || mkcl_pathname_component_string_is_wild_p(env, name)))
         mkcl_return_value(mk_cl_Ct);
       checked = 1;
     }
-    if (component == mk_cl_Cnil || component == @':directory') {
+    if (component == mk_cl_Cnil || component == MK_KEY_directory) {
       mkcl_object list = pathname->pathname.directory;
       checked = 1;
       mkcl_loop_for_on_unsafe(list) {
         mkcl_object name = MKCL_CONS_CAR(list);
         if (name != mk_cl_Cnil
-            && (name == @':wild' || name == @':wild-inferiors'
+            && (name == MK_KEY_wild || name == MK_KEY_wild_inferiors
                 || mkcl_pathname_component_string_is_wild_p(env, name)))
           {
             mkcl_return_value(mk_cl_Ct);
@@ -962,9 +962,9 @@ mkcl_coerce_to_file_pathname(MKCL, mkcl_object pathname)
 
   pathname = mkcl_coerce_to_physical_pathname(env, pathname);
   if (pathname == orig_pathname)
-    pathname = mkcl_merge_pathnames(env, pathname, mk_si_default_pathname_defaults(env), @':newest');
+    pathname = mkcl_merge_pathnames(env, pathname, mk_si_default_pathname_defaults(env), MK_KEY_newest);
   else
-    pathname = mkcl_meld_pathnames(env, pathname, mk_si_default_pathname_defaults(env), @':newest');
+    pathname = mkcl_meld_pathnames(env, pathname, mk_si_default_pathname_defaults(env), MK_KEY_newest);
   return pathname;
 }
 
@@ -997,7 +997,7 @@ mk_si_coerce_to_filename(MKCL, mkcl_object pathname_orig)
    * mk_cl_namestring() always outputs a fresh new string */ /* And thus conses like mad! JCB */
   pathname = mkcl_coerce_to_file_pathname(env, pathname_orig);
   if (mk_cl_wild_pathname_p(env, 1,pathname) != mk_cl_Cnil)
-    mk_cl_error(env, 3, @'file-error', @':pathname', pathname_orig);
+    mk_cl_error(env, 3, MK_CL_file_error, MK_KEY_pathname, pathname_orig);
   namestring = mk_cl_namestring(env, pathname);
   if (namestring == mk_cl_Cnil) {
     mkcl_FEerror(env, "Pathname ~A does not have a physical namestring", 1, pathname_orig);
@@ -1006,7 +1006,7 @@ mk_si_coerce_to_filename(MKCL, mkcl_object pathname_orig)
 }
 
 #if MKCL_UNIX
-#define default_device(host) @':unspecific'
+#define default_device(host) MK_KEY_unspecific
 #else
 #define default_device(host) mk_cl_Cnil
 #endif
@@ -1052,11 +1052,11 @@ mkcl_meld_pathnames(MKCL, mkcl_object path, mkcl_object defaults, mkcl_object de
     new_path->pathname.device = old_path->pathname.device;
   if (mkcl_Null(new_path->pathname.device)) a_component_is_nil = TRUE;
 
-  if (old_path->pathname.directory == @':unspecific')
-    new_path->pathname.directory = @':unspecific';
+  if (old_path->pathname.directory == MK_KEY_unspecific)
+    new_path->pathname.directory = MK_KEY_unspecific;
   if (mkcl_Null(old_path->pathname.directory))
     new_path->pathname.directory = defaults->pathname.directory;
-  else if (MKCL_CONSP(old_path->pathname.directory) && MKCL_CONS_CAR(old_path->pathname.directory) == @':absolute')
+  else if (MKCL_CONSP(old_path->pathname.directory) && MKCL_CONS_CAR(old_path->pathname.directory) == MK_KEY_absolute)
     new_path->pathname.directory = old_path->pathname.directory;
   else if (MKCL_CONSP(defaults->pathname.directory))
     {
@@ -1088,13 +1088,13 @@ mkcl_meld_pathnames(MKCL, mkcl_object path, mkcl_object defaults, mkcl_object de
   /*
     In this implementation, version is not considered for physical pathnames.
   */
-  if (@':error' == canonicalize_directory_destructively(env, new_path->pathname.directory, new_path->pathname.logical))
-    mk_cl_error(env, 3, @'file-error', @':pathname', new_path);
+  if (MK_KEY_error == canonicalize_directory_destructively(env, new_path->pathname.directory, new_path->pathname.logical))
+    mk_cl_error(env, 3, MK_CL_file_error, MK_KEY_pathname, new_path);
 
   if (a_component_is_nil)
     new_path->pathname.complete = FALSE;
   else if (MKCL_CONSP(new_path->pathname.directory))
-    new_path->pathname.complete = (MKCL_CONS_CAR(new_path->pathname.directory) == @':absolute');
+    new_path->pathname.complete = (MKCL_CONS_CAR(new_path->pathname.directory) == MK_KEY_absolute);
   else
     new_path->pathname.complete = TRUE;
   
@@ -1125,13 +1125,13 @@ static bool is_strictly_absolute_pathname(MKCL, mkcl_object pathname)
     {
       mkcl_object dir = mk_cl_car(env, path);
 
-      if (dir == @':relative')
+      if (dir == MK_KEY_relative)
 	return FALSE;
 
       path = mk_cl_cdr(env, path);
       mkcl_loop_for_in(env, path) {
 	dir = MKCL_CONS_CAR(path);
-	if (dir == @':up' || dir == @':wild' || dir == @':wild-inferiors' || dir == @':back')
+	if (dir == MK_KEY_up || dir == MK_KEY_wild || dir == MK_KEY_wild_inferiors || dir == MK_KEY_back)
 	  return FALSE;
       } mkcl_end_loop_for_in;
       return TRUE;
@@ -1161,11 +1161,11 @@ mkcl_namestring(MKCL, mkcl_object x, int truncate_if_unreadable)
    * or using mkcl_make_pathname(). In all of these cases MKCL will complain
    * at creation time if the pathname has wrong components.
    */
-  buffer = mkcl_make_string_output_stream(env, 128, TRUE, @':default');
+  buffer = mkcl_make_string_output_stream(env, 128, TRUE, MK_KEY_default);
   logical = x->pathname.logical;
   host = x->pathname.host;
   if (logical) {
-    if ((y = x->pathname.device) != @':unspecific' && truncate_if_unreadable)
+    if ((y = x->pathname.device) != MK_KEY_unspecific && truncate_if_unreadable)
       return mk_cl_Cnil; /* FIXME: This is in fact a breach of invariant.
 			    Logical pathnames device cannot have any other
 			    value than :unspecific and thus by definition.
@@ -1179,19 +1179,19 @@ mkcl_namestring(MKCL, mkcl_object x, int truncate_if_unreadable)
   } else {
 #if MKCL_UNIX
     /* Physical "device" is a nonsense on Unix. JCB */
-    if (((y = x->pathname.device) != mk_cl_Cnil) && (y != @':unspecific')) {
+    if (((y = x->pathname.device) != mk_cl_Cnil) && (y != MK_KEY_unspecific)) {
       mk_si_do_write_sequence(env, y, buffer, MKCL_MAKE_FIXNUM(0), mk_cl_Cnil);
       mkcl_write_cstr(env, ":", buffer);
     }
     if (host != mk_cl_Cnil
-	&& (host !=  @':unspecific')
+	&& (host !=  MK_KEY_unspecific)
 	&& !mkcl_string_E(env, host, mkcl_core.localhost_string)) {
       mk_si_do_write_sequence(env, host, buffer, MKCL_MAKE_FIXNUM(0), mk_cl_Cnil);
       mkcl_write_cstr(env, ":", buffer);
     }
 #elif MKCL_WINDOWS
     if ((host != mk_cl_Cnil)
-	&& (host != @':unspecific')
+	&& (host != MK_KEY_unspecific)
 	&& !mkcl_string_E(env, host, mkcl_core.localhost_string))
       {
 	mkcl_write_char(env, MKCL_DIR_SEPARATOR, buffer);
@@ -1201,7 +1201,7 @@ mkcl_namestring(MKCL, mkcl_object x, int truncate_if_unreadable)
 	y = x->pathname.device;
 	mk_si_do_write_sequence(env, y, buffer, MKCL_MAKE_FIXNUM(0), mk_cl_Cnil);
       }
-    else if (((y = x->pathname.device) != mk_cl_Cnil) && (y != @':unspecific'))
+    else if (((y = x->pathname.device) != mk_cl_Cnil) && (y != MK_KEY_unspecific))
       {
 	mk_si_do_write_sequence(env, y, buffer, MKCL_MAKE_FIXNUM(0), mk_cl_Cnil);
 	mkcl_write_cstr(env, ":", buffer);
@@ -1211,10 +1211,10 @@ mkcl_namestring(MKCL, mkcl_object x, int truncate_if_unreadable)
 #endif
   }
   l = x->pathname.directory;
-  if (l == @':unspecific' || mkcl_endp(env, l))
+  if (l == MK_KEY_unspecific || mkcl_endp(env, l))
     goto NO_DIRECTORY;
   y = MKCL_CONS_CAR(l);
-  if (y == @':relative') {
+  if (y == MK_KEY_relative) {
     if (logical)
       mkcl_write_char(env, ';', buffer);
     else
@@ -1229,13 +1229,13 @@ mkcl_namestring(MKCL, mkcl_object x, int truncate_if_unreadable)
   l = MKCL_CONS_CDR(l);
   mkcl_loop_for_in(env, l) {
     y = MKCL_CONS_CAR(l);
-    if (y == @':up') {
+    if (y == MK_KEY_up) {
       mkcl_write_cstr(env, "..", buffer);
-    } else if (y == @':wild') {
+    } else if (y == MK_KEY_wild) {
       mkcl_write_cstr(env, "*", buffer);
-    } else if (y == @':wild-inferiors') {
+    } else if (y == MK_KEY_wild_inferiors) {
       mkcl_write_cstr(env, "**", buffer);
-    } else if (y != @':back') {
+    } else if (y != MK_KEY_back) {
       mk_si_do_write_sequence(env, y, buffer, MKCL_MAKE_FIXNUM(0), mk_cl_Cnil);
     } else {
       /* Directory :back has no namestring representation */
@@ -1249,16 +1249,16 @@ mkcl_namestring(MKCL, mkcl_object x, int truncate_if_unreadable)
   } mkcl_end_loop_for_in;
  NO_DIRECTORY:
   y = x->pathname.name;
-  if (y != mk_cl_Cnil && y != @':unspecific') {
-    if (y == @':wild') {
+  if (y != mk_cl_Cnil && y != MK_KEY_unspecific) {
+    if (y == MK_KEY_wild) {
       mkcl_write_cstr(env, "*", buffer);
     } else {
       mk_si_do_write_sequence(env, y, buffer, MKCL_MAKE_FIXNUM(0), mk_cl_Cnil);
     }
   }
   y = x->pathname.type;
-  if (y != mk_cl_Cnil && y != @':unspecific') {
-    if (y == @':wild') {
+  if (y != mk_cl_Cnil && y != MK_KEY_unspecific) {
+    if (y == MK_KEY_wild) {
       mkcl_write_cstr(env, ".*", buffer);
     } else {
       mkcl_write_cstr(env, ".", buffer);
@@ -1269,9 +1269,9 @@ mkcl_namestring(MKCL, mkcl_object x, int truncate_if_unreadable)
   if (logical) {
     if (y != mk_cl_Cnil) {
       mkcl_write_cstr(env, ".", buffer);
-      if (y == @':wild') {
+      if (y == MK_KEY_wild) {
 	mkcl_write_cstr(env, "*", buffer);
-      } else if (y == @':newest') {
+      } else if (y == MK_KEY_newest) {
 	mk_si_do_write_sequence(env, mkcl_symbol_name(env, y), buffer, MKCL_MAKE_FIXNUM(0), mk_cl_Cnil);
       } else if (MKCL_FIXNUMP(y)) {
 	/* Since the printer is not reentrant,
@@ -1305,7 +1305,7 @@ mkcl_namestring(MKCL, mkcl_object x, int truncate_if_unreadable)
       /* Directories cannot have a version number */
       if (y != mk_cl_Cnil)
 	return mk_cl_Cnil;
-    } else if (y != @':newest') {
+    } else if (y != MK_KEY_newest) {
       /* Filenames have an implicit version :newest */
       return mk_cl_Cnil;
     }
@@ -1334,7 +1334,7 @@ mkcl_namestring(MKCL, mkcl_object x, int truncate_if_unreadable)
 	  }
     
 	if ((x->pathname.host != mk_cl_Cnil)
-	    && (x->pathname.host != @':unspecific')
+	    && (x->pathname.host != MK_KEY_unspecific)
 	    && !mkcl_string_E(env, x->pathname.host, mkcl_core.localhost_string))
 	  prefix = (mkcl_object) &UNC_prefix_obj;
 	else
@@ -1368,7 +1368,7 @@ mkcl_object mk_cl_parse_namestring(MKCL, const mkcl_narg narg, mkcl_object thing
     mkcl_object start = MKCL_MAKE_FIXNUM(0);
     mkcl_object end = mk_cl_Cnil;
     mkcl_object junk_allowed = mk_cl_Cnil;
-    mkcl_check_minimal_arg_count(env, @'parse-namestring', narg, 1);
+    mkcl_check_minimal_arg_count(env, MK_CL_parse_namestring, narg, 1);
     if (narg > 1) {
       mkcl_va_list ARGS;
       mkcl_va_start(env, ARGS, thing, narg, 1);
@@ -1378,7 +1378,7 @@ mkcl_object mk_cl_parse_namestring(MKCL, const mkcl_narg narg, mkcl_object thing
       else
         defaults = mk_si_default_pathname_defaults(env);
       if (narg > 3)
-        mkcl_receive_3_keyword_arguments(env, @'parse-namestring', ARGS, @':start', &start, @':end', &end, @':junk-allowed', &junk_allowed);
+        mkcl_receive_3_keyword_arguments(env, MK_CL_parse_namestring, ARGS, MK_KEY_start, &start, MK_KEY_end, &end, MK_KEY_junk_allowed, &junk_allowed);
       mkcl_va_end(ARGS);
     }
   
@@ -1419,8 +1419,8 @@ mkcl_object mk_cl_merge_pathnames(MKCL, mkcl_narg narg, mkcl_object path, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object defaults = MKCL_OBJNULL;
-    mkcl_object default_version = @':newest';
-    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, @'merge-pathnames', narg, 1, path, &defaults, &default_version);
+    mkcl_object default_version = MK_KEY_newest;
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, MK_CL_merge_pathnames, narg, 1, path, &defaults, &default_version);
 
     mkcl_object default_host;
 
@@ -1430,8 +1430,8 @@ mkcl_object mk_cl_merge_pathnames(MKCL, mkcl_narg narg, mkcl_object path, ...)
       defaults = mk_cl_pathname(env, defaults);
     default_host = defaults->pathname.host;
 
-    if (default_version != @':newest' && default_version != mk_cl_Cnil
-        && default_version != @':unspecific' && default_version != @':wild'
+    if (default_version != MK_KEY_newest && default_version != mk_cl_Cnil
+        && default_version != MK_KEY_unspecific && default_version != MK_KEY_wild
         && !(MKCL_FIXNUMP(default_version) && mkcl_plusp(env, default_version)))
       mkcl_FEerror(env, "In merge-pathnames: ~s is not a valid default-version value", 1, default_version);
 
@@ -1458,8 +1458,8 @@ mkcl_object mk_mkcl_meld_pathnames(MKCL, mkcl_narg narg, mkcl_object path, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object defaults = MKCL_OBJNULL;
-    mkcl_object default_version = @':newest';
-    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, @'mkcl::meld-pathnames', narg, 1, path, &defaults, &default_version);
+    mkcl_object default_version = MK_KEY_newest;
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, MK_MKCL_meld_pathnames, narg, 1, path, &defaults, &default_version);
 
   mkcl_object default_host;
 
@@ -1469,8 +1469,8 @@ mkcl_object mk_mkcl_meld_pathnames(MKCL, mkcl_narg narg, mkcl_object path, ...)
     defaults = mk_cl_pathname(env, defaults);
   default_host = defaults->pathname.host;
 
-  if (default_version != @':newest' && default_version != mk_cl_Cnil
-      && default_version != @':unspecific' && default_version != @':wild'
+  if (default_version != MK_KEY_newest && default_version != mk_cl_Cnil
+      && default_version != MK_KEY_unspecific && default_version != MK_KEY_wild
       && !(MKCL_FIXNUMP(default_version) && mkcl_plusp(env, default_version)))
     mkcl_FEerror(env, "In meld-pathnames: ~s is not a valid default-version value", 1, default_version);
 
@@ -1505,23 +1505,23 @@ mkcl_object mk_cl_make_pathname(MKCL, mkcl_narg narg, ...)
     mkcl_object name = MKCL_OBJNULL;
     mkcl_object type = MKCL_OBJNULL;
     mkcl_object version = MKCL_OBJNULL;
-    mkcl_object scase = @':local';
+    mkcl_object scase = MK_KEY_local;
     mkcl_object defaults = mk_cl_Cnil;
     struct mkcl_key_param_spec key_params[] =
       {
-       { @':host', &host, false },
-       { @':device', &device, false },
-       { @':directory', &directory, false },
-       { @':name', &name, false },
-       { @':type', &type, false },
-       { @':version', &version, false },
-       { @':case', &scase, false },
-       { @':defaults', &defaults, false }
+       { MK_KEY_host, &host, false },
+       { MK_KEY_device, &device, false },
+       { MK_KEY_directory, &directory, false },
+       { MK_KEY_name, &name, false },
+       { MK_KEY_type, &type, false },
+       { MK_KEY_version, &version, false },
+       { MK_KEY_case, &scase, false },
+       { MK_KEY_defaults, &defaults, false }
       };
-    MKCL_RECEIVE_N_KEYWORD_ARGUMENTS(env, @'make-pathname', narg, 0, narg, key_params);
+    MKCL_RECEIVE_N_KEYWORD_ARGUMENTS(env, MK_CL_make_pathname, narg, 0, narg, key_params);
 
     bool logical = FALSE;
-    bool verbatim = MKCL_EQ(scase, @':common') ? FALSE : TRUE;
+    bool verbatim = MKCL_EQ(scase, MK_KEY_common) ? FALSE : TRUE;
 
     if (!mkcl_Null(defaults)) {
       defaults = mk_cl_pathname(env, defaults);
@@ -1570,13 +1570,13 @@ mkcl_object mk_cl_pathname_host(MKCL, mkcl_narg narg, mkcl_object pname, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_object scase = @':local';
+    mkcl_object scase = MK_KEY_local;
   
-    MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, @'pathname-host', narg, 1, pname, @':case', &scase);
+    MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, MK_CL_pathname_host, narg, 1, pname, MK_KEY_case, &scase);
   
     if (!MKCL_PATHNAMEP(pname))
       pname = mk_cl_pathname(env, pname);
-    mkcl_return_value(((MKCL_EQ(scase, @':common') && !pname->pathname.logical)
+    mkcl_return_value(((MKCL_EQ(scase, MK_KEY_common) && !pname->pathname.logical)
                        ? common_transcase(env, pname->pathname.host)
                        : pname->pathname.host));
   }
@@ -1586,13 +1586,13 @@ mkcl_object mk_cl_pathname_device(MKCL, mkcl_narg narg, mkcl_object pname, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_object scase = @':local';
+    mkcl_object scase = MK_KEY_local;
   
-    MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, @'pathname-device', narg, 1, pname, @':case', &scase);
+    MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, MK_CL_pathname_device, narg, 1, pname, MK_KEY_case, &scase);
 
     if (!MKCL_PATHNAMEP(pname))
       pname = mk_cl_pathname(env, pname);
-    mkcl_return_value(((MKCL_EQ(scase, @':common') && !pname->pathname.logical)
+    mkcl_return_value(((MKCL_EQ(scase, MK_KEY_common) && !pname->pathname.logical)
                        ? common_transcase(env, pname->pathname.device)
                        : pname->pathname.device));
   }
@@ -1602,13 +1602,13 @@ mkcl_object mk_cl_pathname_directory(MKCL, mkcl_narg narg, mkcl_object pname, ..
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_object scase = @':local';
+    mkcl_object scase = MK_KEY_local;
   
-    MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, @'pathname-directory', narg, 1, pname, @':case', &scase);
+    MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, MK_CL_pathname_directory, narg, 1, pname, MK_KEY_case, &scase);
     
     if (!MKCL_PATHNAMEP(pname))
       pname = mk_cl_pathname(env, pname);
-    mkcl_return_value(((MKCL_EQ(scase, @':common') && !pname->pathname.logical)
+    mkcl_return_value(((MKCL_EQ(scase, MK_KEY_common) && !pname->pathname.logical)
                        ? common_transcase_list(env, pname->pathname.directory)
                        : pname->pathname.directory));
   }
@@ -1618,13 +1618,13 @@ mkcl_object mk_cl_pathname_name(MKCL, mkcl_narg narg, mkcl_object pname, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_object scase = @':local';
+    mkcl_object scase = MK_KEY_local;
   
-    MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, @'pathname-name', narg, 1, pname, @':case', &scase);
+    MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, MK_CL_pathname_name, narg, 1, pname, MK_KEY_case, &scase);
     
   if (!MKCL_PATHNAMEP(pname))
     pname = mk_cl_pathname(env, pname);
-  mkcl_return_value(((MKCL_EQ(scase, @':common') && !pname->pathname.logical)
+  mkcl_return_value(((MKCL_EQ(scase, MK_KEY_common) && !pname->pathname.logical)
             ? common_transcase(env, pname->pathname.name)
             : pname->pathname.name));
   }
@@ -1634,13 +1634,13 @@ mkcl_object mk_cl_pathname_type(MKCL, mkcl_narg narg, mkcl_object pname, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_object scase = @':local';
+    mkcl_object scase = MK_KEY_local;
   
-    MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, @'pathname-type', narg, 1, pname, @':case', &scase);
+    MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, MK_CL_pathname_type, narg, 1, pname, MK_KEY_case, &scase);
 
     if (!MKCL_PATHNAMEP(pname))
       pname = mk_cl_pathname(env, pname);
-    mkcl_return_value(((MKCL_EQ(scase, @':common') && !pname->pathname.logical)
+    mkcl_return_value(((MKCL_EQ(scase, MK_KEY_common) && !pname->pathname.logical)
                        ? common_transcase(env, pname->pathname.type)
                        : pname->pathname.type));
   }
@@ -1663,7 +1663,7 @@ mk_cl_file_namestring(MKCL, mkcl_object pname)
   mkcl_return_value(mkcl_namestring(env,
 			   _make_pathname(env, pname->pathname.logical,
 					  mk_cl_Cnil,
-					  pname->pathname.logical ? @':unspecific' : mk_cl_Cnil,
+					  pname->pathname.logical ? MK_KEY_unspecific : mk_cl_Cnil,
 					  mk_cl_Cnil,
 					  pname->pathname.name,
 					  pname->pathname.type,
@@ -1679,7 +1679,7 @@ mk_cl_directory_namestring(MKCL, mkcl_object pname)
   mkcl_return_value(mkcl_namestring(env,
 			   _make_pathname(env, pname->pathname.logical,
 					  mk_cl_Cnil,
-					  pname->pathname.logical ? @':unspecific' : mk_cl_Cnil,
+					  pname->pathname.logical ? MK_KEY_unspecific : mk_cl_Cnil,
 					  pname->pathname.directory,
 					  mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil),
 			   TRUE));
@@ -1691,7 +1691,7 @@ mk_cl_host_namestring(MKCL, mkcl_object pname)
   mkcl_call_stack_check(env);
   pname = mk_cl_pathname(env, pname);
   pname = pname->pathname.host;
-  if (mkcl_Null(pname) || pname == @':wild')
+  if (mkcl_Null(pname) || pname == MK_KEY_wild)
     pname = mkcl_core.empty_base_string;
   mkcl_return_value(pname);
 }
@@ -1704,27 +1704,27 @@ mkcl_object mk_cl_enough_namestring(MKCL, mkcl_narg narg, mkcl_object path, ...)
   {
     mkcl_object newpath, pathdir, defaultdir, fname;
     mkcl_object defaults = mk_si_default_pathname_defaults(env);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'enough-namestring', narg, 1, path, &defaults);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_enough_namestring, narg, 1, path, &defaults);
 
     defaults = mk_cl_pathname(env, defaults);
     path = mk_cl_pathname(env, path);
     pathdir = path->pathname.directory;
     defaultdir = defaults->pathname.directory;
     if (mkcl_Null(pathdir)) {
-      pathdir = mkcl_list1(env, @':relative');
+      pathdir = mkcl_list1(env, MK_KEY_relative);
     } else if (mkcl_Null(defaultdir)) {
       /* The defaults pathname does not have a directory. */
-    } else if (MKCL_CONSP(pathdir) && (MKCL_CONS_CAR(pathdir) == @':relative')) {
+    } else if (MKCL_CONSP(pathdir) && (MKCL_CONS_CAR(pathdir) == MK_KEY_relative)) {
       /* The pathname is relative to the default one, so we just output the original one. */
     } else {
       /* The new pathname is an absolute one. We compare it with the defaults
          and if they have some common elements, we just output the remaining ones. */
-      mkcl_object dir_begin = mkcl_funcall4(env, @+'mismatch', pathdir, defaultdir, @':test', @+'equal');
+      mkcl_object dir_begin = mkcl_funcall4(env, MK_CL_mismatch->symbol.gfdef, pathdir, defaultdir, MK_KEY_test, MK_CL_equal->symbol.gfdef);
       if (dir_begin == mk_cl_Cnil) {
         pathdir = mk_cl_Cnil;
       } else if (dir_begin == mk_cl_length(env, defaultdir)) {
-        pathdir = mkcl_funcall2(env, @+'subseq', pathdir, dir_begin);
-        pathdir = MKCL_CONS(env, @':relative', pathdir);
+        pathdir = mkcl_funcall2(env, MK_CL_subseq->symbol.gfdef, pathdir, dir_begin);
+        pathdir = MKCL_CONS(env, MK_KEY_relative, pathdir);
       }
     }
     fname = EN_MATCH(env, path, defaults, name);
@@ -1733,7 +1733,7 @@ mkcl_object mk_cl_enough_namestring(MKCL, mkcl_narg narg, mkcl_object path, ...)
     newpath = _make_pathname(env,
                              path->pathname.logical,
                              EN_MATCH(env, path, defaults, host),
-                             path->pathname.logical ? @':unspecific' : EN_MATCH(env, path, defaults, device),
+                             path->pathname.logical ? MK_KEY_unspecific : EN_MATCH(env, path, defaults, device),
                              pathdir,
                              fname,
                              EN_MATCH(env, path, defaults, type),
@@ -1786,7 +1786,7 @@ do_path_item_match(MKCL, mkcl_object s, mkcl_index j, mkcl_object p, mkcl_index 
 static bool
 path_item_match(MKCL, mkcl_object a, mkcl_object wildcard)
 {
-  if (wildcard == @':wild')
+  if (wildcard == MK_KEY_wild)
     return TRUE;
   /* If a component in the tested path is a wildcard field, this
      can only be matched by the same wildcard field in the wildcard */
@@ -1804,7 +1804,7 @@ path_list_match(MKCL, mkcl_object a, mkcl_object wildcard)
   while (!mkcl_endp(env, wildcard)) {
     sub_wildcard = MKCL_CAR(wildcard);
     wildcard = MKCL_CDR(wildcard);
-    if (sub_wildcard == @':wild-inferiors') {
+    if (sub_wildcard == MK_KEY_wild_inferiors) {
       if (mkcl_endp(env, wildcard))
 	return TRUE;
       while (!mkcl_endp(env, a)) {
@@ -1816,7 +1816,7 @@ path_list_match(MKCL, mkcl_object a, mkcl_object wildcard)
     } else if (mkcl_endp(env, a)) {
       /* A NIL directory should match against :absolute
 	 or :relative, in order to perform suitable translations. */
-      if (sub_wildcard != @':absolute' && sub_wildcard != @':relative')
+      if (sub_wildcard != MK_KEY_absolute && sub_wildcard != MK_KEY_relative)
 	return FALSE;
     } else if (!path_item_match(env, MKCL_CAR(a), sub_wildcard)) {
       return FALSE;
@@ -1846,7 +1846,7 @@ mk_cl_pathname_match_p(MKCL, mkcl_object path, mkcl_object wildcard)
       )
     { mkcl_return_value(mk_cl_Cnil); }
   if (!wildcard->pathname.logical
-      && !(mkcl_Null(wildcard->pathname.device) || (wildcard->pathname.device == @':unspecific'))
+      && !(mkcl_Null(wildcard->pathname.device) || (wildcard->pathname.device == MK_KEY_unspecific))
       && (mk_cl_string_equal(env, 2, path->pathname.device, wildcard->pathname.device) == mk_cl_Cnil))
     { mkcl_return_value(mk_cl_Cnil); }
 
@@ -1863,7 +1863,7 @@ mk_cl_pathname_match_p(MKCL, mkcl_object path, mkcl_object wildcard)
   if (wildcard->pathname.logical)
 #endif
     if (!(mkcl_Null(wildcard->pathname.version)
-	  || wildcard->pathname.version == @':unspecific'
+	  || wildcard->pathname.version == MK_KEY_unspecific
 	  || path_item_match(env, path->pathname.version, wildcard->pathname.version)))
     { mkcl_return_value(mk_cl_Cnil); }
 
@@ -1898,17 +1898,17 @@ mkcl_object mk_si_pathname_translations(MKCL, mkcl_narg narg, mkcl_object host, 
     mkcl_index parsed_len, len;
     mkcl_object pair, l;
     mkcl_object set = MKCL_OBJNULL;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'si::pathname-translations', narg, 1, host, &set);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_SI_pathname_translations, narg, 1, host, &set);
 
     /* Check that host is a valid host name */
-    host = mkcl_check_type_string(env, @'si::pathname-translations', host);
+    host = mkcl_check_type_string(env, MK_SI_pathname_translations, host);
     len = mkcl_length(env, host);
     parse_word(env, host, is_null, WORD_LOGICAL, 0, len, &parsed_len, mkcl_may_be_wild_namestring);
     if (parsed_len < len) {
       mkcl_FEerror(env, "Wrong host syntax ~S", 1, host);
     }
     /* Find its translation list */
-    pair = @assoc(env, 4, host, mkcl_core.pathname_translations, @':test', @'string-equal');
+    pair = mk_cl_assoc(env, 4, host, mkcl_core.pathname_translations, MK_KEY_test, MK_CL_string_equal);
     if (set == MKCL_OBJNULL) {
       mkcl_return_value(((pair == mk_cl_Cnil)? mk_cl_Cnil : MKCL_CADR(pair)));
     }
@@ -1944,7 +1944,7 @@ find_wilds(MKCL, mkcl_object match_list, mkcl_object source, mkcl_object wildcar
 {
   mkcl_index i, j, k, ls, lw;
 
-  if (wildcard == @':wild')
+  if (wildcard == MK_KEY_wild)
     {
       mkcl_object it = source;
       if (MKCL_STRINGP(it))
@@ -1957,7 +1957,7 @@ find_wilds(MKCL, mkcl_object match_list, mkcl_object source, mkcl_object wildcar
     }
   if (!mkcl_stringp(env, wildcard) || !mkcl_stringp(env, source)) {
     if (wildcard != source)
-      return @':error';
+      return MK_KEY_error;
     return match_list;
   }
   ls = mkcl_length(env, source);
@@ -1979,11 +1979,11 @@ find_wilds(MKCL, mkcl_object match_list, mkcl_object source, mkcl_object wildcar
       continue;
     }
     if (mkcl_char(env, source,i) != pattern_char)
-      return @':error';
+      return MK_KEY_error;
     i++, j++;
   }
   if (i < ls || j < lw)
-    return @':error';
+    return MK_KEY_error;
   return match_list;
 }
 
@@ -1995,11 +1995,11 @@ find_list_wilds(MKCL, mkcl_object list_source, mkcl_object wildcard, enum case_m
   while (!mkcl_endp(env, wildcard)) {
     mkcl_object sub_wildcard = MKCL_CAR(wildcard);
     wildcard = MKCL_CDR(wildcard);
-    if (sub_wildcard == @':wild-inferiors') {
+    if (sub_wildcard == MK_KEY_wild_inferiors) {
       mkcl_object l2 = mk_cl_Cnil;
       while (!path_list_match(env, list_source, wildcard)) {
 	if (mkcl_endp(env, list_source))
-	  return @':error';
+	  return MK_KEY_error;
         {
           mkcl_object it = MKCL_CAR(list_source);
 
@@ -2017,18 +2017,18 @@ find_list_wilds(MKCL, mkcl_object list_source, mkcl_object wildcard, enum case_m
     } else if (mkcl_endp(env, list_source)) {
       /* A NIL directory should match against :absolute
 	 or :relative, in order to perform suitable translations. */
-      if (sub_wildcard != @':absolute' && sub_wildcard != @':relative')
-	return @':error';
+      if (sub_wildcard != MK_KEY_absolute && sub_wildcard != MK_KEY_relative)
+	return MK_KEY_error;
     } else {
       mkcl_object l2 = find_wilds(env, match_list, MKCL_CAR(list_source), sub_wildcard, cmap);
-      if (match_list == @':error')
-	return @':error';
+      if (match_list == MK_KEY_error)
+	return MK_KEY_error;
       if (!mkcl_Null(l2))
 	match_list = MKCL_CONS(env, l2, match_list);
       list_source = MKCL_CDR(list_source);
     }
   }
-  return @nreverse(env, match_list);
+  return mk_cl_nreverse(env, match_list);
 }
 
 static mkcl_object
@@ -2038,15 +2038,15 @@ copy_wildcards(MKCL, mkcl_object *wilds_list, mkcl_object pattern)
   bool new_string;
   mkcl_object wilds = *wilds_list, token;
 
-  if (pattern == @':wild') {
+  if (pattern == MK_KEY_wild) {
     if (mkcl_endp(env, wilds))
-      return @':error';
+      return MK_KEY_error;
     pattern = MKCL_CAR(wilds);
     *wilds_list = MKCL_CDR(wilds);
     return pattern;
   }
-  if (pattern == @':wild-inferiors')
-    return @':error';
+  if (pattern == MK_KEY_wild_inferiors)
+    return MK_KEY_error;
   if (!mkcl_stringp(env, pattern))
     return pattern;
 
@@ -2064,7 +2064,7 @@ copy_wildcards(MKCL, mkcl_object *wilds_list, mkcl_object pattern)
     }
     new_string = TRUE;
     if (mkcl_endp(env, wilds)) {
-      return @':error';
+      return MK_KEY_error;
     }
     push_string(env, token, MKCL_CAR(wilds));
     wilds = MKCL_CDR(wilds);
@@ -2090,28 +2090,28 @@ copy_list_wildcards(MKCL, mkcl_object *wilds, mkcl_object to)
 
   while (!mkcl_endp(env, to)) {
     mkcl_object d, wildcard = MKCL_CAR(to);
-    if (wildcard == @':wild-inferiors') {
+    if (wildcard == MK_KEY_wild_inferiors) {
       mkcl_object list = *wilds;
       if (mkcl_endp(env, list))
-	return @':error';
+	return MK_KEY_error;
       else {
 	mkcl_object dirlist = MKCL_CAR(list);
 	if (MKCL_CONSP(dirlist))
 	  l = mkcl_append(env, MKCL_CAR(list), l);
 	else if (!mkcl_Null(MKCL_CAR(list)))
-	  return @':error';
+	  return MK_KEY_error;
       }
       *wilds = MKCL_CDR(list);
     } else {
       d = copy_wildcards(env, wilds, MKCL_CAR(to));
-      if (d == @':error')
+      if (d == MK_KEY_error)
 	return d;
       l = MKCL_CONS(env, d, l);
     }
     to = MKCL_CDR(to);
   }
   if (MKCL_CONSP(l))
-    l = @nreverse(env, l);
+    l = mk_cl_nreverse(env, l);
   return l;
 }
 
@@ -2120,7 +2120,7 @@ mkcl_object mk_cl_translate_pathname(MKCL, mkcl_narg narg, mkcl_object source, m
   mkcl_call_stack_check(env);
   {
     mkcl_object wilds, out, d;
-    MKCL_RECEIVE_0_KEYWORD_ARGUMENTS(env, @'translate-pathname', narg, 3, to);
+    MKCL_RECEIVE_0_KEYWORD_ARGUMENTS(env, MK_CL_translate_pathname, narg, 3, to);
 
     enum case_map case_mapping = preserve_case;
     mkcl_object host, device, dir, name, type, version;
@@ -2153,32 +2153,32 @@ mkcl_object mk_cl_translate_pathname(MKCL, mkcl_narg narg, mkcl_object source, m
   
     /* Match directories */
     wilds = find_list_wilds(env, source->pathname.directory, from->pathname.directory, case_mapping);
-    if (wilds == @':error')  goto error;
+    if (wilds == MK_KEY_error)  goto error;
     d = copy_list_wildcards(env, &wilds, to->pathname.directory);
-    if (d == @':error') goto error;
+    if (d == MK_KEY_error) goto error;
     if (wilds != mk_cl_Cnil) goto error2;
     dir = out->pathname.directory = d;
   
     /* Match name */
     wilds = find_wilds(env, mk_cl_Cnil, source->pathname.name, from->pathname.name, case_mapping);
-    if (wilds == @':error') goto error2;
+    if (wilds == MK_KEY_error) goto error2;
     d = copy_wildcards(env, &wilds, to->pathname.name);
-    if (d == @':error') goto error;
+    if (d == MK_KEY_error) goto error;
     if (wilds != mk_cl_Cnil) goto error2;
     name = out->pathname.name = d;
   
     /* Match type */
     wilds = find_wilds(env, mk_cl_Cnil, source->pathname.type, from->pathname.type, case_mapping);
-    if (wilds == @':error') goto error2;
+    if (wilds == MK_KEY_error) goto error2;
     d = copy_wildcards(env, &wilds, to->pathname.type);
-    if (d == @':error') goto error;
+    if (d == MK_KEY_error) goto error;
     if (wilds != mk_cl_Cnil) goto error2;
     type = out->pathname.type = d;
   
     /* Match version */
     out->pathname.version = to->pathname.version;
-    if (from->pathname.version == @':wild') {
-      if (to->pathname.version == @':wild') {
+    if (from->pathname.version == MK_KEY_wild) {
+      if (to->pathname.version == MK_KEY_wild) {
         out->pathname.version = source->pathname.version;
       }
     }
@@ -2188,14 +2188,14 @@ mkcl_object mk_cl_translate_pathname(MKCL, mkcl_narg narg, mkcl_object source, m
     version = out->pathname.version;
 
     dir = canonicalize_directory_destructively(env, dir, out->pathname.logical);
-    if (@':error' == dir)
-      mk_cl_error(env, 3, @'file-error', @':pathname', out);
+    if (MK_KEY_error == dir)
+      mk_cl_error(env, 3, MK_CL_file_error, MK_KEY_pathname, out);
     else
       out->pathname.directory = dir;
 
     out->pathname.complete = (host != mk_cl_Cnil && device != mk_cl_Cnil && dir != mk_cl_Cnil
                               && name != mk_cl_Cnil && type != mk_cl_Cnil && version != mk_cl_Cnil
-                              && MKCL_CONSP(dir) && (MKCL_CONS_CAR(dir) == @':absolute'));
+                              && MKCL_CONSP(dir) && (MKCL_CONS_CAR(dir) == MK_KEY_absolute));
     mkcl_return_value(out);
   
   error:
@@ -2210,14 +2210,14 @@ mkcl_object mk_cl_translate_logical_pathname(MKCL, mkcl_narg narg, mkcl_object s
   mkcl_call_stack_check(env);
   {
     mkcl_object pathname = mk_cl_pathname(env, source);
-    MKCL_RECEIVE_0_KEYWORD_ARGUMENTS(env, @'translate-pathname', narg, 1, source);
+    MKCL_RECEIVE_0_KEYWORD_ARGUMENTS(env, MK_CL_translate_pathname, narg, 1, source);
 
   begin:
     if (!pathname->pathname.logical)
       { mkcl_return_value(pathname); }
     else
       {
-        mkcl_object l = @si::pathname-translations(env, 1, pathname->pathname.host);
+        mkcl_object l = mk_si_pathname_translations(env, 1, pathname->pathname.host);
         for(; MKCL_CONSP(l); l = MKCL_CONS_CDR(l)) {
           mkcl_object pair = MKCL_CONS_CAR(l);
           if (!mkcl_Null(mk_cl_pathname_match_p(env, pathname, mk_cl_car(env, pair)))) {

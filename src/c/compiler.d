@@ -162,14 +162,14 @@ asm_end(MKCL, mkcl_index beginning, mkcl_object definition) {
 	mkcl_object bytecode;
 	mkcl_index code_size, data_size, i;
 	mkcl_opcode *code;
-	mkcl_object file = MKCL_SYM_VAL(env,@'*load-truename*');
-	mkcl_object end_position = mk_cl_cdr(env, MKCL_SYM_VAL(env,@'si::*source-location*'));
+	mkcl_object file = MKCL_SYM_VAL(env,MK_CL_DYNVAR_load_truename);
+	mkcl_object end_position = mk_cl_cdr(env, MKCL_SYM_VAL(env,MK_SI_DYNVAR_source_location));
 
 	/* Save bytecode from this session in a new vector */
 	code_size = current_pc(env) - beginning;
 	data_size = mkcl_length(env, c_env->constants);
 	bytecode = mkcl_alloc_raw_bytecode(env);
-	bytecode->bytecode.name = @'si::bytecode';
+	bytecode->bytecode.name = MK_SI_bytecode;
 	bytecode->bytecode.definition = definition;
 	bytecode->bytecode.code_size = code_size;
 	bytecode->bytecode.data_size = data_size;
@@ -285,55 +285,55 @@ typedef struct {
 #define DATABASE_SIZE (sizeof(database)/sizeof(database[0]))
 
 static compiler_record const database[] = {
-  {@'block', c_block, 1},
-  {@'case', c_case, 1},
-  {@'catch', c_catch, 1},
-  {@'mkcl::compiler-let', c_compiler_let, 0},
-  {@'cond', c_cond, 1},
-  {@'eval-when', c_eval_when, 0},
-  {@'flet', c_flet, 1},
-  {@'function', c_function, 1},
-  {@'funcall', c_funcall, 0},
-  {@'go', c_go, 1},
-  {@'if', c_if, 1},
-  {@'labels', c_labels, 1},
-  {@'let', c_let, 1},
-  {@'let*', c_leta, 1},
-  {@'locally', c_locally, 0},
-  {@'load-time-value', c_load_time_value, 1},
-  {@'macrolet', c_macrolet, 0},
-  {@'multiple-value-bind', c_multiple_value_bind, 1},
-  {@'multiple-value-call', c_multiple_value_call, 1},
-  {@'multiple-value-prog1', c_multiple_value_prog1, 1},
-  {@'multiple-value-setq', c_multiple_value_setq, 1},
-  {@'not', c_not, 1},
-  {@'nth-value', c_nth_value, 1},
-  {@'null', c_not, 1},
-  {@'progn', compile_body, 0},
-  {@'prog1', c_prog1, 1},
-  {@'progv', c_progv, 1},
-  {@'psetq', c_psetq, 1},
-  {@'return', c_return, 1},
-  {@'return-from', c_return_from, 1},
-  {@'setq', c_setq, 1},
-  {@'symbol-macrolet', c_symbol_macrolet, 0},
-  {@'tagbody', c_tagbody, 1},
-  {@'throw', c_throw, 1},
-  {@'unwind-protect', c_unwind_protect, 1},
-  {@'values', c_values, 1},
-  {@'si::while', c_while, 0},
-  {@'si::until', c_until, 0},
+  {MK_CL_block, c_block, 1},
+  {MK_CL_case, c_case, 1},
+  {MK_CL_catch, c_catch, 1},
+  {MK_MKCL_compiler_let, c_compiler_let, 0},
+  {MK_CL_cond, c_cond, 1},
+  {MK_CL_eval_when, c_eval_when, 0},
+  {MK_CL_flet, c_flet, 1},
+  {MK_CL_function, c_function, 1},
+  {MK_CL_funcall, c_funcall, 0},
+  {MK_CL_go, c_go, 1},
+  {MK_CL_if, c_if, 1},
+  {MK_CL_labels, c_labels, 1},
+  {MK_CL_let, c_let, 1},
+  {MK_CL_letX, c_leta, 1},
+  {MK_CL_locally, c_locally, 0},
+  {MK_CL_load_time_value, c_load_time_value, 1},
+  {MK_CL_macrolet, c_macrolet, 0},
+  {MK_CL_multiple_value_bind, c_multiple_value_bind, 1},
+  {MK_CL_multiple_value_call, c_multiple_value_call, 1},
+  {MK_CL_multiple_value_prog1, c_multiple_value_prog1, 1},
+  {MK_CL_multiple_value_setq, c_multiple_value_setq, 1},
+  {MK_CL_not, c_not, 1},
+  {MK_CL_nth_value, c_nth_value, 1},
+  {MK_CL_null, c_not, 1},
+  {MK_CL_progn, compile_body, 0},
+  {MK_CL_prog1, c_prog1, 1},
+  {MK_CL_progv, c_progv, 1},
+  {MK_CL_psetq, c_psetq, 1},
+  {MK_CL_return, c_return, 1},
+  {MK_CL_return_from, c_return_from, 1},
+  {MK_CL_setq, c_setq, 1},
+  {MK_CL_symbol_macrolet, c_symbol_macrolet, 0},
+  {MK_CL_tagbody, c_tagbody, 1},
+  {MK_CL_throw, c_throw, 1},
+  {MK_CL_unwind_protect, c_unwind_protect, 1},
+  {MK_CL_values, c_values, 1},
+  {MK_SI_while, c_while, 0},
+  {MK_SI_until, c_until, 0},
 
   /* Extras */
 
-  {@'cons', c_cons, 0},
-  {@'car', c_car, 0},
-  {@'cdr', c_cdr, 0},
-  {@'first', c_car, 0},
-  {@'rest', c_cdr, 0},
-  {@'list', c_list, 0},
-  {@'list*', c_listA, 0},
-  {@'endp', c_endp, 0}
+  {MK_CL_cons, c_cons, 0},
+  {MK_CL_car, c_car, 0},
+  {MK_CL_cdr, c_cdr, 0},
+  {MK_CL_first, c_car, 0},
+  {MK_CL_rest, c_cdr, 0},
+  {MK_CL_list, c_list, 0},
+  {MK_CL_listX, c_listA, 0},
+  {MK_CL_endp, c_endp, 0}
 };
 
 /* ----------------- LEXICAL ENVIRONMENT HANDLING -------------------- */
@@ -435,7 +435,7 @@ c_register_block(MKCL, mkcl_object name)
 {
 	mkcl_object loc = new_location(env, name);
         const mk_cl_compiler_ptr c_env = env->c_env;
-	c_env->variables = MKCL_CONS(env, mk_cl_list(env, 4, @':block', name, mk_cl_Cnil, loc),
+	c_env->variables = MKCL_CONS(env, mk_cl_list(env, 4, MK_KEY_block, name, mk_cl_Cnil, loc),
                                 c_env->variables);
 	return mkcl_fixnum_to_word(MKCL_CONS_CDR(loc));
 }
@@ -443,10 +443,10 @@ c_register_block(MKCL, mkcl_object name)
 static mkcl_index
 c_register_tags(MKCL, mkcl_object all_tags)
 {
-	mkcl_object loc = new_location(env, @':tag');
+	mkcl_object loc = new_location(env, MK_KEY_tag);
         const mk_cl_compiler_ptr c_env = env->c_env;
-	c_env->variables = MKCL_CONS(env, mk_cl_list(env, 4, @':tag', all_tags, mk_cl_Cnil, loc),
-                                c_env->variables);
+	c_env->variables = MKCL_CONS(env, mk_cl_list(env, 4, MK_KEY_tag, all_tags, mk_cl_Cnil, loc),
+                                     c_env->variables);
 	return mkcl_fixnum_to_word(MKCL_CONS_CDR(loc));
 }
 
@@ -454,10 +454,10 @@ static void
 c_register_function(MKCL, mkcl_object name)
 {
         const mk_cl_compiler_ptr c_env = env->c_env;
-	c_env->variables = MKCL_CONS(env, mk_cl_list(env, 4, @':function', name, mk_cl_Cnil,
-                                        new_location(env, name)),
-                                c_env->variables);
-	c_env->macros = MKCL_CONS(env, mk_cl_list(env, 2, name, @'function'), c_env->macros);
+	c_env->variables = MKCL_CONS(env, mk_cl_list(env, 4, MK_KEY_function, name, mk_cl_Cnil,
+                                                     new_location(env, name)),
+                                     c_env->variables);
+	c_env->macros = MKCL_CONS(env, mk_cl_list(env, 2, name, MK_CL_function), c_env->macros);
 }
 
 static mkcl_object
@@ -471,8 +471,8 @@ static void
 c_register_symbol_macro(MKCL, mkcl_object name, mkcl_object exp_fun)
 {
         const mk_cl_compiler_ptr c_env = env->c_env;
-	c_env->variables = MKCL_CONS(env, mk_cl_list(env, 3, name, @'si::symbol-macro', exp_fun),
-                                c_env->variables);
+	c_env->variables = MKCL_CONS(env, mk_cl_list(env, 3, name, MK_SI_symbol_macro, exp_fun),
+                                     c_env->variables);
 }
 
 /* UNUSED
@@ -480,7 +480,7 @@ static void
 c_register_macro(MKCL, mkcl_object name, mkcl_object exp_fun)
 {
         const mk_cl_compiler_ptr c_env = env->c_env;
-	c_env->macros = MKCL_CONS(mk_cl_list(3, name, @'si::macro', exp_fun), c_env->macros);
+	c_env->macros = MKCL_CONS(mk_cl_list(3, name, MK_SI_macro, exp_fun), c_env->macros);
 }
 */
 
@@ -493,7 +493,7 @@ c_register_var(MKCL, mkcl_object var, bool special, bool bound)
                 const mk_cl_compiler_ptr c_env = env->c_env;
 		c_env->variables = MKCL_CONS(env, mk_cl_list(env, 4,
 							     var,
-							     special ? @':special' : mk_cl_Cnil,
+							     special ? MK_KEY_special : mk_cl_Cnil,
 							     bound ? mk_cl_Ct : mk_cl_Cnil,
 							     new_location(env, var)),
 					     c_env->variables);
@@ -510,7 +510,7 @@ guess_environment(MKCL, mkcl_object interpreter_env)
 	 * suitable compiler enviroment to compile forms that access the
 	 * variables and local functions of this interpreted code.
 	 */
-	for (interpreter_env = @revappend(env, interpreter_env, mk_cl_Cnil);
+	for (interpreter_env = mk_cl_revappend(env, interpreter_env, mk_cl_Cnil);
 	     !mkcl_Null(interpreter_env);
 	     interpreter_env = MKCL_CONS_CDR(interpreter_env))
 	{
@@ -561,7 +561,7 @@ c_new_env(mkcl_env the_env, mkcl_compiler_env_ptr new, mkcl_object env,
 			mkcl_object record = MKCL_CAR(env);
 			if (MKCL_ATOM(record))
 				continue;
-			if (MKCL_SYMBOLP(MKCL_CAR(record)) && MKCL_CADR(record) != @'si::symbol-macro') {
+			if (MKCL_SYMBOLP(MKCL_CAR(record)) && MKCL_CADR(record) != MK_SI_symbol_macro) {
 				continue;
 			} else {
 				new->lexical_level = 1;
@@ -585,7 +585,7 @@ c_tag_ref(MKCL, mkcl_object the_tag, mkcl_object the_type)
 		type = MKCL_CONS_CAR(record);
                 record = MKCL_CONS_CDR(record);
 		name = MKCL_CONS_CAR(record);
-		if (type == @':tag') {
+		if (type == MK_KEY_tag) {
 			if (type == the_type) {
 			  mkcl_object label = mkcl_assql(env, the_tag, name);
 				if (!mkcl_Null(label)) {
@@ -593,7 +593,7 @@ c_tag_ref(MKCL, mkcl_object the_tag, mkcl_object the_type)
 				}
 			}
 			n++;
-		} else if (type == @':block' || type == @':function') {
+		} else if (type == MK_KEY_block || type == MK_KEY_function) {
 			/* We compare with EQUAL, because of (SETF fname) */
 		  if (type == the_type && mkcl_equal(env, name, the_tag)) {
 				/* Mark as used */
@@ -625,14 +625,14 @@ c_var_ref(MKCL, mkcl_object var, int allow_symbol_macro, bool ensure_defined)
 		name = MKCL_CONS_CAR(record);
                 record = MKCL_CONS_CDR(record);
 		special = MKCL_CONS_CAR(record);
-		if (name == @':block' || name == @':tag' || name == @':function') {
+		if (name == MK_KEY_block || name == MK_KEY_tag || name == MK_KEY_function) {
 			n++;
-		} else if (name == @':declare') {
+		} else if (name == MK_KEY_declare) {
 			/* Ignored */
 		} else if (name != var) {
 			/* Symbol not yet found. Only count locals. */
 			if (mkcl_Null(special)) n++;
-		} else if (special == @'si::symbol-macro') {
+		} else if (special == MK_SI_symbol_macro) {
 			/* We can only get here when we try to redefine a
 			   symbol macro */
 			if (allow_symbol_macro)
@@ -646,7 +646,7 @@ c_var_ref(MKCL, mkcl_object var, int allow_symbol_macro, bool ensure_defined)
 		}
 	}
 	if (ensure_defined) {
-	  l = mkcl_symbol_value(env, @'si::*action-on-undefined-variable*');
+	  l = mkcl_symbol_value(env, MK_SI_DYNVAR_action_on_undefined_variable);
 		if (l != mk_cl_Cnil) {
 		  mkcl_funcall2(env, l,
 				mkcl_make_simple_base_string(env,
@@ -679,7 +679,7 @@ c_declare_specials(MKCL, mkcl_object specials)
 static mkcl_object
 c_process_declarations(MKCL, mkcl_object body)
 {
-  @si::process-declarations(env, 1, body);
+  mk_si_process_declarations(env, 1, body);
   body = MKCL_VALUES(1); /* No check on MKCL_NVALUES? JCB*/
   return body;
 }
@@ -731,13 +731,13 @@ c_undo_bindings(mkcl_env the_env, mkcl_object old_vars, int only_specials)
 		name = MKCL_CONS_CAR(record);
                 record = MKCL_CONS_CDR(record);
 		special = MKCL_CONS_CAR(record);
-		if (name == @':block' || name == @':tag') {
+		if (name == MK_KEY_block || name == MK_KEY_tag) {
 			(void)0;
-		} else if (name == @':function' || mkcl_Null(special)) {
+		} else if (name == MK_KEY_function || mkcl_Null(special)) {
 			if (only_specials == 0) num_lexical++;
-		} else if (name == @':declare') {
+		} else if (name == MK_KEY_declare) {
 			/* Ignored */
-		} else if (special != @'si::symbol-macro') {
+		} else if (special != MK_SI_symbol_macro) {
 			/* If (third special) = NIL, the variable was declared
 			   special, but there is no binding! */
                         record = MKCL_CONS_CDR(record);
@@ -923,7 +923,7 @@ c_call(MKCL, mkcl_object args, int flags) {
 /* 		asm_op(env, OP_POP1); */
 		flags = FLAG_VALUES;
 	} else if (MKCL_SYMBOLP(name) &&
-		   ((flags & FLAG_GLOBAL) || mkcl_Null(c_tag_ref(env, name, @':function'))))
+		   ((flags & FLAG_GLOBAL) || mkcl_Null(c_tag_ref(env, name, MK_KEY_function))))
 	{
 		asm_op2(env, OP_CALLG, nargs);
 		asm_c(env, name);
@@ -945,13 +945,13 @@ c_funcall(MKCL, mkcl_object args, int flags) {
 	name = pop(env, &args);
 	if (MKCL_CONSP(name)) {
                 mkcl_object kind = MKCL_CONS_CAR(name);
-		if (kind == @'function') {
+		if (kind == MK_CL_function) {
 		  if (mk_cl_list_length(env, name) != MKCL_MAKE_FIXNUM(2))
 		    mkcl_FEprogram_error(env, "FUNCALL: Invalid function name ~S",
 						1, name);
 		  return c_call(env, MKCL_CONS(env, MKCL_CADR(name), args), flags);
 		}
-		if (kind == @'quote' && /* JCB */ MKCL_SYMBOLP(MKCL_CADR(name))) {
+		if (kind == MK_CL_quote && /* JCB */ MKCL_SYMBOLP(MKCL_CADR(name))) {
 		  if (mk_cl_list_length(env, name) != MKCL_MAKE_FIXNUM(2))
 		    mkcl_FEprogram_error(env, "FUNCALL: Invalid function name ~S",
 						1, name);
@@ -984,7 +984,7 @@ perform_c_case(MKCL, mkcl_object args, int flags) {
 		test = pop(env, &clause);
 	} while (test == mk_cl_Cnil);
 
-	if (@'otherwise' == test || test == mk_cl_Ct) {
+	if (MK_CL_otherwise == test || test == mk_cl_Ct) {
 	  if (!mkcl_Null(args)) /* JCB */
 	    mkcl_FEprogram_error(env, "CASE: otherwise-clause must appear last in list of clauses.", 0); /* JCB */
 	  compile_body(env, clause, flags);
@@ -1206,22 +1206,22 @@ c_until(MKCL, mkcl_object body, int flags) {
 static int
 when_execute_p(MKCL, mkcl_object situation)
 {
-  return mkcl_member_eq(env, @'eval', situation) ||
-    mkcl_member_eq(env, @':execute', situation);
+  return mkcl_member_eq(env, MK_CL_eval, situation) ||
+    mkcl_member_eq(env, MK_KEY_execute, situation);
 }
 
 static int
 when_compile_p(MKCL, mkcl_object situation)
 {
-  return mkcl_member_eq(env, @'compile', situation) ||
-    mkcl_member_eq(env, @':compile-toplevel', situation);
+  return mkcl_member_eq(env, MK_CL_compile, situation) ||
+    mkcl_member_eq(env, MK_KEY_compile_toplevel, situation);
 }
 
 static int
 when_load_p(MKCL, mkcl_object situation)
 {
-  return mkcl_member_eq(env, @'load', situation) ||
-    mkcl_member_eq(env, @':load-toplevel', situation);
+  return mkcl_member_eq(env, MK_CL_load, situation) ||
+    mkcl_member_eq(env, MK_KEY_load_toplevel, situation);
 }
 
 static int
@@ -1234,7 +1234,7 @@ c_eval_when(MKCL, mkcl_object args, int flags) {
         } else if (mode == MODE_LOAD) {
 	  if (when_compile_p(env, situation)) {
                         env->c_env->mode = MODE_COMPILE;
-                        eval_form(env, MKCL_CONS(env, @'progn', args));
+                        eval_form(env, MKCL_CONS(env, MK_CL_progn, args));
                         env->c_env->mode = MODE_LOAD;
                         if (!when_load_p(env, situation))
                                 args = mk_cl_Cnil;
@@ -1355,7 +1355,7 @@ c_function(MKCL, mkcl_object args, int flags) {
 static int
 asm_function(MKCL, mkcl_object function, int flags) {
   if (!mkcl_Null(mk_si_valid_function_name_p(env, function))) {
-    mkcl_object ndx = c_tag_ref(env, function, @':function');
+    mkcl_object ndx = c_tag_ref(env, function, MK_KEY_function);
     if (mkcl_Null(ndx)) {
       /* Globally defined function */
       asm_op2c(env, OP_FUNCTION, function);
@@ -1369,10 +1369,10 @@ asm_function(MKCL, mkcl_object function, int flags) {
   if (MKCL_CONSP(function)) {
     mkcl_object kind = MKCL_CONS_CAR(function);
     mkcl_object form = MKCL_CONS_CDR(function);
-    if (kind == @'lambda') {
+    if (kind == MK_CL_lambda) {
       asm_op2c(env, OP_CLOSE, mkcl_make_lambda(env, mk_cl_Cnil, form));
       return FLAG_REG0;
-    } else if (kind == @'si::lambda-block') {
+    } else if (kind == MK_SI_lambda_block) {
       mkcl_object name = MKCL_CONS_CAR(form);
       mkcl_object body = MKCL_CONS_CDR(form);
       asm_op2c(env, OP_CLOSE, mkcl_make_lambda(env, name, body));
@@ -1387,7 +1387,7 @@ asm_function(MKCL, mkcl_object function, int flags) {
 static int
 c_go(MKCL, mkcl_object args, int flags) {
   mkcl_object tag = pop(env, &args);
-	mkcl_object info = c_tag_ref(env, tag, @':tag');
+	mkcl_object info = c_tag_ref(env, tag, MK_KEY_tag);
 	if (mkcl_Null(info))
 	  mkcl_FEprogram_error(env, "GO: Unknown tag ~S.", 1, tag);
 	if (!mkcl_Null(args))
@@ -1542,7 +1542,7 @@ c_load_time_value(MKCL, mkcl_object args, int flags)
     
     { /* Assure that this is the NULL environment, both dynamically and lexically. */
       mkcl_object val = mk_si_eval_in_env(env, 1, form);
-      mkcl_object quoted_val = mkcl_list1(env, mkcl_cons(env, @'quote', mkcl_list1(env, val)));
+      mkcl_object quoted_val = mkcl_list1(env, mkcl_cons(env, MK_CL_quote, mkcl_list1(env, val)));
       return c_values(env, quoted_val, flags);
     }
   }
@@ -1577,7 +1577,7 @@ c_macrolet(MKCL, mkcl_object args, int flags)
         const mk_cl_compiler_ptr c_env = env->c_env;
 	mkcl_object old_env = c_env->macros;
 	mkcl_object m_env = mkcl_funcall2(env,
-					  @+'si::cmp-env-register-macrolet',
+					  MK_SI_cmp_env_register_macrolet->symbol.gfdef,
 					  pop(env, &args),
 					  MKCL_CONS(env, c_env->variables, c_env->macros));
 	c_env->macros = MKCL_CDR(m_env);
@@ -1696,8 +1696,8 @@ c_multiple_value_setq(MKCL, mkcl_object orig_args, int flags) {
 			 */
 			args = orig_args;
 			return compile_form(env, mk_cl_listX(env, 3,
-							     @'setf',
-							     MKCL_CONS(env, @'values', MKCL_CAR(args)),
+							     MK_CL_setf,
+							     MKCL_CONS(env, MK_CL_values, MKCL_CAR(args)),
 							     MKCL_CDR(args)),
 					    flags);
 		}
@@ -1711,7 +1711,7 @@ c_multiple_value_setq(MKCL, mkcl_object orig_args, int flags) {
 	  mkcl_FEprogram_error(env, "MULTIPLE-VALUE-SETQ: Too many arguments.", 0);
 	if (nvars == 0) {
 		/* No variables */
-	  return compile_form(env, mk_cl_list(env, 2, @'values', values), flags);
+	  return compile_form(env, mk_cl_list(env, 2, MK_CL_values, values), flags);
 	}
 	compile_form(env, values, FLAG_VALUES);
 
@@ -1861,7 +1861,7 @@ c_psetq(MKCL, mkcl_object old_args, int flags) {
 		nvars++;
 	}
 	if (use_psetf) {
-	  return compile_form(env, MKCL_CONS(env, @'psetf', args), flags);
+	  return compile_form(env, MKCL_CONS(env, MK_CL_psetf, args), flags);
 	}
 	while (!mkcl_endp(env, args)) {
 	  mkcl_object var = pop(env, &args);
@@ -1886,7 +1886,7 @@ c_psetq(MKCL, mkcl_object old_args, int flags) {
 static int
 c_return_aux(MKCL, mkcl_object name, mkcl_object stmt, int flags)
 {
-	mkcl_object ndx = c_tag_ref(env, name, @':block');
+	mkcl_object ndx = c_tag_ref(env, name, MK_KEY_block);
 	mkcl_object output = pop_maybe_nil(env, &stmt);
 
 	if (!MKCL_SYMBOLP(name) || mkcl_Null(ndx))
@@ -1927,7 +1927,7 @@ c_setq(MKCL, mkcl_object args, int flags) {
 			compile_setq(env, OP_SETQ, var);
 		} else {
 		  flags = mkcl_endp(env, args) ? FLAG_VALUES : FLAG_REG0;
-		  compile_form(env, mk_cl_list(env, 3, @'setf', var, value), flags);
+		  compile_form(env, mk_cl_list(env, 3, MK_CL_setf, var, value), flags);
 		}
 	} while (!mkcl_endp(env, args));
 	return flags;
@@ -1949,7 +1949,7 @@ c_symbol_macrolet(MKCL, mkcl_object args, int flags)
 	  mkcl_object definition = pop(env, &def_list);
 	  mkcl_object name = pop(env, &definition);
 	  mkcl_object expansion = pop(env, &definition);
-	  mkcl_object arglist = mk_cl_list(env, 2, @gensym(env, 0), @gensym(env, 0));
+	  mkcl_object arglist = mk_cl_list(env, 2, mk_cl_gensym(env, 0), mk_cl_gensym(env, 0));
 		mkcl_object function;
 		if ((mkcl_symbol_type(env, name) & (mkcl_stp_special | mkcl_stp_constant)) ||
 		    c_var_ref(env, name,1,FALSE) == -2)
@@ -1957,7 +1957,7 @@ c_symbol_macrolet(MKCL, mkcl_object args, int flags)
 		  mkcl_FEprogram_error(env, "SYMBOL-MACROLET: Symbol ~A cannot be \
 declared special and appear in a symbol-macrolet.", 1, name);
 		}
-		definition = mk_cl_list(env, 2, arglist, mk_cl_list(env, 2, @'quote', expansion));
+		definition = mk_cl_list(env, 2, arglist, mk_cl_list(env, 2, MK_CL_quote, expansion));
 		function = mkcl_make_lambda(env, name, definition);
 		c_register_symbol_macro(env, name, function);
 	}
@@ -2090,16 +2090,16 @@ static int
 compile_form(MKCL, mkcl_object stmt, int flags)
 {
   const mk_cl_compiler_ptr c_env = env->c_env;
-  mkcl_object code_walker = MKCL_SYM_VAL(env, @'si::*code-walker*');
+  mkcl_object code_walker = MKCL_SYM_VAL(env, MK_SI_DYNVAR_code_walker);
   mkcl_object function;
   bool push = flags & FLAG_PUSH;
   int new_flags;
 
-  mkcl_bds_bind(env, @'si::*current-form*', stmt);
+  mkcl_bds_bind(env, MK_SI_DYNVAR_current_form, stmt);
  BEGIN:
   /* This hook is used by CLOS during processing of defmethod to decide on some optimizations. JCB */
   if (code_walker != MKCL_OBJNULL && !mkcl_Null(code_walker)) {
-    stmt = mkcl_funcall2(env, MKCL_SYM_VAL(env,@'si::*code-walker*'), stmt,
+    stmt = mkcl_funcall2(env, MKCL_SYM_VAL(env,MK_SI_DYNVAR_code_walker), stmt,
 			 MKCL_CONS(env, c_env->variables, c_env->macros));
   }
   /*
@@ -2145,7 +2145,7 @@ compile_form(MKCL, mkcl_object stmt, int flags)
   function = MKCL_CONS_CAR(stmt);
   if (!MKCL_SYMBOLP(function))
     goto ORDINARY_CALL;
-  if (function == @'quote') {
+  if (function == MK_CL_quote) {
     stmt = MKCL_CONS_CDR(stmt);
     if (MKCL_ATOM(stmt) || MKCL_CONS_CDR(stmt) != mk_cl_Cnil)
       mkcl_FEprogram_error(env, "QUOTE: Ill formed.",0);
@@ -2159,11 +2159,11 @@ compile_form(MKCL, mkcl_object stmt, int flags)
       /*cl_print(1, l->symbol);*/
       if (l->symbol == function) {
 	c_env->lexical_level += l->lexical_increment;
-	if (c_env->stepping && function != @'function' &&
+	if (c_env->stepping && function != MK_CL_function &&
 	    c_env->lexical_level)
 	  asm_op2c(env, OP_STEPIN, stmt);
 	new_flags = (*(l->compiler))(env, MKCL_CONS_CDR(stmt), flags);
-	if (c_env->stepping && function != @'function' &&
+	if (c_env->stepping && function != MK_CL_function &&
 	    c_env->lexical_level)
 	  asm_op(env, OP_STEPOUT);
 	goto OUTPUT;
@@ -2402,7 +2402,7 @@ c_listA(MKCL, mkcl_object args, int flags)
 
 #define push(e,v,l) l = MKCL_CONS(e, v, l)
 #define push_var(e, v, list)					\
-  if (context == @'function') {					\
+  if (context == MK_CL_function) {                              \
     if (mkcl_symbol_type(e, v) & mkcl_stp_constant)		\
       mkcl_FEillegal_variable_name(e, v); }			\
   push(e, v, list)
@@ -2418,7 +2418,7 @@ mkcl_object mk_si_process_declarations(MKCL, mkcl_narg narg, mkcl_object body, .
     mkcl_object documentation = mk_cl_Cnil, declarations = mk_cl_Cnil, specials = mk_cl_Cnil;
     mkcl_object decls, vars, v;
     mkcl_object doc = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'si::process-declarations', narg, 1, body, &doc);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_SI_process_declarations, narg, 1, body, &doc);
 
     /* BEGIN: SEARCH DECLARE */
     for (; !mkcl_endp(env, body); body = MKCL_CONS_CDR(body)) {
@@ -2432,7 +2432,7 @@ mkcl_object mk_si_process_declarations(MKCL, mkcl_narg narg, mkcl_object body, .
         continue;
       }
 
-      if (MKCL_ATOM(form) || (MKCL_CONS_CAR(form) != @'declare'))
+      if (MKCL_ATOM(form) || (MKCL_CONS_CAR(form) != MK_CL_declare))
         break;
 
       for (decls = MKCL_CONS_CDR(form); !mkcl_endp(env, decls); decls = MKCL_CONS_CDR(decls)) {
@@ -2440,7 +2440,7 @@ mkcl_object mk_si_process_declarations(MKCL, mkcl_narg narg, mkcl_object body, .
         if (MKCL_ATOM(sentence))
           mkcl_FEill_formed_input(env);
         push(env, sentence, declarations);
-        if (MKCL_CONS_CAR(sentence) == @'special')
+        if (MKCL_CONS_CAR(sentence) == MK_CL_special)
           for (vars = MKCL_CONS_CDR(sentence); !mkcl_endp(env, vars); vars = MKCL_CONS_CDR(vars)) {
             v = MKCL_CONS_CAR(vars);
             mkcl_assert_type_symbol(env, v);
@@ -2469,14 +2469,14 @@ mk_si_process_lambda(MKCL, mkcl_object lambda)
 	  mkcl_FEprogram_error(env, "LAMBDA: No lambda list.", 0);
 	lambda_list = MKCL_CONS_CAR(lambda);
 
-	declarations = @si::process-declarations(env, 2, MKCL_CDR(lambda), mk_cl_Ct);
+	declarations = mk_si_process_declarations(env, 2, MKCL_CDR(lambda), mk_cl_Ct);
 	body = MKCL_VALUES(1);
 	documentation = MKCL_VALUES(2);
 	specials = MKCL_VALUES(3);
 
 	/* mk_si_process_lambda_ctr++; */
 
-	MKCL_VALUES(0) = mk_si_process_lambda_list(env, lambda_list, @'function');
+	MKCL_VALUES(0) = mk_si_process_lambda_list(env, lambda_list, MK_CL_function);
 	MKCL_VALUES(MKCL_NVALUES++) = documentation;
 	MKCL_VALUES(MKCL_NVALUES++) = specials;
 	MKCL_VALUES(MKCL_NVALUES++) = declarations;
@@ -2530,7 +2530,7 @@ mk_si_process_lambda_list(MKCL, mkcl_object org_lambda_list, mkcl_object context
   if (MKCL_ATOM(lambda_list)) {
     if (lambda_list == mk_cl_Cnil)
       goto OUTPUT;
-    else if (context == @'function')
+    else if (context == MK_CL_function)
       goto ILLEGAL_LAMBDA;
     else {
       v = lambda_list;
@@ -2540,13 +2540,13 @@ mk_si_process_lambda_list(MKCL, mkcl_object org_lambda_list, mkcl_object context
   }
   v = MKCL_CONS_CAR(lambda_list);
   lambda_list = MKCL_CONS_CDR(lambda_list);
-  if (v == @'&optional') {
+  if (v == MK_CL_LKEY_optional) {
     if (stage >= AT_OPTIONALS)
       goto ILLEGAL_LAMBDA;
     stage = AT_OPTIONALS;
     goto LOOP;
   }
-  if (v == @'&rest' || (v == @'&body' && (context == @'si::macro' || context == @'destructuring-bind'))) {
+  if (v == MK_CL_LKEY_rest || (v == MK_CL_LKEY_body && (context == MK_SI_macro || context == MK_CL_destructuring_bind))) {
     if (MKCL_ATOM(lambda_list))
       goto ILLEGAL_LAMBDA;
     v = MKCL_CONS_CAR(lambda_list);
@@ -2558,20 +2558,20 @@ mk_si_process_lambda_list(MKCL, mkcl_object org_lambda_list, mkcl_object context
     rest = v;
     goto LOOP;
   }
-  if (v == @'&key') {
+  if (v == MK_CL_LKEY_key) {
     if (stage >= AT_KEYS)
       goto ILLEGAL_LAMBDA;
     key_flag = mk_cl_Ct;
     stage = AT_KEYS;
     goto LOOP;
   }
-  if (v == @'&aux') {
+  if (v == MK_CL_LKEY_aux) {
     if (stage >= AT_AUXS)
       goto ILLEGAL_LAMBDA;
     stage = AT_AUXS;
     goto LOOP;
   }
-  if (v == @'&allow-other-keys') {
+  if (v == MK_CL_LKEY_allow_other_keys) {
     allow_other_keys = mk_cl_Ct;
     if (stage != AT_KEYS)
       goto ILLEGAL_LAMBDA;
@@ -2639,7 +2639,7 @@ mk_si_process_lambda_list(MKCL, mkcl_object org_lambda_list, mkcl_object context
       if (mkcl_endp(env, MKCL_CONS_CDR(v)) || !mkcl_endp(env, MKCL_CDDR(v)))
 	goto ILLEGAL_LAMBDA;
       v = MKCL_CADR(v);
-      if (context == @'function')
+      if (context == MK_CL_function)
 	mkcl_assert_type_symbol(env, v);
       mkcl_assert_type_symbol(env, key);
     } else {
@@ -2746,8 +2746,8 @@ mkcl_make_lambda(MKCL, mkcl_object name, mkcl_object lambda)
   mkcl_index handle;
   struct mkcl_compiler_env *old_c_env, new_c_env;
 
-  mkcl_bds_bind(env, @'si::*current-form*',
-		@list*(env, 3, @'si::lambda-block', name, lambda));
+  mkcl_bds_bind(env, MK_SI_DYNVAR_current_form,
+		mk_cl_listX(env, 3, MK_SI_lambda_block, name, lambda));
 
   old_c_env = env->c_env;
   c_new_env(env, &new_c_env, mk_cl_Cnil, old_c_env);
@@ -2833,8 +2833,8 @@ mkcl_make_lambda(MKCL, mkcl_object name, mkcl_object lambda)
   c_declare_specials(env, specials);
 
   if (!mkcl_Null(name)) {
-    compile_form(env, @list*(env, 3, @'block', mk_si_function_block_name(env, name),
-			     body), FLAG_VALUES);
+    compile_form(env, mk_cl_listX(env, 3, MK_CL_block, mk_si_function_block_name(env, name), body),
+                 FLAG_VALUES);
   } else {
     compile_body(env, body, FLAG_VALUES);
   }
@@ -2843,12 +2843,12 @@ mkcl_make_lambda(MKCL, mkcl_object name, mkcl_object lambda)
   c_undo_bindings(env, old_c_env->variables, 1);
   asm_op(env, OP_EXIT);
 
-  if ( mkcl_Null(mkcl_symbol_value(env, @'si::*keep-definitions*')) )
+  if ( mkcl_Null(mkcl_symbol_value(env, MK_SI_DYNVAR_keep_definitions)) )
     lambda = mk_cl_Cnil;
   output = asm_end(env, handle, lambda);
   output->bytecode.name = name;
   output->bytecode.definition 
-    = mkcl_Null(mkcl_symbol_value(env, @'si::*keep-definitions*'))
+    = mkcl_Null(mkcl_symbol_value(env, MK_SI_DYNVAR_keep_definitions))
     ? mk_cl_Cnil : lambda;
 
   env->c_env = old_c_env;
@@ -2863,7 +2863,7 @@ mkcl_function_block_name(mkcl_object name)
 {
   if (MKCL_SYMBOLP(name)) {
     return name;
-  } else if (MKCL_CONSP(name) && MKCL_CONS_CAR(name) == @'setf') {
+  } else if (MKCL_CONSP(name) && MKCL_CONS_CAR(name) == MK_CL_setf) {
     name = MKCL_CONS_CDR(name);
     if (MKCL_CONSP(name)) {
       mkcl_object output = MKCL_CONS_CAR(name);
@@ -2922,7 +2922,7 @@ mkcl_object mk_si_eval_in_env(MKCL, mkcl_narg narg, mkcl_object form, ...)
     mkcl_object stepping = mk_cl_Cnil;
     mkcl_object compiler_env_p = mk_cl_Cnil;
     mkcl_object execute = mk_cl_Ct;
-    MKCL_RECEIVE_4_OPTIONAL_ARGUMENTS(env, @'si::eval-in-env', narg, 1, form, &lex_env, &stepping, &compiler_env_p, &execute);
+    MKCL_RECEIVE_4_OPTIONAL_ARGUMENTS(env, MK_SI_eval_in_env, narg, 1, form, &lex_env, &stepping, &compiler_env_p, &execute);
 
     the_env = env;
     /*

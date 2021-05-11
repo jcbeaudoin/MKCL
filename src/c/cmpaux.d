@@ -207,7 +207,7 @@ mkcl_parse_key(MKCL,
       }
     }
     /* the key is a new one */
-    if (keyword == @':allow-other-keys') {
+    if (keyword == MK_KEY_allow_other_keys) {
       if (supplied_allow_other_keys == MKCL_OBJNULL)
 	supplied_allow_other_keys = value;
     } else if (unknown_keyword == MKCL_OBJNULL)
@@ -242,7 +242,7 @@ void mkcl_receive_1_keyword_argument(MKCL, const mkcl_object fname, mkcl_va_list
         if (!key_arg_seen)
         { *key_var_ref = value; key_arg_seen = true; }
       }
-    else if (keyword == @':allow-other-keys')
+    else if (keyword == MK_KEY_allow_other_keys)
       {
         if (!allow_other_keys_argument_seen)
           { allow_other_keys_argument_value = value; allow_other_keys_argument_seen = true; }
@@ -269,7 +269,7 @@ void mkcl_receive_0_keyword_arguments(MKCL, const mkcl_object fname, mkcl_va_lis
     const mkcl_object keyword = mkcl_va_arg(ARGS);
     const mkcl_object value = mkcl_va_arg(ARGS);
 
-    if (keyword == @':allow-other-keys')
+    if (keyword == MK_KEY_allow_other_keys)
       {
         if (!allow_other_keys_argument_seen)
           { allow_other_keys_argument_value = value; allow_other_keys_argument_seen = true; }
@@ -308,7 +308,7 @@ void mkcl_receive_2_keyword_arguments(MKCL, const mkcl_object fname, mkcl_va_lis
         if (!key2_arg_seen)
         { *key2_var_ref = value; key2_arg_seen = true; }
       }
-    else if (keyword == @':allow-other-keys')
+    else if (keyword == MK_KEY_allow_other_keys)
       {
         if (!allow_other_keys_argument_seen)
           { allow_other_keys_argument_value = value; allow_other_keys_argument_seen = true; }
@@ -353,7 +353,7 @@ void mkcl_receive_3_keyword_arguments(MKCL, const mkcl_object fname, mkcl_va_lis
         if (!key3_arg_seen)
         { *key3_var_ref = value; key3_arg_seen = true; }
       }
-    else if (keyword == @':allow-other-keys')
+    else if (keyword == MK_KEY_allow_other_keys)
       {
         if (!allow_other_keys_argument_seen)
           { allow_other_keys_argument_value = value; allow_other_keys_argument_seen = true; }
@@ -404,7 +404,7 @@ void mkcl_receive_4_keyword_arguments(MKCL, const mkcl_object fname, mkcl_va_lis
         if (!key4_arg_seen)
         { *key4_var_ref = value; key4_arg_seen = true; }
       }
-    else if (keyword == @':allow-other-keys')
+    else if (keyword == MK_KEY_allow_other_keys)
       {
         if (!allow_other_keys_argument_seen)
           { allow_other_keys_argument_value = value; allow_other_keys_argument_seen = true; }
@@ -442,7 +442,7 @@ void mkcl_receive_N_keyword_arguments(MKCL, const mkcl_object fname, mkcl_va_lis
           if (!key_params[i].key_arg_seen)
             { *(key_params[i].key_var_ref) = value; key_params[i].key_arg_seen = true; goto NEXT_ARG; }
       }
-    if (keyword == @':allow-other-keys')
+    if (keyword == MK_KEY_allow_other_keys)
       {
         if (!allow_other_keys_argument_seen)
           { allow_other_keys_argument_value = value; allow_other_keys_argument_seen = true; }
@@ -531,7 +531,7 @@ mkcl_object mk_si_convert_cmp_lexical_info(MKCL, mkcl_object cmp_env)
   if (mkcl_Null(cmp_env))
     { mkcl_return_value(mk_cl_Cnil); }
   else if ( mkcl_type_of(cmp_env) != mkcl_t_cmp_dbg_lex_level )
-    { mkcl_FEwrong_type_argument(env, @'si::compiled-debug-information', cmp_env); }
+    { mkcl_FEwrong_type_argument(env, MK_SI_compiled_debug_information, cmp_env); }
   else
     {
       mkcl_object lex_env = convert_cmp_lexical_info(env, cmp_env);

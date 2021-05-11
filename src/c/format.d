@@ -16,6 +16,7 @@
 */
 
 #include <mkcl/mkcl.h>
+#include <mkcl/internal.h>
 
 mkcl_object mk_cl_format(MKCL, mkcl_narg narg, mkcl_object strm, mkcl_object string, ...)
 {
@@ -24,34 +25,34 @@ mkcl_object mk_cl_format(MKCL, mkcl_narg narg, mkcl_object strm, mkcl_object str
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'format', 2, narg, string, args);
+    mkcl_setup_for_rest(env, MK_CL_format, 2, narg, string, args);
 
     if (mkcl_Null(strm)) {
       strm = mkcl_alloc_adjustable_character_string(env, 64);
       null_strm = 1;
     } else if (strm == mk_cl_Ct) {
-      strm = mkcl_symbol_value(env, @'*standard-output*');
+      strm = mkcl_symbol_value(env, MK_CL_DYNVAR_standard_output);
     }
     if (mkcl_stringp(env, strm)) {
       output = strm;
       if (!output->base_string.hasfillp) {
         mk_cl_error(env, 7,
-                    @'si::format-error',
-                    @':format-control',
+                    MK_SI_format_error,
+                    MK_KEY_format_control,
                     mkcl_make_simple_base_string(env, "Cannot output to a non adjustable string."),
-                    @':control-string',
+                    MK_KEY_control_string,
                     string,
-                    @':offset',
+                    MK_KEY_offset,
                     MKCL_MAKE_FIXNUM(0));
       }
-      strm = mk_si_make_string_output_stream_from_string(env, strm, @':default');
+      strm = mk_si_make_string_output_stream_from_string(env, strm, MK_KEY_default);
       if (null_strm == 0)
         output = mk_cl_Cnil;
     }
     if (!mkcl_Null(mk_cl_functionp(env, string))) {
       mk_cl_apply(env, 3, string, strm, mkcl_grab_rest_args(env, args, TRUE));
     } else {
-      mkcl_funcall3(env, @+'si::formatter-aux', strm, string, mkcl_grab_rest_args(env, args, FALSE));
+      mkcl_funcall3(env, MK_SI_formatter_aux->symbol.gfdef, strm, string, mkcl_grab_rest_args(env, args, FALSE));
     }
     mkcl_va_end(args);
     mkcl_return_value(output);

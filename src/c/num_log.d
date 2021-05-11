@@ -342,7 +342,7 @@ mkcl_object
 mk_cl_lognot(MKCL, mkcl_object x)
 {
   mkcl_call_stack_check(env);
-  return @logxor(env, 2, x, MKCL_MAKE_FIXNUM(-1));
+  return mk_cl_logxor(env, 2, x, MKCL_MAKE_FIXNUM(-1));
 }
 
 static mkcl_word
@@ -444,7 +444,7 @@ mkcl_object mk_cl_logior(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'logior', 0, narg, narg, nums);
+    mkcl_setup_for_rest(env, MK_CL_logior, 0, narg, narg, nums);
 
     if (narg == 0)
       { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(0)); }
@@ -459,7 +459,7 @@ mkcl_object mk_cl_logxor(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'logxor', 0, narg, narg, nums);
+    mkcl_setup_for_rest(env, MK_CL_logxor, 0, narg, narg, nums);
 
     if (narg == 0)
       { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(0)); }
@@ -474,7 +474,7 @@ mkcl_object mk_cl_logand(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'logand', 0, narg, narg, nums);
+    mkcl_setup_for_rest(env, MK_CL_logand, 0, narg, narg, nums);
 
     if (narg == 0)
       { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(-1)); }
@@ -489,7 +489,7 @@ mkcl_object mk_cl_logeqv(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'logeqv', 0, narg, narg, nums);
+    mkcl_setup_for_rest(env, MK_CL_logeqv, 0, narg, narg, nums);
 
     if (narg == 0)
       { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(-1)); }
@@ -709,7 +709,7 @@ mk_si_bit_array_op(MKCL, mkcl_object o, mkcl_object x, mkcl_object y, mkcl_objec
     }
   L1:
     if (mkcl_Null(r)) {
-      r = mk_si_make_vector(env, @'bit', MKCL_MAKE_FIXNUM(d), mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil);
+      r = mk_si_make_vector(env, MK_CL_bit, MKCL_MAKE_FIXNUM(d), mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil);
     }
   } else {
     if (mkcl_type_of(x) != mkcl_t_array)

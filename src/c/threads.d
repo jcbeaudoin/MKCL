@@ -107,7 +107,7 @@ inline static void
 mkcl_assert_type_thread(MKCL, mkcl_object o)
 {
   if (mkcl_type_of(o) != mkcl_t_thread)
-    mkcl_FEwrong_type_argument(env, @'mt::thread', o);
+    mkcl_FEwrong_type_argument(env, MK_MT_thread, o);
 }
 
 static void
@@ -131,8 +131,8 @@ thread_final_cleanup(MKCL, mkcl_object thread)
   mkcl_set_thread_env(NULL);
 
   if (thread->thread.detached
-      || thread->thread.result_value == @':imported'
-      || thread->thread.result_value == @':imported-and-gc-registered')
+      || thread->thread.result_value == MK_KEY_imported
+      || thread->thread.result_value == MK_KEY_imported_and_gc_registered)
     {
       mkcl_remove_thread_from_global_thread_list(env, thread);
     }
@@ -226,15 +226,15 @@ void mkcl_setup_thread_lisp_context(MKCL, char * const stack_mark_address)
   mkcl_init_call_stack_overflow_area(env, stack_mark_address);
   
   mk_si_clear_all_fpe(env);
-  mk_si_enable_fpe(env, @':default');
+  mk_si_enable_fpe(env, MK_KEY_default);
   
   if (!mkcl_Null(thread->thread.initial_bindings))
     setup_thread_bindings(env, thread->thread.initial_bindings);
   
-  mkcl_bds_bind(env, @'mt::*thread*', thread);
-  mkcl_bds_bind(env, @'mkcl::*current-working-directory*', mk_cl_Cnil);
-  mkcl_bds_bind(env, @'mkcl::*all-current-working-directories*', mk_cl_Cnil);
-  mkcl_bds_bind(env, @'si::*dynamic-cons-stack*', mk_cl_Cnil);
+  mkcl_bds_bind(env, MK_MT_DYNVAR_thread, thread);
+  mkcl_bds_bind(env, MK_MKCL_DYNVAR_current_working_directory, mk_cl_Cnil);
+  mkcl_bds_bind(env, MK_MKCL_DYNVAR_all_current_working_directories, mk_cl_Cnil);
+  mkcl_bds_bind(env, MK_SI_DYNVAR_dynamic_cons_stack, mk_cl_Cnil);
   mk_si_trim_dynamic_cons_stack(env);
 }
 
@@ -256,7 +256,7 @@ mkcl_top_apply(MKCL, mkcl_object function, mkcl_object args)
 
   if (mkcl_Null(top_apply_fun))
     {
-      top_apply_fun = MKCL_SYM_FUN(@'si::top-apply');
+      top_apply_fun = MKCL_SYM_FUN(MK_SI_top_apply);
       if (mkcl_Null(top_apply_fun))
 	value = mk_cl_apply(env, 2, function, args);
       else
@@ -353,15 +353,15 @@ static void * signal_servicing_thread_entry_point(void *arg)
     mkcl_init_call_stack_overflow_area(env, &stack_mark);
 
     mk_si_clear_all_fpe(env);
-    mk_si_enable_fpe(env, @':default');
+    mk_si_enable_fpe(env, MK_KEY_default);
     
     if (!mkcl_Null(thread->thread.initial_bindings))
       setup_thread_bindings(env, thread->thread.initial_bindings);
     
-    mkcl_bds_bind(env, @'mt::*thread*', thread);
-    mkcl_bds_bind(env, @'mkcl::*current-working-directory*', mk_cl_Cnil);
-    mkcl_bds_bind(env, @'mkcl::*all-current-working-directories*', mk_cl_Cnil);
-    mkcl_bds_bind(env, @'si::*dynamic-cons-stack*', mk_cl_Cnil);
+    mkcl_bds_bind(env, MK_MT_thread_DYNVAR, thread);
+    mkcl_bds_bind(env, MK_MKCL_current_working_directory_DYNVAR, mk_cl_Cnil);
+    mkcl_bds_bind(env, MK_MKCL_all_current_working_directories_DYNVAR, mk_cl_Cnil);
+    mkcl_bds_bind(env, MK_SI_DYNVAR_dynamic_cons_stack, mk_cl_Cnil);
     mk_si_trim_dynamic_cons_stack(env);
 #endif
 
@@ -375,7 +375,7 @@ static void * signal_servicing_thread_entry_point(void *arg)
 	int received_signo;
 
 	do {
-	  MKCL_LIBC_Zzz(env, @':io', rc = sem_wait(mkcl_signals[sig].sem)); /* a sleeping point */
+	  MKCL_LIBC_Zzz(env, MK_KEY_io, rc = sem_wait(mkcl_signals[sig].sem)); /* a sleeping point */
 	} while ( rc && errno == EINTR );
 	if ( rc ) mkcl_C_lose(env, "signal_servicing_thread_entry_point failed on sem_wait");
 	mk_mt_test_for_thread_shutdown(env);
@@ -698,7 +698,7 @@ static thread_value_t CALL_CONV interrupt_thread_entry_point(void * arg)
 static void setup_thread_bindings(MKCL, mkcl_object initial_bindings)
 {
   mkcl_object l = initial_bindings;
-  mkcl_object table = mk_cl__make_hash_table(env, @'eq',
+  mkcl_object table = mk_cl__make_hash_table(env, MK_CL_eq,
 					     MKCL_MAKE_FIXNUM(1024),
 					     MKCL_MAKE_FIXNUM(1024),
 					     MKCL_MAKE_FIXNUM(1));
@@ -1035,10 +1035,10 @@ static thread_value_t CALL_CONV imported_thread_pool_filler(void * arg)
     
     mkcl_init_call_stack_overflow_area(env, &stack_mark);
     
-    mkcl_bds_bind(env, @'mt::*thread*', thread);
-    mkcl_bds_bind(env, @'mkcl::*current-working-directory*', mk_cl_Cnil);
-    mkcl_bds_bind(env, @'mkcl::*all-current-working-directories*', mk_cl_Cnil);
-    mkcl_bds_bind(env, @'si::*dynamic-cons-stack*', mk_cl_Cnil);
+    mkcl_bds_bind(env, MK_MT_thread_DYNVAR, thread);
+    mkcl_bds_bind(env, MK_MKCL_current_working_directory_DYNVAR, mk_cl_Cnil);
+    mkcl_bds_bind(env, MK_MKCL_all_current_working_directories_DYNVAR, mk_cl_Cnil);
+    mkcl_bds_bind(env, MK_SI_DYNVAR_dynamic_cons_stack, mk_cl_Cnil);
     mk_si_trim_dynamic_cons_stack(env);
 #endif
 
@@ -1053,7 +1053,7 @@ static thread_value_t CALL_CONV imported_thread_pool_filler(void * arg)
 	DWORD wait_val;
 
 	do {
-	  MKCL_LIBC_Zzz(env, @':io', wait_val = WaitForSingleObjectEx(mkcl_imported_thread_pool_empty, INFINITE, TRUE));
+	  MKCL_LIBC_Zzz(env, MK_KEY_io, wait_val = WaitForSingleObjectEx(mkcl_imported_thread_pool_empty, INFINITE, TRUE));
 	} while (wait_val == WAIT_IO_COMPLETION);
 	switch (wait_val)
 	  {
@@ -1077,7 +1077,7 @@ static thread_value_t CALL_CONV imported_thread_pool_filler(void * arg)
 	int rc;
 
 	do {
-	  MKCL_LIBC_Zzz(env, @':io', rc = sem_wait(mkcl_imported_thread_pool_empty));
+	  MKCL_LIBC_Zzz(env, MK_KEY_io, rc = sem_wait(mkcl_imported_thread_pool_empty));
 	} while ( rc && errno == EINTR );
 	if (rc)
 	  mkcl_C_lose(env, "imported_thread_pool_filler failed on sem_wait");
@@ -1378,13 +1378,13 @@ mkcl_import_current_thread(mkcl_object name, mkcl_object bindings, mkcl_thread_i
 	    thread->thread.thread = current;
 	    thread->thread.base_thread = current;
 	    /* imported threads are presumed not to be under lisp full (ultimate) control. */
-	    thread->thread.result_value = @':imported-and-gc-registered';
+	    thread->thread.result_value = MK_KEY_imported_and_gc_registered;
 	    return(env);
 	  case MK_GC_DUPLICATE:
 	    thread->thread.thread = current;
 	    thread->thread.base_thread = current;
 	    /* imported threads are presumed not to be under lisp full (ultimate) control. */
-	    thread->thread.result_value = @':imported';
+	    thread->thread.result_value = MK_KEY_imported;
 	    return(env);
 	  default: /* This case should not be possible with Boehm GC 7.2 */
 	    mkcl_release_current_thread(env);
@@ -1399,7 +1399,7 @@ void
 mkcl_release_current_thread(MKCL)
 {
   mkcl_object thread = env->own_thread;
-  bool must_unregister = thread->thread.result_value == @':imported-and-gc-registered';
+  bool must_unregister = thread->thread.result_value == MK_KEY_imported_and_gc_registered;
 
   thread_final_cleanup(env, thread);
 
@@ -1446,11 +1446,11 @@ static thread_value_t CALL_CONV finalization_thread_entry_point(void * arg)
     thread->thread.tid = mkcl_gettid();
     mkcl_init_call_stack_overflow_area(env, &stack_mark);
     
-    mkcl_bds_bind(env, @'mt::*thread*', thread);
-    mkcl_bds_bind(env, @'mkcl::*current-working-directory*', mk_cl_Cnil);
-    mkcl_bds_bind(env, @'mkcl::*all-current-working-directories*', mk_cl_Cnil);
-    mkcl_bds_bind(env, @'si::*dynamic-cons-stack*', mk_cl_Cnil);
-    mkcl_bds_bind(env, @'*debugger-hook*', @+'si::non-interactive-thread-debugger-trap');
+    mkcl_bds_bind(env, MK_MT_thread_DYNVAR, thread);
+    mkcl_bds_bind(env, MK_MKCL_current_working_directory_DYNVAR, mk_cl_Cnil);
+    mkcl_bds_bind(env, MK_MKCL_all_current_working_directories_DYNVAR, mk_cl_Cnil);
+    mkcl_bds_bind(env, MK_SI_DYNVAR_dynamic_cons_stack, mk_cl_Cnil);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_debugger_hook, MK_SI_non_interactive_thread_debugger_trap->symbol.gfdef);
     mk_si_trim_dynamic_cons_stack(env);
 #endif
 
@@ -1477,7 +1477,7 @@ static thread_value_t CALL_CONV finalization_thread_entry_point(void * arg)
 	DWORD wait_val;
 
 	do {
-	  MKCL_LIBC_Zzz(env, @':io', wait_val = WaitForSingleObjectEx(mkcl_finalization_requested, INFINITE, TRUE));
+	  MKCL_LIBC_Zzz(env, MK_KEY_io, wait_val = WaitForSingleObjectEx(mkcl_finalization_requested, INFINITE, TRUE));
 	} while (wait_val == WAIT_IO_COMPLETION);
 	switch (wait_val)
 	  {
@@ -1666,18 +1666,18 @@ mkcl_object mk_mt_make_thread(MKCL, mkcl_narg narg, ...)
     mkcl_object sigaltstack_size = mk_cl_Cnil;
     struct mkcl_key_param_spec key_params[] =
       {
-       { @':name', &name, false },
-       { @':initial-bindings', &initial_bindings, false },
-       { @':call-stack-size', &call_stack_size, false },
-       { @':binding-stack-initial-size', &binding_stack_initial_size, false },
-       { @':binding-stack-size-limit', &binding_stack_size_limit, false },
-       { @':frame-stack-initial-size', &frame_stack_initial_size, false },
-       { @':frame-stack-size-limit', &frame_stack_size_limit, false },
-       { @':lisp-temp-stack-initial-size', &lisp_temp_stack_initial_size, false },
-       { @':lisp-temp-stack-size-limit', &lisp_temp_stack_size_limit, false },
-       { @':sigaltstack-size', &sigaltstack_size, false },
+       { MK_KEY_name, &name, false },
+       { MK_KEY_initial_bindings, &initial_bindings, false },
+       { MK_KEY_call_stack_size, &call_stack_size, false },
+       { MK_KEY_binding_stack_initial_size, &binding_stack_initial_size, false },
+       { MK_KEY_binding_stack_size_limit, &binding_stack_size_limit, false },
+       { MK_KEY_frame_stack_initial_size, &frame_stack_initial_size, false },
+       { MK_KEY_frame_stack_size_limit, &frame_stack_size_limit, false },
+       { MK_KEY_lisp_temp_stack_initial_size, &lisp_temp_stack_initial_size, false },
+       { MK_KEY_lisp_temp_stack_size_limit, &lisp_temp_stack_size_limit, false },
+       { MK_KEY_sigaltstack_size, &sigaltstack_size, false },
       };
-    MKCL_RECEIVE_N_KEYWORD_ARGUMENTS(env, @'mt::make-thread', narg, 0, narg, key_params);
+    MKCL_RECEIVE_N_KEYWORD_ARGUMENTS(env, MK_MT_make_thread, narg, 0, narg, key_params);
 
     struct mkcl_thread_init_parameters init_params = { 0 };
 
@@ -1687,15 +1687,15 @@ mkcl_object mk_mt_make_thread(MKCL, mkcl_narg narg, ...)
       init_params.sigaltstack_size = mkcl_integer_to_index(env, sigaltstack_size);
     if (!mkcl_Null(binding_stack_initial_size))
       init_params.binding_stack_initial_size = mkcl_integer_to_index(env, binding_stack_initial_size);
-    if (!(mkcl_Null(binding_stack_size_limit) || (binding_stack_size_limit == @':unlimited')))
+    if (!(mkcl_Null(binding_stack_size_limit) || (binding_stack_size_limit == MK_KEY_unlimited)))
       init_params.binding_stack_size_limit = mkcl_integer_to_index(env, binding_stack_size_limit);
     if (!mkcl_Null(frame_stack_initial_size))
       init_params.frame_stack_initial_size = mkcl_integer_to_index(env, frame_stack_initial_size);
-    if (!(mkcl_Null(frame_stack_size_limit) || (frame_stack_size_limit == @':unlimited')))
+    if (!(mkcl_Null(frame_stack_size_limit) || (frame_stack_size_limit == MK_KEY_unlimited)))
       init_params.frame_stack_size_limit = mkcl_integer_to_index(env, frame_stack_size_limit);
     if (!mkcl_Null(lisp_temp_stack_initial_size))
       init_params.lisp_temp_stack_initial_size = mkcl_integer_to_index(env, lisp_temp_stack_initial_size);
-    if (!(mkcl_Null(lisp_temp_stack_size_limit) || (lisp_temp_stack_size_limit == @':unlimited')))
+    if (!(mkcl_Null(lisp_temp_stack_size_limit) || (lisp_temp_stack_size_limit == MK_KEY_unlimited)))
       init_params.lisp_temp_stack_size_limit = mkcl_integer_to_index(env, lisp_temp_stack_size_limit);
 
     thread = mkcl_make_thread(env, name, initial_bindings, &init_params);
@@ -1798,7 +1798,7 @@ mk_mt_thread_preset(MKCL, mkcl_narg narg, mkcl_object thread, mkcl_object functi
 {
   mkcl_call_stack_check(env);
   if (narg < 2)
-    mkcl_FEwrong_num_arguments(env, @'mt::thread-preset', 2, -1, narg);
+    mkcl_FEwrong_num_arguments(env, MK_MT_thread_preset, 2, -1, narg);
   mkcl_assert_type_thread(env, thread);
 
   if (thread->thread.detached)
@@ -1955,7 +1955,7 @@ static mkcl_object
 interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_index os_call_stack_size, mkcl_object force)
 {
   if (mk_mt_thread_active_p(env, thread) == mk_cl_Cnil)
-    mk_cl_error(env, 5, @'mt::invalid-thread', @':thread', thread, @':reason', @':dead');
+    mk_cl_error(env, 5, MK_MT_invalid_thread, MK_KEY_thread, thread, MK_KEY_reason, MK_KEY_dead);
 
   if ( thread == mkcl_current_thread(env) )
     {
@@ -1974,7 +1974,7 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
 
       if (thread->thread.status != mkcl_thread_active)
 	{
-	  reason = @':dead';
+	  reason = MK_KEY_dead;
 	  failure = TRUE;
 	  break;
 	}
@@ -2015,12 +2015,12 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
 		  case WAIT_TIMEOUT:
 		    if (mk_mt_thread_active_p(env, thread) == mk_cl_Cnil)
 		      {
-			reason = @':dead';
+			reason = MK_KEY_dead;
 			failure = TRUE;
 		      }
 		    else if ( !mkcl_Null(thread->thread.env->sleeping_on) )
 		      {
-			reason = @'mt::thread-sleeping'; /* It's sleeping too hard, wouldn't wake up. */
+			reason = MK_MT_thread_sleeping; /* It's sleeping too hard, wouldn't wake up. */
 			failure = TRUE;
 		      }
 		    else
@@ -2054,7 +2054,7 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
 		*/
 		DWORD count;
 		failure = TRUE;
-		reason = @':suspended';
+		reason = MK_KEY_suspended;
 		/* "resume" to set suspend_count back to its previous value. */
 		if ((count = ResumeThread(os_thread)) == (DWORD)-1)
 		  mkcl_FEwin32_error(env, "Cannot resume thread ~A", 1, thread);
@@ -2064,7 +2064,7 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
 		     || (target_env->own_thread->thread.status == mkcl_thread_done) )
 	      { /* The thread is dying on us! */
 		DWORD count;
-		reason = @':dead';
+		reason = MK_KEY_dead;
 		failure = TRUE;
 		/* "resume" to let thread complete its clean-up. */
 		if ((count = ResumeThread(os_thread)) == (DWORD)-1)
@@ -2145,30 +2145,30 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
     if ( retry_count >= MAX_INTERRUPT_RETRIES)
       {
 #if MKCL_DEBUG_INTERRUPT_MASK
-	mk_cl_error(env, 7, @'mt::interrupt-refused',
-		    @':thread', thread,
-		    @':file', mkcl_cstring_to_string(env, (char *) thread->thread.env->interrupt_disabler_file),
-		    @':lineno', MKCL_MAKE_FIXNUM(thread->thread.env->interrupt_disabler_lineno));
+	mk_cl_error(env, 7, MK_MT_interrupt_refused,
+		    MK_KEY_thread, thread,
+		    MK_KEY_file, mkcl_cstring_to_string(env, (char *) thread->thread.env->interrupt_disabler_file),
+		    MK_KEY_lineno, MKCL_MAKE_FIXNUM(thread->thread.env->interrupt_disabler_lineno));
 #else
-	mk_cl_error(env, 3, @'mt::interrupt-refused', @':thread', thread);
+	mk_cl_error(env, 3, MK_MT_interrupt_refused, MK_KEY_thread, thread);
 #endif
 	return mk_cl_Cnil;
       }
     else if ( failure )
       {
-	if ( reason == @'mt::thread-sleeping')
+	if ( reason == MK_MT_thread_sleeping)
 	  {
 #if MKCL_DEBUG_INTERRUPT_MASK
-	    mk_cl_error(env, 7, @'mt::thread-sleeping',
-			@':thread', thread,
-			@':file', mkcl_cstring_to_string(env, (char *) thread->thread.env->interrupt_disabler_file),
-			@':lineno', MKCL_MAKE_FIXNUM(thread->thread.env->interrupt_disabler_lineno));
+	    mk_cl_error(env, 7, MK_MT_thread_sleeping,
+			MK_KEY_thread, thread,
+			MK_KEY_file, mkcl_cstring_to_string(env, (char *) thread->thread.env->interrupt_disabler_file),
+			MK_KEY_lineno, MKCL_MAKE_FIXNUM(thread->thread.env->interrupt_disabler_lineno));
 #else
-	    mk_cl_error(env, 3, @'mt::thread-sleeping', @':thread', thread);
+	    mk_cl_error(env, 3, MK_MT_thread_sleeping, MK_KEY_thread, thread);
 #endif
 	  }
 	else
-	  mk_cl_error(env, 5, @'mt::invalid-thread', @':thread', thread, @':reason', reason);
+	  mk_cl_error(env, 5, MK_MT_invalid_thread, MK_KEY_thread, thread, MK_KEY_reason, reason);
 	return mk_cl_Cnil;
       }
     else if ( success )
@@ -2200,7 +2200,7 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
 {
   if (mk_mt_thread_active_p(env, thread) == mk_cl_Cnil)
     /* mkcl_FEerror(env, "Cannot interrupt an inactive thread ~A", 1, thread); */
-    mk_cl_error(env, 5, @'mt::invalid-thread', @':thread', thread, @':reason', @':dead');
+    mk_cl_error(env, 5, MK_MT_invalid_thread, MK_KEY_thread, thread, MK_KEY_reason, MK_KEY_dead);
 
   if ( thread == mkcl_current_thread(env) )
     {
@@ -2227,7 +2227,7 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
 
       if (mk_mt_thread_active_p(env, thread) == mk_cl_Cnil)
 	{
-	  reason = @':dead';
+	  reason = MK_KEY_dead;
 	  failure = TRUE;
 	  break;
 	}
@@ -2279,12 +2279,12 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
 			{
 			  if (mk_mt_thread_active_p(env, thread) == mk_cl_Cnil)
 			    {
-			      reason = @':dead';
+			      reason = MK_KEY_dead;
 			      failure = TRUE;
 			    }
 			  else if ( !mkcl_Null(tenv->sleeping_on) )
 			    {
-			      reason = @'mt::thread-sleeping'; /* It's sleeping too hard, wouldn't wake up. */
+			      reason = MK_MT_thread_sleeping; /* It's sleeping too hard, wouldn't wake up. */
 			      failure = TRUE;
 			    }
 			  /* else it is not really clear if this is an error case or not. JCB */
@@ -2307,7 +2307,7 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
 		  {
 		  case ESRCH:
 		    /* The targetted thread does not exist. */
-		    reason = @':dead';
+		    reason = MK_KEY_dead;
 		    failure = TRUE;
 		    mkcl_interrupted_thread_env = NULL; /* done with it. clear it. */
 		    break;
@@ -2418,30 +2418,30 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
     if ( retry_count >= MAX_INTERRUPT_RETRIES)
       {
 #if MKCL_DEBUG_INTERRUPT_MASK
-	mk_cl_error(env, 7, @'mt::interrupt-refused',
-		    @':thread', thread,
-		    @':file', mkcl_cstring_to_string(env, (char *) thread->thread.env->interrupt_disabler_file),
-		    @':lineno', MKCL_MAKE_FIXNUM(thread->thread.env->interrupt_disabler_lineno));
+	mk_cl_error(env, 7, MK_MT_interrupt_refused,
+		    MK_KEY_thread, thread,
+		    MK_KEY_file, mkcl_cstring_to_string(env, (char *) thread->thread.env->interrupt_disabler_file),
+		    MK_KEY_lineno, MKCL_MAKE_FIXNUM(thread->thread.env->interrupt_disabler_lineno));
 #else
-	mk_cl_error(env, 3, @'mt::interrupt-refused', @':thread', thread);
+	mk_cl_error(env, 3, MK_MT_interrupt_refused, MK_KEY_thread, thread);
 #endif
 	return mk_cl_Cnil;
       }
     else if ( failure )
       {
-	if ( reason == @'mt::thread-sleeping')
+	if ( reason == MK_MT_thread_sleeping)
 	  {
 #if MKCL_DEBUG_INTERRUPT_MASK
-	    mk_cl_error(env, 7, @'mt::thread-sleeping',
-			@':thread', thread,
-			@':file', mkcl_cstring_to_string(env, (char *) thread->thread.env->interrupt_disabler_file),
-			@':lineno', MKCL_MAKE_FIXNUM(thread->thread.env->interrupt_disabler_lineno));
+	    mk_cl_error(env, 7, MK_MT_thread_sleeping,
+			MK_KEY_thread, thread,
+			MK_KEY_file, mkcl_cstring_to_string(env, (char *) thread->thread.env->interrupt_disabler_file),
+			MK_KEY_lineno, MKCL_MAKE_FIXNUM(thread->thread.env->interrupt_disabler_lineno));
 #else
-	    mk_cl_error(env, 3, @'mt::thread-sleeping', @':thread', thread);
+	    mk_cl_error(env, 3, MK_MT_thread_sleeping, MK_KEY_thread, thread);
 #endif
 	  }
 	else
-	  mk_cl_error(env, 5, @'mt::invalid-thread', @':thread', thread, @':reason', reason);
+	  mk_cl_error(env, 5, MK_MT_invalid_thread, MK_KEY_thread, thread, MK_KEY_reason, reason);
 	return mk_cl_Cnil;
       }
     else if ( success )
@@ -2463,7 +2463,7 @@ mkcl_object mk_mt_interrupt_thread(MKCL, mkcl_narg narg, mkcl_object thread, mkc
     mkcl_object force = mk_cl_Cnil;
     mkcl_object call_stack_size = mk_cl_Cnil;
 
-    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, @'mt::interrupt-thread', narg, 2, function, @':force', &force, @':call-stack-size', &call_stack_size);
+    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, MK_MT_interrupt_thread, narg, 2, function, MK_KEY_force, &force, MK_KEY_call_stack_size, &call_stack_size);
 
     {
       mkcl_object val;
@@ -2491,7 +2491,7 @@ mk_mt_thread_kill(MKCL, mkcl_object thread)
   mkcl_call_stack_check(env);
   mkcl_assert_type_thread(env, thread);
   MKCL_UNWIND_PROTECT_BEGIN(env) {
-    MKCL_LIBC_NO_INTR(env, val = interrupt_thread_internal(env, thread, @'mt::abort-thread', 0, mk_cl_Ct));
+    MKCL_LIBC_NO_INTR(env, val = interrupt_thread_internal(env, thread, MK_MT_abort_thread, 0, mk_cl_Ct));
   } MKCL_UNWIND_PROTECT_EXIT {
   } MKCL_UNWIND_PROTECT_END;
 
@@ -2518,7 +2518,7 @@ mkcl_object mk_mt_thread_detach(MKCL, mkcl_object thread)
   if (mkcl_Null(thread))
     thread = mkcl_current_thread(env);
   else if (mkcl_type_of(thread) != mkcl_t_thread)
-    thread = mkcl_type_error(env, @'mt::thread-detach', "argument", thread, @'mt::thread');
+    thread = mkcl_type_error(env, MK_MT_thread_detach, "argument", thread, MK_MT_thread);
 
   if ((thread->thread.status != mkcl_thread_active) || thread->thread.detached || (thread->thread.thread == 0))
     { mkcl_return_value(mk_cl_Cnil); }
@@ -2625,7 +2625,7 @@ mk_mt_thread_join(MKCL, mkcl_object thread)
     {
       if (thread->thread.status == mkcl_thread_done)
 	mkcl_remove_thread_from_global_thread_list(env, thread);
-      mkcl_return_value(@':detached');
+      mkcl_return_value(MK_KEY_detached);
     }
   else if (thread == mkcl_core.initial_thread)
     {
@@ -2642,7 +2642,7 @@ mk_mt_thread_join(MKCL, mkcl_object thread)
 
   result_value = thread->thread.result_value;
   if (result_value == MKCL_OBJNULL)
-    result_value = @':invalid-value';
+    result_value = MK_KEY_invalid_value;
 
   mkcl_remove_thread_from_global_thread_list(env, thread);
 
@@ -2697,7 +2697,7 @@ mk_mt_thread_join(MKCL, mkcl_object thread)
     { 
       if (thread->thread.status == mkcl_thread_done)
 	mkcl_remove_thread_from_global_thread_list(env, thread);
-      mkcl_return_value(@':detached');
+      mkcl_return_value(MK_KEY_detached);
     }
   else
     {
@@ -2705,7 +2705,7 @@ mk_mt_thread_join(MKCL, mkcl_object thread)
       DWORD wait_val;
 
       do {
-	MKCL_LIBC_Zzz(env, @':io', wait_val = WaitForSingleObjectEx(handle, INFINITE, TRUE));
+	MKCL_LIBC_Zzz(env, MK_KEY_io, wait_val = WaitForSingleObjectEx(handle, INFINITE, TRUE));
       } while (wait_val == WAIT_IO_COMPLETION);
       switch (wait_val)
 	{
@@ -2730,7 +2730,7 @@ mk_mt_thread_join(MKCL, mkcl_object thread)
 #else
       result_value = thread->thread.result_value;
       if (result_value == MKCL_OBJNULL)
-	result_value = @':invalid-value';
+	result_value = MK_KEY_invalid_value;
 #endif
     }
 
@@ -2936,7 +2936,7 @@ mkcl_object mk_mt_abandon_thread(MKCL, mkcl_object result_value)
   {
     mkcl_object current_result_value = env->own_thread->thread.result_value;
       
-    if (!(current_result_value == @':imported-and-gc-registered' || current_result_value == @':imported'))
+    if (!(current_result_value == MK_KEY_imported_and_gc_registered || current_result_value == MK_KEY_imported))
       env->own_thread->thread.result_value = result_value;
   }
 
@@ -2985,7 +2985,7 @@ mk_mt_exit_thread(MKCL, mkcl_object result_value)
   {
     mkcl_object current_result_value = env->own_thread->thread.result_value;
       
-    if (!(current_result_value == @':imported-and-gc-registered' || current_result_value == @':imported'))
+    if (!(current_result_value == MK_KEY_imported_and_gc_registered || current_result_value == MK_KEY_imported))
       env->own_thread->thread.result_value = result_value;
   }
 
@@ -3024,19 +3024,19 @@ mk_mt_exit_thread(MKCL, mkcl_object result_value)
 mkcl_object mk_mt_terminate_thread(MKCL)
 {
   mkcl_call_stack_check(env);
-  mk_mt_exit_thread(env, @':terminated');
+  mk_mt_exit_thread(env, MK_KEY_terminated);
 }
 
 mkcl_object mk_mt_cancel_thread(MKCL)
 {
   mkcl_call_stack_check(env);
-  mk_mt_exit_thread(env, @':canceled');
+  mk_mt_exit_thread(env, MK_KEY_canceled);
 }
 
 mkcl_object mk_mt_abort_thread(MKCL)
 {
   mkcl_call_stack_check(env);
-  mk_mt_abandon_thread(env, @':aborted');
+  mk_mt_abandon_thread(env, MK_KEY_aborted);
 }
 
 
@@ -3047,7 +3047,7 @@ mkcl_object mk_mt_scuttle_thread(MKCL)
   mkcl_call_stack_check(env);
   mkcl_disable_interrupts(env);
 
-  env->own_thread->thread.result_value = @':aborted';
+  env->own_thread->thread.result_value = MK_KEY_aborted;
 
 #if 0 /* All of this is much too dangerous to be worth the risk. JCB */
   int i = env->own_thread->thread.interrupt_count;
@@ -3119,19 +3119,19 @@ mk_mt_thread_status(MKCL, mkcl_object thread)
   switch (thread->thread.status)
     {
     case mkcl_thread_active:
-      status = @':active';
+      status = MK_KEY_active;
       break;
     case mkcl_thread_set:
-      status = @':set';
+      status = MK_KEY_set;
       break;
     case mkcl_thread_initialized:
-      status = @':initialized';
+      status = MK_KEY_initialized;
       break;
     case mkcl_thread_done:
-      status = @':done';
+      status = MK_KEY_done;
       break;
     default:
-      status = @':unknown';
+      status = MK_KEY_unknown;
       break;
     }
   mkcl_return_value(status);
@@ -3146,7 +3146,7 @@ mk_mt_thread_run_function(MKCL, mkcl_narg narg, mkcl_object name, mkcl_object fu
 
   mkcl_call_stack_check(env);
   if (narg < 2)
-    mkcl_FEwrong_num_arguments(env, @'mt::thread-run-function', 2, -1, narg);
+    mkcl_FEwrong_num_arguments(env, MK_MT_thread_run_function, 2, -1, narg);
 
   mkcl_va_start(env, args, function, narg, 2);
   mkcl_object rest = mkcl_grab_rest_args(env, args, FALSE);
@@ -3154,11 +3154,11 @@ mk_mt_thread_run_function(MKCL, mkcl_narg narg, mkcl_object name, mkcl_object fu
 
   if (MKCL_CONSP(name)) {
     /* This is useful to pass :initial-bindings to make-thread */
-    thread = mk_cl_apply(env, 2, @'mt::make-thread', name);
+    thread = mk_cl_apply(env, 2, MK_MT_make_thread, name);
   } else {
-    thread = mk_mt_make_thread(env, 2, @':name', name);
+    thread = mk_mt_make_thread(env, 2, MK_KEY_name, name);
   }
-  mk_cl_apply(env, 4, @'mt::thread-preset', thread, function, rest);
+  mk_cl_apply(env, 4, MK_MT_thread_preset, thread, function, rest);
   return mk_mt_thread_enable(env, thread);
 }
 
@@ -3175,7 +3175,7 @@ mkcl_object mk_mt_make_lock(MKCL, mkcl_narg narg, ...)
     mkcl_object recursive = mk_cl_Cnil;
     mkcl_object fast = mk_cl_Cnil;
 
-    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, @'mt::make-lock', narg, 0, narg, @':name', &name, @':recursive', &recursive, @':fast', &fast);
+    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, MK_MT_make_lock, narg, 0, narg, MK_KEY_name, &name, MK_KEY_recursive, &recursive, MK_KEY_fast, &fast);
 
 #if MKCL_WINDOWS
     HANDLE mutex;
@@ -3224,7 +3224,7 @@ mk_mt_recursive_lock_p(MKCL, mkcl_object lock)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(lock) != mkcl_t_lock)
-    mkcl_FEwrong_type_argument(env, @'mt::lock', lock);
+    mkcl_FEwrong_type_argument(env, MK_MT_lock, lock);
   mkcl_return_value((lock->lock.recursive ? mk_cl_Ct : mk_cl_Cnil));
 }
 
@@ -3233,7 +3233,7 @@ mk_mt_lock_name(MKCL, mkcl_object lock)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(lock) != mkcl_t_lock)
-    mkcl_FEwrong_type_argument(env, @'mt::lock', lock);
+    mkcl_FEwrong_type_argument(env, MK_MT_lock, lock);
   mkcl_return_value(lock->lock.name);
 }
 
@@ -3242,7 +3242,7 @@ mk_mt_lock_holder(MKCL, mkcl_object lock)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(lock) != mkcl_t_lock)
-    mkcl_FEwrong_type_argument(env, @'mt::lock', lock);
+    mkcl_FEwrong_type_argument(env, MK_MT_lock, lock);
   mkcl_return_value(lock->lock.holder);
 }
 
@@ -3254,7 +3254,7 @@ mk_mt_giveup_lock(MKCL, mkcl_object lock)
 
   mkcl_call_stack_check(env);
   if (mkcl_type_of(lock) != mkcl_t_lock)
-    mkcl_FEwrong_type_argument(env, @'mt::lock', lock);
+    mkcl_FEwrong_type_argument(env, MK_MT_lock, lock);
   if ((lock_holder = lock->lock.holder) != own_thread) {
     mkcl_FEerror(env, "Attempt to give up a lock ~S that is not owned by ~S", 2, lock, own_thread);
   }
@@ -3321,10 +3321,10 @@ mkcl_object mk_mt_get_lock(MKCL, mkcl_narg narg, mkcl_object lock, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object timeout = mk_cl_Ct;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'mt::get-lock', narg, 1, lock, &timeout);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_MT_get_lock, narg, 1, lock, &timeout);
 
     if (mkcl_type_of(lock) != mkcl_t_lock)
-      mkcl_FEwrong_type_argument(env, @'mt::lock', lock);
+      mkcl_FEwrong_type_argument(env, MK_MT_lock, lock);
 
     /* already held recursive lock in an interrupted thread */
     if (lock->lock.recursive && (lock->lock.holder == env->own_thread) && (env->own_thread->thread.interrupt_count != 0)) {
@@ -3353,10 +3353,10 @@ mkcl_object mk_mt_get_lock(MKCL, mkcl_narg narg, mkcl_object lock, ...)
         {
           /* INV: mkcl_minusp() makes sure `timeout' is real */
           if (mkcl_minusp(env, timeout))
-            mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+            mk_cl_error(env, 9, MK_CL_simple_type_error, MK_KEY_format_control,
                         timeout_format_control_string,
-                        @':format-arguments', mkcl_list1(env, timeout),
-                        @':expected-type', @'real', @':datum', timeout);
+                        MK_KEY_format_arguments, mkcl_list1(env, timeout),
+                        MK_KEY_expected_type, MK_CL_real, MK_KEY_datum, timeout);
 
           { 
             double r = mkcl_to_double(env, timeout);
@@ -3366,7 +3366,7 @@ mkcl_object mk_mt_get_lock(MKCL, mkcl_narg narg, mkcl_object lock, ...)
         }
 
       do {
-        MKCL_LIBC_Zzz(env, @':io', val = WaitForSingleObjectEx(lock->lock.mutex, delai, TRUE));
+        MKCL_LIBC_Zzz(env, MK_KEY_io, val = WaitForSingleObjectEx(lock->lock.mutex, delai, TRUE));
       } while (val == WAIT_IO_COMPLETION);
       switch (val)
         {
@@ -3406,7 +3406,7 @@ mkcl_object mk_mt_get_lock(MKCL, mkcl_narg narg, mkcl_object lock, ...)
 
         MKCL_LIBC_NO_INTR(env, rc = pthread_mutex_lock(mutex));
         if (mutex != lock->lock.mutex)
-          mk_mt_abandon_thread(env, @':aborted'); /* broken mutex! must abort right now! */
+          mk_mt_abandon_thread(env, MK_KEY_aborted); /* broken mutex! must abort right now! */
       }
     else
       {
@@ -3416,10 +3416,10 @@ mkcl_object mk_mt_get_lock(MKCL, mkcl_narg narg, mkcl_object lock, ...)
 
         /* INV: mkcl_minusp() makes sure `timeout' is real */
         if (mkcl_minusp(env, timeout))
-          mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+          mk_cl_error(env, 9, MK_CL_simple_type_error, MK_KEY_format_control,
                       timeout_format_control_string,
-                      @':format-arguments', mk_cl_list(env, 1, timeout),
-                      @':expected-type', @'real', @':datum', timeout);
+                      MK_KEY_format_arguments, mk_cl_list(env, 1, timeout),
+                      MK_KEY_expected_type, MK_CL_real, MK_KEY_datum, timeout);
 
         MKCL_LIBC_NO_INTR(env, error = clock_gettime(CLOCK_REALTIME, &ts));
         if (error)
@@ -3438,7 +3438,7 @@ mkcl_object mk_mt_get_lock(MKCL, mkcl_narg narg, mkcl_object lock, ...)
 
         MKCL_LIBC_NO_INTR(env, rc = pthread_mutex_timedlock(mutex, &ts));
         if (mutex != lock->lock.mutex)
-          mk_mt_abandon_thread(env, @':aborted'); /* broken mutex! must abort right now! */
+          mk_mt_abandon_thread(env, MK_KEY_aborted); /* broken mutex! must abort right now! */
 
         if (rc == ETIMEDOUT)
           { mkcl_return_value(mk_cl_Cnil); }
@@ -3506,18 +3506,18 @@ mkcl_object mk_mt_giveup_rwlock(MKCL, mkcl_narg narg, mkcl_object rwlock, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_object read_or_write = @':read';
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'mt::giveup-rwlock', narg, 1, rwlock, &read_or_write);
+    mkcl_object read_or_write = MK_KEY_read;
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_MT_giveup_rwlock, narg, 1, rwlock, &read_or_write);
 
     {
       if (mkcl_type_of(rwlock) != mkcl_t_rwlock)
-        mkcl_FEwrong_type_argument(env, @'mt::rwlock', rwlock);
+        mkcl_FEwrong_type_argument(env, MK_MT_rwlock, rwlock);
 
 #if MKCL_WINDOWS
 # if defined(_MSC_VER) && (defined(WinVista) || defined(Win7))
-      if (MKCL_EQ(read_or_write, @':read'))
+      if (MKCL_EQ(read_or_write, MK_KEY_read))
         { MKCL_LIBC_NO_INTR(env, ReleaseSRWLockShared(&rwlock->rwlock.rwlock)); }
-      else if (MKCL_EQ(read_or_write, @':write'))
+      else if (MKCL_EQ(read_or_write, MK_KEY_write))
         { MKCL_LIBC_NO_INTR(env, ReleaseSRWLockExclusive(&rwlock->rwlock.rwlock)); }
       else
         mkcl_FEerror(env, "Invalid second argument to mt::giveup-rwlock", 0);
@@ -3549,10 +3549,10 @@ mkcl_object mk_mt_get_read_rwlock(MKCL, mkcl_narg narg, mkcl_object rwlock, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object timeout = mk_cl_Ct;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'mt::get-read-rwlock', narg, 1, rwlock, &timeout);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_MT_get_read_rwlock, narg, 1, rwlock, &timeout);
 
     if (mkcl_type_of(rwlock) != mkcl_t_rwlock)
-      mkcl_FEwrong_type_argument(env, @'mt::rwlock', rwlock);
+      mkcl_FEwrong_type_argument(env, MK_MT_rwlock, rwlock);
 
 #if MKCL_WINDOWS
 # if defined(_MSC_VER) && (defined(WinVista) || defined(Win7))
@@ -3576,7 +3576,7 @@ mkcl_object mk_mt_get_read_rwlock(MKCL, mkcl_narg narg, mkcl_object rwlock, ...)
 
         MKCL_LIBC_NO_INTR(env, rc = pthread_rwlock_rdlock(os_rwlock));
         if (os_rwlock != rwlock->rwlock.rwlock)
-          mk_mt_abandon_thread(env, @':aborted'); /* broken rwlock! must abort right now! */
+          mk_mt_abandon_thread(env, MK_KEY_aborted); /* broken rwlock! must abort right now! */
       }
     else
       {
@@ -3585,10 +3585,10 @@ mkcl_object mk_mt_get_read_rwlock(MKCL, mkcl_narg narg, mkcl_object rwlock, ...)
 
         /* INV: mkcl_minusp() makes sure `timeout' is real */
         if (mkcl_minusp(env, timeout))
-          mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+          mk_cl_error(env, 9, MK_CL_simple_type_error, MK_KEY_format_control,
                       timeout_format_control_string,
-                      @':format-arguments', mk_cl_list(env, 1, timeout),
-                      @':expected-type', @'real', @':datum', timeout);
+                      MK_KEY_format_arguments, mk_cl_list(env, 1, timeout),
+                      MK_KEY_expected_type, MK_CL_real, MK_KEY_datum, timeout);
 
         MKCL_LIBC_NO_INTR(env, rc = clock_gettime(CLOCK_REALTIME, &ts));
         if (rc)
@@ -3607,7 +3607,7 @@ mkcl_object mk_mt_get_read_rwlock(MKCL, mkcl_narg narg, mkcl_object rwlock, ...)
 
         MKCL_LIBC_NO_INTR(env, rc = pthread_rwlock_timedrdlock(os_rwlock, &ts));
         if (os_rwlock != rwlock->rwlock.rwlock)
-          mk_mt_abandon_thread(env, @':aborted'); /* broken rwlock! must abort right now! */
+          mk_mt_abandon_thread(env, MK_KEY_aborted); /* broken rwlock! must abort right now! */
 
         if (rc == ETIMEDOUT)
           { mkcl_return_value(mk_cl_Cnil); }
@@ -3633,10 +3633,10 @@ mkcl_object mk_mt_get_write_rwlock(MKCL, mkcl_narg narg, mkcl_object rwlock, ...
   mkcl_call_stack_check(env);
   {
     mkcl_object timeout = mk_cl_Ct;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'mt::get-write-rwlock', narg, 1, rwlock, &timeout);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_MT_get_write_rwlock, narg, 1, rwlock, &timeout);
 
     if (mkcl_type_of(rwlock) != mkcl_t_rwlock)
-      mkcl_FEwrong_type_argument(env, @'mt::rwlock', rwlock);
+      mkcl_FEwrong_type_argument(env, MK_MT_rwlock, rwlock);
 
 #if MKCL_WINDOWS
 # if defined(_MSC_VER) && (defined(WinVista) || defined(Win7))
@@ -3660,7 +3660,7 @@ mkcl_object mk_mt_get_write_rwlock(MKCL, mkcl_narg narg, mkcl_object rwlock, ...
 
         MKCL_LIBC_NO_INTR(env, rc = pthread_rwlock_wrlock(os_rwlock));
         if (os_rwlock != rwlock->rwlock.rwlock)
-          mk_mt_abandon_thread(env, @':aborted'); /* broken rwlock! must abort right now! */
+          mk_mt_abandon_thread(env, MK_KEY_aborted); /* broken rwlock! must abort right now! */
       }
     else
       {
@@ -3669,10 +3669,10 @@ mkcl_object mk_mt_get_write_rwlock(MKCL, mkcl_narg narg, mkcl_object rwlock, ...
 
         /* INV: mkcl_minusp() makes sure `timeout' is real */
         if (mkcl_minusp(env, timeout))
-          mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+          mk_cl_error(env, 9, MK_CL_simple_type_error, MK_KEY_format_control,
                       timeout_format_control_string,
-                      @':format-arguments', mk_cl_list(env, 1, timeout),
-                      @':expected-type', @'real', @':datum', timeout);
+                      MK_KEY_format_arguments, mk_cl_list(env, 1, timeout),
+                      MK_KEY_expected_type, MK_CL_real, MK_KEY_datum, timeout);
 
         MKCL_LIBC_NO_INTR(env, rc = clock_gettime(CLOCK_REALTIME, &ts));
         if (rc)
@@ -3691,7 +3691,7 @@ mkcl_object mk_mt_get_write_rwlock(MKCL, mkcl_narg narg, mkcl_object rwlock, ...
 
         MKCL_LIBC_NO_INTR(env, rc = pthread_rwlock_timedwrlock(os_rwlock, &ts));
         if (os_rwlock != rwlock->rwlock.rwlock)
-          mk_mt_abandon_thread(env, @':aborted'); /* broken rwlock! must abort right now! */
+          mk_mt_abandon_thread(env, MK_KEY_aborted); /* broken rwlock! must abort right now! */
 
         if (rc == ETIMEDOUT)
           { mkcl_return_value(mk_cl_Cnil); }
@@ -3722,7 +3722,7 @@ mkcl_object mk_mt_make_semaphore(MKCL, mkcl_narg narg, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object count = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'mt::make-semaphore', narg, 0, narg, &count);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_MT_make_semaphore, narg, 0, narg, &count);
 
     mkcl_object output = mkcl_alloc_raw_semaphore(env);
     unsigned int value = 0;
@@ -3730,8 +3730,8 @@ mkcl_object mk_mt_make_semaphore(MKCL, mkcl_narg narg, ...)
     if (!mkcl_Null(count))
       {
         if (!MKCL_FIXNUMP(count))
-          count = mkcl_type_error(env, @'mt::make-semaphore', "count",
-                                  count, @'integer'); /* FIXME: should be (unsigned-byte 32) instead. JCB */
+          count = mkcl_type_error(env, MK_MT_make_semaphore, "count",
+                                  count, MK_CL_integer); /* FIXME: should be (unsigned-byte 32) instead. JCB */
         value = mkcl_fixnum_to_word(count);
       }
 
@@ -3772,7 +3772,7 @@ mkcl_object mk_mt_semaphore_count(MKCL, mkcl_object sem)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(sem) != mkcl_t_semaphore)
-    mkcl_FEwrong_type_argument(env, @'mt::semaphore', sem);
+    mkcl_FEwrong_type_argument(env, MK_MT_semaphore, sem);
   
   {
 #if MKCL_WINDOWS
@@ -3814,21 +3814,21 @@ mkcl_object mk_mt_semaphore_signal(MKCL, mkcl_narg narg, mkcl_object sem, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object count = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'mt::semaphore-signal', narg, 1, sem, &count);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_MT_semaphore_signal, narg, 1, sem, &count);
 
     {
       int c_count = 0;
 
       if (mkcl_type_of(sem) != mkcl_t_semaphore)
-        mkcl_FEwrong_type_argument(env, @'mt::semaphore', sem);
+        mkcl_FEwrong_type_argument(env, MK_MT_semaphore, sem);
   
       if (mkcl_Null(count))
         c_count = 1;
       else if (!MKCL_FIXNUMP(count) || ((c_count = mkcl_fixnum_to_word(count)) < 0))
-        mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+        mk_cl_error(env, 9, MK_CL_simple_type_error, MK_KEY_format_control,
                     timeout_format_control_string,
-                    @':format-arguments', mkcl_list1(env, count),
-                    @':expected-type', @'integer', @':datum', count);
+                    MK_KEY_format_arguments, mkcl_list1(env, count),
+                    MK_KEY_expected_type, MK_CL_integer, MK_KEY_datum, count);
   
 #if MKCL_WINDOWS
       {
@@ -3865,10 +3865,10 @@ mkcl_object mk_mt_semaphore_wait(MKCL, mkcl_narg narg, mkcl_object sem, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object timeout = mk_cl_Ct;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'mt::semaphore-wait', narg, 1, sem, &timeout);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_MT_semaphore_wait, narg, 1, sem, &timeout);
 
     if (mkcl_type_of(sem) != mkcl_t_semaphore)
-      mkcl_FEwrong_type_argument(env, @'mt::semaphore', sem);
+      mkcl_FEwrong_type_argument(env, MK_MT_semaphore, sem);
   
 #if MKCL_WINDOWS
     {
@@ -3883,17 +3883,17 @@ mkcl_object mk_mt_semaphore_wait(MKCL, mkcl_narg narg, mkcl_object sem, ...)
         {
           /* INV: mkcl_minusp() makes sure `timeout' is real */
           if (mkcl_minusp(env, timeout))
-            mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+            mk_cl_error(env, 9, MK_CL_simple_type_error, MK_KEY_format_control,
                         timeout_format_control_string,
-                        @':format-arguments', mkcl_list1(env, timeout),
-                        @':expected-type', @'real', @':datum', timeout);
+                        MK_KEY_format_arguments, mkcl_list1(env, timeout),
+                        MK_KEY_expected_type, MK_CL_real, MK_KEY_datum, timeout);
 	
           double r = mkcl_to_double(env, timeout);
           milliSeconds = r * 1000;
         }
 
       do {
-        MKCL_LIBC_Zzz(env, @':io', wait_val = WaitForSingleObjectEx(sem->semaphore.sem, milliSeconds, TRUE));
+        MKCL_LIBC_Zzz(env, MK_KEY_io, wait_val = WaitForSingleObjectEx(sem->semaphore.sem, milliSeconds, TRUE));
       } while (wait_val == WAIT_IO_COMPLETION);
       switch (wait_val)
         {
@@ -3923,7 +3923,7 @@ mkcl_object mk_mt_semaphore_wait(MKCL, mkcl_narg narg, mkcl_object sem, ...)
     else if (timeout == mk_cl_Ct)
       {
         do
-          { MKCL_LIBC_Zzz(env, @':io', rc = sem_wait(sem->semaphore.sem)); }
+          { MKCL_LIBC_Zzz(env, MK_KEY_io, rc = sem_wait(sem->semaphore.sem)); }
         while (rc && errno == EINTR);
         mk_mt_test_for_thread_shutdown(env);
       }
@@ -3933,10 +3933,10 @@ mkcl_object mk_mt_semaphore_wait(MKCL, mkcl_narg narg, mkcl_object sem, ...)
 
         /* INV: mkcl_minusp() makes sure `timeout' is real */
         if (mkcl_minusp(env, timeout))
-          mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+          mk_cl_error(env, 9, MK_CL_simple_type_error, MK_KEY_format_control,
                       timeout_format_control_string,
-                      @':format-arguments', mk_cl_list(env, 1, timeout),
-                      @':expected-type', @'real', @':datum', timeout);
+                      MK_KEY_format_arguments, mk_cl_list(env, 1, timeout),
+                      MK_KEY_expected_type, MK_CL_real, MK_KEY_datum, timeout);
       
         MKCL_LIBC_NO_INTR(env, rc = clock_gettime(CLOCK_REALTIME, &ts));
         if (rc) 
@@ -3955,7 +3955,7 @@ mkcl_object mk_mt_semaphore_wait(MKCL, mkcl_narg narg, mkcl_object sem, ...)
           ts.tv_sec++;
         }
         do
-          { MKCL_LIBC_Zzz(env, @':io', rc = sem_timedwait(sem->semaphore.sem, &ts)); }
+          { MKCL_LIBC_Zzz(env, MK_KEY_io, rc = sem_timedwait(sem->semaphore.sem, &ts)); }
         while (rc && (errno == EINTR));
         mk_mt_test_for_thread_shutdown(env);
 
@@ -4015,7 +4015,7 @@ mkcl_object mk_mt_condition_wait(MKCL, mkcl_narg narg, mkcl_object cv, mkcl_obje
   mkcl_call_stack_check(env);
   {
     mkcl_object timeout = mk_cl_Ct;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'mt::condition-wait', narg, 2, lock, &timeout);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_MT_condition_wait, narg, 2, lock, &timeout);
 
     {
 #if MKCL_WINDOWS
@@ -4024,9 +4024,9 @@ mkcl_object mk_mt_condition_wait(MKCL, mkcl_narg narg, mkcl_object cv, mkcl_obje
       int rc;
 
       if (mkcl_type_of(cv) != mkcl_t_condition_variable)
-        mkcl_FEwrong_type_argument(env, @'mt::condition-variable', cv);
+        mkcl_FEwrong_type_argument(env, MK_MT_condition_variable, cv);
       if (mkcl_type_of(lock) != mkcl_t_lock)
-        mkcl_FEwrong_type_argument(env, @'mt::lock', lock);
+        mkcl_FEwrong_type_argument(env, MK_MT_lock, lock);
 
       if (mkcl_Null(timeout))
         timeout = MKCL_MAKE_FIXNUM(0);
@@ -4043,10 +4043,10 @@ mkcl_object mk_mt_condition_wait(MKCL, mkcl_narg narg, mkcl_object cv, mkcl_obje
           struct timespec   ts;
           /* INV: mkcl_minusp() makes sure `timeout' is real */
           if (mkcl_minusp(env, timeout))
-            mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+            mk_cl_error(env, 9, MK_CL_simple_type_error, MK_KEY_format_control,
                         timeout_format_control_string,
-                        @':format-arguments', mk_cl_list(env, 1, timeout),
-                        @':expected-type', @'real', @':datum', timeout);
+                        MK_KEY_format_arguments, mk_cl_list(env, 1, timeout),
+                        MK_KEY_expected_type, MK_CL_real, MK_KEY_datum, timeout);
 
           MKCL_LIBC_NO_INTR(env, rc = clock_gettime(CLOCK_REALTIME, &ts));
           if (rc)
@@ -4098,7 +4098,7 @@ mk_mt_condition_signal(MKCL, mkcl_object cv)
   int rc;
 
   if (mkcl_type_of(cv) != mkcl_t_condition_variable)
-    mkcl_FEwrong_type_argument(env, @'mt::condition-variable', cv);
+    mkcl_FEwrong_type_argument(env, MK_MT_condition_variable, cv);
   MKCL_LIBC_NO_INTR(env, rc = pthread_cond_signal(&cv->condition_variable.cv));
 
   switch (rc)
@@ -4123,7 +4123,7 @@ mk_mt_condition_broadcast(MKCL, mkcl_object cv)
   int rc;
 
   if (mkcl_type_of(cv) != mkcl_t_condition_variable)
-    mkcl_FEwrong_type_argument(env, @'mt::condition-variable', cv);
+    mkcl_FEwrong_type_argument(env, MK_MT_condition_variable, cv);
   MKCL_LIBC_NO_INTR(env, rc = pthread_cond_broadcast(&cv->condition_variable.cv));
 
   switch (rc)
@@ -4442,7 +4442,7 @@ mkcl_object mk_mt_thread_plist(MKCL, mkcl_object thread)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(thread) != mkcl_t_thread)
-    mkcl_FEwrong_type_argument(env, @'mt::thread', thread);
+    mkcl_FEwrong_type_argument(env, MK_MT_thread, thread);
   mkcl_return_value(thread->thread.plist);
 }
 
@@ -4450,7 +4450,7 @@ mkcl_object mk_mt_set_thread_plist(MKCL, mkcl_object thread, mkcl_object plist)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(thread) != mkcl_t_thread)
-    mkcl_FEwrong_type_argument(env, @'mt::thread', thread);
+    mkcl_FEwrong_type_argument(env, MK_MT_thread, thread);
   mkcl_return_value((thread->thread.plist = plist));
 }
 
@@ -4504,7 +4504,7 @@ mkcl_object mk_mt_test_for_thread_shutdown(MKCL)
 #endif
 
       mkcl_funcall0(env, interrupt); /* We may be running with interrupts disabled. Is this a problem? JCB */
-      output = @':interrupted';
+      output = MK_KEY_interrupted;
     }
 
   if (thread->thread.shutdown_requested)
@@ -4514,7 +4514,7 @@ mkcl_object mk_mt_test_for_thread_shutdown(MKCL)
 	      errno, thread->thread.name->base_string.self);
       fflush(stderr);
 #endif
-      mk_mt_exit_thread(env, output = @':terminated');
+      mk_mt_exit_thread(env, output = MK_KEY_terminated);
     }
 
   mkcl_return_value(output);
@@ -4551,19 +4551,19 @@ mk_mt_thread_shutdown_requested_p(MKCL, mkcl_object thread)
 mkcl_object
 mk_si_non_interactive_thread_debugger_trap(MKCL, mkcl_object condition, mkcl_object old_hook)
 {
-  mkcl_object continue_fn = @+'continue';
+  mkcl_object continue_fn = MK_CL_continue->symbol.gfdef;
 
   mkcl_call_stack_check(env);
   if (mkcl_functionp(env, continue_fn)) mkcl_funcall0(env, continue_fn);
   mk_cl_fresh_line(env, 1, mkcl_core.error_output);
   mkcl_write_cstr(env, "MKCL: Condition signaled in non-interactive thread: ", mkcl_core.error_output);
-  mkcl_princ(env, mkcl_symbol_value(env, @'mt::*thread*'), mkcl_core.error_output);
+  mkcl_princ(env, mkcl_symbol_value(env, MK_MT_DYNVAR_thread), mkcl_core.error_output);
   mkcl_terpri(env, mkcl_core.error_output);
   mkcl_write_cstr(env, "MKCL: Condition is: ", mkcl_core.error_output);
   mkcl_prin1(env, condition, mkcl_core.error_output);
   mkcl_princ(env, condition, mkcl_core.error_output);
   mkcl_terpri(env, mkcl_core.error_output);
   mkcl_finish_output(env, mkcl_core.error_output);
-  mk_mt_abandon_thread(env, @':terminated');
+  mk_mt_abandon_thread(env, MK_KEY_terminated);
   mkcl_return_no_value; /* should never be reached! */
 }

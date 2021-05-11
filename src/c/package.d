@@ -44,10 +44,10 @@ mkcl_FEpackage_error(MKCL, mkcl_object package, char *message, int narg, ...)
   mkcl_va_list args;
   mkcl_va_start(env, args, narg, narg, 0);
   mk_cl_error(env, 7,
-	      @'si::simple-package-error',
-	      @':format-control', mkcl_make_simple_base_string(env, message),
-	      @':format-arguments', (narg ? mkcl_grab_rest_args(env, args, FALSE) : mkcl_list1(env, package)),
-	      @':package', package);
+	      MK_SI_simple_package_error,
+	      MK_KEY_format_control, mkcl_make_simple_base_string(env, message),
+	      MK_KEY_format_arguments, (narg ? mkcl_grab_rest_args(env, args, FALSE) : mkcl_list1(env, package)),
+	      MK_KEY_package, package);
 }
 
 void
@@ -68,10 +68,10 @@ mkcl_CEpackage_error(MKCL, mkcl_object package, char *message, char *continue_me
 
   mk_cl_cerror(env, 8,
 	       mkcl_make_simple_base_string(env, continue_message),
-	       @'si::simple-package-error',
-	       @':format-control', mkcl_make_simple_base_string(env, message),
-	       @':format-arguments', format_args,
-	       @':package', package);
+	       MK_SI_simple_package_error,
+	       MK_KEY_format_control, mkcl_make_simple_base_string(env, message),
+	       MK_KEY_format_arguments, format_args,
+	       MK_KEY_package, package);
 }
 
 static bool
@@ -205,7 +205,7 @@ mkcl_make_package(MKCL, mkcl_object name, mkcl_object nicknames, mkcl_object use
 	mkcl_object other_name = MKCL_CONS_CAR(pair);
 	if (mkcl_equal(env, other_name, name)
 	    || 
-	    !mkcl_Null(mkcl_funcall4(env, @+'member', other_name, nicknames, @':test', @+'string=')))
+	    !mkcl_Null(mkcl_funcall4(env, MK_CL_member->symbol.gfdef, other_name, nicknames, MK_KEY_test, MK_CL_stringE->symbol.gfdef)))
 	  {
 	    mkcl_object next = MKCL_CONS_CDR(l);
 	    x = MKCL_CONS_CDR(pair);
@@ -337,8 +337,8 @@ mkcl_find_package_nolock(MKCL, mkcl_object name)
   /* Note that this function may actually be called _before_ symbols are set up
    * and bound! */
   if (mkcl_get_option(MKCL_OPT_BOOTED)
-      && MKCL_SYM_FUN(@'si::find-relative-package') != mk_cl_Cnil
-      && MKCL_SYM_VAL(env, @'si::*relative-package-names*') != mk_cl_Cnil) {
+      && MKCL_SYM_FUN(MK_SI_find_relative_package) != mk_cl_Cnil
+      && MKCL_SYM_VAL(env, MK_SI_DYNVAR_relative_package_names) != mk_cl_Cnil) {
     return mk_si_find_relative_package(env, name);
   }
 #endif
@@ -361,9 +361,9 @@ mk_si_coerce_to_package(MKCL, mkcl_object p)
 mkcl_object
 mkcl_current_package(MKCL)
 {
-  mkcl_object x = mkcl_symbol_value(env, @'*package*');
+  mkcl_object x = mkcl_symbol_value(env, MK_CL_DYNVAR_package);
   if (mkcl_type_of(x) != mkcl_t_package) {
-    MKCL_SETQ(env, @'*package*', mkcl_core.user_package);
+    MKCL_SETQ(env, MK_CL_DYNVAR_package, mkcl_core.user_package);
     mkcl_FEerror(env, "The value of *PACKAGE*, ~S, was not a package", 1, x);
   }
   return x;
@@ -386,7 +386,7 @@ mkcl_intern(MKCL, mkcl_object name, mkcl_object p, int *intern_flag)
   mkcl_object s, ul;
   volatile bool locked = false;
 
-  name = mkcl_check_type_string(env, @'intern', name);
+  name = mkcl_check_type_string(env, MK_CL_intern, name);
   p = mk_si_coerce_to_package(env, p);
 
   MKCL_UNWIND_PROTECT_BEGIN(env) {
@@ -450,7 +450,7 @@ mkcl_find_symbol_nolock(MKCL, mkcl_object name, mkcl_object p, int *intern_flag)
 {
   mkcl_object s, ul;
 
-  name = mkcl_check_type_string(env, @'find-symbol', name);
+  name = mkcl_check_type_string(env, MK_CL_find_symbol, name);
   s = mkcl_gethash_safe(env, name, p->pack.external, MKCL_OBJNULL);
   if (s != MKCL_OBJNULL) {
     *intern_flag = MKCL_SYMBOL_IS_EXTERNAL;
@@ -984,7 +984,7 @@ mkcl_object mk_cl_make_package(MKCL, mkcl_narg narg, mkcl_object pack_name, ...)
   {
     mkcl_object nicknames = mk_cl_Cnil;
     mkcl_object use = MKCL_CONS(env, mkcl_core.lisp_package, mk_cl_Cnil);
-    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, @'make-package', narg, 1, pack_name, @':nicknames', &nicknames, @':use', &use);
+    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, MK_CL_make_package, narg, 1, pack_name, MK_KEY_nicknames, &nicknames, MK_KEY_use, &use);
 
     /* INV: mkcl_make_package() performs type checking */
     mkcl_return_value(mkcl_make_package(env, pack_name, nicknames, use));
@@ -996,7 +996,7 @@ mk_si_select_package(MKCL, mkcl_object pack_name)
 {
   mkcl_call_stack_check(env);
   mkcl_object p = mk_si_coerce_to_package(env, pack_name);
-  mkcl_return_value((MKCL_SETQ(env, @'*package*', p)));
+  mkcl_return_value((MKCL_SETQ(env, MK_CL_DYNVAR_package, p)));
 }
 
 mkcl_object
@@ -1038,7 +1038,7 @@ mkcl_object mk_cl_rename_package(MKCL, mkcl_narg narg, mkcl_object pack, mkcl_ob
   mkcl_call_stack_check(env);
   {
     mkcl_object new_nicknames = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'rename-package', narg, 2, new_name, &new_nicknames);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_rename_package, narg, 2, new_name, &new_nicknames);
 
     /* INV: mkcl_rename_package() type checks and coerces pack to package */
     mkcl_return_value(mkcl_rename_package(env, pack, new_name, new_nicknames));
@@ -1116,15 +1116,15 @@ mkcl_object mk_cl_intern(MKCL, mkcl_narg narg, mkcl_object strng, ...)
     mkcl_object sym = mk_cl_Cnil;
     int intern_flag;
     mkcl_object p = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'intern', narg, 1, strng, &p);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_intern, narg, 1, strng, &p);
 
     sym = mkcl_intern(env, strng, p, &intern_flag);
     if (intern_flag == MKCL_SYMBOL_IS_INTERNAL)
-      { mkcl_return_2_values(sym, @':internal'); }
+      { mkcl_return_2_values(sym, MK_KEY_internal); }
     else if (intern_flag == MKCL_SYMBOL_IS_EXTERNAL)
-      { mkcl_return_2_values(sym, @':external'); }
+      { mkcl_return_2_values(sym, MK_KEY_external); }
     else if (intern_flag == MKCL_SYMBOL_IS_INHERITED)
-      { mkcl_return_2_values(sym, @':inherited'); }
+      { mkcl_return_2_values(sym, MK_KEY_inherited); }
     else
       { mkcl_return_2_values(sym, mk_cl_Cnil); }
   }
@@ -1137,15 +1137,15 @@ mkcl_object mk_cl_find_symbol(MKCL, mkcl_narg narg, mkcl_object strng, ...)
     mkcl_object x;
     int intern_flag;
     mkcl_object p = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'find-symbol', narg, 1, strng, &p);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_find_symbol, narg, 1, strng, &p);
 
     x = mkcl_find_symbol(env, strng, p, &intern_flag);
     if (intern_flag == MKCL_SYMBOL_IS_INTERNAL)
-      { mkcl_return_2_values(x, @':internal'); }
+      { mkcl_return_2_values(x, MK_KEY_internal); }
     else if (intern_flag == MKCL_SYMBOL_IS_EXTERNAL)
-      { mkcl_return_2_values(x, @':external'); }
+      { mkcl_return_2_values(x, MK_KEY_external); }
     else if (intern_flag == MKCL_SYMBOL_IS_INHERITED)
-      { mkcl_return_2_values(x, @':inherited'); }
+      { mkcl_return_2_values(x, MK_KEY_inherited); }
     else
       { mkcl_return_2_values(mk_cl_Cnil, mk_cl_Cnil); }
   }
@@ -1156,7 +1156,7 @@ mkcl_object mk_cl_unintern(MKCL, mkcl_narg narg, mkcl_object symbl, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object p = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'unintern', narg, 1, symbl, &p);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_unintern, narg, 1, symbl, &p);
 
     mkcl_return_value((mkcl_unintern(env, symbl, p) ? mk_cl_Ct : mk_cl_Cnil));
   }
@@ -1167,7 +1167,7 @@ mkcl_object mk_cl_export(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object pack = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'export', narg, 1, symbols, &pack);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_export, narg, 1, symbols, &pack);
 
   BEGIN:
     switch (mkcl_type_of(symbols)) {
@@ -1184,8 +1184,8 @@ mkcl_object mk_cl_export(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
       break;
     
     default:
-      symbols = mkcl_type_error(env, @'export', "argument", symbols,
-                                mk_cl_list(env, 3, @'or', @'symbol', @'list'));
+      symbols = mkcl_type_error(env, MK_CL_export, "argument", symbols,
+                                mk_cl_list(env, 3, MK_CL_or, MK_CL_symbol, MK_CL_list));
       goto BEGIN;
     }
     mkcl_return_value(mk_cl_Ct);
@@ -1197,7 +1197,7 @@ mkcl_object mk_cl_unexport(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object pack = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'unexport', narg, 1, symbols, &pack);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_unexport, narg, 1, symbols, &pack);
 
   BEGIN:
     switch (mkcl_type_of(symbols)) {
@@ -1214,8 +1214,8 @@ mkcl_object mk_cl_unexport(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
       break;
     
     default:
-      symbols = mkcl_type_error(env, @'unexport', "argument", symbols,
-                                mk_cl_list(env, 3, @'or', @'symbol', @'list'));
+      symbols = mkcl_type_error(env, MK_CL_unexport, "argument", symbols,
+                                mk_cl_list(env, 3, MK_CL_or, MK_CL_symbol, MK_CL_list));
       goto BEGIN;
     }
     mkcl_return_value(mk_cl_Ct);
@@ -1227,7 +1227,7 @@ mkcl_object mk_cl_import(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object pack = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'import', narg, 1, symbols, &pack);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_import, narg, 1, symbols, &pack);
 
   BEGIN:
     switch (mkcl_type_of(symbols)) {
@@ -1244,8 +1244,8 @@ mkcl_object mk_cl_import(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
       break;
     
     default:
-      symbols = mkcl_type_error(env, @'import', "argument", symbols,
-                                mk_cl_list(env, 3, @'or', @'symbol', @'list'));
+      symbols = mkcl_type_error(env, MK_CL_import, "argument", symbols,
+                                mk_cl_list(env, 3, MK_CL_or, MK_CL_symbol, MK_CL_list));
       goto BEGIN;
     }
     mkcl_return_value(mk_cl_Ct);
@@ -1257,7 +1257,7 @@ mkcl_object mk_cl_shadowing_import(MKCL, mkcl_narg narg, mkcl_object symbols, ..
   mkcl_call_stack_check(env);
   {
     mkcl_object pack = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'shadowing-import', narg, 1, symbols, &pack);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_shadowing_import, narg, 1, symbols, &pack);
 
   BEGIN:
     switch (mkcl_type_of(symbols)) {
@@ -1274,8 +1274,8 @@ mkcl_object mk_cl_shadowing_import(MKCL, mkcl_narg narg, mkcl_object symbols, ..
       break;
     
     default:
-      symbols = mkcl_type_error(env, @'shadowing-import', "argument", symbols,
-                                mk_cl_list(env, 3, @'or', @'symbol', @'list'));
+      symbols = mkcl_type_error(env, MK_CL_shadowing_import, "argument", symbols,
+                                mk_cl_list(env, 3, MK_CL_or, MK_CL_symbol, MK_CL_list));
       goto BEGIN;
     }
     mkcl_return_value(mk_cl_Ct);
@@ -1287,7 +1287,7 @@ mkcl_object mk_cl_shadow(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object pack = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'shadow', narg, 1, symbols, &pack);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_shadow, narg, 1, symbols, &pack);
 
   BEGIN:
     switch (mkcl_type_of(symbols)) {
@@ -1307,8 +1307,8 @@ mkcl_object mk_cl_shadow(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
       } mkcl_end_loop_for_in;
       break;
     default:
-      symbols = mkcl_type_error(env, @'shadow', "", symbols,
-                                mk_cl_list(env, 3, @'or', @'symbol', @'list'));
+      symbols = mkcl_type_error(env, MK_CL_shadow, "", symbols,
+                                mk_cl_list(env, 3, MK_CL_or, MK_CL_symbol, MK_CL_list));
       goto BEGIN;
     }
     mkcl_return_value(mk_cl_Ct);
@@ -1320,7 +1320,7 @@ mkcl_object mk_cl_use_package(MKCL, mkcl_narg narg, mkcl_object pack, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object pa = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'use-package', narg, 1, pack, &pa);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_use_package, narg, 1, pack, &pa);
 
   BEGIN:
     switch (mkcl_type_of(pack)) {
@@ -1353,7 +1353,7 @@ mkcl_object mk_cl_unuse_package(MKCL, mkcl_narg narg, mkcl_object pack, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object pa = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'unuse-package', narg, 1, pack, &pa);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_unuse_package, narg, 1, pack, &pa);
 
   BEGIN:
     switch (mkcl_type_of(pack)) {

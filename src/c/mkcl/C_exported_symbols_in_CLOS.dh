@@ -1,0 +1,3 @@
+#define MK_CLOS_compute_effective_method_for_cache @'clos::compute-effective-method-for-cache'
+#define MK_CLOS_DYNVAR_builtin_classes @'clos::*builtin-classes*'
+#define MK_CLOS_DYNVAR_redefine_class_in_place @'clos::*redefine-class-in-place*'

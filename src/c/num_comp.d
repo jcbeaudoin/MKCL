@@ -84,7 +84,7 @@ mkcl_object mk_cl_E(MKCL, mkcl_narg narg, mkcl_object num, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'=', 1, narg, num, nums);
+    mkcl_setup_for_rest(env, MK_CL_E, 1, narg, num, nums);
 
     /* ANSI: Need not signal error for 1 argument */
     /* INV: For >= 2 arguments, mkcl_number_equalp() performs checks */
@@ -405,7 +405,7 @@ mkcl_object mk_cl_NE(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'/=', 0, narg, narg, nums);
+    mkcl_setup_for_rest(env, MK_CL_NE, 0, narg, narg, nums);
 
     if (narg == 0)
       mkcl_FEwrong_num_arguments_anonym(env, 1, -1, narg);
@@ -446,16 +446,16 @@ monotonic(MKCL, int s, int t, int narg, mkcl_va_list nums)
     mkcl_va_end(nums);                                          \
     return val; }
 
-mkcl_object @<= MONOTONIC( 1, 0)
-mkcl_object @>= MONOTONIC(-1, 0)
-mkcl_object @<  MONOTONIC( 1, 1)
-mkcl_object @>  MONOTONIC(-1, 1)
+mkcl_object mk_cl_LE MONOTONIC( 1, 0)
+mkcl_object mk_cl_GE MONOTONIC(-1, 0)
+mkcl_object mk_cl_L  MONOTONIC( 1, 1)
+mkcl_object mk_cl_G  MONOTONIC(-1, 1)
 
 mkcl_object mk_cl_max(MKCL, mkcl_narg narg, mkcl_object max, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'max', 1, narg, max, nums);
+    mkcl_setup_for_rest(env, MK_CL_max, 1, narg, max, nums);
 
     /* INV: type check occurs in mkcl_number_compare() for the rest of
        numbers, but for the first argument it happens in mkcl_zerop(). */
@@ -475,7 +475,7 @@ mkcl_object mk_cl_min(MKCL, mkcl_narg narg, mkcl_object min, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'min', 1, narg, min, nums);
+    mkcl_setup_for_rest(env, MK_CL_min, 1, narg, min, nums);
 
     /* INV: type check occurs in mkcl_number_compare() for the rest of
        numbers, but for the first argument it happens in mkcl_zerop(). */

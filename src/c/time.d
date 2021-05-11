@@ -159,10 +159,10 @@ mk_cl_sleep(MKCL, mkcl_object z)
 
   /* INV: mkcl_minusp() makes sure `z' is real */
   if (mkcl_minusp(env, z))
-    mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+    mk_cl_error(env, 9, MK_CL_simple_type_error, MK_KEY_format_control,
                 mkcl_make_simple_base_string(env, "Not a non-negative number ~S"),
-                @':format-arguments', mk_cl_list(env, 1, z),
-                @':expected-type', @'real', @':datum', z);
+                MK_KEY_format_arguments, mk_cl_list(env, 1, z),
+                MK_KEY_expected_type, MK_CL_real, MK_KEY_datum, z);
 
   if (fe_inexact_on)
     fedisableexcept(FE_INEXACT);
@@ -199,7 +199,7 @@ mk_cl_sleep(MKCL, mkcl_object z)
       else
 	duration = target_ms - now_ms;
 
-      MKCL_LIBC_Zzz(env, @':io', val = SleepEx(duration, TRUE)); /* The "alertable" version. */
+      MKCL_LIBC_Zzz(env, MK_KEY_io, val = SleepEx(duration, TRUE)); /* The "alertable" version. */
 
       MKCL_LIBC_NO_INTR(env, GetSystemTimeAsFileTime(&system_time));
       uli_system_time.LowPart = system_time.dwLowDateTime;
@@ -229,7 +229,7 @@ mk_cl_sleep(MKCL, mkcl_object z)
       do
 	{
 	  struct timespec req = rem;
-	  MKCL_LIBC_Zzz(env, @':io', rc = nanosleep(&req, &rem)); /* We should use clock_nanosleep() instead. JCB */
+	  MKCL_LIBC_Zzz(env, MK_KEY_io, rc = nanosleep(&req, &rem)); /* We should use clock_nanosleep() instead. JCB */
 	}
       while (rc && errno == EINTR);
       mk_mt_test_for_thread_shutdown(env);
@@ -361,9 +361,9 @@ mkcl_init_unixtime(MKCL)
   get_real_time(env, &beginning);
   
 #if MKCL_WORD_BITS < 64
-  MKCL_SET(@'internal-time-units-per-second', MKCL_MAKE_FIXNUM(1000 * 1000)); /* microseconds */
+  MKCL_SET(MK_CL_internal_time_units_per_second, MKCL_MAKE_FIXNUM(1000 * 1000)); /* microseconds */
 #else
-  MKCL_SET(@'internal-time-units-per-second', MKCL_MAKE_FIXNUM(1000 * 1000 * 1000)); /* nanoseconds */
+  MKCL_SET(MK_CL_internal_time_units_per_second, MKCL_MAKE_FIXNUM(1000 * 1000 * 1000)); /* nanoseconds */
 #endif
   
   /* This is the number of seconds between 00:00:00 January 1st, 1900 GMT and 00:00:00 January 1st, 1970 GMT. */

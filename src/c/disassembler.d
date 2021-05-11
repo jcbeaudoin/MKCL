@@ -14,6 +14,7 @@
 */
 
 #include <mkcl/mkcl.h>
+#include <mkcl/internal.h>
 #include <mkcl/mkcl-inl.h>
 #include <mkcl/bytecode.h>
 
@@ -52,7 +53,7 @@ disassemble_lambda(MKCL, mkcl_object bytecode)
   mkcl_object *data;
   mkcl_opcode *vector;
 
-  mkcl_bds_bind(env, @'*print-pretty*', mk_cl_Cnil);
+  mkcl_bds_bind(env, MK_CL_DYNVAR_print_pretty, mk_cl_Cnil);
 
   /* Print required arguments */
   data = bytecode->bytecode.data;
@@ -60,7 +61,7 @@ disassemble_lambda(MKCL, mkcl_object bytecode)
   /* Name of LAMBDA */
   print_arg(env, "\nName:\t\t", bytecode->bytecode.name);
   if (bytecode->bytecode.name == MKCL_OBJNULL ||
-      bytecode->bytecode.name == @'si::bytecode') {
+      bytecode->bytecode.name == MK_SI_bytecode) {
     print_noarg(env, "\nEvaluated form:");
     goto NO_ARGS;
   }
@@ -174,7 +175,7 @@ disassemble(MKCL, mkcl_object bytecode, mkcl_opcode *vector) {
 	mkcl_object *data = bytecode->bytecode.data;
 	mkcl_object line_no;
 
-	if (mk_cl_fboundp(env, @'si::formatter-aux') != mk_cl_Cnil)
+	if (mk_cl_fboundp(env, MK_SI_formatter_aux) != mk_cl_Cnil)
 	  line_format = mkcl_make_simple_base_string(env, "~%~4d\t");
 	else
 		line_format = mk_cl_Cnil;
@@ -182,7 +183,7 @@ disassemble(MKCL, mkcl_object bytecode, mkcl_opcode *vector) {
 	if (1) {
 		line_no = MKCL_MAKE_FIXNUM(vector-base);
 	} else {
-		line_no = @'*';
+		line_no = MK_CL_X;
 	}
 	if (line_format != mk_cl_Cnil) {
 	  mk_cl_format(env, 3, mk_cl_Ct, line_format, line_no);
@@ -588,7 +589,7 @@ disassemble(MKCL, mkcl_object bytecode, mkcl_opcode *vector) {
 	NOARG:			print_noarg(env, string);
 				break;
 	ARG:			print_noarg(env, string);
-				@prin1(env, 1, o);
+				mk_cl_prin1(env, 1, o);
 				break;
 	OPARG:			print_oparg(env, string, n);
 				break;

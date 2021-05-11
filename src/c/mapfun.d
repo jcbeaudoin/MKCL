@@ -36,7 +36,7 @@ mkcl_object mk_cl_mapcar(MKCL, mkcl_narg narg, mkcl_object fun, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'mapcar', 1, narg, fun, lists);
+    mkcl_setup_for_rest(env, MK_CL_mapcar, 1, narg, fun, lists);
 
     {
       PREPARE_MAP(env, lists, cdrs_frame, cars_frame, narg);
@@ -69,7 +69,7 @@ mkcl_object mk_cl_maplist(MKCL, mkcl_narg narg, mkcl_object fun, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'maplist', 1, narg, fun, lists);
+    mkcl_setup_for_rest(env, MK_CL_maplist, 1, narg, fun, lists);
 
     {
       PREPARE_MAP(env, lists, cdrs_frame, cars_frame, narg);
@@ -102,7 +102,7 @@ mkcl_object mk_cl_mapc(MKCL, mkcl_narg narg, mkcl_object fun, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'mapc', 1, narg, fun, lists);
+    mkcl_setup_for_rest(env, MK_CL_mapc, 1, narg, fun, lists);
 
     {
       PREPARE_MAP(env, lists, cdrs_frame, cars_frame, narg);
@@ -134,7 +134,7 @@ mkcl_object mk_cl_mapl(MKCL, mkcl_narg narg, mkcl_object fun, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'mapl', 1, narg, fun, lists);
+    mkcl_setup_for_rest(env, MK_CL_mapl, 1, narg, fun, lists);
 
     {
       PREPARE_MAP(env, lists, cdrs_frame, cars_frame, narg);
@@ -166,7 +166,7 @@ mkcl_object mk_cl_mapcan(MKCL, mkcl_narg narg, mkcl_object fun, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'mapcan', 1, narg, fun, lists);
+    mkcl_setup_for_rest(env, MK_CL_mapcan, 1, narg, fun, lists);
 
     {
       PREPARE_MAP(env, lists, cdrs_frame, cars_frame, narg);
@@ -200,7 +200,7 @@ mkcl_object mk_cl_mapcon(MKCL, mkcl_narg narg, mkcl_object fun, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'mapcon', 1, narg, fun, lists);
+    mkcl_setup_for_rest(env, MK_CL_mapcon, 1, narg, fun, lists);
 
     {
       PREPARE_MAP(env, lists, cdrs_frame, cars_frame, narg);

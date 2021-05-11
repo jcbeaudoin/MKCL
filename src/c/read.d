@@ -41,7 +41,7 @@
 
 static mkcl_object dispatch_macro_character(MKCL, mkcl_object table, mkcl_object strm, int c);
 
-#define read_suppress(env) (mkcl_symbol_value(env, @'*read-suppress*') != mk_cl_Cnil)
+#define read_suppress(env) (mkcl_symbol_value(env, MK_CL_DYNVAR_read_suppress) != mk_cl_Cnil)
 
 # define TOKEN_STRING_DIM(s) ((s)->string.dim)
 # define TOKEN_STRING_FILLP(s) ((s)->string.fillp)
@@ -97,9 +97,9 @@ mkcl_read_object_non_recursive(MKCL, mkcl_object in)
 {
   mkcl_object x;
   
-  mkcl_bds_bind(env, @'si::*pending-sharp-labels*', mk_cl_Cnil);
-  mkcl_bds_bind(env, @'si::*sharp-labels*', mk_cl_Cnil);
-  mkcl_bds_bind(env, @'si::*backq-level*', MKCL_MAKE_FIXNUM(0));
+  mkcl_bds_bind(env, MK_SI_DYNVAR_pending_sharp_labels, mk_cl_Cnil);
+  mkcl_bds_bind(env, MK_SI_DYNVAR_sharp_labels, mk_cl_Cnil);
+  mkcl_bds_bind(env, MK_SI_DYNVAR_backq_level, MKCL_MAKE_FIXNUM(0));
   x = mkcl_read_object(env, in);
   mkcl_bds_unwind_n(env, 3);
   return x;
@@ -242,7 +242,7 @@ mkcl_read_object_with_delimiter(MKCL, mkcl_object in, mkcl_character delimiter, 
           MKCL_UNWIND_PROTECT_BEGIN(env) {
             MKCL_LIBC_NO_INTR(env, (MKCL_PACKAGE_LIST_LOCK(), list_locked = true));
             if (mkcl_core.packages_to_be_created == MKCL_OBJNULL
-                || mkcl_Null(MKCL_SYM_VAL(env, @'si::+reading-fasl-file+')))
+                || mkcl_Null(MKCL_SYM_VAL(env, MK_SI_CONSTANT_reading_fasl_file)))
               p = mk_cl_Cnil; /* we confirm. */
             else if (!mkcl_Null(p = mkcl_assoc(env, name, mkcl_core.packages_to_be_created)))
               p = MKCL_CDR(p);
@@ -341,7 +341,7 @@ mkcl_read_object_with_delimiter(MKCL, mkcl_object in, mkcl_character delimiter, 
     mkcl_index i;
     /* The case in which the buffer is full of dots has to be especial cased */
     if (length == 1 && TOKEN_STRING_CHAR_CMP(token,0,'.')) {
-      x = @'si::.';
+      x = MK_SI_DOT;
       goto OUTPUT;
     } else {
       for (i = 0;  i < length;  i++)
@@ -411,9 +411,9 @@ mk_si_read_object_or_ignore(MKCL, mkcl_object in, mkcl_object eof)
   mkcl_object x;
 
   mkcl_call_stack_check(env);
-  mkcl_bds_bind(env, @'si::*pending-sharp-labels*', mk_cl_Cnil);
-  mkcl_bds_bind(env, @'si::*sharp-labels*', mk_cl_Cnil);
-  mkcl_bds_bind(env, @'si::*backq-level*', MKCL_MAKE_FIXNUM(0));
+  mkcl_bds_bind(env, MK_SI_DYNVAR_pending_sharp_labels, mk_cl_Cnil);
+  mkcl_bds_bind(env, MK_SI_DYNVAR_sharp_labels, mk_cl_Cnil);
+  mkcl_bds_bind(env, MK_SI_DYNVAR_backq_level, MKCL_MAKE_FIXNUM(0));
   x = mkcl_read_object_with_delimiter(env, in, EOF, MKCL_READ_RETURN_IGNORABLE, 
 				      mkcl_cat_constituent);
   if (x == MKCL_OBJNULL) {
@@ -457,20 +457,20 @@ infinity(MKCL, mkcl_index exp_char, int sign)
   case 's':  case 'S':
   case 'f':  case 'F':
     var = (sign<0)?
-      @'mkcl::single-float-negative-infinity' :
-    @'mkcl::single-float-positive-infinity';
+      MK_MKCL_single_float_negative_infinity :
+    MK_MKCL_single_float_positive_infinity;
     break;
   case 'l':  case 'L':
 #ifdef MKCL_LONG_FLOAT
     var = (sign<0)?
-      @'mkcl::long-float-negative-infinity' :
-    @'mkcl::long-float-positive-infinity';
+      MK_MKCL_long_float_negative_infinity :
+    MK_MKCL_long_float_positive_infinity;
     break;
 #endif
   case 'd':  case 'D':
     var = (sign<0)?
-      @'mkcl::double-float-negative-infinity' :
-    @'mkcl::double-float-positive-infinity';
+      MK_MKCL_double_float_negative_infinity :
+    MK_MKCL_double_float_positive_infinity;
     break;
   default:
     return MKCL_OBJNULL;
@@ -483,7 +483,7 @@ make_float(MKCL, mkcl_object num, mkcl_object exp, mkcl_index exp_char, int sign
 {
   mkcl_object output = MKCL_OBJNULL;
   bool fe_inexact_on = FALSE;
-  mkcl_object read_exactly_p = mkcl_symbol_value(env, @'si::*read-float-exactly*'); 
+  mkcl_object read_exactly_p = mkcl_symbol_value(env, MK_SI_DYNVAR_read_float_exactly); 
 
   if (mkcl_Null(read_exactly_p))
     {
@@ -720,38 +720,38 @@ static
 mkcl_object comma_reader(MKCL, mkcl_object in, mkcl_object c)
 {
   mkcl_object x, y;
-  mkcl_word backq_level = mkcl_fixnum_to_word(MKCL_SYM_VAL(env, @'si::*backq-level*'));
+  mkcl_word backq_level = mkcl_fixnum_to_word(MKCL_SYM_VAL(env, MK_SI_DYNVAR_backq_level));
 
   if (backq_level <= 0)
     mkcl_FEreader_error(env, "A comma has appeared out of a backquote.", in, 0);
   /* Read character & complain at EOF */
   c = mk_cl_peek_char(env, 2,mk_cl_Cnil,in);
   if (c == MKCL_CODE_CHAR('@@')) {
-    x = @'si::unquote-splice';
+    x = MK_SI_unquote_splice;
     mkcl_read_char(env, in);
   } else if (c == MKCL_CODE_CHAR('.')) {
-    x = @'si::unquote-nsplice';
+    x = MK_SI_unquote_nsplice;
     mkcl_read_char(env, in);
   } else {
-    x = @'si::unquote';
+    x = MK_SI_unquote;
   }
-  MKCL_SETQ(env, @'si::*backq-level*', MKCL_MAKE_FIXNUM(backq_level-1));
+  MKCL_SETQ(env, MK_SI_DYNVAR_backq_level, MKCL_MAKE_FIXNUM(backq_level-1));
   y = mkcl_read_object(env, in);
-  MKCL_SETQ(env, @'si::*backq-level*', MKCL_MAKE_FIXNUM(backq_level));
+  MKCL_SETQ(env, MK_SI_DYNVAR_backq_level, MKCL_MAKE_FIXNUM(backq_level));
   return mk_cl_list(env, 2, x, y);
 }
 
 static
 mkcl_object backquote_reader(MKCL, mkcl_object in, mkcl_object c)
 {
-  mkcl_word backq_level = mkcl_fixnum_to_word(MKCL_SYM_VAL(env, @'si::*backq-level*'));
-  MKCL_SETQ(env, @'si::*backq-level*', MKCL_MAKE_FIXNUM(backq_level+1));
+  mkcl_word backq_level = mkcl_fixnum_to_word(MKCL_SYM_VAL(env, MK_SI_DYNVAR_backq_level));
+  MKCL_SETQ(env, MK_SI_DYNVAR_backq_level, MKCL_MAKE_FIXNUM(backq_level+1));
   in = mkcl_read_object(env, in);
-  MKCL_SETQ(env, @'si::*backq-level*', MKCL_MAKE_FIXNUM(backq_level));
+  MKCL_SETQ(env, MK_SI_DYNVAR_backq_level, MKCL_MAKE_FIXNUM(backq_level));
 #if 0
-  mkcl_return_value(mk_cl_macroexpand_1(env, 2, mk_cl_list(env, 2, @'si::quasiquote', in), mk_cl_Cnil));
+  mkcl_return_value(mk_cl_macroexpand_1(env, 2, mk_cl_list(env, 2, MK_SI_quasiquote, in), mk_cl_Cnil));
 #else
-  mkcl_return_value(mk_cl_list(env, 2,@'si::quasiquote',in));
+  mkcl_return_value(mk_cl_list(env, 2, MK_SI_quasiquote, in));
 #endif
 }
 
@@ -859,7 +859,7 @@ single_quote_reader(MKCL, mkcl_object in, mkcl_object c)
   c = mkcl_read_object(env, in);
   if (c == MKCL_OBJNULL)
     mkcl_FEend_of_file(env, in);
-  mkcl_return_value(mk_cl_list(env, 2, @'quote', c));
+  mkcl_return_value(mk_cl_list(env, 2, MK_CL_quote, c));
 }
 
 static mkcl_object
@@ -915,7 +915,7 @@ sharp_backslash_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
 	mkcl_fixnum_to_word(d) != 0)
       mkcl_FEreader_error(env, "~S is an illegal CHAR-FONT.", in, 1, d);
   /*  assuming that CHAR-FONT-LIMIT is 1  */
-  mkcl_bds_bind(env, @'*readtable*', mkcl_core.standard_readtable);
+  mkcl_bds_bind(env, MK_CL_DYNVAR_readtable, mkcl_core.standard_readtable);
   token = mkcl_read_object_with_delimiter(env, in, EOF, MKCL_READ_ONLY_TOKEN,
 					  mkcl_cat_single_escape);
   mkcl_bds_unwind1(env);
@@ -949,7 +949,7 @@ sharp_single_quote_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
   } else if (suppress) {
     c = mk_cl_Cnil;
   } else {
-    c = mk_cl_list(env, 2, @'function', c);
+    c = mk_cl_list(env, 2, MK_CL_function, c);
   }
   mkcl_return_value(c);
 }
@@ -974,7 +974,7 @@ sharp_left_parenthesis_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d
 {
   mkcl_object v;
 
-  if (mkcl_fixnum_to_word(MKCL_SYM_VAL(env, @'si::*backq-level*')) > 0) {
+  if (mkcl_fixnum_to_word(MKCL_SYM_VAL(env, MK_SI_DYNVAR_backq_level)) > 0) {
     /* First case: ther might be unquoted elements in the vector.
      * Then we just create a form that generates the vector.
      */
@@ -984,11 +984,11 @@ sharp_left_parenthesis_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d
       mkcl_FEreader_error(env, "A ,@ or ,. appeared in an illegal position.",
 		     in, 0);
     if (a == QUOTE) {
-      v = mkcl_funcall3(env, @+'make-array', mk_cl_list(env, 1, mk_cl_length(env, x)), @':initial-contents', x);
+      v = mkcl_funcall3(env, MK_CL_make_array->symbol.gfdef, mk_cl_list(env, 1, mk_cl_length(env, x)), MK_KEY_initial_contents, x);
     } else {
-      v = mk_cl_list(env, 2, @'si::unquote', 
-		     mk_cl_list(env, 3, @'apply',
-				mk_cl_list(env, 2, @'quote', @'vector'), x));
+      v = mk_cl_list(env, 2, MK_SI_unquote, 
+		     mk_cl_list(env, 3, MK_CL_apply,
+				mk_cl_list(env, 2, MK_CL_quote, MK_CL_vector), x));
     }
   } else if (read_suppress(env)) {
     /* Second case: *read-suppress* = t, we ignore the data */
@@ -998,12 +998,12 @@ sharp_left_parenthesis_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d
     /* Third case: no dimension provided. Read a list and
        coerce it to vector. */
     mkcl_object x = do_read_delimited_list(env, ')', in, 1);
-    v = mkcl_funcall3(env, @+'make-array', mk_cl_list(env, 1, mk_cl_length(env, x)), @':initial-contents', x);
+    v = mkcl_funcall3(env, MK_CL_make_array->symbol.gfdef, mk_cl_list(env, 1, mk_cl_length(env, x)), MK_KEY_initial_contents, x);
   } else {
     /* Finally: Both dimension and data are provided. The
        amount of data cannot exceed the length, but it may
        be smaller, and in that case...*/
-    mkcl_index dim = mkcl_fixnum_in_range(env, @'make-array',"size",d,0,MKCL_ADIMLIM);
+    mkcl_index dim = mkcl_fixnum_in_range(env, MK_CL_make_array,"size",d,0,MKCL_ADIMLIM);
     mkcl_object last;
     mkcl_index i;
     v = mkcl_alloc_simple_vector(env, dim, mkcl_aet_object);
@@ -1057,7 +1057,7 @@ sharp_asterisk_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
   if (mkcl_Null(d)) {
     dim = dimcount;
   } else {
-    dim = mkcl_fixnum_in_range(env, @'make-array',"dimension",d,0,MKCL_ADIMLIM);
+    dim = mkcl_fixnum_in_range(env, MK_CL_make_array,"dimension",d,0,MKCL_ADIMLIM);
     if (dimcount > dim)
       mkcl_FEreader_error(env, "Too many elements in #*....", in, 0);
     if (dim && (dimcount == 0))
@@ -1144,7 +1144,7 @@ sharp_dot_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
     mkcl_FEend_of_file(env, in);
   if (read_suppress(env))
     mkcl_return_value(mk_cl_Cnil);
-  if (mkcl_symbol_value(env, @'*read-eval*') == mk_cl_Cnil)
+  if (mkcl_symbol_value(env, MK_CL_DYNVAR_read_eval) == mk_cl_Cnil)
     mkcl_FEreader_error(env, "Cannot evaluate the form #.~A", in, 1, c);
   c = mk_si_eval_in_env(env, 1, c);
   mkcl_return_value(c);
@@ -1305,8 +1305,8 @@ static mkcl_object
 sharp_eq_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
 {
   mkcl_object pending_label, value;
-  mkcl_object pending_sharp_labels = MKCL_SYM_VAL(env, @'si::*pending-sharp-labels*');
-  mkcl_object sharp_labels = MKCL_SYM_VAL(env, @'si::*sharp-labels*');
+  mkcl_object pending_sharp_labels = MKCL_SYM_VAL(env, MK_SI_DYNVAR_pending_sharp_labels);
+  mkcl_object sharp_labels = MKCL_SYM_VAL(env, MK_SI_DYNVAR_sharp_labels);
 
   if (read_suppress(env)) { mkcl_return_no_value; } /* Why is it returning nothing? JCB */
   if (mkcl_Null(d))
@@ -1317,17 +1317,17 @@ sharp_eq_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
 
   const mkcl_object marker = mkcl_cons(env, (mkcl_object) &sharp_label_marker, d);
   pending_label = mkcl_cons(env, d, marker);
-  MKCL_SETQ(env, @'si::*pending-sharp-labels*', MKCL_CONS(env, pending_label, pending_sharp_labels));
+  MKCL_SETQ(env, MK_SI_DYNVAR_pending_sharp_labels, MKCL_CONS(env, pending_label, pending_sharp_labels));
   value = mkcl_read_object(env, in);
   if (value == pending_label)
     mkcl_FEreader_error(env, "#~D# is defined by itself.", in, 1, d);
 
   mkcl_object references = mk_cl_Cnil;
   MKCL_RPLACD(pending_label, mkcl_cons(env, references, value));
-  MKCL_SETQ(env, @'si::*sharp-labels*', MKCL_CONS(env, pending_label, MKCL_SYM_VAL(env, @'si::*sharp-labels*')));
-  MKCL_SETQ(env, @'si::*pending-sharp-labels*', pending_sharp_labels);
+  MKCL_SETQ(env, MK_SI_DYNVAR_sharp_labels, MKCL_CONS(env, pending_label, MKCL_SYM_VAL(env, MK_SI_DYNVAR_sharp_labels)));
+  MKCL_SETQ(env, MK_SI_DYNVAR_pending_sharp_labels, pending_sharp_labels);
 
-  mkcl_object visit_table = mk_cl__make_hash_table(env, @'eq', MKCL_MAKE_FIXNUM(50), /* size */
+  mkcl_object visit_table = mk_cl__make_hash_table(env, MK_CL_eq, MKCL_MAKE_FIXNUM(50), /* size */
                                                    mkcl_make_singlefloat(env, 1.5f), /* rehash-size */
                                                    mkcl_make_singlefloat(env, 0.75f)); /* rehash-threshold */
   sharp_nsubst(env, visit_table, marker, value, value);
@@ -1342,11 +1342,11 @@ sharp_sharp_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
   if (mkcl_Null(d))
     mkcl_FEreader_error(env, "The ## readmacro requires an argument.", in, 0);
 
-  mkcl_object label = mkcl_assql(env, d, MKCL_SYM_VAL(env, @'si::*sharp-labels*'));
+  mkcl_object label = mkcl_assql(env, d, MKCL_SYM_VAL(env, MK_SI_DYNVAR_sharp_labels));
 
   if (label != mk_cl_Cnil)
     mkcl_return_value(label_value(env, label));
-  label = mkcl_assql(env, d, MKCL_SYM_VAL(env, @'si::*pending-sharp-labels*'));
+  label = mkcl_assql(env, d, MKCL_SYM_VAL(env, MK_SI_DYNVAR_pending_sharp_labels));
   if (label != mk_cl_Cnil)
     mkcl_return_value(pending_label_marker(env, label));
   mkcl_FEreader_error(env, "#~D# is undefined.", in, 1, d);
@@ -1533,9 +1533,9 @@ mkcl_current_readtable(MKCL)
   mkcl_object r;
 
   /* INV: *readtable* always has a value */
-  r = MKCL_SYM_VAL(env, @'*readtable*');
+  r = MKCL_SYM_VAL(env, MK_CL_DYNVAR_readtable);
   if (mkcl_type_of(r) != mkcl_t_readtable) {
-    MKCL_SETQ(env, @'*readtable*',
+    MKCL_SETQ(env, MK_CL_DYNVAR_readtable,
 	      mkcl_copy_readtable(env, mkcl_core.standard_readtable, mk_cl_Cnil));
     mkcl_FEerror(env, "The value of *READTABLE*, ~S, was not a readtable.", 1, r);
   }
@@ -1548,13 +1548,13 @@ mkcl_current_read_base(MKCL)
   mkcl_object x;
 
   /* INV: *READ-BASE* always has a value */
-  x = MKCL_SYM_VAL(env, @'*read_base*');
+  x = MKCL_SYM_VAL(env, MK_CL_DYNVAR_read_base);
   if (MKCL_FIXNUMP(x)) {
     mkcl_word b = mkcl_fixnum_to_word(x);
     if (b >= 2 && b <= 36)
       return b;
   }
-  MKCL_SETQ(env, @'*read_base*', MKCL_MAKE_FIXNUM(10));
+  MKCL_SETQ(env, MK_CL_DYNVAR_read_base, MKCL_MAKE_FIXNUM(10));
   mkcl_FEerror(env, "The value of *READ-BASE*, ~S, was illegal.", 1, x);
 }
 
@@ -1564,19 +1564,19 @@ mkcl_current_read_default_float_format(MKCL)
   mkcl_object x;
 
   /* INV: *READ-DEFAULT-FLOAT-FORMAT* is always bound to something */
-  x = MKCL_SYM_VAL(env, @'*read-default-float-format*');
-  if (x == @'single-float' || x == @'short-float')
+  x = MKCL_SYM_VAL(env, MK_CL_DYNVAR_read_default_float_format);
+  if (x == MK_CL_single_float || x == MK_CL_short_float)
     return 'F';
-  if (x == @'double-float')
+  if (x == MK_CL_double_float)
     return 'D';
-  if (x == @'long-float') {
+  if (x == MK_CL_long_float) {
 #ifdef MKCL_LONG_FLOAT
     return 'L';
 #else
     return 'D';
 #endif
   }
-  MKCL_SETQ(env, @'*read-default-float-format*', @'single-float');
+  MKCL_SETQ(env, MK_CL_DYNVAR_read_default_float_format, MK_CL_single_float);
   mkcl_FEerror(env, "The value of *READ-DEFAULT-FLOAT-FORMAT*, ~S, was illegal.", 1, x);
 }
 
@@ -1584,9 +1584,9 @@ static mkcl_object
 stream_or_default_input(MKCL, mkcl_object stream)
 {
   if (mkcl_Null(stream))
-    return MKCL_SYM_VAL(env, @'*standard-input*');
+    return MKCL_SYM_VAL(env, MK_CL_DYNVAR_standard_input);
   if (stream == mk_cl_Ct)
-    return MKCL_SYM_VAL(env, @'*terminal-io*');
+    return MKCL_SYM_VAL(env, MK_CL_DYNVAR_terminal_io);
   return stream;
 }
 
@@ -1599,7 +1599,7 @@ mkcl_object mk_cl_read(MKCL, mkcl_narg narg, ...)
     mkcl_object eof_errorp = mk_cl_Ct;
     mkcl_object eof_value = mk_cl_Cnil;
     mkcl_object recursivep = mk_cl_Cnil;
-    MKCL_RECEIVE_4_OPTIONAL_ARGUMENTS(env, @'read', narg, 0, narg, &strm, &eof_errorp, &eof_value, &recursivep);
+    MKCL_RECEIVE_4_OPTIONAL_ARGUMENTS(env, MK_CL_read, narg, 0, narg, &strm, &eof_errorp, &eof_value, &recursivep);
 
     strm = stream_or_default_input(env, strm);
     if (mkcl_Null(recursivep)) {
@@ -1633,7 +1633,7 @@ mkcl_object mk_cl_read_preserving_whitespace(MKCL, mkcl_narg narg, ...)
     mkcl_object eof_errorp = mk_cl_Ct;
     mkcl_object eof_value = mk_cl_Cnil;
     mkcl_object recursivep = mk_cl_Cnil;
-    MKCL_RECEIVE_4_OPTIONAL_ARGUMENTS(env, @'read-preserving-whitespace', narg, 0, narg, &strm, &eof_errorp, &eof_value, &recursivep);
+    MKCL_RECEIVE_4_OPTIONAL_ARGUMENTS(env, MK_CL_read_preserving_whitespace, narg, 0, narg, &strm, &eof_errorp, &eof_value, &recursivep);
     strm = stream_or_default_input(env, strm);
     if (mkcl_Null(recursivep)) {
       x = mkcl_read_object_non_recursive(env, strm);
@@ -1665,7 +1665,7 @@ do_read_delimited_list(MKCL, int d, mkcl_object in, bool proper_list)
 	mkcl_FEreader_error(env, "Object missing after a list dot", in, 0);
       }
       return y;
-    } else if (x == @'si::.') {
+    } else if (x == MK_SI_DOT) {
       if (proper_list) {
 	mkcl_FEreader_error(env, "A dotted list was found where a proper list was expected.", in, 0);
       }
@@ -1699,16 +1699,16 @@ mkcl_object mk_cl_read_delimited_list(MKCL, mkcl_narg narg, mkcl_object d, ...)
     int delimiter;
     mkcl_object strm = mk_cl_Cnil;
     mkcl_object recursivep = mk_cl_Cnil;
-    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, @'read-delimited-list', narg, 1, d, &strm, &recursivep);
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, MK_CL_read_delimited_list, narg, 1, d, &strm, &recursivep);
 
     delimiter = mkcl_char_code(env, d);
     strm = stream_or_default_input(env, strm);
     if (!mkcl_Null(recursivep)) {
       l = do_read_delimited_list(env, delimiter, strm, 1);
     } else {
-      mkcl_bds_bind(env, @'si::*pending-sharp-labels*', mk_cl_Cnil);
-      mkcl_bds_bind(env, @'si::*sharp-labels*', mk_cl_Cnil);
-      mkcl_bds_bind(env, @'si::*backq-level*', MKCL_MAKE_FIXNUM(0));
+      mkcl_bds_bind(env, MK_SI_DYNVAR_pending_sharp_labels, mk_cl_Cnil);
+      mkcl_bds_bind(env, MK_SI_DYNVAR_sharp_labels, mk_cl_Cnil);
+      mkcl_bds_bind(env, MK_SI_DYNVAR_backq_level, MKCL_MAKE_FIXNUM(0));
       l = do_read_delimited_list(env, delimiter, strm, 1);
       mkcl_bds_unwind_n(env, 3);
     }
@@ -1726,11 +1726,11 @@ mkcl_object mk_cl_read_line(MKCL, mkcl_narg narg, ...)
     mkcl_object eof_errorp = mk_cl_Ct;
     mkcl_object eof_value = mk_cl_Cnil;
     mkcl_object recursivep = mk_cl_Cnil;
-    MKCL_RECEIVE_4_OPTIONAL_ARGUMENTS(env, @'read-line', narg, 0, narg, &strm, &eof_errorp, &eof_value, &recursivep);
+    MKCL_RECEIVE_4_OPTIONAL_ARGUMENTS(env, MK_CL_read_line, narg, 0, narg, &strm, &eof_errorp, &eof_value, &recursivep);
 
     strm = stream_or_default_input(env, strm);
     if (mkcl_type_of(strm) != mkcl_t_stream) {
-      token = mkcl_funcall1(env, @+'gray::stream-read-line', strm);
+      token = mkcl_funcall1(env, MK_GRAY_stream_read_line->symbol.gfdef, strm);
       if (!mkcl_Null(MKCL_VALUES(1))) {
         c = EOF;
         goto EOFCHK;
@@ -1777,7 +1777,7 @@ mkcl_object mk_cl_read_char(MKCL, mkcl_narg narg, ...)
     mkcl_object eof_errorp = mk_cl_Ct;
     mkcl_object eof_value = mk_cl_Cnil;
     mkcl_object recursivep = mk_cl_Cnil;
-    MKCL_RECEIVE_4_OPTIONAL_ARGUMENTS(env, @'read-char', narg, 0, narg, &strm, &eof_errorp, &eof_value, &recursivep);
+    MKCL_RECEIVE_4_OPTIONAL_ARGUMENTS(env, MK_CL_read_char, narg, 0, narg, &strm, &eof_errorp, &eof_value, &recursivep);
 
     strm = stream_or_default_input(env, strm);
     c = mkcl_read_char(env, strm);
@@ -1796,7 +1796,7 @@ mkcl_object mk_cl_unread_char(MKCL, mkcl_narg narg, mkcl_object c, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object strm = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'unread-char', narg, 1, c, &strm);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_unread_char, narg, 1, c, &strm);
 
     /* INV: unread_char() checks the type `c' */
     strm = stream_or_default_input(env, strm);
@@ -1818,7 +1818,7 @@ mkcl_object mk_cl_peek_char(MKCL, mkcl_narg narg, ...)
     mkcl_object eof_errorp = mk_cl_Ct;
     mkcl_object eof_value = mk_cl_Cnil;
     mkcl_object recursivep = mk_cl_Cnil;
-    mkcl_check_minimal_arg_count(env, @'peek-char', narg, 0);
+    mkcl_check_minimal_arg_count(env, MK_CL_peek_char, narg, 0);
     if ((narg) > 0) {
       mkcl_va_list ARGS;
       mkcl_va_start(env, ARGS, narg, narg, 0);
@@ -1850,7 +1850,7 @@ mkcl_object mk_cl_peek_char(MKCL, mkcl_narg narg, ...)
           recursivep = mkcl_va_arg(ARGS);
           break;
         default:
-          mkcl_FEwrong_num_arguments(env, @'peek-char', 0, 5, narg);
+          mkcl_FEwrong_num_arguments(env, MK_CL_peek_char, 0, 5, narg);
         }
       mkcl_va_end(ARGS);
     }
@@ -1895,7 +1895,7 @@ mkcl_object mk_cl_listen(MKCL, mkcl_narg narg, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object strm = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'listen', narg, 0, narg, &strm);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_listen, narg, 0, narg, &strm);
 
     strm = stream_or_default_input(env, strm);
     mkcl_return_value(((mkcl_listen_stream(env, strm) == MKCL_LISTEN_AVAILABLE) ? mk_cl_Ct : mk_cl_Cnil));
@@ -1911,12 +1911,12 @@ mkcl_object mk_cl_read_char_no_hang(MKCL, mkcl_narg narg, ...)
     mkcl_object eof_errorp = mk_cl_Ct;
     mkcl_object eof_value = mk_cl_Cnil;
     mkcl_object recursivep = mk_cl_Cnil;
-    MKCL_RECEIVE_4_OPTIONAL_ARGUMENTS(env, @'read-char-no-hang', narg, 0, narg, &strm, &eof_errorp, &eof_value, &recursivep);
+    MKCL_RECEIVE_4_OPTIONAL_ARGUMENTS(env, MK_CL_read_char_no_hang, narg, 0, narg, &strm, &eof_errorp, &eof_value, &recursivep);
 
     strm = stream_or_default_input(env, strm);
     if (mkcl_type_of(strm) != mkcl_t_stream) {
-      mkcl_object output = mkcl_funcall1(env, @+'gray::stream-read-char-no-hang', strm);
-      if (output == @':eof')
+      mkcl_object output = mkcl_funcall1(env, MK_GRAY_stream_read_char_no_hang->symbol.gfdef, strm);
+      if (output == MK_KEY_eof)
         goto END_OF_FILE;
       mkcl_return_value(output);
     }
@@ -1927,7 +1927,7 @@ mkcl_object mk_cl_read_char_no_hang(MKCL, mkcl_narg narg, ...)
         mkcl_return_value(MKCL_CODE_CHAR(c));
       }
     } else if (f == MKCL_LISTEN_NO_CHAR) {
-      mkcl_return_value(@'nil');
+      mkcl_return_value(mk_cl_Cnil);
     }
     /* We reach here if there was an EOF */
   END_OF_FILE:
@@ -1943,7 +1943,7 @@ mkcl_object mk_cl_clear_input(MKCL, mkcl_narg narg, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object strm = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'clear-input', narg, 0, narg, &strm);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_clear_input, narg, 0, narg, &strm);
 
     strm = stream_or_default_input(env, strm);
     mkcl_clear_input(env, strm);
@@ -1963,10 +1963,10 @@ mkcl_object mk_cl_parse_integer(MKCL, mkcl_narg narg, mkcl_object strng, ...)
     mkcl_object end = mk_cl_Cnil;
     mkcl_object radix = MKCL_MAKE_FIXNUM(10);
     mkcl_object junk_allowed = mk_cl_Cnil;
-    MKCL_RECEIVE_4_KEYWORD_ARGUMENTS(env, @'parse-integer', narg, 1, strng, @':start', &start, @':end', &end, @':radix', &radix, @':junk-allowed', &junk_allowed);
+    MKCL_RECEIVE_4_KEYWORD_ARGUMENTS(env, MK_CL_parse_integer, narg, 1, strng, MK_KEY_start, &start, MK_KEY_end, &end, MK_KEY_radix, &radix, MK_KEY_junk_allowed, &junk_allowed);
 
     {
-      strng = mkcl_check_type_string(env, @'parse-integer', strng);
+      strng = mkcl_check_type_string(env, MK_CL_parse_integer, strng);
       mkcl_get_string_start_end(env, strng, start, end, &s, &e);
       if (!MKCL_FIXNUMP(radix) ||
           mkcl_fixnum_to_word(radix) < 2 || mkcl_fixnum_to_word(radix) > 36)
@@ -2010,7 +2010,7 @@ mkcl_object mk_cl_read_byte(MKCL, mkcl_narg narg, mkcl_object binary_input_strea
     mkcl_object c;
     mkcl_object eof_errorp = mk_cl_Ct;
     mkcl_object eof_value = mk_cl_Cnil;
-    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, @'read-byte', narg, 1, binary_input_stream, &eof_errorp, &eof_value);
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, MK_CL_read_byte, narg, 1, binary_input_stream, &eof_errorp, &eof_value);
 
     c = mkcl_read_byte(env, binary_input_stream);
     if (c == mk_cl_Cnil) {
@@ -2031,10 +2031,10 @@ mkcl_object mk_cl_read_sequence(MKCL, mkcl_narg narg, mkcl_object sequence, mkcl
     mkcl_object start = MKCL_MAKE_FIXNUM(0);
     mkcl_object end = mk_cl_Cnil;
 
-    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, @'read-sequence', narg, 2, stream, @':start', &start, @':end', &end);
+    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, MK_CL_read_sequence, narg, 2, stream, MK_KEY_start, &start, MK_KEY_end, &end);
 
     if (mkcl_type_of(stream) != mkcl_t_stream)
-      return mkcl_funcall4(env, @+'gray::stream-read-sequence', stream, sequence, start, end);
+      return mkcl_funcall4(env, MK_GRAY_stream_read_sequence->symbol.gfdef, stream, sequence, start, end);
     else
       return mk_si_do_read_sequence(env, sequence, stream, start, end);
   }
@@ -2047,7 +2047,7 @@ mkcl_object mk_cl_copy_readtable(MKCL, mkcl_narg narg, ...)
   {
     mkcl_object from = ((narg == 0) ? mkcl_current_readtable(env) : mk_cl_Cnil);
     mkcl_object to = mk_cl_Cnil;
-    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, @'copy-readtable', narg, 0, narg, &from, &to);
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, MK_CL_copy_readtable, narg, 0, narg, &from, &to);
 
     if (mkcl_Null(from)) {
       to = mkcl_copy_readtable(env, mkcl_core.standard_readtable, to);
@@ -2064,10 +2064,10 @@ mk_cl_readtable_case(MKCL, mkcl_object r)
   mkcl_call_stack_check(env);
   mkcl_assert_type_readtable(env, r);
   switch (r->readtable.read_case) {
-  case mkcl_case_upcase: r = @':upcase'; break;
-  case mkcl_case_downcase: r = @':downcase'; break;
-  case mkcl_case_invert: r = @':invert'; break;
-  case mkcl_case_preserve: r = @':preserve';
+  case mkcl_case_upcase: r = MK_KEY_upcase; break;
+  case mkcl_case_downcase: r = MK_KEY_downcase; break;
+  case mkcl_case_invert: r = MK_KEY_invert; break;
+  case mkcl_case_preserve: r = MK_KEY_preserve;
   }
   mkcl_return_value(r);
 }
@@ -2077,20 +2077,20 @@ mk_si_readtable_case_set(MKCL, mkcl_object r, mkcl_object mode)
 {
   mkcl_call_stack_check(env);
   mkcl_assert_type_readtable(env, r);
-  if (mode == @':upcase') {
+  if (mode == MK_KEY_upcase) {
     r->readtable.read_case = mkcl_case_upcase;
-  } else if (mode == @':downcase') {
+  } else if (mode == MK_KEY_downcase) {
     r->readtable.read_case = mkcl_case_downcase;
-  } else if (mode == @':preserve') {
+  } else if (mode == MK_KEY_preserve) {
     r->readtable.read_case = mkcl_case_preserve;
-  } else if (mode == @':invert') {
+  } else if (mode == MK_KEY_invert) {
     r->readtable.read_case = mkcl_case_invert;
   } else {
     mkcl_FEwrong_type_argument(env,
 			  mk_cl_list(env, 5,
-				  @'member', @':upcase',
-				  @':downcase', @':preserve',
-				  @':invert'),
+				  MK_CL_member, MK_KEY_upcase,
+				  MK_KEY_downcase, MK_KEY_preserve,
+				  MK_KEY_invert),
 			  mode);
   }
   mkcl_return_value(mode);
@@ -2143,7 +2143,7 @@ mkcl_readtable_set(MKCL, mkcl_object readtable, mkcl_character c, enum mkcl_chat
     if (c >= MKCL_RTABSIZE) {
       mkcl_object hash = readtable->readtable.hash;
       if (mkcl_Null(hash)) {
-	hash = mk_cl__make_hash_table(env, @'eql', MKCL_MAKE_FIXNUM(128),
+	hash = mk_cl__make_hash_table(env, MK_CL_eql, MKCL_MAKE_FIXNUM(128),
 				      mkcl_make_singlefloat(env, 1.5f),
 				      mkcl_make_singlefloat(env, 0.5f));
 	readtable->readtable.hash = hash;
@@ -2176,7 +2176,7 @@ mkcl_object mk_cl_set_syntax_from_char(MKCL, mkcl_narg narg, mkcl_object tochr, 
     mkcl_word fc, tc;
     mkcl_object tordtbl = ((narg == 2) ? mkcl_current_readtable(env) : mk_cl_Cnil);
     mkcl_object fromrdtbl = mk_cl_Cnil;
-    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, @'set-syntax-from-char', narg, 2, fromchr, &tordtbl, &fromrdtbl);
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, MK_CL_set_syntax_from_char, narg, 2, fromchr, &tordtbl, &fromrdtbl);
 
     volatile bool locked = false;
 
@@ -2213,7 +2213,7 @@ mkcl_object mk_cl_set_macro_character(MKCL, mkcl_narg narg, mkcl_object c, mkcl_
   {
     mkcl_object non_terminating_p = mk_cl_Cnil;
     mkcl_object readtable = (((narg == 2) || (narg == 3)) ? mkcl_current_readtable(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, @'set-macro-character', narg, 2, function, &non_terminating_p, &readtable);
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, MK_CL_set_macro_character, narg, 2, function, &non_terminating_p, &readtable);
 
     if (mkcl_Null(readtable))
       readtable = mkcl_core.standard_readtable;
@@ -2235,7 +2235,7 @@ mkcl_object mk_cl_get_macro_character(MKCL, mkcl_narg narg, mkcl_object c, ...)
     enum mkcl_chattrib cat;
     mkcl_object dispatch;
     mkcl_object readtable = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'get-macro-character', narg, 1, c, &readtable);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_get_macro_character, narg, 1, c, &readtable);
 
     if (mkcl_Null(readtable))
       readtable = mkcl_core.standard_readtable;
@@ -2258,12 +2258,12 @@ mkcl_object mk_cl_make_dispatch_macro_character(MKCL, mkcl_narg narg, mkcl_objec
     int c;
     mkcl_object non_terminating_p = mk_cl_Cnil;
     mkcl_object readtable = (((narg == 1) || (narg == 2)) ? mkcl_current_readtable(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, @'make-dispatch-macro-character', narg, 1, chr, &non_terminating_p, &readtable);
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, MK_CL_make_dispatch_macro_character, narg, 1, chr, &non_terminating_p, &readtable);
 
     mkcl_assert_type_readtable(env, readtable);
     c = mkcl_char_code(env, chr);
     cat = mkcl_Null(non_terminating_p)? mkcl_cat_terminating : mkcl_cat_non_terminating;
-    table = mk_cl__make_hash_table(env, @'eql', MKCL_MAKE_FIXNUM(128),
+    table = mk_cl__make_hash_table(env, MK_CL_eql, MKCL_MAKE_FIXNUM(128),
                                    mkcl_make_singlefloat(env, 1.5f),
                                    mkcl_make_singlefloat(env, 0.5f));
     mkcl_readtable_set(env, readtable, c, cat, table);
@@ -2278,7 +2278,7 @@ mkcl_object mk_cl_set_dispatch_macro_character(MKCL, mkcl_narg narg, mkcl_object
     mkcl_object table;
     mkcl_word subcode;
     mkcl_object readtable = ((narg == 3) ? mkcl_current_readtable(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'set-dispatch-macro-character', narg, 3, fnc, &readtable);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_set_dispatch_macro_character, narg, 3, fnc, &readtable);
 
     volatile bool locked = false;
 
@@ -2328,7 +2328,7 @@ mkcl_object mk_cl_get_dispatch_macro_character(MKCL, mkcl_narg narg, mkcl_object
     mkcl_object table;
     mkcl_word c;
     mkcl_object readtable = ((narg == 2) ? mkcl_current_readtable(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'get-dispatch-macro-character', narg, 2, subchr, &readtable);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_get_dispatch_macro_character, narg, 2, subchr, &readtable);
 
     if (mkcl_Null(readtable)) {
       readtable = mkcl_core.standard_readtable;
@@ -2362,8 +2362,8 @@ mk_si_fast_read_from_base_string(MKCL, mkcl_object x)
 
   mkcl_call_stack_check(env);
   /* FIXME! Restricted to base string */
-  x = mkcl_check_cl_type(env, @'si::fast-read-from-base-string', x, mkcl_t_base_string);
-  in = mkcl_make_string_input_stream(env, x, 0, mkcl_base_string_length(env, x), @':utf-8');
+  x = mkcl_check_cl_type(env, MK_SI_fast_read_from_base_string, x, mkcl_t_base_string);
+  in = mkcl_make_string_input_stream(env, x, 0, mkcl_base_string_length(env, x), MK_KEY_utf_8);
   x = mkcl_read_object(env, in);
   if (x == MKCL_OBJNULL)
     mkcl_FEend_of_file(env, in);
@@ -2481,8 +2481,8 @@ mkcl_init_read(MKCL)
   mk_cl_set_dispatch_macro_character(env, 4, MKCL_CODE_CHAR('#'), MKCL_CODE_CHAR('O'), make_cf3(env, sharp_O_reader), r);
   mk_cl_set_dispatch_macro_character(env, 4, MKCL_CODE_CHAR('#'), MKCL_CODE_CHAR('X'), make_cf3(env, sharp_X_reader), r);
   mk_cl_set_dispatch_macro_character(env, 4, MKCL_CODE_CHAR('#'), MKCL_CODE_CHAR('R'), make_cf3(env, sharp_R_reader), r);
-  mk_cl_set_dispatch_macro_character(env, 4, MKCL_CODE_CHAR('#'), MKCL_CODE_CHAR('A'), @'si::sharp-a-reader', r);
-  mk_cl_set_dispatch_macro_character(env, 4, MKCL_CODE_CHAR('#'), MKCL_CODE_CHAR('S'), @'si::sharp-s-reader', r);
+  mk_cl_set_dispatch_macro_character(env, 4, MKCL_CODE_CHAR('#'), MKCL_CODE_CHAR('A'), MK_SI_sharp_a_reader, r);
+  mk_cl_set_dispatch_macro_character(env, 4, MKCL_CODE_CHAR('#'), MKCL_CODE_CHAR('S'), MK_SI_sharp_s_reader, r);
   mk_cl_set_dispatch_macro_character(env, 4, MKCL_CODE_CHAR('#'), MKCL_CODE_CHAR('P'), make_cf3(env, sharp_P_reader), r);
 
   mk_cl_set_dispatch_macro_character(env, 4, MKCL_CODE_CHAR('#'), MKCL_CODE_CHAR('='), make_cf3(env, sharp_eq_reader), r);
@@ -2497,10 +2497,10 @@ mkcl_init_read(MKCL)
 
   {
     mkcl_object r2 = mkcl_copy_readtable(env, r, mk_cl_Cnil);
-    MKCL_SET(@'*readtable*', r2);
+    MKCL_SET(MK_CL_DYNVAR_readtable, r2);
     mk_cl_set_dispatch_macro_character(env, 4, MKCL_CODE_CHAR('#'), MKCL_CODE_CHAR('!'), mk_cl_Cnil, r2);
   }
-  MKCL_SET(@'*read-default-float-format*', @'single-float');
+  MKCL_SET(MK_CL_DYNVAR_read_default_float_format, MK_CL_single_float);
   mkcl_core.standard_readtable = r;
 }
 
@@ -2568,8 +2568,8 @@ mkcl_read_VV(MKCL,
 
   in = MKCL_OBJNULL;
   MKCL_UNWIND_PROTECT_BEGIN(env) {
-    mkcl_bds_push(env, @'si::*dynamic-cons-stack*'); /* prevent dynamic-extent leak outside block init context. */
-    mkcl_bds_bind(env, @'si::*cblock*', block);
+    mkcl_bds_push(env, MK_SI_DYNVAR_dynamic_cons_stack); /* prevent dynamic-extent leak outside block init context. */
+    mkcl_bds_bind(env, MK_SI_DYNVAR_cblock, block);
 
     /* Communicate the library which Cblock we are using, and get
      * back the amount of data to be processed.
@@ -2595,34 +2595,34 @@ mkcl_read_VV(MKCL,
     in=mkcl_make_string_input_stream(env,
 				     mkcl_make_simple_base_string(env, (char *) block->cblock.data_text),
 				     0, block->cblock.data_text_size,
-				     @':UTF-8'
+				     MK_KEY_utf_8
 				     );
     {
-      mkcl_bds_bind(env, @'*read-base*', MKCL_MAKE_FIXNUM(10));
-      mkcl_bds_bind(env, @'*read-default-float-format*', @'single-float');
-      mkcl_bds_bind(env, @'*read-suppress*', mk_cl_Cnil);
-      mkcl_bds_bind(env, @'*readtable*', mkcl_core.standard_readtable);
-      mkcl_bds_bind(env, @'*package*', mkcl_core.lisp_package);
-      mkcl_bds_bind(env, @'si::*pending-sharp-labels*', mk_cl_Cnil);
-      mkcl_bds_bind(env, @'si::*sharp-labels*', mk_cl_Cnil);
-      mkcl_bds_bind(env, @'si::*backq-level*', MKCL_MAKE_FIXNUM(0));
-      mkcl_bds_bind(env, @'si::+reading-fasl-file+', mk_cl_Ct);
+      mkcl_bds_bind(env, MK_CL_DYNVAR_read_base, MKCL_MAKE_FIXNUM(10));
+      mkcl_bds_bind(env, MK_CL_DYNVAR_read_default_float_format, MK_CL_single_float);
+      mkcl_bds_bind(env, MK_CL_DYNVAR_read_suppress, mk_cl_Cnil);
+      mkcl_bds_bind(env, MK_CL_DYNVAR_readtable, mkcl_core.standard_readtable);
+      mkcl_bds_bind(env, MK_CL_DYNVAR_package, mkcl_core.lisp_package);
+      mkcl_bds_bind(env, MK_SI_DYNVAR_pending_sharp_labels, mk_cl_Cnil);
+      mkcl_bds_bind(env, MK_SI_DYNVAR_sharp_labels, mk_cl_Cnil);
+      mkcl_bds_bind(env, MK_SI_DYNVAR_backq_level, MKCL_MAKE_FIXNUM(0));
+      mkcl_bds_bind(env, MK_SI_CONSTANT_reading_fasl_file, mk_cl_Ct);
 
       /* This should be :mkcl-compiled */
       x = mkcl_read_object(env, in);
-      if ( x != @':MKCL-COMPILED' )
-        mk_cl_error(env, 5, @'mkcl::bad-fasl-file', @':pathname', filename, @':reason', @':format');
+      if ( x != MK_KEY_mkcl_compiled )
+        mk_cl_error(env, 5, MK_MKCL_bad_fasl_file, MK_KEY_pathname, filename, MK_KEY_reason, MK_KEY_format);
 
       /* This should be MKCL version number
          of the MKCL that compiled the file. */
       x = mkcl_read_object(env, in);
       if ( MKCL_VERSION_NUMBER < mkcl_fixnum_to_word(x) )
-        mk_cl_error(env, 5, @'mkcl::bad-fasl-file', @':pathname', filename, @':reason', @':version');
+        mk_cl_error(env, 5, MK_MKCL_bad_fasl_file, MK_KEY_pathname, filename, MK_KEY_reason, MK_KEY_version);
 
       /* This should be MKCL FASL version number at compilation time. */
       x = mkcl_read_object(env, in);
       if ( MKCL_FASL_VERSION != mkcl_fixnum_to_word(x) )
-        mk_cl_error(env, 5, @'mkcl::bad-fasl-file', @':pathname', filename, @':reason', @':stale');
+        mk_cl_error(env, 5, MK_MKCL_bad_fasl_file, MK_KEY_pathname, filename, MK_KEY_reason, MK_KEY_stale);
 
       /* CPU identifier */
       x = mkcl_read_object(env, in);
@@ -2646,7 +2646,7 @@ mkcl_read_VV(MKCL,
     }
 
     if (i < len)
-      mk_cl_error(env, 5, @'mkcl::bad-fasl-file', @':pathname', filename, @':reason', @':corrupted');
+      mk_cl_error(env, 5, MK_MKCL_bad_fasl_file, MK_KEY_pathname, filename, MK_KEY_reason, MK_KEY_corrupted);
 
   NO_DATA_LABEL:
 

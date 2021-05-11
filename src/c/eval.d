@@ -129,7 +129,7 @@ mkcl_object mk_cl_apply(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_object lasta
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'apply', 2, narg, lastarg, args);
+    mkcl_setup_for_rest(env, MK_CL_apply, 2, narg, lastarg, args);
 
     if (narg == 2 && mkcl_type_of(lastarg) == mkcl_t_temp_stack_frame) {
       {
@@ -274,11 +274,11 @@ mkcl_object mk_cl_constantp(MKCL, mkcl_narg narg, mkcl_object arg, ...)
   {
     mkcl_object flag;
     mkcl_object lex_env = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'constantp', narg, 1, arg, &lex_env);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_constantp, narg, 1, arg, &lex_env);
 
     switch (mkcl_type_of(arg)) {
     case mkcl_t_cons:
-      if (MKCL_CAR(arg) == @'quote') {
+      if (MKCL_CAR(arg) == MK_CL_quote) {
         flag = mk_cl_Ct;
       } else {
         flag = mk_cl_Cnil;

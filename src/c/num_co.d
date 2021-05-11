@@ -65,7 +65,7 @@ mkcl_object mk_cl_float(MKCL, mkcl_narg narg, mkcl_object x, ...)
   {
     mkcl_type ty, tx;
     mkcl_object y = MKCL_OBJNULL;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'float', narg, 1, x, &y);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_float, narg, 1, x, &y);
 
   AGAIN:
     if (y != MKCL_OBJNULL) {
@@ -98,12 +98,12 @@ mkcl_object mk_cl_float(MKCL, mkcl_narg narg, mkcl_object x, ...)
         break;
 #endif
       default:
-        y = mkcl_type_error(env, @'float',"prototype",y,@'float');
+        y = mkcl_type_error(env, MK_CL_float,"prototype",y,MK_CL_float);
         goto AGAIN;
       }
       break;
     default:
-      x = mkcl_type_error(env, @'float',"argument",x,@'real');
+      x = mkcl_type_error(env, MK_CL_float,"argument",x,MK_CL_real);
       goto AGAIN;
     }
     mkcl_return_value(x);
@@ -123,7 +123,7 @@ mk_cl_numerator(MKCL, mkcl_object x)
   case mkcl_t_bignum:
     break;
   default:
-    x = mkcl_type_error(env, @'numerator',"argument",x,@'rational');
+    x = mkcl_type_error(env, MK_CL_numerator,"argument",x,MK_CL_rational);
     goto AGAIN;
   }
   mkcl_return_value(x);
@@ -143,7 +143,7 @@ mk_cl_denominator(MKCL, mkcl_object x)
     x = MKCL_MAKE_FIXNUM(1);
     break;
   default:
-    x = mkcl_type_error(env, @'numerator',"argument",x,@'rational');
+    x = mkcl_type_error(env, MK_CL_numerator,"argument",x,MK_CL_rational);
     goto AGAIN;
   }
   mkcl_return_value(x);
@@ -188,7 +188,7 @@ mkcl_floor1(MKCL, mkcl_object x)
   }
 #endif
   default:
-    x = mkcl_type_error(env, @'floor', "argument", x, @'real');
+    x = mkcl_type_error(env, MK_CL_floor, "argument", x, MK_CL_real);
     goto AGAIN;
   }
   mkcl_return_2_values(v0, v1);
@@ -201,7 +201,7 @@ mkcl_floor2(MKCL, mkcl_object x, mkcl_object y)
   mkcl_type ty;
  AGAIN:
   while ((ty = mkcl_type_of(y), !MKCL_NUMBER_TYPE_P(ty))) {
-    y = mkcl_type_error(env, @'floor',"divisor",y,@'real');
+    y = mkcl_type_error(env, MK_CL_floor,"divisor",y,MK_CL_real);
   }
   switch(mkcl_type_of(x)) {
   case mkcl_t_fixnum:
@@ -386,7 +386,7 @@ mkcl_floor2(MKCL, mkcl_object x, mkcl_object y)
   }
 #endif
   default:
-    x = mkcl_type_error(env, @'floor',"argument",x,@'real');
+    x = mkcl_type_error(env, MK_CL_floor,"argument",x,MK_CL_real);
     goto AGAIN;
   }
   mkcl_return_2_values(v0, v1);
@@ -397,7 +397,7 @@ mkcl_object mk_cl_floor(MKCL, mkcl_narg narg, mkcl_object x, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object y = MKCL_OBJNULL;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'floor', narg, 1, x, &y);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_floor, narg, 1, x, &y);
 
     if (narg == 1)
       x = mkcl_floor1(env, x);
@@ -446,7 +446,7 @@ mkcl_ceiling1(MKCL, mkcl_object x)
   }
 #endif
   default:
-    x = mkcl_type_error(env, @'ceiling',"argument",x,@'real');
+    x = mkcl_type_error(env, MK_CL_ceiling,"argument",x,MK_CL_real);
     goto AGAIN;
   }
   mkcl_return_2_values(v0, v1);
@@ -459,7 +459,7 @@ mkcl_ceiling2(MKCL, mkcl_object x, mkcl_object y)
   mkcl_type ty;
  AGAIN:
   while ((ty = mkcl_type_of(y), !MKCL_NUMBER_TYPE_P(ty))) {
-    y = mkcl_type_error(env, @'ceiling',"divisor",y,@'real');
+    y = mkcl_type_error(env, MK_CL_ceiling,"divisor",y,MK_CL_real);
   }
   switch(mkcl_type_of(x)) {
   case mkcl_t_fixnum:
@@ -641,7 +641,7 @@ mkcl_ceiling2(MKCL, mkcl_object x, mkcl_object y)
   }
 #endif
   default:
-    x = mkcl_type_error(env, @'ceiling',"argument",x,@'real');
+    x = mkcl_type_error(env, MK_CL_ceiling,"argument",x,MK_CL_real);
     goto AGAIN;
   }
   mkcl_return_2_values(v0, v1);
@@ -652,7 +652,7 @@ mkcl_object mk_cl_ceiling(MKCL, mkcl_narg narg, mkcl_object x, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object y = MKCL_OBJNULL;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'ceiling', narg, 1, x, &y);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_ceiling, narg, 1, x, &y);
 
     if (narg == 1)
       x = mkcl_ceiling1(env, x);
@@ -701,7 +701,7 @@ mkcl_truncate1(MKCL, mkcl_object x)
   }
 #endif
   default:
-    x = mkcl_type_error(env, @'truncate',"argument",x,@'real');
+    x = mkcl_type_error(env, MK_CL_truncate,"argument",x,MK_CL_real);
     goto AGAIN;
   }
   mkcl_return_2_values(v0, v1);
@@ -721,7 +721,7 @@ mkcl_object mk_cl_truncate(MKCL, mkcl_narg narg, mkcl_object x, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object y = MKCL_OBJNULL;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'truncate', narg, 1, x, &y);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_truncate, narg, 1, x, &y);
 
     if (narg == 1)
       x = mkcl_truncate1(env, x);
@@ -810,7 +810,7 @@ mkcl_round1(MKCL, mkcl_object x)
   }
 #endif
   default:
-    x = mkcl_type_error(env, @'round',"argument",x,@'real');
+    x = mkcl_type_error(env, MK_CL_round,"argument",x,MK_CL_real);
     goto AGAIN;
   }
   mkcl_return_2_values(v0, v1);
@@ -859,7 +859,7 @@ mkcl_object mk_cl_round(MKCL, mkcl_narg narg, mkcl_object x, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object y = MKCL_OBJNULL;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'round', narg, 1, x, &y);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_round, narg, 1, x, &y);
 
     if (narg == 1)
       x = mkcl_round1(env, x);
@@ -875,7 +875,7 @@ mk_cl_mod(MKCL, mkcl_object x, mkcl_object y)
 {
   mkcl_call_stack_check(env);
   /* INV: #'floor always outputs two values */
-  @floor(env, 2, x, y);
+  mk_cl_floor(env, 2, x, y);
   mkcl_return_value(MKCL_VALUES(1));
 }
 
@@ -883,7 +883,7 @@ mkcl_object
 mk_cl_rem(MKCL, mkcl_object x, mkcl_object y)
 {
   mkcl_call_stack_check(env);
-  @truncate(env, 2, x, y);
+  mk_cl_truncate(env, 2, x, y);
   mkcl_return_value(MKCL_VALUES(1));
 }
 
@@ -938,7 +938,7 @@ mk_cl_decode_float(MKCL, mkcl_object x)
   }
 #endif
   default:
-    x = mkcl_type_error(env, @'decode-float',"argument",x,@'float');
+    x = mkcl_type_error(env, MK_CL_decode_float,"argument",x,MK_CL_float);
     goto AGAIN;
   }
   mkcl_return_3_values(x, MKCL_MAKE_FIXNUM(e), sign);
@@ -954,7 +954,7 @@ mk_cl_scale_float(MKCL, mkcl_object x, mkcl_object y)
   if (MKCL_FIXNUMP(y)) {
     k = mkcl_fixnum_to_word(y);
   } else {
-    y = mkcl_type_error(env, @'scale-float',"exponent",y,@'fixnum');
+    y = mkcl_type_error(env, MK_CL_scale_float,"exponent",y,MK_CL_fixnum);
     goto AGAIN;
   }
   switch (mkcl_type_of(x)) {
@@ -970,7 +970,7 @@ mk_cl_scale_float(MKCL, mkcl_object x, mkcl_object y)
     break;
 #endif
   default:
-    x = mkcl_type_error(env, @'scale-float', "argument", x, @'float');
+    x = mkcl_type_error(env, MK_CL_scale_float, "argument", x, MK_CL_float);
     goto AGAIN;
   }
   mkcl_return_value(x);
@@ -981,7 +981,7 @@ mk_cl_float_radix(MKCL, mkcl_object x)
 {
   mkcl_call_stack_check(env);
   while (mk_cl_floatp(env, x) != mk_cl_Ct) {
-    x = mkcl_type_error(env, @'float-radix', "argument", x, @'float');
+    x = mkcl_type_error(env, MK_CL_float_radix, "argument", x, MK_CL_float);
   }
   mkcl_return_value(MKCL_MAKE_FIXNUM(FLT_RADIX));
 }
@@ -993,7 +993,7 @@ mkcl_object mk_cl_float_sign(MKCL, mkcl_narg narg, mkcl_object x, ...)
 
     int negativep;
     mkcl_object y = mk_cl_float(env, 2, MKCL_MAKE_FIXNUM(1), x);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'float-sign', narg, 1, x, &y);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_float_sign, narg, 1, x, &y);
 
   AGAIN:
     switch (mkcl_type_of(x)) {
@@ -1009,7 +1009,7 @@ mkcl_object mk_cl_float_sign(MKCL, mkcl_narg narg, mkcl_object x, ...)
       break;
 #endif
     default:
-      x = mkcl_type_error(env, @'float-sign',"argument",x,@'float');
+      x = mkcl_type_error(env, MK_CL_float_sign,"argument",x,MK_CL_float);
       goto AGAIN;
     }
     switch (mkcl_type_of(y)) {
@@ -1034,7 +1034,7 @@ mkcl_object mk_cl_float_sign(MKCL, mkcl_narg narg, mkcl_object x, ...)
       break;
 #endif
     default:
-      y = mkcl_type_error(env, @'float-sign', "prototype", y, @'float');
+      y = mkcl_type_error(env, MK_CL_float_sign, "prototype", y, MK_CL_float);
       goto AGAIN;
     }
     mkcl_return_value(y);
@@ -1059,7 +1059,7 @@ mk_cl_float_digits(MKCL, mkcl_object x)
     break;
 #endif
   default:
-    x = mkcl_type_error(env, @'float-digits', "argument", x, @'float');
+    x = mkcl_type_error(env, MK_CL_float_digits, "argument", x, MK_CL_float);
     goto AGAIN;
   }
   mkcl_return_value(x);
@@ -1124,7 +1124,7 @@ mk_cl_float_precision(MKCL, mkcl_object x)
     break;
 #endif
   default:
-    x = mkcl_type_error(env, @'float-precision', "argument", x, @'float');
+    x = mkcl_type_error(env, MK_CL_float_precision, "argument", x, MK_CL_float);
     goto AGAIN;
   }
   mkcl_return_value(MKCL_MAKE_FIXNUM(precision));
@@ -1193,7 +1193,7 @@ mk_cl_integer_decode_float(MKCL, mkcl_object x)
     }
     break;
   default:
-    x = mkcl_type_error(env, @'integer-decode-float', "argument", x, @'float');
+    x = mkcl_type_error(env, MK_CL_integer_decode_float, "argument", x, MK_CL_float);
     goto AGAIN;
   }
   mkcl_return_3_values(x, MKCL_MAKE_FIXNUM(e), MKCL_MAKE_FIXNUM(s));
@@ -1205,7 +1205,7 @@ mkcl_object mk_cl_complex(MKCL, mkcl_narg narg, mkcl_object r, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object i = MKCL_MAKE_FIXNUM(0);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'floor', narg, 1, r, &i);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_floor, narg, 1, r, &i);
 
     mkcl_return_value(mkcl_make_complex(env, r, i));
   }
@@ -1230,7 +1230,7 @@ mk_cl_realpart(MKCL, mkcl_object x)
     x = x->_complex.real;
     break;
   default:
-    x = mkcl_type_error(env, @'realpart', "argument", x, @'number');
+    x = mkcl_type_error(env, MK_CL_realpart, "argument", x, MK_CL_number);
     goto AGAIN;
   }
   mkcl_return_value(x);
@@ -1271,7 +1271,7 @@ mk_cl_imagpart(MKCL, mkcl_object x)
     x = x->_complex.imag;
     break;
   default:
-    x = mkcl_type_error(env, @'imagpart', "argument", x, @'number');
+    x = mkcl_type_error(env, MK_CL_imagpart, "argument", x, MK_CL_number);
     goto AGAIN;
   }
   mkcl_return_value(x);

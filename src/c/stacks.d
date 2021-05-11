@@ -46,11 +46,11 @@ mkcl_object mk_si_interrupt_status(MKCL)
 {
 #if MKCL_DEBUG_INTERRUPT_MASK
   mkcl_call_stack_check(env);
-  mkcl_return_3_values(((env->disable_interrupts) ? @':disabled' : @':enabled'),
+  mkcl_return_3_values(((env->disable_interrupts) ? MK_KEY_disabled : MK_KEY_enabled),
                        mkcl_cstring_to_string(env, env->interrupt_disabler_file),
                        mkcl_make_unsigned_integer(env, env->interrupt_disabler_lineno));
 #else
-  mkcl_return_value(((env->disable_interrupts) ? @':disabled' : @':enabled'));
+  mkcl_return_value(((env->disable_interrupts) ? MK_KEY_disabled : MK_KEY_enabled));
 #endif
 }
 
@@ -63,7 +63,7 @@ mkcl_call_stack_overflow(MKCL, char * const stack_mark_address)
      optimizing away the stack_mark by making its data flow analysis more difficult. */
   if (env->cs_overflowing)
     /* We should write a message to some log when this happens but right now we have nowhere to do it. JCB */
-    mk_mt_abandon_thread(env, @':terminated'); /* Already overflowing and out of overflow space! must abort right now! */
+    mk_mt_abandon_thread(env, MK_KEY_terminated); /* Already overflowing and out of overflow space! must abort right now! */
   else
     {
       /* We could try 1024 instead of 4096 but less may not work because we need a call depth of at least 5. */
@@ -77,9 +77,9 @@ mkcl_call_stack_overflow(MKCL, char * const stack_mark_address)
 	env->cs_limit = env->cs_org + env->cs_size - call_stack_emergency_reserve;
 #endif
 	env->cs_overflowing = TRUE;
-	mk_cl_error(env, 5, @'mkcl::stack-overflow',
-		    @':size', mkcl_make_unsigned_integer(env, env->cs_size),
-		    @':type', @'si::call-stack');
+	mk_cl_error(env, 5, MK_MKCL_stack_overflow,
+		    MK_KEY_size, mkcl_make_unsigned_integer(env, env->cs_size),
+		    MK_KEY_type, MK_SI_call_stack);
       } MKCL_UNWIND_PROTECT_EXIT {
 	env->cs_limit = old_cs_limit;
 	env->cs_overflowing = FALSE;
@@ -138,7 +138,7 @@ mkcl_grow_temp_stack(MKCL)
       mkcl_object * top = env->temp_stack_top;
 
       if (top >= env->temp_stack_upper_bound)
-	mk_mt_abandon_thread(env, @':terminated'); /* Already overflowing and out of overflow space! must abort right now! */
+	mk_mt_abandon_thread(env, MK_KEY_terminated); /* Already overflowing and out of overflow space! must abort right now! */
       else
 	return top;
     }
@@ -161,9 +161,9 @@ mkcl_grow_temp_stack(MKCL)
 	    old_upper_bound = env->temp_stack_upper_bound;
 	    env->temp_stack_upper_bound = env->temp_stack + env->temp_stack_size;
 	    env->temp_stack_overflowing = TRUE;
-	    mk_cl_error(env, 5, @'mkcl::stack-overflow',
-			@':size', mkcl_make_unsigned_integer(env, size_limit),
-			@':type', @'si::lisp-temp-stack');
+	    mk_cl_error(env, 5, MK_MKCL_stack_overflow,
+			MK_KEY_size, mkcl_make_unsigned_integer(env, size_limit),
+			MK_KEY_type, MK_SI_lisp_temp_stack);
 	  } MKCL_UNWIND_PROTECT_EXIT {
 	    env->temp_stack_upper_bound = old_upper_bound;
 	    env->temp_stack_overflowing = FALSE;
@@ -337,7 +337,7 @@ mkcl_grow_bds_stack(MKCL)
       struct mkcl_bds_bd * top = env->bds_top;
 
       if (top >= env->bds_upper_bound)
-	mk_mt_abandon_thread(env, @':terminated'); /* Already overflowing and out of overflow space! must abort right now! */
+	mk_mt_abandon_thread(env, MK_KEY_terminated); /* Already overflowing and out of overflow space! must abort right now! */
       else
 	return;
     }
@@ -360,9 +360,9 @@ mkcl_grow_bds_stack(MKCL)
 	    old_upper_bound = env->bds_upper_bound;
 	    env->bds_upper_bound = env->bds_org + env->bds_size;
 	    env->bds_overflowing = TRUE;
-	    mk_cl_error(env, 5, @'mkcl::stack-overflow',
-			@':size', mkcl_make_unsigned_integer(env, size_limit),
-			@':type', @'si::binding-stack');
+	    mk_cl_error(env, 5, MK_MKCL_stack_overflow,
+			MK_KEY_size, mkcl_make_unsigned_integer(env, size_limit),
+			MK_KEY_type, MK_SI_binding_stack);
 	  } MKCL_UNWIND_PROTECT_EXIT {
 	    env->bds_upper_bound = old_upper_bound;
 	    env->bds_overflowing = FALSE;
@@ -444,7 +444,7 @@ ihs_function_name(mkcl_object x)
     mkcl_t_bytecode_case:
       y = x->bytecode.name;
       if (mkcl_Null(y))
-        return(@'lambda');
+        return(MK_CL_lambda);
       else
         return y;
 
@@ -562,7 +562,7 @@ grow_frs_stack(MKCL)
       struct mkcl_frame * top = env->frs_top;
 
       if (top >= env->frs_upper_bound)
-	mk_mt_abandon_thread(env, @':terminated'); /* Already overflowing and out of overflow space! must abort right now! */
+	mk_mt_abandon_thread(env, MK_KEY_terminated); /* Already overflowing and out of overflow space! must abort right now! */
       else
 	return;
     }
@@ -585,9 +585,9 @@ grow_frs_stack(MKCL)
 	    old_upper_bound = env->frs_upper_bound;
 	    env->frs_upper_bound = env->frs_org + env->frs_size;
 	    env->frs_overflowing = TRUE;
-	    mk_cl_error(env, 5, @'mkcl::stack-overflow',
-			@':size', mkcl_make_unsigned_integer(env, size_limit),
-			@':type', @'si::frame-stack');
+	    mk_cl_error(env, 5, MK_MKCL_stack_overflow,
+			MK_KEY_size, mkcl_make_unsigned_integer(env, size_limit),
+			MK_KEY_type, MK_SI_frame_stack);
 	  } MKCL_UNWIND_PROTECT_EXIT {
 	    env->frs_upper_bound = old_upper_bound;
 	    env->frs_overflowing = FALSE;
@@ -1020,7 +1020,7 @@ mkcl_init_stacks(MKCL, mkcl_env new_env, struct mkcl_thread_init_parameters * pa
   new_env->bds_top = new_env->bds_org;
   /* The following dummy binding at the very bottom of the bds stack is in fact
      a place holder never to be poped, acting as a kind of underflow guard. JCB */
-  new_env->bds_org->symbol = @'*package*';
+  new_env->bds_org->symbol = MK_CL_DYNVAR_package;
   new_env->bds_org->value = MKCL_OBJNULL;
   new_env->bds_upper_bound = new_env->bds_org + size;
 

@@ -60,7 +60,7 @@ mkcl_object mk_si_fset(MKCL, mkcl_narg narg, mkcl_object fname, mkcl_object def,
     int type;
     mkcl_object macro = mk_cl_Cnil;
     mkcl_object pprint = mk_cl_Cnil;
-    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, @'si::fset', narg, 2, def, &macro, &pprint);
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, MK_SI_fset, narg, 2, def, &macro, &pprint);
 
     if (mkcl_Null(sym)) sym = mk_cl_Cnil_symbol;
     if (mkcl_Null(mk_cl_functionp(env, def))) mkcl_FEinvalid_function(env, def);
@@ -89,10 +89,10 @@ mkcl_object mk_si_fset(MKCL, mkcl_narg narg, mkcl_object fname, mkcl_object def,
     } else {
       if (mflag)
         mkcl_FEerror(env, "~S is not a valid name for a macro.", 1, fname);
-      mk_si_put_sysprop(env, sym, @'si::setf-symbol', def);
-      mk_si_rem_sysprop(env, sym, @'si::setf-lambda');
-      mk_si_rem_sysprop(env, sym, @'si::setf-method');
-      mk_si_rem_sysprop(env, sym, @'si::setf-update');
+      mk_si_put_sysprop(env, sym, MK_SI_setf_symbol, def);
+      mk_si_rem_sysprop(env, sym, MK_SI_setf_lambda);
+      mk_si_rem_sysprop(env, sym, MK_SI_setf_method);
+      mk_si_rem_sysprop(env, sym, MK_SI_setf_update);
     }
     mkcl_return_value(def);
   }
@@ -124,10 +124,10 @@ mk_cl_fmakunbound(MKCL, mkcl_object fname)
     mkcl_symbol_type_set(env, sym, mkcl_symbol_type(env, sym) & ~mkcl_stp_macro);
     MKCL_SYM_FUN(sym) = mk_cl_Cnil;
   } else {
-    mk_si_rem_sysprop(env, sym, @'si::setf-symbol');
-    mk_si_rem_sysprop(env, sym, @'si::setf-lambda');
-    mk_si_rem_sysprop(env, sym, @'si::setf-method');
-    mk_si_rem_sysprop(env, sym, @'si::setf-update');
+    mk_si_rem_sysprop(env, sym, MK_SI_setf_symbol);
+    mk_si_rem_sysprop(env, sym, MK_SI_setf_lambda);
+    mk_si_rem_sysprop(env, sym, MK_SI_setf_method);
+    mk_si_rem_sysprop(env, sym, MK_SI_setf_update);
   }
   mkcl_return_value(fname);
 }
@@ -266,7 +266,7 @@ mk_si_system_properties(MKCL)
 void mkcl_init_system_properties(MKCL)
 {
   mkcl_core.system_properties =
-    mk_cl__make_hash_table(env, @'equal', MKCL_MAKE_FIXNUM(1024), /* size */
+    mk_cl__make_hash_table(env, MK_CL_equal, MKCL_MAKE_FIXNUM(1024), /* size */
 			   mkcl_make_singlefloat(env, 1.5f), /* rehash-size */
 			   mkcl_make_singlefloat(env, 0.75f)); /* rehash-threshold */
 

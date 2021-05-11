@@ -1,7 +1,7 @@
 #
 #  Makefile for MKCL core library
 #
-#  Copyright (c) 2010-2018, Jean-Claude Beaudoin.
+#  Copyright (c) 2010-2018,2021, Jean-Claude Beaudoin.
 #  Copyright by a number of previous anonymous authors
 #            presumed to be the same as for the rest of MKCL.
 #
@@ -58,6 +58,13 @@ MKCL_HFILES = mkcl/config.h \
               mkcl/object.h \
               mkcl/stacks.h
 
+C_EXPORTED_SYMBOLS_H_IN_MKCL =  mkcl/C_exported_symbols_in_CL.h \
+                                mkcl/C_exported_symbols_in_CLOS.h \
+                                mkcl/C_exported_symbols_in_GRAY.h \
+                                mkcl/C_exported_symbols_in_KEYWORDS.h \
+                                mkcl/C_exported_symbols_in_MKCL.h \
+                                mkcl/C_exported_symbols_in_MT.h \
+                                mkcl/C_exported_symbols_in_SI.h
 
 
 OBJS	= main.o symbol.o package.o list.o \
@@ -77,7 +84,8 @@ OBJS	= main.o symbol.o package.o list.o \
 
 DCFILES = $(OBJS:%.o=%.c)
 
-.SUFFIXES: .c .o .d
+
+.SUFFIXES: .c .o .d .dh
 .PHONY: all all2
 
 all:
@@ -94,8 +102,20 @@ all2: ../mkclmin.a ../mkcltop.a all_symbols.o all_symbols2.o cinit.o
 .d.c:
 	$(DPP) $< $@
 
+.dh.h:
+	$(DPP) $< $@
+
 
 $(DCFILES) all_symbols.c cinit.c: $(DPP)
+
+mkcl/gc/gc.h: ../gc/include/gc.h
+	mkdir -p mkcl/gc
+	cp -p ../gc/include/*.h mkcl/gc
+
+mkcl/mkcl-gc.h: mkcl/gc/gc.h
+	touch $@
+
+mkcl/internal.h: $(C_EXPORTED_SYMBOLS_H_IN_MKCL)
 
 # This one was put out to pasture a long time ago.
 #apply_x86.c: arch/apply_x86.d $(DPP)
@@ -129,6 +149,7 @@ ffi_aarch64.c: arch/ffi_aarch64.d $(DPP)
 
 clean:
 	$(RM) $(OBJS) $(OBJS:%.o=%.s) all_symbols.o all_symbols2.o cinit.o core core.* a.out
+	$(RM) mkcl/gc/*.h $(C_EXPORTED_SYMBOLS_H_IN_MKCL)
 
 distclean: clean
 	$(RM) $(DPP) $(DCFILES) symbols_list2.h all_symbols.c cinit.c

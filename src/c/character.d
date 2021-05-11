@@ -16,6 +16,7 @@
 */
 
 #include <mkcl/mkcl.h>
+#include <mkcl/internal.h>
 #include <stdio.h>
 
 mkcl_object
@@ -121,9 +122,9 @@ mkcl_object mk_cl_digit_char_p(MKCL, mkcl_narg narg, mkcl_object c, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object radix = MKCL_MAKE_FIXNUM(10);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'digit-char-p', narg, 1, c, &radix);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_digit_char_p, narg, 1, c, &radix);
     {
-      mkcl_word basis = mkcl_fixnum_in_range(env, @'digit-char-p',"radix", radix, 2, 36);
+      mkcl_word basis = mkcl_fixnum_in_range(env, MK_CL_digit_char_p,"radix", radix, 2, 36);
       mkcl_word value = mkcl_digitp(mkcl_char_code(env, c), basis);
       mkcl_return_value(((value < 0)? mk_cl_Cnil: MKCL_MAKE_FIXNUM(value)));
     }
@@ -165,7 +166,7 @@ mkcl_object mk_cl_charE(MKCL, mkcl_narg narg, mkcl_object c, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'char=', 1, narg, c, cs);
+    mkcl_setup_for_rest(env, MK_CL_charE, 1, narg, c, cs);
 
     /* INV: mkcl_char_eq() checks types of `c' and `cs' */
     while (--narg)
@@ -189,11 +190,11 @@ mkcl_object mk_cl_charNE(MKCL, const mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'char=', 0, narg, narg, cs);
+    mkcl_setup_for_rest(env, MK_CL_charE, 0, narg, narg, cs);
 
     /* INV: mkcl_char_eq() checks types of its arguments */
     if (narg == 0)
-      mkcl_FEwrong_num_arguments(env, @'char/=', 1, -1, 0);
+      mkcl_FEwrong_num_arguments(env, MK_CL_charNE, 1, -1, 0);
     c = mkcl_va_arg(cs);
     for (i = 2; i<=narg; i++) {
       mkcl_va_list ds;
@@ -238,7 +239,7 @@ mkcl_object mk_cl_charL(MKCL, const mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'char<', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_charL, 0, narg, narg, args);
 
     mkcl_object val = Lchar_cmp(env, narg, 1, 1, args);
     mkcl_va_end(args);
@@ -250,7 +251,7 @@ mkcl_object mk_cl_charG(MKCL, const mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'char>', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_charG, 0, narg, narg, args);
 
     mkcl_object val = Lchar_cmp(env, narg, -1, 1, args);
     mkcl_va_end(args);
@@ -262,7 +263,7 @@ mkcl_object mk_cl_charLE(MKCL, const mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'char<=', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_charLE, 0, narg, narg, args);
 
     mkcl_object val = Lchar_cmp(env, narg, 1, 0, args);
     mkcl_va_end(args);
@@ -274,7 +275,7 @@ mkcl_object mk_cl_charGE(MKCL, const mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'char>=', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_charGE, 0, narg, narg, args);
 
     mkcl_object val = Lchar_cmp(env, narg, -1, 0, args);
     mkcl_va_end(args);
@@ -287,7 +288,7 @@ mkcl_object mk_cl_char_equal(MKCL, mkcl_narg narg, mkcl_object c, ...)
   mkcl_narg i;
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'char-equal', 1, narg, c, cs);
+    mkcl_setup_for_rest(env, MK_CL_char_equal, 1, narg, c, cs);
 
     /* INV: mkcl_char_equal() checks the type of its arguments */
     for (narg--, i = 0;  i < narg;  i++) {
@@ -313,11 +314,11 @@ mkcl_object mk_cl_char_not_equal(MKCL, mkcl_narg narg, ...)
   mkcl_object c;
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'char-not-equal', 0, narg, narg, cs);
+    mkcl_setup_for_rest(env, MK_CL_char_not_equal, 0, narg, narg, cs);
 
     /* INV: mkcl_char_equal() checks the type of its arguments */
     if (narg == 0)
-      mkcl_FEwrong_num_arguments(env, @'char-not-equal', 1, -1, narg);
+      mkcl_FEwrong_num_arguments(env, MK_CL_char_not_equal, 1, -1, narg);
     c = mkcl_va_arg(cs);
     for (i = 2;  i<=narg;  i++) {
       mkcl_va_list ds;
@@ -368,7 +369,7 @@ mkcl_object mk_cl_char_lessp(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'char-lessp', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_char_lessp, 0, narg, narg, args);
 
     mkcl_object val = Lchar_compare(env, narg, 1, 1, args);
     mkcl_va_end(args);
@@ -380,7 +381,7 @@ mkcl_object mk_cl_char_greaterp(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'char-greaterp', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_char_greaterp, 0, narg, narg, args);
 
     mkcl_object val = Lchar_compare(env, narg,-1, 1, args);
     mkcl_va_end(args);
@@ -392,7 +393,7 @@ mkcl_object mk_cl_char_not_greaterp(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'char-not-greaterp', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_char_not_greaterp, 0, narg, narg, args);
 
     mkcl_object val = Lchar_compare(env, narg, 1, 0, args);
     mkcl_va_end(args);
@@ -404,7 +405,7 @@ mkcl_object mk_cl_char_not_lessp(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'char-not-lessp', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_char_not_lessp, 0, narg, narg, args);
 
     mkcl_object val = Lchar_compare(env, narg,-1, 0, args);
     mkcl_va_end(args);
@@ -438,7 +439,7 @@ mk_cl_character(MKCL, mkcl_object x)
   _MKCL_ERROR:
   default:
     x = mkcl_type_error(env, 
-			@'character',
+			MK_CL_character,
 			"character designator",
 			x,
 			mkcl_fast_read_from_cstring(env,("(OR CHARACTER SYMBOL"
@@ -504,10 +505,10 @@ mkcl_object mk_cl_digit_char(MKCL, mkcl_narg narg, mkcl_object weight, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object radix = MKCL_MAKE_FIXNUM(10);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'digit-char', narg, 1, weight, &radix);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_digit_char, narg, 1, weight, &radix);
 
     {
-      mkcl_word basis = mkcl_fixnum_in_range(env, @'digit-char',"radix",radix,2,36);
+      mkcl_word basis = mkcl_fixnum_in_range(env, MK_CL_digit_char,"radix",radix,2,36);
       mkcl_object output = mk_cl_Cnil;
     AGAIN:
       switch (mkcl_type_of(weight)) {
@@ -524,7 +525,7 @@ mkcl_object mk_cl_digit_char(MKCL, mkcl_narg narg, mkcl_object weight, ...)
       case mkcl_t_bignum:
         break;
       default:
-        weight = mkcl_type_error(env, @'digit-char',"weight",weight,@'integer');
+        weight = mkcl_type_error(env, MK_CL_digit_char,"weight",weight,MK_CL_integer);
         goto AGAIN;
       }
       mkcl_return_value(output);
@@ -568,7 +569,7 @@ mk_cl_char_name(MKCL, mkcl_object c)
     output = mkcl_gethash_safe(env, MKCL_MAKE_FIXNUM(code), mkcl_core.base_char_names, mk_cl_Cnil);
   else
     {
-      mkcl_object ext_names = MKCL_SYM_VAL(env, @'si::*extended-character-names*');
+      mkcl_object ext_names = MKCL_SYM_VAL(env, MK_SI_DYNVAR_extended_character_names);
 
       if (ext_names != mk_cl_Cnil)
         output =  mkcl_gethash_safe(env, MKCL_MAKE_FIXNUM(code), ext_names, mk_cl_Cnil);
@@ -598,7 +599,7 @@ mk_cl_name_char(MKCL, mkcl_object name)
   if (c != mk_cl_Cnil) {
     mkcl_return_value(MKCL_CODE_CHAR(mkcl_fixnum_to_word(c)));
   } else {
-    mkcl_object ext_names = MKCL_SYM_VAL(env, @'si::*extended-character-names*');
+    mkcl_object ext_names = MKCL_SYM_VAL(env, MK_SI_DYNVAR_extended_character_names);
 
     if (ext_names != mk_cl_Cnil) c = mkcl_gethash_safe(env, name, ext_names, mk_cl_Cnil);
     if (c != mk_cl_Cnil) {

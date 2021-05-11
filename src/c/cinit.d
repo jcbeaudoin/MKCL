@@ -34,21 +34,21 @@ extern mkcl_object
 mk_cl_upgraded_array_element_type(MKCL, mkcl_narg narg, mkcl_object type, ...)
 {
   mkcl_call_stack_check(env);
-  return mkcl_funcall1(env, @+'upgraded-array-element-type', type);
+  return mkcl_funcall1(env, MK_CL_upgraded_array_element_type->symbol.gfdef, type);
 }
 
 extern mkcl_object
 mk_si_safe_eval(MKCL, mkcl_object form, mkcl_object lex_env, mkcl_object error_value)
 {
   mkcl_call_stack_check(env);
-  return mkcl_funcall3(env, @+'si::safe-eval', form, lex_env, error_value);
+  return mkcl_funcall3(env, MK_SI_safe_eval->symbol.gfdef, form, lex_env, error_value);
 }
 
 extern mkcl_object
 mk_cl_array_dimensions(MKCL, mkcl_object array)
 {
   mkcl_call_stack_check(env);
-  return mkcl_funcall1(env, @+'ARRAY-DIMENSIONS', array);
+  return mkcl_funcall1(env, MK_CL_array_dimensions->symbol.gfdef, array);
 }
 
 extern mkcl_object
@@ -66,7 +66,7 @@ mk_cl_vector_push_extend(MKCL, mkcl_narg narg, mkcl_object elt, mkcl_object vect
     vector->vector.self.t[fp+1] = elt;
     mkcl_return_value(MKCL_MAKE_FIXNUM(fp));
   }
-  return mkcl_funcall2(env, @+'VECTOR-PUSH-EXTEND', elt, vector);
+  return mkcl_funcall2(env, MK_CL_vector_push_extend->symbol.gfdef, elt, vector);
 }
 
 extern mkcl_object
@@ -79,11 +79,11 @@ mkcl_object mk_cl_cerror(MKCL, mkcl_narg narg, mkcl_object cformat, mkcl_object 
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'cerror', 2, narg, eformat, args);
+    mkcl_setup_for_rest(env, MK_CL_cerror, 2, narg, eformat, args);
 
     const mkcl_object rest = mkcl_grab_rest_args(env, args, FALSE);
     mkcl_va_end(args);
-    mkcl_object val = mk_cl_apply(env, 3, @+'error', eformat, rest);
+    mkcl_object val = mk_cl_apply(env, 3, MK_CL_error->symbol.gfdef, eformat, rest);
     mkcl_return_value(val);
   }
 }
@@ -102,11 +102,11 @@ static mkcl_object mk_si_simple_toplevel(MKCL)
   for (i = 1; i<mkcl_fixnum_to_word(mk_mkcl_argc(env)); i++) {
     mkcl_object arg = mk_mkcl_argv(env, MKCL_MAKE_FIXNUM(i));
 
-    mk_cl_load(env, 3, arg, @':external-format', mk_cl_list(env, 2, @':ascii', @':lf'));
+    mk_cl_load(env, 3, arg, MK_KEY_external_format, mk_cl_list(env, 2, MK_KEY_ascii, MK_KEY_lf));
   }
   while (1) {
     mkcl_write_cstr(env, "\n> ", output);
-    sentence = @read(env, 3, mk_cl_Cnil, mk_cl_Cnil, MKCL_OBJNULL);
+    sentence = mk_cl_read(env, 3, mk_cl_Cnil, mk_cl_Cnil, MKCL_OBJNULL);
     if (sentence == MKCL_OBJNULL)
       { mkcl_return_no_value; }
     mkcl_prin1(env, mk_si_eval_in_env(env, 1, sentence), output);
@@ -132,14 +132,14 @@ main(int argc, char **args)
     {
       MKCL_CATCH_ALL_BEGIN(env) {
 	MKCL_SETUP_CALL_STACK_ROOT_GUARD(env);
-	MKCL_SETQ(env, @'*load-verbose*', mk_cl_Cnil);
-	MKCL_SETQ(env, @'*package*', mkcl_core.system_package);
+	MKCL_SETQ(env, MK_CL_DYNVAR_load_verbose, mk_cl_Cnil);
+	MKCL_SETQ(env, MK_CL_DYNVAR_package, mkcl_core.system_package);
 	
-	features = mkcl_symbol_value(env, @'*features*');
+	features = mkcl_symbol_value(env, MK_CL_DYNVAR_features);
 	features = MKCL_CONS(env, mkcl_make_keyword(env, "MKCL-MIN"), features);
-	MKCL_SET(@'*features*', features);
+	MKCL_SET(MK_CL_DYNVAR_features, features);
 
-	MKCL_SETQ(env, @'clos::*redefine-class-in-place*', mk_cl_Ct); /* a concession to the old single-threaded days */
+	MKCL_SETQ(env, MK_CLOS_DYNVAR_redefine_class_in_place, mk_cl_Ct); /* a concession to the old single-threaded days */
 
 	_mkcl_intern(env, "INITIAL", mkcl_core.system_package);
 	top_level = _mkcl_intern(env, "TOP-LEVEL", mkcl_core.system_package);

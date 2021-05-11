@@ -17,6 +17,7 @@
 
 
 #include <mkcl/mkcl.h>
+#include <mkcl/internal.h>
 
 mkcl_object mk_cl_values(MKCL, mkcl_narg narg, ...)
 {
@@ -24,7 +25,7 @@ mkcl_object mk_cl_values(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'values', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_values, 0, narg, narg, args);
 
     if (narg > MKCL_MULTIPLE_VALUES_LIMIT)
       mkcl_FEerror(env, "Too many values in VALUES",0);

@@ -114,7 +114,7 @@ mk_si_instance_class_set(MKCL, mkcl_object x, mkcl_object y)
 void
 mkcl_FEtype_error_instance_index(MKCL, mkcl_object instance, mkcl_object ndx)
 {
-  mk_cl_error(env, 5, @'mkcl::invalid-slot', @':name', ndx, @':instance', instance);
+  mk_cl_error(env, 5, MK_MKCL_invalid_slot, MK_KEY_name, ndx, MK_KEY_instance, instance);
 }
 
 
@@ -159,7 +159,7 @@ mk_si_instance_ref_safe(MKCL, mkcl_object x, mkcl_object index)
     mkcl_FEtype_error_instance_index(env, x, index);
   x = x->instance.slots[i];
   if (mkcl_unlikely(x == MKCL_UNBOUND))
-    mk_cl_error(env, 5, @'unbound-slot', @':name', index, @':instance', x);
+    mk_cl_error(env, 5, MK_CL_unbound_slot, MK_KEY_name, index, MK_KEY_instance, x);
   mkcl_return_value(x);
 }
 
@@ -251,7 +251,7 @@ mkcl_object mk_cl_find_class(MKCL, mkcl_narg narg, mkcl_object name, ...)
     mkcl_object class, hash;
     mkcl_object errorp = mk_cl_Ct;
     mkcl_object lex_env = mk_cl_Cnil;
-    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, @'find-class', narg, 1, name, &errorp, &lex_env);
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, MK_CL_find_class, narg, 1, name, &errorp, &lex_env);
 
     do {
       if (mkcl_Null(name)) {
@@ -274,7 +274,7 @@ mkcl_object mk_cl_find_class(MKCL, mkcl_narg narg, mkcl_object name, ...)
             { mkcl_return_value(class); }
         }
       else
-        name = mkcl_type_error(env, @'find-class', "symbol", name, @'symbol');
+        name = mkcl_type_error(env, MK_CL_find_class, "symbol", name, MK_CL_symbol);
     } while(1);
   }
 }
@@ -288,7 +288,7 @@ mkcl_object mk_si_set_class_proper_name(MKCL, mkcl_object sym, mkcl_object class
     mkcl_FEtype_error_instance(env, class);
 
   if (mkcl_Null(sym) || (mkcl_type_of(sym) != mkcl_t_symbol))
-    mkcl_FEwrong_type_argument(env, @'symbol', sym);
+    mkcl_FEwrong_type_argument(env, MK_CL_symbol, sym);
 
   sym->symbol.properly_named_class = class;
   mkcl_return_value(class);
@@ -298,7 +298,7 @@ mkcl_object
 mkcl_slot_value(MKCL, mkcl_object x, const char *slot)
 {
   mkcl_object slot_name = mkcl_fast_read_from_cstring(env, (char *) slot);
-  return mkcl_funcall2(env, @+'slot-value', x, slot_name);
+  return mkcl_funcall2(env, MK_CL_slot_value->symbol.gfdef, x, slot_name);
 }
 
 mkcl_object
@@ -477,10 +477,10 @@ mk_cl_class_of(MKCL, mkcl_object x)
   }
   {
     mkcl_object output;
-    x = MKCL_SYM_VAL(env, @'clos::*builtin-classes*');
+    x = MKCL_SYM_VAL(env, MK_CLOS_DYNVAR_builtin_classes);
     /* We have to be careful because *builtin-classes* might be empty! */
     if (mkcl_Null(x)) {
-      output = mk_cl_find_class(env, 1,@'t');
+      output = mk_cl_find_class(env, 1,mk_cl_Ct);
     } else {
       output = mkcl_aref_index(env, x, index);
     }

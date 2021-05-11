@@ -156,7 +156,7 @@ static void grow_memory(MKCL)
       MK_GC_FREE(mkcl_core.safety_region);
       mkcl_core.safety_region = NULL;
       /* env->string_pool = mk_cl_Cnil; */
-      mk_cl_error(env, 1, @'mkcl::storage-exhausted');
+      mk_cl_error(env, 1, MK_MKCL_storage_exhausted);
     } else {
       /* No possibility of continuing */
       mkcl_lose(env, "Memory exhausted, quitting program.");
@@ -168,7 +168,7 @@ static void grow_memory(MKCL)
     MK_GC_set_max_heap_size(mkcl_core.max_heap_size);
     OUT_OF_MEMORY_UNLOCK();
     mkcl_set_interrupt_status(env, &old_intr);
-    mk_cl_cerror(env, 2, (mkcl_object) &extend_str_obj, @'mkcl::storage-exhausted'); /* Ask for extension */
+    mk_cl_cerror(env, 2, (mkcl_object) &extend_str_obj, MK_MKCL_storage_exhausted); /* Ask for extension */
   }
 
   mkcl_disable_interrupts(env);
@@ -1535,7 +1535,7 @@ mkcl_object mk_si_gc(MKCL, mkcl_narg narg, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object area = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'si::gc', narg, 0, narg, &area);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_SI_gc, narg, 0, narg, &area);
     mk_si_trim_dynamic_cons_stack(env);
     mk_si_scrub_values(env);
     MKCL_GC_NO_INTR(env, MK_GC_gcollect());
@@ -1573,7 +1573,7 @@ static void mkcl_GC_abort(const char * const msg)
   fflush(stderr);
 #endif
   if (env)
-    mk_mt_abandon_thread(env, @':gc-abort');
+    mk_mt_abandon_thread(env, MK_KEY_gc_abort);
   else
     mkcl_thread_exit(env, MKCL_GC_ABORT); /* This one should never be called unless we're really confused. */
 }
@@ -1588,7 +1588,7 @@ static void mkcl_GC_exit(const int status)
   fflush(stderr);
 #endif
   if (env)
-    mk_mt_abandon_thread(env, @':gc-exit');
+    mk_mt_abandon_thread(env, MK_KEY_gc_exit);
   else
     mkcl_thread_exit(env, MKCL_GC_EXIT); /* This one should never be called unless we're really confused. */
 }
@@ -1661,83 +1661,83 @@ mkcl_object mk_si_sample_allocation_statistics(MKCL)
     struct mkcl_alloc_stats alloc = *(env->alloc); /* snapshot */
 
     if (alloc.process)
-      stats = mkcl_cons(env, mkcl_cons(env, @'mkcl::process', mkcl_make_unsigned_integer(env, alloc.process)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_MKCL_process, mkcl_make_unsigned_integer(env, alloc.process)), stats);
     if (alloc.UTF_16)
-      stats = mkcl_cons(env, mkcl_cons(env, @'si::UTF-16', mkcl_make_unsigned_integer(env, alloc.UTF_16)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_SI_utf_16, mkcl_make_unsigned_integer(env, alloc.UTF_16)), stats);
     if (alloc.UTF_8)
-      stats = mkcl_cons(env, mkcl_cons(env, @'si::UTF-8', mkcl_make_unsigned_integer(env, alloc.UTF_8)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_SI_utf_8, mkcl_make_unsigned_integer(env, alloc.UTF_8)), stats);
     if (alloc.clevel_block)
-      stats = mkcl_cons(env, mkcl_cons(env, @'si::compiled-closure-level', mkcl_make_unsigned_integer(env, alloc.clevel_block)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_SI_compiled_closure_level, mkcl_make_unsigned_integer(env, alloc.clevel_block)), stats);
     if (alloc.cdisplay)
-      stats = mkcl_cons(env, mkcl_cons(env, @'si::compiled-closure-display', mkcl_make_unsigned_integer(env, alloc.cdisplay)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_SI_compiled_closure_display, mkcl_make_unsigned_integer(env, alloc.cdisplay)), stats);
 #if 0
     if (alloc.frame)
-      stats = mkcl_cons(env, mkcl_cons(env, @'si::temp-stack-frame', mkcl_make_unsigned_integer(env, alloc.frame)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_SI_temp_stack_frame, mkcl_make_unsigned_integer(env, alloc.frame)), stats);
 #endif
     if (alloc.foreign)
-      stats = mkcl_cons(env, mkcl_cons(env, @'si::foreign', mkcl_make_unsigned_integer(env, alloc.foreign)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_SI_foreign, mkcl_make_unsigned_integer(env, alloc.foreign)), stats);
     if (alloc.codeblock)
-      stats = mkcl_cons(env, mkcl_cons(env, @'si::code-block', mkcl_make_unsigned_integer(env, alloc.codeblock)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_SI_code_block, mkcl_make_unsigned_integer(env, alloc.codeblock)), stats);
     if (alloc.condition_variable)
-      stats = mkcl_cons(env, mkcl_cons(env, @'mt::condition-variable', mkcl_make_unsigned_integer(env, alloc.condition_variable)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_MT_condition_variable, mkcl_make_unsigned_integer(env, alloc.condition_variable)), stats);
     if (alloc.semaphore)
-      stats = mkcl_cons(env, mkcl_cons(env, @'mt::semaphore', mkcl_make_unsigned_integer(env, alloc.semaphore)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_MT_semaphore, mkcl_make_unsigned_integer(env, alloc.semaphore)), stats);
     if (alloc.rwlock)
-      stats = mkcl_cons(env, mkcl_cons(env, @'mt::rwlock', mkcl_make_unsigned_integer(env, alloc.rwlock)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_MT_rwlock, mkcl_make_unsigned_integer(env, alloc.rwlock)), stats);
     if (alloc.lock)
-      stats = mkcl_cons(env, mkcl_cons(env, @'mt::lock', mkcl_make_unsigned_integer(env, alloc.lock)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_MT_lock, mkcl_make_unsigned_integer(env, alloc.lock)), stats);
     if (alloc.thread)
-      stats = mkcl_cons(env, mkcl_cons(env, @'mt::thread', mkcl_make_unsigned_integer(env, alloc.thread)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_MT_thread, mkcl_make_unsigned_integer(env, alloc.thread)), stats);
     if (alloc.structure)
-      stats = mkcl_cons(env, mkcl_cons(env, @'structure-object', mkcl_make_unsigned_integer(env, alloc.structure)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_structure_object, mkcl_make_unsigned_integer(env, alloc.structure)), stats);
     if (alloc.pathname)
-      stats = mkcl_cons(env, mkcl_cons(env, @'pathname', mkcl_make_unsigned_integer(env, alloc.pathname)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_pathname, mkcl_make_unsigned_integer(env, alloc.pathname)), stats);
     if (alloc.readtable)
-      stats = mkcl_cons(env, mkcl_cons(env, @'readtable', mkcl_make_unsigned_integer(env, alloc.readtable)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_readtable, mkcl_make_unsigned_integer(env, alloc.readtable)), stats);
     if (alloc.random)
-      stats = mkcl_cons(env, mkcl_cons(env, @'random-state', mkcl_make_unsigned_integer(env, alloc.random)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_random_state, mkcl_make_unsigned_integer(env, alloc.random)), stats);
     if (alloc.stream)
-      stats = mkcl_cons(env, mkcl_cons(env, @'stream', mkcl_make_unsigned_integer(env, alloc.stream)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_stream, mkcl_make_unsigned_integer(env, alloc.stream)), stats);
     if (alloc.hashtable)
-      stats = mkcl_cons(env, mkcl_cons(env, @'hash-table', mkcl_make_unsigned_integer(env, alloc.hashtable)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_hash_table, mkcl_make_unsigned_integer(env, alloc.hashtable)), stats);
     if (alloc.instance)
-      stats = mkcl_cons(env, mkcl_cons(env, @'standard-object', mkcl_make_unsigned_integer(env, alloc.instance)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_standard_object, mkcl_make_unsigned_integer(env, alloc.instance)), stats);
     if (alloc.bclosure)
-      stats = mkcl_cons(env, mkcl_cons(env, @'si::bytecode-closure', mkcl_make_unsigned_integer(env, alloc.bclosure)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_SI_bytecode_closure, mkcl_make_unsigned_integer(env, alloc.bclosure)), stats);
     if (alloc.bytecode)
-      stats = mkcl_cons(env, mkcl_cons(env, @'si::bytecode', mkcl_make_unsigned_integer(env, alloc.bytecode)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_SI_bytecode, mkcl_make_unsigned_integer(env, alloc.bytecode)), stats);
     if (alloc.cclosure)
-      stats = mkcl_cons(env, mkcl_cons(env, @'si::compiled-closure', mkcl_make_unsigned_integer(env, alloc.cclosure)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_SI_compiled_closure, mkcl_make_unsigned_integer(env, alloc.cclosure)), stats);
     if (alloc.cfun)
-      stats = mkcl_cons(env, mkcl_cons(env, @'compiled-function', mkcl_make_unsigned_integer(env, alloc.cfun)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_compiled_function, mkcl_make_unsigned_integer(env, alloc.cfun)), stats);
     if (alloc.bitvector)
-      stats = mkcl_cons(env, mkcl_cons(env, @'bit-vector', mkcl_make_unsigned_integer(env, alloc.bitvector)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_bit_vector, mkcl_make_unsigned_integer(env, alloc.bitvector)), stats);
     if (alloc.base_string)
-      stats = mkcl_cons(env, mkcl_cons(env, @'base-string', mkcl_make_unsigned_integer(env, alloc.base_string)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_base_string, mkcl_make_unsigned_integer(env, alloc.base_string)), stats);
     if (alloc.string)
-      stats = mkcl_cons(env, mkcl_cons(env, @'string', mkcl_make_unsigned_integer(env, alloc.string)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_string, mkcl_make_unsigned_integer(env, alloc.string)), stats);
     if (alloc.vector)
-      stats = mkcl_cons(env, mkcl_cons(env, @'vector', mkcl_make_unsigned_integer(env, alloc.vector)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_vector, mkcl_make_unsigned_integer(env, alloc.vector)), stats);
     if (alloc.array)
-      stats = mkcl_cons(env, mkcl_cons(env, @'array', mkcl_make_unsigned_integer(env, alloc.array)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_array, mkcl_make_unsigned_integer(env, alloc.array)), stats);
     if (alloc.package)
-      stats = mkcl_cons(env, mkcl_cons(env, @'package', mkcl_make_unsigned_integer(env, alloc.package)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_package, mkcl_make_unsigned_integer(env, alloc.package)), stats);
     if (alloc.symbol)
-      stats = mkcl_cons(env, mkcl_cons(env, @'symbol', mkcl_make_unsigned_integer(env, alloc.symbol)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_symbol, mkcl_make_unsigned_integer(env, alloc.symbol)), stats);
     if (alloc.complex)
-      stats = mkcl_cons(env, mkcl_cons(env, @'complex', mkcl_make_unsigned_integer(env, alloc.complex)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_complex, mkcl_make_unsigned_integer(env, alloc.complex)), stats);
     if (alloc.longfloat)
-      stats = mkcl_cons(env, mkcl_cons(env, @'long-float', mkcl_make_unsigned_integer(env, alloc.longfloat)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_long_float, mkcl_make_unsigned_integer(env, alloc.longfloat)), stats);
     if (alloc.doublefloat)
-      stats = mkcl_cons(env, mkcl_cons(env, @'double-float', mkcl_make_unsigned_integer(env, alloc.doublefloat)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_double_float, mkcl_make_unsigned_integer(env, alloc.doublefloat)), stats);
     if (alloc.singlefloat)
-      stats = mkcl_cons(env, mkcl_cons(env, @'single-float', mkcl_make_unsigned_integer(env, alloc.singlefloat)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_single_float, mkcl_make_unsigned_integer(env, alloc.singlefloat)), stats);
     if (alloc.ratio)
-      stats = mkcl_cons(env, mkcl_cons(env, @'ratio', mkcl_make_unsigned_integer(env, alloc.ratio)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_ratio, mkcl_make_unsigned_integer(env, alloc.ratio)), stats);
     if (alloc.bignum)
-      stats = mkcl_cons(env, mkcl_cons(env, @'bignum', mkcl_make_unsigned_integer(env, alloc.bignum)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_bignum, mkcl_make_unsigned_integer(env, alloc.bignum)), stats);
     if (alloc.cons)
-      stats = mkcl_cons(env, mkcl_cons(env, @'cons', mkcl_make_unsigned_integer(env, alloc.cons)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_cons, mkcl_make_unsigned_integer(env, alloc.cons)), stats);
   }
   mkcl_return_value(stats);
 }

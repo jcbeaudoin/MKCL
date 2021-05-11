@@ -139,7 +139,7 @@ mkcl_object mk_cl_subseq(MKCL, mkcl_narg narg, mkcl_object sequence, mkcl_object
     mkcl_word s, e;
     mkcl_word i;
     mkcl_object end = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'listen', narg, 2, start, &end);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_listen, narg, 2, start, &end);
 
     s = mkcl_integer_to_index(env, start);
     if (mkcl_Null(end))
@@ -225,7 +225,7 @@ mkcl_object
 mk_cl_copy_seq(MKCL, mkcl_object x)
 {
   mkcl_call_stack_check(env);
-  return @subseq(env, 2, x, MKCL_MAKE_FIXNUM(0));
+  return mk_cl_subseq(env, 2, x, MKCL_MAKE_FIXNUM(0));
 }
 
 mkcl_object

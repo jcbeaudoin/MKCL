@@ -16,6 +16,7 @@
 */
 
 #include <mkcl/mkcl.h>
+#include <mkcl/internal.h>
 #include <mkcl/mkcl-inl.h>
 #include <string.h>
 
@@ -43,7 +44,7 @@ bool _mkcl_structure_subtypep(mkcl_object x, mkcl_object y)
       return(FALSE);
     if (x == y)
       return(TRUE);
-    x = mk_si_get_sysprop(x, @'si::structure-include');
+    x = mk_si_get_sysprop(x, MK_SI_structure_include);
   } while (x != mk_cl_Cnil);
   return(FALSE);
 }
@@ -64,7 +65,7 @@ mkcl_object mk_si_make_structure(MKCL, mkcl_narg narg, mkcl_object type, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'si::make-structure', 0, narg, type, args);
+    mkcl_setup_for_rest(env, MK_SI_make_structure, 0, narg, type, args);
 
     x = mkcl_alloc_raw_structure(env, type, --narg);
 
@@ -85,7 +86,7 @@ mkcl_copy_structure(MKCL, mkcl_object x)
   mkcl_object y;
 
   if (!mk_si_structurep(env, x))
-    mkcl_FEwrong_type_argument(env, @'structure', x);
+    mkcl_FEwrong_type_argument(env, MK_CL_structure, x);
   y = mkcl_alloc_object(env, MKCL_T_STRUCTURE);
   MKCL_STYPE(y) = MKCL_STYPE(x);
   MKCL_SLENGTH(y) = j = MKCL_SLENGTH(x);
@@ -103,16 +104,16 @@ mk_cl_copy_structure(MKCL, mkcl_object s)
   mkcl_call_stack_check(env);
   switch (mkcl_type_of(s)) {
   case mkcl_t_instance:
-    if (_mkcl_structure_subtypep(MKCL_CLASS_OF(s), @'structure-object'))
+    if (_mkcl_structure_subtypep(MKCL_CLASS_OF(s), MK_CL_structure_object))
       s = mkcl_copy_structure(env, s);
     else
-      mkcl_FEwrong_type_argument(env, @'structure', s);
+      mkcl_FEwrong_type_argument(env, MK_CL_structure, s);
     break;
   case mkcl_t_structure:
     s = mkcl_copy_structure(env, s);
     break;
   default:
-    mkcl_FEwrong_type_argument(env, @'structure', s);
+    mkcl_FEwrong_type_argument(env, MK_CL_structure, s);
   }
   mkcl_return_value(s);
 }
@@ -124,7 +125,7 @@ mk_si_structure_name(MKCL, mkcl_object s)
 {
   mkcl_call_stack_check(env);
   if (!mk_si_structurep(env, s))
-    mkcl_FEwrong_type_argument(env, @'structure', s);
+    mkcl_FEwrong_type_argument(env, MK_CL_structure, s);
   else
     { mkcl_return_value(MKCL_SNAME(s)); }
 }
@@ -134,7 +135,7 @@ mk_si_structure_length(MKCL, mkcl_object s)
 {
   mkcl_call_stack_check(env);
   if (!mk_si_structurep(env, s))
-    mkcl_FEwrong_type_argument(env, @'structure', s);
+    mkcl_FEwrong_type_argument(env, MK_CL_structure, s);
   else
     { mkcl_return_value(mkcl_make_unsigned_integer(env, MKCL_SLENGTH(s))); }
 }
@@ -142,7 +143,7 @@ mk_si_structure_length(MKCL, mkcl_object s)
 void
 mkcl_FEtype_error_structure_index(MKCL, mkcl_object s, mkcl_object ndx)
 {
-  mk_cl_error(env, 5, @'mkcl::invalid-slot', @':name', ndx, @':instance', s);
+  mk_cl_error(env, 5, MK_MKCL_invalid_slot, MK_KEY_name, ndx, MK_KEY_instance, s);
 }
 
 
@@ -180,7 +181,7 @@ mkcl_object
 mk_si_structurep(MKCL, mkcl_object s)
 {
   mkcl_call_stack_check(env);
-  if (MKCL_INSTANCEP(s) && _mkcl_structure_subtypep(MKCL_CLASS_OF(s), @'structure-object'))
+  if (MKCL_INSTANCEP(s) && _mkcl_structure_subtypep(MKCL_CLASS_OF(s), MK_CL_structure_object))
     { mkcl_return_value(mk_cl_Ct); }
 #if 0 /* !CLOS */
   if (mkcl_type_of(s) == mkcl_t_structure)

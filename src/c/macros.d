@@ -51,12 +51,12 @@ search_symbol_macro(MKCL, mkcl_object name, mkcl_object lex_env)
       {
         mkcl_object record = MKCL_CAR(lex_env);
         if (MKCL_CONSP(record) && MKCL_CAR(record) == name) {
-          if (mk_cl_cadr(env, record) == @'si::symbol-macro')
+          if (mk_cl_cadr(env, record) == MK_SI_symbol_macro)
             return mk_cl_caddr(env, record);
           return mk_cl_Cnil;
         }
       }
-  return mk_si_get_sysprop(env, name, @'si::symbol-macro');
+  return mk_si_get_sysprop(env, name, MK_SI_symbol_macro);
 }
 
 static mkcl_object
@@ -73,7 +73,7 @@ search_macro_function(MKCL, mkcl_object name, mkcl_object lex_env)
         if (MKCL_CONSP(record) && MKCL_CAR(record) == name)
           {
             const mkcl_object tag = mk_cl_cadr(env, record);
-            if (tag == @'si::macro')
+            if (tag == MK_SI_macro)
               return mk_cl_caddr(env, record);
             else
               return mk_cl_Cnil;
@@ -91,7 +91,7 @@ mkcl_object mk_cl_macro_function(MKCL, mkcl_narg narg, mkcl_object sym, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object lex_env = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'macro-function', narg, 1, sym, &lex_env);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_macro_function, narg, 1, sym, &lex_env);
 
     mkcl_return_value((search_macro_function(env, sym, lex_env)));
   }
@@ -109,7 +109,7 @@ mkcl_object mk_cl_macroexpand_1(MKCL, mkcl_narg narg, mkcl_object form, ...)
   {
     mkcl_object exp_fun = mk_cl_Cnil;
     mkcl_object lex_env = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'macroexpand-1', narg, 1, form, &lex_env);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_macroexpand_1, narg, 1, form, &lex_env);
 
     if (MKCL_ATOM(form))
       {
@@ -123,8 +123,8 @@ mkcl_object mk_cl_macroexpand_1(MKCL, mkcl_narg narg, mkcl_object form, ...)
           exp_fun = search_macro_function(env, head, lex_env);
       }
     if (!mkcl_Null(exp_fun)) {
-      mkcl_object hook = mkcl_symbol_value(env, @'*macroexpand-hook*');
-      if (hook == @'funcall')
+      mkcl_object hook = mkcl_symbol_value(env, MK_CL_DYNVAR_macroexpand_hook);
+      if (hook == MK_CL_funcall)
         form = mkcl_funcall2(env, exp_fun, form, lex_env);
       else
         form = mkcl_funcall3(env, hook, exp_fun, form, lex_env);
@@ -143,7 +143,7 @@ mkcl_object mk_cl_macroexpand(MKCL, mkcl_narg narg, mkcl_object form, ...)
   {
     mkcl_object done, old_form;
     mkcl_object lex_env = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'macroexpand', narg, 1, form, &lex_env);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_macroexpand, narg, 1, form, &lex_env);
 
     done = mk_cl_Cnil;
     do {
@@ -175,7 +175,7 @@ or_macro(MKCL, mkcl_object whole, mkcl_object lex_env)
     mkcl_return_value(MKCL_CAR(whole));
   /* (OR form1 ... formn forml) => (COND (form1) ... (formn) (t forml)) */
   output = MKCL_CONS(env, mk_cl_list(env, 2, mk_cl_Ct, MKCL_CAR(whole)), output);
-  mkcl_return_value(MKCL_CONS(env, @'cond', mk_cl_nreverse(env, output)));
+  mkcl_return_value(MKCL_CONS(env, MK_CL_cond, mk_cl_nreverse(env, output)));
 }
 
 static mkcl_object
@@ -185,7 +185,7 @@ expand_and(MKCL, mkcl_object whole)
     return mk_cl_Ct;
   if (mkcl_Null(MKCL_CDR(whole)))
     return MKCL_CAR(whole);
-  return mk_cl_list(env, 3, @'if', MKCL_CAR(whole), expand_and(env, MKCL_CDR(whole)));
+  return mk_cl_list(env, 3, MK_CL_if, MKCL_CAR(whole), expand_and(env, MKCL_CDR(whole)));
 }
 
 static mkcl_object
@@ -200,7 +200,7 @@ when_macro(MKCL, mkcl_object whole, mkcl_object lex_env)
   mkcl_object args = MKCL_CDR(whole);
   if (mkcl_endp(env, args))
     mkcl_FEprogram_error(env, "Syntax error: ~S.", 1, whole);
-  return mk_cl_list(env, 3, @'if', MKCL_CAR(args), MKCL_CONS(env, @'progn', MKCL_CDR(args)));
+  return mk_cl_list(env, 3, MK_CL_if, MKCL_CAR(args), MKCL_CONS(env, MK_CL_progn, MKCL_CDR(args)));
 }
 
 static mkcl_object
@@ -209,16 +209,16 @@ unless_macro(MKCL, mkcl_object whole, mkcl_object lex_env)
   mkcl_object args = MKCL_CDR(whole);
   if (mkcl_endp(env, args))
     mkcl_FEprogram_error(env, "Syntax error: ~S.", 1, whole);
-  return mk_cl_list(env, 3, @'if', mk_cl_list(env, 2, @'not', MKCL_CAR(args)), MKCL_CONS(env, @'progn', MKCL_CDR(args)));
+  return mk_cl_list(env, 3, MK_CL_if, mk_cl_list(env, 2, MK_CL_not, MKCL_CAR(args)), MKCL_CONS(env, MK_CL_progn, MKCL_CDR(args)));
 }
 
 void
 mkcl_init_macros(MKCL)
 {
-  MKCL_SET(@'*macroexpand-hook*', @'funcall');
-  mkcl_def_c_macro(env, @'or', or_macro, 2);
-  mkcl_def_c_macro(env, @'and', and_macro, 2);
-  mkcl_def_c_macro(env, @'when', when_macro, 2);
-  mkcl_def_c_macro(env, @'unless', unless_macro, 2);
+  MKCL_SET(MK_CL_DYNVAR_macroexpand_hook, MK_CL_funcall);
+  mkcl_def_c_macro(env, MK_CL_or, or_macro, 2);
+  mkcl_def_c_macro(env, MK_CL_and, and_macro, 2);
+  mkcl_def_c_macro(env, MK_CL_when, when_macro, 2);
+  mkcl_def_c_macro(env, MK_CL_unless, unless_macro, 2);
 }
 

@@ -29,7 +29,7 @@ mkcl_object mk_cl_X(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'*', 0, narg, narg, nums);
+    mkcl_setup_for_rest(env, MK_CL_X, 0, narg, narg, nums);
 
     /* INV: type check in mkcl_times() */
     while (narg--)
@@ -269,7 +269,7 @@ mkcl_object mk_cl_P(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'+', 0, narg, narg, nums);
+    mkcl_setup_for_rest(env, MK_CL_P, 0, narg, narg, nums);
 
     /* INV: type check is in mkcl_plus() */
     while (narg--)
@@ -495,7 +495,7 @@ mkcl_object mk_cl_M(MKCL, mkcl_narg narg, mkcl_object num, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'-', 1, narg, num, nums);
+    mkcl_setup_for_rest(env, MK_CL_M, 1, narg, num, nums);
 
     /* INV: argument type check in number_{negate,minus}() */
     if (narg == 1)
@@ -789,11 +789,11 @@ mkcl_object mk_cl_N(MKCL, mkcl_narg narg, mkcl_object num, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'/', 1, narg, num, nums);
+    mkcl_setup_for_rest(env, MK_CL_N, 1, narg, num, nums);
 
     /* INV: type check is in mkcl_divide() */
     if (narg == 0)
-      mkcl_FEwrong_num_arguments(env, @'/', 1, -1, narg);
+      mkcl_FEwrong_num_arguments(env, MK_CL_N, 1, -1, narg);
     if (narg == 1)
       { mkcl_va_end(nums); mkcl_return_value(mkcl_divide(env, MKCL_MAKE_FIXNUM(1), num)); }
     while (--narg)
@@ -1023,7 +1023,7 @@ mkcl_object mk_cl_gcd(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'gcd', 0, narg, narg, nums);
+    mkcl_setup_for_rest(env, MK_CL_gcd, 0, narg, narg, nums);
 
     if (narg == 0)
       { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(0)) }
@@ -1077,7 +1077,7 @@ mkcl_gcd(MKCL, mkcl_object x, mkcl_object y)
 
 /*  (1+ x)  */
 mkcl_object
-@1+(MKCL, mkcl_object x)
+mk_cl_1P(MKCL, mkcl_object x)
 {
   /* INV: type check is in mkcl_one_plus() */
   mkcl_return_value(mkcl_one_plus(env, x));
@@ -1130,7 +1130,7 @@ mkcl_one_plus(MKCL, mkcl_object x)
 
 /*  (1-	x)  */
 mkcl_object
-@1-(MKCL, mkcl_object x)
+mk_cl_1M(MKCL, mkcl_object x)
 {	/* INV: type check is in mkcl_one_minus() */
   mkcl_return_value(mkcl_one_minus(env, x));
 }
@@ -1186,7 +1186,7 @@ mkcl_object mk_cl_lcm(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'lcm', 0, narg, narg, nums);
+    mkcl_setup_for_rest(env, MK_CL_lcm, 0, narg, narg, nums);
 
     if (narg == 0)
       { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(1)); }

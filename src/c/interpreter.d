@@ -634,7 +634,7 @@ mkcl_interpret(MKCL, mkcl_object frame, mkcl_object lex_env, mkcl_object bytecod
       if (frame_index < frame->frame.size)
 	mkcl_FEprogram_error(env, "Too many arguments passed to "
 			"function ~A~&Argument list: ~S",
-			2, bytecode, mk_cl_apply(env, 2, @'list', frame));
+			2, bytecode, mk_cl_apply(env, 2, MK_CL_list, frame));
       THREAD_NEXT;
     }
     /* OP_POPREST
@@ -686,7 +686,7 @@ mkcl_interpret(MKCL, mkcl_object frame, mkcl_object lex_env, mkcl_object bytecod
 	  int aok = 0, mask = 1;
 	  mkcl_object *p = first;
 	  for (; p != last; ++p) {
-	    if (*(p++) == @':allow-other-keys') {
+	    if (*(p++) == MK_KEY_allow_other_keys) {
 	      if (!mkcl_Null(*p)) aok |= mask;
 	      mask <<= 1;
 	      count -= 2;
@@ -697,7 +697,7 @@ mkcl_interpret(MKCL, mkcl_object frame, mkcl_object lex_env, mkcl_object bytecod
 				 "passed to function ~S.~&"
 				 "Argument list: ~S",
 				 2, bytecode,
-				 mk_cl_apply(env, 2, @'list', frame));
+				 mk_cl_apply(env, 2, MK_CL_list, frame));
 	  }
 	}
       }
@@ -1298,7 +1298,7 @@ mkcl_interpret(MKCL, mkcl_object frame, mkcl_object lex_env, mkcl_object bytecod
 
     CASE(OP_STEPIN); {
       mkcl_object form;
-      mkcl_object a = MKCL_SYM_VAL(env, @'si::*step-action*');
+      mkcl_object a = MKCL_SYM_VAL(env, MK_SI_DYNVAR_step_action);
       mkcl_index n;
       GET_DATA(form, vector, data);
       SETUP_ENV(env);
@@ -1307,15 +1307,15 @@ mkcl_interpret(MKCL, mkcl_object frame, mkcl_object lex_env, mkcl_object bytecod
       if (a == mk_cl_Ct) {
 	/* We are stepping in, but must first ask the user
 	 * what to do. */
-	MKCL_SETQ(env, @'si::*step-level*',
-		 mk_cl_1P(env, MKCL_SYM_VAL(env, @'si::*step-level*')));
+	MKCL_SETQ(env, MK_SI_DYNVAR_step_level,
+		 mk_cl_1P(env, MKCL_SYM_VAL(env, MK_SI_DYNVAR_step_level)));
 	MKCL_TEMP_STACK_PUSH(env, form);
-	INTERPRET_FUNCALL(form, env, frame_aux, 1, @'si::stepper');
+	INTERPRET_FUNCALL(form, env, frame_aux, 1, MK_SI_stepper);
       } else if (a != mk_cl_Cnil) {
 	/* The user told us to step over. *step-level* contains
 	 * an integer number that, when it becomes 0, means
 	 * that we have finished stepping over. */
-	MKCL_SETQ(env, @'si::*step-action*', mk_cl_1P(env, a));
+	MKCL_SETQ(env, MK_SI_DYNVAR_step_action, mk_cl_1P(env, a));
       } else {
 	/* We are not inside a STEP form. This should
 	 * actually never happen. */
@@ -1331,28 +1331,28 @@ mkcl_interpret(MKCL, mkcl_object frame, mkcl_object lex_env, mkcl_object bytecod
       mkcl_word n;
       GET_OPARG(n, vector);
       SETUP_ENV(env);
-      if (MKCL_SYM_VAL(env, @'si::*step-action*') == mk_cl_Ct) {
+      if (MKCL_SYM_VAL(env, MK_SI_DYNVAR_step_action) == mk_cl_Ct) {
 	MKCL_TEMP_STACK_PUSH(env, reg0);
-	INTERPRET_FUNCALL(reg0, env, frame_aux, 1, @'si::stepper');
+	INTERPRET_FUNCALL(reg0, env, frame_aux, 1, MK_SI_stepper);
       }
       INTERPRET_FUNCALL(reg0, env, frame_aux, n, reg0);
     }
     CASE(OP_STEPOUT); {
-      mkcl_object a = MKCL_SYM_VAL(env, @'si::*step-action*');
+      mkcl_object a = MKCL_SYM_VAL(env, MK_SI_DYNVAR_step_action);
       mkcl_index n;
       SETUP_ENV(env);
       env->values[0] = reg0;
       n = mkcl_stack_push_values(env);
       if (a == mk_cl_Ct) {
 	/* We exit one stepping level */
-	MKCL_SETQ(env, @'si::*step-level*',
-		 mk_cl_1M(env, MKCL_SYM_VAL(env, @'si::*step-level*')));
+	MKCL_SETQ(env, MK_SI_DYNVAR_step_level,
+		 mk_cl_1M(env, MKCL_SYM_VAL(env, MK_SI_DYNVAR_step_level)));
       } else if (a == MKCL_MAKE_FIXNUM(0)) {
 	/* We are back to the level in which the user
 	 * selected to step over. */
-	MKCL_SETQ(env, @'si::*step-action*', mk_cl_Ct);
+	MKCL_SETQ(env, MK_SI_DYNVAR_step_action, mk_cl_Ct);
       } else if (a != mk_cl_Cnil) {
-	MKCL_SETQ(env, @'si::*step-action*', mk_cl_1M(env, a));
+	MKCL_SETQ(env, MK_SI_DYNVAR_step_action, mk_cl_1M(env, a));
       } else {
 	/* Not stepping, nothing to be done. */
       }

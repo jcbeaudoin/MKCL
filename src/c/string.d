@@ -18,6 +18,7 @@
 
 
 #include <mkcl/mkcl.h>
+#include <mkcl/internal.h>
 #include <string.h>
 #include <mkcl/mkcl-inl.h>
 
@@ -116,22 +117,22 @@ mkcl_object mk_cl_make_string(MKCL, mkcl_narg narg, mkcl_object size, ...)
     mkcl_index s;
     mkcl_object x;
     mkcl_object initial_element = MKCL_CODE_CHAR(' ');
-    mkcl_object element_type = @'character';
+    mkcl_object element_type = MK_CL_character;
 
-    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, @'make-string', narg, 1, size, @':initial-element', &initial_element, @':element-type', &element_type);
+    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, MK_CL_make_string, narg, 1, size, MK_KEY_initial_element, &initial_element, MK_KEY_element_type, &element_type);
 
     s = mkcl_to_array_index(env, size);
     /* INV: mkcl_[base_]char_code() checks the type of initial_element() */
-    if (element_type == @'base-char' || element_type == @'standard-char') {
+    if (element_type == MK_CL_base_char || element_type == MK_CL_standard_char) {
       int code = mkcl_base_char_code(env, initial_element);
       x = do_make_base_string(env, s, code);
-    } else if (element_type == @'character') {
+    } else if (element_type == MK_CL_character) {
       mkcl_index code = mkcl_char_code(env, initial_element);
       x = do_make_string(env, s, code);
-    } else if (mkcl_funcall2(env, @+'subtypep', element_type, @'base-char') == mk_cl_Ct) {
+    } else if (mkcl_funcall2(env, MK_CL_subtypep->symbol.gfdef, element_type, MK_CL_base_char) == mk_cl_Ct) {
       int code = mkcl_base_char_code(env, initial_element);
       x = do_make_base_string(env, s, code);
-    } else if (mkcl_funcall2(env, @+'subtypep', element_type, @'character') == mk_cl_Ct) {
+    } else if (mkcl_funcall2(env, MK_CL_subtypep->symbol.gfdef, element_type, MK_CL_character) == mk_cl_Ct) {
       mkcl_index code = mkcl_char_code(env, initial_element);
       x = do_make_string(env, s, code);
     } else {
@@ -317,7 +318,7 @@ mkcl_fits_in_base_string(MKCL, mkcl_object s)
   case mkcl_t_base_string:
     return true;
   default:
-    s = mkcl_type_error(env, @'si::copy-to-simple-base-string',"",s,@'string');
+    s = mkcl_type_error(env, MK_SI_copy_to_simple_base_string, "", s, MK_CL_string);
     goto AGAIN;
   }
 }
@@ -396,7 +397,7 @@ mk_si_copy_to_simple_base_string(MKCL, mkcl_object x)
     x = mk_cl_Cnil_symbol->symbol.name;
     goto AGAIN;
   default:
-    x = mkcl_type_error(env, @'si::copy-to-simple-base-string', "", x, @'string');
+    x = mkcl_type_error(env, MK_SI_copy_to_simple_base_string, "", x, MK_CL_string);
     goto AGAIN;
   }
   mkcl_return_value(y);
@@ -461,7 +462,7 @@ mkcl_coerce_to_simple_base_string(MKCL, mkcl_object x) /* This one always return
     y = mkcl_coerce_list_to_simple_base_string(env, x);
     break;
   default:
-    x = mkcl_type_error(env, @'si::coerce-to-base-string', "", x, @'string');
+    x = mkcl_type_error(env, MK_SI_coerce_to_base_string, "", x, MK_CL_string);
     goto AGAIN;
   }
   mkcl_return_value(y);
@@ -524,7 +525,7 @@ mk_si_copy_to_simple_string(MKCL, mkcl_object x)
     x = mk_cl_Cnil_symbol->symbol.name;
     goto AGAIN;
   default:
-    x = mkcl_type_error(env, @'si::copy-to-simple-string', "", x, @'string');
+    x = mkcl_type_error(env, MK_SI_copy_to_simple_string, "", x, MK_CL_string);
     goto AGAIN;
   }
   mkcl_return_value(y);
@@ -577,7 +578,7 @@ mk_cl_string(MKCL, mkcl_object x)
     break;
   }
   default:
-    x = mkcl_type_error(env, @'string', "", x, @'string');
+    x = mkcl_type_error(env, MK_CL_string, "", x, MK_CL_string);
     goto AGAIN;
   }
   mkcl_return_value(x);
@@ -665,7 +666,7 @@ mkcl_coerce_to_simple_character_string(MKCL, mkcl_object x) /* This one always r
       y = mkcl_coerce_list_to_simple_string(env, x);
       break;
     default:
-      x = mkcl_type_error(env, @'si::coerce-to-character-string', "", x, @'string');
+      x = mkcl_type_error(env, MK_SI_coerce_to_character_string, "", x, MK_CL_string);
       goto AGAIN;
     }
   mkcl_return_value(y);
@@ -709,7 +710,7 @@ mk_cl_char(MKCL, mkcl_object object, mkcl_object index)
 	  mkcl_return_value(MKCL_CODE_CHAR(object->base_string.self[i]));
 	}
     default:
-      object = mkcl_type_error(env, @'char',"",object,@'string');
+      object = mkcl_type_error(env, MK_CL_char,"",object,MK_CL_string);
       break;
     }
 }
@@ -730,7 +731,7 @@ mkcl_char(MKCL, mkcl_object object, mkcl_index index)
 	mkcl_FEillegal_index(env, object, MKCL_MAKE_FIXNUM(index));
       return object->base_string.self[index];
     default:
-      object = mkcl_type_error(env, @'char',"",object,@'string');
+      object = mkcl_type_error(env, MK_CL_char,"",object,MK_CL_string);
       break;
     }
 }
@@ -771,7 +772,7 @@ mk_si_char_set(MKCL, mkcl_object object, mkcl_object index, mkcl_object value)
 	if (MKCL_BASE_CHAR_P(value))
 	  c = MKCL_CHAR_CODE(value);
 	else
-	  mkcl_FEwrong_type_argument(env, @'base-char', value);
+	  mkcl_FEwrong_type_argument(env, MK_CL_base_char, value);
 	
 	if (MKCL_FIXNUMP(index) && ((i = mkcl_fixnum_to_word(index)) < object->base_string.dim))
 	  {
@@ -786,7 +787,7 @@ mk_si_char_set(MKCL, mkcl_object object, mkcl_object index, mkcl_object value)
 	  }
       }
     default:
-      object = mkcl_type_error(env, @'char',"",object,@'string');
+      object = mkcl_type_error(env, MK_CL_char,"",object,MK_CL_string);
       break;
     }
 }
@@ -806,7 +807,7 @@ mkcl_char_set(MKCL, mkcl_object object, mkcl_index index, mkcl_character value)
       mkcl_FEillegal_index(env, object, MKCL_MAKE_FIXNUM(index));
     return object->base_string.self[index] = value;
   default:
-    object = mkcl_type_error(env, @'si::char-set', "", object, @'string');
+    object = mkcl_type_error(env, MK_SI_char_set, "", object, MK_CL_string);
     goto AGAIN;
   }
 }
@@ -917,7 +918,7 @@ mkcl_object mk_cl_stringE(MKCL, mkcl_narg narg, mkcl_object string1, mkcl_object
     mkcl_object end1 = mk_cl_Cnil;
     mkcl_object start2 = MKCL_MAKE_FIXNUM(0);
     mkcl_object end2 = mk_cl_Cnil;
-    MKCL_RECEIVE_4_KEYWORD_ARGUMENTS(env, @'string=', narg, 2, string2, @':start1', &start1, @':end1', &end1, @':start2', &start2, @':end2', &end2);
+    MKCL_RECEIVE_4_KEYWORD_ARGUMENTS(env, MK_CL_stringE, narg, 2, string2, MK_KEY_start1, &start1, MK_KEY_end1, &end1, MK_KEY_start2, &start2, MK_KEY_end2, &end2);
 
     /* AGAIN: */
     string1 = mk_cl_string(env, string1);
@@ -991,7 +992,7 @@ mkcl_string_E(MKCL, mkcl_object x, mkcl_object y)
       return TRUE;
     }
     default:
-      y = mkcl_type_error(env, @'string=', "", y, @'string');
+      y = mkcl_type_error(env, MK_CL_stringE, "", y, MK_CL_string);
       goto AGAIN;
     }
     break;
@@ -1014,12 +1015,12 @@ mkcl_string_E(MKCL, mkcl_object x, mkcl_object y)
       return memcmp(x->base_string.self, y->base_string.self, i) == 0;
     }
     default:
-      y = mkcl_type_error(env, @'string=', "", y, @'string');
+      y = mkcl_type_error(env, MK_CL_stringE, "", y, MK_CL_string);
       goto AGAIN;
     }
     break;
   default:
-    x = mkcl_type_error(env, @'string=', "", x, @'string');
+    x = mkcl_type_error(env, MK_CL_stringE, "", x, MK_CL_string);
     goto AGAIN;
   }
 }
@@ -1037,7 +1038,7 @@ mkcl_object mk_cl_string_equal(MKCL, mkcl_narg narg, mkcl_object string1, mkcl_o
     mkcl_object start2 = MKCL_MAKE_FIXNUM(0);
     mkcl_object end2 = mk_cl_Cnil;
 
-    MKCL_RECEIVE_4_KEYWORD_ARGUMENTS(env, @'string-equal', narg, 2, string2, @':start1', &start1, @':end1', &end1, @':start2', &start2, @':end2', &end2);
+    MKCL_RECEIVE_4_KEYWORD_ARGUMENTS(env, MK_CL_string_equal, narg, 2, string2, MK_KEY_start1, &start1, MK_KEY_end1, &end1, MK_KEY_start2, &start2, MK_KEY_end2, &end2);
 
     /* AGAIN: */
     string1 = mk_cl_string(env, string1);
@@ -1074,10 +1075,10 @@ string_compare(MKCL, mkcl_narg narg, int sign1, int sign2, int case_sensitive, m
   mkcl_object KEY_VARS[8];
 
   if (narg < 2) mkcl_FEwrong_num_arguments_anonym(env, 2, -1, narg);
-  KEYS[0]=@':start1';
-  KEYS[1]=@':end1';
-  KEYS[2]=@':start2';
-  KEYS[3]=@':end2';
+  KEYS[0]=MK_KEY_start1;
+  KEYS[1]=MK_KEY_end1;
+  KEYS[2]=MK_KEY_start2;
+  KEYS[3]=MK_KEY_end2;
   mkcl_parse_key(env, ARGS, 4, KEYS, KEY_VARS, NULL, FALSE, FALSE);
 
   string1 = mk_cl_string(env, string1);
@@ -1113,7 +1114,7 @@ mkcl_object mk_cl_stringL(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'string<', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_stringL, 0, narg, narg, args);
 
     return string_compare(env, narg, -1, -1, 1, args);
   }
@@ -1123,7 +1124,7 @@ mkcl_object mk_cl_stringG(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'string>', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_stringG, 0, narg, narg, args);
 
     return string_compare(env, narg, +1, +1, 1, args);
   }
@@ -1133,7 +1134,7 @@ mkcl_object mk_cl_stringLE(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'string<=', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_stringLE, 0, narg, narg, args);
 
     return string_compare(env, narg, -1, 0, 1, args);
   }
@@ -1143,7 +1144,7 @@ mkcl_object mk_cl_stringGE(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'string>=', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_stringGE, 0, narg, narg, args);
 
     return string_compare(env, narg, 0, +1, 1, args);
   }
@@ -1154,7 +1155,7 @@ mkcl_object mk_cl_stringNE(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'string/=', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_stringNE, 0, narg, narg, args);
 
     return string_compare(env, narg, -1, +1, 1, args);
   }
@@ -1164,7 +1165,7 @@ mkcl_object mk_cl_string_lessp(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'string-lessp', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_string_lessp, 0, narg, narg, args);
 
     return string_compare(env, narg, -1, -1, 0, args);
   }
@@ -1174,7 +1175,7 @@ mkcl_object mk_cl_string_greaterp(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'string-greaterp', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_string_greaterp, 0, narg, narg, args);
 
   return string_compare(env, narg, +1, +1, 0, args);
   }
@@ -1184,7 +1185,7 @@ mkcl_object mk_cl_string_not_greaterp(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'string-not-greaterp', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_string_not_greaterp, 0, narg, narg, args);
 
     return string_compare(env, narg, -1, 0, 0, args);
   }
@@ -1194,7 +1195,7 @@ mkcl_object mk_cl_string_not_lessp(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'string-not-lessp', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_string_not_lessp, 0, narg, narg, args);
 
     return string_compare(env, narg, 0, +1, 0, args);
   }
@@ -1204,7 +1205,7 @@ mkcl_object mk_cl_string_not_equal(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'string-not-equal', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_string_not_equal, 0, narg, narg, args);
 
     return string_compare(env, narg, -1, +1, 0, args);
   }
@@ -1213,8 +1214,8 @@ mkcl_object mk_cl_string_not_equal(MKCL, mkcl_narg narg, ...)
 
 mkcl_object mkcl_base_string_L(MKCL, mkcl_object str1, mkcl_object str2)
 { /* returns the "mismatch-index" on success or ((mkcl_index)-1) on failure. */
-  while (mkcl_unlikely(!MKCL_STRINGP(str1))) str1 = mkcl_type_error(env, @'string=', "", str1, @'string');
-  while (mkcl_unlikely(!MKCL_STRINGP(str2))) str2 = mkcl_type_error(env, @'string=', "", str2, @'string');
+  while (mkcl_unlikely(!MKCL_STRINGP(str1))) str1 = mkcl_type_error(env, MK_CL_stringE, "", str1, MK_CL_string);
+  while (mkcl_unlikely(!MKCL_STRINGP(str2))) str2 = mkcl_type_error(env, MK_CL_stringE, "", str2, MK_CL_string);
 
   mkcl_index i = str1->base_string.fillp;
   mkcl_index j = str2->base_string.fillp;
@@ -1264,7 +1265,7 @@ mkcl_member_char(MKCL, mkcl_character c, mkcl_object char_bag)
     mkcl_loop_for_in(env, char_bag) {
       mkcl_object other = MKCL_CAR(char_bag);
       while (!MKCL_CHARACTERP(other))
-        other = mkcl_type_error(env, @'member', "", other, @'character');
+        other = mkcl_type_error(env, MK_CL_member, "", other, MK_CL_character);
       if (c == MKCL_CHAR_CODE(other))
 	return(TRUE);
     } mkcl_end_loop_for_in;
@@ -1276,7 +1277,7 @@ mkcl_member_char(MKCL, mkcl_character c, mkcl_object char_bag)
         for (i = 0, f = char_bag->vector.fillp;  i < f;  i++) {
           mkcl_object other = char_bag->vector.self.t[i];
           while (!MKCL_CHARACTERP(other))
-            other = mkcl_type_error(env, @'member', "", other, @'character');
+            other = mkcl_type_error(env, MK_CL_member, "", other, MK_CL_character);
           if (c == MKCL_CHAR_CODE(other))
             return(TRUE);
         }
@@ -1294,7 +1295,7 @@ mkcl_member_char(MKCL, mkcl_character c, mkcl_object char_bag)
         }
         return(FALSE);
       default:
-        char_bag = mkcl_type_error(env, @'member', "", char_bag, @'sequence');
+        char_bag = mkcl_type_error(env, MK_CL_member, "", char_bag, MK_CL_sequence);
         goto AGAIN;
       }
   case mkcl_t_string:
@@ -1312,7 +1313,7 @@ mkcl_member_char(MKCL, mkcl_character c, mkcl_object char_bag)
   case mkcl_t_bitvector:
     return(FALSE);
   default:
-    char_bag = mkcl_type_error(env, @'member',"",char_bag,@'sequence');
+    char_bag = mkcl_type_error(env, MK_CL_member,"",char_bag,MK_CL_sequence);
     goto AGAIN;
   }
 }
@@ -1378,8 +1379,8 @@ string_case(MKCL, mkcl_narg narg, mkcl_casefun casefun, mkcl_va_list ARGS)
   mkcl_object KEY_VARS[4];
 
   if (narg < 1) mkcl_FEwrong_num_arguments_anonym(env, 1, -1, narg);
-  KEYS[0]=@':start';
-  KEYS[1]=@':end';
+  KEYS[0]=MK_KEY_start;
+  KEYS[1]=MK_KEY_end;
   mkcl_parse_key(env, ARGS, 2, KEYS, KEY_VARS, NULL, FALSE, FALSE);
 
   strng = mk_cl_string(env, strng);
@@ -1416,7 +1417,7 @@ mkcl_object mk_cl_string_upcase(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'string-upcase', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_string_upcase, 0, narg, narg, args);
 
     return string_case(env, narg, char_upcase, args);
   }
@@ -1432,7 +1433,7 @@ mkcl_object mk_cl_string_downcase(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'string-downcase', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_string_downcase, 0, narg, narg, args);
 
     return string_case(env, narg, char_downcase, args);
   }
@@ -1459,7 +1460,7 @@ mkcl_object mk_cl_string_capitalize(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'string-capitalize', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_string_capitalize, 0, narg, narg, args);
 
     return string_case(env, narg, char_capitalize, args);
   }
@@ -1479,8 +1480,8 @@ nstring_case(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_casefun casefun, mkcl_v
   mkcl_object KEY_VARS[4];
 
   if (narg < 1) mkcl_FEwrong_num_arguments_anonym(env, 1, -1, narg);
-  KEYS[0]=@':start';
-  KEYS[1]=@':end';
+  KEYS[0]=MK_KEY_start;
+  KEYS[1]=MK_KEY_end;
   mkcl_parse_key(env, ARGS, 2, KEYS, KEY_VARS, NULL, FALSE, FALSE);
 
   strng = mkcl_check_type_string(env, fun,strng);
@@ -1505,9 +1506,9 @@ mkcl_object mk_cl_nstring_upcase(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'nstring-upcase', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_nstring_upcase, 0, narg, narg, args);
 
-    return nstring_case(env, narg, @'nstring-upcase', char_upcase, args);
+    return nstring_case(env, narg, MK_CL_nstring_upcase, char_upcase, args);
   }
 }
 
@@ -1515,9 +1516,9 @@ mkcl_object mk_cl_nstring_downcase(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'nstring-downcase', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_nstring_downcase, 0, narg, narg, args);
 
-    return nstring_case(env, narg, @'nstring-downcase', char_downcase, args);
+    return nstring_case(env, narg, MK_CL_nstring_downcase, char_downcase, args);
   }
 }
 
@@ -1525,9 +1526,9 @@ mkcl_object mk_cl_nstring_capitalize(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'nstring-capitalize', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_CL_nstring_capitalize, 0, narg, narg, args);
 
-    return nstring_case(env, narg, @'nstring-capitalize', char_capitalize, args);
+    return nstring_case(env, narg, MK_CL_nstring_capitalize, char_capitalize, args);
   }
 }
 
@@ -1537,7 +1538,7 @@ mkcl_object mk_si_concatenate_base_strings(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'si::concatenate-base-strings', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_SI_concatenate_base_strings, 0, narg, narg, args);
 
     if (narg == 1) {
       mkcl_object arg = mkcl_va_arg(args);
@@ -1626,7 +1627,7 @@ mkcl_object mk_si_concatenate_strings(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'si::concatenate-strings', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_SI_concatenate_strings, 0, narg, narg, args);
 
     if (narg == 1) {
       mkcl_object arg = mkcl_va_arg(args);
@@ -2561,12 +2562,12 @@ mkcl_object mk_si_utf_8(MKCL, mkcl_object string)
 	  }
 	  break;
 	default:
-	  string = mkcl_type_error(env, @'si::utf-8', "", string, mk_cl_list(env, 3, @'or', @'string', @'mkcl::octets'));
+	  string = mkcl_type_error(env, MK_SI_utf_8, "", string, mk_cl_list(env, 3, MK_CL_or, MK_CL_string, MK_MKCL_octets));
 	  break;
 	}
       break;
     default:
-      string = mkcl_type_error(env, @'si::utf-8', "", string, @'string');
+      string = mkcl_type_error(env, MK_SI_utf_8, "", string, MK_CL_string);
       break;
     }
 }
@@ -2580,7 +2581,7 @@ mkcl_object mk_si_utf_8_length(MKCL, mkcl_object utf_8)
 {
   mkcl_call_stack_check(env);
   while(!MKCL_UTF_8_P(utf_8))
-    utf_8 = mkcl_type_error(env, @'si::utf-8-length', "", utf_8, @'si::utf-8');
+    utf_8 = mkcl_type_error(env, MK_SI_utf_8_length, "", utf_8, MK_SI_utf_8);
 
   mkcl_return_value(MKCL_MAKE_FIXNUM(utf_8->UTF_8.fillp));
 }
@@ -2619,7 +2620,7 @@ mkcl_object mk_si_utf_8_as_is(MKCL, mkcl_object string)
 	mkcl_return_value(utf_8);
       }
     default:
-      string = mkcl_type_error(env, @'si::utf-8-as-is', "", string, @'string');
+      string = mkcl_type_error(env, MK_SI_utf_8_as_is, "", string, MK_CL_string);
       break;
     }
 }
@@ -2700,12 +2701,12 @@ mkcl_object mk_si_utf_8_char(MKCL, mkcl_object utf_8, mkcl_object index_fix)
 
   mkcl_call_stack_check(env);
   while(!MKCL_UTF_8_P(utf_8))
-    utf_8 = mkcl_type_error(env, @'si::utf-8-char', "", utf_8, @'si::utf-8');
+    utf_8 = mkcl_type_error(env, MK_SI_utf_8_char, "", utf_8, MK_SI_utf_8);
 
   mkcl_index dim = utf_8->UTF_8.fillp;
 
   while(!(MKCL_FIXNUMP(index_fix) && ((index = mkcl_fixnum_to_word(index_fix)) < dim)))
-    index_fix = mkcl_out_of_bounds_error(env, @'si::utf-8-char', "index", index_fix, 0, dim);
+    index_fix = mkcl_out_of_bounds_error(env, MK_SI_utf_8_char, "index", index_fix, 0, dim);
 
   mkcl_return_3_values(MKCL_CODE_CHAR(mkcl_utf_8_char(env, utf_8, index, &next, &invalid)),
                        ((next < dim) ? MKCL_MAKE_FIXNUM(next) : mk_cl_Cnil),
@@ -2720,7 +2721,7 @@ mkcl_object mk_si_utf_8Plus(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'si::utf-8+', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_SI_utf_8P, 0, narg, narg, args);
 
     if (narg == 1) {
       mkcl_object s = mkcl_va_arg(args);
@@ -2770,10 +2771,10 @@ mkcl_object mk_si_utf_8E(MKCL, mkcl_object u1, mkcl_object u2)
 {
   mkcl_call_stack_check(env);
   while(!MKCL_UTF_8_P(u1))
-    u1 = mkcl_type_error(env, @'si::utf-8=', "", u1, @'si::utf-8');
+    u1 = mkcl_type_error(env, MK_SI_utf_8E, "", u1, MK_SI_utf_8);
 
   while(!MKCL_UTF_8_P(u2))
-    u2 = mkcl_type_error(env, @'si::utf-8=', "", u2, @'si::utf-8');
+    u2 = mkcl_type_error(env, MK_SI_utf_8E, "", u2, MK_SI_utf_8);
 
   mkcl_index dim = u1->UTF_8.fillp;
 
@@ -2929,7 +2930,7 @@ mkcl_object mk_si_utf_16_length(MKCL, mkcl_object utf_16)
 {
   mkcl_call_stack_check(env);
   while(!MKCL_UTF_16_P(utf_16))
-    utf_16 = mkcl_type_error(env, @'si::utf-16-length', "", utf_16, @'si::utf-16');
+    utf_16 = mkcl_type_error(env, MK_SI_utf_16_length, "", utf_16, MK_SI_utf_16);
 
   mkcl_return_value(MKCL_MAKE_FIXNUM(utf_16->UTF_16.fillp));
 }
@@ -3054,12 +3055,12 @@ mkcl_object mk_si_utf_16(MKCL, mkcl_object string)
 	  }
 	  break;
 	default:
-	  string = mkcl_type_error(env, @'si::utf-16', "", string, mk_cl_list(env, 3, @'or', @'string', @'mkcl::double-octets'));
+	  string = mkcl_type_error(env, MK_SI_utf_16, "", string, mk_cl_list(env, 3, MK_CL_or, MK_CL_string, MK_MKCL_double_octets));
 	  break;
 	}
       break;
     default:
-      string = mkcl_type_error(env, @'si::utf-16', "", string, @'string');
+      string = mkcl_type_error(env, MK_SI_utf_16, "", string, MK_CL_string);
       break;
     }
 }
@@ -3101,7 +3102,7 @@ mkcl_object mk_si_utf_16_as_is(MKCL, mkcl_object string)
 	mkcl_return_value(utf_16);
       }
     default:
-      string = mkcl_type_error(env, @'si::utf-16-as-is', "", string, @'string');
+      string = mkcl_type_error(env, MK_SI_utf_16_as_is, "", string, MK_CL_string);
       break;
     }
 }
@@ -3188,12 +3189,12 @@ mkcl_object mk_si_utf_16_char(MKCL, mkcl_object utf_16, mkcl_object index_fix)
 
   mkcl_call_stack_check(env);
   while(!MKCL_UTF_16_P(utf_16))
-    utf_16 = mkcl_type_error(env, @'si::utf-16-char', "", utf_16, @'si::utf-16');
+    utf_16 = mkcl_type_error(env, MK_SI_utf_16_char, "", utf_16, MK_SI_utf_16);
 
   mkcl_index dim = utf_16->UTF_16.dim;
 
   while(!(MKCL_FIXNUMP(index_fix) && ((index = mkcl_fixnum_to_word(index_fix)) < dim)))
-    index_fix = mkcl_out_of_bounds_error(env, @'si::utf-16-char', "index", index_fix, 0, dim);
+    index_fix = mkcl_out_of_bounds_error(env, MK_SI_utf_16_char, "index", index_fix, 0, dim);
 
   mkcl_return_3_values(MKCL_CODE_CHAR(mkcl_utf_16_char(env, utf_16, index, &next, &invalid)),
                        MKCL_MAKE_FIXNUM(next),
@@ -3208,7 +3209,7 @@ mkcl_object mk_si_utf_16Plus(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'si::utf-16+', 0, narg, narg, args);
+    mkcl_setup_for_rest(env, MK_SI_utf_16P, 0, narg, narg, args);
 
     if (narg == 1) {
       mkcl_object s = mkcl_va_arg(args);
@@ -3268,10 +3269,10 @@ mkcl_object mk_si_utf_16E(MKCL, mkcl_object u1, mkcl_object u2)
 {
   mkcl_call_stack_check(env);
   while(!MKCL_UTF_16_P(u1))
-    u1 = mkcl_type_error(env, @'si::utf-16=', "", u1, @'si::utf-16');
+    u1 = mkcl_type_error(env, MK_SI_utf_16E, "", u1, MK_SI_utf_16);
 
   while(!MKCL_UTF_16_P(u2))
-    u2 = mkcl_type_error(env, @'si::utf-16=', "", u2, @'si::utf-16');
+    u2 = mkcl_type_error(env, MK_SI_utf_16E, "", u2, MK_SI_utf_16);
 
   mkcl_index dim = u1->UTF_16.fillp;
 
@@ -3347,16 +3348,16 @@ mkcl_object mkcl_cstring16_copy_to_utf_16(MKCL, const mkcl_char16 * str)
 
 bool mkcl_os_string_format_is_utf_8_p(MKCL)
 {
-  return (@':UTF-8' == mkcl_symbol_value(env, @'si::*os-string-format*'));
+  return (MK_KEY_utf_8 == mkcl_symbol_value(env, MK_SI_DYNVAR_os_string_format));
 }
 
 
 #ifndef mkcl_alloc_OSstring
 mkcl_object mkcl_alloc_OSstring(MKCL, mkcl_index size)
 {
-  mkcl_object external_format = mkcl_symbol_value(env, @'si::*os-string-format*');
+  mkcl_object external_format = mkcl_symbol_value(env, MK_SI_DYNVAR_os_string_format);
 
-  if (external_format == @':UTF-8')
+  if (external_format == MK_KEY_utf_8)
     return mkcl_alloc_utf_8(env, size);
   else
     return mkcl_alloc_adjustable_base_string(env, size);
@@ -3365,9 +3366,9 @@ mkcl_object mkcl_alloc_OSstring(MKCL, mkcl_index size)
 
 mkcl_object mkcl_cstring_to_OSstring(MKCL, char * str)
 {
-  mkcl_object external_format = mkcl_symbol_value(env, @'si::*os-string-format*');
+  mkcl_object external_format = mkcl_symbol_value(env, MK_SI_DYNVAR_os_string_format);
 
-  if (external_format == @':UTF-8')
+  if (external_format == MK_KEY_utf_8)
     return mkcl_cstring_to_utf_8(env, str);
   else
     return mkcl_make_adjustable_base_string(env, str);
@@ -3375,9 +3376,9 @@ mkcl_object mkcl_cstring_to_OSstring(MKCL, char * str)
 
 mkcl_object mkcl_cstring_copy_to_OSstring(MKCL, char * str)
 {
-  mkcl_object external_format = mkcl_symbol_value(env, @'si::*os-string-format*');
+  mkcl_object external_format = mkcl_symbol_value(env, MK_SI_DYNVAR_os_string_format);
 
-  if (external_format == @':UTF-8')
+  if (external_format == MK_KEY_utf_8)
     return mkcl_cstring_copy_to_utf_8(env, str);
   else
     return mkcl_make_adjustable_base_string_copy(env, str);
@@ -3385,9 +3386,9 @@ mkcl_object mkcl_cstring_copy_to_OSstring(MKCL, char * str)
 
 mkcl_object mkcl_string_to_OSstring(MKCL, mkcl_object string)
 {
-  mkcl_object external_format = mkcl_symbol_value(env, @'si::*os-string-format*');
+  mkcl_object external_format = mkcl_symbol_value(env, MK_SI_DYNVAR_os_string_format);
 
-  if (external_format == @':UTF-8')
+  if (external_format == MK_KEY_utf_8)
     return mk_si_utf_8(env, string);
   else
     return mkcl_coerce_to_adjustable_base_string(env, string);
@@ -3395,9 +3396,9 @@ mkcl_object mkcl_string_to_OSstring(MKCL, mkcl_object string)
 
 mkcl_object mkcl_cstring_to_string(MKCL, char * str)
 {
-  mkcl_object external_format = mkcl_symbol_value(env, @'si::*os-string-format*');
+  mkcl_object external_format = mkcl_symbol_value(env, MK_SI_DYNVAR_os_string_format);
 
-  if (external_format == @':UTF-8')
+  if (external_format == MK_KEY_utf_8)
     {
       const size_t len = (str ? strlen(str) : 0);
       mkcl_UTF_8_object_sized(utf_8_obj, (mkcl_char8 *) str, len);
@@ -3472,10 +3473,10 @@ mkcl_object mk_si_utf_8_push_extend(MKCL, mkcl_object utf_8, mkcl_object ch)
 {
   mkcl_call_stack_check(env);
   while (mkcl_unlikely(!MKCL_UTF_8_P(utf_8)))
-    utf_8 = mkcl_type_error(env, @'si::utf-8-push-extend', "utf-8", utf_8, @'si::utf-8');
+    utf_8 = mkcl_type_error(env, MK_SI_utf_8_push_extend, "utf-8", utf_8, MK_SI_utf_8);
 
   while (mkcl_unlikely(!MKCL_CHARACTERP(ch)))
-    ch = mkcl_type_error(env, @'si::utf-8-push-extend', "ch", ch, @'character');
+    ch = mkcl_type_error(env, MK_SI_utf_8_push_extend, "ch", ch, MK_CL_character);
 
   mkcl_return_value(MKCL_MAKE_FIXNUM(mkcl_utf_8_push_extend(env, utf_8, MKCL_CHAR_CODE(ch), NULL)));
 }
@@ -3531,7 +3532,7 @@ mkcl_object mk_si_utf_8_last(MKCL, mkcl_object utf_8)
 
   mkcl_call_stack_check(env);
   while (mkcl_unlikely(!MKCL_UTF_8_P(utf_8)))
-    utf_8 = mkcl_type_error(env, @'si::utf-8-last', "utf-8", utf_8, @'si::utf-8');
+    utf_8 = mkcl_type_error(env, MK_SI_utf_8_last, "utf-8", utf_8, MK_SI_utf_8);
 
   mkcl_return_2_values(MKCL_CODE_CHAR(mkcl_utf_8_last(env, utf_8, &invalid)), (invalid ? mk_cl_Ct : mk_cl_Cnil));
 }
@@ -3581,10 +3582,10 @@ mkcl_object mk_si_utf_16_push_extend(MKCL, mkcl_object utf_16, mkcl_object ch)
 {
   mkcl_call_stack_check(env);
   while (mkcl_unlikely(!MKCL_UTF_16_P(utf_16)))
-    utf_16 = mkcl_type_error(env, @'si::utf-16-push-extend', "utf-16", utf_16, @'si::utf-16');
+    utf_16 = mkcl_type_error(env, MK_SI_utf_16_push_extend, "utf-16", utf_16, MK_SI_utf_16);
 
   while (mkcl_unlikely(!MKCL_CHARACTERP(ch)))
-    ch = mkcl_type_error(env, @'si::utf-16-push-extend', "ch", ch, @'character');
+    ch = mkcl_type_error(env, MK_SI_utf_16_push_extend, "ch", ch, MK_CL_character);
 
   mkcl_return_value(MKCL_MAKE_FIXNUM(mkcl_utf_16_push_extend(env, utf_16, MKCL_CHAR_CODE(ch), NULL)));
 }
@@ -3599,10 +3600,10 @@ mkcl_object mkcl_utf_16_nconc(MKCL, mkcl_object base, mkcl_object new)
 
 #if 0 /* debug */
   while (mkcl_unlikely(!MKCL_UTF_16_P(new)))
-    new = mkcl_type_error(env, @'si::utf-16-push-extend', "utf-16", new, @'si::utf-16');
+    new = mkcl_type_error(env, MK_SI_utf_16_push_extend, "utf-16", new, MK_SI_utf_16);
 
   while (mkcl_unlikely(!MKCL_UTF_16_P(base)))
-    base = mkcl_type_error(env, @'si::utf-16-push-extend', "utf-16", base, @'si::utf-16');
+    base = mkcl_type_error(env, MK_SI_utf_16_push_extend, "utf-16", base, MK_SI_utf_16);
 #endif
 
   if (new_fillp == 0) return base;
@@ -3640,7 +3641,7 @@ mkcl_object mk_si_utf_16_last(MKCL, mkcl_object utf_16)
 
   mkcl_call_stack_check(env);
   while (mkcl_unlikely(!MKCL_UTF_16_P(utf_16)))
-    utf_16 = mkcl_type_error(env, @'si::utf-8-push-extend', "utf-16", utf_16, @'si::utf-8');
+    utf_16 = mkcl_type_error(env, MK_SI_utf_8_push_extend, "utf-16", utf_16, MK_SI_utf_8);
 
   mkcl_return_2_values(MKCL_CODE_CHAR(mkcl_utf_16_last(env, utf_16, &invalid)), (invalid ? mk_cl_Ct : mk_cl_Cnil));
 }
@@ -3750,7 +3751,7 @@ mk_mkcl_octets(MKCL, mkcl_object obj)
     memcpy(output->vector.self.b8, obj->UTF_8.self, len);
     break;
   default:
-    obj = mkcl_type_error(env, @'mkcl::octets', "", obj, @'si::utf-8');
+    obj = mkcl_type_error(env, MK_MKCL_octets, "", obj, MK_SI_utf_8);
     goto AGAIN;
   }
   mkcl_return_value(output);
@@ -3792,7 +3793,7 @@ mk_mkcl_double_octets(MKCL, mkcl_object obj)
     }
     break;
   default:
-    obj = mkcl_type_error(env, @'mkcl::octets', "", obj, @'si::utf-16');
+    obj = mkcl_type_error(env, MK_MKCL_octets, "", obj, MK_SI_utf_16);
     goto AGAIN;
   }
   mkcl_return_value(output);

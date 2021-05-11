@@ -529,7 +529,7 @@ install_lisp_terminal_signal_handler(MKCL)
   /* Create the signal servicing thread */
   char * sig_thread_name = "Terminal signal handling daemon";
 
-  mkcl_create_signal_servicing_thread(env, sig_thread_name, 0, @'si::terminal-signal-handler');
+  mkcl_create_signal_servicing_thread(env, sig_thread_name, 0, MK_SI_terminal_signal_handler);
 }
 
 /* End of new fully POSIX compliant signal code */
@@ -540,7 +540,7 @@ mkcl_object mk_si_setup_for_gdb(MKCL, mkcl_narg narg, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object pid = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'si::setup-for-gdb', narg, 0, narg, &pid);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_SI_setup_for_gdb, narg, 0, narg, &pid);
 
     {
 #if MKCL_UNIX
@@ -597,34 +597,34 @@ void mkcl_sigfpe_handler(int sig, siginfo_t *info, void *aux)
   }
   else
     {
-      mkcl_object condition = @'arithmetic-error';
+      mkcl_object condition = MK_CL_arithmetic_error;
 
       if (info) {
 	char * siginfo_str;
 	switch (info->si_code)
 	  {
 	  case FPE_INTDIV:
-	    condition = @'division-by-zero';
+	    condition = MK_CL_division_by_zero;
 	    siginfo_str = "FPE_INTDIV";
 	    break;
 	  case FPE_FLTDIV:
-	    condition = @'division-by-zero';
+	    condition = MK_CL_division_by_zero;
 	    siginfo_str = "FPE_FLTDIV";
 	    break;
 	  case FPE_FLTOVF:
-	    condition = @'floating-point-overflow';
+	    condition = MK_CL_floating_point_overflow;
 	    siginfo_str = "FPE_FLTOVF";
 	    break;
 	  case FPE_FLTUND:
-	    condition = @'floating-point-underflow';
+	    condition = MK_CL_floating_point_underflow;
 	    siginfo_str = "FPE_FLTUND";
 	    break;
 	  case FPE_FLTRES:
-	    condition = @'floating-point-inexact';
+	    condition = MK_CL_floating_point_inexact;
 	    siginfo_str = "FPE_FLTRES";
 	    break;
 	  case FPE_FLTINV:
-	    condition = @'floating-point-invalid-operation';
+	    condition = MK_CL_floating_point_invalid_operation;
 	    siginfo_str = "FPE_FLTINV";
 	    break;
 
@@ -762,9 +762,9 @@ void mkcl_sigsegv_handler(int sig, siginfo_t *info, void *aux)
 	if ((fault_BP >= fault_address) && (fault_address >= (fault_SP - mkcl_core.pagesize)))
 	  {
 	    mkcl_fix_sigmask(sig);
-	    mk_cl_error(env, 5, @'mkcl::stack-overflow',
-			@':size', mkcl_make_unsigned_integer(env, env->cs_size),
-			@':type', @'si::call-stack');
+	    mk_cl_error(env, 5, MK_MKCL_stack_overflow,
+			MK_KEY_size, mkcl_make_unsigned_integer(env, env->cs_size),
+			MK_KEY_type, MK_SI_call_stack);
 	  }
 	else
 #endif
@@ -799,7 +799,7 @@ void mkcl_sigsegv_handler(int sig, siginfo_t *info, void *aux)
 	    address_str =  mkcl_make_base_string_copy(env, address_cstr);
 	    mkcl_fix_sigmask(sig);
 
-	    mk_cl_error(env, 3, @'mkcl::segmentation-violation', @':address', address_str);
+	    mk_cl_error(env, 3, MK_MKCL_segmentation_violation, MK_KEY_address, address_str);
 	  }
       }
     }
@@ -860,7 +860,7 @@ void mkcl_sigbus_handler(int sig, siginfo_t *info, void *aux)
 	  }
 	address_str = mkcl_make_base_string_copy(env, address_cstr);
 	mkcl_fix_sigmask(sig);
-	mk_cl_error(env, 3, @'mkcl::segmentation-violation', @':address', address_str);
+	mk_cl_error(env, 3, MK_MKCL_segmentation_violation, MK_KEY_address, address_str);
       }
     }
 
@@ -1060,30 +1060,30 @@ static void handle_console_ctrl_event(mkcl_object lisp_handler, int signo)
 static LONG handle_fpe(EXCEPTION_POINTERS* ep)
 {
   const mkcl_env env = MKCL_ENV();
-  mkcl_object condition = @'arithmetic-error';
+  mkcl_object condition = MK_CL_arithmetic_error;
   char * cond_str;
 
   switch (ep->ExceptionRecord->ExceptionCode)
     {
       /* Catch all arithmetic exceptions */
     case EXCEPTION_FLT_DIVIDE_BY_ZERO:
-      condition = @'division-by-zero';
+      condition = MK_CL_division_by_zero;
       cond_str = "EXCEPTION_FLT_DIVIDE_BY_ZERO";
       break;
     case EXCEPTION_FLT_OVERFLOW:
-      condition = @'floating-point-overflow';
+      condition = MK_CL_floating_point_overflow;
       cond_str = "EXCEPTION_FLT_OVERFLOW";
       break;
     case EXCEPTION_FLT_UNDERFLOW:
-      condition = @'floating-point-underflow';
+      condition = MK_CL_floating_point_underflow;
       cond_str = "EXCEPTION_FLT_UNDERFLOW";
       break;
     case EXCEPTION_FLT_INVALID_OPERATION:
-      condition = @'floating-point-invalid-operation';
+      condition = MK_CL_floating_point_invalid_operation;
       cond_str = "EXCEPTION_FLT_INVALID_OPERATION";
       break;
     case EXCEPTION_FLT_INEXACT_RESULT:
-      condition = @'floating-point-inexact';
+      condition = MK_CL_floating_point_inexact;
       cond_str = "EXCEPTION_FLT_INEXACT_RESULT";
       break;
     case EXCEPTION_FLT_DENORMAL_OPERAND:
@@ -1117,7 +1117,7 @@ static LONG handle_access_violation(EXCEPTION_POINTERS* ep)
   snprintf(address_cstr, sizeof(address_cstr), "%p", (void *) ep->ExceptionRecord->ExceptionInformation[1]);
   address_str =  mkcl_make_base_string_copy(env, address_cstr);
 
-  mk_cl_error(env, 3, @'mkcl::segmentation-violation', @':address', address_str);
+  mk_cl_error(env, 3, MK_MKCL_segmentation_violation, MK_KEY_address, address_str);
 
   return EXCEPTION_CONTINUE_SEARCH;
 }
@@ -1154,9 +1154,9 @@ static LONG handle_stack_overflow(EXCEPTION_POINTERS* ep)
       fflush(NULL);
 #endif
       env->cs_overflowing = TRUE;
-      mk_cl_error(env, 5, @'mkcl::stack-overflow',
-		  @':size', mkcl_make_unsigned_integer(env, env->cs_size),
-		  @':type', @'si::call-stack');
+      mk_cl_error(env, 5, MK_MKCL_stack_overflow,
+		  MK_KEY_size, mkcl_make_unsigned_integer(env, env->cs_size),
+		  MK_KEY_type, MK_SI_call_stack);
     }
   else
     {
@@ -1293,19 +1293,19 @@ static BOOL WINAPI W32_console_ctrl_handler(DWORD type)
     {
       /* Catch CTRL-C */
     case CTRL_C_EVENT:
-      handle_console_ctrl_event(@'si::sigint-handler', SIGINT);
+      handle_console_ctrl_event(MK_SI_sigint_handler, SIGINT);
       return TRUE;
     case CTRL_BREAK_EVENT: /* equivalent to SIGTERM or SIGHUP? */
-      handle_console_ctrl_event(@'si::sigint-handler', SIGBREAK);
+      handle_console_ctrl_event(MK_SI_sigint_handler, SIGBREAK);
       return TRUE;
     case CTRL_CLOSE_EVENT:
-      handle_console_ctrl_event(@'si::sighup-handler', SIGTERM);
+      handle_console_ctrl_event(MK_SI_sighup_handler, SIGTERM);
       return TRUE;
     case CTRL_LOGOFF_EVENT:
-      handle_console_ctrl_event(@'si::sighup-handler', SIGTERM);
+      handle_console_ctrl_event(MK_SI_sighup_handler, SIGTERM);
       return TRUE;
     case CTRL_SHUTDOWN_EVENT:
-      handle_console_ctrl_event(@'si::terminal-signal-handler', SIGTERM);
+      handle_console_ctrl_event(MK_SI_terminal_signal_handler, SIGTERM);
       return TRUE;
     }
   return FALSE;
@@ -1386,12 +1386,12 @@ mk_si_initial_floating_point_exception_set(MKCL)
   mkcl_object fpe_set = mk_cl_Cnil;
 
   mkcl_call_stack_check(env);
-  fpe_set = MKCL_CONS(env, @'division-by-zero', fpe_set);
-  fpe_set = MKCL_CONS(env, @'floating-point-overflow', fpe_set);
-  fpe_set = MKCL_CONS(env, @'floating-point-underflow', fpe_set);
-  fpe_set = MKCL_CONS(env, @'floating-point-invalid-operation', fpe_set);
+  fpe_set = MKCL_CONS(env, MK_CL_division_by_zero, fpe_set);
+  fpe_set = MKCL_CONS(env, MK_CL_floating_point_overflow, fpe_set);
+  fpe_set = MKCL_CONS(env, MK_CL_floating_point_underflow, fpe_set);
+  fpe_set = MKCL_CONS(env, MK_CL_floating_point_invalid_operation, fpe_set);
 #if 0
-  fpe_set = MKCL_CONS(env, @'floating-point-inexact', fpe_set);
+  fpe_set = MKCL_CONS(env, MK_CL_floating_point_inexact, fpe_set);
 #endif
   
   mkcl_return_value(fpe_set);
@@ -1399,22 +1399,22 @@ mk_si_initial_floating_point_exception_set(MKCL)
 
 static int default_fpe_mask(MKCL)
 {
-  mkcl_object default_set = MKCL_SYM_VAL(env, @'si::*default-floating-point-exception-set*');
+  mkcl_object default_set = MKCL_SYM_VAL(env, MK_SI_DYNVAR_default_floating_point_exception_set);
   mkcl_object exception;
   int mask = 0;
 
   mkcl_loop_for_in(env, default_set) {
     exception = MKCL_CONS_CAR(default_set);
 
-    if (exception == @'division-by-zero')
+    if (exception == MK_CL_division_by_zero)
       mask |= FE_DIVBYZERO;
-    else if (exception == @'floating-point-overflow')
+    else if (exception == MK_CL_floating_point_overflow)
       mask |= FE_OVERFLOW;
-    else if (exception == @'floating-point-underflow')
+    else if (exception == MK_CL_floating_point_underflow)
       mask |= FE_UNDERFLOW;
-    else if (exception == @'floating-point-invalid-operation')
+    else if (exception == MK_CL_floating_point_invalid_operation)
       mask |= FE_INVALID;
-    else if (exception == @'floating-point-inexact')
+    else if (exception == MK_CL_floating_point_inexact)
       mask |= FE_INEXACT;
     else
       mkcl_FEerror(env, "Unknown floating-point exception: ~S.", 1, exception);
@@ -1430,17 +1430,17 @@ mk_si_disable_fpe(MKCL, mkcl_object exception)
   int bits = 0;
 
   mkcl_call_stack_check(env);
-  if (exception == @'division-by-zero')
+  if (exception == MK_CL_division_by_zero)
     bits = FE_DIVBYZERO;
-  else if (exception == @'floating-point-overflow')
+  else if (exception == MK_CL_floating_point_overflow)
     bits = FE_OVERFLOW;
-  else if (exception == @'floating-point-underflow')
+  else if (exception == MK_CL_floating_point_underflow)
     bits = FE_UNDERFLOW;
-  else if (exception == @'floating-point-invalid-operation')
+  else if (exception == MK_CL_floating_point_invalid_operation)
     bits = FE_INVALID;
-  else if (exception == @'floating-point-inexact')
+  else if (exception == MK_CL_floating_point_inexact)
     bits = FE_INEXACT;
-  else if (exception == @':default')
+  else if (exception == MK_KEY_default)
     bits = default_fpe_mask(env);
   else if (exception == mk_cl_Ct)
     bits = FE_ALL_EXCEPT;
@@ -1462,17 +1462,17 @@ mk_si_enable_fpe(MKCL, mkcl_object exception)
   int bits = 0;
 
   mkcl_call_stack_check(env);
-  if (exception == @'division-by-zero')
+  if (exception == MK_CL_division_by_zero)
     bits = FE_DIVBYZERO;
-  else if (exception == @'floating-point-overflow')
+  else if (exception == MK_CL_floating_point_overflow)
     bits = FE_OVERFLOW;
-  else if (exception == @'floating-point-underflow')
+  else if (exception == MK_CL_floating_point_underflow)
     bits = FE_UNDERFLOW;
-  else if (exception == @'floating-point-invalid-operation')
+  else if (exception == MK_CL_floating_point_invalid_operation)
     bits = FE_INVALID;
-  else if (exception == @'floating-point-inexact')
+  else if (exception == MK_CL_floating_point_inexact)
     bits = FE_INEXACT;
-  else if (exception == @':default')
+  else if (exception == MK_KEY_default)
     bits = default_fpe_mask(env);
   else if (exception == mk_cl_Ct)
     bits = FE_ALL_EXCEPT;
@@ -1502,15 +1502,15 @@ mk_si_all_enabled_fpe(MKCL)
   int enabled_except = fegetexcept();
 
   if (enabled_except & FE_DIVBYZERO)
-    fpe_set = MKCL_CONS(env, @'division-by-zero', fpe_set);
+    fpe_set = MKCL_CONS(env, MK_CL_division_by_zero, fpe_set);
   if (enabled_except & FE_OVERFLOW)
-    fpe_set = MKCL_CONS(env, @'floating-point-overflow', fpe_set);
+    fpe_set = MKCL_CONS(env, MK_CL_floating_point_overflow, fpe_set);
   if (enabled_except & FE_UNDERFLOW)
-    fpe_set = MKCL_CONS(env, @'floating-point-underflow', fpe_set);
+    fpe_set = MKCL_CONS(env, MK_CL_floating_point_underflow, fpe_set);
   if (enabled_except & FE_INVALID)
-    fpe_set = MKCL_CONS(env, @'floating-point-invalid-operation', fpe_set);
+    fpe_set = MKCL_CONS(env, MK_CL_floating_point_invalid_operation, fpe_set);
   if (enabled_except & FE_INEXACT)
-    fpe_set = MKCL_CONS(env, @'floating-point-inexact', fpe_set);
+    fpe_set = MKCL_CONS(env, MK_CL_floating_point_inexact, fpe_set);
 
   mkcl_return_value(fpe_set);
 }
@@ -1522,15 +1522,15 @@ mk_si_fpe_enabled_p(MKCL, mkcl_object exception)
   int bits = 0;
   int enabled_except = fegetexcept();
 
-  if (exception == @'division-by-zero')
+  if (exception == MK_CL_division_by_zero)
     bits = FE_DIVBYZERO;
-  else if (exception == @'floating-point-overflow')
+  else if (exception == MK_CL_floating_point_overflow)
     bits = FE_OVERFLOW;
-  else if (exception == @'floating-point-underflow')
+  else if (exception == MK_CL_floating_point_underflow)
     bits = FE_UNDERFLOW;
-  else if (exception == @'floating-point-invalid-operation')
+  else if (exception == MK_CL_floating_point_invalid_operation)
     bits = FE_INVALID;
-  else if (exception == @'floating-point-inexact')
+  else if (exception == MK_CL_floating_point_inexact)
     bits = FE_INEXACT;
   else
     mkcl_FEerror(env, "Unknown floating-point exception: ~S.", 1, exception);
@@ -1546,15 +1546,15 @@ mk_si_all_raised_fpe(MKCL)
   mkcl_object fpe_set = mk_cl_Cnil;
 
   if (raised_except & FE_DIVBYZERO)
-    fpe_set = MKCL_CONS(env, @'division-by-zero', fpe_set);
+    fpe_set = MKCL_CONS(env, MK_CL_division_by_zero, fpe_set);
   if (raised_except & FE_OVERFLOW)
-    fpe_set = MKCL_CONS(env, @'floating-point-overflow', fpe_set);
+    fpe_set = MKCL_CONS(env, MK_CL_floating_point_overflow, fpe_set);
   if (raised_except & FE_UNDERFLOW)
-    fpe_set = MKCL_CONS(env, @'floating-point-underflow', fpe_set);
+    fpe_set = MKCL_CONS(env, MK_CL_floating_point_underflow, fpe_set);
   if (raised_except & FE_INVALID)
-    fpe_set = MKCL_CONS(env, @'floating-point-invalid-operation', fpe_set);
+    fpe_set = MKCL_CONS(env, MK_CL_floating_point_invalid_operation, fpe_set);
   if (raised_except & FE_INEXACT)
-    fpe_set = MKCL_CONS(env, @'floating-point-inexact', fpe_set);
+    fpe_set = MKCL_CONS(env, MK_CL_floating_point_inexact, fpe_set);
 
   mkcl_return_value(fpe_set);
 }
@@ -1566,15 +1566,15 @@ mk_si_fpe_raised_p(MKCL, mkcl_object exception)
   int raised_except = fetestexcept(FE_ALL_EXCEPT);
   int bits = 0;
 
-  if (exception == @'division-by-zero')
+  if (exception == MK_CL_division_by_zero)
     bits = FE_DIVBYZERO;
-  else if (exception == @'floating-point-overflow')
+  else if (exception == MK_CL_floating_point_overflow)
     bits = FE_OVERFLOW;
-  else if (exception == @'floating-point-underflow')
+  else if (exception == MK_CL_floating_point_underflow)
     bits = FE_UNDERFLOW;
-  else if (exception == @'floating-point-invalid-operation')
+  else if (exception == MK_CL_floating_point_invalid_operation)
     bits = FE_INVALID;
-  else if (exception == @'floating-point-inexact')
+  else if (exception == MK_CL_floating_point_inexact)
     bits = FE_INEXACT;
   else
     mkcl_FEerror(env, "Unknown floating-point exception: ~S.", 1, exception);
@@ -1588,15 +1588,15 @@ mk_si_raise_fpe(MKCL, mkcl_object exception)
   int bits = 0;
 
   mkcl_call_stack_check(env);
-  if (exception == @'division-by-zero')
+  if (exception == MK_CL_division_by_zero)
     bits = FE_DIVBYZERO;
-  else if (exception == @'floating-point-overflow')
+  else if (exception == MK_CL_floating_point_overflow)
     bits = FE_OVERFLOW;
-  else if (exception == @'floating-point-underflow')
+  else if (exception == MK_CL_floating_point_underflow)
     bits = FE_UNDERFLOW;
-  else if (exception == @'floating-point-invalid-operation')
+  else if (exception == MK_CL_floating_point_invalid_operation)
     bits = FE_INVALID;
-  else if (exception == @'floating-point-inexact')
+  else if (exception == MK_CL_floating_point_inexact)
     bits = FE_INEXACT;
   else
     mkcl_FEerror(env, "Unknown floating-point exception: ~S.", 1, exception);
@@ -1617,17 +1617,17 @@ mk_si_clear_fpe(MKCL, mkcl_object exception)
   int bits = 0;
 
   mkcl_call_stack_check(env);
-  if (exception == @'division-by-zero')
+  if (exception == MK_CL_division_by_zero)
     bits = FE_DIVBYZERO;
-  else if (exception == @'floating-point-overflow')
+  else if (exception == MK_CL_floating_point_overflow)
     bits = FE_OVERFLOW;
-  else if (exception == @'floating-point-underflow')
+  else if (exception == MK_CL_floating_point_underflow)
     bits = FE_UNDERFLOW;
-  else if (exception == @'floating-point-invalid-operation')
+  else if (exception == MK_CL_floating_point_invalid_operation)
     bits = FE_INVALID;
-  else if (exception == @'floating-point-inexact')
+  else if (exception == MK_CL_floating_point_inexact)
     bits = FE_INEXACT;
-  else if (exception == @':default')
+  else if (exception == MK_KEY_default)
     bits = default_fpe_mask(env);
   else if (exception == mk_cl_Ct)
     bits = FE_ALL_EXCEPT;
@@ -1664,7 +1664,7 @@ mk_mt_try_to_wake_up_thread(MKCL, mkcl_object thread)
 
   mkcl_call_stack_check(env);
   if (mkcl_type_of(thread) != mkcl_t_thread)
-    mkcl_FEwrong_type_argument(env, @'mt::thread', thread);
+    mkcl_FEwrong_type_argument(env, MK_MT_thread, thread);
 
   if (thread->thread.status != mkcl_thread_active)
     { mkcl_return_value(mk_cl_Cnil); } /* There is no point in trying to wake up something that cannot be made to run. */
@@ -1678,7 +1678,7 @@ mk_mt_try_to_wake_up_thread(MKCL, mkcl_object thread)
 #endif
       mkcl_return_value(mk_cl_Cnil);
     }
-  else if (sleeping_on == @':io')
+  else if (sleeping_on == MK_KEY_io)
     {
 #if 0
       fprintf(stderr, "\n;; MKCL: Tried to wake up [%s] on I/O!\n", thread->thread.name->base_string.self);
@@ -1746,7 +1746,7 @@ mk_mt_try_to_wake_up_thread(MKCL, mkcl_object thread)
 	  fprintf(stderr, "\n;; MKCL: Tried to wake up [%s] on a semaphore!\n", thread->thread.name->base_string.self);
 	  fflush(stderr);
 #endif
-	  mkcl_funcall1(env, @+'mt::semaphore-signal', sleeping_on);
+	  mkcl_funcall1(env, MK_MT_semaphore_signal->symbol.gfdef, sleeping_on);
 	  mkcl_return_value(mk_cl_Ct);
 	  break;
 	case mkcl_t_cons: /* a hack. just in case. JCB */
@@ -1809,8 +1809,8 @@ struct mkcl_signal_disposition
 static const struct mkcl_signal_disposition c_signal_disposition[MKCL_SIGMAX + 1] = {
   /* Linux signal ordering */
   /*  0 SIG0 */      { NULL, mk_cl_Cnil }, /* does not exist. */
-  /*  1 SIGHUP */    { mkcl_generic_signal_handler, @'si::sighup-handler' },
-  /*  2 SIGINT */    { mkcl_generic_signal_handler,  @'si::sigint-handler' },
+  /*  1 SIGHUP */    { mkcl_generic_signal_handler, MK_SI_sighup_handler },
+  /*  2 SIGINT */    { mkcl_generic_signal_handler,  MK_SI_sigint_handler },
   /*  3 SIGQUIT */   { mkcl_terminal_signal_handler, mk_cl_Ct },
   /*  4 SIGILL */    { mkcl_synchronous_signal_handler, mk_cl_Cnil },
   /*  5 SIGTRAP */   { mkcl_terminal_signal_handler, mk_cl_Ct },
@@ -1823,7 +1823,7 @@ static const struct mkcl_signal_disposition c_signal_disposition[MKCL_SIGMAX + 1
   /* 12 SIGUSR2 */   { mkcl_terminal_signal_handler, mk_cl_Ct },
   /* 13 SIGPIPE */   { mkcl_sigpipe_handler, mk_cl_Cnil },
   /* 14 SIGALRM */   { mkcl_terminal_signal_handler, mk_cl_Ct },
-  /* 15 SIGTERM */   { mkcl_generic_signal_handler, @'si::sigterm-handler' },
+  /* 15 SIGTERM */   { mkcl_generic_signal_handler, MK_SI_sigterm_handler },
   /* 16 SIGSTKFLT */ { mkcl_terminal_signal_handler, mk_cl_Ct },
   /* 17 SIGCHLD */   { mkcl_sigchld_handler, mk_cl_Cnil },
   /* 18 SIGCONT */   { NULL, mk_cl_Cnil }, /* continue by default */
@@ -1880,8 +1880,8 @@ static const struct mkcl_signal_disposition c_signal_disposition[MKCL_SIGMAX + 1
 static const struct mkcl_signal_disposition c_signal_disposition[MKCL_SIGMAX + 1] = {
   /* FreeBSD signal ordering */
   /*  0 SIG0 */      { NULL, mk_cl_Cnil }, /* does not exist. */
-  /*  1 SIGHUP */    { mkcl_generic_signal_handler, @'si::sighup-handler' },
-  /*  2 SIGINT */    { mkcl_generic_signal_handler,  @'si::sigint-handler' },
+  /*  1 SIGHUP */    { mkcl_generic_signal_handler, MK_SI_sighup_handler },
+  /*  2 SIGINT */    { mkcl_generic_signal_handler,  MK_SI_sigint_handler },
   /*  3 SIGQUIT */   { mkcl_terminal_signal_handler, mk_cl_Ct },
   /*  4 SIGILL */    { mkcl_synchronous_signal_handler, mk_cl_Cnil },
   /*  5 SIGTRAP */   { mkcl_terminal_signal_handler, mk_cl_Ct },
@@ -1894,7 +1894,7 @@ static const struct mkcl_signal_disposition c_signal_disposition[MKCL_SIGMAX + 1
   /* 12 SIGSYS */    { mkcl_terminal_signal_handler, mk_cl_Ct },
   /* 13 SIGPIPE */   { mkcl_sigpipe_handler, mk_cl_Cnil },
   /* 14 SIGALRM */   { mkcl_terminal_signal_handler, mk_cl_Ct },
-  /* 15 SIGTERM */   { mkcl_generic_signal_handler, @'si::sigterm-handler' },
+  /* 15 SIGTERM */   { mkcl_generic_signal_handler, MK_SI_sigterm_handler },
   /* 16 SIGURG */    { NULL, mk_cl_Cnil }, /* ignored by default */
   /* 17 SIGSTOP */   { NULL, mk_cl_Cnil }, /* cannot be redefined! */
   /* 18 SIGTSTP */   { NULL, mk_cl_Cnil }, /* stop by default */
@@ -2151,7 +2151,7 @@ void mkcl_init_late_unixint(MKCL)
   SetConsoleCtrlHandler(W32_console_ctrl_handler, TRUE);
 #endif
 
-  mk_si_enable_fpe(env, @':default');
+  mk_si_enable_fpe(env, MK_KEY_default);
 
   /* The initial thread is now fit for interrupts. */
   mkcl_enable_interrupts(env);
@@ -2230,7 +2230,7 @@ mkcl_object mkcl_signum_to_signal_name(MKCL, mkcl_word signum)
 mkcl_object mk_si_signum_to_signal_name(MKCL, mkcl_object _signum)
 {
   if (!MKCL_FIXNUMP(_signum))
-    mkcl_FEwrong_type_argument(env, @'fixnum', _signum);
+    mkcl_FEwrong_type_argument(env, MK_CL_fixnum, _signum);
   else
     {
       mkcl_word signum = mkcl_fixnum_to_word(_signum);

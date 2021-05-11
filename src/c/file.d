@@ -609,7 +609,7 @@ generic_write_vector(MKCL, mkcl_object strm, mkcl_object data, mkcl_index start,
 	}
       }
     }
-  else mkcl_FEwrong_type_argument(env, @'array', data);
+  else mkcl_FEwrong_type_argument(env, MK_CL_array, data);
 
   return start;
 }
@@ -623,7 +623,7 @@ generic_read_vector(MKCL, mkcl_object strm, mkcl_object data, mkcl_index start, 
     return start;
   expected_type = mkcl_stream_element_type(env, strm);
   ops = stream_dispatch_table(env, strm);
-  if (expected_type == @'base-char' || expected_type == @'character') {
+  if (expected_type == MK_CL_base_char || expected_type == MK_CL_character) {
     mkcl_character (*read_char)(MKCL, mkcl_object) = ops->read_char;
     for (; start < end; start++) {
       mkcl_character c = read_char(env, strm);
@@ -1347,7 +1347,7 @@ mk_clos_stream_read_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n
 {
   mkcl_index i;
   for (i = 0; i < n; i++) {
-    mkcl_object byte = mkcl_funcall1(env, @+'gray::stream-read-byte', strm);
+    mkcl_object byte = mkcl_funcall1(env, MK_GRAY_stream_read_byte->symbol.gfdef, strm);
     if (!MKCL_FIXNUMP(byte))
       break;
     c[i] = mkcl_fixnum_to_word(byte);
@@ -1360,7 +1360,7 @@ mk_clos_stream_write_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index 
 {
   mkcl_index i;
   for (i = 0; i < n; i++) {
-    mkcl_object byte = mkcl_funcall2(env, @+'gray::stream-write-byte', strm, MKCL_MAKE_FIXNUM(c[i]));
+    mkcl_object byte = mkcl_funcall2(env, MK_GRAY_stream_write_byte->symbol.gfdef, strm, MKCL_MAKE_FIXNUM(c[i]));
     if (!MKCL_FIXNUMP(byte))
       break;
   }
@@ -1370,19 +1370,19 @@ mk_clos_stream_write_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index 
 static mkcl_object
 mk_clos_stream_read_byte(MKCL, mkcl_object strm)
 {
-  return mkcl_funcall1(env, @+'gray::stream-read-byte', strm);
+  return mkcl_funcall1(env, MK_GRAY_stream_read_byte->symbol.gfdef, strm);
 }
 
 static void
 mk_clos_stream_write_byte(MKCL, mkcl_object c, mkcl_object strm)
 {
-  mkcl_funcall2(env, @+'gray::stream-write-byte', strm, c);
+  mkcl_funcall2(env, MK_GRAY_stream_write_byte->symbol.gfdef, strm, c);
 }
 
 static mkcl_character
 mk_clos_stream_read_char(MKCL, mkcl_object strm)
 {
-  mkcl_object output = mkcl_funcall1(env, @+'gray::stream-read-char', strm);
+  mkcl_object output = mkcl_funcall1(env, MK_GRAY_stream_read_char->symbol.gfdef, strm);
   mkcl_word value;
   if (MKCL_CHARACTERP(output))
     value = MKCL_CHAR_CODE(output);
@@ -1400,94 +1400,94 @@ mk_clos_stream_read_char(MKCL, mkcl_object strm)
 static mkcl_character
 mk_clos_stream_write_char(MKCL, mkcl_object strm, mkcl_character c)
 {
-  mkcl_funcall2(env, @+'gray::stream-write-char', strm, MKCL_CODE_CHAR(c));
+  mkcl_funcall2(env, MK_GRAY_stream_write_char->symbol.gfdef, strm, MKCL_CODE_CHAR(c));
   return c;
 }
 
 static void
 mk_clos_stream_unread_char(MKCL, mkcl_object strm, mkcl_character c)
 {
-  mkcl_funcall2(env, @+'gray::stream-unread-char', strm, MKCL_CODE_CHAR(c));
+  mkcl_funcall2(env, MK_GRAY_stream_unread_char->symbol.gfdef, strm, MKCL_CODE_CHAR(c));
 }
 
 static mkcl_character
 mk_clos_stream_peek_char(MKCL, mkcl_object strm)
 {
-  mkcl_object out = mkcl_funcall1(env, @+'gray::stream-peek-char', strm);
-  if (out == @':eof') return EOF;
+  mkcl_object out = mkcl_funcall1(env, MK_GRAY_stream_peek_char->symbol.gfdef, strm);
+  if (out == MK_KEY_eof) return EOF;
   return mkcl_char_code(env, out);
 }
 
 static int
 mk_clos_stream_listen(MKCL, mkcl_object strm)
 {
-  return !mkcl_Null(mkcl_funcall1(env, @+'gray::stream-listen', strm));
+  return !mkcl_Null(mkcl_funcall1(env, MK_GRAY_stream_listen->symbol.gfdef, strm));
 }
 
 static void
 mk_clos_stream_clear_input(MKCL, mkcl_object strm)
 {
-  mkcl_funcall1(env, @+'gray::stream-clear-input', strm);
+  mkcl_funcall1(env, MK_GRAY_stream_clear_input->symbol.gfdef, strm);
 }
 
 static void
 mk_clos_stream_clear_output(MKCL, mkcl_object strm)
 {
-  mkcl_funcall1(env, @+'gray::stream-clear-output', strm);
+  mkcl_funcall1(env, MK_GRAY_stream_clear_output->symbol.gfdef, strm);
 }
 
 static void
 mk_clos_stream_force_output(MKCL, mkcl_object strm)
 {
-  mkcl_funcall1(env, @+'gray::stream-force-output', strm);
+  mkcl_funcall1(env, MK_GRAY_stream_force_output->symbol.gfdef, strm);
 }
 
 static void
 mk_clos_stream_finish_output(MKCL, mkcl_object strm)
 {
-  mkcl_funcall1(env, @+'gray::stream-finish-output', strm);
+  mkcl_funcall1(env, MK_GRAY_stream_finish_output->symbol.gfdef, strm);
 }
 
 static bool
 mk_clos_stream_input_p(MKCL, mkcl_object strm)
 {
-  return !mkcl_Null(mkcl_funcall1(env, @+'gray::input-stream-p', strm));
+  return !mkcl_Null(mkcl_funcall1(env, MK_GRAY_input_stream_p->symbol.gfdef, strm));
 }
 
 static bool
 mk_clos_stream_output_p(MKCL, mkcl_object strm)
 {
-  return !mkcl_Null(mkcl_funcall1(env, @+'gray::output-stream-p', strm));
+  return !mkcl_Null(mkcl_funcall1(env, MK_GRAY_output_stream_p->symbol.gfdef, strm));
 }
 
 static bool
 mk_clos_stream_interactive_p(MKCL, mkcl_object strm)
 {
-  return !mkcl_Null(mkcl_funcall1(env, @+'gray::stream-interactive-p', strm));
+  return !mkcl_Null(mkcl_funcall1(env, MK_GRAY_stream_interactive_p->symbol.gfdef, strm));
 }
 
 static mkcl_object
 mk_clos_stream_element_type(MKCL, mkcl_object strm)
 {
-  return mkcl_funcall1(env, @+'gray::stream-element-type', strm);
+  return mkcl_funcall1(env, MK_GRAY_stream_element_type->symbol.gfdef, strm);
 }
 
 #define mk_clos_stream_length not_a_file_stream
 static mkcl_object mk_clos_stream_get_position(MKCL, mkcl_object strm)
 {
-  return mkcl_funcall1(env, @+'gray::stream-file-position', strm);
+  return mkcl_funcall1(env, MK_GRAY_stream_file_position->symbol.gfdef, strm);
 }
 
 static mkcl_object mk_clos_stream_set_position(MKCL, mkcl_object strm, mkcl_object pos)
 {
-  return mkcl_funcall2(env, @+'gray::stream-file-position', strm, pos);
+  return mkcl_funcall2(env, MK_GRAY_stream_file_position->symbol.gfdef, strm, pos);
 }
 
 
 static int
 mk_clos_stream_column(MKCL, mkcl_object strm)
 {
-  mkcl_object col = mkcl_funcall1(env, @+'gray::stream-line-column', strm);
+  mkcl_object col = mkcl_funcall1(env, MK_GRAY_stream_line_column->symbol.gfdef, strm);
   /* FIXME! The Gray streams specifies NIL is a valid
    * value but means "unknown". Should we make it
    * zero? */
@@ -1497,7 +1497,7 @@ mk_clos_stream_column(MKCL, mkcl_object strm)
 static mkcl_object
 mk_clos_stream_close(MKCL, mkcl_object strm)
 {
-  return mkcl_funcall1(env, @+'gray::close', strm);
+  return mkcl_funcall1(env, MK_GRAY_close->symbol.gfdef, strm);
 }
 
 static const struct mkcl_file_ops mk_clos_stream_ops = {
@@ -1572,8 +1572,8 @@ str_out_element_type(MKCL, mkcl_object strm)
 {
   mkcl_object string = MKCL_STRING_OUTPUT_STREAM_STRING(strm);
   if (mkcl_type_of(string) == mkcl_t_base_string)
-    return @'base-char';
-  return @'character';
+    return MK_CL_base_char;
+  return MK_CL_character;
 }
 
 static mkcl_object
@@ -1654,18 +1654,18 @@ mk_si_make_string_output_stream_from_string(MKCL, mkcl_object s, mkcl_object enc
   MKCL_STRING_OUTPUT_STREAM_STRING(strm) = s;
   MKCL_STRING_OUTPUT_STREAM_COLUMN(strm) = 0;
   if (mkcl_type_of(s) == mkcl_t_base_string) {
-    if (encoding == @':UTF-8')
+    if (encoding == MK_KEY_utf_8)
       {
-	strm->stream.format = @':UTF-8';
+	strm->stream.format = MK_KEY_utf_8;
 	strm->stream.encoder = utf_8_encoder;
 	strm->stream.decoder = utf_8_decoder;
       }
     else
-      strm->stream.format = @':ISO-8859-1';
+      strm->stream.format = MK_KEY_iso_8859_1;
     strm->stream.flags = MKCL_STREAM_TEXT;
     strm->stream.byte_size = 8;
   } else {
-    strm->stream.format = @':UTF-32';
+    strm->stream.format = MK_KEY_utf_32;
     strm->stream.flags = MKCL_STREAM_TEXT;
     strm->stream.byte_size = 32;
   }
@@ -1688,23 +1688,23 @@ mkcl_object mk_cl_make_string_output_stream(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_object element_type = @'character';
-    mkcl_object encoding = @':default';
-    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, @'make-string-output-stream', narg, 0, narg, @':element-type', &element_type, @':encoding', &encoding);
+    mkcl_object element_type = MK_CL_character;
+    mkcl_object encoding = MK_KEY_default;
+    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, MK_CL_make_string_output_stream, narg, 0, narg, MK_KEY_element_type, &element_type, MK_KEY_encoding, &encoding);
 
     {
       bool extended = FALSE;
 
-      if (element_type == @'base-char') {
+      if (element_type == MK_CL_base_char) {
         extended = FALSE;
-      } else if (element_type == @'character') {
+      } else if (element_type == MK_CL_character) {
         extended = TRUE;
-        encoding = @':UTF-32';
-      } else if (!mkcl_Null(mkcl_funcall2(env, @+'subtypep', element_type, @'base-char'))) {
+        encoding = MK_KEY_utf_32;
+      } else if (!mkcl_Null(mkcl_funcall2(env, MK_CL_subtypep->symbol.gfdef, element_type, MK_CL_base_char))) {
         extended = FALSE;
-      } else if (!mkcl_Null(mkcl_funcall2(env, @+'subtypep', element_type, @'character'))) {
+      } else if (!mkcl_Null(mkcl_funcall2(env, MK_CL_subtypep->symbol.gfdef, element_type, MK_CL_character))) {
         extended = TRUE;
-        encoding = @':UTF-32';
+        encoding = MK_KEY_utf_32;
       } else {
         mkcl_FEerror(env,
                      "In MAKE-STRING-OUTPUT-STREAM, the argument :ELEMENT-TYPE "
@@ -1838,8 +1838,8 @@ str_in_element_type(MKCL, mkcl_object strm)
 {
   mkcl_object string = MKCL_STRING_INPUT_STREAM_STRING(strm);
   if (mkcl_type_of(string) == mkcl_t_base_string)
-    return @'base-char';
-  return @'character';
+    return MK_CL_base_char;
+  return MK_CL_character;
 }
 
 static mkcl_object
@@ -1910,18 +1910,18 @@ mkcl_make_string_input_stream(MKCL, mkcl_object strng, mkcl_index istart, mkcl_i
   MKCL_STRING_INPUT_STREAM_POSITION(strm) = istart;
   MKCL_STRING_INPUT_STREAM_LIMIT(strm) = iend;
   if (mkcl_type_of(strng) == mkcl_t_base_string) {
-    if (encoding == @':UTF-8')
+    if (encoding == MK_KEY_utf_8)
       {
-	strm->stream.format = @':UTF-8';
+	strm->stream.format = MK_KEY_utf_8;
 	strm->stream.encoder = utf_8_encoder;
 	strm->stream.decoder = utf_8_decoder;
       }
     else
-      strm->stream.format = @':ISO-8859-1';
+      strm->stream.format = MK_KEY_iso_8859_1;
     strm->stream.flags = MKCL_STREAM_TEXT;
     strm->stream.byte_size = 8;
   } else {
-    strm->stream.format = @':UTF-32';
+    strm->stream.format = MK_KEY_utf_32;
     strm->stream.flags = MKCL_STREAM_TEXT;
     strm->stream.byte_size = 32;
   }
@@ -1936,15 +1936,15 @@ mkcl_object mk_cl_make_string_input_stream(MKCL, mkcl_narg narg, mkcl_object str
 
     mkcl_object istart = MKCL_MAKE_FIXNUM(0);
     mkcl_object iend = mk_cl_Cnil;
-    mkcl_object encoding = @':default';
-    mkcl_check_minimal_arg_count(env, @'make-string-input-stream', narg, 1);
+    mkcl_object encoding = MK_KEY_default;
+    mkcl_check_minimal_arg_count(env, MK_CL_make_string_input_stream, narg, 1);
     if (narg > 1) {
       mkcl_va_list ARGS;
       mkcl_va_start(env, ARGS, strng, narg, 1);
       istart = mkcl_va_arg(ARGS);
       if (narg > 2) iend = mkcl_va_arg(ARGS);
       if (narg > 3)
-        mkcl_receive_1_keyword_argument(env, @'make-string-input-stream', ARGS, @':encoding', &encoding);
+        mkcl_receive_1_keyword_argument(env, MK_CL_make_string_input_stream, ARGS, MK_KEY_encoding, &encoding);
       mkcl_va_end(ARGS);
     }
 
@@ -2146,7 +2146,7 @@ mk_cl_two_way_stream_input_stream(MKCL, mkcl_object strm)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(strm) != mkcl_t_stream || strm->stream.mode != mkcl_smm_two_way)
-    mkcl_FEwrong_type_argument(env, @'two-way-stream', strm);
+    mkcl_FEwrong_type_argument(env, MK_CL_two_way_stream, strm);
   mkcl_return_value(MKCL_TWO_WAY_STREAM_INPUT(strm));
 }
 
@@ -2155,7 +2155,7 @@ mk_cl_two_way_stream_output_stream(MKCL, mkcl_object strm)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(strm) != mkcl_t_stream || strm->stream.mode != mkcl_smm_two_way)
-    mkcl_FEwrong_type_argument(env, @'two-way-stream', strm);
+    mkcl_FEwrong_type_argument(env, MK_CL_two_way_stream, strm);
   mkcl_return_value(MKCL_TWO_WAY_STREAM_OUTPUT(strm));
 }
 
@@ -2305,7 +2305,7 @@ mkcl_object mk_cl_make_broadcast_stream(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'make-broadcast-stream', 0, narg, narg, ap);
+    mkcl_setup_for_rest(env, MK_CL_make_broadcast_stream, 0, narg, narg, ap);
 
     streams = mk_cl_Cnil;
     for (i = 0; i < narg; i++) {
@@ -2317,7 +2317,7 @@ mkcl_object mk_cl_make_broadcast_stream(MKCL, mkcl_narg narg, ...)
     mkcl_va_end(ap);
     x = alloc_stream(env);
     if (mkcl_Null(streams)) {
-      x->stream.format = @':default';
+      x->stream.format = MK_KEY_default;
     } else {
       x->stream.format = mk_cl_stream_external_format(env, MKCL_CONS_CAR(streams));
     }
@@ -2333,7 +2333,7 @@ mk_cl_broadcast_stream_streams(MKCL, mkcl_object strm)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(strm) != mkcl_t_stream || strm->stream.mode != mkcl_smm_broadcast)
-    mkcl_FEwrong_type_argument(env, @'broadcast-stream', strm);
+    mkcl_FEwrong_type_argument(env, MK_CL_broadcast_stream, strm);
   return mk_cl_copy_list(env, MKCL_BROADCAST_STREAM_LIST(strm));
 }
 
@@ -2506,7 +2506,7 @@ mk_cl_echo_stream_input_stream(MKCL, mkcl_object strm)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(strm) != mkcl_t_stream || strm->stream.mode != mkcl_smm_echo)
-    mkcl_FEwrong_type_argument(env, @'echo-stream', strm);
+    mkcl_FEwrong_type_argument(env, MK_CL_echo_stream, strm);
   mkcl_return_value(MKCL_ECHO_STREAM_INPUT(strm));
 }
 
@@ -2515,7 +2515,7 @@ mk_cl_echo_stream_output_stream(MKCL, mkcl_object strm)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(strm) != mkcl_t_stream || strm->stream.mode != mkcl_smm_echo)
-    mkcl_FEwrong_type_argument(env, @'echo-stream', strm);
+    mkcl_FEwrong_type_argument(env, MK_CL_echo_stream, strm);
   mkcl_return_value(MKCL_ECHO_STREAM_OUTPUT(strm));
 }
 
@@ -2628,7 +2628,7 @@ mkcl_object mk_cl_make_concatenated_stream(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'make-concatenated-stream', 0, narg, narg, ap);
+    mkcl_setup_for_rest(env, MK_CL_make_concatenated_stream, 0, narg, narg, ap);
 
     streams = mk_cl_Cnil;
     for (i = 0; i < narg; i++) {
@@ -2640,7 +2640,7 @@ mkcl_object mk_cl_make_concatenated_stream(MKCL, mkcl_narg narg, ...)
     mkcl_va_end(ap);
     x = alloc_stream(env);
     if (mkcl_Null(streams)) {
-      x->stream.format = @':default';
+      x->stream.format = MK_KEY_default;
     } else {
       x->stream.format = mk_cl_stream_external_format(env, MKCL_CONS_CAR(streams));
     }
@@ -2656,7 +2656,7 @@ mk_cl_concatenated_stream_streams(MKCL, mkcl_object strm)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(strm) != mkcl_t_stream || strm->stream.mode != mkcl_smm_concatenated)
-    mkcl_FEwrong_type_argument(env, @'concatenated-stream', strm);
+    mkcl_FEwrong_type_argument(env, MK_CL_concatenated_stream, strm);
   return mk_cl_copy_list(env, MKCL_CONCATENATED_STREAM_LIST(strm));
 }
 
@@ -2843,7 +2843,7 @@ mk_cl_make_synonym_stream(MKCL, mkcl_object sym)
   mkcl_object x;
 
   mkcl_call_stack_check(env);
-  sym = mkcl_check_cl_type(env, @'make-synonym-stream',sym,mkcl_t_symbol);
+  sym = mkcl_check_cl_type(env, MK_CL_make_synonym_stream,sym,mkcl_t_symbol);
   x = alloc_stream(env);
   x->stream.ops = duplicate_dispatch_table(env, &synonym_ops);
   x->stream.mode = mkcl_smm_synonym;
@@ -2856,7 +2856,7 @@ mk_cl_synonym_stream_symbol(MKCL, mkcl_object strm)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(strm) != mkcl_t_stream || strm->stream.mode != mkcl_smm_synonym)
-    mkcl_FEwrong_type_argument(env, @'synonym-stream', strm);
+    mkcl_FEwrong_type_argument(env, MK_CL_synonym_stream, strm);
   mkcl_return_value(MKCL_SYNONYM_STREAM_SYMBOL(strm));
 }
 
@@ -2890,7 +2890,7 @@ io_file_read_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n)
 	/* Synchronous read cannot be interrupted in MS-Windows. */
 	MKCL_LIBC_NO_INTR(env, nread = read(f, (c + out), sizeof(char)*(n - out)));
 #else
-	MKCL_LIBC_Zzz(env, @':io', nread = read(f, (c + out), sizeof(char)*(n - out)));
+	MKCL_LIBC_Zzz(env, MK_KEY_io, nread = read(f, (c + out), sizeof(char)*(n - out)));
 #endif
 	if (nread > 0) out += nread;
       } while (((nread < 0) && restartable_io_error(env, strm, NULL))
@@ -3269,8 +3269,8 @@ set_file_stream_elt_type_defaults(MKCL, mkcl_object stream)
 {
   stream->stream.flags = MKCL_STREAM_TEXT | MKCL_STREAM_LF;
   stream->stream.byte_size = 8;
-  MKCL_IO_STREAM_ELT_TYPE(stream) = @'base-char';
-  stream->stream.format = mkcl_cons(env, @':iso-8859-1', mkcl_list1(env, @':LF'));
+  MKCL_IO_STREAM_ELT_TYPE(stream) = MK_CL_base_char;
+  stream->stream.format = mkcl_cons(env, MK_KEY_iso_8859_1, mkcl_list1(env, MK_KEY_lf));
   stream->stream.format_table = mk_cl_Cnil;
   stream->stream.encoder = passthrough_encoder;
   stream->stream.decoder = passthrough_decoder;
@@ -3288,20 +3288,20 @@ set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_str
       if (byte_size < 0) {
 	byte_size = -byte_size;
 	flags |= MKCL_STREAM_SIGNED_BYTES;
-	element_type = @'signed-byte';
+	element_type = MK_CL_signed_byte;
       } else if (byte_size > 0) {
 	flags &= ~MKCL_STREAM_SIGNED_BYTES;
-	element_type = @'unsigned-byte';
+	element_type = MK_CL_unsigned_byte;
       } else {/* byte_size == 0 */
 	static const mkcl_base_string_object(reason_string_obj, "Binary stream of unspecified element-type");
 	mkcl_return_2_values(mk_cl_Cnil, ((mkcl_object) &reason_string_obj));
       }
 
-      if (external_format == @':LITTLE-ENDIAN')
+      if (external_format == MK_KEY_little_endian)
 	flags |= MKCL_STREAM_LITTLE_ENDIAN;
-      else if (external_format == @':BIG-ENDIAN')
+      else if (external_format == MK_KEY_big_endian)
 	flags &= ~MKCL_STREAM_LITTLE_ENDIAN;
-      else if (external_format == @':default')
+      else if (external_format == MK_KEY_default)
 	{  /* What should we do here? JCB */
 	  if (byte_size > 8)
 	    flags |= MKCL_STREAM_LITTLE_ENDIAN; /* Good for x86 and x86_64. JCB */
@@ -3333,15 +3333,15 @@ set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_str
       read_char = eformat_read_char;
       write_char = eformat_write_char;
 #if MKCL_WINDOWS
-      line_termination = @':CRLF'; /* default line termination */
+      line_termination = MK_KEY_crlf; /* default line termination */
 #else
-      line_termination = @':LF'; /* default line termination */
+      line_termination = MK_KEY_lf; /* default line termination */
 #endif
   
-      if (external_format == @':default')
+      if (external_format == MK_KEY_default)
 	{
-	  external_format = mkcl_symbol_value(env, @'si::*default-external-format*');
-	  if (external_format == @':default')
+	  external_format = mkcl_symbol_value(env, MK_SI_DYNVAR_default_external_format);
+	  if (external_format == MK_KEY_default)
 	    external_format = mkcl_core.default_default_external_format; /* This is the hardcoded fallback. */
 	}
 
@@ -3356,11 +3356,11 @@ set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_str
 	  mkcl_return_2_values(mk_cl_Cnil, mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, external_format));
 	}
 
-	if (line_termination == @':CR')
+	if (line_termination == MK_KEY_cr)
 	  flags = (flags | MKCL_STREAM_CR) & ~MKCL_STREAM_LF;
-	else if (line_termination == @':LF')
+	else if (line_termination == MK_KEY_lf)
 	  flags = (flags | MKCL_STREAM_LF) & ~MKCL_STREAM_CR;
-	else if (line_termination == @':CRLF')
+	else if (line_termination == MK_KEY_crlf)
 	  flags = flags | (MKCL_STREAM_CR | MKCL_STREAM_LF);
 	else {
 	  static const mkcl_base_string_object(reason_control_string_obj, "Invalid line termination specifier: ~S");
@@ -3368,35 +3368,35 @@ set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_str
 	}
       }
 
-      if (external_format == @':ISO-8859-1' || external_format == @':LATIN-1')
+      if (external_format == MK_KEY_iso_8859_1 || external_format == MK_KEY_latin_1)
 	{
-	  element_type = @'base-char';
+	  element_type = MK_CL_base_char;
 	  byte_size = 8;
-	  stream_format = @':iso-8859-1';
+	  stream_format = MK_KEY_iso_8859_1;
 	  encoder = passthrough_encoder;
 	  decoder = passthrough_decoder;
 	}
-      else if (external_format == @':UTF-8')
+      else if (external_format == MK_KEY_utf_8)
 	{
-	  element_type = @'character';
+	  element_type = MK_CL_character;
 	  byte_size = 8;
-	  stream_format = @':utf-8';
+	  stream_format = MK_KEY_utf_8;
 	  encoder = utf_8_encoder;
 	  decoder = utf_8_decoder;
 	}
-      else if (external_format == @':UTF-16')
+      else if (external_format == MK_KEY_utf_16)
 	{
-	  element_type = @'character';
+	  element_type = MK_CL_character;
 	  byte_size = 8*2;
-	  stream_format = @':utf-16';
+	  stream_format = MK_KEY_utf_16;
 	  encoder = utf_16_encoder;
 	  decoder = utf_16_decoder;
 	}
-      else if (external_format == @':UTF-16BE')
+      else if (external_format == MK_KEY_utf_16be)
 	{
-	  element_type = @'character';
+	  element_type = MK_CL_character;
 	  byte_size = 8*2;
-	  stream_format = @':utf-16be';
+	  stream_format = MK_KEY_utf_16be;
 	  encoder = utf_16be_encoder;
 	  decoder = utf_16be_decoder;
 
@@ -3406,29 +3406,29 @@ set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_str
 	    mkcl_return_2_values(mk_cl_Cnil, ((mkcl_object) &reason_string_obj));
 	  }
 	}
-      else if (external_format == @':UTF-16LE')
+      else if (external_format == MK_KEY_utf_16le)
 	{
-	  element_type = @'character';
+	  element_type = MK_CL_character;
 	  byte_size = 8*2;
-	  stream_format = @':utf-16le';
+	  stream_format = MK_KEY_utf_16le;
 	  encoder = utf_16le_encoder;
 	  decoder = utf_16le_decoder;
 
 	  flags |= MKCL_STREAM_LITTLE_ENDIAN;
 	}
-      else if (external_format == @':UTF-32')
+      else if (external_format == MK_KEY_utf_32)
 	{
-	  element_type = @'character';
+	  element_type = MK_CL_character;
 	  byte_size = 8*4;
-	  stream_format = @':utf-32';
+	  stream_format = MK_KEY_utf_32;
 	  encoder = utf_32_encoder;
 	  decoder = utf_32_decoder;
 	}
-      else if (external_format == @':UTF-32BE')
+      else if (external_format == MK_KEY_utf_32be)
 	{
-	  element_type = @'character';
+	  element_type = MK_CL_character;
 	  byte_size = 8*4;
-	  stream_format = @':utf-32be';
+	  stream_format = MK_KEY_utf_32be;
 	  encoder = utf_32be_encoder;
 	  decoder = utf_32be_decoder;
 
@@ -3438,34 +3438,34 @@ set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_str
 	    mkcl_return_2_values(mk_cl_Cnil, ((mkcl_object) &reason_string_obj));
 	  }
 	}
-      else if (external_format == @':UTF-32LE')
+      else if (external_format == MK_KEY_utf_32le)
 	{
-	  element_type = @'character';
+	  element_type = MK_CL_character;
 	  byte_size = 8*4;
-	  stream_format = @':utf-32le';
+	  stream_format = MK_KEY_utf_32le;
 	  encoder = utf_32le_encoder;
 	  decoder = utf_32le_decoder;
 
 	  flags |= MKCL_STREAM_LITTLE_ENDIAN;
 	}
-      else if (external_format == @':US-ASCII' || external_format == @':ASCII')
+      else if (external_format == MK_KEY_us_ascii || external_format == MK_KEY_ascii)
 	{
-	  element_type = @'base-char';
+	  element_type = MK_CL_base_char;
 	  byte_size = 8;
-	  stream_format = @':us-ascii';
+	  stream_format = MK_KEY_us_ascii;
 	  encoder = ascii_encoder;
 	  decoder = ascii_decoder;
 	}
       else if (MKCL_SYMBOLP(external_format))
 	{
-	  mkcl_object format_table = mkcl_funcall1(env, @+'si::make-encoding', external_format);
+	  mkcl_object format_table = mkcl_funcall1(env, MK_SI_make_encoding->symbol.gfdef, external_format);
 	  mkcl_object failure_reason = MKCL_VALUES(1);
 
 	  if (mkcl_Null(format_table))
 	    { mkcl_return_2_values(mk_cl_Cnil, failure_reason); }
 	  else
 	    {
-	      element_type = @'character';
+	      element_type = MK_CL_character;
 	      byte_size = 8;
 	      stream_format_table = format_table;
 	      stream_format = external_format;
@@ -3483,7 +3483,7 @@ set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_str
 	}
       else if (MKCL_HASH_TABLE_P(external_format))
 	{
-	  element_type = @'character';
+	  element_type = MK_CL_character;
 	  byte_size = 8;
 	  stream_format = external_format;
 	  stream_format_table = external_format;
@@ -3503,11 +3503,11 @@ set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_str
 	if (flags & MKCL_STREAM_LF) {
 	  read_char = eformat_read_char_crlf;
 	  write_char = eformat_write_char_crlf;
-	  line_termination = @':CRLF';
+	  line_termination = MK_KEY_crlf;
 	} else {
 	  read_char = eformat_read_char_cr;
 	  write_char = eformat_write_char_cr;
-	  line_termination = @':CR';
+	  line_termination = MK_KEY_cr;
 	}
       }
 
@@ -3563,7 +3563,7 @@ mk_si_stream_external_format_set(MKCL, mkcl_object stream, mkcl_object format)
     mkcl_return_2_values(mk_cl_Cnil, mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, stream));
   }
   if (mkcl_type_of(stream) != mkcl_t_stream)
-    mkcl_FEwrong_type_argument(env, @'stream', stream);
+    mkcl_FEwrong_type_argument(env, MK_CL_stream, stream);
 
   switch (stream->stream.mode) 
     {
@@ -3579,7 +3579,7 @@ mk_si_stream_external_format_set(MKCL, mkcl_object stream, mkcl_object format)
       {
 	mkcl_object elt_type = mkcl_stream_element_type(env, stream);
 
-	if (mkcl_unlikely(!(elt_type == @'character' || elt_type == @'base-char'))){
+	if (mkcl_unlikely(!(elt_type == MK_CL_character || elt_type == MK_CL_base_char))){
 	  static const mkcl_base_string_object(reason_control_string_obj,
 					       "Cannot change external format of binary stream ~A");
 	  mkcl_return_2_values(mk_cl_Cnil, mk_cl_format(env, 3, mk_cl_Cnil, (mkcl_object) &reason_control_string_obj, stream));
@@ -3671,7 +3671,7 @@ input_stream_read_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n)
 	/* Synchronous read cannot be interrupted in MS-Windows. */
 	MKCL_LIBC_NO_INTR(env, out += fread((c + out), sizeof(char), (n - out), f));
 #else
-	MKCL_LIBC_Zzz(env, @':io', out += fread((c + out), sizeof(char), (n - out), f));
+	MKCL_LIBC_Zzz(env, MK_KEY_io, out += fread((c + out), sizeof(char), (n - out), f));
 #endif
       } while ((out < n)
 	       && ((ferror(f) && restartable_io_error(env, strm, NULL))
@@ -4048,7 +4048,7 @@ socket_stream_read_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n)
 #if MKCL_UNIX
       ssize_t len = 0;
 
-      MKCL_LIBC_Zzz(env, @':io', len = recv(s, (char *) c, n, MSG_WAITALL));
+      MKCL_LIBC_Zzz(env, MK_KEY_io, len = recv(s, (char *) c, n, MSG_WAITALL));
       if ((len == SOCKET_ERROR) && (errno != EINTR))
 	{
 	  len = 0; 
@@ -4072,7 +4072,7 @@ socket_stream_read_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n)
 	{
 	  DWORD wait_val;
 
-	  MKCL_LIBC_Zzz(env, @':io', wait_val = SleepEx(0, TRUE));
+	  MKCL_LIBC_Zzz(env, MK_KEY_io, wait_val = SleepEx(0, TRUE));
 
 	  if (wait_val != WAIT_IO_COMPLETION)
 	    mkcl_FEwin32_error(env, "WSARecv() failed to complete properly on socket ~S", 1, strm);
@@ -4089,7 +4089,7 @@ socket_stream_read_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n)
 	    socket_error(env, "WSARecv() failed on socket", strm); /* Something went wrong with WSARecv(). */
 
 	  do {
-	    MKCL_LIBC_Zzz(env, @':io', wait_val = SleepEx(INFINITE, TRUE));
+	    MKCL_LIBC_Zzz(env, MK_KEY_io, wait_val = SleepEx(INFINITE, TRUE));
 	  } while ((wait_val == WAIT_IO_COMPLETION)
 		   && (WSAGetOverlappedResult(s, &RecvOverlapped, &BytesRecv, FALSE, &Flags)
 		       ? FALSE
@@ -4135,7 +4135,7 @@ socket_stream_write_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n
     do {
       ssize_t res;
 
-      MKCL_LIBC_Zzz(env, @':io', res = send(s, ((char *) c) + out, n, 0));
+      MKCL_LIBC_Zzz(env, MK_KEY_io, res = send(s, ((char *) c) + out, n, 0));
       if ((res == SOCKET_ERROR) && (errno != EINTR)) {
 	socket_error(env, "Cannot write bytes to socket", strm);
 	break; /* stop writing */
@@ -4159,7 +4159,7 @@ socket_stream_write_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n
 	{
 	  DWORD wait_val;
 
-	  MKCL_LIBC_Zzz(env, @':io', wait_val = SleepEx(0, TRUE));
+	  MKCL_LIBC_Zzz(env, MK_KEY_io, wait_val = SleepEx(0, TRUE));
 
 	  if (wait_val != WAIT_IO_COMPLETION)
 	    mkcl_FEwin32_error(env, "WSASend() failed to complete properly on socket ~S", 1, strm);
@@ -4176,7 +4176,7 @@ socket_stream_write_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index n
 	    socket_error(env, "WSASend() failed on socket", strm); /* Something went wrong with WSASend(). */
 
 	  do {
-	    MKCL_LIBC_Zzz(env, @':io', wait_val = SleepEx(INFINITE, TRUE));
+	    MKCL_LIBC_Zzz(env, MK_KEY_io, wait_val = SleepEx(INFINITE, TRUE));
 	  } while ((wait_val == WAIT_IO_COMPLETION)
 		   && (WSAGetOverlappedResult(s, &SendOverlapped, &BytesSent, FALSE, &Flags)
 		       ? FALSE
@@ -4371,7 +4371,7 @@ mk_si_get_buffering_mode(MKCL, mkcl_object stream)
   if (MKCL_STREAM_IS_C_STDIO_BASED_P(stream))  
     { mkcl_return_value(stream->stream.buffering_mode); }
   else
-    { mkcl_return_value(@':invalid'); }
+    { mkcl_return_value(MK_KEY_invalid); }
 }
 
 mkcl_object
@@ -4383,12 +4383,12 @@ mk_si_set_buffering_mode(MKCL, mkcl_object stream, mkcl_object buffer_mode_symbo
   if (mkcl_type_of(stream) != mkcl_t_stream) {
     mkcl_FEtype_error_stream(env, stream);
   }
-  if (buffer_mode_symbol == @':none' || mkcl_Null(buffer_mode_symbol)) {
+  if (buffer_mode_symbol == MK_KEY_none || mkcl_Null(buffer_mode_symbol)) {
     buffer_mode = _IONBF;
-  } else if (buffer_mode_symbol == @':full' || buffer_mode_symbol == mk_cl_Ct
-	     || buffer_mode_symbol == @':fully-buffered') {
+  } else if (buffer_mode_symbol == MK_KEY_full || buffer_mode_symbol == mk_cl_Ct
+	     || buffer_mode_symbol == MK_KEY_fully_buffered) {
     buffer_mode = _IOFBF;
-  } else if (buffer_mode_symbol == @':line' || buffer_mode_symbol == @':line-buffered') {
+  } else if (buffer_mode_symbol == MK_KEY_line || buffer_mode_symbol == MK_KEY_line_buffered) {
     buffer_mode = _IOLBF;
   } else {
     mkcl_FEerror(env, "Not a valid buffering mode: ~A", 1, buffer_mode_symbol);
@@ -4790,7 +4790,7 @@ mk_cl_file_string_length(MKCL, mkcl_object stream, mkcl_object string)
     l = compute_char_size(env, stream, MKCL_CHAR_CODE(string));
     break;
   default:
-    mkcl_FEwrong_type_argument(env, @'string', string);
+    mkcl_FEwrong_type_argument(env, MK_CL_string, string);
   }
   mkcl_return_value(MKCL_MAKE_FIXNUM(l));
 }
@@ -4806,11 +4806,11 @@ mk_si_do_write_sequence(MKCL, mkcl_object seq, mkcl_object stream, mkcl_object s
      sequence. Therefore, we only need to check the type of the
      object, and seq == mk_cl_Cnil i.f.f. t = mkcl_t_symbol */
   limit = mkcl_length(env, seq);
-  start = mkcl_fixnum_in_range(env, @'write-sequence',"start",s,0,limit); /* probably wrong on large seq. JCB */
+  start = mkcl_fixnum_in_range(env, MK_CL_write_sequence,"start",s,0,limit); /* probably wrong on large seq. JCB */
   if (e == mk_cl_Cnil) {
     end = limit;
   } else {
-    end = mkcl_fixnum_in_range(env, @'write-sequence',"end",e,0,limit); /* probably wrong on large seq. JCB */
+    end = mkcl_fixnum_in_range(env, MK_CL_write_sequence,"end",e,0,limit); /* probably wrong on large seq. JCB */
   }
   if (end <= start) {
     goto OUTPUT;
@@ -4818,7 +4818,7 @@ mk_si_do_write_sequence(MKCL, mkcl_object seq, mkcl_object stream, mkcl_object s
   ops = stream_dispatch_table(env, stream);
   if (MKCL_LISTP(seq)) {
     mkcl_object elt_type = mk_cl_stream_element_type(env, stream);
-    bool ischar = (elt_type == @'base-char') || (elt_type == @'character');
+    bool ischar = (elt_type == MK_CL_base_char) || (elt_type == MK_CL_character);
     mkcl_object s = mkcl_nthcdr(env, start, seq);
     mkcl_loop_for_in(env, s) {
       if (start < end) {
@@ -4850,11 +4850,11 @@ mk_si_do_read_sequence(MKCL, mkcl_object seq, mkcl_object stream, mkcl_object s,
      sequence. Therefore, we only need to check the type of the
      object, and seq == mk_cl_Cnil i.f.f. t = mkcl_t_symbol */
   limit = mkcl_length(env, seq);
-  start = mkcl_fixnum_in_range(env, @'read-sequence',"start",s,0,limit); /* probably wrong on large seq. JCB */
+  start = mkcl_fixnum_in_range(env, MK_CL_read_sequence,"start",s,0,limit); /* probably wrong on large seq. JCB */
   if (e == mk_cl_Cnil) {
     end = limit;
   } else {
-    end = mkcl_fixnum_in_range(env, @'read-sequence',"end",e,0,limit); /* probably wrong on large seq. JCB */
+    end = mkcl_fixnum_in_range(env, MK_CL_read_sequence,"end",e,0,limit); /* probably wrong on large seq. JCB */
   }
   if (end <= start) {
     goto OUTPUT; /* FIXME: This is wrong! An error needs to signaled here as in any other sequence function. JCB */
@@ -4863,7 +4863,7 @@ mk_si_do_read_sequence(MKCL, mkcl_object seq, mkcl_object stream, mkcl_object s,
   ops = stream_dispatch_table(env, stream);
   if (MKCL_LISTP(seq)) {
     mkcl_object elt_type = mk_cl_stream_element_type(env, stream);
-    bool ischar = (elt_type == @'base-char') || (elt_type == @'character');
+    bool ischar = (elt_type == MK_CL_base_char) || (elt_type == MK_CL_character);
     seq = mkcl_nthcdr(env, start, seq);
     mkcl_loop_for_in(env, seq) {
       if (start >= end) {
@@ -4915,7 +4915,7 @@ mkcl_object mk_cl_file_position(MKCL, mkcl_narg narg, mkcl_object file_stream, .
 
     mkcl_object output;
     mkcl_object position = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'file-position', narg, 1, file_stream, &position);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_file_position, narg, 1, file_stream, &position);
 
     mkcl_object character_position = mk_cl_Cnil;
 
@@ -4923,9 +4923,9 @@ mkcl_object mk_cl_file_position(MKCL, mkcl_narg narg, mkcl_object file_stream, .
       output = mkcl_file_position(env, file_stream);
       character_position = MKCL_VALUES(1);
     } else {
-      if (position == @':start') {
+      if (position == MK_KEY_start) {
         position = MKCL_MAKE_FIXNUM(0);
-      } else if (position == @':end') {
+      } else if (position == MK_KEY_end) {
         position = mk_cl_Cnil;
       }
       output = mkcl_file_position_set(env, file_stream, position);
@@ -4960,10 +4960,10 @@ mk_cl_open_stream_p(MKCL, mkcl_object strm)
 {
   mkcl_call_stack_check(env);
   if (MKCL_INSTANCEP(strm)) {
-    return mkcl_funcall1(env, @+'gray::open-stream-p', strm);
+    return mkcl_funcall1(env, MK_GRAY_open_stream_p->symbol.gfdef, strm);
   }
   if (mkcl_type_of(strm) != mkcl_t_stream)
-    mkcl_FEwrong_type_argument(env, @'stream', strm);
+    mkcl_FEwrong_type_argument(env, MK_CL_stream, strm);
   mkcl_return_value((strm->stream.closed ? mk_cl_Cnil : mk_cl_Ct));
 }
 
@@ -4984,10 +4984,10 @@ mk_cl_stream_external_format(MKCL, mkcl_object strm)
  AGAIN:
   t= mkcl_type_of(strm);
   if (t == mkcl_t_instance) /* FIXME: not strong/restrictive enough. JCB */
-    { mkcl_return_value(@':default'); }
+    { mkcl_return_value(MK_KEY_default); }
   else
     if (t != mkcl_t_stream)
-      mkcl_FEwrong_type_argument(env, @'stream', strm);
+      mkcl_FEwrong_type_argument(env, MK_CL_stream, strm);
   if (strm->stream.mode == mkcl_smm_synonym) {
     strm = MKCL_SYNONYM_STREAM_STREAM(env, strm);
     goto AGAIN;
@@ -5001,7 +5001,7 @@ mk_cl_streamp(MKCL, mkcl_object strm)
 {
   mkcl_call_stack_check(env);
   if (MKCL_INSTANCEP(strm)) {
-    return mkcl_funcall1(env, @+'gray::streamp', strm);
+    return mkcl_funcall1(env, MK_GRAY_streamp->symbol.gfdef, strm);
   }
   mkcl_return_value(((mkcl_type_of(strm) == mkcl_t_stream) ? mk_cl_Ct : mk_cl_Cnil));
 }
@@ -5034,34 +5034,34 @@ normalize_stream_element_type(MKCL, mkcl_object element_type)
   mkcl_word sign = 0;
   mkcl_index size;
 
-  if (element_type == @'signed-byte') {
+  if (element_type == MK_CL_signed_byte) {
     return -8;
-  } else if (element_type == @'unsigned-byte' || element_type == @':default') {
+  } else if (element_type == MK_CL_unsigned_byte || element_type == MK_KEY_default) {
     return 8;
   } else if (mkcl_Null(element_type)) {
     return 0; /* Text stream */
-  } else if (element_type == @'base-char' || element_type == @'character') {
+  } else if (element_type == MK_CL_base_char || element_type == MK_CL_character) {
     return 0; /* Text stream */
-  } else if (mkcl_funcall2(env, @+'subtypep', element_type, @'character') != mk_cl_Cnil) {
+  } else if (mkcl_funcall2(env, MK_CL_subtypep->symbol.gfdef, element_type, MK_CL_character) != mk_cl_Cnil) {
     return 0; /* Text stream */
-  } else if (mkcl_funcall2(env, @+'subtypep', element_type, @'unsigned-byte') != mk_cl_Cnil) {
+  } else if (mkcl_funcall2(env, MK_CL_subtypep->symbol.gfdef, element_type, MK_CL_unsigned_byte) != mk_cl_Cnil) {
     sign = +1;
-  } else if (mkcl_funcall2(env, @+'subtypep', element_type, @'signed-byte') != mk_cl_Cnil) {
+  } else if (mkcl_funcall2(env, MK_CL_subtypep->symbol.gfdef, element_type, MK_CL_signed_byte) != mk_cl_Cnil) {
     sign = -1;
   } else {
     mkcl_FEerror(env, "Not a valid stream element type: ~A", 1, element_type);
   }
   if (MKCL_CONSP(element_type)) {
-    if (MKCL_CAR(element_type) == @'unsigned-byte')
+    if (MKCL_CAR(element_type) == MK_CL_unsigned_byte)
       return mkcl_integer_to_index(env, mk_cl_cadr(env, element_type));
-    if (MKCL_CAR(element_type) == @'signed-byte')
+    if (MKCL_CAR(element_type) == MK_CL_signed_byte)
       return -mkcl_integer_to_index(env, mk_cl_cadr(env, element_type));
   }
   for (size = 8; 1; size++) {
     mkcl_object type
-      = mk_cl_list(env, 2, ((sign>0) ? @'unsigned-byte' : @'signed-byte'), MKCL_MAKE_FIXNUM(size));
+      = mk_cl_list(env, 2, ((sign>0) ? MK_CL_unsigned_byte : MK_CL_signed_byte), MKCL_MAKE_FIXNUM(size));
 
-    if (mkcl_funcall2(env, @+'subtypep', element_type, type) != mk_cl_Cnil) {
+    if (mkcl_funcall2(env, MK_CL_subtypep->symbol.gfdef, element_type, type) != mk_cl_Cnil) {
       return size * sign;
     }
   }
@@ -5090,9 +5090,9 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
   if (smm == mkcl_smm_input || smm == mkcl_smm_input_file || smm == mkcl_smm_probe) {
     if (!file_already_exists)
       {
-	if (if_does_not_exist == @':error') {
+	if (if_does_not_exist == MK_KEY_error) {
 	  mkcl_FEcannot_open(env, fn);
-	} else if (if_does_not_exist == @':create') {
+	} else if (if_does_not_exist == MK_KEY_create) {
 #if MKCL_WINDOWS
 	  MKCL_LIBC_NO_INTR(env, f = _wopen(mkcl_OSstring_self(os_filename), O_WRONLY|O_CREAT|_O_BINARY, mode));
 #else
@@ -5103,7 +5103,7 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
 	} else if (mkcl_Null(if_does_not_exist)) {
 	  return mk_cl_Cnil;
 	} else {
-	  mkcl_FEerror(env, "Invalid value op option ~A: ~A", 2, @':if-does-not-exist', if_does_not_exist);
+	  mkcl_FEerror(env, "Invalid value op option ~A: ~A", 2, MK_KEY_if_does_not_exist, if_does_not_exist);
 	}
       }
 #if MKCL_WINDOWS
@@ -5117,41 +5117,41 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
 #if MKCL_WINDOWS
     base |= _O_BINARY; /* On Windows we force open into binary mode since the default is _O_TEXT. */
 #endif
-    if (if_exists == @':new_version' && if_does_not_exist == @':create')
+    if (if_exists == MK_KEY_new_version && if_does_not_exist == MK_KEY_create)
       file_already_exists = FALSE; /* We need to create anew no matter what. */
 
     if (file_already_exists) {
-      if (if_exists == @':error') {
+      if (if_exists == MK_KEY_error) {
 	mkcl_FEcannot_open(env, fn);
-      } else if (if_exists == @':rename') {
+      } else if (if_exists == MK_KEY_rename) {
 	f = mkcl_backup_open(env, filename, base|O_CREAT, mode);
 	if (f < 0) mkcl_FEcannot_open(env, fn);
-      } else if (if_exists == @':rename_and_delete' ||
-		 if_exists == @':new_version' ||
-		 if_exists == @':supersede') {
+      } else if (if_exists == MK_KEY_rename_and_delete ||
+		 if_exists == MK_KEY_new_version ||
+		 if_exists == MK_KEY_supersede) {
 #if MKCL_WINDOWS
 	MKCL_LIBC_NO_INTR(env, f = _wopen(mkcl_OSstring_self(os_filename), base|O_TRUNC, mode));
 #else
 	MKCL_LIBC_NO_INTR(env, f = open((char *) mkcl_OSstring_self(os_filename), base|O_TRUNC, mode));
 #endif
 	if (f < 0) mkcl_FEcannot_open(env, fn);
-      } else if (if_exists == @':overwrite' || if_exists == @':append') {
+      } else if (if_exists == MK_KEY_overwrite || if_exists == MK_KEY_append) {
 #if MKCL_WINDOWS
 	MKCL_LIBC_NO_INTR(env, f = _wopen(mkcl_OSstring_self(os_filename), base, mode));
 #else
 	MKCL_LIBC_NO_INTR(env, f = open((char *) mkcl_OSstring_self(os_filename), base, mode));
 #endif
 	if (f < 0) mkcl_FEcannot_open(env, fn);
-	appending = (if_exists == @':append');
+	appending = (if_exists == MK_KEY_append);
       } else if (mkcl_Null(if_exists)) {
 	return mk_cl_Cnil;
       } else {
-	mkcl_FEerror(env, "Invalid value op option ~A: ~A", 2, @':if-exists', if_exists);
+	mkcl_FEerror(env, "Invalid value op option ~A: ~A", 2, MK_KEY_if_exists, if_exists);
       }
     } else {
-      if (if_does_not_exist == @':error') {
+      if (if_does_not_exist == MK_KEY_error) {
 	mkcl_FEcannot_open(env, fn);
-      } else if (if_does_not_exist == @':create') {
+      } else if (if_does_not_exist == MK_KEY_create) {
       /* CREATE:	 */
 #if MKCL_WINDOWS
 	MKCL_LIBC_NO_INTR(env, f = _wopen(mkcl_OSstring_self(os_filename), base | O_CREAT | O_TRUNC, mode));
@@ -5162,7 +5162,7 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
       } else if (mkcl_Null(if_does_not_exist)) {
 	return mk_cl_Cnil;
       } else {
-	mkcl_FEerror(env, "Invalid value op option ~A: ~A", 2, @':if-does-not-exist', if_does_not_exist);
+	mkcl_FEerror(env, "Invalid value op option ~A: ~A", 2, MK_KEY_if_does_not_exist, if_does_not_exist);
       }
     }
   } else {
@@ -5212,7 +5212,7 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
       default: mkcl_FEerror(env, "Illegal stream mode ~S", 1, MKCL_MAKE_FIXNUM(smm));
       }
       x = make_stream_from_FILE(env, fn, fp, smm, byte_size, external_format);
-      mk_si_set_buffering_mode(env, x, byte_size ? @':fully-buffered' : @':line-buffered');
+      mk_si_set_buffering_mode(env, x, byte_size ? MK_KEY_fully_buffered : MK_KEY_line_buffered);
     }
   }
 
@@ -5236,62 +5236,62 @@ mkcl_object mk_cl_open(MKCL, mkcl_narg narg, mkcl_object filename, ...)
     mkcl_object strm = mk_cl_Cnil;
     enum mkcl_smmode smm;
     int flags = 0;
-    mkcl_object direction = @':input';
-    mkcl_object element_type = @'base-char'; /* shouldn't it be "character" instead? JCB */
+    mkcl_object direction = MK_KEY_input;
+    mkcl_object element_type = MK_CL_base_char; /* shouldn't it be "character" instead? JCB */
     mkcl_object if_exists = mk_cl_Cnil;
     mkcl_object if_does_not_exist = mk_cl_Cnil;
-    mkcl_object external_format = @':default';
+    mkcl_object external_format = MK_KEY_default;
     mkcl_object stdio_stream = mk_cl_Ct;
     struct mkcl_key_param_spec key_params[] =
       {
-       { @':direction', &direction, false },
-       { @':element-type', &element_type, false },
-       { @':if-exists', &if_exists, false },
-       { @':if-does-not-exist', &if_does_not_exist, false },
-       { @':external-format', &external_format, false },
-       { @':stdio-stream', &stdio_stream, false },
+       { MK_KEY_direction, &direction, false },
+       { MK_KEY_element_type, &element_type, false },
+       { MK_KEY_if_exists, &if_exists, false },
+       { MK_KEY_if_does_not_exist, &if_does_not_exist, false },
+       { MK_KEY_external_format, &external_format, false },
+       { MK_KEY_stdio_stream, &stdio_stream, false },
       };
-    MKCL_RECEIVE_N_KEYWORD_ARGUMENTS(env, @'open', narg, 1, filename, key_params);
+    MKCL_RECEIVE_N_KEYWORD_ARGUMENTS(env, MK_CL_open, narg, 1, filename, key_params);
     bool iesp = key_params[2].key_arg_seen;
     bool idnesp = key_params[3].key_arg_seen;
 
     /* INV: mkcl_open_stream() checks types */
-    if (direction == @':input') {
+    if (direction == MK_KEY_input) {
       if (mkcl_Null(stdio_stream))
         smm = mkcl_smm_input_file;
       else
         smm = mkcl_smm_input;
       if (!idnesp)
-        if_does_not_exist = @':error';
-    } else if (direction == @':output') {
+        if_does_not_exist = MK_KEY_error;
+    } else if (direction == MK_KEY_output) {
       if (mkcl_Null(stdio_stream))
         smm = mkcl_smm_output_file;
       else
         smm = mkcl_smm_output;
       if (!iesp)
-        if_exists = @':new_version';
+        if_exists = MK_KEY_new_version;
       if (!idnesp) {
-        if (if_exists == @':overwrite' ||
-            if_exists == @':append')
-          if_does_not_exist = @':error';
+        if (if_exists == MK_KEY_overwrite ||
+            if_exists == MK_KEY_append)
+          if_does_not_exist = MK_KEY_error;
         else
-          if_does_not_exist = @':create';
+          if_does_not_exist = MK_KEY_create;
       }
-    } else if (direction == @':io') {
+    } else if (direction == MK_KEY_io) {
       if (mkcl_Null(stdio_stream))
         smm = mkcl_smm_io_file;
       else
         smm = mkcl_smm_io;
       if (!iesp)
-        if_exists = @':new_version';
+        if_exists = MK_KEY_new_version;
       if (!idnesp) {
-        if (if_exists == @':overwrite' ||
-            if_exists == @':append')
-          if_does_not_exist = @':error';
+        if (if_exists == MK_KEY_overwrite ||
+            if_exists == MK_KEY_append)
+          if_does_not_exist = MK_KEY_error;
         else
-          if_does_not_exist = @':create';
+          if_does_not_exist = MK_KEY_create;
       }
-    } else if (direction == @':probe') {
+    } else if (direction == MK_KEY_probe) {
       smm = mkcl_smm_probe;
       if (!idnesp)
         if_does_not_exist = mk_cl_Cnil;
@@ -5309,7 +5309,7 @@ mkcl_object mk_cl_close(MKCL, mkcl_narg narg, mkcl_object strm, ...)
 {
   mkcl_object abort = mk_cl_Cnil;
 
-  MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, @'close', narg, 1, strm, @':abort', &abort);
+  MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, MK_CL_close, narg, 1, strm, MK_KEY_abort, &abort);
   mkcl_return_value(stream_dispatch_table(env, strm)->close(env, strm));
 }
 
@@ -5328,7 +5328,7 @@ file_listen(MKCL, int fileno)
     struct timeval tv = { 0, 0 };
     FD_ZERO(&fds);
     FD_SET(fileno, &fds);
-    MKCL_LIBC_Zzz(env, @':io', retv = select(fileno + 1, &fds, NULL, NULL, &tv));
+    MKCL_LIBC_Zzz(env, MK_KEY_io, retv = select(fileno + 1, &fds, NULL, NULL, &tv));
   } while ((retv < 0) && errno == EINTR);
   mk_mt_test_for_thread_shutdown(env);
   if (retv < 0)
@@ -5508,52 +5508,52 @@ alloc_stream(MKCL)
 static mkcl_object
 not_a_file_stream(MKCL, mkcl_object strm)
 {
-  return mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+  return mk_cl_error(env, 9, MK_CL_simple_type_error, MK_KEY_format_control,
 		     mkcl_make_simple_base_string(env, "~A is not an file stream"),
-		     @':format-arguments', mk_cl_list(env, 1, strm),
-		     @':expected-type', @'file-stream',
-		     @':datum', strm);
+		     MK_KEY_format_arguments, mk_cl_list(env, 1, strm),
+		     MK_KEY_expected_type, MK_CL_file_stream,
+		     MK_KEY_datum, strm);
 }
 
 static void
 not_an_input_stream(MKCL, mkcl_object strm)
 {
-  mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+  mk_cl_error(env, 9, MK_CL_simple_type_error, MK_KEY_format_control,
 	      mkcl_make_simple_base_string(env, "~A is not an input stream"),
-	      @':format-arguments', mk_cl_list(env, 1, strm),
-	      @':expected-type',
-	      mk_cl_list(env, 2, @'satisfies', @'input-stream-p'),
-	      @':datum', strm);
+	      MK_KEY_format_arguments, mk_cl_list(env, 1, strm),
+	      MK_KEY_expected_type,
+	      mk_cl_list(env, 2, MK_CL_satisfies, MK_CL_input_stream_p),
+	      MK_KEY_datum, strm);
 }
 
 static void
 not_an_output_stream(MKCL, mkcl_object strm)
 {
-  mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+  mk_cl_error(env, 9, MK_CL_simple_type_error, MK_KEY_format_control,
 	      mkcl_make_simple_base_string(env, "~A is not an output stream"),
-	      @':format-arguments', mk_cl_list(env, 1, strm),
-	      @':expected-type', mk_cl_list(env, 2, @'satisfies', @'output-stream-p'),
-	      @':datum', strm);
+	      MK_KEY_format_arguments, mk_cl_list(env, 1, strm),
+	      MK_KEY_expected_type, mk_cl_list(env, 2, MK_CL_satisfies, MK_CL_output_stream_p),
+	      MK_KEY_datum, strm);
 }
 
 static void
 not_a_character_stream(MKCL, mkcl_object s)
 {
-  mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+  mk_cl_error(env, 9, MK_CL_simple_type_error, MK_KEY_format_control,
 	      mkcl_make_simple_base_string(env, "~A is not a character stream"),
-	      @':format-arguments', mk_cl_list(env, 1, s),
-	      @':expected-type', @'character',
-	      @':datum', mk_cl_stream_element_type(env, s));
+	      MK_KEY_format_arguments, mk_cl_list(env, 1, s),
+	      MK_KEY_expected_type, MK_CL_character,
+	      MK_KEY_datum, mk_cl_stream_element_type(env, s));
 }
 
 static void
 not_a_binary_stream(MKCL, mkcl_object s)
 {
-  mk_cl_error(env, 9, @'simple-type-error', @':format-control',
+  mk_cl_error(env, 9, MK_CL_simple_type_error, MK_KEY_format_control,
 	      mkcl_make_simple_base_string(env, "~A is not a binary stream"),
-	      @':format-arguments', mk_cl_list(env, 1, s),
-	      @':expected-type', @'integer',
-	      @':datum', mk_cl_stream_element_type(env, s));
+	      MK_KEY_format_arguments, mk_cl_list(env, 1, s),
+	      MK_KEY_expected_type, MK_CL_integer,
+	      MK_KEY_datum, mk_cl_stream_element_type(env, s));
 }
 
 static void
@@ -5626,7 +5626,7 @@ static mkcl_index
 encoding_error(MKCL, mkcl_object stream, unsigned char *buffer, mkcl_character ch)
 {
   mkcl_object replacement_ch = mkcl_funcall3(env,
-					     @'mkcl::stream-encoding-error',
+					     MK_MKCL_stream_encoding_error,
 					     stream,
 					     mk_cl_stream_external_format(env, stream),
 					     MKCL_MAKE_FIXNUM(ch));
@@ -5644,7 +5644,7 @@ decoding_error(MKCL, mkcl_object stream, unsigned char *buffer, int length)
     octets = mkcl_cons(env, MKCL_MAKE_FIXNUM(buffer[--length]), octets);
   }
   replacement_ch = mkcl_funcall3(env,
-				 @'mkcl::stream-decoding-error',
+				 MK_MKCL_stream_decoding_error,
 				 stream,
 				 mk_cl_stream_external_format(env, stream),
 				 octets);
@@ -5660,9 +5660,9 @@ static mkcl_object stream_encoding_error_boot_stub(MKCL, mkcl_object stream, mkc
 
   if (MKCL_CONSP(external_format)) external_format = mk_cl_car(env, external_format);
 
-  if (external_format == @':ISO-8859-1' || external_format == @':LATIN-1')
+  if (external_format == MK_KEY_iso_8859_1 || external_format == MK_KEY_latin_1)
     ch = MKCL_CODE_CHAR(0x00bf); /* Inverted question mark */
-  else if (external_format == @':US-ASCII' || external_format == @':ASCII')
+  else if (external_format == MK_KEY_us_ascii || external_format == MK_KEY_ascii)
     ch = MKCL_CODE_CHAR(((mkcl_base_char) '?')); 
   else
     ch = MKCL_CODE_CHAR(0xfffd);  /* Unicode standard replacement character */
@@ -5675,9 +5675,9 @@ static mkcl_object stream_decoding_error_boot_stub(MKCL, mkcl_object stream, mkc
 
   if (MKCL_CONSP(external_format)) external_format = mk_cl_car(env, external_format);
 
-  if (external_format == @':ISO-8859-1' || external_format == @':LATIN-1')
+  if (external_format == MK_KEY_iso_8859_1 || external_format == MK_KEY_latin_1)
     ch = MKCL_CODE_CHAR(0x00bf); /* Inverted question mark */
-  else if (external_format == @':US-ASCII' || external_format == @':ASCII')
+  else if (external_format == MK_KEY_us_ascii || external_format == MK_KEY_ascii)
     ch = MKCL_CODE_CHAR(((mkcl_base_char) '?')); 
   else
     ch = MKCL_CODE_CHAR(0xfffd);  /* Unicode standard replacement character */
@@ -5703,12 +5703,12 @@ socket_error(MKCL, const char *err_msg, mkcl_object strm)
   }
 
   mk_cl_error(env, 7,
-	      @'si::OS-stream-error',
-	      @':stream',
+	      MK_SI_OS_stream_error,
+	      MK_KEY_stream,
 	      strm,
-	      @':format-control',
+	      MK_KEY_format_control,
 	      mkcl_make_simple_base_string(env, "~?~%OS Explanation: ~A."),
-	      @':format-arguments',
+	      MK_KEY_format_arguments,
 	      mk_cl_list(env, 3,
 			 mkcl_make_simple_base_string(env, (char *) err_msg),
 			 mk_cl_Cnil,
@@ -5850,7 +5850,7 @@ mkcl_external_format_from_codepage(MKCL, UINT codepage)
       return external_format;
     }
   else
-    return @':ISO-8859-1';
+    return MK_KEY_iso_8859_1;
 }
 
 #endif /* MKCL_WINDOWS */
@@ -5869,7 +5869,7 @@ mkcl_init_file(MKCL)
     mkcl_FEerror(env, "Unable to initialize Windows Socket library", 0);
   /* Microsoft's documentation says that we should have a matching call to WSACleanup(), but when? JCB */
 #endif
-  mkcl_object external_format = @':default';
+  mkcl_object external_format = MK_KEY_default;
 
   null_stream = make_stream_from_FILE(env, 
 				      mkcl_make_simple_base_string(env, "/dev/null"),
@@ -5899,51 +5899,51 @@ mkcl_init_file(MKCL)
   else
     {
       standard_input = null_stream;
-      standard_output = mkcl_make_string_output_stream(env, 128, TRUE, @':default');
+      standard_output = mkcl_make_string_output_stream(env, 128, TRUE, MK_KEY_default);
       error_output = standard_output;
     }
 #endif
   
   mkcl_core.standard_input = standard_input;
-  MKCL_SET(@'*standard-input*', standard_input);
+  MKCL_SET(MK_CL_DYNVAR_standard_input, standard_input);
   mkcl_core.standard_output = standard_output;
-  MKCL_SET(@'*standard-output*', standard_output);
-  MKCL_SET(@'*trace-output*', standard_output);
+  MKCL_SET(MK_CL_DYNVAR_standard_output, standard_output);
+  MKCL_SET(MK_CL_DYNVAR_trace_output, standard_output);
   mkcl_core.error_output = error_output;
-  MKCL_SET(@'*error-output*', error_output);
+  MKCL_SET(MK_CL_DYNVAR_error_output, error_output);
 
   {
     mkcl_object aux = mk_cl_make_two_way_stream(env, standard_input, standard_output);
 
     mkcl_core.terminal_io = aux;
-    MKCL_SET(@'*terminal-io*', aux);
+    MKCL_SET(MK_CL_DYNVAR_terminal_io, aux);
 
-    aux = mk_cl_make_synonym_stream(env, @'*terminal-io*');
-    MKCL_SET(@'*query-io*', aux);
-    MKCL_SET(@'*debug-io*', aux);
+    aux = mk_cl_make_synonym_stream(env, MK_CL_DYNVAR_terminal_io);
+    MKCL_SET(MK_CL_DYNVAR_query_io, aux);
+    MKCL_SET(MK_CL_DYNVAR_debug_io, aux);
   }
 
-  mkcl_def_c_function(env, @'mkcl::stream-encoding-error', stream_encoding_error_boot_stub, 3);
-  mkcl_def_c_function(env, @'mkcl::stream-decoding-error', stream_decoding_error_boot_stub, 3);
+  mkcl_def_c_function(env, MK_MKCL_stream_encoding_error, stream_encoding_error_boot_stub, 3);
+  mkcl_def_c_function(env, MK_MKCL_stream_decoding_error, stream_decoding_error_boot_stub, 3);
 }
 
 void
 mkcl_init_late_file(MKCL)
 {
 #if MKCL_WINDOWS
-  if (mkcl_has_console() && mk_cl_fboundp(env, @'si::make-encoding'))
+  if (mkcl_has_console() && mk_cl_fboundp(env, MK_SI_make_encoding))
     {
       mkcl_object external_format = mkcl_external_format_from_codepage(env, GetACP());
       mkcl_object stdin_external_format = mkcl_external_format_from_codepage(env, GetConsoleCP());
       mkcl_object stdout_external_format = mkcl_external_format_from_codepage(env, GetConsoleOutputCP());
 
-      mkcl_object default_format_table = mkcl_funcall1(env, @+'si::make-encoding', external_format);
+      mkcl_object default_format_table = mkcl_funcall1(env, MK_SI_make_encoding->symbol.gfdef, external_format);
 
       if (!mkcl_Null(default_format_table))
 	{
 	  mkcl_core.default_default_external_format = external_format;
-	  MKCL_SET(@'si::*default-external-format*', external_format);
-	  MKCL_SETQ(env, @'si::*default-external-format*', external_format);
+	  MKCL_SET(MK_SI_DYNVAR_default_external_format, external_format);
+	  MKCL_SETQ(env, MK_SI_DYNVAR_default_external_format, external_format);
 	}
 
       mk_si_stream_external_format_set(env, mkcl_core.standard_input, stdin_external_format);

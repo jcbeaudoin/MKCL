@@ -45,8 +45,8 @@ static void mkcl_FEprint_not_readable(MKCL, mkcl_object x) /*__attribute__((nore
 static void
 mkcl_FEprint_not_readable(MKCL, mkcl_object x)
 {
-  mkcl_bds_bind(env, @'*print-readably*', mk_cl_Cnil);
-  mk_cl_error(env, 3, @'print-not-readable', @':object', x);
+  mkcl_bds_bind(env, MK_CL_DYNVAR_print_readably, mk_cl_Cnil);
+  mk_cl_error(env, 3, MK_CL_print_not_readable, MK_KEY_object, x);
   mkcl_bds_unwind1(env);
 }
 
@@ -54,19 +54,19 @@ static mkcl_object
 stream_or_default_output(MKCL, mkcl_object stream)
 {
   if (mkcl_Null(stream))
-    return MKCL_SYM_VAL(env,@'*standard-output*');
+    return MKCL_SYM_VAL(env,MK_CL_DYNVAR_standard_output);
   else if (stream == mk_cl_Ct)
-    return MKCL_SYM_VAL(env,@'*terminal-io*');
+    return MKCL_SYM_VAL(env,MK_CL_DYNVAR_terminal_io);
   return stream;
 }
 
 mkcl_word
 mkcl_print_base(MKCL)
 {
-  mkcl_object object = mkcl_symbol_value(env, @'*print-base*');
+  mkcl_object object = mkcl_symbol_value(env, MK_CL_DYNVAR_print_base);
   mkcl_word base;
   if (!MKCL_FIXNUMP(object) || (base = mkcl_fixnum_to_word(object)) < 2 || base > 36) {
-    MKCL_SETQ(env, @'*print-base*', MKCL_MAKE_FIXNUM(10));
+    MKCL_SETQ(env, MK_CL_DYNVAR_print_base, MKCL_MAKE_FIXNUM(10));
     mkcl_FEerror(env, "~S is an illegal PRINT-BASE.", 1, object);
   }
   return base;
@@ -75,14 +75,14 @@ mkcl_print_base(MKCL)
 mkcl_word
 mkcl_print_level(MKCL)
 {
-  mkcl_object object = mkcl_symbol_value(env, @'*print-level*');
+  mkcl_object object = mkcl_symbol_value(env, MK_CL_DYNVAR_print_level);
   mkcl_word level;
   if (object == mk_cl_Cnil) {
     level = MKCL_MOST_POSITIVE_FIXNUM;
   } else if (MKCL_FIXNUMP(object)) {
     level = mkcl_fixnum_to_word(object);
     if (level < 0) {
-    _MKCL_ERROR:	MKCL_SETQ(env, @'*print-level*', mk_cl_Cnil);
+    _MKCL_ERROR: MKCL_SETQ(env, MK_CL_DYNVAR_print_level, mk_cl_Cnil);
       mkcl_FEerror(env, "~S is an illegal PRINT-LEVEL.", 1, object);
     }
   } else if (mkcl_type_of(object) != mkcl_t_bignum) {
@@ -96,14 +96,14 @@ mkcl_print_level(MKCL)
 mkcl_word
 mkcl_print_length(MKCL)
 {
-  mkcl_object object = mkcl_symbol_value(env, @'*print-length*');
+  mkcl_object object = mkcl_symbol_value(env, MK_CL_DYNVAR_print_length);
   mkcl_word length;
   if (object == mk_cl_Cnil) {
     length = MKCL_MOST_POSITIVE_FIXNUM;
   } else if (MKCL_FIXNUMP(object)) {
     length = mkcl_fixnum_to_word(object);
     if (length < 0) {
-    _MKCL_ERROR:	MKCL_SETQ(env, @'*print-length*', mk_cl_Cnil);
+    _MKCL_ERROR: MKCL_SETQ(env, MK_CL_DYNVAR_print_length, mk_cl_Cnil);
       mkcl_FEerror(env, "~S is an illegal PRINT-LENGTH.", 1, object);
     }
   } else if (mkcl_type_of(object) != mkcl_t_bignum) {
@@ -117,16 +117,16 @@ mkcl_print_length(MKCL)
 bool
 mkcl_print_radix(MKCL)
 {
-  return mkcl_symbol_value(env, @'*print-radix*') != mk_cl_Cnil;
+  return mkcl_symbol_value(env, MK_CL_DYNVAR_print_radix) != mk_cl_Cnil;
 }
 
 mkcl_object
 mkcl_print_case(MKCL)
 {
-  mkcl_object output = mkcl_symbol_value(env, @'*print-case*');
-  if (output != @':upcase' && output != @':downcase' &&
-      output != @':capitalize') {
-    MKCL_SETQ(env, @'*print-case*', @':downcase');
+  mkcl_object output = mkcl_symbol_value(env, MK_CL_DYNVAR_print_case);
+  if (output != MK_KEY_upcase && output != MK_KEY_downcase &&
+      output != MK_KEY_capitalize) {
+    MKCL_SETQ(env, MK_CL_DYNVAR_print_case, MK_KEY_downcase);
     mkcl_FEerror(env, "~S is an illegal PRINT-CASE.", 1, output);
   }
   return output;
@@ -135,31 +135,31 @@ mkcl_print_case(MKCL)
 bool
 mkcl_print_gensym(MKCL)
 {
-  return mkcl_symbol_value(env, @'*print-gensym*') != mk_cl_Cnil;
+  return mkcl_symbol_value(env, MK_CL_DYNVAR_print_gensym) != mk_cl_Cnil;
 }
 
 bool
 mkcl_print_array(MKCL)
 {
-  return mkcl_symbol_value(env, @'*print-array*') != mk_cl_Cnil;
+  return mkcl_symbol_value(env, MK_CL_DYNVAR_print_array) != mk_cl_Cnil;
 }
 
 bool
 mkcl_print_readably(MKCL)
 {
-  return mkcl_symbol_value(env, @'*print-readably*') != mk_cl_Cnil;
+  return mkcl_symbol_value(env, MK_CL_DYNVAR_print_readably) != mk_cl_Cnil;
 }
 
 bool
 mkcl_print_escape(MKCL)
 {
-  return mkcl_symbol_value(env, @'*print-escape*') != mk_cl_Cnil;
+  return mkcl_symbol_value(env, MK_CL_DYNVAR_print_escape) != mk_cl_Cnil;
 }
 
 bool
 mkcl_print_circle(MKCL)
 {
-  return mkcl_symbol_value(env, @'*print-circle*') != mk_cl_Cnil;
+  return mkcl_symbol_value(env, MK_CL_DYNVAR_print_circle) != mk_cl_Cnil;
 }
 
 static void
@@ -173,14 +173,14 @@ static void
 write_readable_pathname(MKCL, mkcl_object path, mkcl_object stream)
 {
   mkcl_object l = mk_cl_list(env, 15,
-			     @'make-pathname',
-			     @':host', path->pathname.host,
-			     @':device', path->pathname.device,
-			     @':directory', mkcl_funcall1(env, @+'si::maybe-quote', path->pathname.directory),
-			     @':name', path->pathname.name,
-			     @':type', path->pathname.type,
-			     @':version', path->pathname.version,
-			     @':defaults', mk_cl_Cnil);
+			     MK_CL_make_pathname,
+			     MK_KEY_host, path->pathname.host,
+			     MK_KEY_device, path->pathname.device,
+			     MK_KEY_directory, mkcl_funcall1(env, MK_SI_maybe_quote->symbol.gfdef, path->pathname.directory),
+			     MK_KEY_name, path->pathname.name,
+			     MK_KEY_type, path->pathname.type,
+			     MK_KEY_version, path->pathname.version,
+			     MK_KEY_defaults, mk_cl_Cnil);
   write_str(env, "#.", stream);
   mk_si_write_object(env, l, stream);
 }
@@ -463,7 +463,7 @@ write_long_double(MKCL, long double d, mkcl_character e, int n, mkcl_object stre
 {
   int exp;
   bool fe_inexact_on = FALSE;
-  mkcl_object print_exactly_p = mkcl_symbol_value(env, @'si::*print-float-exactly*'); 
+  mkcl_object print_exactly_p = mkcl_symbol_value(env, MK_SI_DYNVAR_print_float_exactly); 
 
   if (mkcl_Null(print_exactly_p))
     {
@@ -477,18 +477,18 @@ write_long_double(MKCL, long double d, mkcl_character e, int n, mkcl_object stre
   else
     { printf("\nwrite_long_double told to print exactly!\n"); fflush(NULL); }
 
-  if (!mkcl_Null(mk_cl_fboundp(env, @'si::output-float')))
+  if (!mkcl_Null(mk_cl_fboundp(env, MK_SI_output_float)))
     {
-      mkcl_funcall2(env, @+'si::output-float', o, stream);
+      mkcl_funcall2(env, MK_SI_output_float->symbol.gfdef, o, stream);
     }
   else if (isnan(d)) {
     if (mkcl_print_readably(env)) {
       mkcl_FEprint_not_readable(env, mkcl_make_longfloat(env, d));
     }
-    mkcl_funcall2(env, @+'si::output-float-nan', o, stream);
+    mkcl_funcall2(env, MK_SI_output_float_nan->symbol.gfdef, o, stream);
   }
   else if (!isfinite(d)) {
-    mkcl_funcall2(env, @+'si::output-float-infinity', o, stream);
+    mkcl_funcall2(env, MK_SI_output_float_infinity->symbol.gfdef, o, stream);
   }
   else {
     if (d < 0) {
@@ -570,7 +570,7 @@ write_double(MKCL, double d, mkcl_character e, int n, mkcl_object stream, mkcl_o
 {
   int exp;
   bool fe_inexact_on = FALSE;
-  mkcl_object print_exactly_p = mkcl_symbol_value(env, @'si::*print-float-exactly*'); 
+  mkcl_object print_exactly_p = mkcl_symbol_value(env, MK_SI_DYNVAR_print_float_exactly); 
 
   if (mkcl_Null(print_exactly_p))
     {
@@ -584,18 +584,18 @@ write_double(MKCL, double d, mkcl_character e, int n, mkcl_object stream, mkcl_o
   else
     { printf("\nwrite_double told to print exactly!\n"); fflush(NULL); }
 
-  if (!mkcl_Null(mk_cl_fboundp(env, @'si::output-float')))
+  if (!mkcl_Null(mk_cl_fboundp(env, MK_SI_output_float)))
     {
-      mkcl_funcall2(env, @+'si::output-float', o, stream);
+      mkcl_funcall2(env, MK_SI_output_float->symbol.gfdef, o, stream);
     }
   else if (isnan(d)) {
     if (mkcl_print_readably(env)) {
       mkcl_FEprint_not_readable(env, mkcl_make_doublefloat(env, d));
     }
-    mkcl_funcall2(env, @+'si::output-float-nan', o, stream);
+    mkcl_funcall2(env, MK_SI_output_float_nan->symbol.gfdef, o, stream);
   }
   else if (!isfinite(d)) {
-    mkcl_funcall2(env, @+'si::output-float-infinity', o, stream);
+    mkcl_funcall2(env, MK_SI_output_float_infinity->symbol.gfdef, o, stream);
   }
   else {
     if (d < 0) {
@@ -799,8 +799,8 @@ write_symbol_string(MKCL, mkcl_object s, enum mkcl_readtable_case action, mkcl_o
       if (mkcl_upper_case_p(c)) {
 	if ((action == mkcl_case_invert) ||
 	    ((action == mkcl_case_upcase) &&
-	     ((print_case == @':downcase') ||
-	      ((print_case == @':capitalize') && !capitalize))))
+	     ((print_case == MK_KEY_downcase) ||
+	      ((print_case == MK_KEY_capitalize) && !capitalize))))
 	  {
 	    c = mkcl_char_downcase(c);
 	  }
@@ -808,8 +808,8 @@ write_symbol_string(MKCL, mkcl_object s, enum mkcl_readtable_case action, mkcl_o
       } else if (mkcl_lower_case_p(c)) {
 	if ((action == mkcl_case_invert) ||
 	    ((action == mkcl_case_downcase) &&
-	     ((print_case == @':upcase') ||
-	      ((print_case == @':capitalize') && capitalize))))
+	     ((print_case == MK_KEY_upcase) ||
+	      ((print_case == MK_KEY_capitalize) && capitalize))))
 	  {
 	    c = mkcl_char_upcase(c);
 	  }
@@ -827,7 +827,7 @@ write_symbol_string(MKCL, mkcl_object s, enum mkcl_readtable_case action, mkcl_o
 static void
 write_symbol(MKCL, mkcl_object x, mkcl_object stream)
 {
-  mkcl_object print_package = mkcl_symbol_value(env, @'si::*print-package*');
+  mkcl_object print_package = mkcl_symbol_value(env, MK_SI_DYNVAR_print_package);
   mkcl_object readtable = mkcl_current_readtable(env);
   mkcl_object print_case = mkcl_print_case(env);
   mkcl_object package;
@@ -915,15 +915,15 @@ write_character(MKCL, mkcl_character i, mkcl_object stream)
       } 
     else
       {
-        mkcl_object ext_names = MKCL_SYM_VAL(env, @'si::*extended-character-names*');
+        mkcl_object ext_names = MKCL_SYM_VAL(env, MK_SI_DYNVAR_extended_character_names);
         mkcl_object output = ((ext_names != mk_cl_Cnil)
                               ? mkcl_gethash_safe(env, MKCL_MAKE_FIXNUM(i), ext_names, mk_cl_Cnil)
                               : mk_cl_Cnil);
 
         if (!mkcl_Null(output))
 	  {
-	    mkcl_bds_bind(env, @'*print-escape*', mk_cl_Cnil);
-	    mkcl_bds_bind(env, @'*print-readably*', mk_cl_Cnil);
+	    mkcl_bds_bind(env, MK_CL_DYNVAR_print_escape, mk_cl_Cnil);
+	    mkcl_bds_bind(env, MK_CL_DYNVAR_print_readably, mk_cl_Cnil);
 	    mk_si_write_ugly_object(env, output, stream);
 	    mkcl_bds_unwind1(env);
 	    mkcl_bds_unwind1(env);
@@ -1001,7 +1001,7 @@ write_array(MKCL, mkcl_object x, mkcl_object stream)
   if (print_level >= n) {
     /* We can write the elements of the array */
     print_level -= n;
-    mkcl_bds_bind(env, @'*print-level*', MKCL_MAKE_FIXNUM(print_level));
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_level, MKCL_MAKE_FIXNUM(print_level));
   } else {
     /* The elements of the array are not printed */
     n = print_level;
@@ -1104,7 +1104,7 @@ write_vector(MKCL, mkcl_object x, mkcl_object stream)
     mkcl_write_char(env, ' ', stream);
   }
 
-  mkcl_bds_bind(env, @'*print-level*', MKCL_MAKE_FIXNUM(print_level - 1));
+  mkcl_bds_bind(env, MK_CL_DYNVAR_print_level, MKCL_MAKE_FIXNUM(print_level - 1));
 
   mkcl_write_char(env, '(', stream);
   {
@@ -1181,7 +1181,7 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
     if (mkcl_print_radix(env)) {
       write_base(env, mkcl_print_base(env), stream);
     }
-    mkcl_bds_bind(env, @'*print-radix*', mk_cl_Cnil);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_radix, mk_cl_Cnil);
     mk_si_write_ugly_object(env, x->ratio.num, stream);
     mkcl_write_char(env, '/', stream);
     mk_si_write_ugly_object(env, x->ratio.den, stream);
@@ -1189,25 +1189,25 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
     break;
   }
   case mkcl_t_singlefloat:
-    r = mkcl_symbol_value(env, @'*read-default-float-format*');
-    write_double(env, mkcl_single_float(x), (r == @'single-float' || r == @'short-float')? 0 : 's',
+    r = mkcl_symbol_value(env, MK_CL_DYNVAR_read_default_float_format);
+    write_double(env, mkcl_single_float(x), (r == MK_CL_single_float || r == MK_CL_short_float)? 0 : 's',
 		 FLT_SIG, stream, x);
     break;
 #ifdef MKCL_LONG_FLOAT
   case mkcl_t_doublefloat:
-    r = mkcl_symbol_value(env, @'*read-default-float-format*');
-    write_double(env, mkcl_double_float(x), (r == @'double-float')? 0 : 'd', DBL_SIG, stream,
+    r = mkcl_symbol_value(env, MK_CL_DYNVAR_read_default_float_format);
+    write_double(env, mkcl_double_float(x), (r == MK_CL_double_float)? 0 : 'd', DBL_SIG, stream,
 		 x);
     break;
   case mkcl_t_longfloat:
-    r = mkcl_symbol_value(env, @'*read-default-float-format*');
-    write_long_double(env, mkcl_long_float(x), (r == @'long-float')? 0 : 'l',
+    r = mkcl_symbol_value(env, MK_CL_DYNVAR_read_default_float_format);
+    write_long_double(env, mkcl_long_float(x), (r == MK_CL_long_float)? 0 : 'l',
 		      LDBL_SIG, stream, x);
     break;
 #else
   case mkcl_t_doublefloat:
-    r = mkcl_symbol_value(env, @'*read-default-float-format*');
-    write_double(env, mkcl_double_float(x), (r == @'double-float' || r == @'long-float')? 0 : 'd',
+    r = mkcl_symbol_value(env, MK_CL_DYNVAR_read_default_float_format);
+    write_double(env, mkcl_double_float(x), (r == MK_CL_double_float || r == MK_CL_long_float)? 0 : 'd',
 		 DBL_SIG, stream, x);
     break;
 #endif
@@ -1291,39 +1291,39 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
     bool circle;
     mkcl_word print_level, print_length;
 
-    if (MKCL_CAR(x) == @'si::#!') {
+    if (MKCL_CAR(x) == MK_SI_HASH_BANG) {
       write_str(env, "#!", stream);
       x = MKCL_CDR(x);
       return mk_si_write_object(env, x, stream);
     }
     if (MKCL_CONSP(MKCL_CDR(x)) && mkcl_Null(MKCL_CDDR(x))) {
-      if (MKCL_CAR(x) == @'quote') {
+      if (MKCL_CAR(x) == MK_CL_quote) {
 	mkcl_write_char(env, '\'', stream);
 	x = MKCL_CADR(x);
 	return mk_si_write_object(env, x, stream);
       }
-      if (MKCL_CAR(x) == @'function') {
+      if (MKCL_CAR(x) == MK_CL_function) {
 	mkcl_write_char(env, '#', stream);
 	mkcl_write_char(env, '\'', stream);
 	x = MKCL_CADR(x);
 	return mk_si_write_object(env, x, stream);
       }
-      if (MKCL_CAR(x) == @'si::quasiquote') {
+      if (MKCL_CAR(x) == MK_SI_quasiquote) {
 	mkcl_write_char(env, '`', stream);
 	x = MKCL_CADR(x);
 	return mk_si_write_object(env, x, stream);
       }
-      if (MKCL_CAR(x) == @'si::unquote') {
+      if (MKCL_CAR(x) == MK_SI_unquote) {
 	mkcl_write_char(env, ',', stream);
 	x = MKCL_CADR(x);
 	return mk_si_write_object(env, x, stream);
       }
-      if (MKCL_CAR(x) == @'si::unquote-splice') {
+      if (MKCL_CAR(x) == MK_SI_unquote_splice) {
 	write_str(env, ",@@", stream);
 	x = MKCL_CADR(x);
 	return mk_si_write_object(env, x, stream);
       }
-      if (MKCL_CAR(x) == @'si::unquote-nsplice') {
+      if (MKCL_CAR(x) == MK_SI_unquote_nsplice) {
 	write_str(env, ",.", stream);
 	x = MKCL_CADR(x);
 	return mk_si_write_object(env, x, stream);
@@ -1342,7 +1342,7 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
       break;
     }
 
-    mkcl_bds_bind(env, @'*print-level*', MKCL_MAKE_FIXNUM(print_level-1));
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_level, MKCL_MAKE_FIXNUM(print_level-1));
     mkcl_write_char(env, '(', stream);
     for (i = 0;  ;  i++) {
       if (i >= print_length) {
@@ -1506,8 +1506,8 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
   case mkcl_t_structure: {
     mkcl_object print_function;
     if (mkcl_type_of(x->str.name) != mkcl_t_symbol)
-      mkcl_FEwrong_type_argument(@'symbol', x->str.name);
-    print_function = mk_si_get_sysprop(x->str.name, @'si::structure-print-function');
+      mkcl_FEwrong_type_argument(MK_CL_symbol, x->str.name);
+    print_function = mk_si_get_sysprop(x->str.name, MK_SI_structure_print_function);
     if (mkcl_Null(print_function) || !mkcl_print_structure()) /* Broken! JCB */
       {
 	write_str("#S", stream);
@@ -1577,7 +1577,7 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
   case mkcl_t_codeblock:
     if (mkcl_print_readably(env)) mkcl_FEprint_not_readable(env, x);
     write_str(env, "#<codeblock ", stream);
-    if (x->cblock.source == @':foreign')
+    if (x->cblock.source == MK_KEY_foreign)
       write_str(env, "foreign ", stream);
     if (x->cblock.name != mk_cl_Cnil)
       mk_si_write_ugly_object(env, x->cblock.name, stream);
@@ -1592,7 +1592,7 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
     mkcl_write_char(env, '>', stream);
     break;
   case mkcl_t_instance:
-    mkcl_funcall2(env, @+'print-object', x, stream);
+    mkcl_funcall2(env, MK_CL_print_object->symbol.gfdef, x, stream);
     break;
   case mkcl_t_foreign:
     if (mkcl_print_readably(env)) mkcl_FEprint_not_readable(env, x);
@@ -1646,12 +1646,12 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
 	mkcl_write_char(env, ' ', stream);
 	write_str(env, "detached", stream);
       }
-    else if (x->thread.result_value == @':imported')
+    else if (x->thread.result_value == MK_KEY_imported)
       {
 	mkcl_write_char(env, ' ', stream);
 	write_str(env, "imported", stream);
       }
-    else if (x->thread.result_value == @':imported-and-gc-registered')
+    else if (x->thread.result_value == MK_KEY_imported_and_gc_registered)
       {
 	mkcl_write_char(env, ' ', stream);
 	write_str(env, "imported-and-gc-registered", stream);
@@ -1797,8 +1797,8 @@ mk_si_write_object(MKCL, mkcl_object x, mkcl_object stream)
     mkcl_return_value(x);
   }
 
-  if (mkcl_symbol_value(env, @'*print-pretty*') != mk_cl_Cnil) {
-    mkcl_object f = mkcl_funcall1(env, @+'pprint-dispatch', x);
+  if (mkcl_symbol_value(env, MK_CL_DYNVAR_print_pretty) != mk_cl_Cnil) {
+    mkcl_object f = mkcl_funcall1(env, MK_CL_pprint_dispatch->symbol.gfdef, x);
     if (MKCL_VALUES(1) != mk_cl_Cnil) {
       mkcl_funcall2(env, f, stream, x);
       mkcl_return_value(x);
@@ -1810,16 +1810,16 @@ mk_si_write_object(MKCL, mkcl_object x, mkcl_object stream)
     {
       mkcl_object circle_counter;
       mkcl_word code;
-      circle_counter = mkcl_symbol_value(env, @'si::*circle-counter*');
+      circle_counter = mkcl_symbol_value(env, MK_SI_DYNVAR_circle_counter);
       if (circle_counter == mk_cl_Cnil) {
-	mkcl_object hash = mk_cl__make_hash_table(env, @'eq',
+	mkcl_object hash = mk_cl__make_hash_table(env, MK_CL_eq,
 						  MKCL_MAKE_FIXNUM(1024),
 						  mkcl_make_singlefloat(env, 1.5f),	
 						  mkcl_make_singlefloat(env, 0.75f));
-	mkcl_bds_bind(env, @'si::*circle-counter*', mk_cl_Ct);
-	mkcl_bds_bind(env, @'si::*circle-stack*', hash);
+	mkcl_bds_bind(env, MK_SI_DYNVAR_circle_counter, mk_cl_Ct);
+	mkcl_bds_bind(env, MK_SI_DYNVAR_circle_stack, hash);
 	mk_si_write_object(env, x, mkcl_core.null_stream);
-	MKCL_SETQ(env, @'si::*circle-counter*', MKCL_MAKE_FIXNUM(0));
+	MKCL_SETQ(env, MK_SI_DYNVAR_circle_counter, MKCL_MAKE_FIXNUM(0));
 	mk_si_write_object(env, x, stream);
 	mk_cl_clrhash(env, hash);
 	mkcl_bds_unwind_n(env, 2);
@@ -1852,8 +1852,8 @@ mk_si_write_object(MKCL, mkcl_object x, mkcl_object stream)
 static bool
 object_will_print_as_hash(MKCL, mkcl_object x)
 {
-  mkcl_object circle_counter = mkcl_symbol_value(env, @'si::*circle-counter*');
-  mkcl_object circle_stack = mkcl_symbol_value(env, @'si::*circle-stack*');
+  mkcl_object circle_counter = mkcl_symbol_value(env, MK_SI_DYNVAR_circle_counter);
+  mkcl_object circle_stack = mkcl_symbol_value(env, MK_SI_DYNVAR_circle_stack);
   mkcl_object code = mkcl_gethash_safe(env, x, circle_stack, MKCL_OBJNULL);
   if (MKCL_FIXNUMP(circle_counter)) {
     return !(code == MKCL_OBJNULL || code == mk_cl_Cnil);
@@ -1877,8 +1877,8 @@ object_will_print_as_hash(MKCL, mkcl_object x)
 static mkcl_word
 search_print_circle(MKCL, mkcl_object x)
 {
-  mkcl_object circle_counter = mkcl_symbol_value(env, @'si::*circle-counter*');
-  mkcl_object circle_stack = mkcl_symbol_value(env, @'si::*circle-stack*');
+  mkcl_object circle_counter = mkcl_symbol_value(env, MK_SI_DYNVAR_circle_counter);
+  mkcl_object circle_stack = mkcl_symbol_value(env, MK_SI_DYNVAR_circle_stack);
   mkcl_object code;
 
   if (!MKCL_FIXNUMP(circle_counter)) {
@@ -1905,7 +1905,7 @@ search_print_circle(MKCL, mkcl_object x)
       mkcl_word new_code = mkcl_fixnum_to_word(circle_counter) + 1;
       circle_counter = MKCL_MAKE_FIXNUM(new_code);
       mkcl_sethash(env, x, circle_stack, circle_counter);
-      MKCL_SETQ(env, @'si::*circle-counter*',
+      MKCL_SETQ(env, MK_SI_DYNVAR_circle_counter,
 	       circle_counter);
       return -new_code;
     } else {
@@ -1972,57 +1972,57 @@ mkcl_object mk_cl_write(MKCL, mkcl_narg narg, mkcl_object x, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object strm = mk_cl_Cnil;
-    mkcl_object array = mkcl_symbol_value(env, @'*print-array*');
-    mkcl_object base = mkcl_symbol_value(env, @'*print-base*');
-    mkcl_object cas = mkcl_symbol_value(env, @'*print-case*');
-    mkcl_object circle = mkcl_symbol_value(env, @'*print-circle*');
-    mkcl_object escape = mkcl_symbol_value(env, @'*print-escape*');
-    mkcl_object gensym = mkcl_symbol_value(env, @'*print-gensym*');
-    mkcl_object length = mkcl_symbol_value(env, @'*print-length*');
-    mkcl_object level = mkcl_symbol_value(env, @'*print-level*');
-    mkcl_object lines = mkcl_symbol_value(env, @'*print-lines*');
-    mkcl_object miser_width = mkcl_symbol_value(env, @'*print-miser-width*');
-    mkcl_object pprint_dispatch = mkcl_symbol_value(env, @'*print-pprint-dispatch*');
-    mkcl_object pretty = mkcl_symbol_value(env, @'*print-pretty*');
-    mkcl_object radix = mkcl_symbol_value(env, @'*print-radix*');
-    mkcl_object readably = mkcl_symbol_value(env, @'*print-readably*');
-    mkcl_object right_margin = mkcl_symbol_value(env, @'*print-right-margin*');
+    mkcl_object array = mkcl_symbol_value(env, MK_CL_DYNVAR_print_array);
+    mkcl_object base = mkcl_symbol_value(env, MK_CL_DYNVAR_print_base);
+    mkcl_object cas = mkcl_symbol_value(env, MK_CL_DYNVAR_print_case);
+    mkcl_object circle = mkcl_symbol_value(env, MK_CL_DYNVAR_print_circle);
+    mkcl_object escape = mkcl_symbol_value(env, MK_CL_DYNVAR_print_escape);
+    mkcl_object gensym = mkcl_symbol_value(env, MK_CL_DYNVAR_print_gensym);
+    mkcl_object length = mkcl_symbol_value(env, MK_CL_DYNVAR_print_length);
+    mkcl_object level = mkcl_symbol_value(env, MK_CL_DYNVAR_print_level);
+    mkcl_object lines = mkcl_symbol_value(env, MK_CL_DYNVAR_print_lines);
+    mkcl_object miser_width = mkcl_symbol_value(env, MK_CL_DYNVAR_print_miser_width);
+    mkcl_object pprint_dispatch = mkcl_symbol_value(env, MK_CL_DYNVAR_print_pprint_dispatch);
+    mkcl_object pretty = mkcl_symbol_value(env, MK_CL_DYNVAR_print_pretty);
+    mkcl_object radix = mkcl_symbol_value(env, MK_CL_DYNVAR_print_radix);
+    mkcl_object readably = mkcl_symbol_value(env, MK_CL_DYNVAR_print_readably);
+    mkcl_object right_margin = mkcl_symbol_value(env, MK_CL_DYNVAR_print_right_margin);
     struct mkcl_key_param_spec key_params[] =
       {
-       { @':stream', &strm, false },
-       { @':array', &array, false },
-       { @':base', &base, false },
-       { @':case', &cas, false },
-       { @':circle', &circle, false },
-       { @':escape', &escape, false },
-       { @':gensym', &gensym, false },
-       { @':length', &length, false },
-       { @':level', &level, false },
-       { @':lines', &lines, false },
-       { @':miser-width', &miser_width, false },
-       { @':pprint-dispatch', &pprint_dispatch, false },
-       { @':pretty', &pretty, false },
-       { @':radix', &radix, false },
-       { @':readably', &readably, false },
-       { @':right-margin', &right_margin, false }
+       { MK_KEY_stream, &strm, false },
+       { MK_KEY_array, &array, false },
+       { MK_KEY_base, &base, false },
+       { MK_KEY_case, &cas, false },
+       { MK_KEY_circle, &circle, false },
+       { MK_KEY_escape, &escape, false },
+       { MK_KEY_gensym, &gensym, false },
+       { MK_KEY_length, &length, false },
+       { MK_KEY_level, &level, false },
+       { MK_KEY_lines, &lines, false },
+       { MK_KEY_miser_width, &miser_width, false },
+       { MK_KEY_pprint_dispatch, &pprint_dispatch, false },
+       { MK_KEY_pretty, &pretty, false },
+       { MK_KEY_radix, &radix, false },
+       { MK_KEY_readably, &readably, false },
+       { MK_KEY_right_margin, &right_margin, false }
       };
-    MKCL_RECEIVE_N_KEYWORD_ARGUMENTS(env, @'write', narg, 1, x, key_params);
+    MKCL_RECEIVE_N_KEYWORD_ARGUMENTS(env, MK_CL_write, narg, 1, x, key_params);
 
-    mkcl_bds_bind(env, @'*print-array*', array);
-    mkcl_bds_bind(env, @'*print-base*', base);
-    mkcl_bds_bind(env, @'*print-case*', cas);
-    mkcl_bds_bind(env, @'*print-circle*', circle);
-    mkcl_bds_bind(env, @'*print-escape*', escape);
-    mkcl_bds_bind(env, @'*print-gensym*', gensym);
-    mkcl_bds_bind(env, @'*print-level*', level);
-    mkcl_bds_bind(env, @'*print-length*', length);
-    mkcl_bds_bind(env, @'*print-lines*', lines);
-    mkcl_bds_bind(env, @'*print-miser-width*', miser_width);
-    mkcl_bds_bind(env, @'*print-pprint-dispatch*', pprint_dispatch);
-    mkcl_bds_bind(env, @'*print-pretty*', pretty);
-    mkcl_bds_bind(env, @'*print-radix*', radix);
-    mkcl_bds_bind(env, @'*print-readably*', readably);
-    mkcl_bds_bind(env, @'*print-right-margin*', right_margin);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_array, array);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_base, base);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_case, cas);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_circle, circle);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_escape, escape);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_gensym, gensym);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_level, level);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_length, length);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_lines, lines);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_miser_width, miser_width);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_pprint_dispatch, pprint_dispatch);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_pretty, pretty);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_radix, radix);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_readably, readably);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_right_margin, right_margin);
   
     strm = stream_or_default_output(env, strm);
     mk_si_write_object(env, x, strm);
@@ -2038,7 +2038,7 @@ mkcl_object mk_cl_prin1(MKCL, mkcl_narg narg, mkcl_object obj, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object strm = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'prin1', narg, 1, obj, &strm);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_prin1, narg, 1, obj, &strm);
 
     mkcl_prin1(env, obj, strm);
     mkcl_return_value(obj);
@@ -2050,7 +2050,7 @@ mkcl_object mk_cl_print(MKCL, mkcl_narg narg, mkcl_object obj, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object strm = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'print', narg, 1, obj, &strm);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_print, narg, 1, obj, &strm);
 
     mkcl_print(env, obj, strm);
     mkcl_return_value(obj);
@@ -2062,11 +2062,11 @@ mkcl_object mk_cl_pprint(MKCL, mkcl_narg narg, mkcl_object obj, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object strm = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'pprint', narg, 1, obj, &strm);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_pprint, narg, 1, obj, &strm);
 
     strm = stream_or_default_output(env, strm);
-    mkcl_bds_bind(env, @'*print-escape*', mk_cl_Ct);
-    mkcl_bds_bind(env, @'*print-pretty*', mk_cl_Ct);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_escape, mk_cl_Ct);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_pretty, mk_cl_Ct);
     mkcl_write_char(env, '\n', strm);
     mk_si_write_object(env, obj, strm);
   
@@ -2080,7 +2080,7 @@ mkcl_object mk_cl_princ(MKCL, mkcl_narg narg, mkcl_object obj, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object strm = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'princ', narg, 1, obj, &strm);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_princ, narg, 1, obj, &strm);
 
     mkcl_princ(env, obj, strm);
     mkcl_return_value(obj);
@@ -2092,7 +2092,7 @@ mkcl_object mk_cl_write_char(MKCL, mkcl_narg narg, mkcl_object c, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object strm = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'write-char', narg, 1, c, &strm);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_write_char, narg, 1, c, &strm);
 
     /* INV: mkcl_char_code() checks the type of `c' */
     strm = stream_or_default_output(env, strm);
@@ -2108,19 +2108,19 @@ mkcl_object mk_cl_write_string(MKCL, const mkcl_narg narg, mkcl_object strng, ..
     mkcl_object strm = mk_cl_Cnil;
     mkcl_object start = MKCL_MAKE_FIXNUM(0);
     mkcl_object end = mk_cl_Cnil;
-    mkcl_check_minimal_arg_count(env, @'write-string', narg, 1);
+    mkcl_check_minimal_arg_count(env, MK_CL_write_string, narg, 1);
     if (narg > 1) {
       mkcl_va_list ARGS;
       mkcl_va_start(env, ARGS, strng, narg, 1);
       strm = mkcl_va_arg(ARGS);
       if (narg > 2)
-        mkcl_receive_2_keyword_arguments(env, @'write-string', ARGS, @':start', &start, @':end', &end);
+        mkcl_receive_2_keyword_arguments(env, MK_CL_write_string, ARGS, MK_KEY_start, &start, MK_KEY_end, &end);
       mkcl_va_end(ARGS);
     }
-    strng = mkcl_check_type_string(env, @'write-string', strng);
+    strng = mkcl_check_type_string(env, MK_CL_write_string, strng);
     strm = stream_or_default_output(env, strm);
     if (mkcl_type_of(strm) != mkcl_t_stream)
-      mkcl_funcall4(env, @+'gray::stream-write-string', strm, strng, start, end);
+      mkcl_funcall4(env, MK_GRAY_stream_write_string->symbol.gfdef, strm, strng, start, end);
     else
       mk_si_do_write_sequence(env, strng, strm, start, end);
     mkcl_return_value(strng);
@@ -2134,19 +2134,19 @@ mkcl_object mk_cl_write_line(MKCL, const mkcl_narg narg, mkcl_object strng, ...)
     mkcl_object strm = mk_cl_Cnil;
     mkcl_object start = MKCL_MAKE_FIXNUM(0);
     mkcl_object end = mk_cl_Cnil;
-    mkcl_check_minimal_arg_count(env, @'write-line', narg, 1);
+    mkcl_check_minimal_arg_count(env, MK_CL_write_line, narg, 1);
     if (narg > 1) {
       mkcl_va_list ARGS;
       mkcl_va_start(env, ARGS, strng, narg, 1);
       strm = mkcl_va_arg(ARGS);
       if (narg > 2)
-        mkcl_receive_2_keyword_arguments(env, @'write-line', ARGS, @':start', &start, @':end', &end);
+        mkcl_receive_2_keyword_arguments(env, MK_CL_write_line, ARGS, MK_KEY_start, &start, MK_KEY_end, &end);
       mkcl_va_end(ARGS);
     }
-  strng = mkcl_check_type_string(env, @'write-line', strng);
+  strng = mkcl_check_type_string(env, MK_CL_write_line, strng);
   strm = stream_or_default_output(env, strm);
   if (mkcl_type_of(strm) != mkcl_t_stream)
-    mkcl_funcall4(env, @+'gray::stream-write-string', strm, strng, start, end);
+    mkcl_funcall4(env, MK_GRAY_stream_write_string->symbol.gfdef, strm, strng, start, end);
   else
     mk_si_do_write_sequence(env, strng, strm, start, end);
   mkcl_terpri(env, strm);
@@ -2159,7 +2159,7 @@ mkcl_object mk_cl_terpri(MKCL, mkcl_narg narg, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object strm = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'terpri', narg, 0, narg, &strm);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_terpri, narg, 0, narg, &strm);
 
     mkcl_terpri(env, strm);
     mkcl_return_value(mk_cl_Cnil);
@@ -2171,11 +2171,11 @@ mkcl_object mk_cl_fresh_line(MKCL, mkcl_narg narg, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object strm = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'fresh-line', narg, 0, narg, &strm);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_fresh_line, narg, 0, narg, &strm);
 
     strm = stream_or_default_output(env, strm);
     if (mkcl_type_of(strm) != mkcl_t_stream) {
-      return mkcl_funcall1(env, @+'gray::stream-fresh-line', strm);
+      return mkcl_funcall1(env, MK_GRAY_stream_fresh_line->symbol.gfdef, strm);
     }
     if (mkcl_file_column(env, strm) == 0)
       { mkcl_return_value(mk_cl_Cnil); }
@@ -2189,11 +2189,11 @@ mkcl_object mk_cl_finish_output(MKCL, mkcl_narg narg, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object strm = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'finish-output', narg, 0, narg, &strm);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_finish_output, narg, 0, narg, &strm);
 
     strm = stream_or_default_output(env, strm);
     if (mkcl_type_of(strm) != mkcl_t_stream) {
-      return mkcl_funcall1(env, @+'gray::stream-finish-output', strm);
+      return mkcl_funcall1(env, MK_GRAY_stream_finish_output->symbol.gfdef, strm);
     }
     mkcl_force_output(env, strm);
     mkcl_return_value(mk_cl_Cnil);
@@ -2205,7 +2205,7 @@ mkcl_object mk_cl_force_output(MKCL, mkcl_narg narg, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object strm = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'force-output', narg, 0, narg, &strm);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_force_output, narg, 0, narg, &strm);
 
     strm = stream_or_default_output(env, strm);
     mkcl_force_output(env, strm);
@@ -2218,7 +2218,7 @@ mkcl_object mk_cl_clear_output(MKCL, mkcl_narg narg, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object strm = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'clear-output', narg, 0, narg, &strm);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_clear_output, narg, 0, narg, &strm);
 
     strm = stream_or_default_output(env, strm);
     mkcl_clear_output(env, strm);
@@ -2241,10 +2241,10 @@ mkcl_object mk_cl_write_sequence(MKCL, mkcl_narg narg, mkcl_object sequence, mkc
     mkcl_object start = MKCL_MAKE_FIXNUM(0);
     mkcl_object end = mk_cl_Cnil;
 
-    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, @'write-sequence', narg, 2, stream, @':start', &start, @':end', &end);
+    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, MK_CL_write_sequence, narg, 2, stream, MK_KEY_start, &start, MK_KEY_end, &end);
 
     if (mkcl_type_of(stream) != mkcl_t_stream)
-      return mkcl_funcall4(env, @+'gray::stream-write-sequence', stream, sequence, start, end);
+      return mkcl_funcall4(env, MK_GRAY_stream_write_sequence->symbol.gfdef, stream, sequence, start, end);
     else
       return mk_si_do_write_sequence(env, sequence, stream, start, end);
   }
@@ -2255,8 +2255,8 @@ mkcl_object mkcl_princ(MKCL, mkcl_object obj, mkcl_object strm)
 {
   const mkcl_env the_env = env;
   strm = stream_or_default_output(env, strm);
-  mkcl_bds_bind(the_env, @'*print-escape*', mk_cl_Cnil);
-  mkcl_bds_bind(the_env, @'*print-readably*', mk_cl_Cnil);
+  mkcl_bds_bind(the_env, MK_CL_DYNVAR_print_escape, mk_cl_Cnil);
+  mkcl_bds_bind(the_env, MK_CL_DYNVAR_print_readably, mk_cl_Cnil);
   mk_si_write_object(env, obj, strm);
   mkcl_bds_unwind_n(the_env, 2);
   return obj;
@@ -2267,7 +2267,7 @@ mkcl_prin1(MKCL, mkcl_object obj, mkcl_object strm)
 {
   const mkcl_env the_env = env;
   strm = stream_or_default_output(env, strm);
-  mkcl_bds_bind(the_env, @'*print-escape*', mk_cl_Ct);
+  mkcl_bds_bind(the_env, MK_CL_DYNVAR_print_escape, mk_cl_Ct);
   mk_si_write_object(env, obj, strm);
 
   mkcl_bds_unwind1(the_env);
@@ -2310,7 +2310,7 @@ mkcl_terpri(MKCL, mkcl_object strm)
 {
   strm = stream_or_default_output(env, strm);
   if (mkcl_type_of(strm) != mkcl_t_stream) {
-    return mkcl_funcall1(env, @+'gray::stream-terpri', strm);
+    return mkcl_funcall1(env, MK_GRAY_stream_terpri->symbol.gfdef, strm);
   }
   mkcl_write_char(env, '\n', strm);
   return(mk_cl_Cnil);

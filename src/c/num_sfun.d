@@ -147,7 +147,7 @@ mk_cl_exp(MKCL, mkcl_object x)
     break;
   }
   default:
-    x = mkcl_type_error(env, @'exp',"exponent",x,@'number');
+    x = mkcl_type_error(env, MK_CL_exp, "exponent", x, MK_CL_number);
     goto AGAIN;
   }
   MKCL_MATHERR_TEST(env);
@@ -163,10 +163,10 @@ mk_cl_expt(MKCL, mkcl_object x, mkcl_object y)
   mkcl_call_stack_check(env);
  /* AGAIN: */
   while ((ty = mkcl_type_of(y), !MKCL_NUMBER_TYPE_P(ty))) {
-    y = mkcl_type_error(env, @'exp',"exponent",y,@'number');
+    y = mkcl_type_error(env, MK_CL_exp, "exponent", y, MK_CL_number);
   }
   while ((tx = mkcl_type_of(x), !MKCL_NUMBER_TYPE_P(tx))) {
-    x = mkcl_type_error(env, @'exp',"basis",x,@'number');
+    x = mkcl_type_error(env, MK_CL_exp, "basis", x, MK_CL_number);
   }
   if (mkcl_zerop(env, y)) {
     /* INV: The most specific numeric types come first. */
@@ -312,7 +312,7 @@ mkcl_log1(MKCL, mkcl_object x)
       output = mkcl_log1_complex(env, x, MKCL_MAKE_FIXNUM(0));
       break;
     default:
-      x = mkcl_type_error(env, @'log', "argument", x, @'number');
+      x = mkcl_type_error(env, MK_CL_log, "argument", x, MK_CL_number);
       goto AGAIN;
       /* We do not reach here */
       ;
@@ -380,7 +380,7 @@ mkcl_log1p(MKCL, mkcl_object x)
       output = mkcl_log1_complex(env, mkcl_plus(env, x, MKCL_MAKE_FIXNUM(1)), MKCL_MAKE_FIXNUM(0));
       break;
     default:
-      x = mkcl_type_error(env, @'log', "argument", x, @'number');
+      x = mkcl_type_error(env, MK_CL_log, "argument", x, MK_CL_number);
       goto AGAIN;
       ;
     }
@@ -406,7 +406,7 @@ mk_cl_sqrt(MKCL, mkcl_object x)
  AGAIN:
   tx = mkcl_type_of(x);
   if (!MKCL_NUMBER_TYPE_P(tx)) {
-    x = mkcl_type_error(env, @'sqrt',"argument",x,@'number');
+    x = mkcl_type_error(env, MK_CL_sqrt, "argument", x, MK_CL_number);
     goto AGAIN;
   }
   if (tx == mkcl_t_complex) {
@@ -591,7 +591,7 @@ mk_cl_sin(MKCL, mkcl_object x)
     break;
   }
   default:
-    x = mkcl_type_error(env, @'sin',"argument",x,@'number');
+    x = mkcl_type_error(env, MK_CL_sin, "argument", x, MK_CL_number);
     goto AGAIN;
   }
   MKCL_MATHERR_TEST(env);
@@ -634,7 +634,7 @@ mk_cl_cos(MKCL, mkcl_object x)
     break;
   }
   default:
-    x = mkcl_type_error(env, @'cos',"argument",x,@'number');
+    x = mkcl_type_error(env, MK_CL_cos, "argument", x, MK_CL_number);
     goto AGAIN;
   }
   MKCL_MATHERR_TEST(env);
@@ -681,7 +681,7 @@ mk_cl_tan(MKCL, mkcl_object x)
     break;
   }
   default:
-    x = mkcl_type_error(env, @'tan',"argument",x,@'number');
+    x = mkcl_type_error(env, MK_CL_tan, "argument", x, MK_CL_number);
     goto AGAIN;
   }
   MKCL_MATHERR_TEST(env);
@@ -724,7 +724,7 @@ mk_cl_sinh(MKCL, mkcl_object x)
     break;
   }
   default:
-    x = mkcl_type_error(env, @'sinh',"argument",x,@'number');
+    x = mkcl_type_error(env, MK_CL_sinh, "argument", x, MK_CL_number);
     goto AGAIN;
   }
   MKCL_MATHERR_TEST(env);
@@ -767,7 +767,7 @@ mk_cl_cosh(MKCL, mkcl_object x)
     break;
   }
   default:
-    x = mkcl_type_error(env, @'cosh',"argument",x,@'number');
+    x = mkcl_type_error(env, MK_CL_cosh, "argument", x, MK_CL_number);
     goto AGAIN;
   }
   MKCL_MATHERR_TEST(env);
@@ -802,7 +802,7 @@ mk_cl_tanh(MKCL, mkcl_object x)
     break;
   }
   default:
-    x = mkcl_type_error(env, @'tanh',"argument",x,@'number');
+    x = mkcl_type_error(env, MK_CL_tanh, "argument", x, MK_CL_number);
     goto AGAIN;
   }
   MKCL_MATHERR_TEST(env);
@@ -814,7 +814,7 @@ mkcl_object mk_cl_log(MKCL, mkcl_narg narg, mkcl_object x, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object y = MKCL_OBJNULL;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'log', narg, 1, x, &y);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_log, narg, 1, x, &y);
 
     /* INV: type check in mkcl_log1() and mkcl_log2() */
     if (y == MKCL_OBJNULL)
@@ -828,7 +828,7 @@ mkcl_object mk_cl_atan(MKCL, mkcl_narg narg, mkcl_object x, ...)
   mkcl_call_stack_check(env);
   {
     mkcl_object y = MKCL_OBJNULL;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'atan', narg, 1, x, &y);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_atan, narg, 1, x, &y);
 
     /* INV: type check in mkcl_atan() & mkcl_atan2() */
     /* FIXME mkcl_atan() and mkcl_atan2() produce generic errors

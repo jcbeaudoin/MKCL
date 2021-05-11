@@ -30,7 +30,7 @@ mkcl_symbol_package(MKCL, mkcl_object s)
       return mk_cl_Cnil_symbol->symbol.hpack;
     if (mkcl_type_of(s) == mkcl_t_symbol)
       return s->symbol.hpack;
-    s = mkcl_type_error(env, @'symbol-package', "symbol", s, @'symbol');
+    s = mkcl_type_error(env, MK_CL_symbol_package, "symbol", s, MK_CL_symbol);
   } while(1);
 }
 
@@ -42,7 +42,7 @@ mkcl_symbol_type(MKCL, mkcl_object s)
       return mk_cl_Cnil_symbol->symbol.stype;
     if (mkcl_type_of(s) == mkcl_t_symbol)
       return s->symbol.stype;
-    s = mkcl_type_error(env, @'symbol-name', "symbol", s, @'symbol');
+    s = mkcl_type_error(env, MK_CL_symbol_name, "symbol", s, MK_CL_symbol);
   } while(1);
 }
 
@@ -58,7 +58,7 @@ mkcl_symbol_type_set(MKCL, mkcl_object s, int type)
       s->symbol.stype = type;
       return;
     }
-    s = mkcl_type_error(env, @'symbol-name', "symbol", s, @'symbol');
+    s = mkcl_type_error(env, MK_CL_symbol_name, "symbol", s, MK_CL_symbol);
   } while(1);
 }
 
@@ -72,7 +72,7 @@ mkcl_symbol_name(MKCL, mkcl_object s)
     if (mkcl_type_of(s) == mkcl_t_symbol) {
       return s->symbol.name;
     }
-    s = mkcl_type_error(env, @'symbol-name', "symbol", s, @'symbol');
+    s = mkcl_type_error(env, MK_CL_symbol_name, "symbol", s, MK_CL_symbol);
   } while(1);
 }
 
@@ -86,7 +86,7 @@ mkcl_symbol_plist(MKCL, mkcl_object s)
     if (mkcl_type_of(s) == mkcl_t_symbol) {
       return &s->symbol.plist;
     }
-    s = mkcl_type_error(env, @'symbol-plist', "symbol", s, @'symbol');
+    s = mkcl_type_error(env, MK_CL_symbol_plist, "symbol", s, MK_CL_symbol);
   } while(1);
 }
 
@@ -114,7 +114,7 @@ mk_cl_make_symbol(MKCL, mkcl_object str)
     str = mk_si_copy_to_simple_base_string(env, str);
     break;
   default:
-    str = mkcl_type_error(env, @'make-symbol',"name",str,@'string');
+    str = mkcl_type_error(env, MK_CL_make_symbol,"name",str,MK_CL_string);
     goto AGAIN;
   }
   x = mkcl_alloc_raw_symbol(env);
@@ -158,14 +158,14 @@ static void
 mkcl_FEtype_error_plist(MKCL, mkcl_object x)
 {
   mk_cl_error(env, 9,
-	      @'simple-type-error',
-	      @':format-control',
+	      MK_CL_simple_type_error,
+	      MK_KEY_format_control,
 	      mkcl_make_simple_base_string(env, "Not a valid property list ~D"),
-	      @':format-arguments',
+	      MK_KEY_format_arguments,
 	      mk_cl_list(env, 1, x),
-	      @':expected-type',
-	      @'si::property-list',
-	      @':datum',
+	      MK_KEY_expected_type,
+	      MK_SI_property_list,
+	      MK_KEY_datum,
 	      x);
 }
 
@@ -286,7 +286,7 @@ mkcl_object mk_cl_get(MKCL, mkcl_narg narg, mkcl_object sym, mkcl_object indicat
   {
     mkcl_object *plist;
     mkcl_object deflt = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'get', narg, 2, indicator, &deflt);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_get, narg, 2, indicator, &deflt);
 
     plist = mkcl_symbol_plist(env, sym);
     mkcl_return_value(mkcl_getf(env, *plist, indicator, deflt));
@@ -315,7 +315,7 @@ mkcl_object mk_cl_getf(MKCL, mkcl_narg narg, mkcl_object place, mkcl_object indi
   mkcl_call_stack_check(env);
   {
     mkcl_object deflt = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'getf', narg, 2, indicator, &deflt);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_getf, narg, 2, indicator, &deflt);
 
     mkcl_return_value(mkcl_getf(env, place, indicator, deflt));
   }
@@ -358,7 +358,7 @@ mkcl_object mk_cl_copy_symbol(MKCL, mkcl_narg narg, mkcl_object sym, ...)
   {
     mkcl_object x = mk_cl_Cnil;
     mkcl_object cp = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'copy-symbol', narg, 1, sym, &cp);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_copy_symbol, narg, 1, sym, &cp);
 
     if (mkcl_Null(sym))
       sym = mk_cl_Cnil_symbol;
@@ -383,27 +383,27 @@ mkcl_object mk_cl_gensym(MKCL, mkcl_narg narg, ...)
     mkcl_object counter, output;
     bool increment;
     mkcl_object prefix = mkcl_core.gensym_prefix;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, @'gensym', narg, 0, narg, &prefix);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_gensym, narg, 0, narg, &prefix);
     {
     AGAIN:
       if (mkcl_stringp(env, prefix)) {
-        counter = MKCL_SYM_VAL(env, @'*gensym-counter*');
+        counter = MKCL_SYM_VAL(env, MK_CL_DYNVAR_gensym_counter);
         increment = 1;
       } else if ((t = mkcl_type_of(prefix)) == mkcl_t_fixnum || t == mkcl_t_bignum) {
         counter = prefix;
         prefix = mkcl_core.gensym_prefix;
         increment = 0;
       } else {
-        prefix = mkcl_type_error(env, @'gensym',"prefix",prefix,
-                                 mk_cl_list(env, 3, @'or', @'string', @'integer'));
+        prefix = mkcl_type_error(env, MK_CL_gensym,"prefix",prefix,
+                                 mk_cl_list(env, 3, MK_CL_or, MK_CL_string, MK_CL_integer));
         goto AGAIN;
       }
-      output = mkcl_make_string_output_stream(env, 64, TRUE, @':default');
+      output = mkcl_make_string_output_stream(env, 64, TRUE, MK_KEY_default);
 
-      mkcl_bds_bind(env, @'*print-escape*', mk_cl_Cnil);
-      mkcl_bds_bind(env, @'*print-readably*', mk_cl_Cnil);
-      mkcl_bds_bind(env, @'*print-base*', MKCL_MAKE_FIXNUM(10));
-      mkcl_bds_bind(env, @'*print-radix*', mk_cl_Cnil);
+      mkcl_bds_bind(env, MK_CL_DYNVAR_print_escape, mk_cl_Cnil);
+      mkcl_bds_bind(env, MK_CL_DYNVAR_print_readably, mk_cl_Cnil);
+      mkcl_bds_bind(env, MK_CL_DYNVAR_print_base, MKCL_MAKE_FIXNUM(10));
+      mkcl_bds_bind(env, MK_CL_DYNVAR_print_radix, mk_cl_Cnil);
       mk_si_write_ugly_object(env, prefix, output);
       mk_si_write_ugly_object(env, MKCL_CODE_CHAR('-'), output);
       mk_si_write_ugly_object(env, MKCL_MAKE_FIXNUM(env->own_thread->thread.tid), output);
@@ -413,7 +413,7 @@ mkcl_object mk_cl_gensym(MKCL, mkcl_narg narg, ...)
 
       output = mk_cl_make_symbol(env, mk_cl_get_output_stream_string(env, output));
       if (increment)
-        MKCL_SETQ(env, @'*gensym-counter*',mkcl_one_plus(env, counter));
+        MKCL_SETQ(env, MK_CL_DYNVAR_gensym_counter,mkcl_one_plus(env, counter));
       mkcl_return_value(output);
     }
   }
@@ -433,17 +433,17 @@ mkcl_object mk_cl_gentemp(MKCL, mkcl_narg narg, ...)
     int intern_flag;
     mkcl_object prefix = mkcl_core.gentemp_prefix;
     mkcl_object pack = (((narg == 0) || (narg == 1)) ? mkcl_current_package(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, @'gentemp', narg, 0, narg, &prefix, &pack);
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, MK_CL_gentemp, narg, 0, narg, &prefix, &pack);
 
-    prefix = mkcl_check_type_string(env, @'gentemp', prefix);
+    prefix = mkcl_check_type_string(env, MK_CL_gentemp, prefix);
     pack = mk_si_coerce_to_package(env, pack);
   ONCE_MORE:
-    output = mkcl_make_string_output_stream(env, 64, TRUE, @':default');
+    output = mkcl_make_string_output_stream(env, 64, TRUE, MK_KEY_default);
 
-    mkcl_bds_bind(env, @'*print-escape*', mk_cl_Cnil);
-    mkcl_bds_bind(env, @'*print-readably*', mk_cl_Cnil);
-    mkcl_bds_bind(env, @'*print-base*', MKCL_MAKE_FIXNUM(10));
-    mkcl_bds_bind(env, @'*print-radix*', mk_cl_Cnil);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_escape, mk_cl_Cnil);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_readably, mk_cl_Cnil);
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_base, MKCL_MAKE_FIXNUM(10));
+    mkcl_bds_bind(env, MK_CL_DYNVAR_print_radix, mk_cl_Cnil);
     mk_si_write_ugly_object(env, prefix, output);
 
     {
@@ -537,7 +537,7 @@ mkcl_object mk_si_put_properties(MKCL, mkcl_narg narg, mkcl_object sym, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, @'si::put-properties', 0, narg, sym, ind_values);
+    mkcl_setup_for_rest(env, MK_SI_put_properties, 0, narg, sym, ind_values);
 
     while (--narg >= 2) {
       mkcl_object prop = mkcl_va_arg(ind_values);
@@ -550,18 +550,18 @@ mkcl_object mk_si_put_properties(MKCL, mkcl_narg narg, mkcl_object sym, ...)
 }
 
 mkcl_object
-@si::*make_special(MKCL, mkcl_object sym)
+mk_si_Xmake_special(MKCL, mkcl_object sym)
 {
   int type = mkcl_symbol_type(env, sym);
   if (type & mkcl_stp_constant)
     mkcl_FEerror(env, "~S is a constant.", 1, sym);
   mkcl_symbol_type_set(env, sym, type | mkcl_stp_special);
-  mk_cl_remprop(env, sym, @'si::symbol-macro');
+  mk_cl_remprop(env, sym, MK_SI_symbol_macro);
   mkcl_return_value(sym);
 }
 
 mkcl_object
-@si::*make_constant(MKCL, mkcl_object sym, mkcl_object val)
+mk_si_Xmake_constant(MKCL, mkcl_object sym, mkcl_object val)
 {
   int type = mkcl_symbol_type(env, sym);
   if (type & mkcl_stp_special)

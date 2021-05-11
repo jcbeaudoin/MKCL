@@ -472,6 +472,15 @@ extern "C" {
 
   void mkcl_deliver_fpe(MKCL);
 
+
+#include <mkcl/C_exported_symbols_in_CL.h>
+#include <mkcl/C_exported_symbols_in_CLOS.h>
+#include <mkcl/C_exported_symbols_in_GRAY.h>
+#include <mkcl/C_exported_symbols_in_KEYWORDS.h>
+#include <mkcl/C_exported_symbols_in_MKCL.h>
+#include <mkcl/C_exported_symbols_in_MT.h>
+#include <mkcl/C_exported_symbols_in_SI.h>
+
 #ifdef __cplusplus
 }
 #endif
