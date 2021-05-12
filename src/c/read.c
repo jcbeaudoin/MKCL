@@ -726,7 +726,7 @@ mkcl_object comma_reader(MKCL, mkcl_object in, mkcl_object c)
     mkcl_FEreader_error(env, "A comma has appeared out of a backquote.", in, 0);
   /* Read character & complain at EOF */
   c = mk_cl_peek_char(env, 2,mk_cl_Cnil,in);
-  if (c == MKCL_CODE_CHAR('@@')) {
+  if (c == MKCL_CODE_CHAR('@')) {
     x = MK_SI_unquote_splice;
     mkcl_read_char(env, in);
   } else if (c == MKCL_CODE_CHAR('.')) {

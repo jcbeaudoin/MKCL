@@ -2,8 +2,6 @@ GNUmakefile
 makefile.depend
 dpp
 dpp.exe
-[a-ce-z][a-z]*.c
-disassembler.c
 Makefile
 symbols_list2.h
 /*.s

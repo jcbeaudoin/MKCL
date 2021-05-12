@@ -828,7 +828,7 @@ AC_DEFUN([MKCL_FFI],[
 AC_MSG_CHECKING([whether we can dynamically build calls to C functions])
 case "${host_cpu}" in
    i686 | i586 | pentium* | athlon* )
-	EXTRA_OBJS="${EXTRA_OBJS} ffi_x86.o"
+	EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_x86.o"
 	if test "${enable_asmapply}" = "yes" ; then
 		EXTRA_OBJS="${EXTRA_OBJS} apply_x86.o"
 		AC_DEFINE(MKCL_ASM_APPLY)
@@ -838,25 +838,25 @@ case "${host_cpu}" in
 	;;
    x86_64 )
         if test "${CL_FIXNUM_BITS}" = 32 ; then
-	  EXTRA_OBJS="${EXTRA_OBJS} ffi_x86.o"
+	  EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_x86.o"
 	else
             case "${host_os}" in
                 mingw*)
-	            EXTRA_OBJS="${EXTRA_OBJS} ffi_x86_64_w64.o"
+	            EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_x86_64_w64.o"
                     ;;
                 *)
-	            EXTRA_OBJS="${EXTRA_OBJS} ffi_x86_64.o"
+	            EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_x86_64.o"
                     ;;
             esac
 	fi
 	dynamic_ffi=yes
 	;;
    aarch64 )
-        EXTRA_OBJS="${EXTRA_OBJS} ffi_aarch64.o"
+        EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_aarch64.o"
 	dynamic_ffi=yes
         ;;
    arm* )
-        EXTRA_OBJS="${EXTRA_OBJS} ffi_arm.o"
+        EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_arm.o"
 	dynamic_ffi=yes
         ;;
    *)

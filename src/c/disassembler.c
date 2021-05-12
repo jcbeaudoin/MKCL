@@ -157,7 +157,7 @@ disassemble_tagbody(MKCL, mkcl_object bytecode, mkcl_opcode *vector) {
 		GET_LABEL(destination, vector);
 		mkcl_princ_str(env, "\n\tTAG\t", mk_cl_Ct);
 		mkcl_princ(env, MKCL_MAKE_FIXNUM(i), mk_cl_Ct);
-		mkcl_princ_str(env, " @@ ", mk_cl_Ct);
+		mkcl_princ_str(env, " @ ", mk_cl_Ct);
 		mkcl_princ(env, MKCL_MAKE_FIXNUM(destination - base), mk_cl_Ct);
 	}
 	vector = disassemble(env, bytecode, vector);

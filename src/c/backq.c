@@ -63,7 +63,7 @@ _mkcl_backq_cdr(MKCL, mkcl_object *px)
     return(EVAL);
   }
   if (MKCL_CAR(x) == MK_SI_unquote_splice || MKCL_CAR(x) == MK_SI_unquote_nsplice)
-    mkcl_FEerror(env, ",@@ or ,. has appeared in an illegal position.", 0);
+    mkcl_FEerror(env, ",@ or ,. has appeared in an illegal position.", 0);
 
   ax = MKCL_CAR(x); dx = MKCL_CDR(x);
   a = _mkcl_backq_car(env, &ax);
@@ -244,7 +244,7 @@ backq(MKCL, mkcl_object x)
 
   a = _mkcl_backq_car(env, &x);
   if (a == APPEND || a == NCONC)
-    mkcl_FEerror(env, ",@@ or ,. has appeared in an illegal position.", 0);
+    mkcl_FEerror(env, ",@ or ,. has appeared in an illegal position.", 0);
   if (a == QUOTE)
     return(kwote(env, x));
   return(x);

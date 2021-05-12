@@ -85,7 +85,7 @@ OBJS	= main.o symbol.o package.o list.o \
 DCFILES = $(OBJS:%.o=%.c)
 
 
-.SUFFIXES: .c .o .d .dh
+.SUFFIXES: .c .o .dh
 .PHONY: all all2
 
 all:
@@ -98,9 +98,6 @@ all2: ../mkclmin.a ../mkcltop.a all_symbols.o all_symbols2.o cinit.o
 
 .c.o:
 	$(CC) $(CFLAGS) -o $@ -c $<
-
-.d.c:
-	$(DPP) $< $@
 
 .dh.h:
 	$(DPP) $< $@
@@ -121,21 +118,6 @@ mkcl/internal.h: $(C_EXPORTED_SYMBOLS_H_IN_MKCL)
 #apply_x86.c: arch/apply_x86.d $(DPP)
 #	$(DPP) $< $@
 
-ffi_x86.c: arch/ffi_x86.d $(DPP)
-	$(DPP) $< $@
-
-ffi_x86_64.c: arch/ffi_x86_64.d $(DPP)
-	$(DPP) $< $@
-
-ffi_x86_64_w64.c: arch/ffi_x86_64_w64.d $(DPP)
-	$(DPP) $< $@
-
-ffi_arm.c: arch/ffi_arm.d $(DPP)
-	$(DPP) $< $@
-
-ffi_aarch64.c: arch/ffi_aarch64.d $(DPP)
-	$(DPP) $< $@
-
 
 ../mkclmin.a: GNUmakefile $(OBJS)
 	$(RM) $@
@@ -152,7 +134,8 @@ clean:
 	$(RM) mkcl/gc/*.h $(C_EXPORTED_SYMBOLS_H_IN_MKCL)
 
 distclean: clean
-	$(RM) $(DPP) $(DCFILES) symbols_list2.h all_symbols.c cinit.c
+	$(RM) $(DPP) # $(DCFILES)
+	$(RM) symbols_list2.h # all_symbols.c cinit.c
 	$(RM) GNUmakefile makefile.depend
 	$(RM) Makefile
 
@@ -182,8 +165,8 @@ unixfsys.o: unixfsys.c
 # GCC might break this code
 #
 
-ffi_x86.o: ffi_x86.c
-	$(CC) $(CFLAGS) -O0 -c ffi_x86.c -o $@
+arch/ffi_x86.o: arch/ffi_x86.c
+	$(CC) $(CFLAGS) -O0 -c arch/ffi_x86.c -o $@
 
 
 #
@@ -205,7 +188,7 @@ Makefile: Makefile.in ../config.status
 #
 #
 
-makefile.depend: $(DCFILES) *.h arch/*.d cinit.c all_symbols.c mkcl/mkcl.h $(MKCL_HFILES)
+makefile.depend: $(DCFILES) *.h arch/*.c cinit.c all_symbols.c mkcl/mkcl.h $(MKCL_HFILES)
 	$(RM) makefile.depend
 	for i in $^; do \
 	  case $$i in \

@@ -305,13 +305,13 @@ mkcl_min$(EXE): $(LIBRARIES) mkclmin.@LIBEXT@ c/cinit.o c/all_symbols.o .gdbinit
 .gdbinit: util/gdbinit
 	cp util/gdbinit $@
 
-c/cinit.o: c/GNUmakefile c/cinit.d c/mkcl/mkcl.h
+c/cinit.o: c/GNUmakefile c/cinit.c c/mkcl/mkcl.h
 	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile cinit.o
 
-c/all_symbols.o: c/GNUmakefile c/all_symbols.d c/symbols_list.h c/symbols_list2.h c/mkcl/mkcl.h
+c/all_symbols.o: c/GNUmakefile c/all_symbols.c c/symbols_list.h c/symbols_list2.h c/mkcl/mkcl.h
 	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile all_symbols.o
 
-c/all_symbols2.o: c/GNUmakefile c/all_symbols.d c/symbols_list.h c/symbols_list2.h c/mkcl/mkcl.h
+c/all_symbols2.o: c/GNUmakefile c/all_symbols.c c/symbols_list.h c/symbols_list2.h c/mkcl/mkcl.h
 	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile all_symbols2.o
 
 lsp/config.lsp: lsp/config.pre
@@ -382,7 +382,7 @@ libmkcc1.a: ../contrib/tinycc/libmkcc1.a
 ../contrib/tinycc/libmkcc1.a: ../contrib/tinycc/mkcc$(EXE) ../contrib/tinycc/lib/*.[cS] ../contrib/tinycc/lib/Makefile
 	cd ../contrib/tinycc; $(MAKE) libmkcc1.a
 
-mkclmin.@LIBEXT@: c/GNUmakefile c/mkcl/mkcl.h $(MKCL_HFILES) c/*.d c/arch/*.d c/*.h
+mkclmin.@LIBEXT@: c/GNUmakefile c/mkcl/mkcl.h $(MKCL_HFILES) c/*.c c/arch/*.c c/*.h
 	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile ../mkclmin.@LIBEXT@
 
 mkcltop.@LIBEXT@: c/GNUmakefile c/all_symbols2.o
@@ -585,18 +585,18 @@ realclean: distclean
 	$(RM) *~ c/*~ c/arch/*~
 	$(RM) lsp/*~ clos/*~ cmp/*~
 
-TAGS: lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre c/*.d c/*.h c/arch/*.d c/mkcl/*.dh c/mkcl/*.h
+TAGS: lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre c/*.c c/*.h c/arch/*.c c/mkcl/*.dh c/mkcl/*.h
 	if type etags >/dev/null 2>&1; then  \
 	  if etags --help | grep -q -e "--language-force"; then \
-	    etags -R lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre --language-force=c c/*.d c/*.h c/arch/*.d c/mkcl/*.dh c/mkcl/*.h; \
+	    etags -R lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre --language-force=c c/*.c c/*.h c/arch/*.c c/mkcl/*.dh c/mkcl/*.h; \
 	  else \
-	    etags -R lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre --language=c c/*.d c/*.h c/arch/*.d c/mkcl/*.dh c/mkcl/*.h; \
+	    etags -R lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre --language=c c/*.c c/*.h c/arch/*.c c/mkcl/*.dh c/mkcl/*.h; \
 	  fi \
 	else touch TAGS; fi
 
 
 
-c/makefile.depend: c/*.d c/*.h c/arch/*.d c/mkcl/mkcl.h $(MKCL_HFILES)
+c/makefile.depend: c/*.c c/*.h c/arch/*.c c/mkcl/mkcl.h $(MKCL_HFILES)
 	cd c; $(MAKE) makefile.depend
 
 c/GNUmakefile: c/Makefile.in c/makefile.depend

@@ -1319,7 +1319,7 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
 	return mk_si_write_object(env, x, stream);
       }
       if (MKCL_CAR(x) == MK_SI_unquote_splice) {
-	write_str(env, ",@@", stream);
+	write_str(env, ",@", stream);
 	x = MKCL_CADR(x);
 	return mk_si_write_object(env, x, stream);
       }

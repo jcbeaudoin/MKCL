@@ -22,7 +22,7 @@
 # include <stdio.h>
 #endif
 
-#include "cfun_dispatch.d"
+#include "cfun_dispatch.c"
 
 static mkcl_object wrong_num_args_cfun_0(MKCL)
 {
