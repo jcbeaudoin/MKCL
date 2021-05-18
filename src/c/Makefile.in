@@ -103,7 +103,7 @@ all2: ../mkclmin.a ../mkcltop.a all_symbols.o all_symbols2.o cinit.o
 	$(DPP) $< $@
 
 
-$(DCFILES) all_symbols.c cinit.c: $(DPP)
+$(C_EXPORTED_SYMBOLS_H_IN_MKCL): $(DPP)
 
 mkcl/gc/gc.h: ../gc/include/gc.h
 	mkdir -p mkcl/gc
