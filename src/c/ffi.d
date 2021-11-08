@@ -172,8 +172,8 @@ mk_si_make_foreign_null_pointer(MKCL)
   mkcl_call_stack_check(env);
   mkcl_object output = mkcl_alloc_raw_foreign(env, sizeof(void *));
 
-  output->foreign.C_type = mkcl_cons(env, @'*', mkcl_cons(env, @':void', mk_cl_Cnil));
-  *((void **) output->foreign.data) = NULL;
+  output->foreign.C_type = mk_cl_list(env, 2, @'*', @':void');
+  ((void **) output->foreign.data)[0] = NULL;
   @(return output);
 }
 
@@ -238,40 +238,6 @@ mk_si_foreign_address(MKCL, mkcl_object f)
   @(return mkcl_make_unsigned_integer(env, (mkcl_index)f->foreign.data));
 }
 
-#if 0
-mkcl_object
-mk_si_foreign_tag(MKCL, mkcl_object f)
-{
-  mkcl_call_stack_check(env);
-  if (mkcl_type_of(f) != mkcl_t_foreign) {
-    mkcl_FEwrong_type_argument(env, @'si::foreign', f);
-  }
-  @(return f->foreign.tag);
-}
-#endif
-
-#if 0 /* redundant with mk_si_foreign_ref(). */
-mkcl_object
-mk_si_foreign_indexed(MKCL, mkcl_object f, mkcl_object andx, mkcl_object asize, mkcl_object tag)
-{
-  mkcl_call_stack_check(env);
-  mkcl_index ndx = mkcl_integer_to_index(env, andx);
-  mkcl_index size = mkcl_integer_to_index(env, asize);
-  mkcl_object output;
-
-  if (mkcl_type_of(f) != mkcl_t_foreign) {
-    mkcl_FEwrong_type_argument(env, @'si::foreign', f);
-  }
-  if (ndx >= f->foreign.size || (f->foreign.size - ndx) < size) {
-    mkcl_FEerror(env, "Out of bounds reference into foreign data type ~A.", 1, f);
-  }
-  output = mkcl_alloc_raw_foreign(env, size);
-  output->foreign.tag = tag;
-  output->foreign.size = size;
-  output->foreign.data = f->foreign.data + ndx;
-  @(return output);
-}
-#endif
 
 mkcl_object
 mk_si_foreign_ref(MKCL, mkcl_object f, mkcl_object andx, mkcl_object asize)
@@ -328,23 +294,10 @@ mkcl_foreign_type_code(MKCL, mkcl_object type)
   return MKCL_FFI_VOID;
 }
 
-#if 0
-enum mkcl_ffi_calling_convention
-mkcl_foreign_cc_code(MKCL, mkcl_object cc)
-{
-  int i;
-  for (i = 0; i <= MKCL_FFI_CC_STDCALL; i++) {
-    if (cc == mkcl_foreign_cc_table[i])
-      return (enum mkcl_ffi_calling_convention)i;
-  }
-  mkcl_FEerror(env, "~A does no denote a valid calling convention.", 1, cc);
-  return MKCL_FFI_CC_CDECL;
-}
-#endif
 
 mkcl_object
 mkcl_foreign_ref_elt(MKCL, void *p, enum mkcl_ffi_tag tag)
-{
+{ /* Translate C basic typed data to a lisp object. */ /* to_lisp */
   switch (tag) {
   case MKCL_FFI_CHAR:
     return MKCL_CODE_CHAR(*(char *)p);
@@ -400,7 +353,7 @@ mkcl_foreign_ref_elt(MKCL, void *p, enum mkcl_ffi_tag tag)
 
 void
 mkcl_foreign_set_elt(MKCL, void *p, enum mkcl_ffi_tag tag, mkcl_object value)
-{
+{ /* Translate a lisp object to a said C basic type data. (unwrapped) */ /* to_foreign */
   switch (tag) {
   case MKCL_FFI_CHAR:
     *(char *)p = (char)mkcl_base_char_code(env, value);
@@ -514,7 +467,7 @@ mk_si_null_pointer_p(MKCL, mkcl_object f)
   mkcl_call_stack_check(env);
   if (mkcl_type_of(f) != mkcl_t_foreign)
     mkcl_FEwrong_type_argument(env, @'si::foreign', f);
-  @(return ((f->foreign.data == NULL) ? mk_cl_Ct : mk_cl_Cnil));
+  @(return ((((void **) f->foreign.data)[0] == NULL) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
