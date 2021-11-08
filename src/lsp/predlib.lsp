@@ -37,7 +37,7 @@
   name)
 
 ;;; DEFTYPE macro.
-(defmacro deftype (name lambda-list &rest body)
+(defmacro deftype (name lambda-list &rest decls+body)
   "Syntax: (deftype name lambda-list {decl | doc}* {form}*)
 Defines a new type-specifier abbreviation in terms of an 'expansion' function
 	(lambda lambda-list1 {DECL}* {FORM}*)
@@ -50,8 +50,8 @@ type specifier.  When the symbol NAME is used as a type specifier, the
 expansion function is called with no argument.
 The doc-string DOC, if supplied, is saved as a TYPE doc and can be retrieved
 by (documentation 'NAME 'type)."
-  (multiple-value-bind (body doc)
-      (remove-documentation body)
+  (multiple-value-bind (decls body doc)
+       (find-declarations decls+body)
     (setf lambda-list (copy-list lambda-list))
     (dolist (x '(&optional &key))
       (do ((l (rest (member x lambda-list)) (rest l)))
@@ -63,10 +63,11 @@ by (documentation 'NAME 'type)."
     (let ((whole-var (gensym)) (env-var (gensym)))
       `(define-when (:compile-toplevel :load-toplevel :execute)
          ,@(si::expand-set-documentation name 'type doc)
-         (do-deftype ',name '(DEFTYPE ,name ,lambda-list ,@body)
+         (do-deftype ',name '(DEFTYPE ,name ,lambda-list ,@decls+body)
                      #'(si::LAMBDA (,whole-var ,env-var)
                          (declare (ignorable ,env-var))
                          (destructuring-bind ,lambda-list (if (consp ,whole-var) (cdr ,whole-var) nil)
+                           ,@decls
                            (block ,name
                              ,@body))))))))
 
