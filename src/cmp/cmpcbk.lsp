@@ -209,4 +209,5 @@
     )
   )
 
-(put-sysprop 'FFI:DEFCALLBACK 'C1 #'c1-defcallback)
+;;(put-sysprop 'FFI:DEFCALLBACK 'C1 #'c1-defcallback)
+(put-sysprop 'FFI:DEFCALLBACK 'C1SPECIAL #'c1-defcallback) ;; JCB, a macro is always inlined.

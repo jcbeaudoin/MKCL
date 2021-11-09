@@ -2,7 +2,7 @@
 ;;;;
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
-;;;;  Copyright (c) 2015, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2015,2021 Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -371,7 +371,9 @@
 (put-sysprop 'multiple-value-prog1 'c2 'c2multiple-value-prog1) ;; Does not exist! JCB
 (put-sysprop 'values 'c1 'c1values)
 (put-sysprop 'values 'c2 'c2values)
-(put-sysprop 'multiple-value-setq 'c1 'c1multiple-value-setq)
+;;(put-sysprop 'multiple-value-setq 'c1 'c1multiple-value-setq)
+(put-sysprop 'multiple-value-setq 'c1special 'c1multiple-value-setq) ;; JCB, a macro is always inlined.
 (put-sysprop 'multiple-value-setq 'c2 'c2multiple-value-setq)
-(put-sysprop 'multiple-value-bind 'c1 'c1multiple-value-bind)
+;;(put-sysprop 'multiple-value-bind 'c1 'c1multiple-value-bind)
+(put-sysprop 'multiple-value-bind 'c1special 'c1multiple-value-bind) ;; JCB, a macro is always inlined.
 (put-sysprop 'multiple-value-bind 'c2 'c2multiple-value-bind)
