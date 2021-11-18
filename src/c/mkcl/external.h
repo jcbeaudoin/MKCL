@@ -179,6 +179,7 @@ extern "C" {
     mkcl_object mkcl_ext_package;
     mkcl_object clos_package;
     mkcl_object gray_package;
+    mkcl_object ffi_package;
     mkcl_object mt_package;
     mkcl_object packages_to_be_created;
 

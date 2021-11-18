@@ -5,37 +5,59 @@
 #include <string.h>
 #include <mkcl/internal.h>
 
-#define CL_PACKAGE 0        /* 0 << 2 */
-#define SI_PACKAGE 4        /* 1 << 2 */
-#define KEYWORD_PACKAGE 8   /* 2 << 2 */
-#define MT_PACKAGE 12       /* 3 << 2 */
-#define CLOS_PACKAGE 16     /* 4 << 2 */
-#define MKCL_EXT_PACKAGE 20 /* 5 << 2 */
-#define GRAY_PACKAGE 32     /* 8 << 2 */
+#define PACKAGE_FIELD_BIT_OFFSET 3
+
+#define CL_PACKAGE        (0 << PACKAGE_FIELD_BIT_OFFSET)
+#define SI_PACKAGE        (1 << PACKAGE_FIELD_BIT_OFFSET)
+#define KEYWORD_PACKAGE   (2 << PACKAGE_FIELD_BIT_OFFSET)
+#define MT_PACKAGE        (3 << PACKAGE_FIELD_BIT_OFFSET)
+#define CLOS_PACKAGE      (4 << PACKAGE_FIELD_BIT_OFFSET)
+#define MKCL_EXT_PACKAGE  (5 << PACKAGE_FIELD_BIT_OFFSET)
+#define FFI_PACKAGE       (6 << PACKAGE_FIELD_BIT_OFFSET)
+#define GRAY_PACKAGE      (8 << PACKAGE_FIELD_BIT_OFFSET)
 
 #define ORDINARY_SYMBOL 0
 #define CONSTANT_SYMBOL 1
 #define SPECIAL_SYMBOL 2
 #define FORM_SYMBOL 3
+#define SYMBOL_TYPE_MASK 3
 
-#define CL_ORDINARY	  CL_PACKAGE | ORDINARY_SYMBOL
-#define CL_SPECIAL	  CL_PACKAGE | SPECIAL_SYMBOL
-#define CL_CONSTANT	  CL_PACKAGE | CONSTANT_SYMBOL
-#define CL_FORM		  CL_PACKAGE | ORDINARY_SYMBOL | FORM_SYMBOL
-#define SI_ORDINARY	  SI_PACKAGE | ORDINARY_SYMBOL
-#define SI_SPECIAL	  SI_PACKAGE | SPECIAL_SYMBOL
-#define SI_CONSTANT	  SI_PACKAGE | CONSTANT_SYMBOL
-#define MKCL_EXT_ORDINARY MKCL_EXT_PACKAGE | ORDINARY_SYMBOL
-#define MKCL_EXT_SPECIAL  MKCL_EXT_PACKAGE | SPECIAL_SYMBOL
-#define MKCL_EXT_CONSTANT MKCL_EXT_PACKAGE | CONSTANT_SYMBOL
-#define MKCL_EXT_FORM	  MKCL_EXT_PACKAGE | ORDINARY_SYMBOL | FORM_SYMBOL
-#define MT_ORDINARY	  MT_PACKAGE | ORDINARY_SYMBOL
-#define MT_SPECIAL	  MT_PACKAGE | SPECIAL_SYMBOL
-#define MT_CONSTANT	  MT_PACKAGE | CONSTANT_SYMBOL
-#define CLOS_ORDINARY	  CLOS_PACKAGE | ORDINARY_SYMBOL
-#define CLOS_SPECIAL	  CLOS_PACKAGE | SPECIAL_SYMBOL
-#define KEYWORD		  KEYWORD_PACKAGE | CONSTANT_SYMBOL
-#define GRAY_ORDINARY	  GRAY_PACKAGE | ORDINARY_SYMBOL
+#define EXPORT 4
+#define EXPORT_MASK EXPORT
+
+#define CL_ORDINARY	  CL_PACKAGE | EXPORT | ORDINARY_SYMBOL
+#define CL_SPECIAL	  CL_PACKAGE | EXPORT | SPECIAL_SYMBOL
+#define CL_CONSTANT	  CL_PACKAGE | EXPORT | CONSTANT_SYMBOL
+#define CL_FORM		  CL_PACKAGE | EXPORT | ORDINARY_SYMBOL | FORM_SYMBOL
+#define SI_ORDINARY	  SI_PACKAGE | EXPORT | ORDINARY_SYMBOL
+#define SI_SPECIAL	  SI_PACKAGE | EXPORT | SPECIAL_SYMBOL
+#define SI_CONSTANT	  SI_PACKAGE | EXPORT | CONSTANT_SYMBOL
+#define MKCL_EXT_ORDINARY MKCL_EXT_PACKAGE | EXPORT | ORDINARY_SYMBOL
+#define MKCL_EXT_SPECIAL  MKCL_EXT_PACKAGE | EXPORT | SPECIAL_SYMBOL
+#define MKCL_EXT_CONSTANT MKCL_EXT_PACKAGE | EXPORT | CONSTANT_SYMBOL
+#define MKCL_EXT_FORM	  MKCL_EXT_PACKAGE | EXPORT | ORDINARY_SYMBOL | FORM_SYMBOL
+#define MT_ORDINARY	  MT_PACKAGE | EXPORT | ORDINARY_SYMBOL
+#define MT_SPECIAL	  MT_PACKAGE | EXPORT | SPECIAL_SYMBOL
+#define MT_CONSTANT	  MT_PACKAGE | EXPORT | CONSTANT_SYMBOL
+#define FFI_ORDINARY	  FFI_PACKAGE | EXPORT | ORDINARY_SYMBOL
+#define FFI_SPECIAL	  FFI_PACKAGE | EXPORT | SPECIAL_SYMBOL
+#define FFI_CONSTANT	  FFI_PACKAGE | EXPORT | CONSTANT_SYMBOL
+#define CLOS_ORDINARY	  CLOS_PACKAGE | EXPORT | ORDINARY_SYMBOL
+#define CLOS_SPECIAL	  CLOS_PACKAGE | EXPORT | SPECIAL_SYMBOL
+#define KEYWORD		  KEYWORD_PACKAGE | EXPORT | CONSTANT_SYMBOL
+#define GRAY_ORDINARY	  GRAY_PACKAGE | EXPORT | ORDINARY_SYMBOL
+
+#define SI_INTERNAL_ORDINARY	  SI_PACKAGE | ORDINARY_SYMBOL
+#define SI_INTERNAL_SPECIAL	  SI_PACKAGE | SPECIAL_SYMBOL
+#define SI_INTERNAL_CONSTANT	  SI_PACKAGE | CONSTANT_SYMBOL
+#define FFI_INTERNAL_ORDINARY	  FFI_PACKAGE | ORDINARY_SYMBOL
+#define FFI_INTERNAL_SPECIAL	  FFI_PACKAGE | SPECIAL_SYMBOL
+#define MT_INTERNAL_ORDINARY	  MT_PACKAGE | ORDINARY_SYMBOL
+#define CLOS_INTERNAL_ORDINARY	  CLOS_PACKAGE | ORDINARY_SYMBOL
+#define CLOS_INTERNAL_SPECIAL	  CLOS_PACKAGE | SPECIAL_SYMBOL
+#define GRAY_INTERNAL_ORDINARY    GRAY_PACKAGE | ORDINARY_SYMBOL
+
+#define PACKAGE_MASK      (-1 << PACKAGE_FIELD_BIT_OFFSET)
 
 #include "symbols_list.h"
 
@@ -339,16 +361,18 @@ make_this_symbol(MKCL, int i, struct mkcl_symbol * symbol, int code, const char 
 {
   enum mkcl_stype stp;
   mkcl_object package;
-  bool form = 0;
+  bool form = FALSE;
+  bool export = FALSE;
 
-  switch (code & 3) {
+  switch (code & SYMBOL_TYPE_MASK) {
   case ORDINARY_SYMBOL: stp = mkcl_stp_ordinary; break;
   case SPECIAL_SYMBOL: stp = mkcl_stp_special; break;
   case CONSTANT_SYMBOL: stp = mkcl_stp_constant; break;
   case FORM_SYMBOL: form = 1; stp = mkcl_stp_ordinary; break;
   default: mkcl_lose(env, "Unknown symbol type in make_this_symbol");
   }
-  switch (code & ~(int)3) {
+  export = code & EXPORT_MASK;
+  switch (code & PACKAGE_MASK) {
   case CL_PACKAGE: package = mkcl_core.lisp_package; break;
   case SI_PACKAGE: package = mkcl_core.system_package; break;
   case MKCL_EXT_PACKAGE: package = mkcl_core.mkcl_ext_package; break;
@@ -356,6 +380,7 @@ make_this_symbol(MKCL, int i, struct mkcl_symbol * symbol, int code, const char 
   case MT_PACKAGE: package = mkcl_core.mt_package; break;
   case CLOS_PACKAGE: package = mkcl_core.clos_package; break;
   case GRAY_PACKAGE: package = mkcl_core.gray_package; break;
+  case FFI_PACKAGE: package = mkcl_core.ffi_package; break;
   default: mkcl_lose(env, "Unknown package in make_this_symbol");
   }
   symbol->t = mkcl_t_symbol;
@@ -381,7 +406,8 @@ make_this_symbol(MKCL, int i, struct mkcl_symbol * symbol, int code, const char 
     } else {
       mkcl_import2(env, (mkcl_object) symbol, package);
     }
-    mkcl_export2(env, (mkcl_object) symbol, package);
+    if (export)
+      mkcl_export2(env, (mkcl_object) symbol, package);
   }
   if (form) {
     symbol->stype |= mkcl_stp_special_form;

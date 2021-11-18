@@ -347,6 +347,10 @@ static void _mkcl_boot_inner(MKCL)
   mkcl_core.clos_package =
     mkcl_make_package(env, mkcl_make_simple_base_string(env, "CLOS"),
 		      mk_cl_Cnil, mkcl_list1(env, mkcl_core.lisp_package));
+  mkcl_core.ffi_package =
+    mkcl_make_package(env, mkcl_make_simple_base_string(env, "FFI"),
+		      mk_cl_Cnil,
+                      mk_cl_list(env, 2, mkcl_core.lisp_package, mkcl_core.mkcl_ext_package));
   mkcl_core.mt_package =
     mkcl_make_package(env, mkcl_make_simple_base_string(env, "MT"),
 		      mk_cl_list(env, 3,
