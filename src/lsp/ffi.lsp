@@ -68,7 +68,7 @@
 		      :pointer-void :object
 		      :float :double :cstring
 		      :long-double
-		      :int16-t :unit16-t :int32-t :uint32-t :int64-t :uint64-t
+		      :int16-t :uint16-t :int32-t :uint32-t :int64-t :uint64-t
 		      )
 	       :test 'eq)))
 
