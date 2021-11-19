@@ -286,7 +286,7 @@
   (multiple-value-bind (ppn whole *dl* *key-check* *arg-check*)
       (destructure vl name)
     (values
-     `(lambda (,whole ,env &aux ,@*dl*)
+     `(si::lambda-block ,(si::function-block-name name) (,whole ,env &aux ,@*dl*)
         ,@decls ,@*arg-check* ,@*key-check*
         (block ,(si::function-block-name name) ,@body))
      ppn
