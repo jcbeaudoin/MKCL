@@ -134,6 +134,29 @@ VARIABLE doc and can be retrieved by (DOCUMENTATION 'SYMBOL 'VARIABLE)."
           (si::register-global ',var)))
     ',var))
 
+
+(let ()
+  ;; We enclose this macro in a LET form so that it is no longer
+  ;; a toplevel form. This solves the problem of this simple LOOP
+  ;; replacing the more complex form in loop3.lsp when evalmacros.lsp
+  ;; gets compiled.
+  (defmacro loop (&rest body &aux (tag (gensym)))
+    "Syntax: (loop {form}*)
+Establishes a NIL block and executes FORMs repeatedly.
+The loop is normally terminated by a non-local exit."
+    `(BLOCK NIL (TAGBODY ,tag (PROGN ,@body) (GO ,tag))))
+  )
+
+(defmacro lambda (&rest body)
+  `(function (lambda ,@body)))
+
+(defmacro si:lambda-block (name lambda-list &rest lambda-body)
+  (multiple-value-bind (decl body doc)
+      (si::process-declarations lambda-body)
+    (when decl (setq decl (list (cons 'declare decl))))
+    `(lambda ,lambda-list ,@doc ,@decl
+      (block ,(si::function-block-name name) ,@body))))
+
 ;;;
 ;;; This is a no-op unless the compiler is installed
 ;;;
@@ -148,12 +171,7 @@ VARIABLE doc and can be retrieved by (DOCUMENTATION 'SYMBOL 'VARIABLE)."
       (setq function `(si::bc-disassemble #',function)))
 
     `(define-when (:load-toplevel :execute) ;;progn
-       (put-sysprop ',name 'sys::compiler-macro
-                    #'(lambda (a-form some-env)
-                        ;;(funcall #',function a-form some-env)
-                        ;;(flet (,(cdr function)) (,name a-form some-env))
-                        (,function a-form some-env)
-                        ))
+       (put-sysprop ',name 'sys::compiler-macro ,function)
        ,@(si::expand-set-documentation name 'function doc-string)
        ,(si:register-with-pde whole)
        ',name)))
@@ -162,32 +180,6 @@ VARIABLE doc and can be retrieved by (DOCUMENTATION 'SYMBOL 'VARIABLE)."
   (declare (ignore env))
   (get-sysprop name 'sys::compiler-macro))
 
-;;; Each of the following macros is also defined as a special form,
-;;; as required by CLtL. Some of them are used by the compiler (e.g.
-;;; dolist), some not at all (e.g. defun).
-;;; Thus their names need not be exported.
-
-(let ()
-  ;; We enclose the macro in a LET form so that it is no longer
-  ;; a toplevel form. This solves the problem of this simple LOOP
-  ;; replacing the more complex form in loop2.lsp when evalmacros.lsp
-  ;; gets compiled.
-(defmacro loop (&rest body &aux (tag (gensym)))
-  "Syntax: (loop {form}*)
-Establishes a NIL block and executes FORMs repeatedly.
-The loop is normally terminated by a non-local exit."
-  `(BLOCK NIL (TAGBODY ,tag (PROGN ,@body) (GO ,tag))))
-)
-
-(defmacro lambda (&rest body)
-  `(function (lambda ,@body)))
-
-(defmacro si:lambda-block (name lambda-list &rest lambda-body)
-  (multiple-value-bind (decl body doc)
-      (si::process-declarations lambda-body)
-    (when decl (setq decl (list (cons 'declare decl))))
-    `(lambda ,lambda-list ,@doc ,@decl
-      (block ,(si::function-block-name name) ,@body))))
 
 ; assignment
 
