@@ -34,10 +34,6 @@
  * they signal an error, they should undo all locks they had before.
  */
 
-#define	MKCL_SYMBOL_IS_INTERNAL	1
-#define	MKCL_SYMBOL_IS_EXTERNAL	2
-#define	MKCL_SYMBOL_IS_INHERITED	3
-
 static void
 mkcl_FEpackage_error(MKCL, mkcl_object package, char *message, int narg, ...)
 {
