@@ -90,11 +90,11 @@
 
 (define-compiler-macro si:bit-set (&whole form value array &rest indices &environment env)
   (declare (ignore env))
-  `(aset ,value ,array ,@indices))
+  `(si::aset ,value ,array ,@indices))
 
 (define-compiler-macro si:sbit-set (&whole form value array &rest indices &environment env)
   (declare (ignore env))
-  `(aset ,value ,array ,@indices))
+  `(si::aset ,value ,array ,@indices))
 
 
 (define-compiler-macro concatenate (&whole form target-type-form &rest sequences)
