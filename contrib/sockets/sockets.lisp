@@ -1636,13 +1636,13 @@ GET-NAME-SERVICE-ERRNO")
 ;;; SOCKET OPTIONS
 ;;;
 
-(defun get-sockopt-int (fd const)
-  (let ((ret (c-inline (fd const) (:int :int) t
+(defun get-sockopt-int (fd level-const option-const)
+  (let ((ret (c-inline (fd level-const option-const) (:int :int :int) t
 "{
         int sockopt, ret;
         socklen_t socklen = sizeof(sockopt);
 
-	MKCL_LIBC_NO_INTR(env, (ret = getsockopt(#0,SOL_SOCKET,#1, (void *) &sockopt,&socklen)));
+	MKCL_LIBC_NO_INTR(env, (ret = getsockopt(#0,#1,#2, (void *) &sockopt,&socklen)));
 
         @(return) = (ret == 0) ? mkcl_make_integer(env, sockopt) : mk_cl_Cnil;
 }")))
@@ -1651,48 +1651,67 @@ GET-NAME-SERVICE-ERRNO")
 	(error "Sockopt error: ~A" (si:errno-string)))))
 
 
-(defun get-sockopt-bool (fd const)
-  (let ((ret (c-inline (fd const) (:int :int) t
+(defun get-sockopt-bool (fd level-const option-const)
+  (let ((ret (c-inline (fd level-const option-const) (:int :int :int) t
 "{
         int sockopt, ret;
         socklen_t socklen = sizeof(sockopt);
 
-        MKCL_LIBC_NO_INTR(env, (ret = getsockopt(#0,SOL_SOCKET,#1, (void *) &sockopt,&socklen)));
+        MKCL_LIBC_NO_INTR(env, (ret = getsockopt(#0,#1,#2, (void *) &sockopt,&socklen)));
 
         @(return) = (ret == 0) ? mkcl_make_integer(env, sockopt) : mk_cl_Cnil;
 }")))
     (if ret
-	(/= ret 0)
+	(if (= ret 0) nil ret) ;; generalized boolean. JCB
 	(error "Sockopt error: ~A" (si:errno-string)))))
 
 #+windows
-(defun get-sockopt-timeval (fd const)
-  (* 1000 (get-sockopt-int fd const)))
+;;(defun get-sockopt-timeval (fd level-const option-const)
+;;  (* 1000 (get-sockopt-int fd level-const opton-const)))
+(defun get-sockopt-timeval (fd level-const option-const)
+  (float (/ (get-sockopt-int fd level-const opton-const) 1000) 1.0d0))
 
 #-windows
-(defun get-sockopt-timeval (fd const)
-  (let ((ret (c-inline (fd const) (:int :int) t
+(defun get-sockopt-timeval (fd level-const option-const)
+  (let ((ret (c-inline (fd level-const option-const) (:int :int :int) t
 "{
 	struct timeval tv;
         socklen_t socklen = sizeof(tv);
         int ret;
 
-	MKCL_LIBC_NO_INTR(env, (ret = getsockopt(#0,SOL_SOCKET,#1,&tv,&socklen)));
+	MKCL_LIBC_NO_INTR(env, (ret = getsockopt(#0,#1,#2,&tv,&socklen)));
 
         @(return) = (ret == 0) ? mkcl_make_doublefloat(env, (double)tv.tv_sec
 					+ ((double)tv.tv_usec) / 1000000.0) : mk_cl_Cnil;
 }")))
     (if ret
 	ret
-	(error "Sockopt error: ~A" (si:errno-string)))))
+      (error "Sockopt error: ~A" (si:errno-string)))))
 
-(defun set-sockopt-int (fd const value)
-  (let ((ret (c-inline (fd const value) (:int :int :int) t
+(defun get-sockopt-linger (fd level-const option-const)
+  (multiple-value-bind (ret onoff linger)
+    (c-inline (fd level-const option-const) (:int :int :int) (values :object :object :long)
 "{
-        int sockopt = #2;
+	struct linger linger;
+        socklen_t socklen = sizeof(linger);
         int ret;
 
-	MKCL_LIBC_NO_INTR(env, (ret = setsockopt(#0,SOL_SOCKET,#1,(void *) &sockopt,sizeof(sockopt))));
+	MKCL_LIBC_NO_INTR(env, (ret = getsockopt(#0,#1,#2,&linger,&socklen)));
+        @(return 2) = linger.l_linger;
+        @(return 1) = (linger.l_onoff == 0) ? mk_cl_Cnil : mk_cl_Ct;
+        @(return 0) = (ret == 0) ? mk_cl_Ct : mk_cl_Cnil;
+}")
+    (if ret
+	(values onoff linger)
+	(error "Sockopt error: ~A" (si:errno-string)))))
+
+(defun set-sockopt-int (fd level-const option-const value)
+  (let ((ret (c-inline (fd level-const option-const value) (:int :int :int :int) t
+"{
+        int sockopt = #3;
+        int ret;
+
+	MKCL_LIBC_NO_INTR(env, (ret = setsockopt(#0,#1,#2,(void *) &sockopt,sizeof(sockopt))));
 
         @(return) = (ret == 0) ? mk_cl_Ct : mk_cl_Cnil;
 }")))
@@ -1700,13 +1719,13 @@ GET-NAME-SERVICE-ERRNO")
 	value
 	(error "Sockopt error: ~A" (si:errno-string)))))
 
-(defun set-sockopt-bool (fd const value)
-  (let ((ret (c-inline (fd const value) (:int :int :object) t
+(defun set-sockopt-bool (fd level-const option-const value)
+  (let ((ret (c-inline (fd level-const option-const value) (:int :int :int :object) t
 "{
-        int sockopt = (#2 == mk_cl_Cnil) ? 0 : 1;
+        int sockopt = (#3 == mk_cl_Cnil) ? 0 : 1;
         int ret;
 
-	MKCL_LIBC_NO_INTR(env, (ret = setsockopt(#0,SOL_SOCKET,#1, (void *) &sockopt,sizeof(sockopt))));
+	MKCL_LIBC_NO_INTR(env, (ret = setsockopt(#0,#1,#2,(void *) &sockopt,sizeof(sockopt))));
 
         @(return) = (ret == 0) ? mk_cl_Ct : mk_cl_Cnil;
 }")))
@@ -1715,16 +1734,16 @@ GET-NAME-SERVICE-ERRNO")
 	(error "Sockopt error: ~A" (si:errno-string)))))
 
 #-windows
-(defun set-sockopt-timeval (fd const value)
-  (let ((ret (c-inline (fd const value) (:int :int :double) t
+(defun set-sockopt-timeval (fd level-const option-const value)
+  (let ((ret (c-inline (fd level-const option-const value) (:int :int :int :double) t
 "{
 	struct timeval tv;
-	double tmp = #2;
+	double tmp = #3;
 	int ret;
 
-	tv.tv_sec = (long)tmp;
+	tv.tv_sec = (long)tmp; /* This has a largely 'undefined' behavior according to the C standard. JCB */
 	tv.tv_usec = (long)((tmp-floor(tmp))*1000000.0);
-        MKCL_LIBC_NO_INTR(env, (ret = setsockopt(#0, SOL_SOCKET, #1, &tv, sizeof(tv))));
+        MKCL_LIBC_NO_INTR(env, (ret = setsockopt(#0, #1, #2, &tv, sizeof(tv))));
 
         @(return) = (ret == 0) ? mk_cl_Ct : mk_cl_Cnil;
 }")))
@@ -1733,38 +1752,59 @@ GET-NAME-SERVICE-ERRNO")
 	(error "Sockopt error: ~A" (si:errno-string)))))
 
 #+windows
-(defun set-sockopt-timeval (fd const value)
-  (set-sockopt-int fd const (* 1000 value)))
+(defun set-sockopt-timeval (fd level-const option-const value)
+  (set-sockopt-int fd level-const option-const (* 1000 value)))
+
+(defun set-sockopt-linger (fd level-const option-const value)
+  (let ((ret (c-inline (fd level-const option-const value) (:int :int :int :object) t
+"{
+	struct linger linger;
+	mkcl_object val = #3;
+	int ret;
+
+        if (val == mk_cl_Cnil)
+          { linger.l_onoff = FALSE; linger.l_linger = 0; }
+        else
+          { linger.l_onoff = TRUE; linger.l_linger = mkcl_integer_to_word(env, val); }
+        MKCL_LIBC_NO_INTR(env, (ret = setsockopt(#0, #1, #2, &linger, sizeof(linger))));
+
+        @(return) = (ret == 0) ? mk_cl_Ct : mk_cl_Cnil;
+}")))
+    (if ret
+	value
+	(error "Sockopt error: ~A" (si:errno-string)))))
 
 (eval-when (:compile-toplevel :load-toplevel)
-  (defmacro define-sockopt (name c-const type &optional (read-only nil))
+  (defmacro define-sockopt (name level-c-const option-c-const type &optional (read-only nil))
     `(progn
        (export ',name)
        (defun ,name (socket)
 	 (,(intern (format nil "GET-SOCKOPT-~A" type))
 	   (socket-file-descriptor socket)
-	   (c-constant ,c-const)))
+           (c-constant ,level-c-const)
+	   (c-constant ,option-c-const)))
        ,@(unless read-only
 	   `((defun (setf ,name) (value socket)
 	       (,(intern (format nil "SET-SOCKOPT-~A" type))
 		 (socket-file-descriptor socket)
-		 (c-constant ,c-const)
+		 (c-constant ,level-c-const)
+		 (c-constant ,option-c-const)
 		 value)))))))
 
-(define-sockopt sockopt-type "SO_TYPE" int t)
-(define-sockopt sockopt-receive-buffer "SO_RCVBUF" int)
-(define-sockopt sockopt-send-buffer "SO_SNDBUF" int)
-(define-sockopt sockopt-receive-timeout "SO_RCVTIMEO" timeval)
-(define-sockopt sockopt-send-timeout "SO_SNDTIMEO" timeval)
-(define-sockopt sockopt-reuse-address "SO_REUSEADDR" bool)
-(define-sockopt sockopt-keep-alive "SO_KEEPALIVE" bool)
-(define-sockopt socket-dont-route "SO_DONTROUTE" bool)
-(define-sockopt socket-linger "SO_LINGER" bool)
+(define-sockopt sockopt-type "SOL_SOCKET" "SO_TYPE" int t)
+(define-sockopt sockopt-receive-buffer "SOL_SOCKET" "SO_RCVBUF" int)
+(define-sockopt sockopt-send-buffer "SOL_SOCKET" "SO_SNDBUF" int)
+(define-sockopt sockopt-receive-timeout "SOL_SOCKET" "SO_RCVTIMEO" timeval)
+(define-sockopt sockopt-send-timeout "SOL_SOCKET" "SO_SNDTIMEO" timeval)
+(define-sockopt sockopt-reuse-address "SOL_SOCKET" "SO_REUSEADDR" bool)
+(define-sockopt sockopt-keep-alive "SOL_SOCKET" "SO_KEEPALIVE" bool)
+(define-sockopt socket-dont-route "SOL_SOCKET" "SO_DONTROUTE" bool)
+(define-sockopt socket-linger "SOL_SOCKET" "SO_LINGER" linger)
 
 #-(or :unix :linux :windows :cygwin)
-(define-sockopt sockopt-reuse-port "SO_REUSEPORT" bool)
+(define-sockopt sockopt-reuse-port "SOL_SOCKET" "SO_REUSEPORT" bool)
 
-(define-sockopt sockopt-tcp-nodelay "TCP_NODELAY" bool)
+(define-sockopt sockopt-tcp-nodelay "IPPROTO_TCP" "TCP_NODELAY" bool)
 
 ;; Add sockopts here as you need them...
 
