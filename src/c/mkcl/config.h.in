@@ -120,7 +120,6 @@
 
 typedef @CL_FIXNUM_TYPE@ mkcl_word;
 typedef unsigned @CL_FIXNUM_TYPE@ mkcl_index;
-typedef unsigned @CL_FIXNUM_TYPE@ mkcl_hashkey;
 
 /*
  * The character type

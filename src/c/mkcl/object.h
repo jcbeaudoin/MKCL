@@ -389,6 +389,7 @@ extern "C" {
 
   /***********************/
 
+  typedef mkcl_index mkcl_hashkey;
 
   enum mkcl_httest {		/*  hash table key test function  */
     mkcl_htt_eq,		/*  eq  */
