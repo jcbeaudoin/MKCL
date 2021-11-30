@@ -585,12 +585,12 @@ realclean: distclean
 	$(RM) *~ c/*~ c/arch/*~
 	$(RM) lsp/*~ clos/*~ cmp/*~
 
-TAGS: lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre c/*.c c/*.h c/arch/*.c c/mkcl/*.dh c/mkcl/*.h
+TAGS: lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre c/*.c c/*.h c/arch/*.c c/mkcl/*.dh c/mkcl/[!C]*.h
 	if type etags >/dev/null 2>&1; then  \
 	  if etags --help | grep -q -e "--language-force"; then \
-	    etags -R lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre --language-force=c c/*.c c/*.h c/arch/*.c c/mkcl/*.dh c/mkcl/*.h; \
+	    etags -R lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre --language-force=c c/*.c c/*.h c/arch/*.c c/mkcl/*.dh c/mkcl/[!C]*.h; \
 	  else \
-	    etags -R lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre --language=c c/*.c c/*.h c/arch/*.c c/mkcl/*.dh c/mkcl/*.h; \
+	    etags -R lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre --language=c c/*.c c/*.h c/arch/*.c c/mkcl/*.dh c/mkcl/[!C]*.h; \
 	  fi \
 	else touch TAGS; fi
 
