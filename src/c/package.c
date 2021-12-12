@@ -99,53 +99,13 @@ symbol_add_package(mkcl_object s, mkcl_object p)
     s->symbol.hpack = p;
 }
 
-static mkcl_object
-make_package_hashtable(MKCL)
-{
-  mkcl_index i;
-  mkcl_object h;
-  mkcl_index hsize = 128;
-
-  h = mkcl_alloc_raw_hashtable(env);
-  h->hash.lockable = 0;
-  h->hash.test = mkcl_htt_package;
-  h->hash.size = hsize;
-  h->hash.rehash_size = mkcl_make_singlefloat(env, 1.5f);
-  h->hash.threshold = mkcl_make_singlefloat(env, 0.75f);
-  h->hash.factor_of_16th = 12; /* that is (round (* 0.75 16)). */
-  h->hash.data = NULL; /* for GC sake */
-  h->hash.data = (struct mkcl_hashtable_entry **)
-    mkcl_alloc(env, hsize * sizeof(struct mkcl_hashtable_entry *));
-
-  /* do clrhash */
-  h->hash.entries = 0;
-  for(i = 0; i < hsize; i++) {
-    h->hash.data[i] = NULL;
-  }
-
-  h->hash.search_fun = mkcl_search_hash_package;
-
-#ifdef HASHTABLE_STATS
-  h->hash.nb_searches = 0;
-  h->hash.probes = 0;
-  h->hash.shortest_probe_chain = LONG_MAX;
-  h->hash.longest_probe_chain = 0;
-  h->hash.shortest_failed_probe_chain = LONG_MAX;
-  h->hash.longest_failed_probe_chain = 0;
-
-  mkcl_core.hashtables[mkcl_htt_package] = mkcl_cons(h, mkcl_core.hashtables[mkcl_htt_package]);
-#endif
-
-  return h;
-}
-
 
 mkcl_object _mkcl_alloc_package(MKCL, mkcl_object name)
 {
   mkcl_object x = mkcl_alloc_raw_package(env);
 
-  x->pack.internal = make_package_hashtable(env);
-  x->pack.external = make_package_hashtable(env);
+  x->pack.internal = mkcl_make_hashtable_for_package(env, 128);
+  x->pack.external = mkcl_make_hashtable_for_package(env, 128);
 #if MKCL_WINDOWS
 #if 0
   x->pack.lock = CreateMutex(NULL, FALSE, mkcl_handle_debug_name(env, "package lock")); /* FIXME! return status of this? JCB */
@@ -429,9 +389,9 @@ mkcl_intern(MKCL, mkcl_object name, mkcl_object p, int *intern_flag)
     if (p == mkcl_core.keyword_package) {
       mkcl_symbol_type_set(env, s, mkcl_symbol_type(env, s) | mkcl_stp_constant);
       MKCL_SET(s, s);
-      mkcl_sethash(env, name, p->pack.external, s);
+      mkcl_sethash(env, s->symbol.name, p->pack.external, s);
     } else {
-      mkcl_sethash(env, name, p->pack.internal, s);
+      mkcl_sethash(env, s->symbol.name, p->pack.internal, s);
     }
   OUTPUT:;
   } MKCL_UNWIND_PROTECT_EXIT {
@@ -872,7 +832,7 @@ mkcl_shadow(MKCL, mkcl_object s, mkcl_object p)
     x = mkcl_find_symbol_nolock(env, s, p, &intern_flag);
     if (intern_flag != MKCL_SYMBOL_IS_INTERNAL && intern_flag != MKCL_SYMBOL_IS_EXTERNAL) {
       x = mk_cl_make_symbol(env, s);
-      mkcl_sethash(env, s, p->pack.internal, x);
+      mkcl_sethash(env, x->symbol.name, p->pack.internal, x);
       x->symbol.hpack = p;
     }
     p->pack.shadowings = MKCL_CONS(env, x, p->pack.shadowings);
