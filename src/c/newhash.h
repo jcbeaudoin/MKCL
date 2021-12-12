@@ -37,8 +37,8 @@
 	 ((mkcl_index)k[4]<<32)+((mkcl_index)k[5]<<40)+((mkcl_index)k[6]<<48)+ \
 	 ((mkcl_index)k[7]<<52))
 
-static mkcl_index
-hash_string(mkcl_index initval, const unsigned char *k, mkcl_index length)
+static mkcl_hash_value
+hash_mem_region(mkcl_index initval, const unsigned char *k, mkcl_index length)
 {
 	register mkcl_index a = GOLDEN_RATIO, b = GOLDEN_RATIO, c = initval;
 	register mkcl_index len;
@@ -105,8 +105,8 @@ hash_string(mkcl_index initval, const unsigned char *k, mkcl_index length)
 #define extract_word(k)							\
 	(k[0]+((mkcl_index)k[1]<<8)+((mkcl_index)k[2]<<16)+((mkcl_index)k[3]<<24))
 
-static mkcl_index
-hash_string(mkcl_index initval, const unsigned char *k, mkcl_index length)
+static mkcl_hash_value
+hash_mem_region(mkcl_index initval, const unsigned char *k, mkcl_index length)
 {
 	register mkcl_index a = GOLDEN_RATIO, b = GOLDEN_RATIO, c = initval;
 	register mkcl_index len;
@@ -141,48 +141,39 @@ hash_string(mkcl_index initval, const unsigned char *k, mkcl_index length)
 }
 #endif
 
-static mkcl_index hash_word(mkcl_index c, mkcl_index w)
+static mkcl_hash_value hash_word(mkcl_hash_value c, mkcl_index w)
 {
 	mkcl_index a = w + GOLDEN_RATIO, b = GOLDEN_RATIO;
 	mix(a, b, c);
 	return c;
 }
 
-static mkcl_index hash_base_string(const mkcl_base_char *s, const mkcl_index len, mkcl_index h)
-{
-	mkcl_index a = GOLDEN_RATIO, b = GOLDEN_RATIO, i;
-	for (i = len; i >= 3; i -= 3) {
-		a += *s; s++;
-		b += *s; s++;
-		h += *s; s++;
-		mix(a, b, h);
-	}
-	switch (i) {
-		/* all the case statements fall through */
-	case 2: a += *s; s++;
-	case 1: b += *s;
-	case 0: h += len;
-	}
-	mix(a, b, h);
-	return h;
+#define HASH_XXXX_STRING_BODY(S, LEN, H) \
+{\
+	mkcl_index a = GOLDEN_RATIO, b = GOLDEN_RATIO, i;\
+	mkcl_character ch;\
+	for (i = LEN; i >= 3; i -= 3) {\
+		ch = *S;\
+		a += ch; S++;\
+		ch = *S;\
+		b += ch; S++;\
+		ch = *S;\
+		H += ch; S++;\
+		mix(a, b, H);\
+	}\
+	switch (i) {\
+		/* all the case statements fall through */\
+	case 2: ch = *S; a += ch; S++;\
+	case 1: ch = *S; b += ch;\
+	case 0: H += LEN;\
+	}\
+	mix(a, b, H);\
+	return H;\
 }
 
-static mkcl_index hash_full_string(const mkcl_character *s, const mkcl_index len, mkcl_index h)
-{
-	mkcl_index a = GOLDEN_RATIO, b = GOLDEN_RATIO, i;
-	for (i = len; i >= 3; i -= 3) {
-		a += (*s); s++;
-		b += (*s); s++;
-		h += (*s); s++;
-		mix(a, b, h);
-	}
-	switch (i) {
-		/* all the case statements fall through */
-	case 2: a += (*s); s++;
-	case 1: b += (*s);
-	case 0: h += len;
-	}
-	mix(a, b, h);
-	return h;
-}
+static mkcl_hash_value hash_base_string(const mkcl_base_char *s, const mkcl_index len, mkcl_hash_value h)
+{ HASH_XXXX_STRING_BODY(s, len, h); }
+
+static mkcl_hash_value hash_full_string(const mkcl_character *s, const mkcl_index len, mkcl_hash_value h)
+{ HASH_XXXX_STRING_BODY(s, len, h); }
 
