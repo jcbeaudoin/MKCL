@@ -328,7 +328,7 @@ extern "C" {
 
   /* hash.d */
   extern void mkcl_extend_hashtable(MKCL, mkcl_object hashtable);
-  extern struct mkcl_hashtable_entry * mkcl_search_hash_package(MKCL, mkcl_object key, mkcl_object hashtable);
+  extern mkcl_object mkcl_make_hashtable_for_package(MKCL, mkcl_index hsize);
 
   /* gfun.d, clos/kernel.lsp */
 
