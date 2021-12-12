@@ -389,7 +389,7 @@ extern "C" {
 
   /***********************/
 
-  typedef mkcl_index mkcl_hashkey;
+  typedef mkcl_index mkcl_hash_value;
 
   enum mkcl_httest {		/*  hash table key test function  */
     mkcl_htt_eq,		/*  eq  */
@@ -402,6 +402,7 @@ extern "C" {
   struct mkcl_hashtable_entry {	/*  hash table entry  */
     struct mkcl_hashtable_entry * next;
     mkcl_object key;		/*  key  */
+    mkcl_hash_value hashed_key; /*  key's cached hash value */
     mkcl_object value;	        /*  value  */
   };
 
@@ -409,6 +410,8 @@ extern "C" {
     MKCL_HEADER2(test,lockable);
     struct mkcl_hashtable_entry **data; /*  pointer to a vector of entry chains */
     struct mkcl_hashtable_entry * (*search_fun)(__MKCL, mkcl_object key, mkcl_object hashtable);
+    mkcl_hash_value (*hash_fun)(__MKCL, int depth, mkcl_hash_value seed, mkcl_object key);
+    bool (*equality_fun)(__MKCL, mkcl_object o1, mkcl_object o2);
     mkcl_index entries;	        /*  number of entries  */
     mkcl_index size;		/*  hash table size  */
     mkcl_object rehash_size;	/*  rehash size  */
