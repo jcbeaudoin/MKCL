@@ -26,15 +26,6 @@
 #include <mkcl/mkcl-fenv.h>
 #include "newhash.h"
 
-static void corrupted_hash(MKCL, mkcl_object hashtable) /*__attribute__((noreturn))*/;
-
-#define SYMBOL_NAME(x) (mkcl_Null(x)? mk_cl_Cnil_symbol->symbol.name : (x)->symbol.name)
-
-static void
-corrupted_hash(MKCL, mkcl_object hashtable)
-{
-  mkcl_FEerror(env, "internal error, corrupted hashtable ~S", 1, hashtable);
-}
 
 /* These do a peek inside GMP privates, brittle at best. JCB */
 #define mkcl_big_size	big_num->_mp_size
@@ -46,101 +37,128 @@ corrupted_hash(MKCL, mkcl_object hashtable)
 # define MKCL_LONG_DOUBLE_REAL_SIZE sizeof(long double)
 #endif
 
-static mkcl_hashkey
-_hash_eql(mkcl_hashkey h, mkcl_object x)
+static bool _mkcl_eq(MKCL, mkcl_object o1, mkcl_object o2) { return(o1 == o2); }
+
+static mkcl_hash_value
+_hash_eq(MKCL, int depth, mkcl_hash_value h, mkcl_object x)
+{
+  return (mkcl_hash_value)x >> 2; /* you must be kidding! */
+}
+
+static mkcl_hash_value
+_hash_eql(MKCL, int depth, mkcl_hash_value h, mkcl_object x)
 {
   switch (mkcl_type_of(x)) {
   case mkcl_t_bignum:
-    return hash_string(h, (unsigned char*)x->big.mkcl_big_limbs,
+    return hash_mem_region(h, (unsigned char*)x->big.mkcl_big_limbs,
 		       labs(x->big.mkcl_big_size) * sizeof(mp_limb_t));
   case mkcl_t_ratio:
-    h = _hash_eql(h, x->ratio.num);
-    return _hash_eql(h, x->ratio.den);
+    h = _hash_eql(env, 0, h, x->ratio.num);
+    return _hash_eql(env, 0, h, x->ratio.den);
   case mkcl_t_singlefloat:
-    return hash_string(h, (unsigned char*)&mkcl_single_float(x), sizeof(mkcl_single_float(x)));
+    return hash_mem_region(h, (unsigned char*)&mkcl_single_float(x), sizeof(mkcl_single_float(x)));
   case mkcl_t_doublefloat:
-    return hash_string(h, (unsigned char*)&mkcl_double_float(x), sizeof(mkcl_double_float(x)));
+    return hash_mem_region(h, (unsigned char*)&mkcl_double_float(x), sizeof(mkcl_double_float(x)));
 #ifdef MKCL_LONG_FLOAT
   case mkcl_t_longfloat:
-    return hash_string(h, (unsigned char*)&mkcl_long_float(x), MKCL_LONG_DOUBLE_REAL_SIZE);
+    return hash_mem_region(h, (unsigned char*)&mkcl_long_float(x), MKCL_LONG_DOUBLE_REAL_SIZE);
 #endif
   case mkcl_t_complex:
-    h = _hash_eql(h, x->_complex.real);
-    return _hash_eql(h, x->_complex.imag);
+    h = _hash_eql(env, 0, h, x->_complex.real);
+    return _hash_eql(env, 0, h, x->_complex.imag);
   case mkcl_t_character:
     return hash_word(h, MKCL_CHAR_CODE(x));
   default:
-    return hash_word(h, ((mkcl_hashkey)x >> 2));
+    return hash_word(h, ((mkcl_hash_value)x >> 2));
   }
 }
 
-static mkcl_hashkey
-_hash_equal(int depth, mkcl_hashkey h, mkcl_object x)
+static mkcl_hash_value
+_hash_equal(MKCL, int depth, mkcl_hash_value h, mkcl_object x)
 {
   switch (mkcl_type_of(x)) {
   case mkcl_t_cons:
     if (--depth == 0) {
       return h;
     } else {
-      h = _hash_equal(depth, h, MKCL_CONS_CAR(x));
-      return _hash_equal(depth, h, MKCL_CONS_CDR(x));
+      h = _hash_equal(env, depth, h, MKCL_CONS_CAR(x));
+      return _hash_equal(env, depth, h, MKCL_CONS_CDR(x));
     }
   case mkcl_t_symbol:
     if (mkcl_Null(x)) {
-      return _hash_equal(depth, h, mk_cl_Cnil_symbol->symbol.name);
+      return _hash_equal(env, depth, h, mk_cl_Cnil_symbol->symbol.name);
     }
     else
-      return _hash_equal(depth, h, x->symbol.name);
+      return _hash_equal(env, depth, h, x->symbol.name);
   case mkcl_t_base_string:
     return hash_base_string((mkcl_base_char *)x->base_string.self, x->base_string.fillp, h);
   case mkcl_t_string:
     return hash_full_string(x->string.self, x->string.fillp, h);
   case mkcl_t_pathname:
-    h = _hash_equal(2, h, x->pathname.directory);
-    h = _hash_equal(2, h, x->pathname.name);
-    h = _hash_equal(2, h, x->pathname.type);
-    h = _hash_equal(2, h, x->pathname.host);
-    h = _hash_equal(2, h, x->pathname.device);
-    return _hash_equal(2, h, x->pathname.version);
+    h = _hash_equal(env, 2, h, x->pathname.directory);
+    h = _hash_equal(env, 2, h, x->pathname.name);
+    h = _hash_equal(env, 2, h, x->pathname.type);
+    h = _hash_equal(env, 2, h, x->pathname.host);
+    h = _hash_equal(env, 2, h, x->pathname.device);
+    return _hash_equal(env, 2, h, x->pathname.version);
   case mkcl_t_bitvector:
     /* Notice that we may round out some bits. We must do this
      * because the fill pointer may be set in the middle of a byte.
      * If so, the extra bits _must_ _not_ take part in the hash,
      * because otherwise two bit arrays which are EQUAL might
      * have different hash keys. */
-    return hash_string(h, x->vector.self.bc, x->vector.fillp / 8);
+    return hash_mem_region(h, x->vector.self.bc, x->vector.fillp / 8);
   case mkcl_t_random:
-    return _hash_equal(1, h, x->random.value);
+    return _hash_equal(env, 1, h, x->random.value);
 #ifdef MKCL_SIGNED_ZERO
   case mkcl_t_singlefloat: {
     float f = mkcl_single_float(x);
     /* if (f == 0.0) f = 0.0; */
-    return hash_string(h, (unsigned char*)&f, sizeof(f));
+    return hash_mem_region(h, (unsigned char*)&f, sizeof(f));
   }
   case mkcl_t_doublefloat: {
     double f = mkcl_double_float(x);
     /* if (f == 0.0) f = 0.0; */
-    return hash_string(h, (unsigned char*)&f, sizeof(f));
+    return hash_mem_region(h, (unsigned char*)&f, sizeof(f));
   }
-#ifdef MKCL_LONG_FLOAT
+# ifdef MKCL_LONG_FLOAT
   case mkcl_t_longfloat: {
     long double f = mkcl_long_float(x);
     /* if (f == 0.0) f = 0.0; */
-    return hash_string(h, (unsigned char*)&f, MKCL_LONG_DOUBLE_REAL_SIZE);
+    return hash_mem_region(h, (unsigned char*)&f, MKCL_LONG_DOUBLE_REAL_SIZE);
   }
-#endif
+# endif
   case mkcl_t_complex: {
-    h = _hash_equal(depth, h, x->_complex.real);
-    return _hash_equal(depth, h, x->_complex.imag);
+    h = _hash_equal(env, depth, h, x->_complex.real);
+    return _hash_equal(env, depth, h, x->_complex.imag);
   }
 #endif
   default:
-    return _hash_eql(h, x);
+    return _hash_eql(env, 0, h, x);
   }
 }
 
-static mkcl_hashkey
-_hash_equalp(MKCL, int depth, mkcl_hashkey h, mkcl_object x)
+static mkcl_hash_value
+_hash_equal_package(MKCL, int depth, mkcl_hash_value h, mkcl_object x)
+{
+  switch (mkcl_type_of(x)) {
+  case mkcl_t_symbol:
+    if (mkcl_Null(x)) {
+      return _hash_equal_package(env, depth, h, mk_cl_Cnil_symbol->symbol.name);
+    }
+    else
+      return _hash_equal_package(env, depth, h, x->symbol.name);
+  case mkcl_t_base_string:
+    return hash_base_string(x->base_string.self, x->base_string.fillp, h);
+  case mkcl_t_string:
+    return hash_full_string(x->string.self, x->string.fillp, h);
+  default:
+    mkcl_FEerror(env, "incompatible key type ~S, for package hashtable ~S", 1, x);
+  }
+}
+
+static mkcl_hash_value
+_hash_equalp(MKCL, int depth, mkcl_hash_value h, mkcl_object x)
 {
   mkcl_index i, len;
 
@@ -186,7 +204,7 @@ _hash_equalp(MKCL, int depth, mkcl_hashkey h, mkcl_object x)
     return hash_word(h, (mkcl_index)mkcl_double_float(x));
   case mkcl_t_bignum:
     /* FIXME! We should be more precise here! */
-    return _hash_equal(depth, h, x);
+    return _hash_equal(env, depth, h, x);
   case mkcl_t_ratio:
     h = _hash_equalp(env, 1, h, x->ratio.num);
     return _hash_equalp(env, 1, h, x->ratio.den);
@@ -198,26 +216,23 @@ _hash_equalp(MKCL, int depth, mkcl_hashkey h, mkcl_object x)
     /* FIXME! We should be more precise here! */
     return hash_word(h, 42); /* Is this the meaning of life by any chance? JCB */
   default:
-    return _hash_equal(depth, h, x);
+    return _hash_equal(env, depth, h, x);
   }
 }
 
 
-struct mkcl_hashtable_entry *
-mkcl_search_hash_eq(MKCL, mkcl_object key, mkcl_object hashtable)
+static struct mkcl_hashtable_entry *
+_search_hash(MKCL, const mkcl_hash_value hashed_key, bool (*equality_fun)(__MKCL, mkcl_object o1, mkcl_object o2), mkcl_object key, mkcl_object hashtable)
 {
   struct mkcl_hashtable_entry *e;
-  mkcl_hashkey h;
-  mkcl_index hsize = hashtable->hash.size;
+  const mkcl_index hsize = hashtable->hash.size;
 
 #ifdef HASHTABLE_STATS
   hashtable->hash.nb_searches++;
 #endif
 
-  h = (mkcl_hashkey)key >> 2;
-
   /* A power of 2 for hsize would not be good here! */
-  e = hashtable->hash.data[h % hsize]; 
+  e = hashtable->hash.data[hashed_key % hsize]; 
   
   if ( e != NULL )
     {
@@ -228,9 +243,8 @@ mkcl_search_hash_eq(MKCL, mkcl_object key, mkcl_object hashtable)
       do {
 #ifdef HASHTABLE_STATS
 	probes++;
-#endif
-
-	if ( key == e->key )
+#endif	
+	if ( equality_fun(env, key, e->key) )
 	  {
 #ifdef HASHTABLE_STATS
 	    hashtable->hash.probes += probes;
@@ -268,360 +282,38 @@ mkcl_search_hash_eq(MKCL, mkcl_object key, mkcl_object hashtable)
     }
 }
 
-struct mkcl_hashtable_entry *
-mkcl_search_hash_eql(MKCL, mkcl_object key, mkcl_object hashtable)
+static struct mkcl_hashtable_entry *
+mkcl_search_hash_package(MKCL, mkcl_object key, mkcl_object hashtable)
 {
-  struct mkcl_hashtable_entry *e;
-  mkcl_hashkey h;
-  mkcl_index hsize = hashtable->hash.size;
-
-#ifdef HASHTABLE_STATS
-  hashtable->hash.nb_searches++;
-#endif
-
-  h = _hash_eql(0, key); 
-
-  /* A power of 2 for hsize would not be good here! */
-  e = hashtable->hash.data[h % hsize]; 
-  
-  if ( e != NULL )
-    {
-#ifdef HASHTABLE_STATS
-      long probes = 0;
-#endif
-
-      do {
-#ifdef HASHTABLE_STATS
-	probes++;
-#endif
-	if ( mkcl_eql(env, key, e->key) )
-	  {
-#ifdef HASHTABLE_STATS
-	    hashtable->hash.probes += probes;
-	    if ( probes < hashtable->hash.shortest_probe_chain )
-	      hashtable->hash.shortest_probe_chain = probes;
-	    if ( hashtable->hash.longest_probe_chain < probes )
-	      hashtable->hash.longest_probe_chain = probes;
-#endif
-	    return(e);
-	  }
-	else
-	  e = e->next;
-      } while ( e != NULL );
-#ifdef HASHTABLE_STATS
-      hashtable->hash.probes += probes;
-      if ( probes < hashtable->hash.shortest_failed_probe_chain )
-	hashtable->hash.shortest_failed_probe_chain = probes;
-      if ( hashtable->hash.longest_failed_probe_chain < probes )
-	hashtable->hash.longest_failed_probe_chain = probes;
-#endif
-      return(NULL); /* we got to the end of the chain without a match. */
-    }
-  else
-    {
-#ifdef HASHTABLE_STATS
-      long probes = 1;
-      hashtable->hash.probes += probes;
-      if ( probes < hashtable->hash.shortest_failed_probe_chain )
-	hashtable->hash.shortest_failed_probe_chain = probes;
-      if ( hashtable->hash.longest_failed_probe_chain < probes )
-	hashtable->hash.longest_failed_probe_chain = probes;
-#endif
-      
-      return(NULL); /* The chain was empty */
-    }
-}
-
-struct mkcl_hashtable_entry *
-mkcl_search_hash_equal(MKCL, mkcl_object key, mkcl_object hashtable)
-{
-  struct mkcl_hashtable_entry *e;
-  mkcl_hashkey h;
-  mkcl_index hsize = hashtable->hash.size;
-
-#ifdef HASHTABLE_STATS
-  hashtable->hash.nb_searches++;
-#endif
-
-  h = _hash_equal(3, 0, key);
-
-  /* A power of 2 for hsize would not be good here! */
-  e = hashtable->hash.data[h % hsize]; 
-  
-  if ( e != NULL )
-    {
-#ifdef HASHTABLE_STATS
-      long probes = 0;
-#endif
-
-      do {
-#ifdef HASHTABLE_STATS
-	probes++;
-#endif
-
-	if ( mkcl_equal(env, key, e->key) )
-	  {
-#ifdef HASHTABLE_STATS
-	    hashtable->hash.probes += probes;
-	    if ( probes < hashtable->hash.shortest_probe_chain )
-	      hashtable->hash.shortest_probe_chain = probes;
-	    if ( hashtable->hash.longest_probe_chain < probes )
-	      hashtable->hash.longest_probe_chain = probes;
-#endif
-	    return(e);
-	  }
-	else
-	  e = e->next;
-      } while ( e != NULL );
-#ifdef HASHTABLE_STATS
-      hashtable->hash.probes += probes;
-      if ( probes < hashtable->hash.shortest_failed_probe_chain )
-	hashtable->hash.shortest_failed_probe_chain = probes;
-      if ( hashtable->hash.longest_failed_probe_chain < probes )
-	hashtable->hash.longest_failed_probe_chain = probes;
-#endif
-      return(NULL); /* we got to the end of the chain without a match. */
-    }
-  else
-    {
-#ifdef HASHTABLE_STATS
-      long probes = 1;
-      hashtable->hash.probes += probes;
-      if ( probes < hashtable->hash.shortest_failed_probe_chain )
-	hashtable->hash.shortest_failed_probe_chain = probes;
-      if ( hashtable->hash.longest_failed_probe_chain < probes )
-	hashtable->hash.longest_failed_probe_chain = probes;
-#endif
-      
-      return(NULL); /* The chain was empty */
-    }
+  return _search_hash(env, hashtable->hash.hash_fun(env, 3, 0, key), hashtable->hash.equality_fun, key, hashtable);
 }
 
 struct mkcl_hashtable_entry *
 mkcl_search_hash_equalp(MKCL, mkcl_object key, mkcl_object hashtable)
 {
-  struct mkcl_hashtable_entry *e;
-  mkcl_hashkey h;
-  mkcl_index hsize = hashtable->hash.size;
-
-#ifdef HASHTABLE_STATS
-  hashtable->hash.nb_searches++;
-#endif
-
-  h = _hash_equalp(env, 3, 0, key);
-
-  /* A power of 2 for hsize would not be good here! */
-  e = hashtable->hash.data[h % hsize]; 
-  
-  if ( e != NULL )
-    {
-#ifdef HASHTABLE_STATS
-      long probes = 0;
-#endif
-
-      do {
-#ifdef HASHTABLE_STATS
-	probes++;
-#endif
-
-	if ( mkcl_equalp(env, key, e->key) )
-	  {
-#ifdef HASHTABLE_STATS
-	    hashtable->hash.probes += probes;
-	    if ( probes < hashtable->hash.shortest_probe_chain )
-	      hashtable->hash.shortest_probe_chain = probes;
-	    if ( hashtable->hash.longest_probe_chain < probes )
-	      hashtable->hash.longest_probe_chain = probes;
-#endif
-	    return(e);
-	  }
-	else
-	  e = e->next;
-      } while ( e != NULL );
-#ifdef HASHTABLE_STATS
-      hashtable->hash.probes += probes;
-      if ( probes < hashtable->hash.shortest_failed_probe_chain )
-	hashtable->hash.shortest_failed_probe_chain = probes;
-      if ( hashtable->hash.longest_failed_probe_chain < probes )
-	hashtable->hash.longest_failed_probe_chain = probes;
-#endif
-      return(NULL); /* we got to the end of the chain without a match. */
-    }
-  else
-    {
-#ifdef HASHTABLE_STATS
-      long probes = 1;
-      hashtable->hash.probes += probes;
-      if ( probes < hashtable->hash.shortest_failed_probe_chain )
-	hashtable->hash.shortest_failed_probe_chain = probes;
-      if ( hashtable->hash.longest_failed_probe_chain < probes )
-	hashtable->hash.longest_failed_probe_chain = probes;
-#endif
-      
-      return(NULL); /* The chain was empty */
-    }
+  return _search_hash(env, hashtable->hash.hash_fun(env, 3, 0, key), hashtable->hash.equality_fun, key, hashtable);
 }
 
 struct mkcl_hashtable_entry *
-mkcl_search_hash_package(MKCL, mkcl_object key, mkcl_object hashtable)
+mkcl_search_hash_equal(MKCL, mkcl_object key, mkcl_object hashtable)
 {
-  struct mkcl_hashtable_entry *e;
-  mkcl_hashkey h;
-  mkcl_object ho;
-  mkcl_index hsize = hashtable->hash.size;
-
-#ifdef HASHTABLE_STATS
-  hashtable->hash.nb_searches++;
-#endif
-
-  h = _hash_equal(3, 0, key);
-  ho = MKCL_MAKE_FIXNUM(h & 0xFFFFFFF);
-
-  /* A power of 2 for hsize would not be good here! */
-  e = hashtable->hash.data[h % hsize]; 
-  
-  if ( e != NULL )
-    {
-#ifdef HASHTABLE_STATS
-      long probes = 0;
-#endif
-
-      do {
-#ifdef HASHTABLE_STATS
-	probes++;
-#endif
-
-	if ( (ho == e->key) && mkcl_string_E(env, key,SYMBOL_NAME(e->value)) )
-	  {
-#ifdef HASHTABLE_STATS
-	    hashtable->hash.probes += probes;
-	    if ( probes < hashtable->hash.shortest_probe_chain )
-	      hashtable->hash.shortest_probe_chain = probes;
-	    if ( hashtable->hash.longest_probe_chain < probes )
-	      hashtable->hash.longest_probe_chain = probes;
-#endif
-	    return(e);
-	  }
-	else
-	  e = e->next;
-      } while ( e != NULL );
-#ifdef HASHTABLE_STATS
-      hashtable->hash.probes += probes;
-      if ( probes < hashtable->hash.shortest_failed_probe_chain )
-	hashtable->hash.shortest_failed_probe_chain = probes;
-      if ( hashtable->hash.longest_failed_probe_chain < probes )
-	hashtable->hash.longest_failed_probe_chain = probes;
-#endif
-      return(NULL); /* we got to the end of the chain without a match. */
-    }
-  else
-    {
-#ifdef HASHTABLE_STATS
-      long probes = 1;
-      hashtable->hash.probes += probes;
-      if ( probes < hashtable->hash.shortest_failed_probe_chain )
-	hashtable->hash.shortest_failed_probe_chain = probes;
-      if ( hashtable->hash.longest_failed_probe_chain < probes )
-	hashtable->hash.longest_failed_probe_chain = probes;
-#endif
-      
-      return(NULL); /* The chain was empty */
-    }
+  return _search_hash(env, hashtable->hash.hash_fun(env, 3, 0, key), hashtable->hash.equality_fun, key, hashtable);
 }
 
-#if 0 /* inlined */
-/* The content of mkcl_search_hash is largely duplicated inside
-   mkcl_remhash. If you change one you need to also change the other. */
 struct mkcl_hashtable_entry *
-mkcl_search_hash(mkcl_object key, mkcl_object hashtable)
+mkcl_search_hash_eql(MKCL, mkcl_object key, mkcl_object hashtable)
 {
-  struct mkcl_hashtable_entry *e;
-  mkcl_hashkey h;
-  mkcl_object ho;
-  mkcl_index hsize = hashtable->hash.size;
-  enum mkcl_httest htest = hashtable->hash.test;
-
-#ifdef HASHTABLE_STATS
-  hashtable->hash.nb_searches++;
-#endif
-
-  switch (htest) {
-  case mkcl_htt_eq:	  h = (mkcl_hashkey)key >> 2; break; /* you must be kidding! */
-  case mkcl_htt_eql:	  h = _hash_eql(0, key); break;
-  case mkcl_htt_equal:	  h = _hash_equal(3, 0, key); break;
-  case mkcl_htt_equalp:  h = _hash_equalp(3, 0, key); break;
-  case mkcl_htt_package: h = _hash_equal(3, 0, key);
-    ho = MKCL_MAKE_FIXNUM(h & 0xFFFFFFF);
-    break;
-  default:	  corrupted_hash(hashtable);
-  }
-
-  /* A power of 2 for hsize would not be good here! */
-  e = hashtable->hash.data[h % hsize]; 
-  
-  if ( e != NULL )
-    {
-#ifdef HASHTABLE_STATS
-      long probes = 0;
-#endif
-
-      do {
-	bool b;
-	mkcl_object hkey = e->key;
-#ifdef HASHTABLE_STATS
-	probes++;
-#endif
-
-	switch (htest)
-	  {
-	  case mkcl_htt_eq:	b = (key == hkey); break;
-	  case mkcl_htt_eql:	b = mkcl_eql(key, hkey); break;
-	  case mkcl_htt_equal: b = mkcl_equal(key, hkey); break;
-	  case mkcl_htt_equalp:  b = mkcl_equalp(key, hkey); break;
-	  case mkcl_htt_package: 
-	    b = (ho == hkey) && mkcl_string_E(key,SYMBOL_NAME(e->value));
-	    break;
-	  }
-	if ( b )
-	  {
-#ifdef HASHTABLE_STATS
-	    hashtable->hash.probes += probes;
-	    if ( probes < hashtable->hash.shortest_probe_chain )
-	      hashtable->hash.shortest_probe_chain = probes;
-	    if ( hashtable->hash.longest_probe_chain < probes )
-	      hashtable->hash.longest_probe_chain = probes;
-#endif
-	    return(e);
-	  }
-	else
-	  e = e->next;
-      } while ( e != NULL );
-#ifdef HASHTABLE_STATS
-      hashtable->hash.probes += probes;
-      if ( probes < hashtable->hash.shortest_failed_probe_chain )
-	hashtable->hash.shortest_failed_probe_chain = probes;
-      if ( hashtable->hash.longest_failed_probe_chain < probes )
-	hashtable->hash.longest_failed_probe_chain = probes;
-#endif
-      return(NULL); /* we got to the end of the chain without a match. */
-    }
-  else
-    {
-#ifdef HASHTABLE_STATS
-      long probes = 1;
-      hashtable->hash.probes += probes;
-      if ( probes < hashtable->hash.shortest_failed_probe_chain )
-	hashtable->hash.shortest_failed_probe_chain = probes;
-      if ( hashtable->hash.longest_failed_probe_chain < probes )
-	hashtable->hash.longest_failed_probe_chain = probes;
-#endif
-      
-      return(NULL); /* The chain was empty */
-    }
+  return _search_hash(env, hashtable->hash.hash_fun(env, 3, 0, key), hashtable->hash.equality_fun, key, hashtable);
 }
-#else
+
+struct mkcl_hashtable_entry *
+mkcl_search_hash_eq(MKCL, mkcl_object key, mkcl_object hashtable)
+{
+  return _search_hash(env, hashtable->hash.hash_fun(env, 3, 0, key), hashtable->hash.equality_fun, key, hashtable);
+}
+
+
 extern inline struct mkcl_hashtable_entry *mkcl_search_hash(MKCL, mkcl_object key, mkcl_object hashtable);
-#endif
 
 
 
@@ -638,58 +330,40 @@ mkcl_gethash_safe(MKCL, mkcl_object key, mkcl_object hashtable, mkcl_object def)
 }
 
 static void
-add_new_to_hash(MKCL, mkcl_object key, mkcl_object hashtable, mkcl_object value)
+add_new_to_hash(MKCL, const mkcl_hash_value hashed_key, mkcl_object key, mkcl_object hashtable, mkcl_object value)
 {
-  enum mkcl_httest htest;
-  mkcl_hashkey h;
-  mkcl_index hsize;
-  struct mkcl_hashtable_entry ** root;
-
-  /* INV: hashtable has the right type */
-  htest = hashtable->hash.test;
-  hsize = hashtable->hash.size;
-  switch (htest) {
-  case mkcl_htt_eq:	h = (mkcl_hashkey)key >> 2; break;
-  case mkcl_htt_eql:	h = _hash_eql(0, key); break;
-  case mkcl_htt_equal:	h = _hash_equal(3, 0, key); break;
-  case mkcl_htt_equalp:  h = _hash_equalp(env, 3, 0, key); break;
-  case mkcl_htt_package: h = _hash_equal(3, 0, key); break;
-  default:	corrupted_hash(env, hashtable);
-  }
-
-  root = &(hashtable->hash.data[h % hsize]);
+  const mkcl_index hsize = hashtable->hash.size;
+  struct mkcl_hashtable_entry ** root = &(hashtable->hash.data[hashed_key % hsize]);
   
-  {
-    struct mkcl_hashtable_entry * e;
-    struct mkcl_hashtable_entry * free_bucket = hashtable->hash.free_bucket;
+  struct mkcl_hashtable_entry * free_bucket = hashtable->hash.free_bucket;
+  struct mkcl_hashtable_entry * e;
 
-    if (free_bucket)
-      { e = free_bucket; hashtable->hash.free_bucket = e->next; /* e->next = NULL; */ }
-    else
-      e = (struct mkcl_hashtable_entry *)
-	mkcl_alloc(env, sizeof(struct mkcl_hashtable_entry));
+  if (free_bucket)
+    { e = free_bucket; hashtable->hash.free_bucket = e->next; }
+  else
+    e = (struct mkcl_hashtable_entry *) mkcl_alloc(env, sizeof(struct mkcl_hashtable_entry));
 
-    hashtable->hash.entries++;
+  hashtable->hash.entries++;
 
-    if (htest == mkcl_htt_package)
-      e->key = MKCL_MAKE_FIXNUM(h & 0xFFFFFFF);
-    else
-      e->key = key;
-    e->value = value;
-    e->next = *root;
+  e->key = key;
+  e->hashed_key = hashed_key;
+  e->value = value;
+  e->next = *root;
 
-    *root = e;
-  }
+  *root = e;
 }
 
 void
 mkcl_sethash(MKCL, mkcl_object key, mkcl_object hashtable, mkcl_object value)
 {
   mkcl_index i;
+  const mkcl_hash_value hashed_key = hashtable->hash.hash_fun(env, 3, 0, key);
   struct mkcl_hashtable_entry *e;
 
   mkcl_assert_type_hash_table(env, hashtable);
-  e = mkcl_search_hash(env, key, hashtable);
+
+  e = _search_hash(env, hashed_key, hashtable->hash.equality_fun, key, hashtable);
+
   if (e != NULL) {
     e->value = value;
     return;
@@ -707,7 +381,7 @@ mkcl_sethash(MKCL, mkcl_object key, mkcl_object hashtable, mkcl_object value)
        && (i * 16) >= (hashtable->hash.size * hashtable->hash.factor_of_16th)))
     mkcl_extend_hashtable(env, hashtable);
 
-  add_new_to_hash(env, key, hashtable, value);
+  add_new_to_hash(env, hashed_key, key, hashtable, value);
   return;
 }
 
@@ -749,32 +423,76 @@ mkcl_extend_hashtable(MKCL, mkcl_object hashtable)
   } else {
     new_size = mkcl_fixnum_to_word(new_size_obj);
   }
-  old = mkcl_alloc_raw_hashtable(env);
+  {
+    struct mkcl_hashtable old_hash_object; /* This one has strict dynamic extent. JCB */
+    old = (mkcl_object) &old_hash_object;
 
-  old->hash = hashtable->hash; /* To copy entries, size, data. */
+    old->hash = hashtable->hash; /* To copy entries, size, data. */
 
-  hashtable->hash.entries = 0;
-  hashtable->hash.size = new_size;
-  hashtable->hash.data = (struct mkcl_hashtable_entry **)
-    mkcl_alloc(env, new_size * sizeof(struct mkcl_hashtable_entry *));
+    hashtable->hash.entries = 0;
+    hashtable->hash.size = new_size;
+    hashtable->hash.data = (struct mkcl_hashtable_entry **)
+      mkcl_alloc(env, new_size * sizeof(struct mkcl_hashtable_entry *));
 
-  for (i = 0;  i < new_size;  i++) {
-    hashtable->hash.data[i] = NULL;
+    for (i = 0;  i < new_size;  i++) {
+      hashtable->hash.data[i] = NULL;
+    }
+
+    for (i = 0;  i < old_size;  i++)
+      {
+	struct mkcl_hashtable_entry * e = old->hash.data[i];
+	struct mkcl_hashtable_entry * old_e_next;
+
+	for (; e != NULL; e = old_e_next)
+	  {
+	    struct mkcl_hashtable_entry ** const chain_root = &hashtable->hash.data[e->hashed_key % new_size];
+	    old_e_next = e->next;
+	    e->next = *chain_root;
+	    *chain_root = e;
+	  }
+      }
+  }
+}
+
+mkcl_object
+mkcl_make_hashtable_for_package(MKCL, mkcl_index hsize)
+{
+  mkcl_index i;
+  mkcl_object h;
+
+  h = mkcl_alloc_raw_hashtable(env);
+  h->hash.lockable = 0;
+  h->hash.test = mkcl_htt_package;
+  h->hash.size = hsize;
+  h->hash.rehash_size = mkcl_make_singlefloat(env, 1.5f);
+  h->hash.threshold = mkcl_make_singlefloat(env, 0.75f);
+  h->hash.factor_of_16th = 12; /* that is (round (* 0.75 16)). */
+  h->hash.data = NULL; /* for GC sake */
+  h->hash.data = (struct mkcl_hashtable_entry **)
+    mkcl_alloc(env, hsize * sizeof(struct mkcl_hashtable_entry *));
+
+  /* do clrhash */
+  h->hash.entries = 0;
+  for(i = 0; i < hsize; i++) {
+    h->hash.data[i] = NULL;
   }
 
-  for (i = 0;  i < old_size;  i++)
-    {
-      struct mkcl_hashtable_entry * e = old->hash.data[i];
+  h->hash.search_fun = mkcl_search_hash_package;
+  h->hash.hash_fun = _hash_equal_package;
+  h->hash.equality_fun = mkcl_string_E;
 
-      for (; e != NULL; e = e->next)
-	{
-	  if ( hashtable->hash.test == mkcl_htt_package )
-	    key = SYMBOL_NAME(e->value);
-	  else
-	    key = e->key;
-	  add_new_to_hash(env, key, hashtable, e->value);
-	}
-    }
+#ifdef HASHTABLE_STATS
+  h->hash.nb_searches = 0;
+  h->hash.probes = 0;
+  h->hash.shortest_probe_chain = LONG_MAX;
+  h->hash.longest_probe_chain = 0;
+  h->hash.shortest_failed_probe_chain = LONG_MAX;
+  h->hash.longest_failed_probe_chain = 0;
+
+  mkcl_core.hashtables[mkcl_htt_package] = mkcl_cons(h, mkcl_core.hashtables[mkcl_htt_package]);
+#endif
+
+  return h;
 }
 
 
@@ -792,43 +510,27 @@ mkcl_object mk_cl_make_hash_table(MKCL, mkcl_narg narg, ...)
   }
 }
 
-static void
-do_clrhash(mkcl_object ht)
-{
-  /*
-   * Fill a hash with null pointers and ensure it does not have
-   * any entry. We separate this routine because it is needed
-   * both by clrhash and hash table initialization.
-   */
-  mkcl_index i;
-  const mkcl_index hsize = ht->hash.size;
-  struct mkcl_hashtable_entry ** data = ht->hash.data;
-
-  ht->hash.entries = 0;
-  for(i = 0; i < hsize; i++) {
-    data[i] = NULL;
-  }
-}
-
 mkcl_object
 mk_cl__make_hash_table(MKCL, mkcl_object test, mkcl_object size,
 		       mkcl_object rehash_size, mkcl_object rehash_threshold)
 {
   enum mkcl_httest htt;
   struct mkcl_hashtable_entry * (*search_fun)(MKCL, mkcl_object key, mkcl_object hashtable);  
+  mkcl_hash_value (*hash_fun)(__MKCL, int depth, mkcl_hash_value seed, mkcl_object key);
+  bool (*equality_fun)(__MKCL, mkcl_object o1, mkcl_object o2);
   mkcl_index hsize;
   mkcl_object h;
   /*
    * Argument checking
    */
   if (test == MK_CL_eq || test == MKCL_SYM_FUN(MK_CL_eq))
-    { htt = mkcl_htt_eq; search_fun = mkcl_search_hash_eq; }
+    { htt = mkcl_htt_eq; search_fun = mkcl_search_hash_eq; hash_fun = _hash_eq; equality_fun = _mkcl_eq; }
   else if (test == MK_CL_eql || test == MKCL_SYM_FUN(MK_CL_eql))
-    { htt = mkcl_htt_eql; search_fun = mkcl_search_hash_eql; }
+    { htt = mkcl_htt_eql; search_fun = mkcl_search_hash_eql; hash_fun = _hash_eql; equality_fun = mkcl_eql; }
   else if (test == MK_CL_equal || test == MKCL_SYM_FUN(MK_CL_equal))
-    { htt = mkcl_htt_equal; search_fun = mkcl_search_hash_equal; }
+    { htt = mkcl_htt_equal; search_fun = mkcl_search_hash_equal; hash_fun = _hash_equal; equality_fun = mkcl_equal; }
   else if (test == MK_CL_equalp || test == MKCL_SYM_FUN(MK_CL_equalp))
-    { htt = mkcl_htt_equalp; search_fun = mkcl_search_hash_equalp; }
+    { htt = mkcl_htt_equalp; search_fun = mkcl_search_hash_equalp; hash_fun = _hash_equalp; equality_fun = mkcl_equalp; }
   else
     mkcl_FEerror(env, "~S is an illegal hash-table test function.", 1, test);
 
@@ -869,14 +571,22 @@ mk_cl__make_hash_table(MKCL, mkcl_object test, mkcl_object size,
   h = mkcl_alloc_raw_hashtable(env);
   h->hash.test = htt;
   h->hash.search_fun = search_fun;
+  h->hash.hash_fun = hash_fun;
+  h->hash.equality_fun = equality_fun;
   h->hash.size = hsize;
   h->hash.entries = 0;
   h->hash.data = NULL;	/* for GC sake */
+  h->hash.free_bucket = NULL;
 
   h->hash.data = (struct mkcl_hashtable_entry **) mkcl_alloc(env, hsize * sizeof(struct mkcl_hashtable_entry *));
-  do_clrhash(h);
+  {
+    struct mkcl_hashtable_entry ** const data = h->hash.data;
+    mkcl_index i;
 
-  h->hash.free_bucket = NULL;
+    for (i = (hsize - 1); i; i--)
+      data[i] = NULL;
+    data[0] = NULL;
+  }
 
   h->hash.rehash_size = rehash_size;
   h->hash.threshold = rehash_threshold;
@@ -1043,8 +753,7 @@ mk_si_hash_set(MKCL, mkcl_object key, mkcl_object ht, mkcl_object val)
 bool
 mkcl_remhash(MKCL, mkcl_object key, mkcl_object hashtable)
 {
-  mkcl_hashkey h;
-  mkcl_object ho;
+  mkcl_hash_value h;
   struct mkcl_hashtable_entry * e;
   struct mkcl_hashtable_entry ** root;
   mkcl_index hsize;
@@ -1059,16 +768,7 @@ mkcl_remhash(MKCL, mkcl_object key, mkcl_object hashtable)
   hashtable->hash.nb_searches++;
 #endif
 
-  switch (htest) {
-  case mkcl_htt_eq:	  h = (mkcl_hashkey)key >> 2; break; /* you must be kidding! */
-  case mkcl_htt_eql:	  h = _hash_eql(0, key); break;
-  case mkcl_htt_equal:	  h = _hash_equal(3, 0, key); break;
-  case mkcl_htt_equalp:  h = _hash_equalp(env, 3, 0, key); break;
-  case mkcl_htt_package: h = _hash_equal(3, 0, key);
-    ho = MKCL_MAKE_FIXNUM(h & 0xFFFFFFF);
-    break;
-  default:	  corrupted_hash(env, hashtable);
-  }
+  h = hashtable->hash.hash_fun(env, 3, 0, key);
 
   /* A power of 2 for hsize would not be good here! */
   root = &(hashtable->hash.data[h % hsize]);
@@ -1076,28 +776,16 @@ mkcl_remhash(MKCL, mkcl_object key, mkcl_object hashtable)
   
   if ( e != NULL )
     {
-      bool b;
 #ifdef HASHTABLE_STATS
       long probes = 0;
 #endif
-
       do {
 	mkcl_object hkey = e->key;
 
 #ifdef HASHTABLE_STATS
 	probes++;
 #endif
-
-	switch (htest)
-	  {
-	  case mkcl_htt_eq:	b = key == hkey; break;
-	  case mkcl_htt_eql:	b = mkcl_eql(env, key, hkey); break;
-	  case mkcl_htt_equal: b = mkcl_equal(env, key, hkey); break;
-	  case mkcl_htt_equalp:  b = mkcl_equalp(env, key, hkey); break;
-	  case mkcl_htt_package: 
-	    b = (ho == hkey) && mkcl_string_E(env, key,SYMBOL_NAME(e->value));
-	    break;
-	  }
+	const bool b = hashtable->hash.equality_fun(env, key, hkey);
 	if ( b )
 	  {
 	    *root = e->next;
@@ -1106,6 +794,7 @@ mkcl_remhash(MKCL, mkcl_object key, mkcl_object hashtable)
 	    /* push the now removed entry into the free bucket. */
 	    e->next = hashtable->hash.free_bucket;
 	    e->key = MKCL_OBJNULL;
+	    e->hashed_key = 0;
 	    e->value = MKCL_OBJNULL;
 	    hashtable->hash.free_bucket = e;
 
@@ -1153,7 +842,35 @@ mk_cl_remhash(MKCL, mkcl_object key, mkcl_object ht)
 {
   mkcl_call_stack_check(env);
   /* INV: mkcl_search_hash() checks the type of hashtable */
-  mkcl_return_value((mkcl_remhash(env, key, ht)? mk_cl_Ct : mk_cl_Cnil));
+  mkcl_return_value((mkcl_remhash(env, key, ht) ? mk_cl_Ct : mk_cl_Cnil));
+}
+
+static void
+do_clrhash(mkcl_object ht)
+{
+  /*
+   * Fill a hash with null pointers and ensure it does not have any entry. 
+   */
+  mkcl_index i;
+  const mkcl_index hsize = ht->hash.size;
+  struct mkcl_hashtable_entry ** data = ht->hash.data;
+
+  ht->hash.entries = 0;
+  for(i = 0; i < hsize; i++) {
+    struct mkcl_hashtable_entry * e = data[i];
+    struct mkcl_hashtable_entry * old_e_next;
+
+    for (; e != NULL; e = old_e_next)
+      {
+	old_e_next = e->next;
+	e->next = ht->hash.free_bucket;
+	e->key = MKCL_OBJNULL;
+	e->hashed_key = 0;
+	e->value = MKCL_OBJNULL;
+	ht->hash.free_bucket = e;
+      }
+    data[i] = NULL;
+  }
 }
 
 mkcl_object
@@ -1294,7 +1011,7 @@ mkcl_object
 mk_cl_sxhash(MKCL, mkcl_object key)
 {
   mkcl_call_stack_check(env);
-  mkcl_index output = _hash_equal(3, 0, key);
+  mkcl_index output = _hash_equal(env, 3, 0, key);
   const mkcl_index mask = ((mkcl_index)1 << (MKCL_WORD_BITS - 3)) - 1;
   mkcl_return_value(MKCL_MAKE_FIXNUM(output & mask));
 }
@@ -1309,7 +1026,7 @@ mkcl_object mk_si_hash_eql(MKCL, mkcl_narg narg, ...)
 
   for (h = 0; narg; narg--) {
     mkcl_object o = mkcl_va_arg(args);
-    h = _hash_eql(h, o);
+    h = _hash_eql(env, 0, h, o);
   }
   mkcl_va_end(args);
   mkcl_return_value(MKCL_MAKE_FIXNUM(h));
@@ -1327,7 +1044,7 @@ mkcl_object mk_si_hash_equal(MKCL, mkcl_narg narg, ...)
 
   for (h = 0; narg; narg--) {
     mkcl_object o = mkcl_va_arg(args);
-    h = _hash_equal(3, h, o);
+    h = _hash_equal(env, 3, h, o);
   }
   mkcl_va_end(args);
   mkcl_return_value(MKCL_MAKE_FIXNUM(h));
@@ -1391,6 +1108,7 @@ copy_hash_table_chain(MKCL, struct mkcl_hashtable_entry * chain)
 
       head->next = NULL;
       head->key = chain->key;
+      head->hashed_key = chain->hashed_key;
       head->value = chain->value;
 
       root = head;
@@ -1405,6 +1123,7 @@ copy_hash_table_chain(MKCL, struct mkcl_hashtable_entry * chain)
 
 	  this->next = NULL;
 	  this->key = chain->key;
+	  this->hashed_key = chain->hashed_key;
 	  this->value = chain->value;
 
 	  head->next = this;
