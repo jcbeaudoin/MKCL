@@ -973,31 +973,14 @@ mkcl_string_E(MKCL, mkcl_object x, mkcl_object y)
   mkcl_index i, j;
  AGAIN:
   switch(mkcl_type_of(x)) {
-  case mkcl_t_string:
-    switch(mkcl_type_of(y)) {
-    case mkcl_t_string: {
-      i = x->string.fillp;
-      j = y->string.fillp;
-      if (mkcl_unlikely(i != j)) return FALSE;
-      return mkcl_wmemcmp(x->string.self, y->string.self, i) == 0;
-    }
-    case mkcl_t_base_string: {
-      mkcl_index index;
-      i = x->string.fillp;
-      j = y->base_string.fillp;
-      if (mkcl_unlikely(i != j)) return FALSE;
-      for(index=0; index<i; index++)
-	if (x->string.self[index] != y->base_string.self[index])
-	  return FALSE;
-      return TRUE;
-    }
-    default:
-      y = mkcl_type_error(env, MK_CL_stringE, "", y, MK_CL_string);
-      goto AGAIN;
-    }
-    break;
   case mkcl_t_base_string:
     switch(mkcl_type_of(y)) {
+    case mkcl_t_base_string: {
+      i = x->base_string.fillp;
+      j = y->base_string.fillp;
+      if (mkcl_unlikely(i != j)) return FALSE;
+      return memcmp(x->base_string.self, y->base_string.self, i) == 0;
+    }
     case mkcl_t_string: {
       mkcl_index index;
       i = x->base_string.fillp;
@@ -1008,11 +991,28 @@ mkcl_string_E(MKCL, mkcl_object x, mkcl_object y)
 	  return FALSE;
       return TRUE;
     }
+    default:
+      y = mkcl_type_error(env, MK_CL_stringE, "", y, MK_CL_string);
+      goto AGAIN;
+    }
+    break;
+  case mkcl_t_string:
+    switch(mkcl_type_of(y)) {
     case mkcl_t_base_string: {
-      i = x->base_string.fillp;
+      mkcl_index index;
+      i = x->string.fillp;
       j = y->base_string.fillp;
       if (mkcl_unlikely(i != j)) return FALSE;
-      return memcmp(x->base_string.self, y->base_string.self, i) == 0;
+      for(index=0; index<i; index++)
+	if (x->string.self[index] != y->base_string.self[index])
+	  return FALSE;
+      return TRUE;
+    }
+    case mkcl_t_string: {
+      i = x->string.fillp;
+      j = y->string.fillp;
+      if (mkcl_unlikely(i != j)) return FALSE;
+      return mkcl_wmemcmp(x->string.self, y->string.self, i) == 0;
     }
     default:
       y = mkcl_type_error(env, MK_CL_stringE, "", y, MK_CL_string);
