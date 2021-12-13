@@ -26,6 +26,9 @@
 #include <mkcl/mkcl-fenv.h>
 #include "newhash.h"
 
+#ifdef HASHTABLE_STATS
+# include <stdio.h>
+#endif
 
 /* These do a peek inside GMP privates, brittle at best. JCB */
 #define mkcl_big_size	big_num->_mp_size
@@ -390,8 +393,6 @@ mkcl_sethash(MKCL, mkcl_object key, mkcl_object hashtable, mkcl_object value)
   return;
 }
 
-#include <stdio.h>
-
 void
 mkcl_extend_hashtable(MKCL, mkcl_object hashtable)
 {
@@ -430,8 +431,6 @@ mkcl_extend_hashtable(MKCL, mkcl_object hashtable)
     new_size = mkcl_fixnum_to_word(new_size_obj);
   }
 
-  printf("mkcl_extend_hashtable(): new_size = %lu.\n", new_size);
-  
   {
     struct mkcl_hashtable old_hash_object; /* This one has strict dynamic extent. JCB */
     mkcl_object old = (mkcl_object) &old_hash_object;
