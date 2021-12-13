@@ -104,8 +104,8 @@ mkcl_object _mkcl_alloc_package(MKCL, mkcl_object name)
 {
   mkcl_object x = mkcl_alloc_raw_package(env);
 
-  x->pack.internal = mkcl_make_hashtable_for_package(env, 128);
-  x->pack.external = mkcl_make_hashtable_for_package(env, 128);
+  x->pack.internal = mkcl_make_hashtable_for_package(env, 129);
+  x->pack.external = mkcl_make_hashtable_for_package(env, 129);
 #if MKCL_WINDOWS
 #if 0
   x->pack.lock = CreateMutex(NULL, FALSE, mkcl_handle_debug_name(env, "package lock")); /* FIXME! return status of this? JCB */
