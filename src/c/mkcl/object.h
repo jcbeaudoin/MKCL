@@ -410,7 +410,7 @@ extern "C" {
     MKCL_HEADER2(test,lockable);
     struct mkcl_hashtable_entry **data; /*  pointer to a vector of entry chains */
     struct mkcl_hashtable_entry * (*search_fun)(__MKCL, mkcl_object key, mkcl_object hashtable);
-    mkcl_hash_value (*hash_fun)(__MKCL, int depth, mkcl_hash_value seed, mkcl_object key);
+    mkcl_hash_value (*hash_fun)(__MKCL, mkcl_object key);
     bool (*equality_fun)(__MKCL, mkcl_object o1, mkcl_object o2);
     mkcl_index entries;	        /*  number of entries  */
     mkcl_index size;		/*  hash table size  */
