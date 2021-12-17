@@ -343,6 +343,7 @@ extern "C" {
 
   extern mkcl_object mkcl_find_symbol_nolock(MKCL, mkcl_object name, mkcl_object p, int *intern_flag);
   extern mkcl_object _mkcl_alloc_package(MKCL, mkcl_object name);
+  extern mkcl_object _mkcl_alloc_sized_package(MKCL, mkcl_object name, mkcl_index internal_count, mkcl_index external_count);
 
   /* print.d */
 

@@ -100,18 +100,14 @@ symbol_add_package(mkcl_object s, mkcl_object p)
 }
 
 
-mkcl_object _mkcl_alloc_package(MKCL, mkcl_object name)
+mkcl_object _mkcl_alloc_sized_package(MKCL, mkcl_object name, mkcl_index external_count, mkcl_index internal_count)
 {
   mkcl_object x = mkcl_alloc_raw_package(env);
 
-  x->pack.internal = mkcl_make_hashtable_for_package(env, 129);
-  x->pack.external = mkcl_make_hashtable_for_package(env, 129);
+  x->pack.external = mkcl_make_hashtable_for_package(env, external_count);
+  x->pack.internal = mkcl_make_hashtable_for_package(env, internal_count);
 #if MKCL_WINDOWS
-#if 0
-  x->pack.lock = CreateMutex(NULL, FALSE, mkcl_handle_debug_name(env, "package lock")); /* FIXME! return status of this? JCB */
-#else
   InitializeCriticalSection(&(x->pack.lock));
-#endif
 #else
   {
     const pthread_mutexattr_t * const mutexattr = mkcl_normal_mutexattr;
@@ -132,6 +128,11 @@ mkcl_object _mkcl_alloc_package(MKCL, mkcl_object name)
   return x;
 }
 
+mkcl_object _mkcl_alloc_package(MKCL, mkcl_object name)
+{
+  return(_mkcl_alloc_sized_package(env, name, 129, 129));
+}
+
 /*
 	mkcl_make_package(n, ns, ul) makes a package with name n,
 	which must be a string or a symbol,
@@ -140,7 +141,7 @@ mkcl_object _mkcl_alloc_package(MKCL, mkcl_object name)
 	or package names i.e. strings or symbols.
 */
 mkcl_object
-mkcl_make_package(MKCL, mkcl_object name, mkcl_object nicknames, mkcl_object use_list)
+mkcl_make_sized_package(MKCL, mkcl_object name, mkcl_object nicknames, mkcl_object use_list, mkcl_object external_size, mkcl_object internal_size)
 {
   mkcl_object x, other = mk_cl_Cnil;
   volatile bool locked = false;
@@ -182,7 +183,15 @@ mkcl_make_package(MKCL, mkcl_object name, mkcl_object nicknames, mkcl_object use
       goto _MKCL_ERROR;
     }
 
-    x = _mkcl_alloc_package(env, name);
+    {
+      mkcl_index _external_size = mkcl_fixnum_in_range(env, MK_CL_make_package,
+						       "external-size", external_size,
+						       0, MKCL_ATOTLIM);
+      mkcl_index _internal_size = mkcl_fixnum_in_range(env, MK_CL_make_package,
+						       "internal-size", internal_size,
+						       0, MKCL_ATOTLIM);
+      x = _mkcl_alloc_sized_package(env, name, _external_size, _internal_size);
+    }
 
   INTERN:;
     mkcl_object good_nicknames = mk_cl_Cnil;
@@ -221,6 +230,12 @@ mkcl_make_package(MKCL, mkcl_object name, mkcl_object nicknames, mkcl_object use
 			   1, name);
       return other;
     }
+}
+
+mkcl_object
+mkcl_make_package(MKCL, mkcl_object name, mkcl_object nicknames, mkcl_object use_list)
+{
+  return mkcl_make_sized_package(env, name, nicknames, use_list, MKCL_MAKE_FIXNUM(129), MKCL_MAKE_FIXNUM(129));
 }
 
 mkcl_object
@@ -940,10 +955,15 @@ mkcl_object mk_cl_make_package(MKCL, mkcl_narg narg, mkcl_object pack_name, ...)
   {
     mkcl_object nicknames = mk_cl_Cnil;
     mkcl_object use = MKCL_CONS(env, mkcl_core.lisp_package, mk_cl_Cnil);
+    mkcl_object internal_size = MKCL_MAKE_FIXNUM(129);
+    mkcl_object external_size = MKCL_MAKE_FIXNUM(129);
+#if 0
     MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, MK_CL_make_package, narg, 1, pack_name, MK_KEY_nicknames, &nicknames, MK_KEY_use, &use);
-
+#else
+    MKCL_RECEIVE_4_KEYWORD_ARGUMENTS(env, MK_CL_make_package, narg, 1, pack_name, MK_KEY_nicknames, &nicknames, MK_KEY_use, &use, MK_KEY_external_size, &external_size, MK_KEY_internal_size, &internal_size);
+#endif
     /* INV: mkcl_make_package() performs type checking */
-    mkcl_return_value(mkcl_make_package(env, pack_name, nicknames, use));
+    mkcl_return_value(mkcl_make_sized_package(env, pack_name, nicknames, use, external_size, internal_size));
   }
 }
 

@@ -318,11 +318,11 @@ static void _mkcl_boot_inner(MKCL)
   mkcl_core.packages_to_be_created = mk_cl_Cnil;
 
   mkcl_core.lisp_package =
-    mkcl_make_package(env, mkcl_make_simple_base_string(env, "COMMON-LISP"),
-		     mk_cl_list(env, 2,
-				mkcl_make_simple_base_string(env, "CL"),
-				mkcl_make_simple_base_string(env, "LISP")),
-		     mk_cl_Cnil);
+    mkcl_make_sized_package(env, mkcl_make_simple_base_string(env, "COMMON-LISP"),
+			    mk_cl_list(env, 2,
+				       mkcl_make_simple_base_string(env, "CL"),
+				       mkcl_make_simple_base_string(env, "LISP")),
+			    mk_cl_Cnil, MKCL_MAKE_FIXNUM(1400), MKCL_MAKE_FIXNUM(16));
   mkcl_core.user_package =
     mkcl_make_package(env, mkcl_make_simple_base_string(env, "COMMON-LISP-USER"),
 		     mk_cl_list(env, 2,
@@ -330,37 +330,44 @@ static void _mkcl_boot_inner(MKCL)
 				mkcl_make_simple_base_string(env, "USER")),
 		     mkcl_list1(env, mkcl_core.lisp_package));
   mkcl_core.keyword_package =
-    mkcl_make_package(env, mkcl_make_simple_base_string(env, "KEYWORD"), mk_cl_Cnil, mk_cl_Cnil);
+    mkcl_make_sized_package(env, mkcl_make_simple_base_string(env, "KEYWORD"),
+			    mk_cl_Cnil, mk_cl_Cnil, MKCL_MAKE_FIXNUM(1000), MKCL_MAKE_FIXNUM(16));
   mkcl_core.mkcl_ext_package =
-    mkcl_make_package(env, mkcl_make_simple_base_string(env, "MKCL"),
-		      mk_cl_list(env, 2,
-				 mkcl_make_simple_base_string(env, "MKCL-EXTENSIONS"),
-				 /* mkcl_make_simple_base_string(env, "EXT"), */ /* temporary, for the transition period. */
-				 mkcl_make_simple_base_string(env, "MK-EXT")),
-		      mkcl_list1(env, mkcl_core.lisp_package));
+    mkcl_make_sized_package(env, mkcl_make_simple_base_string(env, "MKCL"),
+			    mk_cl_list(env, 2,
+				       mkcl_make_simple_base_string(env, "MKCL-EXTENSIONS"),
+				       /* mkcl_make_simple_base_string(env, "EXT"), */ /* temporary, for the transition period. */
+				       mkcl_make_simple_base_string(env, "MK-EXT")),
+			    mkcl_list1(env, mkcl_core.lisp_package),
+			    MKCL_MAKE_FIXNUM(200), MKCL_MAKE_FIXNUM(16));
   mkcl_core.system_package =
-    mkcl_make_package(env, mkcl_make_simple_base_string(env, "SI"),
-		      mk_cl_list(env, 2,
-				 mkcl_make_simple_base_string(env, "SYSTEM"),
-				 mkcl_make_simple_base_string(env, "SYS")),
-		      mk_cl_list(env, 2, mkcl_core.lisp_package, mkcl_core.mkcl_ext_package));
+    mkcl_make_sized_package(env, mkcl_make_simple_base_string(env, "SI"),
+			    mk_cl_list(env, 2,
+				       mkcl_make_simple_base_string(env, "SYSTEM"),
+				       mkcl_make_simple_base_string(env, "SYS")),
+			    mk_cl_list(env, 2, mkcl_core.lisp_package, mkcl_core.mkcl_ext_package),
+			    MKCL_MAKE_FIXNUM(580), MKCL_MAKE_FIXNUM(1800));
   mkcl_core.clos_package =
-    mkcl_make_package(env, mkcl_make_simple_base_string(env, "CLOS"),
-		      mk_cl_Cnil, mkcl_list1(env, mkcl_core.lisp_package));
+    mkcl_make_sized_package(env, mkcl_make_simple_base_string(env, "CLOS"),
+			    mk_cl_Cnil, mkcl_list1(env, mkcl_core.lisp_package),
+			    MKCL_MAKE_FIXNUM(16), MKCL_MAKE_FIXNUM(650));
   mkcl_core.ffi_package =
-    mkcl_make_package(env, mkcl_make_simple_base_string(env, "FFI"),
-		      mk_cl_Cnil,
-                      mk_cl_list(env, 2, mkcl_core.lisp_package, mkcl_core.mkcl_ext_package));
+    mkcl_make_sized_package(env, mkcl_make_simple_base_string(env, "FFI"),
+			    mk_cl_Cnil,
+			    mk_cl_list(env, 2, mkcl_core.lisp_package, mkcl_core.mkcl_ext_package),
+			    MKCL_MAKE_FIXNUM(75), MKCL_MAKE_FIXNUM(30));
   mkcl_core.mt_package =
-    mkcl_make_package(env, mkcl_make_simple_base_string(env, "MT"),
-		      mk_cl_list(env, 3,
-				 mkcl_make_simple_base_string(env, "MULTI-THREADING"),
-				 mkcl_make_simple_base_string(env, "MP"),
-				 mkcl_make_simple_base_string(env, "MULTIPROCESSING")),
-		      mkcl_list1(env, mkcl_core.lisp_package));
-  mkcl_core.gray_package = mkcl_make_package(env, mkcl_make_simple_base_string(env, "GRAY"),
-					     mk_cl_Cnil,
-					     mkcl_list1(env, mkcl_core.lisp_package));
+    mkcl_make_sized_package(env, mkcl_make_simple_base_string(env, "MT"),
+			    mk_cl_list(env, 3,
+				       mkcl_make_simple_base_string(env, "MULTI-THREADING"),
+				       mkcl_make_simple_base_string(env, "MP"),
+				       mkcl_make_simple_base_string(env, "MULTIPROCESSING")),
+			    mkcl_list1(env, mkcl_core.lisp_package),
+			    MKCL_MAKE_FIXNUM(90), MKCL_MAKE_FIXNUM(40));
+  mkcl_core.gray_package = mkcl_make_sized_package(env, mkcl_make_simple_base_string(env, "GRAY"),
+						   mk_cl_Cnil,
+						   mkcl_list1(env, mkcl_core.lisp_package),
+						   MKCL_MAKE_FIXNUM(1400), MKCL_MAKE_FIXNUM(140));
 
   mk_cl_Cnil_symbol->symbol.hpack = mkcl_core.lisp_package;
   mkcl_import2(env, mk_cl_Cnil, mkcl_core.lisp_package);

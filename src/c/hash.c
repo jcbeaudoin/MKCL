@@ -393,6 +393,8 @@ mkcl_sethash(MKCL, mkcl_object key, mkcl_object hashtable, mkcl_object value)
   return;
 }
 
+
+
 void
 mkcl_extend_hashtable(MKCL, mkcl_object hashtable)
 {
@@ -488,7 +490,7 @@ mkcl_make_hashtable_for_package(MKCL, mkcl_index hsize)
   h->hash.hash_fun = hash_equal_package;
   h->hash.equality_fun = mkcl_string_E;
 
-  h->hash.free_bucket = NULL; /* should we preallocate some? */
+  h->hash.free_bucket = NULL;
 
 #ifdef HASHTABLE_STATS
   h->hash.nb_searches = 0;
@@ -585,7 +587,6 @@ mk_cl__make_hash_table(MKCL, mkcl_object test, mkcl_object size,
   h->hash.size = hsize;
   h->hash.entries = 0;
   h->hash.data = NULL;	/* for GC sake */
-  h->hash.free_bucket = NULL;
 
   h->hash.data = (struct mkcl_hashtable_entry **) mkcl_alloc(env, hsize * sizeof(struct mkcl_hashtable_entry *));
   {
@@ -629,6 +630,7 @@ mk_cl__make_hash_table(MKCL, mkcl_object test, mkcl_object size,
   if (h->hash.factor_of_16th == 0)
     h->hash.factor_of_16th = 1;
 
+  h->hash.free_bucket = NULL;
 
 #ifdef HASHTABLE_STATS
   h->hash.nb_searches = 0;

@@ -1571,6 +1571,7 @@ extern "C" {
   extern MKCL_API mkcl_object mk_cl_unuse_package(MKCL, mkcl_narg narg, mkcl_object pack, ...);
 
   extern MKCL_API mkcl_object mkcl_make_package(MKCL, mkcl_object n, mkcl_object ns, mkcl_object ul);
+  extern MKCL_API mkcl_object mkcl_make_sized_package(MKCL, mkcl_object n, mkcl_object ns, mkcl_object ul, mkcl_object exts, mkcl_object ints);
   extern MKCL_API mkcl_object mkcl_rename_package(MKCL, mkcl_object x, mkcl_object n, mkcl_object ns);
   extern MKCL_API mkcl_object mkcl_find_package_nolock(MKCL, mkcl_object n);
   extern MKCL_API mkcl_object mk_si_coerce_to_package(MKCL, mkcl_object p);
