@@ -1054,14 +1054,13 @@
 
     (proclaim-function make-hash-table (*) t)
     (proclaim-function hash-table-p (t) t :predicate t)
-    (proclaim-function values (*) *)
     (proclaim-function gethash (t t *) (values t t))
     (proclaim-function remhash (t t) t)
     (proclaim-function maphash (t t) t)
     (proclaim-function clrhash (t) t)
     (proclaim-function hash-table-count (t) si::index)
     (proclaim-function sxhash (t) fixnum)
-    (proclaim-function si:hash-set (*) t)
+    (proclaim-function si:hash-set (t t t) t)
 
     ;; file list.d
 
