@@ -396,11 +396,8 @@ export LIBMKCC1
 clean:
 	rm -vf $(PROGS) mkcc_p$(EXESUF) mkcc.pod *~ *.o *.a *.so* *.out *.log \
 		*.exe a.out tags TAGS libmkcc_test$(EXESUF) mkcc$(EXESUF)
-	-rm -r $(ARCH) arm64
-ifeq ($(HOST_OS),Linux)
-	-rm -r ./C:
-endif
-	-rm *-mkcc$(EXESUF)
+	-rm -rf $(ARCH) arm64
+	-rm -f *-mkcc$(EXESUF)
 	$(MAKE) -C tests $@
 ifneq ($(LIBMKCC1),)
 	$(MAKE) -C lib $@
