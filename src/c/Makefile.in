@@ -132,9 +132,9 @@ mkcl/internal.h: $(C_EXPORTED_SYMBOLS_H_IN_MKCL)
 clean:
 	$(RM) $(OBJS) $(OBJS:%.o=%.s) all_symbols.o all_symbols2.o cinit.o core core.* a.out
 	$(RM) mkcl/gc/*.h $(C_EXPORTED_SYMBOLS_H_IN_MKCL)
+	$(RM) $(DPP)
 
 distclean: clean
-	$(RM) $(DPP) # $(DCFILES)
 	$(RM) symbols_list2.h # all_symbols.c cinit.c
 	$(RM) GNUmakefile makefile.depend
 	$(RM) Makefile
