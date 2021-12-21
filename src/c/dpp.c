@@ -94,6 +94,7 @@
 
 #include "symbols_list2.h"
 
+
 /* #define POOLSIZE        2048 */
 #define POOLSIZE        4096
 #define MAXREQ          16
@@ -265,9 +266,9 @@ search_keyword(const char *name)
   if (i == 255)
     error("Too long keyword");
   c[i] = 0;
-  for (i = 0; mkcl_root_symbols[i].name != NULL; i++) {
-    if (mkcl_root_symbols[i].name[0] == ':')
-      if (!strcasecmp(c, mkcl_root_symbols[i].name+1))
+  for (i = 0; mkcl_root_symbol_inits[i].name != NULL; i++) {
+    if (mkcl_root_symbol_inits[i].name[0] == ':')
+      if (!strcasecmp(c, mkcl_root_symbol_inits[i].name+1))
 	return i;
   }
   error_fmt1("Keyword not found: %s.\n", c);
@@ -278,15 +279,15 @@ char *
 search_symbol(char *name, int *symbol_code)
 {
   int i;
-  for (i = 0; mkcl_root_symbols[i].name != NULL; i++) {
-    if (!strcasecmp(name, mkcl_root_symbols[i].name)) {
+  for (i = 0; mkcl_root_symbol_inits[i].name != NULL; i++) {
+    if (!strcasecmp(name, mkcl_root_symbol_inits[i].name)) {
       name = poolp;
       if (i == 0) {
 	pushstr("mk_cl_Cnil");
 	pushc(0);
       } else {
 	pushstr("MKCL_SYM(\"");
-	pushstr(mkcl_root_symbols[i].name);
+	pushstr(mkcl_root_symbol_inits[i].name);
 	pushstr("\",");
 	if (i >= 10000)  /* This stuff here introduces a hard-coded upper limit of 19999 */
 	  pushc((i / 10000) % 10 + '0');  /* on the number of symbols! JCB  FIXME! */
@@ -334,11 +335,11 @@ char *
 search_function(char *name)
 {
   int i;
-  for (i = 0; mkcl_root_symbols[i].name != NULL; i++) {
-    if (mkcl_root_symbols[i].translation != NULL &&
-	!strcasecmp(name, mkcl_root_symbols[i].name)) {
+  for (i = 0; mkcl_root_symbol_inits[i].name != NULL; i++) {
+    if (mkcl_root_symbol_inits[i].translation != NULL &&
+	!strcasecmp(name, mkcl_root_symbol_inits[i].name)) {
       name = poolp;
-      pushstr(mkcl_root_symbols[i].translation);
+      pushstr(mkcl_root_symbol_inits[i].translation);
       pushc(0);
       return name;
     }

@@ -61,14 +61,15 @@
 
 #include "symbols_list.h"
 
-#define NB_STATIC_SYMBOLS (sizeof(mkcl_root_symbols)/sizeof(mkcl_root_symbols[0]))
+#define NB_STATIC_SYMBOLS (sizeof(mkcl_root_symbol_inits)/sizeof(mkcl_root_symbol_inits[0]))
 const mkcl_index mkcl_root_symbols_count = NB_STATIC_SYMBOLS - 1;
 
+struct mkcl_symbol mkcl_root_symbols[NB_STATIC_SYMBOLS] = { 0 };
 
-#define mkcl_root_symbols mkcl_root_symbols_to_c_fun_name_map
+#define mkcl_root_symbol_inits mkcl_root_symbols_to_c_fun_name_map
 #define mkcl_symbol_initializer mkcl_symbol_to_c_fun_name
 #include "symbols_list2.h"
-#undef mkcl_root_symbols
+#undef mkcl_root_symbol_inits
 #undef mkcl_symbol_initializer
 
 static mkcl_index mangled_char_size(mkcl_character ch)
@@ -306,7 +307,8 @@ mkcl_object mk_si_mangle_name(MKCL, mkcl_object symbol)
   else if (symbol == mk_cl_Ct)
     { mkcl_return_2_values(mk_cl_Ct, mkcl_make_simple_base_string(env, "mk_cl_Ct")); }
 
-  mkcl_index p  = (mkcl_symbol_initializer*)symbol - mkcl_root_symbols;
+  mkcl_index p  = (struct mkcl_symbol *)symbol - mkcl_root_symbols;
+
   if (/* p >= 0 && */ p <= mkcl_root_symbols_count) {
     mkcl_object output = mk_cl_format(env, 4, mk_cl_Cnil,
 				      mkcl_make_simple_base_string(env, "MKCL_SYM(~S,~D)"),
@@ -328,10 +330,11 @@ mkcl_object mk_si_mangle_function_name(MKCL, mkcl_object symbol)
   if (mkcl_Null(symbol)) symbol = mk_cl_Cnil_symbol;
   else if (!MKCL_SYMBOLP(symbol)) { mkcl_return_2_values(mk_cl_Cnil, mk_cl_Cnil); }
 
-  if (((mkcl_object) &(mkcl_root_symbols[0].data)) <= symbol
-      && symbol < ((mkcl_object) &(mkcl_root_symbols[NB_STATIC_SYMBOLS-1].data)))
+  if (((mkcl_object) &(mkcl_root_symbols[0])) <= symbol
+      && symbol < ((mkcl_object) &(mkcl_root_symbols[NB_STATIC_SYMBOLS-1])))
     {
-      mkcl_index i = (mkcl_symbol_initializer*)symbol - mkcl_root_symbols;
+      mkcl_index i = (struct mkcl_symbol *)symbol - mkcl_root_symbols;
+
       const char * c_name = mkcl_root_symbols_to_c_fun_name_map[i].translation;
       int narg = mkcl_root_symbols_to_c_fun_name_map[i].narg;
       mkcl_object output = mk_cl_Cnil;
@@ -394,6 +397,8 @@ make_this_symbol(MKCL, int i, struct mkcl_symbol * symbol, int code, const char 
   symbol->stype = stp;
   symbol->hpack = package;
   symbol->name = mkcl_make_simple_base_string(env, (char *) name);
+  symbol->hashed_name = 0;
+
   if (package == mkcl_core.keyword_package) {
     mkcl_sethash(env, symbol->name, package->pack.external, (mkcl_object) symbol);
     symbol->value = (mkcl_object) symbol;
@@ -431,13 +436,13 @@ mkcl_init_all_symbols(MKCL)
   mkcl_objectfn fun;
 
   /* We skip NIL and T, thus we start at 2. */
-  for (i = 2; mkcl_root_symbols[i].init.name != NULL; i++) {
-    struct mkcl_symbol * s = &(mkcl_root_symbols[i].data);
-    code = mkcl_root_symbols[i].init.type;
-    name = mkcl_root_symbols[i].init.name;
-    fun = (mkcl_objectfn)mkcl_root_symbols[i].init.fun;
-    narg = mkcl_root_symbols[i].init.narg;
-    value = mkcl_root_symbols[i].init.value;
+  for (i = 2; mkcl_root_symbol_inits[i].name != NULL; i++) {
+    struct mkcl_symbol * s = &(mkcl_root_symbols[i]);
+    code = mkcl_root_symbol_inits[i].type;
+    name = mkcl_root_symbol_inits[i].name;
+    fun = (mkcl_objectfn)mkcl_root_symbol_inits[i].fun;
+    narg = mkcl_root_symbol_inits[i].narg;
+    value = mkcl_root_symbol_inits[i].value;
     make_this_symbol(env, i, s, code, name, fun, narg, value);
   }
 }

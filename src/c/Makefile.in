@@ -149,9 +149,9 @@ $(DPP): dpp.c symbols_list2.h
 
 symbols_list2.h: symbols_list.h
 	cpp -DDPP -DMKCL_FINAL symbols_list.h | \
-	sed -e 's%{{\([A-Z ]*.*".*"\),[^,]*,[ ]*NULL,.*}}%{\1,NULL,-1}%g' \
-	    -e 's%{{\([A-Z ]*.*".*"\),[^,]*,[ ]*\([^,]*\),[ ]*\([^,]*\),.*}}%{\1,"\2",\3}%g' \
-	    -e 's%{{NULL.*%{NULL,NULL,-1}};%' > $@-$$$$; \
+	sed -e 's%{\([A-Z ]*.*".*"\),[^,]*,[ ]*NULL,.*}%{\1,NULL,-1}%g' \
+	    -e 's%{\([A-Z ]*.*".*"\),[^,]*,[ ]*\([^,]*\),[ ]*\([^,]*\),.*}%{\1,"\2",\3}%g' \
+	    -e 's%{NULL.*%{NULL,NULL,-1}};%' > $@-$$$$; \
 	mv $@-$$$$ $@ # We do this here to assure the "atomic" creation of symbols_list2.h.
 
 $(OBJS): $(DPP)

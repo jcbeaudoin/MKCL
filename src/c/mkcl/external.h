@@ -360,17 +360,15 @@ extern "C" {
   extern MKCL_API mkcl_object mk_si_mangle_symbol(MKCL, mkcl_object symbol);
   extern MKCL_API mkcl_object mk_si_mangle_name(MKCL, mkcl_object symbol);
   extern MKCL_API mkcl_object mk_si_mangle_function_name(MKCL, mkcl_object symbol);
-  typedef union {
-    struct {
-      const char *name;
-      int type;
-      void *fun;
-      short narg;
-      mkcl_object value;
-    } init;
-    struct mkcl_symbol data;
+
+  typedef struct mkcl_symbol_initializer {
+    const char *name;
+    mkcl_word type;
+    void *fun;
+    mkcl_word narg;
+    mkcl_object value;
   } mkcl_symbol_initializer;
-  extern MKCL_API mkcl_symbol_initializer mkcl_root_symbols[];
+  extern MKCL_API struct mkcl_symbol mkcl_root_symbols[];
   extern MKCL_API const mkcl_index mkcl_root_symbols_count;
 
 #define MKCL_SYM(name,code) ((mkcl_object) (mkcl_root_symbols+(code)))
