@@ -148,32 +148,3 @@ static mkcl_hash_value hash_word(mkcl_hash_value c, mkcl_index w)
 	return c;
 }
 
-#define HASH_XXXX_STRING_BODY(S, LEN, H) \
-{\
-	mkcl_index a = GOLDEN_RATIO, b = GOLDEN_RATIO, i;\
-	mkcl_character ch;\
-	for (i = LEN; i >= 3; i -= 3) {\
-		ch = *S;\
-		a += ch; S++;\
-		ch = *S;\
-		b += ch; S++;\
-		ch = *S;\
-		H += ch; S++;\
-		mix(a, b, H);\
-	}\
-	switch (i) {\
-		/* all the case statements fall through */\
-	case 2: ch = *S; a += ch; S++;\
-	case 1: ch = *S; b += ch;\
-	case 0: H += LEN;\
-	}\
-	mix(a, b, H);\
-	return H;\
-}
-
-static mkcl_hash_value hash_base_string(const mkcl_base_char *s, const mkcl_index len, mkcl_hash_value h)
-{ HASH_XXXX_STRING_BODY(s, len, h); }
-
-static mkcl_hash_value hash_full_string(const mkcl_character *s, const mkcl_index len, mkcl_hash_value h)
-{ HASH_XXXX_STRING_BODY(s, len, h); }
-

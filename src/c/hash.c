@@ -40,6 +40,35 @@
 # define MKCL_LONG_DOUBLE_REAL_SIZE sizeof(long double)
 #endif
 
+#define HASH_XXXX_STRING_BODY(S, LEN, H) \
+{\
+	mkcl_index a = GOLDEN_RATIO, b = GOLDEN_RATIO, i;\
+	mkcl_character ch;\
+	for (i = LEN; i >= 3; i -= 3) {\
+		ch = *S;\
+		a += ch; S++;\
+		ch = *S;\
+		b += ch; S++;\
+		ch = *S;\
+		H += ch; S++;\
+		mix(a, b, H);\
+	}\
+	switch (i) {\
+		/* all the case statements fall through */\
+	case 2: ch = *S; a += ch; S++;\
+	case 1: ch = *S; b += ch;\
+	case 0: H += LEN;\
+	}\
+	mix(a, b, H);\
+	return H;\
+}
+
+mkcl_hash_value mkcl_hash_base_string(const mkcl_base_char *s, const mkcl_index len, mkcl_hash_value h)
+{ HASH_XXXX_STRING_BODY(s, len, h); }
+
+mkcl_hash_value mkcl_hash_full_string(const mkcl_character *s, const mkcl_index len, mkcl_hash_value h)
+{ HASH_XXXX_STRING_BODY(s, len, h); }
+
 static bool _mkcl_eq(MKCL, mkcl_object o1, mkcl_object o2) { return(o1 == o2); }
 
 static mkcl_hash_value
@@ -96,9 +125,9 @@ _hash_equal(int depth, mkcl_hash_value h, mkcl_object x)
     else
       return _hash_equal(depth, h, x->symbol.name);
   case mkcl_t_base_string:
-    return hash_base_string((mkcl_base_char *)x->base_string.self, x->base_string.fillp, h);
+    return mkcl_hash_base_string((mkcl_base_char *)x->base_string.self, x->base_string.fillp, h);
   case mkcl_t_string:
-    return hash_full_string(x->string.self, x->string.fillp, h);
+    return mkcl_hash_full_string(x->string.self, x->string.fillp, h);
   case mkcl_t_pathname:
     h = _hash_equal(2, h, x->pathname.directory);
     h = _hash_equal(2, h, x->pathname.name);
@@ -155,9 +184,9 @@ _hash_equal_package(MKCL, int depth, mkcl_hash_value h, mkcl_object x)
     else
       return _hash_equal_package(env, depth, h, x->symbol.name);
   case mkcl_t_base_string:
-    return hash_base_string(x->base_string.self, x->base_string.fillp, h);
+    return mkcl_hash_base_string(x->base_string.self, x->base_string.fillp, h);
   case mkcl_t_string:
-    return hash_full_string(x->string.self, x->string.fillp, h);
+    return mkcl_hash_full_string(x->string.self, x->string.fillp, h);
   default:
     mkcl_FEerror(env, "incompatible key type ~S, for package hashtable ~S", 1, x);
   }
@@ -365,11 +394,11 @@ void
 mkcl_sethash(MKCL, mkcl_object key, mkcl_object hashtable, mkcl_object value)
 {
   mkcl_index i;
-  const mkcl_hash_value hashed_key = hashtable->hash.hash_fun(env, key);
   struct mkcl_hashtable_entry *e;
 
   mkcl_assert_type_hash_table(env, hashtable);
 
+  const mkcl_hash_value hashed_key = hashtable->hash.hash_fun(env, key);
   e = _search_hash(env, hashed_key, hashtable->hash.equality_fun, key, hashtable);
 
   if (e != NULL) {
@@ -434,32 +463,28 @@ mkcl_extend_hashtable(MKCL, mkcl_object hashtable)
   }
 
   {
-    struct mkcl_hashtable old_hash_object; /* This one has strict dynamic extent. JCB */
-    mkcl_object old = (mkcl_object) &old_hash_object;
-
-    old->hash = hashtable->hash; /* To copy entries, size, data, etc. */
-
-    hashtable->hash.size = new_size;
-    hashtable->hash.data = (struct mkcl_hashtable_entry **)
+    struct mkcl_hashtable_entry ** const new_data =
       mkcl_alloc(env, new_size * sizeof(struct mkcl_hashtable_entry *));
 
     for (i = 0;  i < new_size;  i++) {
-      hashtable->hash.data[i] = NULL;
+      new_data[i] = NULL;
     }
 
     for (i = 0;  i < old_size;  i++)
       {
-	struct mkcl_hashtable_entry * e = old->hash.data[i];
+	struct mkcl_hashtable_entry * e = hashtable->hash.data[i];
 	struct mkcl_hashtable_entry * old_e_next;
 
 	for (; e != NULL; e = old_e_next)
 	  {
-	    struct mkcl_hashtable_entry ** const chain_root = &hashtable->hash.data[e->hashed_key % new_size];
+	    struct mkcl_hashtable_entry ** const chain_root = &new_data[e->hashed_key % new_size];
 	    old_e_next = e->next;
 	    e->next = *chain_root;
 	    *chain_root = e;
 	  }
       }
+    hashtable->hash.data = new_data;
+    hashtable->hash.size = new_size;
   }
 }
 

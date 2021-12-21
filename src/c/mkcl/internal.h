@@ -329,6 +329,9 @@ extern "C" {
   /* hash.d */
   extern void mkcl_extend_hashtable(MKCL, mkcl_object hashtable);
   extern mkcl_object mkcl_make_hashtable_for_package(MKCL, mkcl_index hsize);
+  extern mkcl_hash_value mkcl_hash_base_string(const mkcl_base_char *s, const mkcl_index len, mkcl_hash_value h);
+  extern mkcl_hash_value mkcl_hash_full_string(const mkcl_character *s, const mkcl_index len, mkcl_hash_value h);
+
 
   /* gfun.d, clos/kernel.lsp */
 
