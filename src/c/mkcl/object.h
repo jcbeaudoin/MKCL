@@ -143,6 +143,8 @@ extern "C" {
   typedef mkcl_object (*mkcl_objectfn)(__MKCL, mkcl_narg narg, ...);
   typedef mkcl_object (*mkcl_objectfn_fixed)();
 
+  typedef mkcl_index mkcl_hash_value;
+
   /*
     OBJect NULL value.
     It should not coincide with any legal object value.
@@ -304,6 +306,7 @@ extern "C" {
     mkcl_object properly_named_class;
     mkcl_object sys_plist;             /* system property list */
     mkcl_index special_index;
+    mkcl_hash_value hashed_name;   /* hash value of name */
   };
 #define MKCL_SYM_FUN(sym)	((sym)->symbol.gfdef)
 
@@ -388,8 +391,6 @@ extern "C" {
   };
 
   /***********************/
-
-  typedef mkcl_index mkcl_hash_value;
 
   enum mkcl_httest {		/*  hash table key test function  */
     mkcl_htt_eq,		/*  eq  */

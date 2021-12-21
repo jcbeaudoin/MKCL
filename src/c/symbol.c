@@ -95,7 +95,7 @@ mkcl_symbol_plist(MKCL, mkcl_object s)
 static void mkcl_FEtype_error_plist(MKCL, mkcl_object x) /*__attribute__((noreturn))*/;
 
 
-#define MKCL_SYMBOL_INITIALIZER(name, package, value, fun) {    \
+#define MKCL_SYMBOL_INITIALIZER(name, name_hash_val, package, value, fun) { \
     mkcl_t_symbol, 0, mkcl_stp_ordinary, 0,                     \
       value,                                                    \
       fun,                                                      \
@@ -104,15 +104,16 @@ static void mkcl_FEtype_error_plist(MKCL, mkcl_object x) /*__attribute__((noretu
       package,                                                  \
       mk_cl_Cnil,                                               \
       mk_cl_Cnil,                                               \
-      MKCL_NOT_A_SPECIAL_INDEX                                  \
+      MKCL_NOT_A_SPECIAL_INDEX,					\
+      name_hash_val						\
       }
 
-static struct mkcl_symbol _symbol_proto = MKCL_SYMBOL_INITIALIZER(mk_cl_Cnil, mk_cl_Cnil, MKCL_OBJNULL, mk_cl_Cnil);
+static struct mkcl_symbol _symbol_proto = MKCL_SYMBOL_INITIALIZER(mk_cl_Cnil, 0, mk_cl_Cnil, MKCL_OBJNULL, mk_cl_Cnil);
 
 mkcl_object
 mk_cl_make_symbol(MKCL, mkcl_object str)
 {
-  mkcl_object x;
+  mkcl_hash_value hash_val = 0;
 
   mkcl_call_stack_check(env);
  AGAIN:
@@ -124,26 +125,33 @@ mk_cl_make_symbol(MKCL, mkcl_object str)
     } else {
       str = mk_si_copy_to_simple_base_string(env, str);
     }
+    hash_val = mkcl_hash_full_string(str->string.self, str->string.fillp, hash_val);
     break;
   case mkcl_t_base_string:
     str = mk_si_copy_to_simple_base_string(env, str);
+    hash_val = mkcl_hash_base_string(str->base_string.self, str->base_string.fillp, hash_val);
     break;
   default:
     str = mkcl_type_error(env, MK_CL_make_symbol,"name",str,MK_CL_string);
+    hash_val = 0;
     goto AGAIN;
   }
-  x = mkcl_alloc_raw_symbol(env);
-  x->symbol.name = str;
-  x->symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;
-  MKCL_SET(x,MKCL_OBJNULL);
-  MKCL_SYM_FUN(x) = mk_cl_Cnil;
-  x->symbol.plist = mk_cl_Cnil;
-  x->symbol.hpack = mk_cl_Cnil;
-  x->symbol.stype = mkcl_stp_ordinary;
-  x->symbol.sys_plist = mk_cl_Cnil;
-  x->symbol.properly_named_class = mk_cl_Cnil;
+  {
+    mkcl_object x = mkcl_alloc_raw_symbol(env);
 
-  mkcl_return_value(x);
+    x->symbol.name = str;
+    x->symbol.hashed_name = hash_val;
+    x->symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;
+    MKCL_SET(x,MKCL_OBJNULL);
+    MKCL_SYM_FUN(x) = mk_cl_Cnil;
+    x->symbol.plist = mk_cl_Cnil;
+    x->symbol.hpack = mk_cl_Cnil;
+    x->symbol.stype = mkcl_stp_ordinary;
+    x->symbol.sys_plist = mk_cl_Cnil;
+    x->symbol.properly_named_class = mk_cl_Cnil;
+
+    mkcl_return_value(x);
+  }
 }
 
 /*
