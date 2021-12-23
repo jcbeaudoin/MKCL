@@ -122,10 +122,11 @@ mk_cl_make_symbol(MKCL, mkcl_object str)
   case mkcl_t_string:
     if (!mkcl_fits_in_base_string(env, str)) {
       str = mk_cl_copy_seq(env, str);
+      hash_val = mkcl_hash_full_string(str->string.self, str->string.fillp, hash_val);
     } else {
       str = mk_si_copy_to_simple_base_string(env, str);
+      hash_val = mkcl_hash_base_string(str->base_string.self, str->base_string.fillp, hash_val);
     }
-    hash_val = mkcl_hash_full_string(str->string.self, str->string.fillp, hash_val);
     break;
   case mkcl_t_base_string:
     str = mk_si_copy_to_simple_base_string(env, str);

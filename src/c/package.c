@@ -100,12 +100,12 @@ symbol_add_package(mkcl_object s, mkcl_object p)
 }
 
 
-mkcl_object _mkcl_alloc_sized_package(MKCL, mkcl_object name, mkcl_index external_count, mkcl_index internal_count)
+mkcl_object _mkcl_alloc_sized_package(MKCL, mkcl_object name, mkcl_index external_size, mkcl_index internal_size)
 {
   mkcl_object x = mkcl_alloc_raw_package(env);
 
-  x->pack.external = mkcl_make_hashtable_for_package(env, external_count);
-  x->pack.internal = mkcl_make_hashtable_for_package(env, internal_count);
+  x->pack.external = mkcl_make_hashtable_for_package(env, external_size);
+  x->pack.internal = mkcl_make_hashtable_for_package(env, internal_size);
 #if MKCL_WINDOWS
   InitializeCriticalSection(&(x->pack.lock));
 #else
