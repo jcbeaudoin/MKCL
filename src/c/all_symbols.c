@@ -386,21 +386,25 @@ make_this_symbol(MKCL, int i, struct mkcl_symbol * symbol, int code, const char 
   case FFI_PACKAGE: package = mkcl_core.ffi_package; break;
   default: mkcl_lose(env, "Unknown package in make_this_symbol");
   }
-  symbol->t = mkcl_t_symbol;
-  symbol->special_index = MKCL_NOT_A_SPECIAL_INDEX;
-  symbol->value = MKCL_OBJNULL;
-  symbol->gfdef = mk_cl_Cnil;
-  symbol->plist = mk_cl_Cnil;
-  symbol->sys_plist = mk_cl_Cnil;
-  symbol->hpack = mk_cl_Cnil;
-  symbol->properly_named_class = mk_cl_Cnil;
-  symbol->stype = stp;
-  symbol->hpack = package;
-  symbol->name = mkcl_make_simple_base_string(env, (char *) name);
-  symbol->hashed_name = 0;
+
+  {
+    mkcl_object _name = mkcl_make_simple_base_string(env, (char *) name);
+    symbol->t = mkcl_t_symbol;
+    symbol->special_index = MKCL_NOT_A_SPECIAL_INDEX;
+    symbol->value = MKCL_OBJNULL;
+    symbol->gfdef = mk_cl_Cnil;
+    symbol->plist = mk_cl_Cnil;
+    symbol->sys_plist = mk_cl_Cnil;
+    symbol->hpack = mk_cl_Cnil;
+    symbol->properly_named_class = mk_cl_Cnil;
+    symbol->stype = stp;
+    symbol->hpack = package;
+    symbol->name = _name;
+    symbol->hashed_name = mkcl_hash_base_string(_name->base_string.self, _name->base_string.fillp, 0);
+  }
 
   if (package == mkcl_core.keyword_package) {
-    mkcl_sethash(env, symbol->name, package->pack.external, (mkcl_object) symbol);
+    mkcl_package_sethash_new(env, symbol->name, package->pack.external, (mkcl_object) symbol, symbol->hashed_name);
     symbol->value = (mkcl_object) symbol;
   } else {
     int intern_flag;

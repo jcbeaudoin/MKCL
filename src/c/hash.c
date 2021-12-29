@@ -173,25 +173,22 @@ _hash_equal(int depth, mkcl_hash_value h, mkcl_object x)
 }
 static mkcl_hash_value hash_equal(MKCL, mkcl_object x) { return _hash_equal(3, 0, x); }
 
-static mkcl_hash_value
-_hash_equal_package(MKCL, int depth, mkcl_hash_value h, mkcl_object x)
+mkcl_hash_value mkcl_hash_equal_package(MKCL, mkcl_object x)
 {
   switch (mkcl_type_of(x)) {
   case mkcl_t_symbol:
-    if (mkcl_Null(x)) {
-      return _hash_equal_package(env, depth, h, mk_cl_Cnil_symbol->symbol.name);
-    }
+    if (mkcl_Null(x))
+      return mkcl_hash_equal_package(env, mk_cl_Cnil_symbol->symbol.name);
     else
-      return _hash_equal_package(env, depth, h, x->symbol.name);
+      return mkcl_hash_equal_package(env, x->symbol.name);
   case mkcl_t_base_string:
-    return mkcl_hash_base_string(x->base_string.self, x->base_string.fillp, h);
+    return mkcl_hash_base_string(x->base_string.self, x->base_string.fillp, 0);
   case mkcl_t_string:
-    return mkcl_hash_full_string(x->string.self, x->string.fillp, h);
+    return mkcl_hash_full_string(x->string.self, x->string.fillp, 0);
   default:
     mkcl_FEerror(env, "incompatible key type ~S, for package hashtable ~S", 1, x);
   }
 }
-static mkcl_hash_value hash_equal_package(MKCL, mkcl_object x) { return _hash_equal_package(env, 3, 0, x); }
 
 static mkcl_hash_value
 _hash_equalp(MKCL, int depth, mkcl_hash_value h, mkcl_object x)
@@ -353,6 +350,12 @@ mkcl_search_hash_eq(MKCL, mkcl_object key, mkcl_object hashtable)
 extern inline struct mkcl_hashtable_entry *mkcl_search_hash(MKCL, mkcl_object key, mkcl_object hashtable);
 
 
+mkcl_object mkcl_package_gethash(MKCL, const mkcl_object name, const mkcl_object hashtable, const mkcl_hash_value hashed_name)
+{
+  struct mkcl_hashtable_entry *e = _search_hash(env, hashed_name, hashtable->hash.equality_fun, name, hashtable);
+  return ((e == NULL) ? MKCL_OBJNULL : e->value);
+}
+
 
 mkcl_object
 mkcl_gethash_safe(MKCL, mkcl_object key, mkcl_object hashtable, mkcl_object def)
@@ -369,44 +372,7 @@ mkcl_gethash_safe(MKCL, mkcl_object key, mkcl_object hashtable, mkcl_object def)
 static void
 add_new_to_hash(MKCL, const mkcl_hash_value hashed_key, mkcl_object key, mkcl_object hashtable, mkcl_object value)
 {
-  const mkcl_index hsize = hashtable->hash.size;
-  struct mkcl_hashtable_entry ** root = &(hashtable->hash.data[hashed_key % hsize]);
-  
-  struct mkcl_hashtable_entry * free_bucket = hashtable->hash.free_bucket;
-  struct mkcl_hashtable_entry * e;
-
-  if (free_bucket)
-    { e = free_bucket; hashtable->hash.free_bucket = e->next; }
-  else
-    e = (struct mkcl_hashtable_entry *) mkcl_alloc(env, sizeof(struct mkcl_hashtable_entry));
-
-  hashtable->hash.entries++;
-
-  e->key = key;
-  e->hashed_key = hashed_key;
-  e->value = value;
-  e->next = *root;
-
-  *root = e;
-}
-
-void
-mkcl_sethash(MKCL, mkcl_object key, mkcl_object hashtable, mkcl_object value)
-{
-  mkcl_index i;
-  struct mkcl_hashtable_entry *e;
-
-  mkcl_assert_type_hash_table(env, hashtable);
-
-  const mkcl_hash_value hashed_key = hashtable->hash.hash_fun(env, key);
-  e = _search_hash(env, hashed_key, hashtable->hash.equality_fun, key, hashtable);
-
-  if (e != NULL) {
-    e->value = value;
-    return;
-  }
-
-  i = hashtable->hash.entries + 1;
+  mkcl_index i = hashtable->hash.entries + 1;
   if (i >= hashtable->hash.size ||
       /* This version is all integral ops. */
       (
@@ -418,10 +384,52 @@ mkcl_sethash(MKCL, mkcl_object key, mkcl_object hashtable, mkcl_object value)
        && (i * 16) >= (hashtable->hash.size * hashtable->hash.factor_of_16th)))
     mkcl_extend_hashtable(env, hashtable);
 
+  {
+    const mkcl_index hsize = hashtable->hash.size;
+    struct mkcl_hashtable_entry ** root = &(hashtable->hash.data[hashed_key % hsize]);
+  
+    struct mkcl_hashtable_entry * free_bucket = hashtable->hash.free_bucket;
+    struct mkcl_hashtable_entry * e;
+
+    if (free_bucket)
+      { e = free_bucket; hashtable->hash.free_bucket = e->next; }
+    else
+      e = (struct mkcl_hashtable_entry *) mkcl_alloc(env, sizeof(struct mkcl_hashtable_entry));
+
+    hashtable->hash.entries++;
+
+    e->key = key;
+    e->hashed_key = hashed_key;
+    e->value = value;
+    e->next = *root;
+
+    *root = e;
+  }
+}
+
+void
+mkcl_sethash(MKCL, mkcl_object key, mkcl_object hashtable, mkcl_object value)
+{
+  struct mkcl_hashtable_entry *e;
+
+  const mkcl_hash_value hashed_key = hashtable->hash.hash_fun(env, key);
+  e = _search_hash(env, hashed_key, hashtable->hash.equality_fun, key, hashtable);
+
+  if (e != NULL) {
+    e->value = value;
+    return;
+  }
+
   add_new_to_hash(env, hashed_key, key, hashtable, value);
   return;
 }
 
+void
+mkcl_package_sethash_new(MKCL, const mkcl_object key, const mkcl_object hashtable, const mkcl_object value, const mkcl_hash_value hashed_key)
+{
+  add_new_to_hash(env, hashed_key, key, hashtable, value);
+  return;
+}
 
 
 void
@@ -512,7 +520,7 @@ mkcl_make_hashtable_for_package(MKCL, mkcl_index hsize)
   }
 
   h->hash.search_fun = mkcl_search_hash_package;
-  h->hash.hash_fun = hash_equal_package;
+  h->hash.hash_fun = mkcl_hash_equal_package;
   h->hash.equality_fun = mkcl_string_E;
 
   h->hash.free_bucket = NULL;
@@ -780,6 +788,7 @@ mk_si_hash_set(MKCL, mkcl_object key, mkcl_object ht, mkcl_object val)
 {
   mkcl_call_stack_check(env);
   /* INV: mkcl_sethash() checks the type of hashtable */
+  mkcl_assert_type_hash_table(env, ht);
   mkcl_sethash(env, key, ht, val);
   mkcl_return_value(val);
 }

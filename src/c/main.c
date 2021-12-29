@@ -276,23 +276,33 @@ static void _mkcl_boot_inner(MKCL)
   /*
    * 1) Initialize symbols and packages
    */
+  {
+    mkcl_object sym_name = mkcl_make_simple_base_string(env, "NIL");
+    mkcl_hash_value sym_hashed_name = mkcl_hash_base_string(sym_name->base_string.self, sym_name->base_string.fillp, 0);
 
-  mk_cl_Cnil_symbol->symbol.t = mkcl_t_symbol;
-  mk_cl_Cnil_symbol->symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;
-  mk_cl_Cnil_symbol->symbol.value = mk_cl_Cnil;
-  mk_cl_Cnil_symbol->symbol.name = mkcl_make_simple_base_string(env, "NIL");
-  mk_cl_Cnil_symbol->symbol.gfdef = mk_cl_Cnil;
-  mk_cl_Cnil_symbol->symbol.plist = mk_cl_Cnil;
-  mk_cl_Cnil_symbol->symbol.sys_plist = mk_cl_Cnil;
-  mk_cl_Cnil_symbol->symbol.hpack = mk_cl_Cnil;
-  mk_cl_Cnil_symbol->symbol.properly_named_class = mk_cl_Cnil;
-  mk_cl_Cnil_symbol->symbol.stype = mkcl_stp_constant;
+    mk_cl_Cnil_symbol->symbol.t = mkcl_t_symbol;
+    mk_cl_Cnil_symbol->symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;
+    mk_cl_Cnil_symbol->symbol.value = mk_cl_Cnil;
+    mk_cl_Cnil_symbol->symbol.name = sym_name;
+    mk_cl_Cnil_symbol->symbol.hashed_name = sym_hashed_name;
+    mk_cl_Cnil_symbol->symbol.gfdef = mk_cl_Cnil;
+    mk_cl_Cnil_symbol->symbol.plist = mk_cl_Cnil;
+    mk_cl_Cnil_symbol->symbol.sys_plist = mk_cl_Cnil;
+    mk_cl_Cnil_symbol->symbol.hpack = mk_cl_Cnil;
+    mk_cl_Cnil_symbol->symbol.properly_named_class = mk_cl_Cnil;
+    mk_cl_Cnil_symbol->symbol.stype = mkcl_stp_constant;
+  }
+
+  {
+    mkcl_object sym_name = mkcl_make_simple_base_string(env, "T");
+    mkcl_hash_value sym_hashed_name = mkcl_hash_base_string(sym_name->base_string.self, sym_name->base_string.fillp, 0);
 
 #if !__clang__
   mk_cl_Ct->symbol.t = mkcl_t_symbol;
   mk_cl_Ct->symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;
   mk_cl_Ct->symbol.value = mk_cl_Ct;
-  mk_cl_Ct->symbol.name = mkcl_make_simple_base_string(env, "T");
+  mk_cl_Ct->symbol.name = sym_name;
+  mk_cl_Ct->symbol.hashed_name = sym_hashed_name;
   mk_cl_Ct->symbol.gfdef = mk_cl_Cnil;
   mk_cl_Ct->symbol.plist = mk_cl_Cnil;
   mk_cl_Ct->symbol.sys_plist = mk_cl_Cnil;
@@ -303,7 +313,8 @@ static void _mkcl_boot_inner(MKCL)
   mkcl_root_symbols[1].data.t = mkcl_t_symbol;
   mkcl_root_symbols[1].data.special_index = MKCL_NOT_A_SPECIAL_INDEX;
   mkcl_root_symbols[1].data.value = mk_cl_Ct;
-  mkcl_root_symbols[1].data.name = mkcl_make_simple_base_string(env, "T");
+  mkcl_root_symbols[1].data.name = sym_name;
+  mkcl_root_symbols[1].data.hashed_name = sym_hashed_name;
   mkcl_root_symbols[1].data.gfdef = mk_cl_Cnil;
   mkcl_root_symbols[1].data.plist = mk_cl_Cnil;
   mkcl_root_symbols[1].data.sys_plist = mk_cl_Cnil;
@@ -311,6 +322,7 @@ static void _mkcl_boot_inner(MKCL)
   mkcl_root_symbols[1].data.properly_named_class = mk_cl_Cnil;
   mkcl_root_symbols[1].data.stype = mkcl_stp_constant;
 #endif
+  }
 
 #if 1
   mkcl_core.packages = mk_cl_Cnil;
