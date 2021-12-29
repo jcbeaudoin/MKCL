@@ -71,7 +71,7 @@ mkcl_CEpackage_error(MKCL, mkcl_object package, char *message, char *continue_me
 }
 
 static bool
-member_string_eq(MKCL, mkcl_object x, mkcl_object l)
+member_string_E(MKCL, mkcl_object x, mkcl_object l)
 {
   /* INV: l is a proper list */
   mkcl_loop_for_on_unsafe(l) {
@@ -82,7 +82,7 @@ member_string_eq(MKCL, mkcl_object x, mkcl_object l)
 }
 
 static inline void
-symbol_remove_package(mkcl_object s, mkcl_object p)
+make_resident_symbol_homeless(mkcl_object s, mkcl_object p)
 {
   if (mkcl_Null(s))
     s = mk_cl_Cnil_symbol;
@@ -91,7 +91,7 @@ symbol_remove_package(mkcl_object s, mkcl_object p)
 }
 
 static inline void
-symbol_add_package(mkcl_object s, mkcl_object p)
+set_symbol_home_if_homeless(mkcl_object s, mkcl_object p)
 {
   if (mkcl_Null(s))
     s = mk_cl_Cnil_symbol;
@@ -301,7 +301,7 @@ mkcl_find_package_nolock(MKCL, mkcl_object name)
     p = MKCL_CONS_CAR(l);
     if (mkcl_string_E(env, name, p->pack.name))
       return p;
-    if (member_string_eq(env, name, p->pack.nicknames))
+    if (member_string_E(env, name, p->pack.nicknames))
       return p;
   } mkcl_end_loop_for_on;
 #ifdef MKCL_RELATIVE_PACKAGE_NAMES
@@ -421,7 +421,6 @@ mkcl_find_symbol_nolock(MKCL, mkcl_object name, mkcl_object p, int *intern_flag)
 {
   mkcl_object s, ul;
 
-  name = mkcl_check_type_string(env, MK_CL_find_symbol, name);
   s = mkcl_gethash_safe(env, name, p->pack.external, MKCL_OBJNULL);
   if (s != MKCL_OBJNULL) {
     *intern_flag = MKCL_SYMBOL_IS_EXTERNAL;
@@ -529,7 +528,7 @@ mkcl_unintern(MKCL, mkcl_object s, mkcl_object p)
     p->pack.shadowings = mkcl_remove_eq(env, s, p->pack.shadowings);
   NOT_SHADOW:
     mkcl_remhash(env, name, hash);
-    symbol_remove_package(s, p);
+    make_resident_symbol_homeless(s, p);
     output = TRUE;
   OUTPUT:;
   } MKCL_UNWIND_PROTECT_EXIT {
@@ -660,36 +659,13 @@ mk_cl_delete_package(MKCL, mkcl_object p)
 	mkcl_unuse_package(env, p, MKCL_CONS_CAR(list));
       } mkcl_end_loop_for_on;
     }
-  MKCL_UNWIND_PROTECT_BEGIN(env) {
-    MKCL_LIBC_NO_INTR(env, (MKCL_PACKAGE_LOCK(p), locked = true));
 
-    for (hash = p->pack.internal, i = 0; i < hash->hash.size; i++)
-      {
-	struct mkcl_hashtable_entry * e = hash->hash.data[i];
-
-	for (; e != NULL; e = e->next)
-	  symbol_remove_package(e->value, p);
-      }
-    mk_cl_clrhash(env, p->pack.internal);
-    for (hash = p->pack.external, i = 0; i < hash->hash.size; i++)
-      {
-	struct mkcl_hashtable_entry * e = hash->hash.data[i];
-
-	for (; e != NULL; e = e->next)
-	  symbol_remove_package(e->value, p);
-      }
-    mk_cl_clrhash(env, p->pack.external);
-    p->pack.shadowings = mk_cl_Cnil;
-    p->pack.name = mk_cl_Cnil;
-  } MKCL_UNWIND_PROTECT_EXIT {
-    if (locked) MKCL_PACKAGE_UNLOCK(p);
-  } MKCL_UNWIND_PROTECT_END;
-
-  /* 2) Only at the end, remove the package from the list of packages. */
+  /* 3) Only at the end, remove the package from the list of packages. */
   locked = false;
   MKCL_UNWIND_PROTECT_BEGIN(env) {
     MKCL_LIBC_NO_INTR(env, (MKCL_PACKAGE_LIST_LOCK(), locked = true));
     mkcl_core.packages = mkcl_remove_eq(env, p, mkcl_core.packages);
+    p->pack.name = mk_cl_Cnil;
   } MKCL_UNWIND_PROTECT_EXIT {
     if (locked) MKCL_PACKAGE_LIST_UNLOCK();
   } MKCL_UNWIND_PROTECT_END;
@@ -748,6 +724,7 @@ mkcl_import2(MKCL, mkcl_object s, mkcl_object p)
   int intern_flag;
   mkcl_object x;
   mkcl_object name = mkcl_symbol_name(env, s);
+  const mkcl_hash_value hashed_name = mkcl_Null(s) ? mk_cl_Cnil_symbol->symbol.hashed_name : s->symbol.hashed_name;
   p = mk_si_coerce_to_package(env, p);
   if (p->pack.closed)
     mkcl_CEpackage_error(env, p,
@@ -777,8 +754,8 @@ mkcl_import2(MKCL, mkcl_object s, mkcl_object p)
       if (intern_flag == MKCL_SYMBOL_IS_INTERNAL || intern_flag == MKCL_SYMBOL_IS_EXTERNAL)
 	goto OUTPUT;
     }
-    mkcl_sethash(env, name, p->pack.internal, s);
-    symbol_add_package(s, p);
+    mkcl_package_sethash_new(env, name, p->pack.internal, s, hashed_name);
+    set_symbol_home_if_homeless(s, p);
   OUTPUT:;
   } MKCL_UNWIND_PROTECT_EXIT {
     if (locked) MKCL_PACKAGE_UNLOCK(p);
@@ -815,11 +792,11 @@ mkcl_shadowing_import(MKCL, mkcl_object s, mkcl_object p)
 	mkcl_remhash(env, name, p->pack.internal);
       else
 	mkcl_remhash(env, name, p->pack.external);
-      symbol_remove_package(x, p);
+      make_resident_symbol_homeless(x, p);
     }
     p->pack.shadowings = MKCL_CONS(env, s, p->pack.shadowings);
     mkcl_sethash(env, name, p->pack.internal, s);
-    symbol_add_package(s, p);
+    set_symbol_home_if_homeless(s, p);
   OUTPUT:;
   } MKCL_UNWIND_PROTECT_EXIT {
     if (locked) MKCL_PACKAGE_UNLOCK(p);
@@ -957,11 +934,11 @@ mkcl_object mk_cl_make_package(MKCL, mkcl_narg narg, mkcl_object pack_name, ...)
     mkcl_object use = MKCL_CONS(env, mkcl_core.lisp_package, mk_cl_Cnil);
     mkcl_object internal_size = MKCL_MAKE_FIXNUM(129);
     mkcl_object external_size = MKCL_MAKE_FIXNUM(129);
-#if 0
-    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, MK_CL_make_package, narg, 1, pack_name, MK_KEY_nicknames, &nicknames, MK_KEY_use, &use);
-#else
-    MKCL_RECEIVE_4_KEYWORD_ARGUMENTS(env, MK_CL_make_package, narg, 1, pack_name, MK_KEY_nicknames, &nicknames, MK_KEY_use, &use, MK_KEY_external_size, &external_size, MK_KEY_internal_size, &internal_size);
-#endif
+    MKCL_RECEIVE_4_KEYWORD_ARGUMENTS(env, MK_CL_make_package, narg, 1, pack_name,
+				     MK_KEY_nicknames, &nicknames,
+				     MK_KEY_use, &use,
+				     MK_KEY_external_size, &external_size,
+				     MK_KEY_internal_size, &internal_size);
     /* INV: mkcl_make_package() performs type checking */
     mkcl_return_value(mkcl_make_sized_package(env, pack_name, nicknames, use, external_size, internal_size));
   }

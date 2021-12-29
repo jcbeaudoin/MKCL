@@ -913,6 +913,13 @@ extern "C" {
   extern MKCL_API mkcl_object mk_si_set_buffering_mode(MKCL, mkcl_object strm, mkcl_object mode);
   extern MKCL_API mkcl_object mk_si_get_buffering_mode(MKCL, mkcl_object strm);
 
+  extern MKCL_API mkcl_object mk_si_ansi_close(MKCL, mkcl_object strm, mkcl_object abort);
+  extern MKCL_API mkcl_object mk_si_ansi_input_stream_p(MKCL, mkcl_object strm);
+  extern MKCL_API mkcl_object mk_si_ansi_output_stream_p(MKCL, mkcl_object strm);
+  extern MKCL_API mkcl_object mk_si_ansi_open_stream_p(MKCL, mkcl_object strm);
+  extern MKCL_API mkcl_object mk_si_ansi_stream_element_type(MKCL, mkcl_object strm);
+  extern MKCL_API mkcl_object mk_si_ansi_streamp(MKCL, mkcl_object strm);
+
   extern MKCL_API bool mkcl_input_stream_p(MKCL, mkcl_object strm);
   extern MKCL_API bool mkcl_output_stream_p(MKCL, mkcl_object strm);
   extern MKCL_API mkcl_object mkcl_stream_element_type(MKCL, mkcl_object strm);

@@ -331,6 +331,11 @@ extern "C" {
   extern mkcl_object mkcl_make_hashtable_for_package(MKCL, mkcl_index hsize);
   extern mkcl_hash_value mkcl_hash_base_string(const mkcl_base_char *s, const mkcl_index len, mkcl_hash_value h);
   extern mkcl_hash_value mkcl_hash_full_string(const mkcl_character *s, const mkcl_index len, mkcl_hash_value h);
+  extern mkcl_hash_value mkcl_hash_equal_package(MKCL, mkcl_object x);
+  extern mkcl_object mkcl_package_gethash(MKCL, const mkcl_object name, const mkcl_object hashtable, const mkcl_hash_value hashed_name);
+
+  extern void mkcl_package_sethash_new(MKCL, const mkcl_object key, const mkcl_object hashtable, const mkcl_object value, const mkcl_hash_value hashed_key);
+
 
 
   /* gfun.d, clos/kernel.lsp */

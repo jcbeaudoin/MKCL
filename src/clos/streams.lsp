@@ -1,7 +1,7 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: CLOS -*-
 ;;;;
 ;;;;  Copyright (c) 2004, Juan Jose Garcia-Ripoll
-;;;;  Copyright (c) 2013-2015, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2013-2015,2021 Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -18,11 +18,7 @@
 ;;;
 ;;; This is the generic function interface for CLOS streams.
 ;;;
-;;; The following is a port of SBCL's implementation of Gray Streams. Minor
-;;; caveats with respect to the proposal are that we rather keep CLOSE,
-;;; STREAM-ELEMENT-TYPE, INPUT-STREAM-P, OUTPUT-STREAM-P and OPEN-STREAM-P
-;;; these as normal functions that call the user extensible MKCL:STREAM-{CLOSE,
-;;; ELT-TYPE, INPUT-P, OUTPUT-P, OPEN-P}.
+;;; The following is a port of SBCL's implementation of Gray Streams.
 ;;;
 
 (defgeneric stream-advance-to-column (stream column)
@@ -48,13 +44,15 @@
   (:documentation
    "Close the given STREAM. No more I/O may be performed, but
   inquiries may still be made. If :ABORT is true, an attempt is made
-  to clean up the side effects of having created the stream."))
+  to clean up the side effects of having created the stream.")
+  (:force-redefinition t))
 
 (defgeneric stream-element-type (stream)
   (:documentation
    "Return a type specifier for the kind of object returned by the
   STREAM. The class FUNDAMENTAL-CHARACTER-STREAM provides a default method
-  which returns CHARACTER."))
+  which returns CHARACTER.")
+  (:force-redefinition t))
 
 (defgeneric stream-finish-output (stream)
   (:documentation
@@ -75,10 +73,12 @@
   STREAM-START-LINE-P and STREAM-TERPRI."))
 
 (defgeneric input-stream-p (stream)
-  (:documentation "Can STREAM perform input operations?"))
+  (:documentation "Can STREAM perform input operations?")
+  (:force-redefinition t))
 
 (defgeneric streamp (stream)
-  (:documentation "Is this object a STREAM?"))
+  (:documentation "Is this object a STREAM?")
+  (:force-redefinition t))
 
 (defgeneric stream-interactive-p (stream)
   (:documentation "Is stream interactive (For instance, a tty)?"))
@@ -104,10 +104,12 @@
   (:documentation
    "Return true if STREAM is not closed. A default method is provided
   by class FUNDAMENTAL-STREAM which returns true if CLOSE has not been
-  called on the stream."))
+  called on the stream.")
+  (:force-redefinition t))
 
 (defgeneric output-stream-p (stream)
-  (:documentation "Can STREAM perform output operations?"))
+  (:documentation "Can STREAM perform output operations?")
+  (:force-redefinition t))
 
 (defgeneric stream-peek-char (stream)
   (:documentation
@@ -297,7 +299,7 @@
   t)
 
 (defmethod close ((stream ansi-stream) &key abort)
-  (cl:close stream :abort abort))
+  (si:ansi-close stream abort))
 
 (defmethod close ((stream t) &key abort)
   (declare (ignore abort))
@@ -310,7 +312,7 @@
   'character)
 
 (defmethod stream-element-type ((stream ansi-stream))
-  (cl:stream-element-type stream))
+  (si:ansi-stream-element-type stream))
 
 (defmethod stream-element-type ((stream t))
   (bug-or-error stream 'stream-element-type))
@@ -359,7 +361,7 @@
   t)
 
 (defmethod input-stream-p ((stream ansi-stream))
-  (cl:input-stream-p stream))
+  (si:ansi-input-stream-p stream))
 
 (defmethod input-stream-p ((stream t))
   (bug-or-error stream 'input-stream-p))
@@ -398,7 +400,7 @@
 ;; OPEN-STREAM-P
 
 (defmethod open-stream-p ((stream ansi-stream))
-  (cl:open-stream-p stream))
+  (si:ansi-open-stream-p stream))
 
 (defmethod open-stream-p ((stream t))
   (bug-or-error stream 'open-stream-p))
@@ -413,7 +415,7 @@
   t)
 
 (defmethod output-stream-p ((stream ansi-stream))
-  (cl:output-stream-p stream))
+  (si:ansi-output-stream-p stream))
 
 (defmethod output-stream-p ((stream t))
   (bug-or-error stream 'output-stream-p))
@@ -528,8 +530,10 @@
 
 ;; FILE-POSITION
 
-(defmethod stream-file-position ((stream ansi-stream) &optional position)
-  (file-position stream position))
+(defmethod stream-file-position ((stream ansi-stream) &optional (position nil position-p))
+  (if position-p
+      (file-position stream position)
+    (file-position stream)))
 
 (defmethod stream-file-position ((stream t) &optional position)
   (declare (ignore stream position))
@@ -615,29 +619,3 @@
 (defmethod stream-terpri ((stream t))
   (bug-or-error stream 'stream-terpri))
 
-(eval-when (:compile-toplevel :execute)
-  (defconstant +conflicting-symbols+ '(cl:close cl:stream-element-type cl:input-stream-p
-				       cl:open-stream-p cl:output-stream-p cl:streamp)))
-
-(let ((p (find-package "GRAY")))
-  (export '(nil) p)
-  (do-external-symbols (s (find-package "COMMON-LISP"))
-    (unless (member s '#.+conflicting-symbols+)
-      (export s p))))
-
-(defun redefine-cl-functions ()
-  "Some functions in CL package are expected to be generic. We make them so."
-  (let* ((cl-pkg (find-package "COMMON-LISP"))
-	 (cl-was-closed (si::package-closed-p cl-pkg)))
-    (si::reopen-package cl-pkg)
-    (loop for cl-symbol in '#.+conflicting-symbols+
-       with gray-package = (find-package "GRAY")
-       do (unless (typep (fdefinition cl-symbol) 'generic-function) 
-	    (let ((gray-symbol (find-symbol (symbol-name cl-symbol) gray-package)))
-	      (setf (fdefinition cl-symbol) (fdefinition gray-symbol))
-	      (unintern gray-symbol gray-package)
-	      (import cl-symbol gray-package)
-	      (export cl-symbol gray-package))))
-    (when cl-was-closed
-      (si::close-package cl-pkg))
-    nil))

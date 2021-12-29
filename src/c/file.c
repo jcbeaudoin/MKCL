@@ -1451,13 +1451,13 @@ mk_clos_stream_finish_output(MKCL, mkcl_object strm)
 static bool
 mk_clos_stream_input_p(MKCL, mkcl_object strm)
 {
-  return !mkcl_Null(mkcl_funcall1(env, MK_GRAY_input_stream_p->symbol.gfdef, strm));
+  return !mkcl_Null(mkcl_funcall1(env, MK_CL_input_stream_p->symbol.gfdef, strm));
 }
 
 static bool
 mk_clos_stream_output_p(MKCL, mkcl_object strm)
 {
-  return !mkcl_Null(mkcl_funcall1(env, MK_GRAY_output_stream_p->symbol.gfdef, strm));
+  return !mkcl_Null(mkcl_funcall1(env, MK_CL_output_stream_p->symbol.gfdef, strm));
 }
 
 static bool
@@ -1469,10 +1469,11 @@ mk_clos_stream_interactive_p(MKCL, mkcl_object strm)
 static mkcl_object
 mk_clos_stream_element_type(MKCL, mkcl_object strm)
 {
-  return mkcl_funcall1(env, MK_GRAY_stream_element_type->symbol.gfdef, strm);
+  return mkcl_funcall1(env, MK_CL_stream_element_type->symbol.gfdef, strm);
 }
 
 #define mk_clos_stream_length not_a_file_stream
+
 static mkcl_object mk_clos_stream_get_position(MKCL, mkcl_object strm)
 {
   return mkcl_funcall1(env, MK_GRAY_stream_file_position->symbol.gfdef, strm);
@@ -1497,7 +1498,7 @@ mk_clos_stream_column(MKCL, mkcl_object strm)
 static mkcl_object
 mk_clos_stream_close(MKCL, mkcl_object strm)
 {
-  return mkcl_funcall1(env, MK_GRAY_close->symbol.gfdef, strm);
+  return mkcl_funcall1(env, MK_CL_close->symbol.gfdef, strm);
 }
 
 static const struct mkcl_file_ops mk_clos_stream_ops = {
@@ -4935,17 +4936,29 @@ mkcl_object mk_cl_file_position(MKCL, mkcl_narg narg, mkcl_object file_stream, .
 }
 
 mkcl_object
-mk_cl_input_stream_p(MKCL, mkcl_object strm)
+mk_si_ansi_input_stream_p(MKCL, mkcl_object strm)
 {
   mkcl_call_stack_check(env);
   mkcl_return_value((mkcl_input_stream_p(env, strm) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
 mkcl_object
-mk_cl_output_stream_p(MKCL, mkcl_object strm)
+mk_cl_input_stream_p(MKCL, mkcl_object strm)
+{
+  return(mk_si_ansi_input_stream_p(env, strm));
+}
+
+mkcl_object
+mk_si_ansi_output_stream_p(MKCL, mkcl_object strm)
 {
   mkcl_call_stack_check(env);
   mkcl_return_value((mkcl_output_stream_p(env, strm) ? mk_cl_Ct : mk_cl_Cnil));
+}
+
+mkcl_object
+mk_cl_output_stream_p(MKCL, mkcl_object strm)
+{
+  return(mk_si_ansi_output_stream_p(env, strm));
 }
 
 mkcl_object
@@ -4956,11 +4969,11 @@ mk_cl_interactive_stream_p(MKCL, mkcl_object strm)
 }
 
 mkcl_object
-mk_cl_open_stream_p(MKCL, mkcl_object strm)
+mk_si_ansi_open_stream_p(MKCL, mkcl_object strm)
 {
   mkcl_call_stack_check(env);
   if (MKCL_INSTANCEP(strm)) {
-    return mkcl_funcall1(env, MK_GRAY_open_stream_p->symbol.gfdef, strm);
+    mkcl_return_value(mk_cl_Cnil);
   }
   if (mkcl_type_of(strm) != mkcl_t_stream)
     mkcl_FEwrong_type_argument(env, MK_CL_stream, strm);
@@ -4968,10 +4981,23 @@ mk_cl_open_stream_p(MKCL, mkcl_object strm)
 }
 
 mkcl_object
-mk_cl_stream_element_type(MKCL, mkcl_object strm)
+mk_cl_open_stream_p(MKCL, mkcl_object strm)
+{
+  return(mk_si_ansi_open_stream_p(env, strm));
+}
+
+
+mkcl_object
+mk_si_ansi_stream_element_type(MKCL, mkcl_object strm)
 {
   mkcl_call_stack_check(env);
   mkcl_return_value(mkcl_stream_element_type(env, strm));
+}
+
+mkcl_object
+mk_cl_stream_element_type(MKCL, mkcl_object strm)
+{
+  return(mk_si_ansi_stream_element_type(env, strm));
 }
 
 mkcl_object
@@ -4997,11 +5023,18 @@ mk_cl_stream_external_format(MKCL, mkcl_object strm)
 }
 
 mkcl_object
+mk_si_ansi_streamp(MKCL, mkcl_object strm)
+{
+  mkcl_call_stack_check(env);
+  mkcl_return_value(((mkcl_type_of(strm) == mkcl_t_stream) ? mk_cl_Ct : mk_cl_Cnil));
+}
+
+mkcl_object
 mk_cl_streamp(MKCL, mkcl_object strm)
 {
   mkcl_call_stack_check(env);
   if (MKCL_INSTANCEP(strm)) {
-    return mkcl_funcall1(env, MK_GRAY_streamp->symbol.gfdef, strm);
+    return mkcl_funcall1(env, MK_CL_streamp->symbol.gfdef, strm);
   }
   mkcl_return_value(((mkcl_type_of(strm) == mkcl_t_stream) ? mk_cl_Ct : mk_cl_Cnil));
 }
@@ -5305,12 +5338,18 @@ mkcl_object mk_cl_open(MKCL, mkcl_narg narg, mkcl_object filename, ...)
   }
  }
 
+mkcl_object mk_si_ansi_close(MKCL, mkcl_object strm, mkcl_object abort)
+{
+  /* We simply drop 'abort' although ANSI-CL says to do otherwise. Fix it someday. JCB */
+  mkcl_return_value(stream_dispatch_table(env, strm)->close(env, strm));
+}
+
 mkcl_object mk_cl_close(MKCL, mkcl_narg narg, mkcl_object strm, ...)
 {
   mkcl_object abort = mk_cl_Cnil;
 
   MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, MK_CL_close, narg, 1, strm, MK_KEY_abort, &abort);
-  mkcl_return_value(stream_dispatch_table(env, strm)->close(env, strm));
+  mkcl_return_value(mk_si_ansi_close(env, strm, abort));
 }
 
 /**********************************************************************
