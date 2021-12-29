@@ -12,7 +12,7 @@
 ;;;;    See file '../Copyright' for full details.
 
 ;;;; BYTECMP Fake compiler which is used as a replacement when we do not
-;;;;         want or can have the real native compiler.
+;;;;         want or cannot have the real native compiler.
 
 (defpackage "BYTE-COMPILER")
 
@@ -82,11 +82,7 @@
 
 (si::close-package (find-package :cl))
 
-(pushnew :ecl-bytecmp *features*)
+(pushnew :mkcl-bytecmp *features*)
 
 (provide "BYTECMP")
-
-(in-package :cl-user) ;; put something safe into *package* before we nuke our transient package.
-
-(eval-when (:compile-toplevel :load-toplevel :execute) (delete-package "BYTE-COMPILER"))
 
