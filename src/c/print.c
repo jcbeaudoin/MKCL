@@ -830,16 +830,16 @@ write_symbol(MKCL, mkcl_object x, mkcl_object stream)
   mkcl_object print_package = mkcl_symbol_value(env, MK_SI_DYNVAR_print_package);
   mkcl_object readtable = mkcl_current_readtable(env);
   mkcl_object print_case = mkcl_print_case(env);
-  mkcl_object package;
+  mkcl_object hpackage;
   mkcl_object name;
   int intern_flag;
   bool print_readably = mkcl_print_readably(env);
 
   if (mkcl_Null(x)) {
-    package = mk_cl_Cnil_symbol->symbol.hpack;
+    hpackage = mk_cl_Cnil_symbol->symbol.hpack;
     name = mk_cl_Cnil_symbol->symbol.name;
   } else {
-    package = x->symbol.hpack;
+    hpackage = x->symbol.hpack;
     name = x->symbol.name;
   }
 
@@ -852,29 +852,27 @@ write_symbol(MKCL, mkcl_object x, mkcl_object stream)
    * be possible to recover the same symbol by reading it with
    * the standard readtable (which has readtable-case = :UPCASE)
    */
-  if (mkcl_Null(package)) {
+  if (mkcl_Null(hpackage)) {
     if (mkcl_print_gensym(env) || print_readably)
       write_str(env, "#:", stream);
-  } else if (package == mkcl_core.keyword_package) {
+  } else if (hpackage == mkcl_core.keyword_package) {
     mkcl_write_char(env, ':', stream);
-  } else if ((print_package != mk_cl_Cnil && package != print_package)
+  } else if ((print_package != mk_cl_Cnil && hpackage != print_package)
 	     || (mkcl_find_symbol(env, x, mkcl_current_package(env), &intern_flag)!=x
 		 && x != mk_cl_Cnil_symbol)
 	     || intern_flag == 0)
     {
-      mkcl_object name = package->pack.name;
-      write_symbol_string(env, name, readtable->readtable.read_case,
-			  print_case, stream,
-			  needs_to_be_escaped(env, name, readtable, print_case));
-      if ((mkcl_find_symbol(env, x, package, &intern_flag) != x) && x != mk_cl_Cnil_symbol)
-	{
-#if 0
-	  mkcl_lose(env, "can't print symbol"); /* A bit too radical. JCB */
-#else
-	  mkcl_FEerror(env, "Corrupted symbol, symbol-name = ~S", 1, mkcl_symbol_name(env, x));
-#endif
-	}
-      if ((print_package != mk_cl_Cnil && package != print_package)
+      mkcl_object hpack_name = hpackage->pack.name;
+
+      if (mkcl_Null(hpack_name))
+	write_str(env, "#<package anonymous>", stream);
+      else
+	write_symbol_string(env, hpack_name, readtable->readtable.read_case,
+			    print_case, stream,
+			    needs_to_be_escaped(env, hpack_name, readtable, print_case));
+      if ((mkcl_find_symbol(env, x, hpackage, &intern_flag) != x) && x != mk_cl_Cnil_symbol)
+	mkcl_FEerror(env, "Corrupted symbol, symbol-name = ~S", 1, name);
+      if ((print_package != mk_cl_Cnil && hpackage != print_package)
 	  || intern_flag == MKCL_SYMBOL_IS_INTERNAL) {
 	write_str(env, "::", stream);
       } else if (intern_flag == MKCL_SYMBOL_IS_EXTERNAL) {
