@@ -1,7 +1,7 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: CLOS -*-
 ;;;;
 ;;;;  Copyright (c) 1992, Giuseppe Attardi.
-;;;;  Copyright (c) 2010-2015, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2015,2021 Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -73,7 +73,7 @@
 			(rest option))
 		       (:method-combination
 			(rest option))
-		       ((:documentation :generic-function-class :method-class)
+		       ((:documentation :generic-function-class :method-class :force-redefinition)
 			(unless (endp (cddr option))
 			  (simple-program-error "Too many arguments for option ~A"
 						option-name))
@@ -257,24 +257,26 @@
          (apply #'make-instance generic-function-class :name name args)
          t)))
 
-(defun ensure-generic-function (name &rest args &key &allow-other-keys)
+(defun ensure-generic-function (name &rest args &key (force-redefinition nil forced) &allow-other-keys)
+  ;; keyarg :force-redefinition is a MKCL specific extension. JCB
   ;;(declare (dynamic-extent args))
   (with-metadata-lock
    (let ((gfun nil)
 	 (traced nil))
      (when (setf traced (get-sysprop name 'SI::TRACED))
        (setf gfun (fdefinition traced)))
+     (when forced (remf args :force-redefinition))
      (cond ((not (legal-generic-function-name-p name))
 	    (simple-program-error "~A is not a valid generic function name" name))
-	   ((not (fboundp name))
+	   ((and (symbolp name) (special-operator-p name))
+	    (simple-program-error "The special operator ~A is not a valid name ~
+                                  for a generic function" name))
+	   ((or (not (fboundp name)) force-redefinition)
 	    (setf (fdefinition (or traced name))
 		  (apply #'ensure-generic-function-using-class gfun name args)))
 	   ((si::generic-function-p (or gfun (setf gfun (fdefinition name))))
 	    (apply #'ensure-generic-function-using-class gfun name args))
-	   ((special-operator-p name)
-	    (simple-program-error "The special operator ~A is not a valid name ~
-                                  for a generic function" name))
-	   ((macro-function name)
+	   ((and (symbolp name) (macro-function name))
 	    (simple-program-error "The symbol ~A is bound to a macro and is not a valid name ~
                                   for a generic function" name))
 	   (t
