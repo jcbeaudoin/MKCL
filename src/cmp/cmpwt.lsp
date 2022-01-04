@@ -300,11 +300,12 @@
 	   x)
 	  (x
 	   (second x))
+	  ((null object) "mk_cl_Cnil")
 	  #-windows ;; This code does not work on MS-Windows.
 	  ((and (not duplicate)
 		(symbolp object)
 		(multiple-value-setq (found x) (si::mangle-name object))) 
-	   x) ;; It was a well-known static symbol.
+	   (si::str+ "((mkcl_object) &" x ")")) ;; It was a well-known static symbol.
 	  (t
 	   (setq x (list vv next-ndx))
 	   (vector-push-extend (list object x next-ndx) array)

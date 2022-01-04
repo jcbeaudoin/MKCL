@@ -208,9 +208,9 @@
     (wt-nl "Cblock->cblock.data_text = \"" (init-name-tag name) "\";")
     
     (when si::*compiler-constants*
-      (wt-nl "{ int i; mkcl_object data = mkcl_symbol_value(env, "
+      (wt-nl "{ int i; mkcl_object data = mkcl_symbol_value(env, ((mkcl_object) &"
 	     (nth-value 1 (si::mangle-name 'si::*compiler-constants*))
-	     ");")
+	     "));")
       (wt-nl "for (i = 0; i < VM; i++) VV[i] = data->vector.self.t[i]; }")
       ) 
 
