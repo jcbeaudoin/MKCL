@@ -282,7 +282,7 @@ mkcl_object mk_cl_find_class(MKCL, mkcl_narg narg, mkcl_object name, ...)
 mkcl_object mk_si_set_class_proper_name(MKCL, mkcl_object sym, mkcl_object class)
 {
   mkcl_call_stack_check(env);
-  if (mkcl_Null(class) || class == mk_cl_Cnil_symbol)
+  if (mkcl_Null(class) || class == ((mkcl_object) &mk_cl_Cnil_symbol))
     class = mk_cl_Cnil;
   else if (!MKCL_INSTANCEP(class))
     mkcl_FEtype_error_instance(env, class);
@@ -392,7 +392,7 @@ mk_cl_class_of(MKCL, mkcl_object x)
   case mkcl_t_character:
     index = MKCL_BUILTIN_CHARACTER; break;
   case mkcl_t_symbol:
-    if ( x == mk_cl_Cnil_symbol )
+    if ( x == ((mkcl_object) &mk_cl_Cnil_symbol) )
       index = MKCL_BUILTIN_NULL;
     else if (x->symbol.hpack == mkcl_core.keyword_package)
       index = MKCL_BUILTIN_KEYWORD;

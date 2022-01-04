@@ -426,7 +426,7 @@ mk_cl_type_of(MKCL, mkcl_object x)
     t = MK_CL_cons;
     break;
   case mkcl_t_symbol:
-    if ( x == mk_cl_Cnil_symbol )
+    if ( x == ((mkcl_object) &mk_cl_Cnil_symbol) )
       t = MK_CL_null;
     else if (x == mk_cl_Ct)
       t = MK_CL_boolean;

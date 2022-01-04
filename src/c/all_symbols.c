@@ -5,7 +5,9 @@
 #include <string.h>
 #include <mkcl/internal.h>
 
-#define PACKAGE_FIELD_BIT_OFFSET 3
+#include <stdio.h>
+
+#define PACKAGE_FIELD_BIT_OFFSET 5
 
 #define CL_PACKAGE        (0 << PACKAGE_FIELD_BIT_OFFSET)
 #define SI_PACKAGE        (1 << PACKAGE_FIELD_BIT_OFFSET)
@@ -19,10 +21,11 @@
 #define ORDINARY_SYMBOL 0
 #define CONSTANT_SYMBOL 1
 #define SPECIAL_SYMBOL 2
-#define FORM_SYMBOL 3
-#define SYMBOL_TYPE_MASK 3
+#define FORM_SYMBOL 4
+#define MACRO_SYMBOL 8
+#define SYMBOL_TYPE_MASK 15
 
-#define EXPORT 4
+#define EXPORT 16
 #define EXPORT_MASK EXPORT
 
 #define CL_ORDINARY	  CL_PACKAGE | EXPORT | ORDINARY_SYMBOL
@@ -302,22 +305,20 @@ mkcl_object mk_si_mangle_symbol(MKCL, mkcl_object symbol)
 mkcl_object mk_si_mangle_name(MKCL, mkcl_object symbol)
 {
   mkcl_call_stack_check(env);
-  if (symbol == mk_cl_Cnil)
-    { mkcl_return_2_values(mk_cl_Ct, mkcl_make_simple_base_string(env, "mk_cl_Cnil")); }
-  else if (symbol == mk_cl_Ct)
-    { mkcl_return_2_values(mk_cl_Ct, mkcl_make_simple_base_string(env, "mk_cl_Ct")); }
+  if (MKCL_SYMBOLP(symbol))
+    {
+      mkcl_object output = symbol->symbol.C_name;
 
-  mkcl_index p  = (struct mkcl_symbol *)symbol - mkcl_root_symbols;
-
-  if (/* p >= 0 && */ p <= mkcl_root_symbols_count) {
-    mkcl_object output = mk_cl_format(env, 4, mk_cl_Cnil,
-				      mkcl_make_simple_base_string(env, "MKCL_SYM(~S,~D)"),
-				      mkcl_symbol_name(env, symbol), MKCL_MAKE_FIXNUM(p));
-    mkcl_return_2_values(mk_cl_Ct, output);
-  }
-
-  mkcl_object output = mangle_full_symbol_name(env, symbol, "_symbol");  
-  mkcl_return_2_values(mk_cl_Cnil, output);
+      if (!mkcl_Null(output))
+	{ mkcl_return_2_values(mk_cl_Ct, output); }
+      else
+	{
+	  output = mangle_full_symbol_name(env, symbol, "_symbol");
+	  mkcl_return_2_values(mk_cl_Cnil, output);
+	}
+    }
+  else
+    mkcl_return_value(mk_cl_Cnil);
 }
 
 mkcl_object mk_si_mangle_function_name(MKCL, mkcl_object symbol)
@@ -327,9 +328,10 @@ mkcl_object mk_si_mangle_function_name(MKCL, mkcl_object symbol)
   mkcl_object minarg = MKCL_MAKE_FIXNUM(0);
 
   mkcl_call_stack_check(env);
-  if (mkcl_Null(symbol)) symbol = mk_cl_Cnil_symbol;
+  if (mkcl_Null(symbol)) symbol = ((mkcl_object) &mk_cl_Cnil_symbol);
   else if (!MKCL_SYMBOLP(symbol)) { mkcl_return_2_values(mk_cl_Cnil, mk_cl_Cnil); }
 
+#if 1
   if (((mkcl_object) &(mkcl_root_symbols[0])) <= symbol
       && symbol < ((mkcl_object) &(mkcl_root_symbols[NB_STATIC_SYMBOLS-1])))
     {
@@ -352,26 +354,44 @@ mkcl_object mk_si_mangle_function_name(MKCL, mkcl_object symbol)
 	}
       mkcl_return_4_values(found, output, minarg, maxarg);
     }
+#else
+  mkcl_object fun = symbol->symbol.gfdef;
+
+  if (mkcl_type_of(fun) == mkcl_t_cfun)
+    {
+      mkcl_narg narg = fun->cfun.narg;
+      mkcl_object output = fun->cfun.C_name;
+
+      if (mkcl_Null(output))
+	found = mk_cl_Cnil;
+      else
+	{ found = mk_cl_Ct; minarg = maxarg = MKCL_MAKE_FIXNUM(narg); }
+
+      mkcl_return_4_values(found, output, minarg, maxarg);
+    }
+#endif
   
   mkcl_object output = mangle_full_symbol_name(env, symbol, "");
   mkcl_return_4_values(found, output, minarg, maxarg);
 }
 
-
 static void
-make_this_symbol(MKCL, int i, struct mkcl_symbol * symbol, int code, const char *name,
+make_this_symbol(MKCL, int i, struct mkcl_symbol * symbol, int code,
+		 const char *name,
 		 mkcl_objectfn fun, int narg, mkcl_object value)
 {
   enum mkcl_stype stp;
   mkcl_object package;
   bool form = FALSE;
+  bool macro = FALSE;
   bool export = FALSE;
 
   switch (code & SYMBOL_TYPE_MASK) {
   case ORDINARY_SYMBOL: stp = mkcl_stp_ordinary; break;
   case SPECIAL_SYMBOL: stp = mkcl_stp_special; break;
   case CONSTANT_SYMBOL: stp = mkcl_stp_constant; break;
-  case FORM_SYMBOL: form = 1; stp = mkcl_stp_ordinary; break;
+  case FORM_SYMBOL: form = TRUE; stp = mkcl_stp_ordinary; break;
+  case MACRO_SYMBOL: macro = TRUE; stp = mkcl_stp_ordinary; break;
   default: mkcl_lose(env, "Unknown symbol type in make_this_symbol");
   }
   export = code & EXPORT_MASK;
@@ -388,7 +408,17 @@ make_this_symbol(MKCL, int i, struct mkcl_symbol * symbol, int code, const char 
   }
 
   {
+    const char format[] = "mkcl_root_symbols[%d]";
+#if 1
+    const int C_name_size = sizeof(format) + 5; /* should be good enough for 10k symbols. JCB */
+#else
+    const int C_name_size = snprintf(NULL, 0, format, i); /* safer but slower. JCB */
+#endif
+    char * C_name = mkcl_alloc(env, C_name_size);
+    snprintf(C_name, C_name_size, format, i);
     mkcl_object _name = mkcl_make_simple_base_string(env, (char *) name);
+    mkcl_object _C_name = mkcl_make_simple_base_string(env, (char *) C_name);
+
     symbol->t = mkcl_t_symbol;
     symbol->special_index = MKCL_NOT_A_SPECIAL_INDEX;
     symbol->value = MKCL_OBJNULL;
@@ -401,22 +431,17 @@ make_this_symbol(MKCL, int i, struct mkcl_symbol * symbol, int code, const char 
     symbol->hpack = package;
     symbol->name = _name;
     symbol->hashed_name = mkcl_hash_base_string(_name->base_string.self, _name->base_string.fillp, 0);
+    symbol->C_name = _C_name; /* just for now. */
   }
 
   if (package == mkcl_core.keyword_package) {
     mkcl_package_sethash_new(env, symbol->name, package->pack.external, (mkcl_object) symbol, symbol->hashed_name);
     symbol->value = (mkcl_object) symbol;
   } else {
-    int intern_flag;
+    mkcl_object htable = export ? package->pack.external : package->pack.internal;
+
+    mkcl_package_sethash_new(env, symbol->name, htable, (mkcl_object) symbol, symbol->hashed_name);
     symbol->value = value;
-    if (mkcl_find_symbol(env, symbol->name, package, &intern_flag) != mk_cl_Cnil
-	&& intern_flag == MKCL_SYMBOL_IS_INHERITED) {
-      mkcl_shadowing_import(env, (mkcl_object) symbol, package);
-    } else {
-      mkcl_import2(env, (mkcl_object) symbol, package);
-    }
-    if (export)
-      mkcl_export2(env, (mkcl_object) symbol, package);
   }
   if (form) {
     symbol->stype |= mkcl_stp_special_form;
@@ -428,6 +453,7 @@ make_this_symbol(MKCL, int i, struct mkcl_symbol * symbol, int code, const char 
       f = mkcl_make_cfun_va(env, fun, (mkcl_object) symbol, MKCL_OBJNULL, NULL);
     }
     symbol->gfdef = f;
+    if (macro) symbol->stype |= mkcl_stp_macro;
   }
 }
 

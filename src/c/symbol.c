@@ -27,7 +27,7 @@ mkcl_symbol_package(MKCL, mkcl_object s)
 {
   do {
     if (mkcl_Null(s))
-      return mk_cl_Cnil_symbol->symbol.hpack;
+      return mk_cl_Cnil_symbol.hpack;
     if (mkcl_type_of(s) == mkcl_t_symbol)
       return s->symbol.hpack;
     s = mkcl_type_error(env, MK_CL_symbol_package, "symbol", s, MK_CL_symbol);
@@ -39,7 +39,7 @@ mkcl_symbol_type(MKCL, mkcl_object s)
 {
   do {
     if (mkcl_Null(s))
-      return mk_cl_Cnil_symbol->symbol.stype;
+      return mk_cl_Cnil_symbol.stype;
     if (mkcl_type_of(s) == mkcl_t_symbol)
       return s->symbol.stype;
     s = mkcl_type_error(env, MK_CL_symbol_name, "symbol", s, MK_CL_symbol);
@@ -51,7 +51,7 @@ mkcl_symbol_type_set(MKCL, mkcl_object s, int type)
 {
   do {
     if (mkcl_Null(s)) {
-      mk_cl_Cnil_symbol->symbol.stype = type;
+      mk_cl_Cnil_symbol.stype = type;
       return;
     }
     if (mkcl_type_of(s) == mkcl_t_symbol) {
@@ -67,7 +67,7 @@ mkcl_symbol_name(MKCL, mkcl_object s)
 {
   do {
     if (mkcl_Null(s)) {
-      return mk_cl_Cnil_symbol->symbol.name;
+      return mk_cl_Cnil_symbol.name;
     }
     if (mkcl_type_of(s) == mkcl_t_symbol) {
       return s->symbol.name;
@@ -81,7 +81,7 @@ mkcl_symbol_plist(MKCL, mkcl_object s)
 {
   do {
     if (mkcl_Null(s)) {
-      return &mk_cl_Cnil_symbol->symbol.plist;
+      return &mk_cl_Cnil_symbol.plist;
     }
     if (mkcl_type_of(s) == mkcl_t_symbol) {
       return &s->symbol.plist;
@@ -150,6 +150,7 @@ mk_cl_make_symbol(MKCL, mkcl_object str)
     x->symbol.stype = mkcl_stp_ordinary;
     x->symbol.sys_plist = mk_cl_Cnil;
     x->symbol.properly_named_class = mk_cl_Cnil;
+    x->symbol.C_name = mk_cl_Cnil;
 
     mkcl_return_value(x);
   }
@@ -385,7 +386,7 @@ mkcl_object mk_cl_copy_symbol(MKCL, mkcl_narg narg, mkcl_object sym, ...)
     MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_copy_symbol, narg, 1, sym, &cp);
 
     if (mkcl_Null(sym))
-      sym = mk_cl_Cnil_symbol;
+      sym = ((mkcl_object) &mk_cl_Cnil_symbol);
     x = mk_cl_make_symbol(env, mkcl_symbol_name(env, sym));
     if (!mkcl_Null(cp)) {
       x->symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;

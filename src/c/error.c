@@ -215,7 +215,7 @@ mkcl_FEundefined_function(MKCL, mkcl_object fname)
 void
 mkcl_FEwrong_num_arguments(MKCL, mkcl_object fun, mkcl_narg min, mkcl_narg max, mkcl_narg narg)
 {
-  if (MKCL_FIXNUMP(fun)) {
+  if (MKCL_FIXNUMP(fun)) { /* Used by dpp only? JCB */
     fun = (mkcl_object)(mkcl_root_symbols + mkcl_fixnum_to_word(fun));
   }
   mkcl_FEprogram_error(env, "Wrong number of arguments passed to function ~S, need ~D to ~D but ~D passed",

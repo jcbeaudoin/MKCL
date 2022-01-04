@@ -579,7 +579,7 @@ mkcl_interpret(MKCL, mkcl_object frame, mkcl_object lex_env, mkcl_object bytecod
 	reg0 = mkcl_interpret(env, frame, reg0->bclosure.lex, reg0->bclosure.code);
 	break;
       case mkcl_t_null:
-	reg0 = mk_cl_Cnil_symbol;
+	reg0 = ((mkcl_object) &mk_cl_Cnil_symbol);
 	goto AGAIN;
       default:
 	mkcl_FEinvalid_function(env, reg0);

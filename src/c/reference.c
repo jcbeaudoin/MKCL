@@ -30,7 +30,7 @@ mk_cl_symbol_function(MKCL, mkcl_object sym)
 {
   mkcl_call_stack_check(env);
   if (mkcl_Null(sym))
-    mkcl_FEundefined_function(env, mk_cl_Cnil_symbol);
+    mkcl_FEundefined_function(env, ((mkcl_object) &mk_cl_Cnil_symbol));
   else
     {
       int sym_type = mkcl_symbol_type(env, sym);
@@ -59,7 +59,7 @@ mk_cl_fboundp(MKCL, mkcl_object fname)
 {
   mkcl_call_stack_check(env);
   if (mkcl_Null(fname))
-    fname = mk_cl_Cnil_symbol;
+    fname = ((mkcl_object) &mk_cl_Cnil_symbol);
 
   if (MKCL_SYMBOLP(fname)) {
     mkcl_return_value((((fname->symbol.stype & mkcl_stp_special_form)
@@ -84,7 +84,7 @@ mkcl_fdefinition(MKCL, mkcl_object fun)
   mkcl_object output;
 
   if (mkcl_Null(fun))
-    fun = mk_cl_Cnil_symbol;
+    fun = ((mkcl_object) &mk_cl_Cnil_symbol);
 
   t = mkcl_type_of(fun);
   if (t == mkcl_t_symbol) {

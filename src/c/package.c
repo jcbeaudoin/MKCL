@@ -85,7 +85,7 @@ static inline void
 make_resident_symbol_homeless(mkcl_object s, mkcl_object p)
 {
   if (mkcl_Null(s))
-    s = mk_cl_Cnil_symbol;
+    s = ((mkcl_object) &mk_cl_Cnil_symbol);
   if (s->symbol.hpack == p)
     s->symbol.hpack = mk_cl_Cnil;
 }
@@ -94,7 +94,7 @@ static inline void
 set_symbol_home_if_homeless(mkcl_object s, mkcl_object p)
 {
   if (mkcl_Null(s))
-    s = mk_cl_Cnil_symbol;
+    s = ((mkcl_object) &mk_cl_Cnil_symbol);
   if (s->symbol.hpack == mk_cl_Cnil)
     s->symbol.hpack = p;
 }
@@ -724,7 +724,7 @@ mkcl_import2(MKCL, mkcl_object s, mkcl_object p)
   int intern_flag;
   mkcl_object x;
   mkcl_object name = mkcl_symbol_name(env, s);
-  const mkcl_hash_value hashed_name = mkcl_Null(s) ? mk_cl_Cnil_symbol->symbol.hashed_name : s->symbol.hashed_name;
+  const mkcl_hash_value hashed_name = mkcl_Null(s) ? mk_cl_Cnil_symbol.hashed_name : s->symbol.hashed_name;
   p = mk_si_coerce_to_package(env, p);
   if (p->pack.closed)
     mkcl_CEpackage_error(env, p,

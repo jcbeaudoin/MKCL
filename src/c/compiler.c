@@ -2188,6 +2188,7 @@ compile_form(MKCL, mkcl_object stmt, int flags)
    */
   if (c_env->stepping)
     asm_op2c(env, OP_STEPIN, stmt);
+#if 0 /* Just an optimization? JCB */
   if (function >= (mkcl_object)mkcl_root_symbols
       && function < (mkcl_object)(mkcl_root_symbols + mkcl_root_symbols_count))
     {
@@ -2212,6 +2213,7 @@ compile_form(MKCL, mkcl_object stmt, int flags)
 	  }
 	}
     }
+#endif
   new_flags = c_call(env, stmt, flags);
  OUTPUT:
   /*

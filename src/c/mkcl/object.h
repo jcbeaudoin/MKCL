@@ -288,10 +288,11 @@ extern "C" {
 
 #define mk_cl_Cnil              ((mkcl_object) NULL)
 
-#define	mk_cl_Cnil_symbol	((mkcl_object) (mkcl_root_symbols+0))
-#define	mk_cl_Ct		((mkcl_object) (mkcl_root_symbols+1))
-#define MKCL_UNBOUND		((mkcl_object) (mkcl_root_symbols+2))
-#define MKCL_PROTECT_TAG	((mkcl_object) (mkcl_root_symbols+3))
+#define	mk_cl_Cnil_symbol	mkcl_root_symbols[0]
+#define	mk_cl_Ct_symbol		mkcl_root_symbols[1]
+#define	mk_cl_Ct		((mkcl_object) &mk_cl_Ct_symbol)
+#define MKCL_UNBOUND		((mkcl_object) &mkcl_root_symbols[2])
+#define MKCL_PROTECT_TAG	((mkcl_object) &mkcl_root_symbols[3])
 
 #define MKCL_NOT_A_SPECIAL_INDEX (~((mkcl_index)0))
 
@@ -307,6 +308,7 @@ extern "C" {
     mkcl_object sys_plist;             /* system property list */
     mkcl_index special_index;
     mkcl_hash_value hashed_name;   /* hash value of name */
+    mkcl_object C_name;            /* name that directly denotes this mkcl_symbol object in C. */
   };
 #define MKCL_SYM_FUN(sym)	((sym)->symbol.gfdef)
 
@@ -821,6 +823,7 @@ extern "C" {
     mkcl_object * fun_ref_syms; /* pointer to a vector of symbols denoting referenced functions. */
     mkcl_object * fun_refs;     /* pointer to a vector of function objects */
     mkcl_object owner;          /* ignored by output-cfuns */
+    mkcl_object C_name;         /* name that directly denotes this mkcl_cfun object in C. */
   };
 
   struct mkcl_cclosure {	/*  compiled closure header  */

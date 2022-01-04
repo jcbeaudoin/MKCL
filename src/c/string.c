@@ -394,7 +394,7 @@ mk_si_copy_to_simple_base_string(MKCL, mkcl_object x)
     y = mkcl_coerce_list_to_simple_base_string(env, x);
     break;
   case mkcl_t_null:
-    x = mk_cl_Cnil_symbol->symbol.name;
+    x = mk_cl_Cnil_symbol.name;
     goto AGAIN;
   default:
     x = mkcl_type_error(env, MK_SI_copy_to_simple_base_string, "", x, MK_CL_string);
@@ -415,7 +415,7 @@ mkcl_coerce_to_simple_base_string(MKCL, mkcl_object x) /* This one always return
     y = mkcl_core.empty_base_string;
     break;
   case mkcl_t_symbol: /* almost like cl::string */
-    if (x != mk_cl_Cnil_symbol)
+    if (x != ((mkcl_object) &mk_cl_Cnil_symbol))
       {
         x = x->symbol.name;
         goto AGAIN;
@@ -522,7 +522,7 @@ mk_si_copy_to_simple_string(MKCL, mkcl_object x)
     y = mkcl_coerce_list_to_simple_string(env, x);
     break;
   case mkcl_t_null:
-    x = mk_cl_Cnil_symbol->symbol.name;
+    x = mk_cl_Cnil_symbol.name;
     goto AGAIN;
   default:
     x = mkcl_type_error(env, MK_SI_copy_to_simple_string, "", x, MK_CL_string);
@@ -555,7 +555,7 @@ mk_cl_string(MKCL, mkcl_object x)
     x = x->symbol.name;
     break;
   case mkcl_t_null:
-    x = mk_cl_Cnil_symbol->symbol.name;
+    x = mk_cl_Cnil_symbol.name;
     break;
   case mkcl_t_UTF_8:
     x = mkcl_utf_8_to_string(env, x); /* Do we really want to drop the second value of this call? JCB */
@@ -641,7 +641,7 @@ mkcl_coerce_to_simple_character_string(MKCL, mkcl_object x) /* This one always r
       y->string.self[0] = MKCL_CHAR_CODE(x);
       break;
     case mkcl_t_symbol:
-      if (x == mk_cl_Cnil_symbol)
+      if (x == ((mkcl_object) &mk_cl_Cnil_symbol))
         x = mkcl_core.empty_string;
       else
         x = x->symbol.name;

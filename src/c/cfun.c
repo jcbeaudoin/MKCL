@@ -102,6 +102,7 @@ mkcl_make_cfun(MKCL, mkcl_objectfn_fixed c_function, mkcl_object name,
   cf->cfun.fun_ref_syms = NULL;
   cf->cfun.fun_refs = NULL;
   cf->cfun.owner = mk_cl_Cnil;
+  cf->cfun.C_name = mk_cl_Cnil;
 
   if (anchor != NULL)
     *anchor = cf;
@@ -158,6 +159,7 @@ mkcl_make_cfun_va(MKCL, mkcl_objectfn c_function, mkcl_object name,
   cf->cfun.fun_ref_syms = NULL;
   cf->cfun.fun_refs = NULL;
   cf->cfun.owner = mk_cl_Cnil;
+  cf->cfun.C_name = mk_cl_Cnil;
 
   if (anchor != NULL)
     *anchor = cf;

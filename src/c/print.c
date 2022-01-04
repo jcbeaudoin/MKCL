@@ -836,8 +836,8 @@ write_symbol(MKCL, mkcl_object x, mkcl_object stream)
   bool print_readably = mkcl_print_readably(env);
 
   if (mkcl_Null(x)) {
-    hpackage = mk_cl_Cnil_symbol->symbol.hpack;
-    name = mk_cl_Cnil_symbol->symbol.name;
+    hpackage = mk_cl_Cnil_symbol.hpack;
+    name = mk_cl_Cnil_symbol.name;
   } else {
     hpackage = x->symbol.hpack;
     name = x->symbol.name;
@@ -859,7 +859,7 @@ write_symbol(MKCL, mkcl_object x, mkcl_object stream)
     mkcl_write_char(env, ':', stream);
   } else if ((print_package != mk_cl_Cnil && hpackage != print_package)
 	     || (mkcl_find_symbol(env, x, mkcl_current_package(env), &intern_flag)!=x
-		 && x != mk_cl_Cnil_symbol)
+		 && x != ((mkcl_object) &mk_cl_Cnil_symbol))
 	     || intern_flag == 0)
     {
       mkcl_object hpack_name = hpackage->pack.name;
@@ -870,7 +870,7 @@ write_symbol(MKCL, mkcl_object x, mkcl_object stream)
 	write_symbol_string(env, hpack_name, readtable->readtable.read_case,
 			    print_case, stream,
 			    needs_to_be_escaped(env, hpack_name, readtable, print_case));
-      if ((mkcl_find_symbol(env, x, hpackage, &intern_flag) != x) && x != mk_cl_Cnil_symbol)
+      if ((mkcl_find_symbol(env, x, hpackage, &intern_flag) != x) && x != ((mkcl_object) &mk_cl_Cnil_symbol))
 	mkcl_FEerror(env, "Corrupted symbol, symbol-name = ~S", 1, name);
       if ((print_package != mk_cl_Cnil && hpackage != print_package)
 	  || intern_flag == MKCL_SYMBOL_IS_INTERNAL) {
@@ -1143,7 +1143,7 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
   switch (mkcl_type_of(x)) {
 
   case mkcl_t_null:
-    write_symbol(env, mk_cl_Cnil_symbol, stream);
+    write_symbol(env, ((mkcl_object) &mk_cl_Cnil_symbol), stream);
     break;
 
   case mkcl_t_fixnum: {

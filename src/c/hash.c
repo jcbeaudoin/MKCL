@@ -120,7 +120,7 @@ _hash_equal(int depth, mkcl_hash_value h, mkcl_object x)
     }
   case mkcl_t_symbol:
     if (mkcl_Null(x)) {
-      return _hash_equal(depth, h, mk_cl_Cnil_symbol->symbol.name);
+      return _hash_equal(depth, h, mk_cl_Cnil_symbol.name);
     }
     else
       return _hash_equal(depth, h, x->symbol.name);
@@ -178,7 +178,7 @@ mkcl_hash_value mkcl_hash_equal_package(MKCL, mkcl_object x)
   switch (mkcl_type_of(x)) {
   case mkcl_t_symbol:
     if (mkcl_Null(x))
-      return mkcl_hash_equal_package(env, mk_cl_Cnil_symbol->symbol.name);
+      return mkcl_hash_equal_package(env, mk_cl_Cnil_symbol.name);
     else
       return mkcl_hash_equal_package(env, x->symbol.name);
   case mkcl_t_base_string:
@@ -196,7 +196,7 @@ _hash_equalp(MKCL, int depth, mkcl_hash_value h, mkcl_object x)
   mkcl_index i, len;
 
   if (mkcl_Null(x)) {
-    return _hash_equalp(env, depth, h, mk_cl_Cnil_symbol->symbol.name);
+    return _hash_equalp(env, depth, h, mk_cl_Cnil_symbol.name);
   }
 
   switch (mkcl_type_of(x)) {

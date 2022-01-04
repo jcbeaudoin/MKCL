@@ -62,7 +62,7 @@ mkcl_object mk_si_fset(MKCL, mkcl_narg narg, mkcl_object fname, mkcl_object def,
     mkcl_object pprint = mk_cl_Cnil;
     MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, MK_SI_fset, narg, 2, def, &macro, &pprint);
 
-    if (mkcl_Null(sym)) sym = mk_cl_Cnil_symbol;
+    if (mkcl_Null(sym)) sym = ((mkcl_object) &mk_cl_Cnil_symbol);
     if (mkcl_Null(mk_cl_functionp(env, def))) mkcl_FEinvalid_function(env, def);
     pack = mkcl_symbol_package(env, sym);
     if (pack != mk_cl_Cnil && pack->pack.closed) {
@@ -120,7 +120,7 @@ mk_cl_fmakunbound(MKCL, mkcl_object fname)
 			 "Ignore lock and proceed", 2, fname, pack);
   }
   if (MKCL_SYMBOLP(fname)) {
-    if (mkcl_Null(sym)) sym = mk_cl_Cnil_symbol;
+    if (mkcl_Null(sym)) sym = ((mkcl_object) &mk_cl_Cnil_symbol);
     mkcl_symbol_type_set(env, sym, mkcl_symbol_type(env, sym) & ~mkcl_stp_macro);
     MKCL_SYM_FUN(sym) = mk_cl_Cnil;
   } else {
@@ -138,7 +138,7 @@ mk_si_get_sysprop(MKCL, mkcl_object sym, mkcl_object prop)
 {
   mkcl_call_stack_check(env);
   if (mkcl_Null(sym))
-    { sym = mk_cl_Cnil_symbol; }
+    { sym = ((mkcl_object) &mk_cl_Cnil_symbol); }
   if (mkcl_type_of(sym) == mkcl_t_symbol)
     {
       mkcl_object plist = sym->symbol.sys_plist;
@@ -165,7 +165,7 @@ mk_si_put_sysprop(MKCL, mkcl_object sym, mkcl_object prop, mkcl_object value)
 {
   mkcl_call_stack_check(env);
   if (mkcl_Null(sym))
-    { sym = mk_cl_Cnil_symbol; }
+    { sym = ((mkcl_object) &mk_cl_Cnil_symbol); }
   if (mkcl_type_of(sym) == mkcl_t_symbol)
     {
       volatile bool locked = false;
@@ -209,7 +209,7 @@ mk_si_rem_sysprop(MKCL, mkcl_object sym, mkcl_object prop)
 {
   mkcl_call_stack_check(env);
   if (mkcl_Null(sym))
-    { sym = mk_cl_Cnil_symbol; }
+    { sym = ((mkcl_object) &mk_cl_Cnil_symbol); }
   if (mkcl_type_of(sym) == mkcl_t_symbol)
     {
       volatile bool locked = false;
