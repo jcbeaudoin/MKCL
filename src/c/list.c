@@ -1251,7 +1251,7 @@ mkcl_object mk_cl_pairlis(MKCL, mkcl_narg narg, mkcl_object keys, mkcl_object da
   mkcl_call_stack_check(env);
   {
     mkcl_object k, d;
-    mkcl_object a_list = MKCL_MAKE_FIXNUM(1);
+    mkcl_object a_list = mk_cl_Cnil;
     MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_pairlis, narg, 2, data, &a_list);
 
     k = keys;
