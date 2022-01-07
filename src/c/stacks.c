@@ -31,16 +31,21 @@
 # include <pthread_np.h>
 #endif
 
+struct mkcl_cfun mk_si_disable_interrupts_cfunobj = MKCL_CFUN0(mk_si_disable_interrupts, MK_SI_disable_interrupts);
 
 mkcl_object mk_si_disable_interrupts(MKCL)
 { /* Returns T if interrupts were enabled, NIL otherwise. */
   mkcl_return_value(((env->disable_interrupts) ? mk_cl_Cnil : (mkcl_disable_interrupts(env), mk_cl_Ct)));
 }
 
+struct mkcl_cfun mk_si_enable_interrupts_cfunobj = MKCL_CFUN0(mk_si_enable_interrupts, MK_SI_enable_interrupts);
+
 mkcl_object mk_si_enable_interrupts(MKCL)
 {
   mkcl_return_value((mkcl_enable_interrupts(env), mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_si_interrupt_status_cfunobj = MKCL_CFUN0(mk_si_interrupt_status, MK_SI_interrupt_status);
 
 mkcl_object mk_si_interrupt_status(MKCL)
 {
@@ -248,12 +253,16 @@ mkcl_bds_push(MKCL, mkcl_object s)
 
 bool mkcl_trace_specials = FALSE;
 
+struct mkcl_cfun mk_si_trace_specials_cfunobj = MKCL_CFUN0(mk_si_trace_specials, MK_SI_trace_specials);
+
 mkcl_object
 mk_si_trace_specials(MKCL)
 {
   mkcl_trace_specials = TRUE;
   mkcl_return_value(mk_cl_Ct);
 }
+
+struct mkcl_cfun mk_si_untrace_specials_cfunobj = MKCL_CFUN0(mk_si_untrace_specials, MK_SI_untrace_specials);
 
 mkcl_object
 mk_si_untrace_specials(MKCL)
@@ -404,6 +413,8 @@ get_bds_ptr(MKCL, mkcl_object x)
   mkcl_FEerror(env, "~S is an illegal bds index. BDS_TOP = ~S.", 2, x, mk_si_bds_top(env));
 }
 
+struct mkcl_cfun mk_si_bds_top_cfunobj = MKCL_CFUN0(mk_si_bds_top, MK_SI_bds_top);
+
 mkcl_object
 mk_si_bds_top(MKCL)
 {
@@ -475,6 +486,8 @@ mk_si_ihs_top_function_name(MKCL)
   mkcl_call_stack_check(env);
   mkcl_return_value(ihs_function_name(env->ihs_top->function));
 }
+
+struct mkcl_cfun mk_si_ihs_top_cfunobj = MKCL_CFUN0(mk_si_ihs_top, MK_SI_ihs_top);
 
 mkcl_object
 mk_si_ihs_top(MKCL)
@@ -673,6 +686,8 @@ get_frame_ptr(MKCL, mkcl_object x)
   mkcl_FEerror(env, "~S is an illegal frs index. FRS_TOP = ~S.", 2, x, mk_si_frs_top(env));
 }
 
+struct mkcl_cfun mk_si_frs_top_cfunobj = MKCL_CFUN0(mk_si_frs_top, MK_SI_frs_top);
+
 mkcl_object
 mk_si_frs_top(MKCL)
 {
@@ -770,6 +785,8 @@ mk_si_set_lisp_temp_stack_limit(MKCL, mkcl_object size_limit)
   mkcl_return_value(mkcl_make_unsigned_integer(env, the_size_limit));
 }
 
+struct mkcl_cfun mk_si_get_call_stack_limit_cfunobj = MKCL_CFUN0(mk_si_get_call_stack_limit, MK_SI_get_call_stack_limit);
+
 mkcl_object
 mk_si_get_call_stack_limit(MKCL)
 {
@@ -784,6 +801,8 @@ mk_si_get_call_stack_limit(MKCL)
   mkcl_return_2_values(mkcl_make_unsigned_integer(env, cs_size), mkcl_make_unsigned_integer(env, cs_top_index));
 }
 
+struct mkcl_cfun mk_si_get_binding_stack_limit_cfunobj = MKCL_CFUN0(mk_si_get_binding_stack_limit, MK_SI_get_binding_stack_limit);
+
 mkcl_object
 mk_si_get_binding_stack_limit(MKCL)
 {
@@ -791,12 +810,16 @@ mk_si_get_binding_stack_limit(MKCL)
   mkcl_return_2_values(mkcl_make_unsigned_integer(env, env->bds_size_limit), mk_si_bds_top(env));
 }
 
+struct mkcl_cfun mk_si_get_frame_stack_limit_cfunobj = MKCL_CFUN0(mk_si_get_frame_stack_limit, MK_SI_get_frame_stack_limit);
+
 mkcl_object
 mk_si_get_frame_stack_limit(MKCL)
 {
   mkcl_call_stack_check(env);
   mkcl_return_2_values(mkcl_make_unsigned_integer(env, env->frs_size_limit), mk_si_frs_top(env));
 }
+
+struct mkcl_cfun mk_si_get_lisp_temp_stack_limit_cfunobj = MKCL_CFUN0(mk_si_get_lisp_temp_stack_limit, MK_SI_get_lisp_temp_stack_limit);
 
 mkcl_object
 mk_si_get_lisp_temp_stack_limit(MKCL)

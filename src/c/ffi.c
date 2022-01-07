@@ -176,6 +176,8 @@ mk_si_allocate_foreign_data(MKCL, mkcl_object tag, mkcl_object size)
   mkcl_return_value(output);
 }
 
+struct mkcl_cfun mk_si_make_foreign_null_pointer_cfunobj = MKCL_CFUN0(mk_si_make_foreign_null_pointer, MK_SI_make_foreign_null_pointer);
+
 mkcl_object
 mk_si_make_foreign_null_pointer(MKCL)
 {
@@ -645,6 +647,8 @@ mkcl_fficall_overflow(MKCL, size_t new_bytes)
   fficall->buffer_size = new_size;
 }
 
+struct mkcl_cfun mk_si_trim_ffi_arguments_staging_area_cfunobj = MKCL_CFUN0(mk_si_trim_ffi_arguments_staging_area, MK_SI_trim_ffi_arguments_staging_area);
+
 mkcl_object
 mk_si_trim_ffi_arguments_staging_area(MKCL)
 {
@@ -655,6 +659,8 @@ mk_si_trim_ffi_arguments_staging_area(MKCL)
   fficall->buffer_sp = fficall->buffer;
   mkcl_return_value(mk_cl_Cnil);
 }
+
+struct mkcl_cfun mk_si_release_ffi_area_cfunobj = MKCL_CFUN0(mk_si_release_ffi_area, MK_SI_release_ffi_area);
 
 mkcl_object
 mk_si_release_ffi_area(MKCL)

@@ -123,6 +123,8 @@ mk_si_set_heap_size_limit(MKCL, mkcl_object size_limit) /* This function should 
   mkcl_return_value(size_limit);
 }
 
+struct mkcl_cfun mk_si_get_heap_size_limit_cfunobj = MKCL_CFUN0(mk_si_get_heap_size_limit, MK_SI_get_heap_size_limit);
+
 mkcl_object
 mk_si_get_heap_size_limit(MKCL) /* This function should acquire the OOM lock. */
 {
@@ -933,6 +935,8 @@ static struct mkcl_alloc_stats * mkcl_alloc_alloc_stats(MKCL)
   return stats;
 }
 
+struct mkcl_cfun mk_si_reset_allocation_statistics_cfunobj = MKCL_CFUN0(mk_si_reset_allocation_statistics, MK_SI_reset_allocation_statistics);
+
 mkcl_object mk_si_reset_allocation_statistics(MKCL)
 {
   if (env->alloc) *(env->alloc) = blank_alloc_stats;
@@ -1482,6 +1486,8 @@ mk_si_gc_stats(MKCL, mkcl_object enable)
                        old_status);
 }
 
+struct mkcl_cfun mk_si_mem_stats_cfunobj = MKCL_CFUN0(mk_si_mem_stats, MK_SI_mem_stats);
+
 mkcl_object
 mk_si_mem_stats(MKCL)
 {
@@ -1520,6 +1526,8 @@ static void mkcl_count_GC_collections(void)
  *		GARBAGE COLLECTION			  *
  **********************************************************/
 
+struct mkcl_cfun mk_si_scrub_values_cfunobj = MKCL_CFUN0(mk_si_scrub_values, MK_SI_scrub_values);
+
 mkcl_object mk_si_scrub_values(MKCL)
 {
   register mkcl_index i;
@@ -1543,6 +1551,8 @@ mkcl_object mk_si_gc(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_si_gc_dump_cfunobj = MKCL_CFUN0(mk_si_gc_dump, MK_SI_gc_dump);
+
 mkcl_object
 mk_si_gc_dump(MKCL)
 {
@@ -1550,12 +1560,16 @@ mk_si_gc_dump(MKCL)
   mkcl_return_no_value;
 }
 
+struct mkcl_cfun mk_si_gc_off_cfunobj = MKCL_CFUN0(mk_si_gc_off, MK_SI_gc_off);
+
 mkcl_object
 mk_si_gc_off(MKCL)
 {
   MKCL_GC_NO_INTR(env, MK_GC_disable());
   mkcl_return_no_value;
 }
+
+struct mkcl_cfun mk_si_gc_on_cfunobj = MKCL_CFUN0(mk_si_gc_on, MK_SI_gc_on);
 
 mkcl_object
 mk_si_gc_on(MKCL)
@@ -1651,6 +1665,7 @@ mkcl_object mkcl_unpin(MKCL, mkcl_object pin)
 }
 #endif
 
+struct mkcl_cfun mk_si_sample_allocation_statistics_cfunobj = MKCL_CFUN0(mk_si_sample_allocation_statistics, MK_SI_sample_allocation_statistics);
 
 mkcl_object mk_si_sample_allocation_statistics(MKCL)
 {

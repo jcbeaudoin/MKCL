@@ -294,6 +294,9 @@ mk_cl_get_internal_run_time(MKCL) /* Should take a "thread" as optional argument
   mkcl_return_value(timespec_to_time(env, ts.tv_sec, ts.tv_nsec));
 }
 
+struct mkcl_cfun mk_cl_get_internal_run_time_cfunobj = MKCL_CFUN0(mk_cl_get_internal_run_time, MK_CL_get_internal_run_time);
+
+
 mkcl_object
 mk_cl_get_internal_real_time(MKCL)
 {
@@ -304,6 +307,9 @@ mk_cl_get_internal_real_time(MKCL)
   mkcl_return_value(timespec_to_time(env, ts.tv_sec - beginning.tv_sec, ts.tv_nsec - beginning.tv_nsec));
 }
 
+struct mkcl_cfun mk_cl_get_internal_real_time_cfunobj = MKCL_CFUN0(mk_cl_get_internal_real_time, MK_CL_get_internal_real_time);
+
+
 mkcl_object
 mk_cl_get_universal_time(MKCL)
 { /* On 32 bits POSIX machines this code will fail around January 18, 2038
@@ -313,6 +319,7 @@ mk_cl_get_universal_time(MKCL)
   mkcl_return_value(mkcl_plus(env, utc, mkcl_core.Jan1st1970UT));
 }
 
+struct mkcl_cfun mk_cl_get_universal_time_cfunobj = MKCL_CFUN0(mk_cl_get_universal_time, MK_CL_get_universal_time);
 
 mkcl_object
 mk_si_get_local_time_zone(MKCL)
@@ -354,6 +361,7 @@ mk_si_get_local_time_zone(MKCL)
   mkcl_return_value(mkcl_make_ratio(env, MKCL_MAKE_FIXNUM(zone_bias_in_minutes), MKCL_MAKE_FIXNUM(60)));
 }
 
+struct mkcl_cfun mk_si_get_local_time_zone_cfunobj = MKCL_CFUN0(mk_si_get_local_time_zone, MK_SI_get_local_time_zone);
 
 void
 mkcl_init_unixtime(MKCL)

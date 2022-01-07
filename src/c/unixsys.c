@@ -655,6 +655,7 @@ mkcl_object mk_mkcl_system (MKCL, mkcl_object cmd_string)
   }
 }
 
+struct mkcl_cfun mk_mkcl_getpid_cfunobj = MKCL_CFUN0(mk_mkcl_getpid, MK_MKCL_getpid);
 
 mkcl_object
 mk_mkcl_getpid(MKCL)
@@ -680,12 +681,16 @@ pid_t mkcl_gettid(void)
 #endif
 }
 
+struct mkcl_cfun mk_mkcl_gettid_cfunobj = MKCL_CFUN0(mk_mkcl_gettid, MK_MKCL_gettid);
+
 mkcl_object
 mk_mkcl_gettid(MKCL)
 {
   mkcl_call_stack_check(env);
   mkcl_return_value(MKCL_MAKE_FIXNUM(mkcl_gettid()));
 }
+
+struct mkcl_cfun mk_mkcl_getuid_cfunobj = MKCL_CFUN0(mk_mkcl_getuid, MK_MKCL_getuid);
 
 mkcl_object
 mk_mkcl_getuid(MKCL)
@@ -700,6 +705,8 @@ mk_mkcl_getuid(MKCL)
   mkcl_return_value(MKCL_MAKE_FIXNUM(0));
 #endif
 }
+
+struct mkcl_cfun mk_mkcl_make_pipe_cfunobj = MKCL_CFUN0(mk_mkcl_make_pipe, MK_MKCL_make_pipe);
 
 mkcl_object
 mk_mkcl_make_pipe(MKCL) /* Any user of this? JCB */ /* Without :element-type or :external-format it is useless anyway! */
@@ -1836,6 +1843,8 @@ mkcl_object mk_mkcl_process_detached_p(MKCL, mkcl_object proc)
   mkcl_return_value((proc->process.detached ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_si_list_all_children_cfunobj = MKCL_CFUN0(mk_si_list_all_children, MK_SI_list_all_children);
+
 mkcl_object mk_si_list_all_children(MKCL) /* debug JCB */
 {
   mkcl_return_2_values(mkcl_core.children, mkcl_core.detached_children);
@@ -1845,6 +1854,8 @@ mkcl_object mk_si_list_all_children(MKCL) /* debug JCB */
 #if MKCL_UNIX
 # include <sys/utsname.h>
 #endif
+
+struct mkcl_cfun mk_si_uname_cfunobj = MKCL_CFUN0(mk_si_uname, MK_SI_uname);
 
 mkcl_object mk_si_uname(MKCL)
 {

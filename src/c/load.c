@@ -692,6 +692,8 @@ mkcl_object mk_cl_load(MKCL, mkcl_narg narg, mkcl_object source, ...)
   }
 }
 
+struct mkcl_cfun mk_si_list_libraries_cfunobj = MKCL_CFUN0(mk_si_list_libraries, MK_SI_list_libraries);
+
 mkcl_object mk_si_list_libraries(MKCL)
 {
   mkcl_call_stack_check(env);

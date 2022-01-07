@@ -189,6 +189,8 @@ static mkcl_object mkcl_true_self(MKCL)
   return self_truename;
 }
 
+struct mkcl_cfun mk_si_self_truename_cfunobj = MKCL_CFUN0(mk_si_self_truename, MK_SI_self_truename);
+
 mkcl_object mk_si_self_truename(MKCL)
 {
   mkcl_return_value(mkcl_core.self_truename);
@@ -890,6 +892,8 @@ long mkcl_exit_status(MKCL)
     return MKCL_THREAD_UNKNOWN_ERROR;
 }
 
+struct mkcl_cfun mk_si_shutdown_in_progress_p_cfunobj = MKCL_CFUN0(mk_si_shutdown_in_progress_p, MK_SI_shutdown_in_progress_p);
+
 mkcl_object mk_si_shutdown_in_progress_p(MKCL) /* to be called with si::+shutdown-gate+ held. */
 {
   mkcl_return_value((mkcl_Null(mkcl_core.shutdown_thread) ? mk_cl_Cnil : mk_cl_Ct));
@@ -915,6 +919,8 @@ mkcl_object mk_si_register_shutdown_watchdog_thread(MKCL, mkcl_object watchdog_t
   mk_mt_giveup_lock(env, mkcl_core.shutdown_gate);
   mkcl_return_value(watchdog_thread);
 }
+
+struct mkcl_cfun mk_si_shutdown_watchdog_thread_cfunobj = MKCL_CFUN0(mk_si_shutdown_watchdog_thread, MK_SI_shutdown_watchdog_thread);
 
 mkcl_object mk_si_shutdown_watchdog_thread(MKCL) /* to be called with si::+shutdown-gate+ held. */
 {
@@ -1056,6 +1062,8 @@ mkcl_index mkcl_argc(void)
 {
   return ARGC;
 }
+
+struct mkcl_cfun mk_mkcl_argc_cfunobj = MKCL_CFUN0(mk_mkcl_argc, MK_MKCL_argc);
 
 mkcl_object
 mk_mkcl_argc(MKCL)
@@ -1268,6 +1276,8 @@ mk_mkcl_setenv(MKCL, mkcl_object var, mkcl_object value)
       value = mkcl_type_error(env, MK_MKCL_setenv, "argument", value, MK_CL_string);
   mkcl_return_value(mkcl_setenv(env, var, value));
 }
+
+struct mkcl_cfun mk_si_gdb_cfunobj = MKCL_CFUN0(mk_si_gdb, MK_SI_gdb);
 
 mkcl_object
 mk_si_gdb(MKCL)

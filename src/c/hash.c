@@ -737,6 +737,8 @@ print_stats_for_hset(mkcl_object hset)
 #endif
 }
 
+struct mkcl_cfun mk_si_hash_tables_statistics_cfunobj = MKCL_CFUN0(mk_si_hash_tables_statistics, MK_SI_hash_tables_statistics);
+
 mkcl_object
 mk_si_hash_tables_statistics(MKCL)
 {

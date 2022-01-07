@@ -1930,6 +1930,8 @@ mkcl_object mk_si_pathname_translations(MKCL, mkcl_narg narg, mkcl_object host, 
   }
 }
 
+struct mkcl_cfun mk_si_all_logical_pathname_translations_cfunobj = MKCL_CFUN0(mk_si_all_logical_pathname_translations, MK_SI_all_logical_pathname_translations);
+
 mkcl_object mk_si_all_logical_pathname_translations(MKCL)
 {
   mkcl_call_stack_check(env);

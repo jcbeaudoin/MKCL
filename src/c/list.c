@@ -1400,6 +1400,8 @@ mk_si_dyn_cons(MKCL, mkcl_object car, mkcl_object cdr)
   }
 }
 
+struct mkcl_cfun mk_si_trim_dynamic_cons_stack_cfunobj = MKCL_CFUN0(mk_si_trim_dynamic_cons_stack, MK_SI_trim_dynamic_cons_stack);
+
 mkcl_object mk_si_trim_dynamic_cons_stack(MKCL)
 {
   mkcl_call_stack_check(env);

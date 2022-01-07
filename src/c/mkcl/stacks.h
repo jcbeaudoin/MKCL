@@ -783,6 +783,10 @@ extern "C" {
   extern MKCL_API mkcl_object mk_si_bds_val(MKCL, mkcl_object arg);
   extern MKCL_API mkcl_object mk_si_sch_frs_base(MKCL, mkcl_object fr, mkcl_object ihs);
 
+  extern struct mkcl_cfun mk_si_bds_top_cfunobj;
+  extern struct mkcl_cfun mk_si_frs_top_cfunobj;
+  extern struct mkcl_cfun mk_si_ihs_top_cfunobj;
+
   extern MKCL_API mkcl_object mk_si_set_lisp_temp_stack_limit(MKCL, mkcl_object size_limit);
   extern MKCL_API mkcl_object mk_si_get_lisp_temp_stack_limit(MKCL);
   extern MKCL_API mkcl_object mk_si_set_binding_stack_limit(MKCL, mkcl_object size_limit);
@@ -790,7 +794,12 @@ extern "C" {
   extern MKCL_API mkcl_object mk_si_set_frame_stack_limit(MKCL, mkcl_object size_limit);
   extern MKCL_API mkcl_object mk_si_get_frame_stack_limit(MKCL);
   extern MKCL_API mkcl_object mk_si_get_call_stack_limit(MKCL);
-  
+
+  extern struct mkcl_cfun mk_si_get_binding_stack_limit_cfunobj;
+  extern struct mkcl_cfun mk_si_get_frame_stack_limit_cfunobj;
+  extern struct mkcl_cfun mk_si_get_lisp_temp_stack_limit_cfunobj;
+  extern struct mkcl_cfun mk_si_get_call_stack_limit_cfunobj;
+
   extern MKCL_API void mkcl_bds_unwind(MKCL, mkcl_index new_bds_top_index);
   extern MKCL_API void mkcl_unwind(MKCL, mkcl_frame_ptr fr) mkcl_noreturn;
   extern MKCL_API mkcl_frame_ptr mkcl_frs_sch(MKCL, mkcl_object frame_id);
@@ -798,6 +807,10 @@ extern "C" {
   extern MKCL_API mkcl_object mk_si_disable_interrupts(MKCL);
   extern MKCL_API mkcl_object mk_si_enable_interrupts(MKCL);
   extern MKCL_API mkcl_object mk_si_interrupt_status(MKCL);
+
+  extern struct mkcl_cfun mk_si_disable_interrupts_cfunobj;
+  extern struct mkcl_cfun mk_si_enable_interrupts_cfunobj;
+  extern struct mkcl_cfun mk_si_interrupt_status_cfunobj;
 
 #ifdef __cplusplus
 }

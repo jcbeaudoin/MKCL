@@ -1083,6 +1083,8 @@ mk_cl_1P(MKCL, mkcl_object x)
   mkcl_return_value(mkcl_one_plus(env, x));
 }
 
+struct mkcl_cfun mk_cl_1P_cfunobj = MKCL_CFUN1(mk_cl_1P, MK_CL_1P);
+
 
 mkcl_object
 mkcl_one_plus(MKCL, mkcl_object x)
@@ -1134,6 +1136,8 @@ mk_cl_1M(MKCL, mkcl_object x)
 {	/* INV: type check is in mkcl_one_minus() */
   mkcl_return_value(mkcl_one_minus(env, x));
 }
+
+struct mkcl_cfun mk_cl_1M_cfunobj = MKCL_CFUN1(mk_cl_1M, MK_CL_1M);
 
 mkcl_object
 mkcl_one_minus(MKCL, mkcl_object x)

@@ -3,7 +3,7 @@
 */
 /*
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016,2022 Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -87,6 +87,173 @@ extern "C" {
 
 #define MKCL_COMPACT_OBJECT_EXTRA(x) ((void*)((x)->array.displaced))
   extern void _mkcl_set_max_heap_size(MKCL, mkcl_index new_size);
+
+
+  /* all_symbols.c */
+
+  typedef struct mkcl_symbol_initializer {
+    const char *name;
+    mkcl_word type;
+    void *fun;
+    mkcl_word narg;
+    mkcl_object value;
+    struct mkcl_cfun * funobj;
+  } mkcl_symbol_initializer;
+  extern MKCL_API struct mkcl_symbol mkcl_root_symbols[];
+  extern MKCL_API const mkcl_index mkcl_root_symbols_count;
+
+#define MKCL_SYM(name,code) ((mkcl_object) (mkcl_root_symbols+(code)))
+
+  /* cfun.c */
+
+  bool mkcl_equal_cfun(MKCL, struct mkcl_cfun * fun0, struct mkcl_cfun * fun1);
+
+  mkcl_object mkcl_wrong_num_args_cfun_0(MKCL);
+  mkcl_object mkcl_wrong_num_args_cfun_1(MKCL);
+  mkcl_object mkcl_wrong_num_args_cfun_2(MKCL);
+  mkcl_object mkcl_wrong_num_args_cfun_3(MKCL);
+  mkcl_object mkcl_wrong_num_args_cfun_4(MKCL);
+  mkcl_object mkcl_wrong_num_args_cfun_va(MKCL, mkcl_narg narg, ...);
+
+  extern const mkcl_objectfn const mkcl_cfun_dispatch_table[64];
+
+
+#define MKCL_CFUN0(fun, name)			\
+  {						\
+    mkcl_t_cfun, 0, 0, 0,			\
+      {						\
+	mkcl_wrong_num_args_cfun_va,		\
+	  {					\
+	    fun,				\
+	      mkcl_wrong_num_args_cfun_1,	\
+	      mkcl_wrong_num_args_cfun_2,	\
+	      mkcl_wrong_num_args_cfun_3,	\
+	      mkcl_wrong_num_args_cfun_4	\
+	      }					\
+      },					\
+      name,					\
+	MKCL_OBJNULL,				\
+	fun,					\
+	mk_cl_Cnil,				\
+	MKCL_MAKE_FIXNUM(-1),			\
+	0,					\
+	NULL,					\
+	0,					\
+	NULL,					\
+	NULL,					\
+	mk_cl_Cnil,				\
+	mk_cl_Cnil				\
+	}
+
+#define MKCL_CFUN1(fun, name)			\
+  {						\
+    mkcl_t_cfun, 0, 0, 0,			\
+      {						\
+	mkcl_wrong_num_args_cfun_va,		\
+	  {					\
+	    mkcl_wrong_num_args_cfun_0,		\
+	      fun,				\
+	      mkcl_wrong_num_args_cfun_2,	\
+	      mkcl_wrong_num_args_cfun_3,	\
+	      mkcl_wrong_num_args_cfun_4	\
+	      }					\
+      },					\
+      name,					\
+	MKCL_OBJNULL,				\
+	fun,					\
+	mk_cl_Cnil,				\
+	MKCL_MAKE_FIXNUM(-1),			\
+	1,					\
+	NULL,					\
+	0,					\
+	NULL,					\
+	NULL,					\
+	mk_cl_Cnil,				\
+	mk_cl_Cnil				\
+	}
+
+#define MKCL_CFUN2(fun, name)			\
+  {						\
+    mkcl_t_cfun, 0, 0, 0,			\
+      {						\
+	mkcl_wrong_num_args_cfun_va,		\
+	  {					\
+	    mkcl_wrong_num_args_cfun_0,		\
+	      mkcl_wrong_num_args_cfun_1,	\
+	      fun,				\
+	      mkcl_wrong_num_args_cfun_3,	\
+	      mkcl_wrong_num_args_cfun_4	\
+	      }					\
+      },					\
+      name,					\
+	MKCL_OBJNULL,				\
+	fun,					\
+	mk_cl_Cnil,				\
+	MKCL_MAKE_FIXNUM(-1),			\
+	2,					\
+	NULL,					\
+	0,					\
+	NULL,					\
+	NULL,					\
+	mk_cl_Cnil,				\
+	mk_cl_Cnil				\
+	}
+
+#define MKCL_CFUN3(fun, name)			\
+  {						\
+    mkcl_t_cfun, 0, 0, 0,			\
+      {						\
+	mkcl_wrong_num_args_cfun_va,		\
+	  {					\
+	    mkcl_wrong_num_args_cfun_0,		\
+	      mkcl_wrong_num_args_cfun_1,	\
+	      mkcl_wrong_num_args_cfun_2,	\
+	      fun,				\
+	      mkcl_wrong_num_args_cfun_4	\
+	      }					\
+      },					\
+      name,					\
+	MKCL_OBJNULL,				\
+	fun,					\
+	mk_cl_Cnil,				\
+	MKCL_MAKE_FIXNUM(-1),			\
+	3,					\
+	NULL,					\
+	0,					\
+	NULL,					\
+	NULL,					\
+	mk_cl_Cnil,				\
+	mk_cl_Cnil				\
+	}
+
+#define MKCL_CFUN4(fun, name)			\
+  {						\
+    mkcl_t_cfun, 0, 0, 0,			\
+    {						\
+      mkcl_wrong_num_args_cfun_va,		\
+      {						\
+	mkcl_wrong_num_args_cfun_0,		\
+	mkcl_wrong_num_args_cfun_1,		\
+	mkcl_wrong_num_args_cfun_2,		\
+	mkcl_wrong_num_args_cfun_3,		\
+	fun					\
+      }						\
+    },						\
+    name,					\
+    MKCL_OBJNULL,				\
+    fun,					\
+    mk_cl_Cnil,					\
+    MKCL_MAKE_FIXNUM(-1),			\
+    4,						\
+    NULL,					\
+    0,						\
+    NULL,					\
+    NULL,					\
+    mk_cl_Cnil,					\
+    mk_cl_Cnil					\
+  }
+
+
 
 
 

@@ -206,6 +206,9 @@ mk_si_unbound(MKCL)
   mkcl_return_value(MKCL_UNBOUND);
 }
 
+struct mkcl_cfun mk_si_unbound_cfunobj = MKCL_CFUN0(mk_si_unbound, MK_SI_CONSTANT_unbound);
+
+
 mkcl_object
 mk_si_sl_boundp(MKCL, mkcl_object x)
 {

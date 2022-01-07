@@ -21,10 +21,12 @@
 #if 0
 # include <stdio.h>
 #endif
+#include <string.h>
+
 
 #include "cfun_dispatch.c"
 
-static mkcl_object wrong_num_args_cfun_0(MKCL)
+mkcl_object mkcl_wrong_num_args_cfun_0(MKCL)
 {
   mkcl_object fun = env->function;
 
@@ -32,7 +34,7 @@ static mkcl_object wrong_num_args_cfun_0(MKCL)
   return mk_cl_Cnil;
 }
 
-static mkcl_object wrong_num_args_cfun_1(MKCL)
+mkcl_object mkcl_wrong_num_args_cfun_1(MKCL)
 {
   mkcl_object fun = env->function;
 
@@ -40,7 +42,7 @@ static mkcl_object wrong_num_args_cfun_1(MKCL)
   return mk_cl_Cnil;
 }
 
-static mkcl_object wrong_num_args_cfun_2(MKCL)
+mkcl_object mkcl_wrong_num_args_cfun_2(MKCL)
 {
   mkcl_object fun = env->function;
 
@@ -48,7 +50,7 @@ static mkcl_object wrong_num_args_cfun_2(MKCL)
   return mk_cl_Cnil;
 }
 
-static mkcl_object wrong_num_args_cfun_3(MKCL)
+mkcl_object mkcl_wrong_num_args_cfun_3(MKCL)
 {
   mkcl_object fun = env->function;
 
@@ -56,7 +58,7 @@ static mkcl_object wrong_num_args_cfun_3(MKCL)
   return mk_cl_Cnil;
 }
 
-static mkcl_object wrong_num_args_cfun_4(MKCL)
+mkcl_object mkcl_wrong_num_args_cfun_4(MKCL)
 {
   mkcl_object fun = env->function;
 
@@ -64,14 +66,13 @@ static mkcl_object wrong_num_args_cfun_4(MKCL)
   return mk_cl_Cnil;
 }
 
-static mkcl_object wrong_num_args_cfun_va(MKCL, mkcl_narg narg, ...)
+mkcl_object mkcl_wrong_num_args_cfun_va(MKCL, mkcl_narg narg, ...)
 {
   mkcl_object fun = env->function;
 
   mkcl_FEwrong_num_arguments(env, fun, fun->cfun.narg, fun->cfun.narg, narg);
   return mk_cl_Cnil;
 }
-
 
 
 mkcl_object
@@ -85,12 +86,12 @@ mkcl_make_cfun(MKCL, mkcl_objectfn_fixed c_function, mkcl_object name,
 			 2, name, MKCL_MAKE_FIXNUM(narg));
 
   cf = mkcl_alloc_raw_cfun(env);
-  cf->cfun.f.entry = (((narg < 0) || (narg > 4)) ? dispatch_table[narg] : (mkcl_objectfn) wrong_num_args_cfun_va);
-  cf->cfun.f._[0] = ((narg == 0) ? c_function : (mkcl_objectfn_fixed) wrong_num_args_cfun_0);
-  cf->cfun.f._[1] = ((narg == 1) ? c_function : (mkcl_objectfn_fixed) wrong_num_args_cfun_1);
-  cf->cfun.f._[2] = ((narg == 2) ? c_function : (mkcl_objectfn_fixed) wrong_num_args_cfun_2);
-  cf->cfun.f._[3] = ((narg == 3) ? c_function : (mkcl_objectfn_fixed) wrong_num_args_cfun_3);
-  cf->cfun.f._[4] = ((narg == 4) ? c_function : (mkcl_objectfn_fixed) wrong_num_args_cfun_4);
+  cf->cfun.f.entry = (((narg < 0) || (narg > 4)) ? mkcl_cfun_dispatch_table[narg] : (mkcl_objectfn) mkcl_wrong_num_args_cfun_va);
+  cf->cfun.f._[0] = ((narg == 0) ? c_function : (mkcl_objectfn_fixed) mkcl_wrong_num_args_cfun_0);
+  cf->cfun.f._[1] = ((narg == 1) ? c_function : (mkcl_objectfn_fixed) mkcl_wrong_num_args_cfun_1);
+  cf->cfun.f._[2] = ((narg == 2) ? c_function : (mkcl_objectfn_fixed) mkcl_wrong_num_args_cfun_2);
+  cf->cfun.f._[3] = ((narg == 3) ? c_function : (mkcl_objectfn_fixed) mkcl_wrong_num_args_cfun_3);
+  cf->cfun.f._[4] = ((narg == 4) ? c_function : (mkcl_objectfn_fixed) mkcl_wrong_num_args_cfun_4);
   cf->cfun.old_entry_fixed = c_function;
   cf->cfun.name = name;
   cf->cfun.block = cblock;
@@ -108,6 +109,13 @@ mkcl_make_cfun(MKCL, mkcl_objectfn_fixed c_function, mkcl_object name,
     *anchor = cf;
 
   return cf;
+}
+
+bool mkcl_equal_cfun(MKCL, struct mkcl_cfun * fun0, struct mkcl_cfun * fun1)
+{
+  int val = memcmp(fun0, fun1, sizeof(struct mkcl_cfun));
+
+  return (val ? FALSE : TRUE);
 }
 
 static mkcl_object f0(MKCL)

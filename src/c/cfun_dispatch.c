@@ -395,7 +395,7 @@ static mkcl_object dispatch64 (MKCL, mkcl_narg narg, mkcl_object x0, mkcl_object
 }
 #endif
 
-static mkcl_objectfn const dispatch_table[64] = {
+const mkcl_objectfn const mkcl_cfun_dispatch_table[64] = {
 (mkcl_objectfn)dispatch0, 
 (mkcl_objectfn)dispatch1, 
 (mkcl_objectfn)dispatch2, 

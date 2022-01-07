@@ -253,6 +253,7 @@ mk_si_rem_sysprop(MKCL, mkcl_object sym, mkcl_object prop)
     }
 }
 
+struct mkcl_cfun mk_si_system_properties_cfunobj = MKCL_CFUN0(mk_si_system_properties, MK_SI_system_properties);
 
 mkcl_object
 mk_si_system_properties(MKCL)

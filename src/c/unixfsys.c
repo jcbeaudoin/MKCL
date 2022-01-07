@@ -1545,6 +1545,8 @@ static void warn_early(MKCL, char * msg)
   fflush(stderr);
 }
 
+struct mkcl_cfun mk_si_get_SYS_library_pathname_cfunobj = MKCL_CFUN0(mk_si_get_SYS_library_pathname, MK_SI_get_SYS_library_pathname);
+
 mkcl_object
 mk_si_get_SYS_library_pathname(MKCL)
 {

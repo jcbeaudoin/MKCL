@@ -2370,6 +2370,8 @@ mk_si_fast_read_from_base_string(MKCL, mkcl_object x)
   mkcl_return_value(x);
 }
 
+struct mkcl_cfun mk_si_standard_readtable_cfunobj = MKCL_CFUN0(mk_si_standard_readtable, MK_SI_standard_readtable);
+
 mkcl_object
 mk_si_standard_readtable(MKCL)
 {

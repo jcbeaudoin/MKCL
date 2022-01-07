@@ -94,6 +94,8 @@ mkcl_current_thread(MKCL)
   return env->own_thread;
 }
 
+struct mkcl_cfun mk_mt_current_thread_cfunobj = MKCL_CFUN0(mk_mt_current_thread, MK_MT_current_thread);
+
 mkcl_object mk_mt_current_thread(MKCL)
 {
   mkcl_return_value(mkcl_current_thread(env));
@@ -1725,6 +1727,8 @@ static void print_thread_sig_mask(void)
 }
 #endif /* MKCL_PTHREADS */
 
+struct mkcl_cfun mk_mt_show_sigmask_cfunobj = MKCL_CFUN0(mk_mt_show_sigmask, MK_MT_show_sigmask);
+
 mkcl_object
 mk_mt_show_sigmask(MKCL)
 {
@@ -1734,6 +1738,8 @@ mk_mt_show_sigmask(MKCL)
 #endif
   mkcl_return_value(mk_cl_Cnil);
 }
+
+struct mkcl_cfun mk_mt_reset_sigmask_cfunobj = MKCL_CFUN0(mk_mt_reset_sigmask, MK_MT_reset_sigmask);
 
 mkcl_object
 mk_mt_reset_sigmask(MKCL)
@@ -1750,6 +1756,7 @@ mk_mt_reset_sigmask(MKCL)
   mkcl_return_value(mk_cl_Cnil);
 }
 
+struct mkcl_cfun mk_mt_block_signals_cfunobj = MKCL_CFUN0(mk_mt_block_signals, MK_MT_block_signals);
 
 mkcl_object
 mk_mt_block_signals(MKCL)
@@ -1773,6 +1780,8 @@ mk_mt_block_signals(MKCL)
 #endif
   mkcl_return_value(mk_cl_Cnil);
 }
+
+struct mkcl_cfun mk_mt_unblock_signals_cfunobj = MKCL_CFUN0(mk_mt_unblock_signals, MK_MT_unblock_signals);
 
 mkcl_object
 mk_mt_unblock_signals(MKCL)
@@ -2748,6 +2757,8 @@ mk_mt_thread_join(MKCL, mkcl_object thread)
 
 #endif /* MKCL_WINDOWS */
 
+struct mkcl_cfun mk_mt_thread_yield_cfunobj = MKCL_CFUN0(mk_mt_thread_yield, MK_MT_thread_yield);
+
 mkcl_object
 mk_mt_thread_yield(MKCL)
 {
@@ -3021,17 +3032,23 @@ mk_mt_exit_thread(MKCL, mkcl_object result_value)
   mkcl_thread_exit(env, MKCL_THREAD_ABORTED);
 }
 
+struct mkcl_cfun mk_mt_terminate_thread_cfunobj = MKCL_CFUN0(mk_mt_terminate_thread, MK_MT_terminate_thread);
+
 mkcl_object mk_mt_terminate_thread(MKCL)
 {
   mkcl_call_stack_check(env);
   mk_mt_exit_thread(env, MK_KEY_terminated);
 }
 
+struct mkcl_cfun mk_mt_cancel_thread_cfunobj = MKCL_CFUN0(mk_mt_cancel_thread, MK_MT_cancel_thread);
+
 mkcl_object mk_mt_cancel_thread(MKCL)
 {
   mkcl_call_stack_check(env);
   mk_mt_exit_thread(env, MK_KEY_canceled);
 }
+
+struct mkcl_cfun mk_mt_abort_thread_cfunobj = MKCL_CFUN0(mk_mt_abort_thread, MK_MT_abort_thread);
 
 mkcl_object mk_mt_abort_thread(MKCL)
 {
@@ -3073,6 +3090,8 @@ mkcl_object mk_mt_scuttle_thread(MKCL)
   mkcl_thread_exit(env, MKCL_THREAD_ABORTED);
 }
 #endif
+
+struct mkcl_cfun mk_mt_all_threads_cfunobj = MKCL_CFUN0(mk_mt_all_threads, MK_MT_all_threads);
 
 mkcl_object
 mk_mt_all_threads(MKCL)
@@ -3466,6 +3485,8 @@ mkcl_object mk_mt_get_lock(MKCL, mkcl_narg narg, mkcl_object lock, ...)
 /*----------------------------------------------------------------------
  * RWLOCKS
  */
+
+struct mkcl_cfun mk_mt_make_rwlock_cfunobj = MKCL_CFUN0(mk_mt_make_rwlock, MK_MT_make_rwlock);
 
 mkcl_object mk_mt_make_rwlock(MKCL)
 {
@@ -3982,6 +4003,7 @@ mkcl_object mk_mt_semaphore_wait(MKCL, mkcl_narg narg, mkcl_object sem, ...)
 /*----------------------------------------------------------------------
  * CONDITION VARIABLES
  */
+struct mkcl_cfun mk_mt_make_condition_variable_cfunobj = MKCL_CFUN0(mk_mt_make_condition_variable, MK_MT_make_condition_variable);
 
 mkcl_object
 mk_mt_make_condition_variable(MKCL)

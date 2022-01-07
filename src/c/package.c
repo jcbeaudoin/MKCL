@@ -1045,6 +1045,8 @@ mk_si_package_closed_p(MKCL, mkcl_object p)
   mkcl_return_value((p->pack.closed ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_list_all_packages_cfunobj = MKCL_CFUN0(mk_cl_list_all_packages, MK_CL_list_all_packages);
+
 mkcl_object
 mk_cl_list_all_packages(MKCL)
 {
@@ -1353,6 +1355,8 @@ mk_si_package_hash_tables(MKCL, mkcl_object p)
   } MKCL_UNWIND_PROTECT_END;
   mkcl_return_3_values(he, hi, u);
 }
+
+struct mkcl_cfun mk_si_packages_in_waiting_cfunobj = MKCL_CFUN0(mk_si_packages_in_waiting, MK_SI_packages_in_waiting);
 
 mkcl_object mk_si_packages_in_waiting(MKCL)
 {

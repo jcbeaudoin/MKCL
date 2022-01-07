@@ -1379,6 +1379,7 @@ int mkcl_feclearexcept(int excepts)
 }
 #endif /* MKCL_WINDOWS */
 
+struct mkcl_cfun mk_si_initial_floating_point_exception_set_cfunobj = MKCL_CFUN0(mk_si_initial_floating_point_exception_set, MK_SI_initial_floating_point_exception_set);
 
 mkcl_object
 mk_si_initial_floating_point_exception_set(MKCL)
@@ -1494,6 +1495,8 @@ void mkcl_reactivate_fpe_set(MKCL)
   feenableexcept(env->fpe_control_bits);
 }
 
+struct mkcl_cfun mk_si_all_enabled_fpe_cfunobj = MKCL_CFUN0(mk_si_all_enabled_fpe, MK_SI_all_enabled_fpe);
+
 mkcl_object
 mk_si_all_enabled_fpe(MKCL)
 {
@@ -1537,6 +1540,8 @@ mk_si_fpe_enabled_p(MKCL, mkcl_object exception)
 
   mkcl_return_value(((enabled_except & bits) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_si_all_raised_fpe_cfunobj = MKCL_CFUN0(mk_si_all_raised_fpe, MK_SI_all_raised_fpe);
 
 mkcl_object
 mk_si_all_raised_fpe(MKCL)
@@ -1640,6 +1645,8 @@ mk_si_clear_fpe(MKCL, mkcl_object exception)
 
   mkcl_return_value(mk_cl_Cnil);
 }
+
+struct mkcl_cfun mk_si_clear_all_fpe_cfunobj = MKCL_CFUN0(mk_si_clear_all_fpe, MK_SI_clear_all_fpe);
 
 mkcl_object
 mk_si_clear_all_fpe(MKCL)
@@ -2240,6 +2247,7 @@ mkcl_object mk_si_signum_to_signal_name(MKCL, mkcl_object _signum)
 }
 
 
+struct mkcl_cfun mk_si_do_sigsegv_cfunobj = MKCL_CFUN0(mk_si_do_sigsegv, MK_SI_do_sigsegv);
 
 /* Testing tool only. */
 mkcl_object mk_si_do_sigsegv(MKCL)
@@ -2250,6 +2258,8 @@ mkcl_object mk_si_do_sigsegv(MKCL)
   mkcl_return_value(*((mkcl_object *) 0xffffdead));
 #endif
 }
+
+struct mkcl_cfun mk_si_objnull_cfunobj = MKCL_CFUN0(mk_si_objnull, MK_SI_objnull);
 
 /* Testing tool only. */
 mkcl_object mk_si_objnull(MKCL)
@@ -2321,6 +2331,8 @@ static void _mkcl_display_signal_dispositions(void)
 static void _mkcl_display_signal_dispositions() { }
 #endif /* !MKCL_UNIX */
 
+struct mkcl_cfun mk_si_display_signal_dispositions_cfunobj = MKCL_CFUN0(mk_si_display_signal_dispositions, MK_SI_display_signal_dispositions);
+
 mkcl_object
 mk_si_display_signal_dispositions(MKCL)
 {
@@ -2381,6 +2393,8 @@ mkcl_sigsegv_monitor(int sig, siginfo_t *info, void *aux)
 }
 
 #endif /* __linux */
+
+struct mkcl_cfun mk_si_install_sigsegv_monitor_cfunobj = MKCL_CFUN0(mk_si_install_sigsegv_monitor, MK_SI_install_sigsegv_monitor);
 
 mkcl_object mk_si_install_sigsegv_monitor(MKCL)
 {
