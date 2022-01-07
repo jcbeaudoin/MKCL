@@ -1239,6 +1239,8 @@ mk_cl_cons(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_value(MKCL_CONS(env, x, y));
 }
 
+struct mkcl_cfun mk_cl_acons_cfunobj = MKCL_CFUN3(mk_cl_acons, MK_CL_acons);
+
 mkcl_object
 mk_cl_acons(MKCL, mkcl_object x, mkcl_object y, mkcl_object z)
 {

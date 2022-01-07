@@ -4796,6 +4796,8 @@ mk_cl_file_string_length(MKCL, mkcl_object stream, mkcl_object string)
   mkcl_return_value(MKCL_MAKE_FIXNUM(l));
 }
 
+struct mkcl_cfun mk_si_do_write_sequence_cfunobj = MKCL_CFUN4(mk_si_do_write_sequence, MK_SI_do_write_sequence);
+
 mkcl_object
 mk_si_do_write_sequence(MKCL, mkcl_object seq, mkcl_object stream, mkcl_object s, mkcl_object e)
 {
@@ -4839,6 +4841,8 @@ mk_si_do_write_sequence(MKCL, mkcl_object seq, mkcl_object stream, mkcl_object s
  OUTPUT:
   mkcl_return_value(seq);
 }
+
+struct mkcl_cfun mk_si_do_read_sequence_cfunobj = MKCL_CFUN4(mk_si_do_read_sequence, MK_SI_do_read_sequence);
 
 mkcl_object
 mk_si_do_read_sequence(MKCL, mkcl_object seq, mkcl_object stream, mkcl_object s, mkcl_object e)

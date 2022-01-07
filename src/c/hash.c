@@ -784,6 +784,7 @@ mkcl_object mk_cl_gethash(MKCL, mkcl_narg narg, mkcl_object key, mkcl_object ht,
   }
 }
 
+struct mkcl_cfun mk_si_hash_set_cfunobj = MKCL_CFUN3(mk_si_hash_set, MK_SI_hash_set);
 
 mkcl_object
 mk_si_hash_set(MKCL, mkcl_object key, mkcl_object ht, mkcl_object val)

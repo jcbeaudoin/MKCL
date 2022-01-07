@@ -146,6 +146,7 @@ mkcl_FEtype_error_structure_index(MKCL, mkcl_object s, mkcl_object ndx)
   mk_cl_error(env, 5, MK_MKCL_invalid_slot, MK_KEY_name, ndx, MK_KEY_instance, s);
 }
 
+struct mkcl_cfun mk_si_structure_ref_cfunobj = MKCL_CFUN3(mk_si_structure_ref, MK_SI_structure_ref);
 
 mkcl_object
 mk_si_structure_ref(MKCL, mkcl_object x, mkcl_object name, mkcl_object index)
@@ -161,6 +162,8 @@ mk_si_structure_ref(MKCL, mkcl_object x, mkcl_object name, mkcl_object index)
 
   { mkcl_return_value(MKCL_SLOT(x, i)); }
 }
+
+struct mkcl_cfun mk_si_structure_set_cfunobj = MKCL_CFUN4(mk_si_structure_set, MK_SI_structure_set);
 
 mkcl_object
 mk_si_structure_set(MKCL, mkcl_object x, mkcl_object name, mkcl_object index, mkcl_object val)

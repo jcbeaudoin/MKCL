@@ -160,6 +160,8 @@ mk_si_get_sysprop(MKCL, mkcl_object sym, mkcl_object prop)
     }
 }
 
+struct mkcl_cfun mk_si_put_sysprop_cfunobj = MKCL_CFUN3(mk_si_put_sysprop, MK_SI_put_sysprop);
+
 mkcl_object
 mk_si_put_sysprop(MKCL, mkcl_object sym, mkcl_object prop, mkcl_object value)
 {

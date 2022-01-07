@@ -73,6 +73,8 @@ mkcl_elt(MKCL, mkcl_object seq, mkcl_word index)
   mkcl_FEtype_error_seq_index(env, seq, MKCL_MAKE_FIXNUM(index));
 }
 
+struct mkcl_cfun mk_si_elt_set_cfunobj = MKCL_CFUN3(mk_si_elt_set, MK_SI_elt_set);
+
 mkcl_object
 mk_si_elt_set(MKCL, mkcl_object seq, mkcl_object index, mkcl_object val)
 {

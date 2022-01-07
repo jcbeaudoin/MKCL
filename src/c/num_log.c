@@ -552,6 +552,8 @@ coerce_to_logical_operator(MKCL, mkcl_object o)
   return op;
 }
 
+struct mkcl_cfun mk_cl_boole_cfunobj = MKCL_CFUN3(mk_cl_boole, MK_CL_boole);
+
 mkcl_object
 mk_cl_boole(MKCL, mkcl_object o, mkcl_object x, mkcl_object y)
 {
@@ -663,6 +665,8 @@ mk_cl_integer_length(MKCL, mkcl_object x)
   mkcl_call_stack_check(env);
   mkcl_return_value(MKCL_MAKE_FIXNUM(mkcl_integer_length(env, x)));
 }
+
+struct mkcl_cfun mk_si_bit_array_op_cfunobj = MKCL_CFUN4(mk_si_bit_array_op, MK_SI_bit_array_op);
 
 mkcl_object
 mk_si_bit_array_op(MKCL, mkcl_object o, mkcl_object x, mkcl_object y, mkcl_object r)

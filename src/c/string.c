@@ -736,6 +736,9 @@ mkcl_char(MKCL, mkcl_object object, mkcl_index index)
     }
 }
 
+struct mkcl_cfun mk_si_schar_set_cfunobj = MKCL_CFUN3(mk_si_char_set, MK_SI_schar_set);
+struct mkcl_cfun mk_si_char_set_cfunobj = MKCL_CFUN3(mk_si_char_set, MK_SI_char_set);
+
 mkcl_object
 mk_si_char_set(MKCL, mkcl_object object, mkcl_object index, mkcl_object value)
 {

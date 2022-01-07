@@ -638,6 +638,8 @@ mk_si_closure_level_var(MKCL, mkcl_object level, mkcl_object i)
     { mkcl_return_value(MKCL_OBJNULL); }
 }
 
+struct mkcl_cfun mk_si_closure_level_set_var_cfunobj = MKCL_CFUN3(mk_si_closure_level_set_var, MK_SI_closure_level_set_var);
+
 mkcl_object
 mk_si_closure_level_set_var(MKCL, mkcl_object level, mkcl_object i, mkcl_object val)
 {

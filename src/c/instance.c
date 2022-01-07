@@ -30,6 +30,8 @@ mkcl_allocate_instance(MKCL, mkcl_object clas, mkcl_index size)
   return x;
 }
 
+struct mkcl_cfun mk_si_allocate_raw_instance_cfunobj = MKCL_CFUN3(mk_si_allocate_raw_instance, MK_SI_allocate_raw_instance);
+
 mkcl_object
 mk_si_allocate_raw_instance(MKCL, mkcl_object orig, mkcl_object clas, mkcl_object size)
 {
@@ -175,6 +177,8 @@ mkcl_instance_set(MKCL, mkcl_object x, mkcl_word i, mkcl_object v)
   { x->instance.slots[i] = v; return(v); }
 }
 #endif
+
+struct mkcl_cfun mk_si_instance_set_cfunobj = MKCL_CFUN3(mk_si_instance_set, MK_SI_instance_set);
 
 mkcl_object
 mk_si_instance_set(MKCL, mkcl_object x, mkcl_object index, mkcl_object value)

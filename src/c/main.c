@@ -845,6 +845,8 @@ static void _mkcl_final_clean_up(MKCL)
 #endif
 }
 
+struct mkcl_cfun mk_si_shutdown_mkcl_cfunobj = MKCL_CFUN4(mk_si_shutdown_mkcl, MK_SI_shutdown_mkcl);
+
 mkcl_object mk_si_shutdown_mkcl(MKCL, mkcl_object code, mkcl_object watchdog_thread, mkcl_object verbose, mkcl_object clean)
 {
   mkcl_object val = (env->own_thread->thread.result_value

@@ -228,6 +228,8 @@ mkcl_get(MKCL, mkcl_object s, mkcl_object p, mkcl_object d)
 	returns the new property list with value for property indicator.
 	It will be used in SETF for GETF.
 */
+struct mkcl_cfun mk_si_put_f_cfunobj = MKCL_CFUN3(mk_si_put_f, MK_SI_put_f);
+
 mkcl_object
 mk_si_put_f(MKCL, mkcl_object place, mkcl_object value, mkcl_object indicator)
 {
@@ -547,6 +549,8 @@ mk_si_set_symbol_plist(MKCL, mkcl_object sym, mkcl_object plist)
   *mkcl_symbol_plist(env, sym) = plist;
   mkcl_return_value(plist);
 }
+
+struct mkcl_cfun mk_si_putprop_cfunobj = MKCL_CFUN3(mk_si_putprop, MK_SI_putprop);
 
 mkcl_object
 mk_si_putprop(MKCL, mkcl_object sym, mkcl_object value, mkcl_object indicator)

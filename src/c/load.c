@@ -400,6 +400,8 @@ mkcl_library_close_all(MKCL)
   }
 }
 
+struct mkcl_cfun mk_si_load_binary_cfunobj = MKCL_CFUN4(mk_si_load_binary, MK_SI_load_binary);
+
 mkcl_object
 mk_si_load_binary(MKCL, mkcl_object filename, mkcl_object verbose, mkcl_object print, mkcl_object external_format)
 {
@@ -474,6 +476,8 @@ mk_si_load_binary(MKCL, mkcl_object filename, mkcl_object verbose, mkcl_object p
   } MKCL_UNWIND_PROTECT_END;
   mkcl_return_value(output);
 }
+
+struct mkcl_cfun mk_si_load_source_cfunobj = MKCL_CFUN4(mk_si_load_source, MK_SI_load_source);
 
 mkcl_object
 mk_si_load_source(MKCL, mkcl_object source, mkcl_object verbose, mkcl_object print, mkcl_object external_format)

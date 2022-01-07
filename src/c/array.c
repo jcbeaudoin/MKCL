@@ -177,6 +177,8 @@ mk_cl_row_major_aref(MKCL, mkcl_object x, mkcl_object indx)
   mkcl_return_value(mkcl_aref_index(env, x, j));
 }
 
+struct mkcl_cfun mk_si_row_major_aset_cfunobj = MKCL_CFUN3(mk_si_row_major_aset, MK_SI_row_major_aset);
+
 mkcl_object
 mk_si_row_major_aset(MKCL, mkcl_object x, mkcl_object indx, mkcl_object val)
 {
@@ -565,6 +567,8 @@ mk_cl_svref(MKCL, mkcl_object x, mkcl_object index)
 
   mkcl_return_value(x->vector.self.t[i]);
 }
+
+struct mkcl_cfun mk_si_svset_cfunobj = MKCL_CFUN3(mk_si_svset, MK_SI_svset);
 
 mkcl_object
 mk_si_svset(MKCL, mkcl_object x, mkcl_object index, mkcl_object v)
@@ -1431,6 +1435,8 @@ mkcl_reverse_subarray(MKCL, mkcl_object x, mkcl_index i0, mkcl_index i1)
     mkcl_FEbad_aet(env);
   }
 }
+
+struct mkcl_cfun mk_si_fill_array_with_elt_cfunobj = MKCL_CFUN4(mk_si_fill_array_with_elt, MK_SI_fill_array_with_elt);
 
 mkcl_object
 mk_si_fill_array_with_elt(MKCL, mkcl_object x, mkcl_object elt, mkcl_object start, mkcl_object end)

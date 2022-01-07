@@ -18,8 +18,6 @@
 #include <mkcl/mkcl.h>
 #include <mkcl/internal.h>
 
-#include <stdio.h>
-#include <stdlib.h>
 /*
  * HOOKS.
  *
@@ -35,13 +33,6 @@ mk_cl_upgraded_array_element_type(MKCL, mkcl_narg narg, mkcl_object type, ...)
 {
   mkcl_call_stack_check(env);
   return mkcl_funcall1(env, MK_CL_upgraded_array_element_type->symbol.gfdef, type);
-}
-
-extern mkcl_object
-mk_si_safe_eval(MKCL, mkcl_object form, mkcl_object lex_env, mkcl_object error_value)
-{
-  mkcl_call_stack_check(env);
-  return mkcl_funcall3(env, MK_SI_safe_eval->symbol.gfdef, form, lex_env, error_value);
 }
 
 extern mkcl_object

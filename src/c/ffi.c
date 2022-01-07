@@ -253,6 +253,8 @@ mk_si_foreign_tag(MKCL, mkcl_object f)
   mkcl_return_value(f->foreign.tag);
 }
 
+struct mkcl_cfun mk_si_foreign_indexed_cfunobj = MKCL_CFUN4(mk_si_foreign_indexed, MK_SI_foreign_indexed);
+
 mkcl_object
 mk_si_foreign_indexed(MKCL, mkcl_object f, mkcl_object andx, mkcl_object asize, mkcl_object tag)
 {
@@ -274,6 +276,8 @@ mk_si_foreign_indexed(MKCL, mkcl_object f, mkcl_object andx, mkcl_object asize, 
   mkcl_return_value(output);
 }
 
+struct mkcl_cfun mk_si_foreign_ref_cfunobj = MKCL_CFUN4(mk_si_foreign_ref, MK_SI_foreign_ref);
+
 mkcl_object
 mk_si_foreign_ref(MKCL, mkcl_object f, mkcl_object andx, mkcl_object asize, mkcl_object tag)
 {
@@ -291,6 +295,8 @@ mk_si_foreign_ref(MKCL, mkcl_object f, mkcl_object andx, mkcl_object asize, mkcl
   output = mkcl_make_foreign(env, tag, size, f->foreign.data + ndx);
   mkcl_return_value(output);
 }
+
+struct mkcl_cfun mk_si_foreign_set_cfunobj = MKCL_CFUN3(mk_si_foreign_set, MK_SI_foreign_set);
 
 mkcl_object
 mk_si_foreign_set(MKCL, mkcl_object f, mkcl_object andx, mkcl_object value)
@@ -458,6 +464,8 @@ mkcl_foreign_set_elt(MKCL, void *p, enum mkcl_ffi_tag tag, mkcl_object value)
   }
 }
 
+struct mkcl_cfun mk_si_foreign_ref_elt_cfunobj = MKCL_CFUN3(mk_si_foreign_ref_elt, MK_SI_foreign_ref_elt);
+
 mkcl_object
 mk_si_foreign_ref_elt(MKCL, mkcl_object f, mkcl_object andx, mkcl_object type)
 {
@@ -473,6 +481,8 @@ mk_si_foreign_ref_elt(MKCL, mkcl_object f, mkcl_object andx, mkcl_object type)
   }
   mkcl_return_value(mkcl_foreign_ref_elt(env, (void*)(f->foreign.data + ndx), tag));
 }
+
+struct mkcl_cfun mk_si_foreign_set_elt_cfunobj = MKCL_CFUN4(mk_si_foreign_set_elt, MK_SI_foreign_set_elt);
 
 mkcl_object
 mk_si_foreign_set_elt(MKCL, mkcl_object f, mkcl_object andx, mkcl_object type, mkcl_object value)
@@ -507,6 +517,8 @@ mk_si_null_pointer_p(MKCL, mkcl_object f)
     mkcl_FEwrong_type_argument(env, MK_SI_foreign, f);
   mkcl_return_value(((f->foreign.data == NULL) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_si_foreign_recast_cfunobj = MKCL_CFUN3(mk_si_foreign_recast, MK_SI_foreign_recast);
 
 mkcl_object
 mk_si_foreign_recast(MKCL, mkcl_object f, mkcl_object size, mkcl_object tag)
@@ -589,6 +601,8 @@ mk_si_unload_foreign_module(MKCL, mkcl_object module)
 
   mkcl_return_value(output);
 }
+
+struct mkcl_cfun mk_si_find_foreign_symbol_cfunobj = MKCL_CFUN4(mk_si_find_foreign_symbol, MK_SI_find_foreign_symbol);
 
 mkcl_object
 mk_si_find_foreign_symbol(MKCL, mkcl_object var, mkcl_object module, mkcl_object type, mkcl_object size)
