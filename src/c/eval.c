@@ -21,6 +21,8 @@
 #include <mkcl/mkcl-inl.h>
 #include <mkcl/internal.h>
 
+struct mkcl_cfun mk_si_apply_from_temp_stack_frame_cfunobj = MKCL_CFUN2(mk_si_apply_from_temp_stack_frame, MK_SI_apply_from_temp_stack_frame);
+
 mkcl_object
 mkcl_apply_from_temp_stack_frame(MKCL, mkcl_object frame, mkcl_object x)
 {

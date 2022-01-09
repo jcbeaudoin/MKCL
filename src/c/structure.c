@@ -50,6 +50,8 @@ bool _mkcl_structure_subtypep(mkcl_object x, mkcl_object y)
 }
 #endif /* !CLOS */
 
+struct mkcl_cfun mk_si_structure_subtype_p_cfunobj = MKCL_CFUN2(mk_si_structure_subtype_p, MK_SI_structure_subtype_p);
+
 mkcl_object
 mk_si_structure_subtype_p(MKCL, mkcl_object x, mkcl_object y)
 {

@@ -715,6 +715,8 @@ mk_si_frs_ihs(MKCL, mkcl_object arg)
   mkcl_return_value(MKCL_MAKE_FIXNUM(get_frame_ptr(env, arg)->frs_ihs->index));
 }
 
+struct mkcl_cfun mk_si_sch_frs_base_cfunobj = MKCL_CFUN2(mk_si_sch_frs_base, MK_SI_sch_frs_base);
+
 mkcl_object
 mk_si_sch_frs_base(MKCL, mkcl_object fr, mkcl_object ihs)
 {

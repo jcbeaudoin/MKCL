@@ -885,6 +885,8 @@ mkcl_remhash(MKCL, mkcl_object key, mkcl_object hashtable)
     }
 }
 
+struct mkcl_cfun mk_cl_remhash_cfunobj = MKCL_CFUN2(mk_cl_remhash, MK_CL_remhash);
+
 mkcl_object
 mk_cl_remhash(MKCL, mkcl_object key, mkcl_object ht)
 {
@@ -1115,6 +1117,8 @@ mkcl_object mk_si_hash_equalp(MKCL, mkcl_narg narg, ...)
     mkcl_return_value(MKCL_MAKE_FIXNUM(h));
   }
 }
+
+struct mkcl_cfun mk_cl_maphash_cfunobj = MKCL_CFUN2(mk_cl_maphash, MK_CL_maphash);
 
 mkcl_object
 mk_cl_maphash(MKCL, mkcl_object fun, mkcl_object ht)

@@ -1416,6 +1416,8 @@ mk_si_get_finalizer(MKCL, mkcl_object o)
   mkcl_return_value(output);
 }
 
+struct mkcl_cfun mk_si_set_finalizer_cfunobj = MKCL_CFUN2(mk_si_set_finalizer, MK_SI_set_finalizer);
+
 mkcl_object
 mk_si_set_finalizer(MKCL, mkcl_object obj, mkcl_object finalizer)
 {

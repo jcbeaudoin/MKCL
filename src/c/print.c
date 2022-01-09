@@ -1127,6 +1127,8 @@ write_vector(MKCL, mkcl_object x, mkcl_object stream)
   }
 }
 
+struct mkcl_cfun mk_si_write_ugly_object_cfunobj = MKCL_CFUN2(mk_si_write_ugly_object, MK_SI_write_ugly_object);
+
 mkcl_object
 mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
 {
@@ -1783,6 +1785,8 @@ mk_si_write_ugly_object(MKCL, mkcl_object x, mkcl_object stream)
   mkcl_return_value(x);
 }
 
+struct mkcl_cfun mk_si_write_object_cfunobj = MKCL_CFUN2(mk_si_write_object, MK_SI_write_object);
+
 mkcl_object
 mk_si_write_object(MKCL, mkcl_object x, mkcl_object stream)
 {
@@ -2223,6 +2227,8 @@ mkcl_object mk_cl_clear_output(MKCL, mkcl_narg narg, ...)
     mkcl_return_value(mk_cl_Cnil);
   }
 }
+
+struct mkcl_cfun mk_cl_write_byte_cfunobj = MKCL_CFUN2(mk_cl_write_byte, MK_CL_write_byte);
 
 mkcl_object
 mk_cl_write_byte(MKCL, mkcl_object integer, mkcl_object binary_output_stream)

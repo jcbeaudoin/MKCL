@@ -166,6 +166,8 @@ mkcl_null_terminated_base_string(MKCL, mkcl_object f)
   }
 }
 
+struct mkcl_cfun mk_si_allocate_foreign_data_cfunobj = MKCL_CFUN2(mk_si_allocate_foreign_data, MK_SI_allocate_foreign_data);
+
 mkcl_object
 mk_si_allocate_foreign_data(MKCL, mkcl_object tag, mkcl_object size)
 {

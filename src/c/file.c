@@ -1643,6 +1643,8 @@ static const struct mkcl_file_ops str_out_ops = {
   generic_close
 };
 
+struct mkcl_cfun mk_si_make_string_output_stream_from_string_cfunobj = MKCL_CFUN2(mk_si_make_string_output_stream_from_string, MK_SI_make_string_output_stream_from_string);
+
 mkcl_object
 mk_si_make_string_output_stream_from_string(MKCL, mkcl_object s, mkcl_object encoding)
 {
@@ -2123,6 +2125,8 @@ static const struct mkcl_file_ops two_way_ops = {
 };
 
 
+struct mkcl_cfun mk_cl_make_two_way_stream_cfunobj = MKCL_CFUN2(mk_cl_make_two_way_stream, MK_CL_make_two_way_stream);
+
 mkcl_object
 mk_cl_make_two_way_stream(MKCL, mkcl_object istrm, mkcl_object ostrm)
 {
@@ -2482,6 +2486,8 @@ static const struct mkcl_file_ops echo_ops = {
   echo_column,
   generic_close
 };
+
+struct mkcl_cfun mk_cl_make_echo_stream_cfunobj = MKCL_CFUN2(mk_cl_make_echo_stream, MK_CL_make_echo_stream);
 
 mkcl_object
 mk_cl_make_echo_stream(MKCL, mkcl_object strm1, mkcl_object strm2)
@@ -3555,6 +3561,8 @@ set_file_stream_elt_type(MKCL, mkcl_object stream, mkcl_word byte_size, mkcl_str
   mkcl_return_2_values(stream, mk_cl_Cnil);
 }
 
+struct mkcl_cfun mk_si_stream_external_format_set_cfunobj = MKCL_CFUN2(mk_si_stream_external_format_set, MK_SI_stream_external_format_set);
+
 mkcl_object
 mk_si_stream_external_format_set(MKCL, mkcl_object stream, mkcl_object format)
 {
@@ -4375,6 +4383,8 @@ mk_si_get_buffering_mode(MKCL, mkcl_object stream)
     { mkcl_return_value(MK_KEY_invalid); }
 }
 
+struct mkcl_cfun mk_si_set_buffering_mode_cfunobj = MKCL_CFUN2(mk_si_set_buffering_mode, MK_SI_set_buffering_mode);
+
 mkcl_object
 mk_si_set_buffering_mode(MKCL, mkcl_object stream, mkcl_object buffer_mode_symbol)
 {
@@ -4752,6 +4762,8 @@ compute_char_size(MKCL, mkcl_object stream, mkcl_character c)
   }
   return l;
 }
+
+struct mkcl_cfun mk_cl_file_string_length_cfunobj = MKCL_CFUN2(mk_cl_file_string_length, MK_CL_file_string_length);
 
 mkcl_object
 mk_cl_file_string_length(MKCL, mkcl_object stream, mkcl_object string)
@@ -5341,6 +5353,8 @@ mkcl_object mk_cl_open(MKCL, mkcl_narg narg, mkcl_object filename, ...)
     mkcl_return_value(strm);
   }
  }
+
+struct mkcl_cfun mk_si_ansi_close_cfunobj = MKCL_CFUN2(mk_si_ansi_close, MK_SI_ansi_close);
 
 mkcl_object mk_si_ansi_close(MKCL, mkcl_object strm, mkcl_object abort)
 {

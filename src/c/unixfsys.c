@@ -519,6 +519,8 @@ mkcl_file_len(MKCL, int f)
 }
 
 
+struct mkcl_cfun mk_cl_rename_file_cfunobj = MKCL_CFUN2(mk_cl_rename_file, MK_CL_rename_file);
+
 mkcl_object mk_cl_rename_file(MKCL, mkcl_object old_filespec, mkcl_object new_name)
 {
   mkcl_call_stack_check(env);
@@ -1644,6 +1646,8 @@ mkcl_object mk_mkcl_chdir(MKCL, mkcl_narg narg, mkcl_object directory, ...)
   }
 }
 
+struct mkcl_cfun mk_mkcl_mkdir_cfunobj = MKCL_CFUN2(mk_mkcl_mkdir, MK_MKCL_mkdir);
+
 mkcl_object
 mk_mkcl_mkdir(MKCL, mkcl_object directory, mkcl_object mode)
 {
@@ -1772,6 +1776,8 @@ mk_mkcl_rmdir(MKCL, mkcl_object directory)
     mkcl_FElibc_file_error(env, directory, "Can't remove directory: ~S.", 1, directory);
   mkcl_return_value(mk_cl_Cnil);
 }
+
+struct mkcl_cfun mk_mkcl_copy_file_cfunobj = MKCL_CFUN2(mk_mkcl_copy_file, MK_MKCL_copy_file);
 
 mkcl_object
 mk_mkcl_copy_file(MKCL, mkcl_object orig, mkcl_object dest)

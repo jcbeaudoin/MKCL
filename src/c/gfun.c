@@ -189,6 +189,8 @@ mk_si_set_raw_funcallable(MKCL, mkcl_object instance, mkcl_object function)
   mkcl_return_value(instance);
 }
 
+struct mkcl_cfun mk_clos_set_funcallable_instance_function_cfunobj = MKCL_CFUN2(mk_clos_set_funcallable_instance_function, MK_CLOS_set_funcallable_instance_function);
+
 mkcl_object
 mk_clos_set_funcallable_instance_function(MKCL, mkcl_object x, mkcl_object function_or_t)
 {

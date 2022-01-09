@@ -500,12 +500,16 @@ mkcl_object mk_cl_logeqv(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_lognand_cfunobj = MKCL_CFUN2(mk_cl_lognand, MK_CL_lognand);
+
 mkcl_object
 mk_cl_lognand(MKCL, mkcl_object x, mkcl_object y)
 {
   mkcl_call_stack_check(env);
   mkcl_return_value(mkcl_boole(env, MKCL_BOOLNAND, x, y));
 }
+
+struct mkcl_cfun mk_cl_lognor_cfunobj = MKCL_CFUN2(mk_cl_lognor, MK_CL_lognor);
 
 mkcl_object
 mk_cl_lognor(MKCL, mkcl_object x, mkcl_object y)
@@ -514,12 +518,16 @@ mk_cl_lognor(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_value(mkcl_boole(env, MKCL_BOOLNOR, x, y));
 }
 
+struct mkcl_cfun mk_cl_logandc1_cfunobj = MKCL_CFUN2(mk_cl_logandc1, MK_CL_logandc1);
+
 mkcl_object
 mk_cl_logandc1(MKCL, mkcl_object x, mkcl_object y)
 {
   mkcl_call_stack_check(env);
   mkcl_return_value(mkcl_boole(env, MKCL_BOOLANDC1, x, y));
 }
+
+struct mkcl_cfun mk_cl_logandc2_cfunobj = MKCL_CFUN2(mk_cl_logandc2, MK_CL_logandc2);
 
 mkcl_object
 mk_cl_logandc2(MKCL, mkcl_object x, mkcl_object y)
@@ -528,12 +536,16 @@ mk_cl_logandc2(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_value(mkcl_boole(env, MKCL_BOOLANDC2, x, y));
 }
 
+struct mkcl_cfun mk_cl_logorc1_cfunobj = MKCL_CFUN2(mk_cl_logorc1, MK_CL_logorc1);
+
 mkcl_object
 mk_cl_logorc1(MKCL, mkcl_object x, mkcl_object y)
 {
   mkcl_call_stack_check(env);
   mkcl_return_value(mkcl_boole(env, MKCL_BOOLORC1, x, y));
 }
+
+struct mkcl_cfun mk_cl_logorc2_cfunobj = MKCL_CFUN2(mk_cl_logorc2, MK_CL_logorc2);
 
 mkcl_object
 mk_cl_logorc2(MKCL, mkcl_object x, mkcl_object y)
@@ -561,6 +573,8 @@ mk_cl_boole(MKCL, mkcl_object o, mkcl_object x, mkcl_object y)
   /* INV: log_op2() checks types */
   mkcl_return_value(mkcl_boole(env, coerce_to_logical_operator(env, o), x, y))
 }
+
+struct mkcl_cfun mk_cl_logbitp_cfunobj = MKCL_CFUN2(mk_cl_logbitp, MK_CL_logbitp);
 
 mkcl_object
 mk_cl_logbitp(MKCL, mkcl_object p, mkcl_object x)
@@ -590,6 +604,8 @@ mk_cl_logbitp(MKCL, mkcl_object p, mkcl_object x)
   }
   mkcl_return_value((i ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_cl_ash_cfunobj = MKCL_CFUN2(mk_cl_ash, MK_CL_ash);
 
 mkcl_object
 mk_cl_ash(MKCL, mkcl_object x, mkcl_object y)

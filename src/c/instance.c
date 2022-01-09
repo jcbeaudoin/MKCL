@@ -73,6 +73,8 @@ mk_si_instance_sig_set(MKCL, mkcl_object x)
   mkcl_return_value((x->instance.sig = MKCL_CLASS_SLOTS(MKCL_CLASS_OF(x))));
 }
 
+struct mkcl_cfun mk_si_instance_sig_set2_cfunobj = MKCL_CFUN2(mk_si_instance_sig_set2, MK_SI_instance_sig_set2);
+
 mkcl_object
 mk_si_instance_sig_set2(MKCL, mkcl_object x, mkcl_object sig)
 {
@@ -100,6 +102,8 @@ mk_si_instance_length(MKCL, mkcl_object x)
   else
     { mkcl_return_value(mkcl_make_unsigned_integer(env, x->instance.length)); }
 }
+
+struct mkcl_cfun mk_si_instance_class_set_cfunobj = MKCL_CFUN2(mk_si_instance_class_set, MK_SI_instance_class_set);
 
 mkcl_object
 mk_si_instance_class_set(MKCL, mkcl_object x, mkcl_object y)
@@ -133,6 +137,9 @@ mkcl_instance_ref(MKCL, mkcl_object x, mkcl_word i)
 }
 #endif
 
+struct mkcl_cfun mk_si_instance_ref_cfunobj = MKCL_CFUN2(mk_si_instance_ref, MK_SI_instance_ref);
+struct mkcl_cfun mk_clos_funcallable_standard_instance_access_cfunobj = MKCL_CFUN2(mk_si_instance_ref, MK_CLOS_funcallable_standard_instance_access);
+
 mkcl_object
 mk_si_instance_ref(MKCL, mkcl_object x, mkcl_object index)
 {
@@ -147,6 +154,8 @@ mk_si_instance_ref(MKCL, mkcl_object x, mkcl_object index)
 
   { mkcl_return_value(x->instance.slots[i]); }
 }
+
+struct mkcl_cfun mk_si_instance_ref_safe_cfunobj = MKCL_CFUN2(mk_si_instance_ref_safe, MK_SI_instance_ref_safe);
 
 mkcl_object
 mk_si_instance_ref_safe(MKCL, mkcl_object x, mkcl_object index)
@@ -219,6 +228,8 @@ mk_si_sl_boundp(MKCL, mkcl_object x)
   mkcl_return_value(((x == MKCL_UNBOUND) ? mk_cl_Cnil : mk_cl_Ct));
 }
 
+struct mkcl_cfun mk_si_sl_makunbound_cfunobj = MKCL_CFUN2(mk_si_sl_makunbound, MK_SI_sl_makunbound);
+
 mkcl_object
 mk_si_sl_makunbound(MKCL, mkcl_object x, mkcl_object index)
 {
@@ -285,6 +296,8 @@ mkcl_object mk_cl_find_class(MKCL, mkcl_narg narg, mkcl_object name, ...)
     } while(1);
   }
 }
+
+struct mkcl_cfun mk_si_set_class_proper_name_cfunobj = MKCL_CFUN2(mk_si_set_class_proper_name, MK_SI_set_class_proper_name);
 
 mkcl_object mk_si_set_class_proper_name(MKCL, mkcl_object sym, mkcl_object class)
 {

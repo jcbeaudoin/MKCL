@@ -405,6 +405,8 @@ mkcl_read_object(MKCL, mkcl_object in)
   return mkcl_read_object_with_delimiter(env, in, EOF, 0, mkcl_cat_constituent);
 }
 
+struct mkcl_cfun mk_si_read_object_or_ignore_cfunobj = MKCL_CFUN2(mk_si_read_object_or_ignore, MK_SI_read_object_or_ignore);
+
 mkcl_object
 mk_si_read_object_or_ignore(MKCL, mkcl_object in, mkcl_object eof)
 {
@@ -2071,6 +2073,8 @@ mk_cl_readtable_case(MKCL, mkcl_object r)
   }
   mkcl_return_value(r);
 }
+
+struct mkcl_cfun mk_si_readtable_case_set_cfunobj = MKCL_CFUN2(mk_si_readtable_case_set, MK_SI_readtable_case_set);
 
 mkcl_object
 mk_si_readtable_case_set(MKCL, mkcl_object r, mkcl_object mode)

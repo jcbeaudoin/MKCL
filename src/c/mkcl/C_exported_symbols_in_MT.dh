@@ -23,6 +23,7 @@
 #define MK_MT_semaphore @'mt::semaphore'
 #define MK_MT_semaphore_signal @'mt::semaphore-signal'
 #define MK_MT_semaphore_wait @'mt::semaphore-wait'
+#define MK_MT_set_thread_plist @'mt::set-thread-plist'
 #define MK_MT_show_sigmask @'mt::show-sigmask'
 #define MK_MT_terminate_thread @'mt::terminate-thread'
 #define MK_MT_thread @'mt::thread'

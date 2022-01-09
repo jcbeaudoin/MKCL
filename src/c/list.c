@@ -414,6 +414,8 @@ mk_cl_list_length(MKCL, mkcl_object x)
   mkcl_return_value(MKCL_MAKE_FIXNUM(n));
 }
 
+struct mkcl_cfun mk_cl_nth_cfunobj = MKCL_CFUN2(mk_cl_nth, MK_CL_nth);
+
 mkcl_object
 mk_cl_nth(MKCL, mkcl_object n, mkcl_object x)
 {
@@ -438,6 +440,8 @@ mkcl_nth(MKCL, mkcl_word n, mkcl_object x)
   else
     mkcl_FEtype_error_list(env, x);
 }
+
+struct mkcl_cfun mk_cl_nthcdr_cfunobj = MKCL_CFUN2(mk_cl_nthcdr, MK_CL_nthcdr);
 
 mkcl_object
 mk_cl_nthcdr(MKCL, mkcl_object n, mkcl_object x)
@@ -638,6 +642,8 @@ mk_cl_copy_tree(MKCL, mkcl_object x)
   mkcl_return_value(do_copy_tree(env, x));
 }
 
+struct mkcl_cfun mk_cl_revappend_cfunobj = MKCL_CFUN2(mk_cl_revappend, MK_CL_revappend);
+
 mkcl_object
 mk_cl_revappend(MKCL, mkcl_object x, mkcl_object y)
 {
@@ -688,6 +694,8 @@ mkcl_nconc(MKCL, mkcl_object l, mkcl_object y)
     return l;
   }
 }
+
+struct mkcl_cfun mk_cl_nreconc_cfunobj = MKCL_CFUN2(mk_cl_nreconc, MK_CL_nreconc);
 
 mkcl_object
 mk_cl_nreconc(MKCL, mkcl_object l, mkcl_object y)
@@ -793,6 +801,8 @@ mkcl_object mk_cl_nbutlast(MKCL, mkcl_narg narg, mkcl_object lis, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_ldiff_cfunobj = MKCL_CFUN2(mk_cl_ldiff, MK_CL_ldiff);
+
 mkcl_object
 mk_cl_ldiff(MKCL, mkcl_object x, mkcl_object y)
 {
@@ -825,6 +835,8 @@ mk_cl_ldiff(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_value(head);
 }
 
+struct mkcl_cfun mk_cl_rplaca_cfunobj = MKCL_CFUN2(mk_cl_rplaca, MK_CL_rplaca);
+
 mkcl_object
 mk_cl_rplaca(MKCL, mkcl_object x, mkcl_object v)
 {
@@ -833,6 +845,8 @@ mk_cl_rplaca(MKCL, mkcl_object x, mkcl_object v)
   MKCL_RPLACA(x, v);
   mkcl_return_value(x);
 }
+
+struct mkcl_cfun mk_cl_rplacd_cfunobj = MKCL_CFUN2(mk_cl_rplacd, MK_CL_rplacd);
 
 mkcl_object
 mk_cl_rplacd(MKCL, mkcl_object x, mkcl_object v)
@@ -1115,6 +1129,8 @@ mkcl_memq(MKCL, mkcl_object x, mkcl_object l)
   return(mk_cl_Cnil);
 }
 
+struct mkcl_cfun mk_si_memq_cfunobj = MKCL_CFUN2(mk_si_memq, MK_SI_memq);
+
 mkcl_object
 mk_si_memq(MKCL, mkcl_object x, mkcl_object l)
 {
@@ -1166,6 +1182,8 @@ mk_si_member1(MKCL,
   close_test(&t);
   mkcl_return_value(list);
 }
+
+struct mkcl_cfun mk_cl_tailp_cfunobj = MKCL_CFUN2(mk_cl_tailp, MK_CL_tailp);
 
 mkcl_object
 mk_cl_tailp(MKCL, mkcl_object y, mkcl_object x)
@@ -1231,6 +1249,8 @@ mkcl_object mk_cl_adjoin(MKCL, mkcl_narg narg, mkcl_object item, mkcl_object lis
     }
   }
 }
+
+struct mkcl_cfun mk_cl_cons_cfunobj = MKCL_CFUN2(mk_cl_cons, MK_CL_cons);
 
 mkcl_object
 mk_cl_cons(MKCL, mkcl_object x, mkcl_object y)
@@ -1366,6 +1386,8 @@ mkcl_assqlp(MKCL, mkcl_object x, mkcl_object l)
 
 
 /********************************/
+
+struct mkcl_cfun mk_si_dyn_cons_cfunobj = MKCL_CFUN2(mk_si_dyn_cons, MK_SI_dyn_cons);
 
 mkcl_object
 mk_si_dyn_cons(MKCL, mkcl_object car, mkcl_object cdr)

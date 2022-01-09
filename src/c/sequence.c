@@ -21,6 +21,8 @@
 #include <mkcl/mkcl-inl.h>
 
 
+struct mkcl_cfun mk_cl_elt_cfunobj = MKCL_CFUN2(mk_cl_elt, MK_CL_elt);
+
 mkcl_object
 mk_cl_elt(MKCL, mkcl_object x, mkcl_object i)
 {

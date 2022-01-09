@@ -870,6 +870,8 @@ mkcl_object mk_cl_round(MKCL, mkcl_narg narg, mkcl_object x, ...)
 }
 
 
+struct mkcl_cfun mk_cl_mod_cfunobj = MKCL_CFUN2(mk_cl_mod, MK_CL_mod);
+
 mkcl_object
 mk_cl_mod(MKCL, mkcl_object x, mkcl_object y)
 {
@@ -878,6 +880,8 @@ mk_cl_mod(MKCL, mkcl_object x, mkcl_object y)
   mk_cl_floor(env, 2, x, y);
   mkcl_return_value(MKCL_VALUES(1));
 }
+
+struct mkcl_cfun mk_cl_rem_cfunobj = MKCL_CFUN2(mk_cl_rem, MK_CL_rem);
 
 mkcl_object
 mk_cl_rem(MKCL, mkcl_object x, mkcl_object y)
@@ -943,6 +947,8 @@ mk_cl_decode_float(MKCL, mkcl_object x)
   }
   mkcl_return_3_values(x, MKCL_MAKE_FIXNUM(e), sign);
 }
+
+struct mkcl_cfun mk_cl_scale_float_cfunobj = MKCL_CFUN2(mk_cl_scale_float, MK_CL_scale_float);
 
 mkcl_object
 mk_cl_scale_float(MKCL, mkcl_object x, mkcl_object y)

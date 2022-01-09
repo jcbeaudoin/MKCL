@@ -38,6 +38,8 @@ static pthread_mutex_t system_properties_lock;
 # error Incomplete definition of SYSTEM_PROPERTIES_LOCK().
 #endif
 
+struct mkcl_cfun mk_cl_set_cfunobj = MKCL_CFUN2(mk_cl_set, MK_CL_set);
+
 mkcl_object
 mk_cl_set(MKCL, mkcl_object var, mkcl_object val)
 {
@@ -133,6 +135,8 @@ mk_cl_fmakunbound(MKCL, mkcl_object fname)
 }
 
 
+struct mkcl_cfun mk_si_get_sysprop_cfunobj = MKCL_CFUN2(mk_si_get_sysprop, MK_SI_get_sysprop);
+
 mkcl_object
 mk_si_get_sysprop(MKCL, mkcl_object sym, mkcl_object prop)
 {
@@ -205,6 +209,8 @@ mk_si_put_sysprop(MKCL, mkcl_object sym, mkcl_object prop, mkcl_object value)
       mkcl_return_value(value);
     }
 }
+
+struct mkcl_cfun mk_si_rem_sysprop_cfunobj = MKCL_CFUN2(mk_si_rem_sysprop, MK_SI_rem_sysprop);
 
 mkcl_object
 mk_si_rem_sysprop(MKCL, mkcl_object sym, mkcl_object prop)

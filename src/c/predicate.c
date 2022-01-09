@@ -188,6 +188,8 @@ mk_si_bytecodep(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_bytecodep(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_eq_cfunobj = MKCL_CFUN2(mk_cl_eq, MK_CL_eq);
+
 mkcl_object
 mk_cl_eq(MKCL, mkcl_object x, mkcl_object y)
 {
@@ -265,6 +267,8 @@ mkcl_eql(MKCL, mkcl_object x, mkcl_object y)
     return(mkcl_eql_unboxable_numbers(env, x, y, t));
 }
 #endif
+
+struct mkcl_cfun mk_cl_eql_cfunobj = MKCL_CFUN2(mk_cl_eql, MK_CL_eql);
 
 mkcl_object
 mk_cl_eql(MKCL, mkcl_object x, mkcl_object y)
@@ -362,6 +366,8 @@ mkcl_equal(MKCL, register mkcl_object x, mkcl_object y)
     return FALSE; /* We handled the positive EQ case at the very beginning so this must be false now. */
   }
 }
+
+struct mkcl_cfun mk_cl_equal_cfunobj = MKCL_CFUN2(mk_cl_equal, MK_CL_equal);
 
 mkcl_object
 mk_cl_equal(MKCL, mkcl_object x, mkcl_object y)
@@ -495,6 +501,8 @@ mkcl_equalp(MKCL, mkcl_object x, mkcl_object y)
     return FALSE; /* We handled the positive EQ case at the very beginning so this must be false now. */
   }
 }
+
+struct mkcl_cfun mk_cl_equalp_cfunobj = MKCL_CFUN2(mk_cl_equalp, MK_CL_equalp);
 
 mkcl_object
 mk_cl_equalp(MKCL, mkcl_object x, mkcl_object y)

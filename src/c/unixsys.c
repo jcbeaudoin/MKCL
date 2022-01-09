@@ -1598,6 +1598,8 @@ mkcl_object mk_mkcl_process_plist(MKCL, mkcl_object proc)
   mkcl_return_value(proc->process.plist);
 }
 
+struct mkcl_cfun mk_mkcl_set_process_plist_cfunobj = MKCL_CFUN2(mk_mkcl_set_process_plist, MK_MKCL_set_process_plist);
+
 mkcl_object mk_mkcl_set_process_plist(MKCL, mkcl_object proc, mkcl_object plist)
 {
   mkcl_call_stack_check(env);
@@ -1613,6 +1615,8 @@ mkcl_object mk_mkcl_process_to_worker(MKCL, mkcl_object proc)
     mkcl_FEwrong_type_argument(env, MK_MKCL_process, proc);
   mkcl_return_value(proc->process.to_worker);
 }
+
+struct mkcl_cfun mk_mkcl_set_process_to_worker_cfunobj = MKCL_CFUN2(mk_mkcl_set_process_to_worker, MK_MKCL_set_process_to_worker);
 
 mkcl_object mk_mkcl_set_process_to_worker(MKCL, mkcl_object proc, mkcl_object to_worker)
 {
@@ -1630,6 +1634,8 @@ mkcl_object mk_mkcl_process_from_worker(MKCL, mkcl_object proc)
   mkcl_return_value(proc->process.from_worker);
 }
 
+struct mkcl_cfun mk_mkcl_set_process_from_worker_cfunobj = MKCL_CFUN2(mk_mkcl_set_process_from_worker, MK_MKCL_set_process_from_worker);
+
 mkcl_object mk_mkcl_set_process_from_worker(MKCL, mkcl_object proc, mkcl_object from_worker)
 {
   mkcl_call_stack_check(env);
@@ -1645,6 +1651,8 @@ mkcl_object mk_mkcl_process_error_from_worker(MKCL, mkcl_object proc)
     mkcl_FEwrong_type_argument(env, MK_MKCL_process, proc);
   mkcl_return_value(proc->process.error_from_worker);
 }
+
+struct mkcl_cfun mk_mkcl_set_process_error_from_worker_cfunobj = MKCL_CFUN2(mk_mkcl_set_process_error_from_worker, MK_MKCL_set_process_error_from_worker);
 
 mkcl_object mk_mkcl_set_process_error_from_worker(MKCL, mkcl_object proc, mkcl_object error_from_worker)
 {

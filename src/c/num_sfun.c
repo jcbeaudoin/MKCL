@@ -154,6 +154,8 @@ mk_cl_exp(MKCL, mkcl_object x)
   mkcl_return_value(output);
 }
 
+struct mkcl_cfun mk_cl_expt_cfunobj = MKCL_CFUN2(mk_cl_expt, MK_CL_expt);
+
 mkcl_object
 mk_cl_expt(MKCL, mkcl_object x, mkcl_object y)
 {

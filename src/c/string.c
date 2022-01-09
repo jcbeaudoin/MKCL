@@ -685,6 +685,9 @@ mk_si_coerce_to_character_string(MKCL, mkcl_object x)
   mkcl_return_value(y);
 }
 
+struct mkcl_cfun mk_cl_char_cfunobj = MKCL_CFUN2(mk_cl_char, MK_CL_char);
+struct mkcl_cfun mk_cl_schar_cfunobj = MKCL_CFUN2(mk_cl_char, MK_CL_schar);
+
 mkcl_object
 mk_cl_char(MKCL, mkcl_object object, mkcl_object index)
 {
@@ -1347,6 +1350,9 @@ string_trim0(MKCL, bool left_trim, bool right_trim, mkcl_object char_bag, mkcl_o
   return mk_cl_subseq(env, 3, strng, MKCL_MAKE_FIXNUM(i), MKCL_MAKE_FIXNUM(j));
 }
 
+
+struct mkcl_cfun mk_cl_string_trim_cfunobj = MKCL_CFUN2(mk_cl_string_trim, MK_CL_string_trim);
+
 mkcl_object
 mk_cl_string_trim(MKCL, mkcl_object char_bag, mkcl_object strng)
 {
@@ -1354,12 +1360,16 @@ mk_cl_string_trim(MKCL, mkcl_object char_bag, mkcl_object strng)
   return string_trim0(env, TRUE, TRUE, char_bag, strng);
 }
 
+struct mkcl_cfun mk_cl_string_left_trim_cfunobj = MKCL_CFUN2(mk_cl_string_left_trim, MK_CL_string_left_trim);
+
 mkcl_object
 mk_cl_string_left_trim(MKCL, mkcl_object char_bag, mkcl_object strng)
 {
   mkcl_call_stack_check(env);
   return string_trim0(env, TRUE, FALSE, char_bag, strng);
 }
+
+struct mkcl_cfun mk_cl_string_right_trim_cfunobj = MKCL_CFUN2(mk_cl_string_right_trim, MK_CL_string_right_trim);
 
 mkcl_object
 mk_cl_string_right_trim(MKCL, mkcl_object char_bag, mkcl_object strng)
@@ -2697,6 +2707,8 @@ mkcl_character mkcl_utf_8_char(MKCL, mkcl_object utf_8, mkcl_index index, mkcl_i
   return ch;
 }
 
+struct mkcl_cfun mk_si_utf_8_char_cfunobj = MKCL_CFUN2(mk_si_utf_8_char, MK_SI_utf_8_char);
+
 mkcl_object mk_si_utf_8_char(MKCL, mkcl_object utf_8, mkcl_object index_fix)
 {
   mkcl_index next, index;
@@ -2769,6 +2781,7 @@ mkcl_object mk_si_utf_8Plus(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_si_utf_8E_cfunobj = MKCL_CFUN2(mk_si_utf_8E, MK_SI_utf_8E);
 
 mkcl_object mk_si_utf_8E(MKCL, mkcl_object u1, mkcl_object u2)
 {
@@ -3185,6 +3198,8 @@ mkcl_character mkcl_utf_16_char(MKCL, mkcl_object utf_16, mkcl_index index, mkcl
   return ch;
 }
 
+struct mkcl_cfun mk_si_utf_16_char_cfunobj = MKCL_CFUN2(mk_si_utf_16_char, MK_SI_utf_16_char);
+
 mkcl_object mk_si_utf_16_char(MKCL, mkcl_object utf_16, mkcl_object index_fix)
 {
   mkcl_index next, index;
@@ -3203,6 +3218,10 @@ mkcl_object mk_si_utf_16_char(MKCL, mkcl_object utf_16, mkcl_object index_fix)
                        MKCL_MAKE_FIXNUM(next),
                        (invalid ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+#if 0
+struct mkcl_cfun mk_si_utf_16Plus_cfunobj = MKCL_CFUN_VA(mk_si_utf_16Plus, MK_SI_utf_16Plus);
+#endif
 
 mkcl_object mk_si_utf_16Plus(MKCL, mkcl_narg narg, ...)
 {
@@ -3472,6 +3491,8 @@ mkcl_index mkcl_utf_8_push_extend(MKCL, mkcl_object utf_8, mkcl_character ch, bo
   return fillp;
 }
 
+struct mkcl_cfun mk_si_utf_8_push_extend_cfunobj = MKCL_CFUN2(mk_si_utf_8_push_extend, MK_SI_utf_8_push_extend);
+
 mkcl_object mk_si_utf_8_push_extend(MKCL, mkcl_object utf_8, mkcl_object ch)
 {
   mkcl_call_stack_check(env);
@@ -3580,6 +3601,8 @@ mkcl_index mkcl_utf_16_push_extend(MKCL, mkcl_object utf_16, mkcl_character ch, 
   if (invalid) *invalid = my_invalid;
   return fillp;
 }
+
+struct mkcl_cfun mk_si_utf_16_push_extend_cfunobj = MKCL_CFUN2(mk_si_utf_16_push_extend, MK_SI_utf_16_push_extend);
 
 mkcl_object mk_si_utf_16_push_extend(MKCL, mkcl_object utf_16, mkcl_object ch)
 {

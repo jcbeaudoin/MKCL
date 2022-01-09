@@ -320,6 +320,8 @@ mkcl_object mk_cl_get(MKCL, mkcl_narg narg, mkcl_object sym, mkcl_object indicat
   }
 }
 
+struct mkcl_cfun mk_cl_remprop_cfunobj = MKCL_CFUN2(mk_cl_remprop, MK_CL_remprop);
+
 mkcl_object
 mk_cl_remprop(MKCL, mkcl_object sym, mkcl_object prop)
 {
@@ -347,6 +349,8 @@ mkcl_object mk_cl_getf(MKCL, mkcl_narg narg, mkcl_object place, mkcl_object indi
     mkcl_return_value(mkcl_getf(env, place, indicator, deflt));
   }
 }
+
+struct mkcl_cfun mk_cl_get_properties_cfunobj = MKCL_CFUN2(mk_cl_get_properties, MK_CL_get_properties);
 
 mkcl_object
 mk_cl_get_properties(MKCL, mkcl_object place, mkcl_object indicator_list)
@@ -534,6 +538,8 @@ mk_cl_keywordp(MKCL, mkcl_object sym)
 
 	It will be used for macro REMF.
 */
+struct mkcl_cfun mk_si_rem_f_cfunobj = MKCL_CFUN2(mk_si_rem_f, MK_SI_rem_f);
+
 mkcl_object
 mk_si_rem_f(MKCL, mkcl_object plist, mkcl_object indicator)
 {
@@ -541,6 +547,8 @@ mk_si_rem_f(MKCL, mkcl_object plist, mkcl_object indicator)
   bool found = remf(env, &plist, indicator);
   mkcl_return_2_values(plist, (found ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_si_set_symbol_plist_cfunobj = MKCL_CFUN2(mk_si_set_symbol_plist, MK_SI_set_symbol_plist);
 
 mkcl_object
 mk_si_set_symbol_plist(MKCL, mkcl_object sym, mkcl_object plist)
@@ -588,6 +596,8 @@ mk_si_Xmake_special(MKCL, mkcl_object sym)
   mk_cl_remprop(env, sym, MK_SI_symbol_macro);
   mkcl_return_value(sym);
 }
+
+struct mkcl_cfun mk_si_Xmake_constant_cfunobj = MKCL_CFUN2(mk_si_Xmake_constant, MK_SI_Xmake_constant);
 
 mkcl_object
 mk_si_Xmake_constant(MKCL, mkcl_object sym, mkcl_object val)

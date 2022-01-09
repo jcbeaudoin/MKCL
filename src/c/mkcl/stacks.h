@@ -786,6 +786,7 @@ extern "C" {
   extern struct mkcl_cfun mk_si_bds_top_cfunobj;
   extern struct mkcl_cfun mk_si_frs_top_cfunobj;
   extern struct mkcl_cfun mk_si_ihs_top_cfunobj;
+  extern struct mkcl_cfun mk_si_sch_frs_base_cfunobj;
 
   extern MKCL_API mkcl_object mk_si_set_lisp_temp_stack_limit(MKCL, mkcl_object size_limit);
   extern MKCL_API mkcl_object mk_si_get_lisp_temp_stack_limit(MKCL);

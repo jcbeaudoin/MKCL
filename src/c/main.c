@@ -909,6 +909,8 @@ mkcl_object mk_si_register_shutdown_thread(MKCL, mkcl_object shutdown_thread) /*
   mkcl_return_value(shutdown_thread);
 }
 
+struct mkcl_cfun mk_si_register_shutdown_watchdog_thread_cfunobj = MKCL_CFUN2(mk_si_register_shutdown_watchdog_thread, MK_SI_register_shutdown_watchdog_thread);
+
 mkcl_object mk_si_register_shutdown_watchdog_thread(MKCL, mkcl_object watchdog_thread, mkcl_object will_clean_up)
 {
   mkcl_call_stack_check(env);
@@ -1266,6 +1268,8 @@ mkcl_setenv(MKCL, mkcl_object var, mkcl_object value)
   mkcl_return_value(value);
 #endif
 }
+
+struct mkcl_cfun mk_mkcl_setenv_cfunobj = MKCL_CFUN2(mk_mkcl_setenv, MK_MKCL_setenv);
 
 mkcl_object
 mk_mkcl_setenv(MKCL, mkcl_object var, mkcl_object value)

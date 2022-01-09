@@ -1829,6 +1829,8 @@ path_list_match(MKCL, mkcl_object a, mkcl_object wildcard)
   return TRUE;
 }
 
+struct mkcl_cfun mk_cl_pathname_match_p_cfunobj = MKCL_CFUN2(mk_cl_pathname_match_p, MK_CL_pathname_match_p);
+
 mkcl_object
 mk_cl_pathname_match_p(MKCL, mkcl_object path, mkcl_object wildcard)
 {

@@ -2513,6 +2513,8 @@ mk_si_process_lambda(MKCL, mkcl_object lambda)
  * provided. If it is NIL, no such variable exists.
  */
 
+struct mkcl_cfun mk_si_process_lambda_list_cfunobj = MKCL_CFUN2(mk_si_process_lambda_list, MK_SI_process_lambda_list);
+
 mkcl_object
 mk_si_process_lambda_list(MKCL, mkcl_object org_lambda_list, mkcl_object context)
 {
@@ -2892,6 +2894,8 @@ mk_si_valid_function_name_p(MKCL, mkcl_object name)
   mkcl_call_stack_check(env);
   mkcl_return_value(((MKCL_OBJNULL != mkcl_function_block_name(name)) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_si_make_lambda_cfunobj = MKCL_CFUN2(mk_si_make_lambda, MK_SI_make_lambda);
 
 mkcl_object
 mk_si_make_lambda(MKCL, mkcl_object name, mkcl_object rest)

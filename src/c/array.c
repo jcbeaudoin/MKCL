@@ -162,6 +162,8 @@ mkcl_object mkcl_ensure_valid_array_index_type(MKCL, mkcl_object x, mkcl_object 
 }
 
 
+struct mkcl_cfun mk_cl_row_major_aref_cfunobj = MKCL_CFUN2(mk_cl_row_major_aref, MK_CL_row_major_aref);
+
 mkcl_object
 mk_cl_row_major_aref(MKCL, mkcl_object x, mkcl_object indx)
 {
@@ -548,6 +550,8 @@ mkcl_object mkcl_ensure_base_string_type_for_vector_push(MKCL, mkcl_object vec)
 
 mkcl_object mkcl_ensure_base_string_type_for_vector_push_extend(MKCL, mkcl_object vec)
 { return mkcl_type_error(env, MK_CL_vector_push_extend, "vector", vec, MK_CL_base_string); }
+
+struct mkcl_cfun mk_cl_svref_cfunobj = MKCL_CFUN2(mk_cl_svref, MK_CL_svref);
 
 mkcl_object
 mk_cl_svref(MKCL, mkcl_object x, mkcl_object index)
@@ -1045,6 +1049,8 @@ mk_cl_array_rank(MKCL, mkcl_object a)
 	    : MKCL_MAKE_FIXNUM(1)));
 }
 
+struct mkcl_cfun mk_cl_array_dimension_cfunobj = MKCL_CFUN2(mk_cl_array_dimension, MK_CL_array_dimension);
+
 mkcl_object
 mk_cl_array_dimension(MKCL, mkcl_object a, mkcl_object axis_number)
 {
@@ -1239,6 +1245,8 @@ mkcl_index mkcl_ensure_index_for_fill_pointer_set(MKCL, mkcl_index fillp, mkcl_i
   return mkcl_fixnum_in_range(env, MK_SI_fill_pointer_set, "fill pointer", MKCL_MAKE_FIXNUM(fillp), 0, dim);
 }
 
+struct mkcl_cfun mk_si_fill_pointer_set_cfunobj = MKCL_CFUN2(mk_si_fill_pointer_set, MK_SI_fill_pointer_set);
+
 mkcl_object
 mk_si_fill_pointer_set(MKCL, mkcl_object a, mkcl_object fp)
 {
@@ -1259,6 +1267,8 @@ mk_si_fill_pointer_set(MKCL, mkcl_object a, mkcl_object fp)
 
 	Used in ADJUST-ARRAY.
 */
+struct mkcl_cfun mk_si_replace_array_cfunobj = MKCL_CFUN2(mk_si_replace_array, MK_SI_replace_array);
+
 mkcl_object
 mk_si_replace_array(MKCL, mkcl_object olda, mkcl_object newa)
 {

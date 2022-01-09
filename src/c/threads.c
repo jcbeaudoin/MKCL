@@ -4468,6 +4468,8 @@ mkcl_object mk_mt_thread_plist(MKCL, mkcl_object thread)
   mkcl_return_value(thread->thread.plist);
 }
 
+struct mkcl_cfun mk_mt_set_thread_plist_cfunobj = MKCL_CFUN2(mk_mt_set_thread_plist, MK_MT_set_thread_plist);
+
 mkcl_object mk_mt_set_thread_plist(MKCL, mkcl_object thread, mkcl_object plist)
 {
   mkcl_call_stack_check(env);
@@ -4569,6 +4571,8 @@ mk_mt_thread_shutdown_requested_p(MKCL, mkcl_object thread)
   mkcl_return_value(((thread->thread.shutdown_requested == TRUE) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+
+struct mkcl_cfun mk_si_non_interactive_thread_debugger_trap_cfunobj = MKCL_CFUN2(mk_si_non_interactive_thread_debugger_trap, MK_SI_non_interactive_thread_debugger_trap);
 
 mkcl_object
 mk_si_non_interactive_thread_debugger_trap(MKCL, mkcl_object condition, mkcl_object old_hook)
