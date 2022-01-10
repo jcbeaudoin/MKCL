@@ -92,6 +92,8 @@ mkcl_abs(MKCL, mkcl_object x)
   return x;
 }
 
+struct mkcl_cfun mk_cl_abs_cfunobj = MKCL_CFUN1(mk_cl_abs, MK_CL_abs);
+
 mkcl_object
 mk_cl_abs(MKCL, mkcl_object x)
 {

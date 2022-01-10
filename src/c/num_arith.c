@@ -714,6 +714,8 @@ mkcl_minus(MKCL, mkcl_object x, mkcl_object y)
   }
 }
 
+struct mkcl_cfun mk_cl_conjugate_cfunobj = MKCL_CFUN1(mk_cl_conjugate, MK_CL_conjugate);
+
 mkcl_object
 mk_cl_conjugate(MKCL, mkcl_object c)
 {

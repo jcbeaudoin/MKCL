@@ -153,6 +153,8 @@ mk_cl_symbol_value(MKCL, mkcl_object sym)
   mkcl_return_value(value);
 }
 
+struct mkcl_cfun mk_cl_boundp_cfunobj = MKCL_CFUN1(mk_cl_boundp, MK_CL_boundp);
+
 mkcl_object
 mk_cl_boundp(MKCL, mkcl_object sym)
 {

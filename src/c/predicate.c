@@ -40,11 +40,15 @@ mk_cl_symbolp(MKCL, mkcl_object x)
   mkcl_return_value((MKCL_SYMBOLP(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_atom_cfunobj = MKCL_CFUN1(mk_cl_atom, MK_CL_atom);
+
 mkcl_object
 mk_cl_atom(MKCL, mkcl_object x)
 {
   mkcl_return_value((MKCL_ATOM(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_cl_consp_cfunobj = MKCL_CFUN1(mk_cl_consp, MK_CL_consp);
 
 mkcl_object
 mk_cl_consp(MKCL, mkcl_object x)
@@ -90,11 +94,15 @@ mk_cl_realp(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_realp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_complexp_cfunobj = MKCL_CFUN1(mk_cl_complexp, MK_CL_complexp);
+
 mkcl_object
 mk_cl_complexp(MKCL, mkcl_object x)
 {
   mkcl_return_value((MKCL_COMPLEXP(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_cl_characterp_cfunobj = MKCL_CFUN1(mk_cl_characterp, MK_CL_characterp);
 
 mkcl_object
 mk_cl_characterp(MKCL, mkcl_object x)
@@ -113,6 +121,8 @@ mk_cl_stringp(MKCL, mkcl_object x)
 {
   mkcl_return_value((mkcl_stringp(env, x)? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_cl_bit_vector_p_cfunobj = MKCL_CFUN1(mk_cl_bit_vector_p, MK_CL_bit_vector_p);
 
 mkcl_object
 mk_cl_bit_vector_p(MKCL, mkcl_object x)
@@ -157,6 +167,8 @@ mk_cl_simple_vector_p(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_simple_vector_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_arrayp_cfunobj = MKCL_CFUN1(mk_cl_arrayp, MK_CL_arrayp);
+
 mkcl_object
 mk_cl_arrayp(MKCL, mkcl_object x)
 {
@@ -175,6 +187,8 @@ mk_cl_functionp(MKCL, mkcl_object x)
 {
   mkcl_return_value((mkcl_functionp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_cl_compiled_function_p_cfunobj = MKCL_CFUN1(mk_cl_compiled_function_p, MK_CL_compiled_function_p);
 
 mkcl_object
 mk_cl_compiled_function_p(MKCL, mkcl_object x)

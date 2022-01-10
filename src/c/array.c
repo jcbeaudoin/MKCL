@@ -960,6 +960,8 @@ array_address(MKCL, mkcl_object x, mkcl_index inc)
   return address_inc(env, x->array.self.t, inc, mkcl_array_elttype(env, x));
 }
 
+struct mkcl_cfun mk_cl_array_element_type_cfunobj = MKCL_CFUN1(mk_cl_array_element_type, MK_CL_array_element_type);
+
 mkcl_object
 mk_cl_array_element_type(MKCL, mkcl_object a)
 {
@@ -1039,6 +1041,8 @@ mkcl_array_elttype(MKCL, mkcl_object x)
     }
 }
 
+struct mkcl_cfun mk_cl_array_rank_cfunobj = MKCL_CFUN1(mk_cl_array_rank, MK_CL_array_rank);
+
 mkcl_object
 mk_cl_array_rank(MKCL, mkcl_object a)
 {
@@ -1093,12 +1097,16 @@ mk_cl_array_dimension(MKCL, mkcl_object a, mkcl_object axis_number)
   mkcl_return_value(MKCL_MAKE_FIXNUM(dim));
 }
 
+struct mkcl_cfun mk_cl_array_total_size_cfunobj = MKCL_CFUN1(mk_cl_array_total_size, MK_CL_array_total_size);
+
 mkcl_object
 mk_cl_array_total_size(MKCL, mkcl_object a)
 {
   mkcl_call_stack_check(env);
   mkcl_return_value(MKCL_MAKE_FIXNUM(mkcl_array_total_size(env, a)));
 }
+
+struct mkcl_cfun mk_cl_adjustable_array_p_cfunobj = MKCL_CFUN1(mk_cl_adjustable_array_p, MK_CL_adjustable_array_p);
 
 mkcl_object
 mk_cl_adjustable_array_p(MKCL, mkcl_object a)
@@ -1111,6 +1119,8 @@ mk_cl_adjustable_array_p(MKCL, mkcl_object a)
 /*
 	Internal function for checking if an array is displaced.
 */
+struct mkcl_cfun mk_cl_array_displacement_cfunobj = MKCL_CFUN1(mk_cl_array_displacement, MK_CL_array_displacement);
+
 mkcl_object
 mk_cl_array_displacement(MKCL, mkcl_object a)
 {
@@ -1199,6 +1209,8 @@ mk_cl_array_displacement(MKCL, mkcl_object a)
   }
   mkcl_return_2_values(to_array, MKCL_MAKE_FIXNUM(offset));
 }
+
+struct mkcl_cfun mk_cl_array_has_fill_pointer_p_cfunobj = MKCL_CFUN1(mk_cl_array_has_fill_pointer_p, MK_CL_array_has_fill_pointer_p);
 
 mkcl_object
 mk_cl_array_has_fill_pointer_p(MKCL, mkcl_object a)

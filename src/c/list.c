@@ -129,9 +129,29 @@ setup_test(MKCL, struct cl_test *t, mkcl_object item, mkcl_object test,
   }
 }
 
-extern inline mkcl_object mk_cl_car(MKCL, mkcl_object x);
+struct mkcl_cfun mk_cl_car_cfunobj = MKCL_CFUN1(mk_cl_car, MK_CL_car);
 
-extern inline mkcl_object mk_cl_cdr(MKCL, mkcl_object x);
+mkcl_object mk_cl_car(MKCL, mkcl_object x)
+{
+  if (mkcl_Null(x))
+    return ((env->nvalues = 1),(env->values[0] = mk_cl_Cnil));
+  else if (mkcl_likely(MKCL_F_CONSP(x)))
+    return ((env->nvalues = 1),(env->values[0] = MKCL_CONS_CAR(x)));
+  else
+    mkcl_FEtype_error_list(env, x);
+}
+
+struct mkcl_cfun mk_cl_cdr_cfunobj = MKCL_CFUN1(mk_cl_cdr, MK_CL_cdr);
+
+mkcl_object mk_cl_cdr(MKCL, mkcl_object x)
+{
+  if (mkcl_Null(x))
+    return ((env->nvalues = 1),(env->values[0] = mk_cl_Cnil));
+  else if (mkcl_likely(MKCL_F_CONSP(x)))
+    return ((env->nvalues = 1),(env->values[0] = MKCL_CONS_CDR(x)));
+  else
+    mkcl_FEtype_error_list(env, x);
+}
 
 mkcl_object mk_cl_list(MKCL, mkcl_narg narg, ...)
 {
@@ -281,6 +301,35 @@ mkcl_append(MKCL, mkcl_object x, mkcl_object y)
     register mkcl_object arg = foo;			\
     code; mkcl_return1(arg);				\
   E:	mkcl_FEtype_error_list(env, arg);}
+
+struct mkcl_cfun mk_cl_caar_cfunobj = MKCL_CFUN1(mk_cl_caar, MK_CL_caar);
+struct mkcl_cfun mk_cl_cadr_cfunobj = MKCL_CFUN1(mk_cl_cadr, MK_CL_cadr);
+struct mkcl_cfun mk_cl_cdar_cfunobj = MKCL_CFUN1(mk_cl_cdar, MK_CL_cdar);
+struct mkcl_cfun mk_cl_cddr_cfunobj = MKCL_CFUN1(mk_cl_cddr, MK_CL_cddr);
+struct mkcl_cfun mk_cl_caaar_cfunobj = MKCL_CFUN1(mk_cl_caaar, MK_CL_caaar);
+struct mkcl_cfun mk_cl_caadr_cfunobj = MKCL_CFUN1(mk_cl_caadr, MK_CL_caadr);
+struct mkcl_cfun mk_cl_cadar_cfunobj = MKCL_CFUN1(mk_cl_cadar, MK_CL_cadar);
+struct mkcl_cfun mk_cl_caddr_cfunobj = MKCL_CFUN1(mk_cl_caddr, MK_CL_caddr);
+struct mkcl_cfun mk_cl_cdaar_cfunobj = MKCL_CFUN1(mk_cl_cdaar, MK_CL_cdaar);
+struct mkcl_cfun mk_cl_cdadr_cfunobj = MKCL_CFUN1(mk_cl_cdadr, MK_CL_cdadr);
+struct mkcl_cfun mk_cl_cddar_cfunobj = MKCL_CFUN1(mk_cl_cddar, MK_CL_cddar);
+struct mkcl_cfun mk_cl_cdddr_cfunobj = MKCL_CFUN1(mk_cl_cdddr, MK_CL_cdddr);
+struct mkcl_cfun mk_cl_caaaar_cfunobj = MKCL_CFUN1(mk_cl_caaaar, MK_CL_caaaar);
+struct mkcl_cfun mk_cl_caaadr_cfunobj = MKCL_CFUN1(mk_cl_caaadr, MK_CL_caaadr);
+struct mkcl_cfun mk_cl_caadar_cfunobj = MKCL_CFUN1(mk_cl_caadar, MK_CL_caadar);
+struct mkcl_cfun mk_cl_caaddr_cfunobj = MKCL_CFUN1(mk_cl_caaddr, MK_CL_caaddr);
+struct mkcl_cfun mk_cl_cadaar_cfunobj = MKCL_CFUN1(mk_cl_cadaar, MK_CL_cadaar);
+struct mkcl_cfun mk_cl_cadadr_cfunobj = MKCL_CFUN1(mk_cl_cadadr, MK_CL_cadadr);
+struct mkcl_cfun mk_cl_caddar_cfunobj = MKCL_CFUN1(mk_cl_caddar, MK_CL_caddar);
+struct mkcl_cfun mk_cl_cadddr_cfunobj = MKCL_CFUN1(mk_cl_cadddr, MK_CL_cadddr);
+struct mkcl_cfun mk_cl_cdaaar_cfunobj = MKCL_CFUN1(mk_cl_cdaaar, MK_CL_cdaaar);
+struct mkcl_cfun mk_cl_cdaadr_cfunobj = MKCL_CFUN1(mk_cl_cdaadr, MK_CL_cdaadr);
+struct mkcl_cfun mk_cl_cdadar_cfunobj = MKCL_CFUN1(mk_cl_cdadar, MK_CL_cdadar);
+struct mkcl_cfun mk_cl_cdaddr_cfunobj = MKCL_CFUN1(mk_cl_cdaddr, MK_CL_cdaddr);
+struct mkcl_cfun mk_cl_cddaar_cfunobj = MKCL_CFUN1(mk_cl_cddaar, MK_CL_cddaar);
+struct mkcl_cfun mk_cl_cddadr_cfunobj = MKCL_CFUN1(mk_cl_cddadr, MK_CL_cddadr);
+struct mkcl_cfun mk_cl_cdddar_cfunobj = MKCL_CFUN1(mk_cl_cdddar, MK_CL_cdddar);
+struct mkcl_cfun mk_cl_cddddr_cfunobj = MKCL_CFUN1(mk_cl_cddddr, MK_CL_cddddr);
 
 defcxr(caar, x, car(car(x)))
 defcxr(cadr, x, car(cdr(x)))

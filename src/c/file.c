@@ -2333,6 +2333,8 @@ mkcl_object mk_cl_make_broadcast_stream(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_broadcast_stream_streams_cfunobj = MKCL_CFUN1(mk_cl_broadcast_stream_streams, MK_CL_broadcast_stream_streams);
+
 mkcl_object
 mk_cl_broadcast_stream_streams(MKCL, mkcl_object strm)
 {
@@ -2657,6 +2659,8 @@ mkcl_object mk_cl_make_concatenated_stream(MKCL, mkcl_narg narg, ...)
     mkcl_return_value(x);
   }
 }
+
+struct mkcl_cfun mk_cl_concatenated_stream_streams_cfunobj = MKCL_CFUN1(mk_cl_concatenated_stream_streams, MK_CL_concatenated_stream_streams);
 
 mkcl_object
 mk_cl_concatenated_stream_streams(MKCL, mkcl_object strm)

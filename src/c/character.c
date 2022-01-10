@@ -36,6 +36,8 @@ mk_cl_graphic_char_p(MKCL, mkcl_object c)
   mkcl_return_value((mkcl_graphic_char_p(mkcl_char_code(env, c))? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_alpha_char_p_cfunobj = MKCL_CFUN1(mk_cl_alpha_char_p, MK_CL_alpha_char_p);
+
 mkcl_object
 mk_cl_alpha_char_p(MKCL, mkcl_object c)
 {
@@ -59,6 +61,8 @@ mk_cl_lower_case_p(MKCL, mkcl_object c)
   /* INV: mkcl_char_code() checks the type */
   mkcl_return_value((mkcl_lower_case_p(mkcl_char_code(env, c))? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_cl_both_case_p_cfunobj = MKCL_CFUN1(mk_cl_both_case_p, MK_CL_both_case_p);
 
 mkcl_object
 mk_cl_both_case_p(MKCL, mkcl_object c)
@@ -152,6 +156,8 @@ mkcl_digitp(mkcl_character i, int r)
   }
   return -1;
 }
+
+struct mkcl_cfun mk_cl_alphanumericp_cfunobj = MKCL_CFUN1(mk_cl_alphanumericp, MK_CL_alphanumericp);
 
 mkcl_object
 mk_cl_alphanumericp(MKCL, mkcl_object c)
@@ -414,6 +420,8 @@ mkcl_object mk_cl_char_not_lessp(MKCL, mkcl_narg narg, ...)
 }
 
 
+struct mkcl_cfun mk_cl_character_cfunobj = MKCL_CFUN1(mk_cl_character, MK_CL_character);
+
 mkcl_object
 mk_cl_character(MKCL, mkcl_object x)
 {
@@ -450,6 +458,8 @@ mk_cl_character(MKCL, mkcl_object x)
   mkcl_return_value(x);
 }
 
+struct mkcl_cfun mk_cl_char_code_cfunobj = MKCL_CFUN1(mk_cl_char_code, MK_CL_char_code);
+
 mkcl_object
 mk_cl_char_code(MKCL, mkcl_object c)
 {
@@ -457,6 +467,8 @@ mk_cl_char_code(MKCL, mkcl_object c)
   /* INV: mkcl_char_code() checks the type of `c' */
   mkcl_return_value(MKCL_MAKE_FIXNUM(mkcl_char_code(env, c)));
 }
+
+struct mkcl_cfun mk_cl_code_char_cfunobj = MKCL_CFUN1(mk_cl_code_char, MK_CL_code_char);
 
 mkcl_object
 mk_cl_code_char(MKCL, mkcl_object c)
@@ -482,6 +494,8 @@ mk_cl_code_char(MKCL, mkcl_object c)
   mkcl_return_value(c);
 }
 
+struct mkcl_cfun mk_cl_char_upcase_cfunobj = MKCL_CFUN1(mk_cl_char_upcase, MK_CL_char_upcase);
+
 mkcl_object
 mk_cl_char_upcase(MKCL, mkcl_object c)
 {
@@ -490,6 +504,8 @@ mk_cl_char_upcase(MKCL, mkcl_object c)
   mkcl_word code = mkcl_char_code(env, c);
   mkcl_return_value(MKCL_CODE_CHAR(mkcl_char_upcase(code)));
 }
+
+struct mkcl_cfun mk_cl_char_downcase_cfunobj = MKCL_CFUN1(mk_cl_char_downcase, MK_CL_char_downcase);
 
 mkcl_object
 mk_cl_char_downcase(MKCL, mkcl_object c)
@@ -544,6 +560,8 @@ mkcl_digit_char(mkcl_word w, mkcl_word r)
     return(w - 10 + 'A');
 }
 
+struct mkcl_cfun mk_cl_char_int_cfunobj = MKCL_CFUN1(mk_cl_char_int, MK_CL_char_int);
+
 mkcl_object
 mk_cl_char_int(MKCL, mkcl_object c)
 {
@@ -557,6 +575,8 @@ mk_cl_char_int(MKCL, mkcl_object c)
    corresponding to a unicode code point.
    #\u14ea should work, for example
 */
+
+struct mkcl_cfun mk_cl_char_name_cfunobj = MKCL_CFUN1(mk_cl_char_name, MK_CL_char_name);
 
 mkcl_object
 mk_cl_char_name(MKCL, mkcl_object c)
