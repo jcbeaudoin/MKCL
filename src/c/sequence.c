@@ -225,6 +225,8 @@ mkcl_object mk_cl_subseq(MKCL, mkcl_narg narg, mkcl_object sequence, mkcl_object
   }
 }
 
+struct mkcl_cfun mk_cl_copy_seq_cfunobj = MKCL_CFUN1(mk_cl_copy_seq, MK_CL_copy_seq);
+
 mkcl_object
 mk_cl_copy_seq(MKCL, mkcl_object x)
 {

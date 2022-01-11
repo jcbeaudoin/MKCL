@@ -156,6 +156,8 @@ mk_cl_oddp(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_oddp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_evenp_cfunobj = MKCL_CFUN1(mk_cl_evenp, MK_CL_evenp);
+
 mkcl_object
 mk_cl_evenp(MKCL, mkcl_object x)
 {	/* INV: mkcl_evenp() checks_type */

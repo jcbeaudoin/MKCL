@@ -47,12 +47,16 @@ mk_cl_symbol_function(MKCL, mkcl_object sym)
     }
 }
 
+struct mkcl_cfun mk_cl_fdefinition_cfunobj = MKCL_CFUN1(mk_cl_fdefinition, MK_CL_fdefinition);
+
 mkcl_object
 mk_cl_fdefinition(MKCL, mkcl_object fname)
 {
   mkcl_call_stack_check(env);
   mkcl_return_value(((MKCL_SYMBOLP(fname)) ? mk_cl_symbol_function(env, fname) : mkcl_fdefinition(env, fname)));
 }
+
+struct mkcl_cfun mk_cl_fboundp_cfunobj = MKCL_CFUN1(mk_cl_fboundp, MK_CL_fboundp);
 
 mkcl_object
 mk_cl_fboundp(MKCL, mkcl_object fname)

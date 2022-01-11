@@ -734,6 +734,8 @@ mk_si_set_compiled_function_name(MKCL, mkcl_object fun, mkcl_object name)
   mkcl_return_value(name);
 }
 
+struct mkcl_cfun mk_cl_function_lambda_expression_cfunobj = MKCL_CFUN1(mk_cl_function_lambda_expression, MK_CL_function_lambda_expression);
+
 mkcl_object
 mk_cl_function_lambda_expression(MKCL, mkcl_object fun)
 {

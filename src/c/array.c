@@ -1241,6 +1241,8 @@ mk_cl_array_has_fill_pointer_p(MKCL, mkcl_object a)
   mkcl_return_value(r);
 }
 
+struct mkcl_cfun mk_cl_fill_pointer_cfunobj = MKCL_CFUN1(mk_cl_fill_pointer, MK_CL_fill_pointer);
+
 mkcl_object
 mk_cl_fill_pointer(MKCL, mkcl_object a)
 {

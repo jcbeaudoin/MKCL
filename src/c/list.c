@@ -130,6 +130,7 @@ setup_test(MKCL, struct cl_test *t, mkcl_object item, mkcl_object test,
 }
 
 struct mkcl_cfun mk_cl_car_cfunobj = MKCL_CFUN1(mk_cl_car, MK_CL_car);
+struct mkcl_cfun mk_cl_first_cfunobj = MKCL_CFUN1(mk_cl_car, MK_CL_first);
 
 mkcl_object mk_cl_car(MKCL, mkcl_object x)
 {
@@ -142,6 +143,7 @@ mkcl_object mk_cl_car(MKCL, mkcl_object x)
 }
 
 struct mkcl_cfun mk_cl_cdr_cfunobj = MKCL_CFUN1(mk_cl_cdr, MK_CL_cdr);
+struct mkcl_cfun mk_cl_rest_cfunobj = MKCL_CFUN1(mk_cl_cdr, MK_CL_rest);
 
 mkcl_object mk_cl_cdr(MKCL, mkcl_object x)
 {
@@ -363,6 +365,17 @@ defcxr(cddddr, x, cdr(cdr(cdr(cdr(x)))))
 #undef cdr
 #undef defcxr
 
+struct mkcl_cfun mk_cl_second_cfunobj = MKCL_CFUN1(mk_cl_cadr, MK_CL_second);
+struct mkcl_cfun mk_cl_third_cfunobj = MKCL_CFUN1(mk_cl_caddr, MK_CL_third);
+struct mkcl_cfun mk_cl_fourth_cfunobj = MKCL_CFUN1(mk_cl_cadddr, MK_CL_fourth);
+
+
+struct mkcl_cfun mk_cl_fifth_cfunobj = MKCL_CFUN1(mk_cl_fifth, MK_CL_fifth);
+struct mkcl_cfun mk_cl_sixth_cfunobj = MKCL_CFUN1(mk_cl_sixth, MK_CL_sixth);
+struct mkcl_cfun mk_cl_seventh_cfunobj = MKCL_CFUN1(mk_cl_seventh, MK_CL_seventh);
+struct mkcl_cfun mk_cl_eighth_cfunobj = MKCL_CFUN1(mk_cl_eighth, MK_CL_eighth);
+struct mkcl_cfun mk_cl_ninth_cfunobj = MKCL_CFUN1(mk_cl_ninth, MK_CL_ninth);
+struct mkcl_cfun mk_cl_tenth_cfunobj = MKCL_CFUN1(mk_cl_tenth, MK_CL_tenth);
 
 #define LENTH(n) (MKCL, mkcl_object x) {		\
     mkcl_object val = mkcl_nth(env, n, x);		\
@@ -418,6 +431,8 @@ mkcl_object mk_cl_tree_equal(MKCL, mkcl_narg narg, mkcl_object x, mkcl_object y,
     mkcl_return_value(output);
   }
  }
+
+struct mkcl_cfun mk_cl_endp_cfunobj = MKCL_CFUN1(mk_cl_endp, MK_CL_endp);
 
 mkcl_object
 mk_cl_endp(MKCL, mkcl_object x)
@@ -593,6 +608,8 @@ mkcl_copy_proper_list(MKCL, mkcl_object x)
   return copy;
 }
 
+struct mkcl_cfun mk_cl_copy_list_cfunobj = MKCL_CFUN1(mk_cl_copy_list, MK_CL_copy_list);
+
 mkcl_object
 mk_cl_copy_list(MKCL, mkcl_object x)
 {
@@ -648,6 +665,8 @@ duplicate_pairs(MKCL, mkcl_object x)
   return mkcl_list1(env, p);
 }
 
+struct mkcl_cfun mk_cl_copy_alist_cfunobj = MKCL_CFUN1(mk_cl_copy_alist, MK_CL_copy_alist);
+
 mkcl_object
 mk_cl_copy_alist(MKCL, mkcl_object x)
 {
@@ -683,6 +702,8 @@ do_copy_tree(MKCL, mkcl_object x)
   }
   return x;
 }
+
+struct mkcl_cfun mk_cl_copy_tree_cfunobj = MKCL_CFUN1(mk_cl_copy_tree, MK_CL_copy_tree);
 
 mkcl_object
 mk_cl_copy_tree(MKCL, mkcl_object x)

@@ -116,6 +116,8 @@ mkcl_word_expt(mkcl_word x, mkcl_word y)
   return(z);
 }
 
+struct mkcl_cfun mk_cl_exp_cfunobj = MKCL_CFUN1(mk_cl_exp, MK_CL_exp);
+
 mkcl_object
 mk_cl_exp(MKCL, mkcl_object x)
 {
@@ -602,6 +604,9 @@ mk_cl_sin(MKCL, mkcl_object x)
   mkcl_return_value(output);
 }
 
+
+struct mkcl_cfun mk_cl_cos_cfunobj = MKCL_CFUN1(mk_cl_cos, MK_CL_cos);
+
 mkcl_object
 mk_cl_cos(MKCL, mkcl_object x)
 {
@@ -734,6 +739,8 @@ mk_cl_sinh(MKCL, mkcl_object x)
   MKCL_MATHERR_TEST(env);
   mkcl_return_value(output);
 }
+
+struct mkcl_cfun mk_cl_cosh_cfunobj = MKCL_CFUN1(mk_cl_cosh, MK_CL_cosh);
 
 mkcl_object
 mk_cl_cosh(MKCL, mkcl_object x)

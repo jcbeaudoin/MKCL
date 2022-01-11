@@ -100,6 +100,8 @@ mkcl_copy_structure(MKCL, mkcl_object x)
 }
 #endif /* !CLOS */
 
+struct mkcl_cfun mk_cl_copy_structure_cfunobj = MKCL_CFUN1(mk_cl_copy_structure, MK_CL_copy_structure);
+
 mkcl_object
 mk_cl_copy_structure(MKCL, mkcl_object s)
 {

@@ -1655,6 +1655,8 @@ mk_cl_pathname_version(MKCL, mkcl_object pname)
   mkcl_return_value(pname->pathname.version);
 }
 
+struct mkcl_cfun mk_cl_file_namestring_cfunobj = MKCL_CFUN1(mk_cl_file_namestring, MK_CL_file_namestring);
+
 mkcl_object
 mk_cl_file_namestring(MKCL, mkcl_object pname)
 {
@@ -1671,6 +1673,8 @@ mk_cl_file_namestring(MKCL, mkcl_object pname)
 			   TRUE));
 }
 
+struct mkcl_cfun mk_cl_directory_namestring_cfunobj = MKCL_CFUN1(mk_cl_directory_namestring, MK_CL_directory_namestring);
+
 mkcl_object
 mk_cl_directory_namestring(MKCL, mkcl_object pname)
 {
@@ -1684,6 +1688,8 @@ mk_cl_directory_namestring(MKCL, mkcl_object pname)
 					  mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil),
 			   TRUE));
 }
+
+struct mkcl_cfun mk_cl_host_namestring_cfunobj = MKCL_CFUN1(mk_cl_host_namestring, MK_CL_host_namestring);
 
 mkcl_object
 mk_cl_host_namestring(MKCL, mkcl_object pname)

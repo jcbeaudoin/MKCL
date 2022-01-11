@@ -675,6 +675,8 @@ mkcl_integer_length(MKCL, mkcl_object x)
   return count;
 }
 
+struct mkcl_cfun mk_cl_integer_length_cfunobj = MKCL_CFUN1(mk_cl_integer_length, MK_CL_integer_length);
+
 mkcl_object
 mk_cl_integer_length(MKCL, mkcl_object x)
 {

@@ -616,6 +616,8 @@ mkcl_export2(MKCL, mkcl_object s, mkcl_object p)
   } MKCL_UNWIND_PROTECT_END;
 }
 
+struct mkcl_cfun mk_cl_delete_package_cfunobj = MKCL_CFUN1(mk_cl_delete_package, MK_CL_delete_package);
+
 mkcl_object
 mk_cl_delete_package(MKCL, mkcl_object p)
 {
@@ -951,6 +953,8 @@ mk_si_select_package(MKCL, mkcl_object pack_name)
   mkcl_object p = mk_si_coerce_to_package(env, pack_name);
   mkcl_return_value((MKCL_SETQ(env, MK_CL_DYNVAR_package, p)));
 }
+
+struct mkcl_cfun mk_cl_find_package_cfunobj = MKCL_CFUN1(mk_cl_find_package, MK_CL_find_package);
 
 mkcl_object
 mk_cl_find_package(MKCL, mkcl_object p)

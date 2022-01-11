@@ -520,6 +520,8 @@ mk_cl_symbol_package(MKCL, mkcl_object sym)
   mkcl_return_value(mkcl_symbol_package(env, sym));
 }
 
+struct mkcl_cfun mk_cl_keywordp_cfunobj = MKCL_CFUN1(mk_cl_keywordp, MK_CL_keywordp);
+
 mkcl_object
 mk_cl_keywordp(MKCL, mkcl_object sym)
 {

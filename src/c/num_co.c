@@ -129,6 +129,8 @@ mk_cl_numerator(MKCL, mkcl_object x)
   mkcl_return_value(x);
 }
 
+struct mkcl_cfun mk_cl_denominator_cfunobj = MKCL_CFUN1(mk_cl_denominator, MK_CL_denominator);
+
 mkcl_object
 mk_cl_denominator(MKCL, mkcl_object x)
 {
@@ -891,6 +893,8 @@ mk_cl_rem(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_value(MKCL_VALUES(1));
 }
 
+struct mkcl_cfun mk_cl_decode_float_cfunobj = MKCL_CFUN1(mk_cl_decode_float, MK_CL_decode_float);
+
 mkcl_object
 mk_cl_decode_float(MKCL, mkcl_object x)
 {
@@ -982,6 +986,8 @@ mk_cl_scale_float(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_value(x);
 }
 
+struct mkcl_cfun mk_cl_float_radix_cfunobj = MKCL_CFUN1(mk_cl_float_radix, MK_CL_float_radix);
+
 mkcl_object
 mk_cl_float_radix(MKCL, mkcl_object x)
 {
@@ -1047,6 +1053,8 @@ mkcl_object mk_cl_float_sign(MKCL, mkcl_narg narg, mkcl_object x, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_float_digits_cfunobj = MKCL_CFUN1(mk_cl_float_digits, MK_CL_float_digits);
+
 mkcl_object
 mk_cl_float_digits(MKCL, mkcl_object x)
 {
@@ -1070,6 +1078,8 @@ mk_cl_float_digits(MKCL, mkcl_object x)
   }
   mkcl_return_value(x);
 }
+
+struct mkcl_cfun mk_cl_float_precision_cfunobj = MKCL_CFUN1(mk_cl_float_precision, MK_CL_float_precision);
 
 mkcl_object
 mk_cl_float_precision(MKCL, mkcl_object x)
@@ -1135,6 +1145,8 @@ mk_cl_float_precision(MKCL, mkcl_object x)
   }
   mkcl_return_value(MKCL_MAKE_FIXNUM(precision));
 }
+
+struct mkcl_cfun mk_cl_integer_decode_float_cfunobj = MKCL_CFUN1(mk_cl_integer_decode_float, MK_CL_integer_decode_float);
 
 mkcl_object
 mk_cl_integer_decode_float(MKCL, mkcl_object x)
@@ -1241,6 +1253,8 @@ mk_cl_realpart(MKCL, mkcl_object x)
   }
   mkcl_return_value(x);
 }
+
+struct mkcl_cfun mk_cl_imagpart_cfunobj = MKCL_CFUN1(mk_cl_imagpart, MK_CL_imagpart);
 
 mkcl_object
 mk_cl_imagpart(MKCL, mkcl_object x)

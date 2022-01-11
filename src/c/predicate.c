@@ -22,6 +22,8 @@
 
 #include <mkcl/internal.h>
 
+struct mkcl_cfun mk_cl_identity_cfunobj = MKCL_CFUN1(mk_cl_identity, MK_CL_identity);
+
 mkcl_object
 mk_cl_identity(MKCL, mkcl_object x)
 {
@@ -69,6 +71,8 @@ mk_cl_numberp(MKCL, mkcl_object x)
   mkcl_return_value((MKCL_NUMBER_TYPE_P(t) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_integerp_cfunobj = MKCL_CFUN1(mk_cl_integerp, MK_CL_integerp);
+
 mkcl_object
 mk_cl_integerp(MKCL, mkcl_object x)
 {
@@ -81,6 +85,8 @@ mk_cl_rationalp(MKCL, mkcl_object x)
 {
   mkcl_return_value((mkcl_rationalp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_cl_floatp_cfunobj = MKCL_CFUN1(mk_cl_floatp, MK_CL_floatp);
 
 mkcl_object
 mk_cl_floatp(MKCL, mkcl_object x)
@@ -181,6 +187,8 @@ mk_cl_packagep(MKCL, mkcl_object x)
 {
   mkcl_return_value(((mkcl_type_of(x) == mkcl_t_package) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_cl_functionp_cfunobj = MKCL_CFUN1(mk_cl_functionp, MK_CL_functionp);
 
 mkcl_object
 mk_cl_functionp(MKCL, mkcl_object x)

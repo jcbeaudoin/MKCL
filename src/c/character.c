@@ -28,6 +28,8 @@ mk_cl_standard_char_p(MKCL, mkcl_object c)
   mkcl_return_value((mkcl_standard_char_p(i)? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_graphic_char_p_cfunobj = MKCL_CFUN1(mk_cl_graphic_char_p, MK_CL_graphic_char_p);
+
 mkcl_object
 mk_cl_graphic_char_p(MKCL, mkcl_object c)
 {

@@ -608,6 +608,8 @@ mkcl_object mk_cl_rename_file(MKCL, mkcl_object old_filespec, mkcl_object new_na
   mkcl_return_3_values(new_name, old_truename, mk_cl_truename(env, new_name));
 }
 
+struct mkcl_cfun mk_cl_delete_file_cfunobj = MKCL_CFUN1(mk_cl_delete_file, MK_CL_delete_file);
+
 mkcl_object
 mk_cl_delete_file(MKCL, mkcl_object file)
 {
@@ -780,6 +782,8 @@ static mkcl_object mkcl_FILETIME_to_universal_time(MKCL, FILETIME file_time)
 }
 #endif /*  MKCL_WINDOWS */
 
+struct mkcl_cfun mk_cl_file_write_date_cfunobj = MKCL_CFUN1(mk_cl_file_write_date, MK_CL_file_write_date);
+
 mkcl_object
 mk_cl_file_write_date(MKCL, mkcl_object file)
 {
@@ -818,6 +822,8 @@ mk_cl_file_write_date(MKCL, mkcl_object file)
 #endif /* elif MKCL_WINDOWS */
   mkcl_return_value(time);
 }
+
+struct mkcl_cfun mk_cl_file_author_cfunobj = MKCL_CFUN1(mk_cl_file_author, MK_CL_file_author);
 
 mkcl_object
 mk_cl_file_author(MKCL, mkcl_object file)

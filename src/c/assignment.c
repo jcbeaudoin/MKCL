@@ -110,6 +110,8 @@ mk_cl_makunbound(MKCL, mkcl_object sym)
   mkcl_return_value(sym);
 }
 
+struct mkcl_cfun mk_cl_fmakunbound_cfunobj = MKCL_CFUN1(mk_cl_fmakunbound, MK_CL_fmakunbound);
+
 mkcl_object
 mk_cl_fmakunbound(MKCL, mkcl_object fname)
 {

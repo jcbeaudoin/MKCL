@@ -263,6 +263,8 @@ mkcl_object mk_cl_apply(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_object lasta
   }
 }
 
+struct mkcl_cfun mk_cl_eval_cfunobj = MKCL_CFUN1(mk_cl_eval, MK_CL_eval);
+
 mkcl_object
 mk_cl_eval(MKCL, mkcl_object form)
 {

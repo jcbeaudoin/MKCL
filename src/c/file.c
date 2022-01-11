@@ -1719,6 +1719,8 @@ mkcl_object mk_cl_make_string_output_stream(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_get_output_stream_string_cfunobj = MKCL_CFUN1(mk_cl_get_output_stream_string, MK_CL_get_output_stream_string);
+
 mkcl_object
 mk_cl_get_output_stream_string(MKCL, mkcl_object strm)
 {
@@ -2510,6 +2512,8 @@ mk_cl_make_echo_stream(MKCL, mkcl_object strm1, mkcl_object strm2)
   mkcl_return_value(strm);
 }
 
+struct mkcl_cfun mk_cl_echo_stream_input_stream_cfunobj = MKCL_CFUN1(mk_cl_echo_stream_input_stream, MK_CL_echo_stream_input_stream);
+
 mkcl_object
 mk_cl_echo_stream_input_stream(MKCL, mkcl_object strm)
 {
@@ -2518,6 +2522,8 @@ mk_cl_echo_stream_input_stream(MKCL, mkcl_object strm)
     mkcl_FEwrong_type_argument(env, MK_CL_echo_stream, strm);
   mkcl_return_value(MKCL_ECHO_STREAM_INPUT(strm));
 }
+
+struct mkcl_cfun mk_cl_echo_stream_output_stream_cfunobj = MKCL_CFUN1(mk_cl_echo_stream_output_stream, MK_CL_echo_stream_output_stream);
 
 mkcl_object
 mk_cl_echo_stream_output_stream(MKCL, mkcl_object strm)
@@ -4921,6 +4927,8 @@ mk_si_file_column(MKCL, mkcl_object strm)
   mkcl_return_value(MKCL_MAKE_FIXNUM(mkcl_file_column(env, strm)));
 }
 
+struct mkcl_cfun mk_cl_file_length_cfunobj = MKCL_CFUN1(mk_cl_file_length, MK_CL_file_length);
+
 mkcl_object
 mk_cl_file_length(MKCL, mkcl_object strm)
 {
@@ -4962,6 +4970,8 @@ mk_si_ansi_input_stream_p(MKCL, mkcl_object strm)
   mkcl_return_value((mkcl_input_stream_p(env, strm) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_input_stream_p_cfunobj = MKCL_CFUN1(mk_cl_input_stream_p, MK_CL_input_stream_p);
+
 mkcl_object
 mk_cl_input_stream_p(MKCL, mkcl_object strm)
 {
@@ -4980,6 +4990,8 @@ mk_cl_output_stream_p(MKCL, mkcl_object strm)
 {
   return(mk_si_ansi_output_stream_p(env, strm));
 }
+
+struct mkcl_cfun mk_cl_interactive_stream_p_cfunobj = MKCL_CFUN1(mk_cl_interactive_stream_p, MK_CL_interactive_stream_p);
 
 mkcl_object
 mk_cl_interactive_stream_p(MKCL, mkcl_object strm)

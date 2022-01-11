@@ -760,6 +760,8 @@ mk_si_hash_tables_statistics(MKCL)
   mkcl_return_value(mk_cl_Cnil);
 }
 
+struct mkcl_cfun mk_cl_hash_table_p_cfunobj = MKCL_CFUN1(mk_cl_hash_table_p, MK_CL_hash_table_p);
+
 mkcl_object
 mk_cl_hash_table_p(MKCL, mkcl_object ht)
 {
@@ -936,6 +938,8 @@ mk_cl_clrhash(MKCL, mkcl_object ht)
   mkcl_return_value(ht);
 }
 
+struct mkcl_cfun mk_cl_hash_table_test_cfunobj = MKCL_CFUN1(mk_cl_hash_table_test, MK_CL_hash_table_test);
+
 mkcl_object
 mk_cl_hash_table_test(MKCL, mkcl_object ht)
 {
@@ -953,6 +957,8 @@ mk_cl_hash_table_test(MKCL, mkcl_object ht)
   mkcl_return_value(output);
 }
 
+struct mkcl_cfun mk_cl_hash_table_size_cfunobj = MKCL_CFUN1(mk_cl_hash_table_size, MK_CL_hash_table_size);
+
 mkcl_object
 mk_cl_hash_table_size(MKCL, mkcl_object ht)
 {
@@ -960,6 +966,8 @@ mk_cl_hash_table_size(MKCL, mkcl_object ht)
   mkcl_assert_type_hash_table(env, ht);
   mkcl_return_value(MKCL_MAKE_FIXNUM(ht->hash.size));
 }
+
+struct mkcl_cfun mk_cl_hash_table_count_cfunobj = MKCL_CFUN1(mk_cl_hash_table_count, MK_CL_hash_table_count);
 
 mkcl_object
 mk_cl_hash_table_count(MKCL, mkcl_object ht)
@@ -1043,6 +1051,8 @@ mk_si_hash_table_iterator(MKCL, mkcl_object ht)
   }
 }
 
+struct mkcl_cfun mk_cl_hash_table_rehash_size_cfunobj = MKCL_CFUN1(mk_cl_hash_table_rehash_size, MK_CL_hash_table_rehash_size);
+
 mkcl_object
 mk_cl_hash_table_rehash_size(MKCL, mkcl_object ht)
 {
@@ -1050,6 +1060,8 @@ mk_cl_hash_table_rehash_size(MKCL, mkcl_object ht)
   mkcl_assert_type_hash_table(env, ht);
   mkcl_return_value(ht->hash.rehash_size);
 }
+
+struct mkcl_cfun mk_cl_hash_table_rehash_threshold_cfunobj = MKCL_CFUN1(mk_cl_hash_table_rehash_threshold, MK_CL_hash_table_rehash_threshold);
 
 mkcl_object
 mk_cl_hash_table_rehash_threshold(MKCL, mkcl_object ht)
