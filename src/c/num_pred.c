@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011, Jean-Claude Beaudoin.
+    Copyright (c) 2011,2022 Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -135,6 +135,8 @@ mk_cl_zerop(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_zerop(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_plusp_cfunobj = MKCL_CFUN1(mk_cl_plusp, MK_CL_plusp);
+
 mkcl_object
 mk_cl_plusp(MKCL, mkcl_object x)
 {	/* INV: mkcl_plusp()  checks type */
@@ -142,12 +144,16 @@ mk_cl_plusp(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_plusp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_minusp_cfunobj = MKCL_CFUN1(mk_cl_minusp, MK_CL_minusp);
+
 mkcl_object
 mk_cl_minusp(MKCL, mkcl_object x)
 {	/* INV: mkcl_minusp() checks type */
   mkcl_call_stack_check(env);
   mkcl_return_value((mkcl_minusp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_cl_oddp_cfunobj = MKCL_CFUN1(mk_cl_oddp, MK_CL_oddp);
 
 mkcl_object
 mk_cl_oddp(MKCL, mkcl_object x)

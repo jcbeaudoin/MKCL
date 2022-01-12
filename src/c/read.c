@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2017,2021, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2017,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -2060,6 +2060,8 @@ mkcl_object mk_cl_copy_readtable(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_readtable_case_cfunobj = MKCL_CFUN1(mk_cl_readtable_case, MK_CL_readtable_case);
+
 mkcl_object
 mk_cl_readtable_case(MKCL, mkcl_object r)
 {
@@ -2099,6 +2101,8 @@ mk_si_readtable_case_set(MKCL, mkcl_object r, mkcl_object mode)
   }
   mkcl_return_value(mode);
 }
+
+struct mkcl_cfun mk_cl_readtablep_cfunobj = MKCL_CFUN1(mk_cl_readtablep, MK_CL_readtablep);
 
 mkcl_object
 mk_cl_readtablep(MKCL, mkcl_object readtable)

@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2019,2021, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2019,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -677,6 +677,8 @@ bool mkcl_probe_file(MKCL, mkcl_object os_filename, bool follow_links)
     return TRUE;
 #endif /* !MKCL_WINDOWS */
 }
+
+struct mkcl_cfun mk_cl_probe_file_cfunobj = MKCL_CFUN1(mk_cl_probe_file, MK_CL_probe_file);
 
 mkcl_object
 mk_cl_probe_file(MKCL, mkcl_object filespec)

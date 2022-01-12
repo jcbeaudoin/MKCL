@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2017, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2017,2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -770,6 +770,9 @@ mkcl_to_long_double(MKCL, mkcl_object x)
   }
 }
 #endif
+
+struct mkcl_cfun mk_cl_rational_cfunobj = MKCL_CFUN1(mk_cl_rational, MK_CL_rational);
+struct mkcl_cfun mk_cl_rationalize_cfunobj = MKCL_CFUN1(mk_cl_rationalize, MK_CL_rationalize);
 
 mkcl_object
 mk_cl_rational(MKCL, mkcl_object x)

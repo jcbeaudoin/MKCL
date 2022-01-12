@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2016,2021, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2016,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -973,6 +973,8 @@ mk_cl_find_package(MKCL, mkcl_object p)
   mkcl_return_value(package);
 }
 
+struct mkcl_cfun mk_cl_package_name_cfunobj = MKCL_CFUN1(mk_cl_package_name, MK_CL_package_name);
+
 mkcl_object
 mk_cl_package_name(MKCL, mkcl_object p)
 {
@@ -980,6 +982,8 @@ mk_cl_package_name(MKCL, mkcl_object p)
   p = mk_si_coerce_to_package(env, p);
   mkcl_return_value(mkcl_copy_string(env, p->pack.name));
 }
+
+struct mkcl_cfun mk_cl_package_nicknames_cfunobj = MKCL_CFUN1(mk_cl_package_nicknames, MK_CL_package_nicknames);
 
 mkcl_object
 mk_cl_package_nicknames(MKCL, mkcl_object p)
@@ -1002,6 +1006,8 @@ mkcl_object mk_cl_rename_package(MKCL, mkcl_narg narg, mkcl_object pack, mkcl_ob
   }
 }
 
+struct mkcl_cfun mk_cl_package_use_list_cfunobj = MKCL_CFUN1(mk_cl_package_use_list, MK_CL_package_use_list);
+
 mkcl_object
 mk_cl_package_use_list(MKCL, mkcl_object p)
 {
@@ -1009,12 +1015,16 @@ mk_cl_package_use_list(MKCL, mkcl_object p)
   return mk_cl_copy_list(env, mk_si_coerce_to_package(env, p)->pack.uses);
 }
 
+struct mkcl_cfun mk_cl_package_used_by_list_cfunobj = MKCL_CFUN1(mk_cl_package_used_by_list, MK_CL_package_used_by_list);
+
 mkcl_object
 mk_cl_package_used_by_list(MKCL, mkcl_object p)
 {
   mkcl_call_stack_check(env);
   return mk_cl_copy_list(env, mk_si_coerce_to_package(env, p)->pack.usedby);
 }
+
+struct mkcl_cfun mk_cl_package_shadowing_symbols_cfunobj = MKCL_CFUN1(mk_cl_package_shadowing_symbols, MK_CL_package_shadowing_symbols);
 
 mkcl_object
 mk_cl_package_shadowing_symbols(MKCL, mkcl_object p)

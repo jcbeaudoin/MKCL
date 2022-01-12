@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2017, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2017,2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -29,6 +29,9 @@ mk_cl_identity(MKCL, mkcl_object x)
 {
   mkcl_return_value(x);
 }
+
+struct mkcl_cfun mk_cl_not_cfunobj = MKCL_CFUN1(mk_cl_null, MK_CL_not);
+struct mkcl_cfun mk_cl_null_cfunobj = MKCL_CFUN1(mk_cl_null, MK_CL_null);
 
 mkcl_object
 mk_cl_null(MKCL, mkcl_object x)
@@ -58,11 +61,15 @@ mk_cl_consp(MKCL, mkcl_object x)
   mkcl_return_value((MKCL_CONSP(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_listp_cfunobj = MKCL_CFUN1(mk_cl_listp, MK_CL_listp);
+
 mkcl_object
 mk_cl_listp(MKCL, mkcl_object x)
 {
   mkcl_return_value(((MKCL_LISTP(x)) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_cl_numberp_cfunobj = MKCL_CFUN1(mk_cl_numberp, MK_CL_numberp);
 
 mkcl_object
 mk_cl_numberp(MKCL, mkcl_object x)
@@ -80,6 +87,8 @@ mk_cl_integerp(MKCL, mkcl_object x)
   mkcl_return_value(((t == mkcl_t_fixnum || t == mkcl_t_bignum) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_rationalp_cfunobj = MKCL_CFUN1(mk_cl_rationalp, MK_CL_rationalp);
+
 mkcl_object
 mk_cl_rationalp(MKCL, mkcl_object x)
 {
@@ -93,6 +102,8 @@ mk_cl_floatp(MKCL, mkcl_object x)
 {
   mkcl_return_value((mkcl_floatp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_cl_realp_cfunobj = MKCL_CFUN1(mk_cl_realp, MK_CL_realp);
 
 mkcl_object
 mk_cl_realp(MKCL, mkcl_object x)
@@ -143,6 +154,8 @@ mk_cl_vectorp(MKCL, mkcl_object x)
   mkcl_return_value((MKCL_VECTORP(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_simple_string_p_cfunobj = MKCL_CFUN1(mk_cl_simple_string_p, MK_CL_simple_string_p);
+
 mkcl_object
 mk_cl_simple_string_p(MKCL, mkcl_object x)
 {
@@ -161,11 +174,15 @@ mk_si_base_string_p(MKCL, mkcl_object x)
   mkcl_return_value(((mkcl_type_of(x) == mkcl_t_base_string) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_simple_bit_vector_p_cfunobj = MKCL_CFUN1(mk_cl_simple_bit_vector_p, MK_CL_simple_bit_vector_p);
+
 mkcl_object
 mk_cl_simple_bit_vector_p(MKCL, mkcl_object x)
 {
   mkcl_return_value((mkcl_simple_bit_vector_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_cl_simple_vector_p_cfunobj = MKCL_CFUN1(mk_cl_simple_vector_p, MK_CL_simple_vector_p);
 
 mkcl_object
 mk_cl_simple_vector_p(MKCL, mkcl_object x)
@@ -181,6 +198,8 @@ mk_cl_arrayp(MKCL, mkcl_object x)
   mkcl_type t = mkcl_type_of(x);
   mkcl_return_value((MKCL_ARRAY_TYPE_P(t) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_cl_packagep_cfunobj = MKCL_CFUN1(mk_cl_packagep, MK_CL_packagep);
 
 mkcl_object
 mk_cl_packagep(MKCL, mkcl_object x)

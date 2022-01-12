@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2012,2021, Jean-Claude Beaudoin.
+    Copyright (c) 2012,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -338,6 +338,8 @@ mkcl_boole(MKCL, int op, mkcl_object x, mkcl_object y)
   return x;
 }
 
+struct mkcl_cfun mk_cl_lognot_cfunobj = MKCL_CFUN1(mk_cl_lognot, MK_CL_lognot);
+
 mkcl_object
 mk_cl_lognot(MKCL, mkcl_object x)
 {
@@ -645,6 +647,8 @@ mk_cl_ash(MKCL, mkcl_object x, mkcl_object y)
   }
   mkcl_return_value(r);
 }
+
+struct mkcl_cfun mk_cl_logcount_cfunobj = MKCL_CFUN1(mk_cl_logcount, MK_CL_logcount);
 
 mkcl_object
 mk_cl_logcount(MKCL, mkcl_object x)

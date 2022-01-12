@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011,2021, Jean-Claude Beaudoin.
+    Copyright (c) 2011,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -562,6 +562,8 @@ mkcl_atan1(MKCL, mkcl_object y)
   }
 }
 
+struct mkcl_cfun mk_cl_sin_cfunobj = MKCL_CFUN1(mk_cl_sin, MK_CL_sin);
+
 mkcl_object
 mk_cl_sin(MKCL, mkcl_object x)
 {
@@ -696,6 +698,8 @@ mk_cl_tan(MKCL, mkcl_object x)
   MKCL_MATHERR_TEST(env);
   mkcl_return_value(output);
 }
+
+struct mkcl_cfun mk_cl_sinh_cfunobj = MKCL_CFUN1(mk_cl_sinh, MK_CL_sinh);
 
 mkcl_object
 mk_cl_sinh(MKCL, mkcl_object x)

@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2017,2021, Jean-Claude Beaudoin
+    Copyright (c) 2010-2017,2021-2022, Jean-Claude Beaudoin
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -838,6 +838,8 @@ mk_si_default_pathname_defaults(MKCL)
   mkcl_return_value(path);
 }
 
+struct mkcl_cfun mk_cl_pathname_cfunobj = MKCL_CFUN1(mk_cl_pathname, MK_CL_pathname);
+
 mkcl_object
 mk_cl_pathname(MKCL, mkcl_object x)
 {
@@ -873,6 +875,8 @@ mk_cl_pathname(MKCL, mkcl_object x)
   }
   mkcl_return_value(x);
 }
+
+struct mkcl_cfun mk_cl_logical_pathname_cfunobj = MKCL_CFUN1(mk_cl_logical_pathname, MK_CL_logical_pathname);
 
 mkcl_object
 mk_cl_logical_pathname(MKCL, mkcl_object x)
@@ -1349,6 +1353,8 @@ mkcl_namestring(MKCL, mkcl_object x, int truncate_if_unreadable)
 }
 
 
+struct mkcl_cfun mk_cl_namestring_cfunobj = MKCL_CFUN1(mk_cl_namestring, MK_CL_namestring);
+
 mkcl_object
 mk_cl_namestring(MKCL, mkcl_object x)
 {
@@ -1553,6 +1559,8 @@ mkcl_object mk_cl_make_pathname(MKCL, mkcl_narg narg, ...)
   }
  }
 
+struct mkcl_cfun mk_cl_pathnamep_cfunobj = MKCL_CFUN1(mk_cl_pathnamep, MK_CL_pathnamep);
+
 mkcl_object
 mk_cl_pathnamep(MKCL, mkcl_object pname)
 {
@@ -1645,6 +1653,8 @@ mkcl_object mk_cl_pathname_type(MKCL, mkcl_narg narg, mkcl_object pname, ...)
                        : pname->pathname.type));
   }
 }
+
+struct mkcl_cfun mk_cl_pathname_version_cfunobj = MKCL_CFUN1(mk_cl_pathname_version, MK_CL_pathname_version);
 
 mkcl_object
 mk_cl_pathname_version(MKCL, mkcl_object pname)

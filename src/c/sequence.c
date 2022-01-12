@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2012,2021, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2012,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -234,6 +234,8 @@ mk_cl_copy_seq(MKCL, mkcl_object x)
   return mk_cl_subseq(env, 2, x, MKCL_MAKE_FIXNUM(0));
 }
 
+struct mkcl_cfun mk_cl_length_cfunobj = MKCL_CFUN1(mk_cl_length, MK_CL_length);
+
 mkcl_object
 mk_cl_length(MKCL, mkcl_object x)
 {
@@ -306,6 +308,8 @@ mkcl_index mkcl_string_length(MKCL, mkcl_object x)
 }
 
 
+struct mkcl_cfun mk_cl_reverse_cfunobj = MKCL_CFUN1(mk_cl_reverse, MK_CL_reverse);
+
 mkcl_object
 mk_cl_reverse(MKCL, mkcl_object seq)
 {
@@ -345,6 +349,8 @@ mk_cl_reverse(MKCL, mkcl_object seq)
     }
   mkcl_return_value(output);
 }
+
+struct mkcl_cfun mk_cl_nreverse_cfunobj = MKCL_CFUN1(mk_cl_nreverse, MK_CL_nreverse);
 
 mkcl_object
 mk_cl_nreverse(MKCL, mkcl_object seq)

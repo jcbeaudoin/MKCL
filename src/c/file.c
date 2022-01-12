@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2017,2021, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2017,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -2854,6 +2854,8 @@ static const struct mkcl_file_ops synonym_ops = {
   generic_close
 };
 
+struct mkcl_cfun mk_cl_make_synonym_stream_cfunobj = MKCL_CFUN1(mk_cl_make_synonym_stream, MK_CL_make_synonym_stream);
+
 mkcl_object
 mk_cl_make_synonym_stream(MKCL, mkcl_object sym)
 {
@@ -4985,6 +4987,8 @@ mk_si_ansi_output_stream_p(MKCL, mkcl_object strm)
   mkcl_return_value((mkcl_output_stream_p(env, strm) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_output_stream_p_cfunobj = MKCL_CFUN1(mk_cl_output_stream_p, MK_CL_output_stream_p);
+
 mkcl_object
 mk_cl_output_stream_p(MKCL, mkcl_object strm)
 {
@@ -5011,6 +5015,8 @@ mk_si_ansi_open_stream_p(MKCL, mkcl_object strm)
     mkcl_FEwrong_type_argument(env, MK_CL_stream, strm);
   mkcl_return_value((strm->stream.closed ? mk_cl_Cnil : mk_cl_Ct));
 }
+
+struct mkcl_cfun mk_cl_open_stream_p_cfunobj = MKCL_CFUN1(mk_cl_open_stream_p, MK_CL_open_stream_p);
 
 mkcl_object
 mk_cl_open_stream_p(MKCL, mkcl_object strm)

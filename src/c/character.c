@@ -5,7 +5,7 @@
 /*
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
-    Copyright (c) 2012-2019,2021 Jean-Claude Beaudoin.
+    Copyright (c) 2012-2019,2021-2022 Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -55,6 +55,8 @@ mk_cl_upper_case_p(MKCL, mkcl_object c)
   /* INV: mkcl_char_code() checks the type */
   mkcl_return_value((mkcl_upper_case_p(mkcl_char_code(env, c))? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_cl_lower_case_p_cfunobj = MKCL_CFUN1(mk_cl_lower_case_p, MK_CL_lower_case_p);
 
 mkcl_object
 mk_cl_lower_case_p(MKCL, mkcl_object c)
@@ -608,6 +610,8 @@ mk_cl_char_name(MKCL, mkcl_object c)
     }
   mkcl_return_value(output);
 }
+
+struct mkcl_cfun mk_cl_name_char_cfunobj = MKCL_CFUN1(mk_cl_name_char, MK_CL_name_char);
 
 mkcl_object
 mk_cl_name_char(MKCL, mkcl_object name)

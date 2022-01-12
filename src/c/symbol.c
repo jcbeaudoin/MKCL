@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2021, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -109,6 +109,8 @@ static void mkcl_FEtype_error_plist(MKCL, mkcl_object x) /*__attribute__((noretu
       }
 
 static struct mkcl_symbol _symbol_proto = MKCL_SYMBOL_INITIALIZER(mk_cl_Cnil, 0, mk_cl_Cnil, MKCL_OBJNULL, mk_cl_Cnil);
+
+struct mkcl_cfun mk_cl_make_symbol_cfunobj = MKCL_CFUN1(mk_cl_make_symbol, MK_CL_make_symbol);
 
 mkcl_object
 mk_cl_make_symbol(MKCL, mkcl_object str)

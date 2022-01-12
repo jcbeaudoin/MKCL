@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2016,2021, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2016,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -228,6 +228,8 @@ mkcl_object mk_cl_make_random_state(MKCL, mkcl_narg narg, ...)
     mkcl_return_value(mkcl_make_random_state(env, rs));
   }
 }
+
+struct mkcl_cfun mk_cl_random_state_p_cfunobj = MKCL_CFUN1(mk_cl_random_state_p, MK_CL_random_state_p);
 
 mkcl_object
 mk_cl_random_state_p(MKCL, mkcl_object x)
