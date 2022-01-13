@@ -302,6 +302,8 @@ mkcl_object mk_si_mangle_symbol(MKCL, mkcl_object symbol)
 }
 
 
+struct mkcl_cfun mk_si_mangle_name_cfunobj = MKCL_CFUN1(mk_si_mangle_name, MK_SI_mangle_name);
+
 mkcl_object mk_si_mangle_name(MKCL, mkcl_object symbol)
 {
   mkcl_call_stack_check(env);
