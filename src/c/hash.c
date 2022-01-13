@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2016,2021 Jean-Claude Beaudoin
+    Copyright (c) 2010-2016,2021-2022, Jean-Claude Beaudoin
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -1023,6 +1023,8 @@ mkcl_hash_table_iterate(MKCL, mkcl_narg narg)
   mkcl_return_3_values(mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil);
 }
 
+struct mkcl_cfun mk_si_hash_table_iterator_cfunobj = MKCL_CFUN1(mk_si_hash_table_iterator, MK_SI_hash_table_iterator);
+
 mkcl_object
 mk_si_hash_table_iterator(MKCL, mkcl_object ht)
 {
@@ -1070,6 +1072,8 @@ mk_cl_hash_table_rehash_threshold(MKCL, mkcl_object ht)
   mkcl_assert_type_hash_table(env, ht);
   mkcl_return_value(ht->hash.threshold);
 }
+
+struct mkcl_cfun mk_cl_sxhash_cfunobj = MKCL_CFUN1(mk_cl_sxhash, MK_CL_sxhash);
 
 mkcl_object
 mk_cl_sxhash(MKCL, mkcl_object key)

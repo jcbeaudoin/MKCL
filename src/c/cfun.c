@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2016,2021 Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -692,6 +692,8 @@ mkcl_def_c_function_va(MKCL, mkcl_object sym, mkcl_objectfn c_function)
   mk_si_fset(env, 2, sym, mkcl_make_cfun_va(env, c_function, sym, mkcl_symbol_value(env, MK_SI_DYNVAR_cblock), NULL));
 }
 
+struct mkcl_cfun mk_si_compiled_function_name_cfunobj = MKCL_CFUN1(mk_si_compiled_function_name, MK_SI_compiled_function_name);
+
 mkcl_object
 mk_si_compiled_function_name(MKCL, mkcl_object fun)
 {
@@ -822,6 +824,8 @@ mk_si_closure_producer(MKCL, mkcl_object fun)
     default: mkcl_return_value(mk_cl_Cnil);
     }
 }
+
+struct mkcl_cfun mk_si_compiled_function_block_cfunobj = MKCL_CFUN1(mk_si_compiled_function_block, MK_SI_compiled_function_block);
 
 mkcl_object
 mk_si_compiled_function_block(MKCL, mkcl_object fun)

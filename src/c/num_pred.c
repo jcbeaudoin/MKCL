@@ -128,6 +128,8 @@ mkcl_evenp(MKCL, mkcl_object x)
   mkcl_FEtype_error_integer(env, x);
 }
 
+struct mkcl_cfun mk_cl_zerop_cfunobj = MKCL_CFUN1(mk_cl_zerop, MK_CL_zerop);
+
 mkcl_object
 mk_cl_zerop(MKCL, mkcl_object x)
 {	/* INV: mkcl_zerop() checks type */

@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2017, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2017,2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -150,6 +150,8 @@ get_run_time(MKCL, struct timespec *ts)
   get_real_time(ts);
 #endif
 }
+
+struct mkcl_cfun mk_cl_sleep_cfunobj = MKCL_CFUN1(mk_cl_sleep, MK_CL_sleep);
 
 mkcl_object
 mk_cl_sleep(MKCL, mkcl_object z)

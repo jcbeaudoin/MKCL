@@ -434,6 +434,8 @@ mkcl_object mk_si_file_kind(MKCL, mkcl_narg narg, mkcl_object filespec, ...)
  * going through links if they exist. Default is
  * current directory
  */
+struct mkcl_cfun mk_cl_truename_cfunobj = MKCL_CFUN1(mk_cl_truename, MK_CL_truename);
+
 mkcl_object
 mk_cl_truename(MKCL, mkcl_object orig_pathname)
 {
@@ -1765,6 +1767,8 @@ mkcl_object mk_mkcl_mkstemp(MKCL, mkcl_narg narg, mkcl_object template, ...)
     }
   }
 }
+
+struct mkcl_cfun mk_mkcl_rmdir_cfunobj = MKCL_CFUN1(mk_mkcl_rmdir, MK_MKCL_rmdir);
 
 mkcl_object
 mk_mkcl_rmdir(MKCL, mkcl_object directory)

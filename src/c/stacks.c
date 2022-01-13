@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2016, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016,2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -421,12 +421,16 @@ mk_si_bds_top(MKCL)
   mkcl_return_value(MKCL_MAKE_FIXNUM(env->bds_top - env->bds_org));
 }
 
+struct mkcl_cfun mk_si_bds_var_cfunobj = MKCL_CFUN1(mk_si_bds_var, MK_SI_bds_var);
+
 mkcl_object
 mk_si_bds_var(MKCL, mkcl_object arg)
 {
   mkcl_call_stack_check(env);
   mkcl_return_value(get_bds_ptr(env, arg)->symbol);
 }
+
+struct mkcl_cfun mk_si_bds_val_cfunobj = MKCL_CFUN1(mk_si_bds_val, MK_SI_bds_val);
 
 mkcl_object
 mk_si_bds_val(MKCL, mkcl_object arg)
@@ -495,12 +499,16 @@ mk_si_ihs_top(MKCL)
   mkcl_return_value(MKCL_MAKE_FIXNUM(env->ihs_top->index));
 }
 
+struct mkcl_cfun mk_si_ihs_prev_cfunobj = MKCL_CFUN1(mk_si_ihs_prev, MK_SI_ihs_prev);
+
 mkcl_object
 mk_si_ihs_prev(MKCL, mkcl_object x)
 {
   mkcl_call_stack_check(env);
   mkcl_return_value(mk_cl_1M(env, x));
 }
+
+struct mkcl_cfun mk_si_ihs_next_cfunobj = MKCL_CFUN1(mk_si_ihs_next, MK_SI_ihs_next);
 
 mkcl_object
 mk_si_ihs_next(MKCL, mkcl_object x)
@@ -509,6 +517,8 @@ mk_si_ihs_next(MKCL, mkcl_object x)
   mkcl_return_value(mk_cl_1P(env, x));
 }
 
+struct mkcl_cfun mk_si_ihs_fun_cfunobj = MKCL_CFUN1(mk_si_ihs_fun, MK_SI_ihs_fun);
+
 mkcl_object
 mk_si_ihs_fun(MKCL, mkcl_object arg)
 {
@@ -516,12 +526,16 @@ mk_si_ihs_fun(MKCL, mkcl_object arg)
   mkcl_return_value(get_ihs_ptr(env, mkcl_integer_to_index(env, arg))->function);
 }
 
+struct mkcl_cfun mk_si_ihs_env_cfunobj = MKCL_CFUN1(mk_si_ihs_env, MK_SI_ihs_env);
+
 mkcl_object
 mk_si_ihs_env(MKCL, mkcl_object arg)
 {
   mkcl_call_stack_check(env);
   mkcl_return_value(get_ihs_ptr(env, mkcl_integer_to_index(env, arg))->lex_env);
 }
+
+struct mkcl_cfun mk_si_ihs_bds_marker_cfunobj = MKCL_CFUN1(mk_si_ihs_bds_marker, MK_SI_ihs_bds_marker);
 
 mkcl_object
 mk_si_ihs_bds_marker(MKCL, mkcl_object arg)
@@ -694,6 +708,8 @@ mk_si_frs_top(MKCL)
   mkcl_return_value(MKCL_MAKE_FIXNUM(env->frs_top - env->frs_org)); /* Any overflow detection? JCB */
 }
 
+struct mkcl_cfun mk_si_frs_bds_cfunobj = MKCL_CFUN1(mk_si_frs_bds, MK_SI_frs_bds);
+
 mkcl_object
 mk_si_frs_bds(MKCL, mkcl_object arg)
 {
@@ -701,12 +717,16 @@ mk_si_frs_bds(MKCL, mkcl_object arg)
   mkcl_return_value(MKCL_MAKE_FIXNUM(get_frame_ptr(env, arg)->frs_bds_top_index));
 }
 
+struct mkcl_cfun mk_si_frs_tag_cfunobj = MKCL_CFUN1(mk_si_frs_tag, MK_SI_frs_tag);
+
 mkcl_object
 mk_si_frs_tag(MKCL, mkcl_object arg)
 {
   mkcl_call_stack_check(env);
   mkcl_return_value(get_frame_ptr(env, arg)->frs_val);
 }
+
+struct mkcl_cfun mk_si_frs_ihs_cfunobj = MKCL_CFUN1(mk_si_frs_ihs, MK_SI_frs_ihs);
 
 mkcl_object
 mk_si_frs_ihs(MKCL, mkcl_object arg)

@@ -6,6 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
+    Copyright (c) 2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -25,6 +26,8 @@
 		(macro . function-closure)	for macros
 		special				for special forms.
 */
+struct mkcl_cfun mk_cl_symbol_function_cfunobj = MKCL_CFUN1(mk_cl_symbol_function, MK_CL_symbol_function);
+
 mkcl_object
 mk_cl_symbol_function(MKCL, mkcl_object sym)
 {
@@ -123,6 +126,8 @@ mkcl_fdefinition(MKCL, mkcl_object fun)
   return output;
 }
 
+struct mkcl_cfun mk_si_coerce_to_function_cfunobj = MKCL_CFUN1(mk_si_coerce_to_function, MK_SI_coerce_to_function);
+
 mkcl_object
 mk_si_coerce_to_function(MKCL, mkcl_object fun)
 {
@@ -137,6 +142,8 @@ mk_si_coerce_to_function(MKCL, mkcl_object fun)
   }
   mkcl_return_value(fun);
 }
+
+struct mkcl_cfun mk_cl_symbol_value_cfunobj = MKCL_CFUN1(mk_cl_symbol_value, MK_CL_symbol_value);
 
 mkcl_object
 mk_cl_symbol_value(MKCL, mkcl_object sym)
@@ -177,6 +184,8 @@ mk_cl_boundp(MKCL, mkcl_object sym)
   }
   mkcl_return_value(output);
 }
+
+struct mkcl_cfun mk_cl_special_operator_p_cfunobj = MKCL_CFUN1(mk_cl_special_operator_p, MK_CL_special_operator_p);
 
 mkcl_object
 mk_cl_special_operator_p(MKCL, mkcl_object form)

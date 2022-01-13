@@ -991,6 +991,8 @@ mkcl_coerce_to_physical_pathname(MKCL, mkcl_object x)
  * be used by the C library.
  * INV: No wildcards are allowed.
  */
+struct mkcl_cfun mk_si_coerce_to_filename_cfunobj = MKCL_CFUN1(mk_si_coerce_to_filename, MK_SI_coerce_to_filename);
+
 mkcl_object
 mk_si_coerce_to_filename(MKCL, mkcl_object pathname_orig)
 {
@@ -1567,6 +1569,8 @@ mk_cl_pathnamep(MKCL, mkcl_object pname)
   mkcl_call_stack_check(env);
   mkcl_return_value(((mkcl_type_of(pname) == mkcl_t_pathname) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_mkcl_logical_pathname_p_cfunobj = MKCL_CFUN1(mk_mkcl_logical_pathname_p, MK_MKCL_logical_pathname_p);
 
 mkcl_object
 mk_mkcl_logical_pathname_p(MKCL, mkcl_object pname)

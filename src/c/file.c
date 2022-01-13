@@ -2148,6 +2148,8 @@ mk_cl_make_two_way_stream(MKCL, mkcl_object istrm, mkcl_object ostrm)
   mkcl_return_value(strm);
 }
 
+struct mkcl_cfun mk_cl_two_way_stream_input_stream_cfunobj = MKCL_CFUN1(mk_cl_two_way_stream_input_stream, MK_CL_two_way_stream_input_stream);
+
 mkcl_object
 mk_cl_two_way_stream_input_stream(MKCL, mkcl_object strm)
 {
@@ -2156,6 +2158,8 @@ mk_cl_two_way_stream_input_stream(MKCL, mkcl_object strm)
     mkcl_FEwrong_type_argument(env, MK_CL_two_way_stream, strm);
   mkcl_return_value(MKCL_TWO_WAY_STREAM_INPUT(strm));
 }
+
+struct mkcl_cfun mk_cl_two_way_stream_output_stream_cfunobj = MKCL_CFUN1(mk_cl_two_way_stream_output_stream, MK_CL_two_way_stream_output_stream);
 
 mkcl_object
 mk_cl_two_way_stream_output_stream(MKCL, mkcl_object strm)
@@ -2869,6 +2873,8 @@ mk_cl_make_synonym_stream(MKCL, mkcl_object sym)
   MKCL_SYNONYM_STREAM_SYMBOL(x) = sym;
   mkcl_return_value(x);
 }
+
+struct mkcl_cfun mk_cl_synonym_stream_symbol_cfunobj = MKCL_CFUN1(mk_cl_synonym_stream_symbol, MK_CL_synonym_stream_symbol);
 
 mkcl_object
 mk_cl_synonym_stream_symbol(MKCL, mkcl_object strm)
@@ -4922,6 +4928,8 @@ mk_si_do_read_sequence(MKCL, mkcl_object seq, mkcl_object stream, mkcl_object s,
  * LISP LEVEL INTERFACE
  */
 
+struct mkcl_cfun mk_si_file_column_cfunobj = MKCL_CFUN1(mk_si_file_column, MK_SI_file_column);
+
 mkcl_object
 mk_si_file_column(MKCL, mkcl_object strm)
 {
@@ -5032,11 +5040,15 @@ mk_si_ansi_stream_element_type(MKCL, mkcl_object strm)
   mkcl_return_value(mkcl_stream_element_type(env, strm));
 }
 
+struct mkcl_cfun mk_cl_stream_element_type_cfunobj = MKCL_CFUN1(mk_cl_stream_element_type, MK_CL_stream_element_type);
+
 mkcl_object
 mk_cl_stream_element_type(MKCL, mkcl_object strm)
 {
   return(mk_si_ansi_stream_element_type(env, strm));
 }
+
+struct mkcl_cfun mk_cl_stream_external_format_cfunobj = MKCL_CFUN1(mk_cl_stream_external_format, MK_CL_stream_external_format);
 
 mkcl_object
 mk_cl_stream_external_format(MKCL, mkcl_object strm)
@@ -5067,6 +5079,8 @@ mk_si_ansi_streamp(MKCL, mkcl_object strm)
   mkcl_return_value(((mkcl_type_of(strm) == mkcl_t_stream) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_streamp_cfunobj = MKCL_CFUN1(mk_cl_streamp, MK_CL_streamp);
+
 mkcl_object
 mk_cl_streamp(MKCL, mkcl_object strm)
 {
@@ -5080,6 +5094,8 @@ mk_cl_streamp(MKCL, mkcl_object strm)
 /**********************************************************************
  * OTHER TOOLS
  */
+
+struct mkcl_cfun mk_si_copy_stream_cfunobj = MKCL_CFUN1(mk_si_copy_stream, MK_SI_copy_stream);
 
 mkcl_object
 mk_si_copy_stream(MKCL, mkcl_object in, mkcl_object out)

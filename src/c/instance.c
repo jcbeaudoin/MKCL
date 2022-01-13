@@ -5,7 +5,7 @@
 /*
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2017,2021, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2017,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -384,6 +384,8 @@ enum mkcl_built_in_classes {
   MKCL_BUILTIN_UTF_8,
   MKCL_BUILTIN_UTF_16
 };
+
+struct mkcl_cfun mk_cl_class_of_cfunobj = MKCL_CFUN1(mk_cl_class_of, MK_CL_class_of);
 
 mkcl_object
 mk_cl_class_of(MKCL, mkcl_object x)

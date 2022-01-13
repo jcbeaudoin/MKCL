@@ -24,6 +24,8 @@
 
 struct mkcl_cfun mk_cl_identity_cfunobj = MKCL_CFUN1(mk_cl_identity, MK_CL_identity);
 
+struct mkcl_cfun mk_si_clear_compiler_properties_cfunobj = MKCL_CFUN1(mk_cl_identity, MK_SI_clear_compiler_properties);
+
 mkcl_object
 mk_cl_identity(MKCL, mkcl_object x)
 {
@@ -38,6 +40,8 @@ mk_cl_null(MKCL, mkcl_object x)
 {
   mkcl_return_value((mkcl_Null(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_cl_symbolp_cfunobj = MKCL_CFUN1(mk_cl_symbolp, MK_CL_symbolp);
 
 mkcl_object
 mk_cl_symbolp(MKCL, mkcl_object x)
@@ -133,6 +137,8 @@ mk_mkcl_base_char_p(MKCL, mkcl_object c)
   mkcl_return_value(((MKCL_CHARACTERP(c) && MKCL_BASE_CHAR_P(c)) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_stringp_cfunobj = MKCL_CFUN1(mk_cl_stringp, MK_CL_stringp);
+
 mkcl_object
 mk_cl_stringp(MKCL, mkcl_object x)
 {
@@ -146,6 +152,8 @@ mk_cl_bit_vector_p(MKCL, mkcl_object x)
 {
   mkcl_return_value(((mkcl_type_of(x) == mkcl_t_bitvector) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_cl_vectorp_cfunobj = MKCL_CFUN1(mk_cl_vectorp, MK_CL_vectorp);
 
 mkcl_object
 mk_cl_vectorp(MKCL, mkcl_object x)
@@ -167,6 +175,8 @@ mk_si_simple_base_string_p(MKCL, mkcl_object x)
 {
   mkcl_return_value((mkcl_simple_base_string_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_si_base_string_p_cfunobj = MKCL_CFUN1(mk_si_base_string_p, MK_SI_base_string_p);
 
 mkcl_object
 mk_si_base_string_p(MKCL, mkcl_object x)
@@ -551,6 +561,8 @@ mk_cl_equalp(MKCL, mkcl_object x, mkcl_object y)
   mkcl_call_stack_check(env);
   mkcl_return_value((mkcl_equalp(env, x, y) ? mk_cl_Ct : mk_cl_Cnil))
 }
+
+struct mkcl_cfun mk_mkcl_fixnump_cfunobj = MKCL_CFUN1(mk_mkcl_fixnump, MK_MKCL_fixnump);
 
 mkcl_object
 mk_mkcl_fixnump(MKCL, mkcl_object x)

@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2016,2021, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2016,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under thep terms of the GNU Lesser General Public
@@ -357,6 +357,8 @@ mkcl_coerce_list_to_simple_string(MKCL, mkcl_object l)
   return s;
 }
 
+struct mkcl_cfun mk_si_copy_to_simple_base_string_cfunobj = MKCL_CFUN1(mk_si_copy_to_simple_base_string, MK_SI_copy_to_simple_base_string);
+
 mkcl_object
 mk_si_copy_to_simple_base_string(MKCL, mkcl_object x)
 {
@@ -542,6 +544,8 @@ mkcl_object mkcl_coerce_to_adjustable_string(MKCL, mkcl_object x)
 }
 
 
+struct mkcl_cfun mk_cl_string_cfunobj = MKCL_CFUN1(mk_cl_string, MK_CL_string);
+
 mkcl_object
 mk_cl_string(MKCL, mkcl_object x)
 {
@@ -583,6 +587,8 @@ mk_cl_string(MKCL, mkcl_object x)
   }
   mkcl_return_value(x);
 }
+
+struct mkcl_cfun mk_si_coerce_to_base_string_cfunobj = MKCL_CFUN1(mk_si_coerce_to_base_string, MK_SI_coerce_to_base_string);
 
 mkcl_object
 mk_si_coerce_to_base_string(MKCL, mkcl_object x)
@@ -671,6 +677,8 @@ mkcl_coerce_to_simple_character_string(MKCL, mkcl_object x) /* This one always r
     }
   mkcl_return_value(y);
 }
+
+struct mkcl_cfun mk_si_coerce_to_character_string_cfunobj = MKCL_CFUN1(mk_si_coerce_to_character_string, MK_SI_coerce_to_character_string);
 
 mkcl_object
 mk_si_coerce_to_character_string(MKCL, mkcl_object x)

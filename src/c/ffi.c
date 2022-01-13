@@ -4,7 +4,7 @@
 */
 /*
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2013,2021, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2013,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -90,6 +90,8 @@ static const mkcl_object mkcl_foreign_cc_table[] = {
   MK_KEY_stdcall
 };
 
+
+struct mkcl_cfun mk_si_pointer_cfunobj = MKCL_CFUN1(mk_si_pointer, MK_SI_pointer);
 
 mkcl_object
 mk_si_pointer(MKCL, mkcl_object x)

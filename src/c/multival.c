@@ -5,7 +5,7 @@
 /*
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
-    Copyright (c) 2021, Jean-Claude Beaudoin.
+    Copyright (c) 2021-2022, Jean-Claude Beaudoin.
 
     ECoLisp is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -38,6 +38,8 @@ mkcl_object mk_cl_values(MKCL, mkcl_narg narg, ...)
     mkcl_returnn(MKCL_VALUES(0));
   }
 }
+
+struct mkcl_cfun mk_cl_values_list_cfunobj = MKCL_CFUN1(mk_cl_values_list, MK_CL_values_list);
 
 mkcl_object
 mk_cl_values_list(MKCL, mkcl_object list)

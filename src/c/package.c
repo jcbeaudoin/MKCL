@@ -316,6 +316,8 @@ mkcl_find_package_nolock(MKCL, mkcl_object name)
   return mk_cl_Cnil;
 }
 
+struct mkcl_cfun mk_si_coerce_to_package_cfunobj = MKCL_CFUN1(mk_si_coerce_to_package, MK_SI_coerce_to_package);
+
 mkcl_object
 mk_si_coerce_to_package(MKCL, mkcl_object p)
 {
@@ -946,6 +948,8 @@ mkcl_object mk_cl_make_package(MKCL, mkcl_narg narg, mkcl_object pack_name, ...)
   }
 }
 
+struct mkcl_cfun mk_si_select_package_cfunobj = MKCL_CFUN1(mk_si_select_package, MK_SI_select_package);
+
 mkcl_object
 mk_si_select_package(MKCL, mkcl_object pack_name)
 {
@@ -1349,6 +1353,8 @@ mkcl_object mk_cl_unuse_package(MKCL, mkcl_narg narg, mkcl_object pack, ...)
     mkcl_return_value(mk_cl_Ct);
   }
 }
+
+struct mkcl_cfun mk_si_package_hash_tables_cfunobj = MKCL_CFUN1(mk_si_package_hash_tables, MK_SI_package_hash_tables);
 
 mkcl_object
 mk_si_package_hash_tables(MKCL, mkcl_object p)

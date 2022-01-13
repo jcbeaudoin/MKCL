@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2000, Juan Jose Garcia-Ripoll
-    Copyright (c) 2010-2012,2021, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2012,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -784,9 +784,19 @@ extern "C" {
   extern MKCL_API mkcl_object mk_si_sch_frs_base(MKCL, mkcl_object fr, mkcl_object ihs);
 
   extern struct mkcl_cfun mk_si_bds_top_cfunobj;
+  extern struct mkcl_cfun mk_si_frs_bds_cfunobj;
+  extern struct mkcl_cfun mk_si_frs_ihs_cfunobj;
+  extern struct mkcl_cfun mk_si_frs_tag_cfunobj;
   extern struct mkcl_cfun mk_si_frs_top_cfunobj;
   extern struct mkcl_cfun mk_si_ihs_top_cfunobj;
   extern struct mkcl_cfun mk_si_sch_frs_base_cfunobj;
+  extern struct mkcl_cfun mk_si_bds_val_cfunobj;
+  extern struct mkcl_cfun mk_si_bds_var_cfunobj;
+  extern struct mkcl_cfun mk_si_ihs_bds_marker_cfunobj;
+  extern struct mkcl_cfun mk_si_ihs_env_cfunobj;
+  extern struct mkcl_cfun mk_si_ihs_fun_cfunobj;
+  extern struct mkcl_cfun mk_si_ihs_next_cfunobj;
+  extern struct mkcl_cfun mk_si_ihs_prev_cfunobj;
 
   extern MKCL_API mkcl_object mk_si_set_lisp_temp_stack_limit(MKCL, mkcl_object size_limit);
   extern MKCL_API mkcl_object mk_si_get_lisp_temp_stack_limit(MKCL);

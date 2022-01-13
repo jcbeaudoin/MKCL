@@ -369,6 +369,8 @@ extern "C" {
   extern MKCL_API mkcl_object mk_si_mangle_name(MKCL, mkcl_object symbol);
   extern MKCL_API mkcl_object mk_si_mangle_function_name(MKCL, mkcl_object symbol);
 
+  extern struct mkcl_cfun mk_si_mangle_name_cfunobj;
+
 
   /* apply.c */
 
@@ -457,6 +459,8 @@ extern "C" {
 
   extern MKCL_API void mkcl_clear_compiler_properties(MKCL, mkcl_object sym);
 
+  extern struct mkcl_cfun mk_si_clear_compiler_properties_cfunobj;
+
   extern struct mkcl_cfun mk_si_system_properties_cfunobj;
 
   /* big.c */
@@ -477,9 +481,11 @@ extern "C" {
   extern MKCL_API mkcl_object mk_cl_function_lambda_expression(MKCL, mkcl_object fun);
   extern MKCL_API mkcl_object mk_si_compiled_function_file(MKCL, mkcl_object fun);
 
+  extern struct mkcl_cfun mk_si_compiled_function_name_cfunobj;
   extern struct mkcl_cfun mk_si_set_compiled_function_name_cfunobj;
   extern struct mkcl_cfun mk_si_set_compiled_function_owner_cfunobj;
   extern struct mkcl_cfun mk_cl_function_lambda_expression_cfunobj;
+  extern struct mkcl_cfun mk_si_compiled_function_block_cfunobj;
 
   extern MKCL_API mkcl_object mkcl_make_cfun(MKCL, mkcl_objectfn_fixed c_function, mkcl_object name, mkcl_object block, int narg, mkcl_object * anchor);
   extern MKCL_API mkcl_object mkcl_make_cfun_va(MKCL, mkcl_objectfn c_function, mkcl_object name, mkcl_object block, mkcl_object * anchor);
@@ -577,6 +583,8 @@ extern "C" {
   extern struct mkcl_cfun mk_cl_graphic_char_p_cfunobj;
   extern struct mkcl_cfun mk_cl_lower_case_p_cfunobj;
   extern struct mkcl_cfun mk_cl_name_char_cfunobj;
+  extern struct mkcl_cfun mk_cl_standard_char_p_cfunobj;
+  extern struct mkcl_cfun mk_cl_upper_case_p_cfunobj;
 
   enum mkcl_string_case { mkcl_lowercase_string = -1, mkcl_mixedcase_string = 0, mkcl_uppercase_string = 1 };
   extern MKCL_API enum mkcl_string_case mkcl_string_case(const mkcl_object s);
@@ -701,9 +709,13 @@ extern "C" {
   extern MKCL_API mkcl_object mk_cl_find_class(MKCL, mkcl_narg narg, mkcl_object name, ...);
   extern MKCL_API mkcl_object mk_cl_class_of(MKCL, mkcl_object x);
 
+  extern struct mkcl_cfun mk_cl_class_of_cfunobj;
+
   /* cmpaux.c */
 
   extern MKCL_API mkcl_object mk_si_specialp(MKCL, mkcl_object sym);
+
+  extern struct mkcl_cfun mk_si_specialp_cfunobj;
 
   extern MKCL_API mkcl_word mkcl_ifloor(MKCL, mkcl_word x, mkcl_word y);
   extern MKCL_API mkcl_word mkcl_imod(MKCL, mkcl_word x, mkcl_word y);
@@ -747,6 +759,7 @@ extern "C" {
 
   extern struct mkcl_cfun mk_si_make_lambda_cfunobj;
   extern struct mkcl_cfun mk_si_process_lambda_list_cfunobj;
+  extern struct mkcl_cfun mk_si_function_block_name_cfunobj;
 
   extern MKCL_API mkcl_object mk_si_eval_in_env(MKCL, mkcl_narg narg, mkcl_object form, ...);
 
@@ -776,6 +789,9 @@ extern "C" {
 
   extern MKCL_API mkcl_object mk_si_bc_disassemble(MKCL, mkcl_object v);
   extern MKCL_API mkcl_object mk_si_bc_split(MKCL, mkcl_object v);
+
+  extern struct mkcl_cfun mk_si_bc_disassemble_cfunobj;
+  extern struct mkcl_cfun mk_si_bc_split_cfunobj;
 
   /* error.c */
 
@@ -921,6 +937,7 @@ extern "C" {
   extern struct mkcl_cfun mk_si_foreign_set_cfunobj;
   extern struct mkcl_cfun mk_si_foreign_set_elt_cfunobj;
   extern struct mkcl_cfun mk_si_allocate_foreign_data_cfunobj;
+  extern struct mkcl_cfun mk_si_pointer_cfunobj;
 
   extern MKCL_API mkcl_object mkcl_make_foreign(MKCL, mkcl_object type_tag, mkcl_index data_size, void * foreign_data_pointer);
   extern MKCL_API mkcl_object mkcl_allocate_foreign_data(MKCL, mkcl_object tag, mkcl_index size);
@@ -980,6 +997,7 @@ extern "C" {
   extern MKCL_API mkcl_object mk_si_set_buffering_mode(MKCL, mkcl_object strm, mkcl_object mode);
   extern MKCL_API mkcl_object mk_si_get_buffering_mode(MKCL, mkcl_object strm);
 
+  extern struct mkcl_cfun mk_si_copy_stream_cfunobj;
   extern struct mkcl_cfun mk_cl_file_string_length_cfunobj;
   extern struct mkcl_cfun mk_si_stream_external_format_set_cfunobj;
   extern struct mkcl_cfun mk_si_do_read_sequence_cfunobj;
@@ -999,6 +1017,13 @@ extern "C" {
   extern struct mkcl_cfun mk_cl_make_synonym_stream_cfunobj;
   extern struct mkcl_cfun mk_cl_open_stream_p_cfunobj;
   extern struct mkcl_cfun mk_cl_output_stream_p_cfunobj;
+  extern struct mkcl_cfun mk_cl_stream_element_type_cfunobj;
+  extern struct mkcl_cfun mk_cl_stream_external_format_cfunobj;
+  extern struct mkcl_cfun mk_cl_streamp_cfunobj;
+  extern struct mkcl_cfun mk_cl_synonym_stream_symbol_cfunobj;
+  extern struct mkcl_cfun mk_cl_two_way_stream_input_stream_cfunobj;
+  extern struct mkcl_cfun mk_cl_two_way_stream_output_stream_cfunobj;
+  extern struct mkcl_cfun mk_si_file_column_cfunobj;
 
   extern MKCL_API mkcl_object mk_si_ansi_close(MKCL, mkcl_object strm, mkcl_object abort);
   extern MKCL_API mkcl_object mk_si_ansi_input_stream_p(MKCL, mkcl_object strm);
@@ -1101,6 +1126,8 @@ extern "C" {
   extern struct mkcl_cfun mk_cl_hash_table_rehash_threshold_cfunobj;
   extern struct mkcl_cfun mk_cl_hash_table_size_cfunobj;
   extern struct mkcl_cfun mk_cl_hash_table_test_cfunobj;
+  extern struct mkcl_cfun mk_cl_sxhash_cfunobj;
+  extern struct mkcl_cfun mk_si_hash_table_iterator_cfunobj;
 
   extern MKCL_API void mkcl_sethash(MKCL, mkcl_object key, mkcl_object hashtable, mkcl_object value);
   extern MKCL_API mkcl_object mkcl_gethash_safe(MKCL, mkcl_object key, mkcl_object hash, mkcl_object def);
@@ -1374,6 +1401,8 @@ extern "C" {
   extern struct mkcl_cfun mk_si_gdb_cfunobj;
   extern struct mkcl_cfun mk_si_shutdown_mkcl_cfunobj;
   extern struct mkcl_cfun mk_mkcl_setenv_cfunobj;
+  extern struct mkcl_cfun mk_mkcl_argv_cfunobj;
+  extern struct mkcl_cfun mk_mkcl_getenv_cfunobj;
 
   typedef enum mkcl_option {
     MKCL_OPT_INCREMENTAL_GC = 0,
@@ -1457,6 +1486,8 @@ extern "C" {
 
   extern MKCL_API mkcl_object mk_cl_values_list(MKCL, mkcl_object list);
   extern MKCL_API mkcl_object mk_cl_values(MKCL, mkcl_narg narg, ...);
+
+  extern struct mkcl_cfun mk_cl_values_list_cfunobj;
 
 
   /* num_arith.c */
@@ -1720,6 +1751,7 @@ extern "C" {
   extern MKCL_API mkcl_object mk_si_float_nan_p(MKCL, mkcl_object x);
   extern MKCL_API mkcl_object mk_si_float_infinity_p(MKCL, mkcl_object x);
 
+  extern struct mkcl_cfun mk_cl_zerop_cfunobj;
   extern struct mkcl_cfun mk_cl_evenp_cfunobj;
   extern struct mkcl_cfun mk_cl_minusp_cfunobj;
   extern struct mkcl_cfun mk_cl_oddp_cfunobj;
@@ -1768,6 +1800,10 @@ extern "C" {
   extern struct mkcl_cfun mk_cl_exp_cfunobj;
   extern struct mkcl_cfun mk_cl_sin_cfunobj;
   extern struct mkcl_cfun mk_cl_sinh_cfunobj;
+  extern struct mkcl_cfun mk_cl_sqrt_cfunobj;
+  extern struct mkcl_cfun mk_cl_tan_cfunobj;
+  extern struct mkcl_cfun mk_cl_tanh_cfunobj;
+
 
   extern MKCL_API mkcl_object mkcl_log1p(MKCL, mkcl_object x);
   extern MKCL_API mkcl_object mkcl_log1(MKCL, mkcl_object x);
@@ -1805,6 +1841,7 @@ extern "C" {
   extern MKCL_API mkcl_object mk_cl_use_package(MKCL, mkcl_narg narg, mkcl_object pack, ...);
   extern MKCL_API mkcl_object mk_cl_unuse_package(MKCL, mkcl_narg narg, mkcl_object pack, ...);
 
+  extern struct mkcl_cfun mk_si_select_package_cfunobj;
   extern struct mkcl_cfun mk_cl_list_all_packages_cfunobj;
   extern struct mkcl_cfun mk_cl_delete_package_cfunobj;
   extern struct mkcl_cfun mk_cl_find_package_cfunobj;
@@ -1813,6 +1850,7 @@ extern "C" {
   extern struct mkcl_cfun mk_cl_package_shadowing_symbols_cfunobj;
   extern struct mkcl_cfun mk_cl_package_use_list_cfunobj;
   extern struct mkcl_cfun mk_cl_package_used_by_list_cfunobj;
+  extern struct mkcl_cfun mk_si_package_hash_tables_cfunobj;
 
   extern MKCL_API mkcl_object mkcl_make_package(MKCL, mkcl_object n, mkcl_object ns, mkcl_object ul);
   extern MKCL_API mkcl_object mkcl_make_sized_package(MKCL, mkcl_object n, mkcl_object ns, mkcl_object ul, mkcl_object exts, mkcl_object ints);
@@ -1835,6 +1873,7 @@ extern "C" {
   extern MKCL_API mkcl_object mk_si_packages_in_waiting(MKCL);
 
   extern struct mkcl_cfun mk_si_packages_in_waiting_cfunobj;
+  extern struct mkcl_cfun mk_si_coerce_to_package_cfunobj;
 
 
   /* pathname.c */
@@ -1875,6 +1914,7 @@ extern "C" {
   extern struct mkcl_cfun mk_cl_pathname_cfunobj;
   extern struct mkcl_cfun mk_cl_pathname_version_cfunobj;
   extern struct mkcl_cfun mk_cl_pathnamep_cfunobj;
+  extern struct mkcl_cfun mk_mkcl_logical_pathname_p_cfunobj;
 
   extern MKCL_API mkcl_object mkcl_make_pathname(MKCL, mkcl_object host, mkcl_object device, mkcl_object directory, mkcl_object name, mkcl_object type, mkcl_object version);
   enum mkcl_namestring_specificity { mkcl_may_be_wild_namestring, mkcl_specific_namestring };
@@ -1886,6 +1926,8 @@ extern "C" {
   extern MKCL_API mkcl_object mkcl_merge_pathnames(MKCL, mkcl_object path, mkcl_object defaults, mkcl_object default_version);
   extern MKCL_API mkcl_object mkcl_meld_pathnames(MKCL, mkcl_object path, mkcl_object defaults, mkcl_object default_version);
   extern MKCL_API bool mkcl_logical_hostname_p(MKCL, mkcl_object host);
+
+  extern struct mkcl_cfun mk_si_coerce_to_filename_cfunobj;
 
   extern MKCL_API mkcl_object mk_mkcl_pathname_complete_p(MKCL, mkcl_object pathname);
   extern MKCL_API mkcl_object mk_mkcl_meld_pathnames(MKCL, mkcl_narg narg, mkcl_object path, ...);
@@ -1951,6 +1993,10 @@ extern "C" {
   extern struct mkcl_cfun mk_cl_simple_bit_vector_p_cfunobj;
   extern struct mkcl_cfun mk_cl_simple_string_p_cfunobj;
   extern struct mkcl_cfun mk_cl_simple_vector_p_cfunobj;
+  extern struct mkcl_cfun mk_cl_stringp_cfunobj;
+  extern struct mkcl_cfun mk_cl_symbolp_cfunobj;
+  extern struct mkcl_cfun mk_cl_vectorp_cfunobj;
+  extern struct mkcl_cfun mk_mkcl_fixnump_cfunobj;
 
   extern MKCL_API mkcl_object mk_si_unbound_value_p(MKCL, mkcl_object arg);
 
@@ -2172,6 +2218,10 @@ extern "C" {
   extern struct mkcl_cfun mk_cl_boundp_cfunobj;
   extern struct mkcl_cfun mk_cl_fboundp_cfunobj;
   extern struct mkcl_cfun mk_cl_fdefinition_cfunobj;
+  extern struct mkcl_cfun mk_cl_special_operator_p_cfunobj;
+  extern struct mkcl_cfun mk_cl_symbol_function_cfunobj;
+  extern struct mkcl_cfun mk_cl_symbol_value_cfunobj;
+  extern struct mkcl_cfun mk_si_coerce_to_function_cfunobj;
 
   /* sequence.c */
 
@@ -2237,9 +2287,11 @@ extern "C" {
   extern struct mkcl_cfun mk_si_char_set_cfunobj;
   extern struct mkcl_cfun mk_cl_schar_cfunobj;
   extern struct mkcl_cfun mk_si_schar_set_cfunobj;
+  extern struct mkcl_cfun mk_cl_string_cfunobj;
   extern struct mkcl_cfun mk_cl_string_left_trim_cfunobj;
   extern struct mkcl_cfun mk_cl_string_right_trim_cfunobj;
   extern struct mkcl_cfun mk_cl_string_trim_cfunobj;
+  extern struct mkcl_cfun mk_si_copy_to_simple_base_string_cfunobj;
 
   extern MKCL_API mkcl_object mkcl_concatenate_2_base_strings(MKCL, mkcl_object str1, mkcl_object str2);
   extern MKCL_API mkcl_object mkcl_concatenate_3_base_strings(MKCL, mkcl_object str1, mkcl_object str2, mkcl_object str3);
@@ -2438,6 +2490,10 @@ extern "C" {
   extern struct mkcl_cfun mk_si_set_symbol_plist_cfunobj;
   extern struct mkcl_cfun mk_cl_keywordp_cfunobj;
   extern struct mkcl_cfun mk_cl_make_symbol_cfunobj;
+  extern struct mkcl_cfun mk_cl_symbol_name_cfunobj;
+  extern struct mkcl_cfun mk_cl_symbol_package_cfunobj;
+  extern struct mkcl_cfun mk_cl_symbol_plist_cfunobj;
+  extern struct mkcl_cfun mk_si_Xmake_special_cfunobj;
 
   extern MKCL_API mkcl_object mkcl_make_keyword(MKCL, const char *s);
   extern MKCL_API mkcl_object mkcl_symbol_name(MKCL, mkcl_object s);
@@ -2549,6 +2605,7 @@ extern "C" {
   extern MKCL_API mkcl_object mk_cl_get_universal_time(MKCL);
   extern MKCL_API mkcl_object mk_si_get_local_time_zone(MKCL);
 
+  extern struct mkcl_cfun mk_cl_sleep_cfunobj;
   extern struct mkcl_cfun mk_cl_get_internal_real_time_cfunobj;
   extern struct mkcl_cfun mk_cl_get_internal_run_time_cfunobj;
   extern struct mkcl_cfun mk_cl_get_universal_time_cfunobj;
@@ -2568,6 +2625,8 @@ extern "C" {
   extern MKCL_API void mkcl_assert_type_list(MKCL, mkcl_object p);
   extern MKCL_API void mkcl_assert_type_proper_list(MKCL, mkcl_object p);
   extern MKCL_API mkcl_object mk_cl_type_of(MKCL, mkcl_object x);
+
+  extern struct mkcl_cfun mk_cl_type_of_cfunobj;
 
   extern MKCL_API void mkcl_FEtype_error_character(MKCL, mkcl_object x) mkcl_noreturn;
   extern MKCL_API void mkcl_FEtype_error_base_char(MKCL, mkcl_object x) mkcl_noreturn;
@@ -2619,6 +2678,7 @@ extern "C" {
   extern MKCL_API mkcl_object mk_mkcl_mkstemp(MKCL, mkcl_narg narg, mkcl_object template, ...);
   extern MKCL_API mkcl_object mk_mkcl_rmdir(MKCL, mkcl_object directory);
 
+  extern struct mkcl_cfun mk_cl_truename_cfunobj;
   extern struct mkcl_cfun mk_cl_rename_file_cfunobj;
   extern struct mkcl_cfun mk_mkcl_getpid_cfunobj;
   extern struct mkcl_cfun mk_mkcl_getuid_cfunobj;
@@ -2628,6 +2688,7 @@ extern "C" {
   extern struct mkcl_cfun mk_cl_file_author_cfunobj;
   extern struct mkcl_cfun mk_cl_file_write_date_cfunobj;
   extern struct mkcl_cfun mk_cl_probe_file_cfunobj;
+  extern struct mkcl_cfun mk_mkcl_rmdir_cfunobj;
 
   extern MKCL_API int mkcl_backup_open(MKCL, mkcl_object filename, int option, int mode);
   extern MKCL_API mkcl_object mkcl_file_len(MKCL, int f);
@@ -2804,6 +2865,10 @@ extern "C" {
   extern MKCL_API mkcl_object mkcl_alloc_adjustable_character_string(MKCL, mkcl_index l);
   extern MKCL_API mkcl_object mkcl_coerce_to_simple_base_string(MKCL, mkcl_object x);
   extern MKCL_API mkcl_object mkcl_coerce_to_simple_character_string(MKCL, mkcl_object x);
+
+  extern struct mkcl_cfun mk_si_base_string_p_cfunobj;
+  extern struct mkcl_cfun mk_si_coerce_to_base_string_cfunobj;
+  extern struct mkcl_cfun mk_si_coerce_to_character_string_cfunobj;
 
   static inline mkcl_object mkcl_coerce_to_base_string(MKCL, mkcl_object x)
   { return ((mkcl_type_of(x) != mkcl_t_base_string) ? mkcl_coerce_to_simple_base_string(env, x) : x); }

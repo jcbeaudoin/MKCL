@@ -4,6 +4,7 @@
 */
 /*
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
+    Copyright (c) 2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -599,6 +600,8 @@ disassemble(MKCL, mkcl_object bytecode, mkcl_opcode *vector) {
 	goto BEGIN;
 }
 
+struct mkcl_cfun mk_si_bc_disassemble_cfunobj = MKCL_CFUN1(mk_si_bc_disassemble, MK_SI_bc_disassemble);
+
 mkcl_object
 mk_si_bc_disassemble(MKCL, mkcl_object v)
 {
@@ -612,6 +615,8 @@ mk_si_bc_disassemble(MKCL, mkcl_object v)
   }
   mkcl_return_value(mk_cl_Cnil);
 }
+
+struct mkcl_cfun mk_si_bc_split_cfunobj = MKCL_CFUN1(mk_si_bc_split, MK_SI_bc_split);
 
 mkcl_object
 mk_si_bc_split(MKCL, mkcl_object b)

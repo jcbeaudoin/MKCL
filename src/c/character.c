@@ -19,6 +19,8 @@
 #include <mkcl/internal.h>
 #include <stdio.h>
 
+struct mkcl_cfun mk_cl_standard_char_p_cfunobj = MKCL_CFUN1(mk_cl_standard_char_p, MK_CL_standard_char_p);
+
 mkcl_object
 mk_cl_standard_char_p(MKCL, mkcl_object c)
 {
@@ -47,6 +49,8 @@ mk_cl_alpha_char_p(MKCL, mkcl_object c)
   /* INV: mkcl_char_code() checks the type */
   mkcl_return_value((mkcl_alpha_char_p(mkcl_char_code(env, c))? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_cl_upper_case_p_cfunobj = MKCL_CFUN1(mk_cl_upper_case_p, MK_CL_upper_case_p);
 
 mkcl_object
 mk_cl_upper_case_p(MKCL, mkcl_object c)

@@ -401,6 +401,8 @@ mk_si_log1p(MKCL, mkcl_object x)
   mkcl_return_value(mkcl_log1p(env, x));
 }
 
+struct mkcl_cfun mk_cl_sqrt_cfunobj = MKCL_CFUN1(mk_cl_sqrt, MK_CL_sqrt);
+
 mkcl_object
 mk_cl_sqrt(MKCL, mkcl_object x)
 {
@@ -664,6 +666,8 @@ static double safe_tanf(double x) { return tan(x); }
 # define safe_tanf(x) tanf(x)
 #endif
 
+struct mkcl_cfun mk_cl_tan_cfunobj = MKCL_CFUN1(mk_cl_tan, MK_CL_tan);
+
 mkcl_object
 mk_cl_tan(MKCL, mkcl_object x)
 {
@@ -788,6 +792,8 @@ mk_cl_cosh(MKCL, mkcl_object x)
   MKCL_MATHERR_TEST(env);
   mkcl_return_value(output);
 }
+
+struct mkcl_cfun mk_cl_tanh_cfunobj = MKCL_CFUN1(mk_cl_tanh, MK_CL_tanh);
 
 mkcl_object
 mk_cl_tanh(MKCL, mkcl_object x)

@@ -4,7 +4,7 @@
 */
 /*
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2012-2014,2021, Jean-Claude Beaudoin.
+    Copyright (c) 2012-2014,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -2877,6 +2877,8 @@ mkcl_function_block_name(mkcl_object name)
   }
   return MKCL_OBJNULL;
 }
+
+struct mkcl_cfun mk_si_function_block_name_cfunobj = MKCL_CFUN1(mk_si_function_block_name, MK_SI_function_block_name);
 
 mkcl_object
 mk_si_function_block_name(MKCL, mkcl_object name)

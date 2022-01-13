@@ -334,6 +334,8 @@ mk_cl_remprop(MKCL, mkcl_object sym, mkcl_object prop)
   mkcl_return_value((remf(env, plist, prop)? mk_cl_Ct: mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_symbol_plist_cfunobj = MKCL_CFUN1(mk_cl_symbol_plist, MK_CL_symbol_plist);
+
 mkcl_object
 mk_cl_symbol_plist(MKCL, mkcl_object sym)
 {
@@ -377,6 +379,8 @@ mk_cl_get_properties(MKCL, mkcl_object place, mkcl_object indicator_list)
     mkcl_FEtype_error_plist(env, place);
   mkcl_return_3_values(mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil);
 }
+
+struct mkcl_cfun mk_cl_symbol_name_cfunobj = MKCL_CFUN1(mk_cl_symbol_name, MK_CL_symbol_name);
 
 mkcl_object
 mk_cl_symbol_name(MKCL, mkcl_object x)
@@ -515,6 +519,8 @@ mkcl_object mk_cl_gentemp(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_symbol_package_cfunobj = MKCL_CFUN1(mk_cl_symbol_package, MK_CL_symbol_package);
+
 mkcl_object
 mk_cl_symbol_package(MKCL, mkcl_object sym)
 {
@@ -589,6 +595,8 @@ mkcl_object mk_si_put_properties(MKCL, mkcl_narg narg, mkcl_object sym, ...)
     mkcl_return_value(sym);
   }
 }
+
+struct mkcl_cfun mk_si_Xmake_special_cfunobj = MKCL_CFUN1(mk_si_Xmake_special, MK_SI_Xmake_special);
 
 mkcl_object
 mk_si_Xmake_special(MKCL, mkcl_object sym)

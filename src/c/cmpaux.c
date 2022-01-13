@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2016,2021 Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,8 @@
 #include <mkcl/internal.h>
 #include <string.h>
 
+
+struct mkcl_cfun mk_si_specialp_cfunobj = MKCL_CFUN1(mk_si_specialp, MK_SI_specialp);
 
 mkcl_object
 mk_si_specialp(MKCL, mkcl_object sym)
