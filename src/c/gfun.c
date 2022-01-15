@@ -233,6 +233,8 @@ mk_clos_set_funcallable_instance_function(MKCL, mkcl_object x, mkcl_object funct
   mkcl_return_value(x);
 }
 
+struct mkcl_cfun mk_si_generic_function_p_cfunobj = MKCL_CFUN1(mk_si_generic_function_p, MK_SI_generic_function_p);
+
 mkcl_object
 mk_si_generic_function_p(MKCL, mkcl_object x)
 {
@@ -293,6 +295,8 @@ _mkcl_set_method_hash_size(struct mkcl_env_struct *env, mkcl_index size)
 		      mk_cl_Cnil);
   do_clear_method_hash(env, mk_cl_Ct);
 }
+
+struct mkcl_cfun mk_si_clear_gfun_cache_cfunobj = MKCL_CFUN1(mk_si_clear_gfun_cache, MK_SI_clear_gfun_cache);
 
 mkcl_object
 mk_si_clear_gfun_cache(MKCL, mkcl_object what)

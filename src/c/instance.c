@@ -55,6 +55,8 @@ mk_si_allocate_raw_instance(MKCL, mkcl_object orig, mkcl_object clas, mkcl_objec
   mkcl_return_value(orig);
 }
 
+struct mkcl_cfun mk_si_instance_sig_cfunobj = MKCL_CFUN1(mk_si_instance_sig, MK_SI_instance_sig);
+
 mkcl_object
 mk_si_instance_sig(MKCL, mkcl_object x)
 {
@@ -63,6 +65,8 @@ mk_si_instance_sig(MKCL, mkcl_object x)
     mkcl_FEtype_error_instance(env, x);
   mkcl_return_value(x->instance.sig);
 }
+
+struct mkcl_cfun mk_si_instance_sig_set_cfunobj = MKCL_CFUN1(mk_si_instance_sig_set, MK_SI_instance_sig_set);
 
 mkcl_object
 mk_si_instance_sig_set(MKCL, mkcl_object x)
@@ -84,6 +88,8 @@ mk_si_instance_sig_set2(MKCL, mkcl_object x, mkcl_object sig)
   mkcl_return_value((x->instance.sig = sig));
 }
 
+struct mkcl_cfun mk_si_instance_class_cfunobj = MKCL_CFUN1(mk_si_instance_class, MK_SI_instance_class);
+
 mkcl_object
 mk_si_instance_class(MKCL, mkcl_object x)
 {
@@ -92,6 +98,8 @@ mk_si_instance_class(MKCL, mkcl_object x)
     mkcl_FEtype_error_instance(env, x);
   mkcl_return_value(MKCL_CLASS_OF(x));
 }
+
+struct mkcl_cfun mk_si_instance_length_cfunobj = MKCL_CFUN1(mk_si_instance_length, MK_SI_instance_length);
 
 mkcl_object
 mk_si_instance_length(MKCL, mkcl_object x)
@@ -205,6 +213,8 @@ mk_si_instance_set(MKCL, mkcl_object x, mkcl_object index, mkcl_object value)
   { x->instance.slots[i] = value; mkcl_return_value(value); }
 }
 
+struct mkcl_cfun mk_si_instancep_cfunobj = MKCL_CFUN1(mk_si_instancep, MK_SI_instancep);
+
 mkcl_object
 mk_si_instancep(MKCL, mkcl_object x)
 {
@@ -221,6 +231,8 @@ mk_si_unbound(MKCL)
 
 struct mkcl_cfun mk_si_unbound_cfunobj = MKCL_CFUN0(mk_si_unbound, MK_SI_CONSTANT_unbound);
 
+
+struct mkcl_cfun mk_si_sl_boundp_cfunobj = MKCL_CFUN1(mk_si_sl_boundp, MK_SI_sl_boundp);
 
 mkcl_object
 mk_si_sl_boundp(MKCL, mkcl_object x)
@@ -244,6 +256,8 @@ mk_si_sl_makunbound(MKCL, mkcl_object x, mkcl_object index)
   x->instance.slots[i] = MKCL_UNBOUND;
   mkcl_return_value(x);
 }
+
+struct mkcl_cfun mk_si_copy_instance_cfunobj = MKCL_CFUN1(mk_si_copy_instance, MK_SI_copy_instance);
 
 mkcl_object
 mk_si_copy_instance(MKCL, mkcl_object x)

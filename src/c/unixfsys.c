@@ -693,6 +693,8 @@ mk_cl_probe_file(MKCL, mkcl_object filespec)
   mkcl_return_value((mkcl_probe_file(env, os_filename, TRUE /* follow symlinks */) ? mk_cl_truename(env, filespec) : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_mkcl_stream_filename_cfunobj = MKCL_CFUN1(mk_mkcl_stream_filename, MK_MKCL_stream_filename);
+
 mkcl_object
 mk_mkcl_stream_filename(MKCL, mkcl_object x)
 {
@@ -723,6 +725,8 @@ mk_mkcl_stream_filename(MKCL, mkcl_object x)
   }
   mkcl_return_value(x);
 }
+
+struct mkcl_cfun mk_mkcl_probe_file_p_cfunobj = MKCL_CFUN1(mk_mkcl_probe_file_p, MK_MKCL_probe_file_p);
 
 mkcl_object
 mk_mkcl_probe_file_p(MKCL, mkcl_object filename)

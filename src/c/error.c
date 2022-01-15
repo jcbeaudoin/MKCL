@@ -356,6 +356,8 @@ mk_si_errno_string(MKCL)
   mkcl_return_value(mkcl_libc_error_string(env, errno));
 }
 
+struct mkcl_cfun mk_si_libc_error_string_cfunobj = MKCL_CFUN1(mk_si_libc_error_string, MK_SI_libc_error_string);
+
 mkcl_object
 mk_si_libc_error_string(MKCL, mkcl_object errno_val)
 {

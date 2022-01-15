@@ -590,6 +590,8 @@ mkcl_FEinvalid_cdisplay(MKCL, mkcl_object obj)
 }
 
 
+struct mkcl_cfun mk_si_closure_depth_cfunobj = MKCL_CFUN1(mk_si_closure_depth, MK_SI_closure_depth);
+
 mkcl_object
 mk_si_closure_depth(MKCL, mkcl_object disp)
 {
@@ -615,6 +617,8 @@ mk_si_closure_level(MKCL, mkcl_object disp, mkcl_object i)
   else
     { mkcl_return_value(mk_cl_Cnil); }
 }
+
+struct mkcl_cfun mk_si_closure_level_size_cfunobj = MKCL_CFUN1(mk_si_closure_level_size, MK_SI_closure_level_size);
 
 mkcl_object
 mk_si_closure_level_size(MKCL, mkcl_object level)
@@ -658,6 +662,8 @@ mk_si_closure_level_set_var(MKCL, mkcl_object level, mkcl_object i, mkcl_object 
     
   mkcl_return_value(val);
 }
+
+struct mkcl_cfun mk_si_closure_level_outer_level_cfunobj = MKCL_CFUN1(mk_si_closure_level_outer_level, MK_SI_closure_level_outer_level);
 
 mkcl_object
 mk_si_closure_level_outer_level(MKCL, mkcl_object level)
@@ -784,6 +790,8 @@ mk_cl_function_lambda_expression(MKCL, mkcl_object fun)
   mkcl_return_3_values(lambda_expr, closure_p, name);
 }
 
+struct mkcl_cfun mk_si_closurep_cfunobj = MKCL_CFUN1(mk_si_closurep, MK_SI_closurep);
+
 mkcl_object
 mk_si_closurep(MKCL, mkcl_object fun)
 {
@@ -796,6 +804,8 @@ mk_si_closurep(MKCL, mkcl_object fun)
     default: mkcl_return_value(mk_cl_Cnil);
     }
 }
+
+struct mkcl_cfun mk_si_closure_env_cfunobj = MKCL_CFUN1(mk_si_closure_env, MK_SI_closure_env);
 
 mkcl_object
 mk_si_closure_env(MKCL, mkcl_object fun)
@@ -810,6 +820,8 @@ mk_si_closure_env(MKCL, mkcl_object fun)
     default: mkcl_return_2_values(mk_cl_Cnil, mk_cl_Cnil);
     }
 }
+
+struct mkcl_cfun mk_si_closure_producer_cfunobj = MKCL_CFUN1(mk_si_closure_producer, MK_SI_closure_producer);
 
 mkcl_object
 mk_si_closure_producer(MKCL, mkcl_object fun)
@@ -843,6 +855,8 @@ mk_si_compiled_function_block(MKCL, mkcl_object fun)
   }
   mkcl_return_value(output);
 }
+
+struct mkcl_cfun mk_si_compiled_function_file_cfunobj = MKCL_CFUN1(mk_si_compiled_function_file, MK_SI_compiled_function_file);
 
 mkcl_object
 mk_si_compiled_function_file(MKCL, mkcl_object b)
@@ -888,6 +902,8 @@ mkcl_set_function_source_file_info(MKCL, mkcl_object b, mkcl_object source, mkcl
     mkcl_FEerror(env, "~S is not a compiled function.", 1, b);
   }
 }
+
+struct mkcl_cfun mk_si_compiled_function_owner_cfunobj = MKCL_CFUN1(mk_si_compiled_function_owner, MK_SI_compiled_function_owner);
 
 mkcl_object
 mk_si_compiled_function_owner(MKCL, mkcl_object fun)
@@ -1228,6 +1244,8 @@ mkcl_object mkcl_fun_ref_fdefinition(MKCL, const mkcl_object * const fun_refs, m
   return fun_ref;
 }
 
+
+struct mkcl_cfun mk_si_update_function_references_cfunobj = MKCL_CFUN1(mk_si_update_function_references, MK_SI_update_function_references);
 
 mkcl_object mk_si_update_function_references(MKCL, mkcl_object fun)
 {

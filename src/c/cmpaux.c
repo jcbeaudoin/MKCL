@@ -527,6 +527,8 @@ static mkcl_object convert_cmp_lexical_info(MKCL, mkcl_object cmp_env)
   return lex_env;
 }
 
+struct mkcl_cfun mk_si_convert_cmp_lexical_info_cfunobj = MKCL_CFUN1(mk_si_convert_cmp_lexical_info, MK_SI_convert_cmp_lexical_info);
+
 mkcl_object mk_si_convert_cmp_lexical_info(MKCL, mkcl_object cmp_env)
 {
   mkcl_call_stack_check(env);

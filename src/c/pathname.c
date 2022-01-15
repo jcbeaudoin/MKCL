@@ -808,6 +808,8 @@ mkcl_parse_namestring(MKCL, mkcl_object s, mkcl_index start, mkcl_index end, mkc
   }
 }
 
+struct mkcl_cfun mk_mkcl_pathname_complete_p_cfunobj = MKCL_CFUN1(mk_mkcl_pathname_complete_p, MK_MKCL_pathname_complete_p);
+
 mkcl_object
 mk_mkcl_pathname_complete_p(MKCL, mkcl_object pathname)
 {

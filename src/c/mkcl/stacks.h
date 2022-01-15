@@ -806,10 +806,13 @@ extern "C" {
   extern MKCL_API mkcl_object mk_si_get_frame_stack_limit(MKCL);
   extern MKCL_API mkcl_object mk_si_get_call_stack_limit(MKCL);
 
+  extern struct mkcl_cfun mk_si_set_lisp_temp_stack_limit_cfunobj;
   extern struct mkcl_cfun mk_si_get_binding_stack_limit_cfunobj;
   extern struct mkcl_cfun mk_si_get_frame_stack_limit_cfunobj;
   extern struct mkcl_cfun mk_si_get_lisp_temp_stack_limit_cfunobj;
   extern struct mkcl_cfun mk_si_get_call_stack_limit_cfunobj;
+  extern struct mkcl_cfun mk_si_set_binding_stack_limit_cfunobj;
+  extern struct mkcl_cfun mk_si_set_frame_stack_limit_cfunobj;
 
   extern MKCL_API void mkcl_bds_unwind(MKCL, mkcl_index new_bds_top_index);
   extern MKCL_API void mkcl_unwind(MKCL, mkcl_frame_ptr fr) mkcl_noreturn;

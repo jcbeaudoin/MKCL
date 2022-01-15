@@ -2363,6 +2363,8 @@ mkcl_fast_read_from_cstring(MKCL, char *s)
   return mk_si_fast_read_from_base_string(env, mkcl_make_simple_base_string(env, s));
 }
 
+struct mkcl_cfun mk_si_fast_read_from_base_string_cfunobj = MKCL_CFUN1(mk_si_fast_read_from_base_string, MK_SI_fast_read_from_base_string);
+
 mkcl_object
 mk_si_fast_read_from_base_string(MKCL, mkcl_object x)
 {

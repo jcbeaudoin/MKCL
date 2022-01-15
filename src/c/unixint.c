@@ -1425,6 +1425,8 @@ static int default_fpe_mask(MKCL)
 }
 
 
+struct mkcl_cfun mk_si_disable_fpe_cfunobj = MKCL_CFUN1(mk_si_disable_fpe, MK_SI_disable_fpe);
+
 mkcl_object
 mk_si_disable_fpe(MKCL, mkcl_object exception)
 {
@@ -1456,6 +1458,8 @@ mk_si_disable_fpe(MKCL, mkcl_object exception)
 
   mkcl_return_value(mk_cl_Cnil);
 }
+
+struct mkcl_cfun mk_si_enable_fpe_cfunobj = MKCL_CFUN1(mk_si_enable_fpe, MK_SI_enable_fpe);
 
 mkcl_object
 mk_si_enable_fpe(MKCL, mkcl_object exception)
@@ -1518,6 +1522,8 @@ mk_si_all_enabled_fpe(MKCL)
   mkcl_return_value(fpe_set);
 }
 
+struct mkcl_cfun mk_si_fpe_enabled_p_cfunobj = MKCL_CFUN1(mk_si_fpe_enabled_p, MK_SI_fpe_enabled_p);
+
 mkcl_object
 mk_si_fpe_enabled_p(MKCL, mkcl_object exception)
 {
@@ -1564,6 +1570,8 @@ mk_si_all_raised_fpe(MKCL)
   mkcl_return_value(fpe_set);
 }
 
+struct mkcl_cfun mk_si_fpe_raised_p_cfunobj = MKCL_CFUN1(mk_si_fpe_raised_p, MK_SI_fpe_raised_p);
+
 mkcl_object
 mk_si_fpe_raised_p(MKCL, mkcl_object exception)
 {
@@ -1586,6 +1594,8 @@ mk_si_fpe_raised_p(MKCL, mkcl_object exception)
 
   mkcl_return_value(((raised_except & bits) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_si_raise_fpe_cfunobj = MKCL_CFUN1(mk_si_raise_fpe, MK_SI_raise_fpe);
 
 mkcl_object
 mk_si_raise_fpe(MKCL, mkcl_object exception)
@@ -1615,6 +1625,8 @@ void mkcl_clear_fpe(MKCL, int except)
 {
   feclearexcept(FE_ALL_EXCEPT & except);
 }
+
+struct mkcl_cfun mk_si_clear_fpe_cfunobj = MKCL_CFUN1(mk_si_clear_fpe, MK_SI_clear_fpe);
 
 mkcl_object
 mk_si_clear_fpe(MKCL, mkcl_object exception)
@@ -1662,6 +1674,8 @@ static VOID CALLBACK dummy_apc_func(ULONG_PTR dwParam)
   /* This function is deliberately empty. */
 }
 #endif
+
+struct mkcl_cfun mk_mt_try_to_wake_up_thread_cfunobj = MKCL_CFUN1(mk_mt_try_to_wake_up_thread, MK_MT_try_to_wake_up_thread);
 
 mkcl_object
 mk_mt_try_to_wake_up_thread(MKCL, mkcl_object thread)
@@ -2234,6 +2248,8 @@ mkcl_object mkcl_signum_to_signal_name(MKCL, mkcl_word signum)
     }
 }
 
+struct mkcl_cfun mk_si_signum_to_signal_name_cfunobj = MKCL_CFUN1(mk_si_signum_to_signal_name, MK_SI_signum_to_signal_name);
+
 mkcl_object mk_si_signum_to_signal_name(MKCL, mkcl_object _signum)
 {
   if (!MKCL_FIXNUMP(_signum))
@@ -2266,6 +2282,8 @@ mkcl_object mk_si_objnull(MKCL)
 {
   mkcl_return_value(MKCL_OBJNULL);
 }
+
+struct mkcl_cfun mk_si_objnull_value_p_cfunobj = MKCL_CFUN1(mk_si_objnull_value_p, MK_SI_objnull_value_p);
 
 mkcl_object mk_si_objnull_value_p(MKCL, mkcl_object val)
 {

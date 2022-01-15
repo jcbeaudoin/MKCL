@@ -173,12 +173,16 @@ mk_cl_evenp(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_evenp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_si_float_nan_p_cfunobj = MKCL_CFUN1(mk_si_float_nan_p, MK_SI_float_nan_p);
+
 mkcl_object
 mk_si_float_nan_p(MKCL, mkcl_object x)
 {
   mkcl_call_stack_check(env);
   mkcl_return_value((mkcl_float_nan_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_si_float_infinity_p_cfunobj = MKCL_CFUN1(mk_si_float_infinity_p, MK_SI_float_infinity_p);
 
 mkcl_object
 mk_si_float_infinity_p(MKCL, mkcl_object x)

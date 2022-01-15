@@ -901,6 +901,8 @@ mkcl_object mk_si_shutdown_in_progress_p(MKCL) /* to be called with si::+shutdow
   mkcl_return_value((mkcl_Null(mkcl_core.shutdown_thread) ? mk_cl_Cnil : mk_cl_Ct));
 }
 
+struct mkcl_cfun mk_si_register_shutdown_thread_cfunobj = MKCL_CFUN1(mk_si_register_shutdown_thread, MK_SI_register_shutdown_thread);
+
 mkcl_object mk_si_register_shutdown_thread(MKCL, mkcl_object shutdown_thread) /* to be called with si::+shutdown-gate+ held. */
 {
   if (mkcl_type_of(shutdown_thread) != mkcl_t_thread)

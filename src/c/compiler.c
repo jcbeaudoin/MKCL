@@ -2890,6 +2890,8 @@ mk_si_function_block_name(MKCL, mkcl_object name)
   mkcl_return_value(output);
 }
 
+struct mkcl_cfun mk_si_valid_function_name_p_cfunobj = MKCL_CFUN1(mk_si_valid_function_name_p, MK_SI_valid_function_name_p);
+
 mkcl_object
 mk_si_valid_function_name_p(MKCL, mkcl_object name)
 {

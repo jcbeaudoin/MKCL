@@ -611,7 +611,9 @@ mkcl_object mk_mkcl_run_command(MKCL, mkcl_narg narg, mkcl_object cmd_string, mk
 
 #endif /* MKCL_UNIX */
 
-mkcl_object mk_mkcl_system (MKCL, mkcl_object cmd_string)
+struct mkcl_cfun mk_mkcl_system_cfunobj = MKCL_CFUN1(mk_mkcl_system, MK_MKCL_system);
+
+mkcl_object mk_mkcl_system(MKCL, mkcl_object cmd_string)
 {
   /* On unix we ignore 'directory' since it plays
      no role in the executable search sequence.
@@ -1432,6 +1434,8 @@ void mkcl_finalize_process(MKCL, mkcl_object proc)
 }
 
 
+struct mkcl_cfun mk_mkcl_process_command_cfunobj = MKCL_CFUN1(mk_mkcl_process_command, MK_MKCL_process_command);
+
 mkcl_object mk_mkcl_process_command(MKCL, mkcl_object proc)
 {
   mkcl_call_stack_check(env);
@@ -1440,6 +1444,8 @@ mkcl_object mk_mkcl_process_command(MKCL, mkcl_object proc)
   mkcl_return_value(proc->process.command);
 }
 
+struct mkcl_cfun mk_mkcl_process_argv_cfunobj = MKCL_CFUN1(mk_mkcl_process_argv, MK_MKCL_process_argv);
+
 mkcl_object mk_mkcl_process_argv(MKCL, mkcl_object proc)
 {
   mkcl_call_stack_check(env);
@@ -1447,6 +1453,8 @@ mkcl_object mk_mkcl_process_argv(MKCL, mkcl_object proc)
     mkcl_FEwrong_type_argument(env, MK_MKCL_process, proc);
   mkcl_return_value(proc->process.argv);
 }
+
+struct mkcl_cfun mk_mkcl_process_id_cfunobj = MKCL_CFUN1(mk_mkcl_process_id, MK_MKCL_process_id);
 
 mkcl_object mk_mkcl_process_id(MKCL, mkcl_object proc)
 {
@@ -1474,6 +1482,8 @@ mkcl_object mk_mkcl_process_id(MKCL, mkcl_object proc)
 }
 
 
+struct mkcl_cfun mk_mkcl_process_input_cfunobj = MKCL_CFUN1(mk_mkcl_process_input, MK_MKCL_process_input);
+
 mkcl_object mk_mkcl_process_input(MKCL, mkcl_object proc)
 {
   mkcl_call_stack_check(env);
@@ -1481,6 +1491,8 @@ mkcl_object mk_mkcl_process_input(MKCL, mkcl_object proc)
     mkcl_FEwrong_type_argument(env, MK_MKCL_process, proc);
   mkcl_return_value(proc->process.input);
 }
+
+struct mkcl_cfun mk_mkcl_process_output_cfunobj = MKCL_CFUN1(mk_mkcl_process_output, MK_MKCL_process_output);
 
 mkcl_object mk_mkcl_process_output(MKCL, mkcl_object proc)
 {
@@ -1490,6 +1502,8 @@ mkcl_object mk_mkcl_process_output(MKCL, mkcl_object proc)
   mkcl_return_value(proc->process.output);
 }
 
+struct mkcl_cfun mk_mkcl_process_error_cfunobj = MKCL_CFUN1(mk_mkcl_process_error, MK_MKCL_process_error);
+
 mkcl_object mk_mkcl_process_error(MKCL, mkcl_object proc)
 {
   mkcl_call_stack_check(env);
@@ -1497,6 +1511,8 @@ mkcl_object mk_mkcl_process_error(MKCL, mkcl_object proc)
     mkcl_FEwrong_type_argument(env, MK_MKCL_process, proc);
   mkcl_return_value(proc->process.error);
 }
+
+struct mkcl_cfun mk_mkcl_process_status_cfunobj = MKCL_CFUN1(mk_mkcl_process_status, MK_MKCL_process_status);
 
 mkcl_object mk_mkcl_process_status(MKCL, mkcl_object proc)
 {
@@ -1555,6 +1571,8 @@ mkcl_object mk_mkcl_process_status(MKCL, mkcl_object proc)
   mkcl_return_value(proc->process.status);
 }
 
+struct mkcl_cfun mk_mkcl_process_exit_code_cfunobj = MKCL_CFUN1(mk_mkcl_process_exit_code, MK_MKCL_process_exit_code);
+
 mkcl_object mk_mkcl_process_exit_code(MKCL, mkcl_object proc)
 {
   mkcl_exit_code_t exit_code;
@@ -1585,10 +1603,14 @@ mkcl_object mk_mkcl_process_exit_code(MKCL, mkcl_object proc)
 #endif
 }
 
+struct mkcl_cfun mk_mkcl_process_p_cfunobj = MKCL_CFUN1(mk_mkcl_process_p, MK_MKCL_process_p);
+
 mkcl_object mk_mkcl_process_p(MKCL, mkcl_object proc)
 {
   mkcl_return_value(((mkcl_type_of(proc) == mkcl_t_process) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_mkcl_process_plist_cfunobj = MKCL_CFUN1(mk_mkcl_process_plist, MK_MKCL_process_plist);
 
 mkcl_object mk_mkcl_process_plist(MKCL, mkcl_object proc)
 {
@@ -1608,6 +1630,8 @@ mkcl_object mk_mkcl_set_process_plist(MKCL, mkcl_object proc, mkcl_object plist)
   mkcl_return_value((proc->process.plist = plist));
 }
 
+struct mkcl_cfun mk_mkcl_process_to_worker_cfunobj = MKCL_CFUN1(mk_mkcl_process_to_worker, MK_MKCL_process_to_worker);
+
 mkcl_object mk_mkcl_process_to_worker(MKCL, mkcl_object proc)
 {
   mkcl_call_stack_check(env);
@@ -1626,6 +1650,8 @@ mkcl_object mk_mkcl_set_process_to_worker(MKCL, mkcl_object proc, mkcl_object to
   mkcl_return_value((proc->process.to_worker = to_worker));
 }
 
+struct mkcl_cfun mk_mkcl_process_from_worker_cfunobj = MKCL_CFUN1(mk_mkcl_process_from_worker, MK_MKCL_process_from_worker);
+
 mkcl_object mk_mkcl_process_from_worker(MKCL, mkcl_object proc)
 {
   mkcl_call_stack_check(env);
@@ -1643,6 +1669,8 @@ mkcl_object mk_mkcl_set_process_from_worker(MKCL, mkcl_object proc, mkcl_object 
     mkcl_FEwrong_type_argument(env, MK_MKCL_process, proc);
   mkcl_return_value((proc->process.from_worker = from_worker));
 }
+
+struct mkcl_cfun mk_mkcl_process_error_from_worker_cfunobj = MKCL_CFUN1(mk_mkcl_process_error_from_worker, MK_MKCL_process_error_from_worker);
 
 mkcl_object mk_mkcl_process_error_from_worker(MKCL, mkcl_object proc)
 {
@@ -1680,6 +1708,8 @@ static void join_worker(MKCL, mkcl_object worker)
         }
     }
 }
+
+struct mkcl_cfun mk_mkcl_join_process_cfunobj = MKCL_CFUN1(mk_mkcl_join_process, MK_MKCL_join_process);
 
 mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
 {
@@ -1810,6 +1840,8 @@ static void detach_worker(MKCL, mkcl_object worker)
   if (!mkcl_Null(worker)) mk_mt_thread_detach(env, worker);
 }
 
+struct mkcl_cfun mk_mkcl_detach_process_cfunobj = MKCL_CFUN1(mk_mkcl_detach_process, MK_MKCL_detach_process);
+
 mkcl_object mk_mkcl_detach_process(MKCL, mkcl_object proc)
 {
   mkcl_call_stack_check(env);
@@ -1841,6 +1873,8 @@ mkcl_object mk_mkcl_detach_process(MKCL, mkcl_object proc)
   proc->process.detached = TRUE;
   mkcl_return_value(proc);
 }
+
+struct mkcl_cfun mk_mkcl_process_detached_p_cfunobj = MKCL_CFUN1(mk_mkcl_process_detached_p, MK_MKCL_process_detached_p);
 
 mkcl_object mk_mkcl_process_detached_p(MKCL, mkcl_object proc)
 {

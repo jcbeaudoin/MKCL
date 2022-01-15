@@ -100,6 +100,8 @@ mk_si_pointer(MKCL, mkcl_object x)
   mkcl_return_value(mkcl_make_unsigned_integer(env, (mkcl_index)x));
 }
 
+struct mkcl_cfun mk_si_foreignp_cfunobj = MKCL_CFUN1(mk_si_foreignp, MK_SI_foreignp);
+
 mkcl_object mk_si_foreignp(MKCL, mkcl_object x)
 {
   mkcl_return_value((mkcl_foreignp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
@@ -194,6 +196,8 @@ mk_si_make_foreign_null_pointer(MKCL)
   mkcl_return_value(output);
 }
 
+struct mkcl_cfun mk_si_free_foreign_data_cfunobj = MKCL_CFUN1(mk_si_free_foreign_data, MK_SI_free_foreign_data);
+
 mkcl_object
 mk_si_free_foreign_data(MKCL, mkcl_object f)
 {
@@ -209,6 +213,8 @@ mk_si_free_foreign_data(MKCL, mkcl_object f)
   f->foreign.data = NULL;
   mkcl_return_no_value;
 }
+
+struct mkcl_cfun mk_si_make_foreign_data_from_array_cfunobj = MKCL_CFUN1(mk_si_make_foreign_data_from_array, MK_SI_make_foreign_data_from_array);
 
 mkcl_object
 mk_si_make_foreign_data_from_array(MKCL, mkcl_object array)
@@ -237,6 +243,8 @@ mk_si_make_foreign_data_from_array(MKCL, mkcl_object array)
   mkcl_return_value(mkcl_make_foreign(env, tag, 0, array->array.self.bc));
 }
 
+struct mkcl_cfun mk_si_foreign_address_cfunobj = MKCL_CFUN1(mk_si_foreign_address, MK_SI_foreign_address);
+
 mkcl_object
 mk_si_foreign_address(MKCL, mkcl_object f)
 {
@@ -246,6 +254,8 @@ mk_si_foreign_address(MKCL, mkcl_object f)
   }
   mkcl_return_value(mkcl_make_unsigned_integer(env, (mkcl_index)f->foreign.data));
 }
+
+struct mkcl_cfun mk_si_foreign_tag_cfunobj = MKCL_CFUN1(mk_si_foreign_tag, MK_SI_foreign_tag);
 
 mkcl_object
 mk_si_foreign_tag(MKCL, mkcl_object f)
@@ -505,6 +515,8 @@ mk_si_foreign_set_elt(MKCL, mkcl_object f, mkcl_object andx, mkcl_object type, m
   mkcl_return_value(value);
 }
 
+struct mkcl_cfun mk_si_size_of_foreign_elt_type_cfunobj = MKCL_CFUN1(mk_si_size_of_foreign_elt_type, MK_SI_size_of_foreign_elt_type);
+
 mkcl_object
 mk_si_size_of_foreign_elt_type(MKCL, mkcl_object type)
 {
@@ -512,6 +524,8 @@ mk_si_size_of_foreign_elt_type(MKCL, mkcl_object type)
   enum mkcl_ffi_tag tag = mkcl_foreign_type_code(env, type);
   mkcl_return_value(MKCL_MAKE_FIXNUM(mkcl_foreign_type_size[tag]));
 }
+
+struct mkcl_cfun mk_si_null_pointer_p_cfunobj = MKCL_CFUN1(mk_si_null_pointer_p, MK_SI_null_pointer_p);
 
 mkcl_object
 mk_si_null_pointer_p(MKCL, mkcl_object f)
@@ -534,6 +548,8 @@ mk_si_foreign_recast(MKCL, mkcl_object f, mkcl_object size, mkcl_object tag)
   f->foreign.tag = tag;
   mkcl_return_value(f);
 }
+
+struct mkcl_cfun mk_si_load_foreign_module_cfunobj = MKCL_CFUN1(mk_si_load_foreign_module, MK_SI_load_foreign_module);
 
 mkcl_object
 mk_si_load_foreign_module(MKCL, mkcl_object filename)
@@ -569,6 +585,8 @@ mk_si_load_foreign_module(MKCL, mkcl_object filename)
   output->cblock.source = MK_KEY_foreign;
   mkcl_return_value(output);
 }
+
+struct mkcl_cfun mk_si_unload_foreign_module_cfunobj = MKCL_CFUN1(mk_si_unload_foreign_module, MK_SI_unload_foreign_module);
 
 mkcl_object
 mk_si_unload_foreign_module(MKCL, mkcl_object module)

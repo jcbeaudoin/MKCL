@@ -123,6 +123,7 @@ mk_cl_copy_structure(MKCL, mkcl_object s)
 }
 
 
+struct mkcl_cfun mk_si_structure_name_cfunobj = MKCL_CFUN1(mk_si_structure_name, MK_SI_structure_name);
 /* Kept only for compatibility. One should use class-of or type-of. */
 mkcl_object
 mk_si_structure_name(MKCL, mkcl_object s)
@@ -133,6 +134,8 @@ mk_si_structure_name(MKCL, mkcl_object s)
   else
     { mkcl_return_value(MKCL_SNAME(s)); }
 }
+
+struct mkcl_cfun mk_si_structure_length_cfunobj = MKCL_CFUN1(mk_si_structure_length, MK_SI_structure_length);
 
 mkcl_object
 mk_si_structure_length(MKCL, mkcl_object s)
@@ -183,6 +186,8 @@ mk_si_structure_set(MKCL, mkcl_object x, mkcl_object name, mkcl_object index, mk
 
   { MKCL_SLOT(x, i) = val; mkcl_return_value(val); }
 }
+
+struct mkcl_cfun mk_si_structurep_cfunobj = MKCL_CFUN1(mk_si_structurep, MK_SI_structurep);
 
 mkcl_object
 mk_si_structurep(MKCL, mkcl_object s)

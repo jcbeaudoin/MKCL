@@ -762,6 +762,8 @@ _mkcl_va_sp(MKCL, mkcl_narg narg)
 
 /********************* INITIALIZATION ***********************/
 
+struct mkcl_cfun mk_si_set_binding_stack_limit_cfunobj = MKCL_CFUN1(mk_si_set_binding_stack_limit, MK_SI_set_binding_stack_limit);
+
 mkcl_object
 mk_si_set_binding_stack_limit(MKCL, mkcl_object size_limit)
 {
@@ -777,6 +779,8 @@ mk_si_set_binding_stack_limit(MKCL, mkcl_object size_limit)
   mkcl_return_value(mkcl_make_unsigned_integer(env, the_size_limit));
 }
 
+struct mkcl_cfun mk_si_set_frame_stack_limit_cfunobj = MKCL_CFUN1(mk_si_set_frame_stack_limit, MK_SI_set_frame_stack_limit);
+
 mkcl_object
 mk_si_set_frame_stack_limit(MKCL, mkcl_object size_limit)
 {
@@ -791,6 +795,8 @@ mk_si_set_frame_stack_limit(MKCL, mkcl_object size_limit)
   env->frs_upper_bound = env->frs_org + the_size_limit;
   mkcl_return_value(mkcl_make_unsigned_integer(env, the_size_limit));
 }
+
+struct mkcl_cfun mk_si_set_lisp_temp_stack_limit_cfunobj = MKCL_CFUN1(mk_si_set_lisp_temp_stack_limit, MK_SI_set_lisp_temp_stack_limit);
 
 mkcl_object
 mk_si_set_lisp_temp_stack_limit(MKCL, mkcl_object size_limit)

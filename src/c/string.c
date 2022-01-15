@@ -480,6 +480,8 @@ mkcl_object mkcl_coerce_to_adjustable_base_string(MKCL, mkcl_object x)
   return x;
 }
 
+struct mkcl_cfun mk_si_copy_to_simple_string_cfunobj = MKCL_CFUN1(mk_si_copy_to_simple_string, MK_SI_copy_to_simple_string);
+
 mkcl_object
 mk_si_copy_to_simple_string(MKCL, mkcl_object x)
 {
@@ -2473,6 +2475,8 @@ mkcl_object mkcl_fill_base_string_from_string(MKCL, mkcl_object bstr, mkcl_index
 int printf(const char *format, ...);
 #endif
 
+struct mkcl_cfun mk_si_utf_8_cfunobj = MKCL_CFUN1(mk_si_utf_8, MK_SI_utf_8);
+
 mkcl_object mk_si_utf_8(MKCL, mkcl_object string)
 {
   mkcl_index i = 0;
@@ -2593,10 +2597,14 @@ mkcl_object mk_si_utf_8(MKCL, mkcl_object string)
     }
 }
 
+struct mkcl_cfun mk_si_utf_8_p_cfunobj = MKCL_CFUN1(mk_si_utf_8_p, MK_SI_utf_8_p);
+
 mkcl_object mk_si_utf_8_p(MKCL, mkcl_object utf_8)
 {
   mkcl_return_value((MKCL_UTF_8_P(utf_8) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_si_utf_8_length_cfunobj = MKCL_CFUN1(mk_si_utf_8_length, MK_SI_utf_8_length);
 
 mkcl_object mk_si_utf_8_length(MKCL, mkcl_object utf_8)
 {
@@ -2606,6 +2614,8 @@ mkcl_object mk_si_utf_8_length(MKCL, mkcl_object utf_8)
 
   mkcl_return_value(MKCL_MAKE_FIXNUM(utf_8->UTF_8.fillp));
 }
+
+struct mkcl_cfun mk_si_utf_8_as_is_cfunobj = MKCL_CFUN1(mk_si_utf_8_as_is, MK_SI_utf_8_as_is);
 
 mkcl_object mk_si_utf_8_as_is(MKCL, mkcl_object string)
 { /* This function seems to be of dubious value after all. JCB */
@@ -2945,10 +2955,14 @@ void mkcl_fill_utf_16_from_base_string(MKCL, mkcl_object utf_16, mkcl_index pref
   utf_16->UTF_16.fillp = i;
 }
 
+struct mkcl_cfun mk_si_utf_16_p_cfunobj = MKCL_CFUN1(mk_si_utf_16_p, MK_SI_utf_16_p);
+
 mkcl_object mk_si_utf_16_p(MKCL, mkcl_object utf_16)
 {
   mkcl_return_value((MKCL_UTF_16_P(utf_16) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_si_utf_16_length_cfunobj = MKCL_CFUN1(mk_si_utf_16_length, MK_SI_utf_16_length);
 
 mkcl_object mk_si_utf_16_length(MKCL, mkcl_object utf_16)
 {
@@ -2959,6 +2973,8 @@ mkcl_object mk_si_utf_16_length(MKCL, mkcl_object utf_16)
   mkcl_return_value(MKCL_MAKE_FIXNUM(utf_16->UTF_16.fillp));
 }
 
+
+struct mkcl_cfun mk_si_utf_16_cfunobj = MKCL_CFUN1(mk_si_utf_16, MK_SI_utf_16);
 
 mkcl_object mk_si_utf_16(MKCL, mkcl_object string)
 {
@@ -3088,6 +3104,8 @@ mkcl_object mk_si_utf_16(MKCL, mkcl_object string)
       break;
     }
 }
+
+struct mkcl_cfun mk_si_utf_16_as_is_cfunobj = MKCL_CFUN1(mk_si_utf_16_as_is, MK_SI_utf_16_as_is);
 
 mkcl_object mk_si_utf_16_as_is(MKCL, mkcl_object string)
 { /* This function seems to be of dubious value after all. JCB */
@@ -3294,6 +3312,8 @@ mkcl_object mk_si_utf_16Plus(MKCL, mkcl_narg narg, ...)
   }
 }
 
+
+struct mkcl_cfun mk_si_utf_16E_cfunobj = MKCL_CFUN1(mk_si_utf_16E, MK_SI_utf_16E);
 
 mkcl_object mk_si_utf_16E(MKCL, mkcl_object u1, mkcl_object u2)
 {
@@ -3558,6 +3578,8 @@ mkcl_character mkcl_utf_8_last(MKCL, mkcl_object utf_8, bool * invalid)
   return ch;
 }
 
+struct mkcl_cfun mk_si_utf_8_last_cfunobj = MKCL_CFUN1(mk_si_utf_8_last, MK_SI_utf_8_last);
+
 mkcl_object mk_si_utf_8_last(MKCL, mkcl_object utf_8)
 {
   bool invalid = FALSE;
@@ -3669,6 +3691,8 @@ mkcl_character mkcl_utf_16_last(MKCL, mkcl_object utf_16, bool * invalid)
   return ch;
 }
 
+struct mkcl_cfun mk_si_utf_16_last_cfunobj = MKCL_CFUN1(mk_si_utf_16_last, MK_SI_utf_16_last);
+
 mkcl_object mk_si_utf_16_last(MKCL, mkcl_object utf_16)
 {
   bool invalid = FALSE;
@@ -3770,6 +3794,8 @@ mkcl_alloc_octets(MKCL, mkcl_index length)
   return x;
 }
 
+struct mkcl_cfun mk_mkcl_octets_cfunobj = MKCL_CFUN1(mk_mkcl_octets, MK_MKCL_octets);
+
 mkcl_object
 mk_mkcl_octets(MKCL, mkcl_object obj)
 {
@@ -3807,6 +3833,8 @@ mkcl_alloc_double_octets(MKCL, mkcl_index length)
   x->vector.self.b16     = (uint16_t *) mkcl_alloc_atomic(env, sizeof(uint16_t) * length);
   return x;
 }
+
+struct mkcl_cfun mk_mkcl_double_octets_cfunobj = MKCL_CFUN1(mk_mkcl_double_octets, MK_MKCL_double_octets);
 
 mkcl_object
 mk_mkcl_double_octets(MKCL, mkcl_object obj)

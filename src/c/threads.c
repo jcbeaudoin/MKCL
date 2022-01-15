@@ -2492,6 +2492,8 @@ mkcl_object mk_mt_interrupt_thread(MKCL, mkcl_narg narg, mkcl_object thread, mkc
   }
 }
 
+struct mkcl_cfun mk_mt_thread_kill_cfunobj = MKCL_CFUN1(mk_mt_thread_kill, MK_MT_thread_kill);
+
 mkcl_object
 mk_mt_thread_kill(MKCL, mkcl_object thread)
 {
@@ -2520,6 +2522,10 @@ mk_mt_thread_kill(MKCL, mkcl_object thread)
 
   mkcl_return_value(val);
 }
+
+struct mkcl_cfun mk_mt_detach_thread_cfunobj = MKCL_CFUN1(mk_mt_thread_detach, MK_MT_detach_thread);
+
+struct mkcl_cfun mk_mt_thread_detach_cfunobj = MKCL_CFUN1(mk_mt_thread_detach, MK_MT_thread_detach);
 
 mkcl_object mk_mt_thread_detach(MKCL, mkcl_object thread)
 {
@@ -2596,7 +2602,11 @@ mkcl_object mk_mt_thread_detach(MKCL, mkcl_object thread)
   mkcl_return_value(mk_cl_Ct);
 }
 
+struct mkcl_cfun mk_mt_join_thread_cfunobj = MKCL_CFUN1(mk_mt_thread_join, MK_MT_join_thread);
+
 #if MKCL_PTHREADS
+
+struct mkcl_cfun mk_mt_thread_join_cfunobj = MKCL_CFUN1(mk_mt_thread_join, MK_MT_thread_join);
 
 mkcl_object
 mk_mt_thread_join(MKCL, mkcl_object thread)
@@ -2663,6 +2673,8 @@ mk_mt_thread_join(MKCL, mkcl_object thread)
 }
 
 #elif MKCL_WINDOWS
+
+struct mkcl_cfun mk_mt_thread_join_cfunobj = MKCL_CFUN1(mk_mt_thread_join, MK_MT_thread_join);
 
 mkcl_object
 mk_mt_thread_join(MKCL, mkcl_object thread)
@@ -2773,6 +2785,8 @@ mk_mt_thread_yield(MKCL)
 }
 
 #if MKCL_WINDOWS
+struct mkcl_cfun mk_mt_thread_enable_cfunobj = MKCL_CFUN1(mk_mt_thread_enable, MK_MT_thread_enable);
+
 mkcl_object
 mk_mt_thread_enable(MKCL, mkcl_object thread)
 {
@@ -2817,6 +2831,8 @@ mk_mt_thread_enable(MKCL, mkcl_object thread)
 }
 
 #elif MKCL_PTHREADS
+
+struct mkcl_cfun mk_mt_thread_enable_cfunobj = MKCL_CFUN1(mk_mt_thread_enable, MK_MT_thread_enable);
 
 mkcl_object
 mk_mt_thread_enable(MKCL, mkcl_object thread)
@@ -2939,6 +2955,8 @@ mk_mt_thread_enable(MKCL, mkcl_object thread)
 }
 #endif /* MKCL_PTHREADS */
 
+struct mkcl_cfun mk_mt_abandon_thread_cfunobj = MKCL_CFUN1(mk_mt_abandon_thread, MK_MT_abandon_thread);
+
 mkcl_object mk_mt_abandon_thread(MKCL, mkcl_object result_value)
 {
   mkcl_call_stack_check(env);
@@ -2982,6 +3000,8 @@ mkcl_object mk_mt_abandon_thread(MKCL, mkcl_object result_value)
 
   mkcl_thread_exit(env, MKCL_THREAD_ABORTED);
 }
+
+struct mkcl_cfun mk_mt_exit_thread_cfunobj = MKCL_CFUN1(mk_mt_exit_thread, MK_MT_exit_thread);
 
 mkcl_object
 mk_mt_exit_thread(MKCL, mkcl_object result_value)
@@ -3102,6 +3122,8 @@ mk_mt_all_threads(MKCL)
   mkcl_return_value(mk_cl_copy_list(env, mkcl_core.threads));
 }
 
+struct mkcl_cfun mk_mt_thread_name_cfunobj = MKCL_CFUN1(mk_mt_thread_name, MK_MT_thread_name);
+
 mkcl_object
 mk_mt_thread_name(MKCL, mkcl_object thread)
 {
@@ -3109,6 +3131,8 @@ mk_mt_thread_name(MKCL, mkcl_object thread)
   mkcl_assert_type_thread(env, thread);
   mkcl_return_value(thread->thread.name);
 }
+
+struct mkcl_cfun mk_mt_thread_active_p_cfunobj = MKCL_CFUN1(mk_mt_thread_active_p, MK_MT_thread_active_p);
 
 mkcl_object
 mk_mt_thread_active_p(MKCL, mkcl_object thread)
@@ -3127,6 +3151,8 @@ mk_mt_thread_whostate(MKCL, mkcl_object thread)
   mkcl_return_value((mkcl_core.empty_base_string));
 }
 #endif
+
+struct mkcl_cfun mk_mt_thread_status_cfunobj = MKCL_CFUN1(mk_mt_thread_status, MK_MT_thread_status);
 
 mkcl_object
 mk_mt_thread_status(MKCL, mkcl_object thread)
@@ -3238,6 +3264,8 @@ mkcl_object mk_mt_make_lock(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_mt_recursive_lock_p_cfunobj = MKCL_CFUN1(mk_mt_recursive_lock_p, MK_MT_recursive_lock_p);
+
 mkcl_object
 mk_mt_recursive_lock_p(MKCL, mkcl_object lock)
 {
@@ -3246,6 +3274,8 @@ mk_mt_recursive_lock_p(MKCL, mkcl_object lock)
     mkcl_FEwrong_type_argument(env, MK_MT_lock, lock);
   mkcl_return_value((lock->lock.recursive ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_mt_lock_name_cfunobj = MKCL_CFUN1(mk_mt_lock_name, MK_MT_lock_name);
 
 mkcl_object
 mk_mt_lock_name(MKCL, mkcl_object lock)
@@ -3256,6 +3286,8 @@ mk_mt_lock_name(MKCL, mkcl_object lock)
   mkcl_return_value(lock->lock.name);
 }
 
+struct mkcl_cfun mk_mt_lock_holder_cfunobj = MKCL_CFUN1(mk_mt_lock_holder, MK_MT_lock_holder);
+
 mkcl_object
 mk_mt_lock_holder(MKCL, mkcl_object lock)
 {
@@ -3264,6 +3296,8 @@ mk_mt_lock_holder(MKCL, mkcl_object lock)
     mkcl_FEwrong_type_argument(env, MK_MT_lock, lock);
   mkcl_return_value(lock->lock.holder);
 }
+
+struct mkcl_cfun mk_mt_giveup_lock_cfunobj = MKCL_CFUN1(mk_mt_giveup_lock, MK_MT_giveup_lock);
 
 mkcl_object
 mk_mt_giveup_lock(MKCL, mkcl_object lock)
@@ -3789,6 +3823,8 @@ mkcl_object mk_mt_make_semaphore(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_mt_semaphore_count_cfunobj = MKCL_CFUN1(mk_mt_semaphore_count, MK_MT_semaphore_count);
+
 mkcl_object mk_mt_semaphore_count(MKCL, mkcl_object sem)
 {
   mkcl_call_stack_check(env);
@@ -4110,6 +4146,8 @@ mkcl_object mk_mt_condition_wait(MKCL, mkcl_narg narg, mkcl_object cv, mkcl_obje
   }
 }
 
+struct mkcl_cfun mk_mt_condition_signal_cfunobj = MKCL_CFUN1(mk_mt_condition_signal, MK_MT_condition_signal);
+
 mkcl_object
 mk_mt_condition_signal(MKCL, mkcl_object cv)
 {
@@ -4134,6 +4172,8 @@ mk_mt_condition_signal(MKCL, mkcl_object cv)
 #endif
   mkcl_return_value(mk_cl_Ct);
 }
+
+struct mkcl_cfun mk_mt_condition_broadcast_cfunobj = MKCL_CFUN1(mk_mt_condition_broadcast, MK_MT_condition_broadcast);
 
 mkcl_object
 mk_mt_condition_broadcast(MKCL, mkcl_object cv)
@@ -4460,6 +4500,8 @@ static int _true_pthread_join(pthread_t thread, void ** retval)
 #endif /* MKCL_PTHREADS */
 
 
+struct mkcl_cfun mk_mt_thread_plist_cfunobj = MKCL_CFUN1(mk_mt_thread_plist, MK_MT_thread_plist);
+
 mkcl_object mk_mt_thread_plist(MKCL, mkcl_object thread)
 {
   mkcl_call_stack_check(env);
@@ -4545,6 +4587,8 @@ mkcl_object mk_mt_test_for_thread_shutdown(MKCL)
 }
 
 
+struct mkcl_cfun mk_mt_request_thread_shutdown_cfunobj = MKCL_CFUN1(mk_mt_request_thread_shutdown, MK_MT_request_thread_shutdown);
+
 mkcl_object
 mk_mt_request_thread_shutdown(MKCL, mkcl_object thread)
 {
@@ -4562,6 +4606,8 @@ mk_mt_request_thread_shutdown(MKCL, mkcl_object thread)
       mkcl_return_value(mk_cl_Ct);
     }
 }
+
+struct mkcl_cfun mk_mt_thread_shutdown_requested_p_cfunobj = MKCL_CFUN1(mk_mt_thread_shutdown_requested_p, MK_MT_thread_shutdown_requested_p);
 
 mkcl_object
 mk_mt_thread_shutdown_requested_p(MKCL, mkcl_object thread)

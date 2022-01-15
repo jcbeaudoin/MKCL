@@ -394,6 +394,8 @@ mkcl_log1p(MKCL, mkcl_object x)
   return output;
 }
 
+struct mkcl_cfun mk_si_log1p_cfunobj = MKCL_CFUN1(mk_si_log1p, MK_SI_log1p);
+
 mkcl_object
 mk_si_log1p(MKCL, mkcl_object x)
 {

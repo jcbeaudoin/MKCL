@@ -216,6 +216,8 @@ static mkcl_base_char * push_mangled_string(mkcl_object str, mkcl_base_char * de
   return dest;
 }
 
+struct mkcl_cfun mk_si_mangle_string_cfunobj = MKCL_CFUN1(mk_si_mangle_string, MK_SI_mangle_string);
+
 mkcl_object mk_si_mangle_string(MKCL, mkcl_object string)
 {
   mkcl_call_stack_check(env);
@@ -292,6 +294,8 @@ mangle_full_symbol_name(MKCL, mkcl_object symbol, char * suffix)
   return output;
 }
 
+struct mkcl_cfun mk_si_mangle_symbol_cfunobj = MKCL_CFUN1(mk_si_mangle_symbol, MK_SI_mangle_symbol);
+
 mkcl_object mk_si_mangle_symbol(MKCL, mkcl_object symbol)
 {
   mkcl_call_stack_check(env);
@@ -322,6 +326,8 @@ mkcl_object mk_si_mangle_name(MKCL, mkcl_object symbol)
   else
     mkcl_return_value(mk_cl_Cnil);
 }
+
+struct mkcl_cfun mk_si_mangle_function_name_cfunobj = MKCL_CFUN1(mk_si_mangle_function_name, MK_SI_mangle_function_name);
 
 mkcl_object mk_si_mangle_function_name(MKCL, mkcl_object symbol)
 {

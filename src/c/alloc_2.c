@@ -101,6 +101,8 @@ static pthread_mutex_t oom_handler_lock;
  *		OBJECT ALLOCATION			  *
  **********************************************************/
 
+struct mkcl_cfun mk_si_set_heap_size_limit_cfunobj = MKCL_CFUN1(mk_si_set_heap_size_limit, MK_SI_set_heap_size_limit);
+
 mkcl_object
 mk_si_set_heap_size_limit(MKCL, mkcl_object size_limit) /* This function should acquire the OOM lock. */
 {
@@ -1391,6 +1393,8 @@ static void call_finalizer_on_mkcl_object(void * obj, void * client_data)
     }
 }
 
+struct mkcl_cfun mk_si_get_finalizer_cfunobj = MKCL_CFUN1(mk_si_get_finalizer, MK_SI_get_finalizer);
+
 mkcl_object
 mk_si_get_finalizer(MKCL, mkcl_object o)
 {
@@ -1432,6 +1436,8 @@ mk_si_set_finalizer(MKCL, mkcl_object obj, mkcl_object finalizer)
   }
   mkcl_return_no_value;
 }
+
+struct mkcl_cfun mk_si_gc_stats_cfunobj = MKCL_CFUN1(mk_si_gc_stats, MK_SI_gc_stats);
 
 mkcl_object
 mk_si_gc_stats(MKCL, mkcl_object enable)
@@ -1759,6 +1765,8 @@ mkcl_object mk_si_sample_allocation_statistics(MKCL)
   mkcl_return_value(stats);
 }
 
+
+struct mkcl_cfun mk_si_room_report_cfunobj = MKCL_CFUN1(mk_si_room_report, MK_SI_room_report);
 
 mkcl_object
 mk_si_room_report(MKCL, mkcl_object label)

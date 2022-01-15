@@ -4388,6 +4388,8 @@ static const struct mkcl_file_ops socket_stream_input_ops = {
 
 
 
+struct mkcl_cfun mk_si_get_buffering_mode_cfunobj = MKCL_CFUN1(mk_si_get_buffering_mode, MK_SI_get_buffering_mode);
+
 mkcl_object
 mk_si_get_buffering_mode(MKCL, mkcl_object stream)
 {
@@ -4973,6 +4975,8 @@ mkcl_object mk_cl_file_position(MKCL, mkcl_narg narg, mkcl_object file_stream, .
   }
 }
 
+struct mkcl_cfun mk_si_ansi_input_stream_p_cfunobj = MKCL_CFUN1(mk_si_ansi_input_stream_p, MK_SI_ansi_input_stream_p);
+
 mkcl_object
 mk_si_ansi_input_stream_p(MKCL, mkcl_object strm)
 {
@@ -4987,6 +4991,8 @@ mk_cl_input_stream_p(MKCL, mkcl_object strm)
 {
   return(mk_si_ansi_input_stream_p(env, strm));
 }
+
+struct mkcl_cfun mk_si_ansi_output_stream_p_cfunobj = MKCL_CFUN1(mk_si_ansi_output_stream_p, MK_SI_ansi_output_stream_p);
 
 mkcl_object
 mk_si_ansi_output_stream_p(MKCL, mkcl_object strm)
@@ -5012,6 +5018,8 @@ mk_cl_interactive_stream_p(MKCL, mkcl_object strm)
   mkcl_return_value((stream_dispatch_table(env, strm)->interactive_p(env, strm) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_si_ansi_open_stream_p_cfunobj = MKCL_CFUN1(mk_si_ansi_open_stream_p, MK_SI_ansi_open_stream_p);
+
 mkcl_object
 mk_si_ansi_open_stream_p(MKCL, mkcl_object strm)
 {
@@ -5032,6 +5040,8 @@ mk_cl_open_stream_p(MKCL, mkcl_object strm)
   return(mk_si_ansi_open_stream_p(env, strm));
 }
 
+
+struct mkcl_cfun mk_si_ansi_stream_element_type_cfunobj = MKCL_CFUN1(mk_si_ansi_stream_element_type, MK_SI_ansi_stream_element_type);
 
 mkcl_object
 mk_si_ansi_stream_element_type(MKCL, mkcl_object strm)
@@ -5071,6 +5081,8 @@ mk_cl_stream_external_format(MKCL, mkcl_object strm)
   output = strm->stream.format;
   mkcl_return_value(output);
 }
+
+struct mkcl_cfun mk_si_ansi_streamp_cfunobj = MKCL_CFUN1(mk_si_ansi_streamp, MK_SI_ansi_streamp);
 
 mkcl_object
 mk_si_ansi_streamp(MKCL, mkcl_object strm)

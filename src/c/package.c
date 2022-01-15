@@ -1037,6 +1037,8 @@ mk_cl_package_shadowing_symbols(MKCL, mkcl_object p)
   return mk_cl_copy_list(env, mk_si_coerce_to_package(env, p)->pack.shadowings);
 }
 
+struct mkcl_cfun mk_si_close_package_cfunobj = MKCL_CFUN1(mk_si_close_package, MK_SI_close_package);
+
 mkcl_object
 mk_si_close_package(MKCL, mkcl_object p)
 {
@@ -1046,6 +1048,8 @@ mk_si_close_package(MKCL, mkcl_object p)
   mkcl_return_value(p);
 }
 
+struct mkcl_cfun mk_si_reopen_package_cfunobj = MKCL_CFUN1(mk_si_reopen_package, MK_SI_reopen_package);
+
 mkcl_object
 mk_si_reopen_package(MKCL, mkcl_object p)
 {
@@ -1054,6 +1058,8 @@ mk_si_reopen_package(MKCL, mkcl_object p)
   p->pack.closed = FALSE;
   mkcl_return_value(p);
 }
+
+struct mkcl_cfun mk_si_package_closed_p_cfunobj = MKCL_CFUN1(mk_si_package_closed_p, MK_SI_package_closed_p);
 
 mkcl_object
 mk_si_package_closed_p(MKCL, mkcl_object p)
