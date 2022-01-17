@@ -930,6 +930,8 @@ mkcl_unuse_package(MKCL, mkcl_object x, mkcl_object p)
   } MKCL_UNWIND_PROTECT_END;
 }
 
+struct mkcl_cfun mk_cl_make_package_cfunobj = MKCL_CFUN_VA(mk_cl_make_package, MK_CL_make_package);
+
 mkcl_object mk_cl_make_package(MKCL, mkcl_narg narg, mkcl_object pack_name, ...)
 {
   mkcl_call_stack_check(env);
@@ -1088,6 +1090,8 @@ mk_cl_list_all_packages(MKCL)
   mkcl_return_value(packages);
 }
 
+struct mkcl_cfun mk_cl_intern_cfunobj = MKCL_CFUN_VA(mk_cl_intern, MK_CL_intern);
+
 mkcl_object mk_cl_intern(MKCL, mkcl_narg narg, mkcl_object strng, ...)
 {
   mkcl_call_stack_check(env);
@@ -1108,6 +1112,8 @@ mkcl_object mk_cl_intern(MKCL, mkcl_narg narg, mkcl_object strng, ...)
       { mkcl_return_2_values(sym, mk_cl_Cnil); }
   }
 }
+
+struct mkcl_cfun mk_cl_find_symbol_cfunobj = MKCL_CFUN_VA(mk_cl_find_symbol, MK_CL_find_symbol);
 
 mkcl_object mk_cl_find_symbol(MKCL, mkcl_narg narg, mkcl_object strng, ...)
 {
@@ -1140,6 +1146,8 @@ mkcl_object mk_cl_unintern(MKCL, mkcl_narg narg, mkcl_object symbl, ...)
     mkcl_return_value((mkcl_unintern(env, symbl, p) ? mk_cl_Ct : mk_cl_Cnil));
   }
 }
+
+struct mkcl_cfun mk_cl_export_cfunobj = MKCL_CFUN_VA(mk_cl_export, MK_CL_export);
 
 mkcl_object mk_cl_export(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
 {
@@ -1200,6 +1208,8 @@ mkcl_object mk_cl_unexport(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
     mkcl_return_value(mk_cl_Ct);
   }
 }
+
+struct mkcl_cfun mk_cl_import_cfunobj = MKCL_CFUN_VA(mk_cl_import, MK_CL_import);
 
 mkcl_object mk_cl_import(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
 {

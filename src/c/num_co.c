@@ -59,6 +59,8 @@ number_remainder(MKCL, mkcl_object x, mkcl_object y, mkcl_object q)
 /* Coerce non-float X to single-float if one arg,
    otherwise coerce to same float type as second arg */
 
+struct mkcl_cfun mk_cl_float_cfunobj = MKCL_CFUN_VA(mk_cl_float, MK_CL_float);
+
 mkcl_object mk_cl_float(MKCL, mkcl_narg narg, mkcl_object x, ...)
 {
   mkcl_call_stack_check(env);
@@ -396,6 +398,8 @@ mkcl_floor2(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_2_values(v0, v1);
 }
 
+struct mkcl_cfun mk_cl_floor_cfunobj = MKCL_CFUN_VA(mk_cl_floor, MK_CL_floor);
+
 mkcl_object mk_cl_floor(MKCL, mkcl_narg narg, mkcl_object x, ...)
 {
   mkcl_call_stack_check(env);
@@ -650,6 +654,8 @@ mkcl_ceiling2(MKCL, mkcl_object x, mkcl_object y)
   }
   mkcl_return_2_values(v0, v1);
 }
+
+struct mkcl_cfun mk_cl_ceiling_cfunobj = MKCL_CFUN_VA(mk_cl_ceiling, MK_CL_ceiling);
 
 mkcl_object mk_cl_ceiling(MKCL, mkcl_narg narg, mkcl_object x, ...)
 {
@@ -1000,6 +1006,8 @@ mk_cl_float_radix(MKCL, mkcl_object x)
   mkcl_return_value(MKCL_MAKE_FIXNUM(FLT_RADIX));
 }
 
+struct mkcl_cfun mk_cl_float_sign_cfunobj = MKCL_CFUN_VA(mk_cl_float_sign, MK_CL_float_sign);
+
 mkcl_object mk_cl_float_sign(MKCL, mkcl_narg narg, mkcl_object x, ...)
 {
   mkcl_call_stack_check(env);
@@ -1219,6 +1227,8 @@ mk_cl_integer_decode_float(MKCL, mkcl_object x)
   mkcl_return_3_values(x, MKCL_MAKE_FIXNUM(e), MKCL_MAKE_FIXNUM(s));
 }
 
+
+struct mkcl_cfun mk_cl_complex_cfunobj = MKCL_CFUN_VA(mk_cl_complex, MK_CL_complex);
 
 mkcl_object mk_cl_complex(MKCL, mkcl_narg narg, mkcl_object r, ...)
 {

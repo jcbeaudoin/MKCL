@@ -5,7 +5,7 @@
 /*
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
-    Copyright (c) 2012-2019,2021-2022 Jean-Claude Beaudoin.
+    Copyright (c) 2012-2019,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -129,6 +129,8 @@ mkcl_string_case(const mkcl_object str)
   else return str_case;
 }
 
+struct mkcl_cfun mk_cl_digit_char_p_cfunobj = MKCL_CFUN_VA(mk_cl_digit_char_p, MK_CL_digit_char_p);
+
 mkcl_object mk_cl_digit_char_p(MKCL, mkcl_narg narg, mkcl_object c, ...)
 {
   mkcl_call_stack_check(env);
@@ -176,6 +178,8 @@ mk_cl_alphanumericp(MKCL, mkcl_object c)
   mkcl_return_value((mkcl_alphanumericp(i) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_charE_cfunobj = MKCL_CFUN_VA(mk_cl_charE, MK_CL_charE);
+
 mkcl_object mk_cl_charE(MKCL, mkcl_narg narg, mkcl_object c, ...)
 {
   mkcl_call_stack_check(env);
@@ -196,6 +200,8 @@ mkcl_char_eq(MKCL, mkcl_object x, mkcl_object y)
 {
   return mkcl_char_code(env, x) == mkcl_char_code(env, y);
 }
+
+struct mkcl_cfun mk_cl_charNE_cfunobj = MKCL_CFUN_VA(mk_cl_charNE, MK_CL_charNE);
 
 mkcl_object mk_cl_charNE(MKCL, const mkcl_narg narg, ...)
 {
@@ -249,6 +255,8 @@ mkcl_char_cmp(MKCL, mkcl_object x, mkcl_object y)
   return mkcl_char_code(env, x) - mkcl_char_code(env, y);
 }
 
+struct mkcl_cfun mk_cl_charL_cfunobj = MKCL_CFUN_VA(mk_cl_charL, MK_CL_charL);
+
 mkcl_object mk_cl_charL(MKCL, const mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -260,6 +268,8 @@ mkcl_object mk_cl_charL(MKCL, const mkcl_narg narg, ...)
     return val;
   }
 }
+
+struct mkcl_cfun mk_cl_charG_cfunobj = MKCL_CFUN_VA(mk_cl_charG, MK_CL_charG);
 
 mkcl_object mk_cl_charG(MKCL, const mkcl_narg narg, ...)
 {
@@ -273,6 +283,8 @@ mkcl_object mk_cl_charG(MKCL, const mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_charLE_cfunobj = MKCL_CFUN_VA(mk_cl_charLE, MK_CL_charLE);
+
 mkcl_object mk_cl_charLE(MKCL, const mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -285,6 +297,8 @@ mkcl_object mk_cl_charLE(MKCL, const mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_charGE_cfunobj = MKCL_CFUN_VA(mk_cl_charGE, MK_CL_charGE);
+
 mkcl_object mk_cl_charGE(MKCL, const mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -296,6 +310,8 @@ mkcl_object mk_cl_charGE(MKCL, const mkcl_narg narg, ...)
     return val;
   }
 }
+
+struct mkcl_cfun mk_cl_char_equal_cfunobj = MKCL_CFUN_VA(mk_cl_char_equal, MK_CL_char_equal);
 
 mkcl_object mk_cl_char_equal(MKCL, mkcl_narg narg, mkcl_object c, ...)
 {
@@ -321,6 +337,8 @@ mkcl_char_equal(MKCL, mkcl_object x, mkcl_object y)
 {
   return char_equal_code(env, x) == char_equal_code(env, y);
 }
+
+struct mkcl_cfun mk_cl_char_not_equal_cfunobj = MKCL_CFUN_VA(mk_cl_char_not_equal, MK_CL_char_not_equal);
 
 mkcl_object mk_cl_char_not_equal(MKCL, mkcl_narg narg, ...)
 {
@@ -379,6 +397,8 @@ mkcl_char_compare(MKCL, mkcl_object x, mkcl_object y)
     return(1);
 }
 
+struct mkcl_cfun mk_cl_char_lessp_cfunobj = MKCL_CFUN_VA(mk_cl_char_lessp, MK_CL_char_lessp);
+
 mkcl_object mk_cl_char_lessp(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -390,6 +410,8 @@ mkcl_object mk_cl_char_lessp(MKCL, mkcl_narg narg, ...)
     return val;
   }
 }
+
+struct mkcl_cfun mk_cl_char_greaterp_cfunobj = MKCL_CFUN_VA(mk_cl_char_greaterp, MK_CL_char_greaterp);
 
 mkcl_object mk_cl_char_greaterp(MKCL, mkcl_narg narg, ...)
 {
@@ -403,6 +425,8 @@ mkcl_object mk_cl_char_greaterp(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_char_not_greaterp_cfunobj = MKCL_CFUN_VA(mk_cl_char_not_greaterp, MK_CL_char_not_greaterp);
+
 mkcl_object mk_cl_char_not_greaterp(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -414,6 +438,8 @@ mkcl_object mk_cl_char_not_greaterp(MKCL, mkcl_narg narg, ...)
     return val;
   }
 }
+
+struct mkcl_cfun mk_cl_char_not_lessp_cfunobj = MKCL_CFUN_VA(mk_cl_char_not_lessp, MK_CL_char_not_lessp);
 
 mkcl_object mk_cl_char_not_lessp(MKCL, mkcl_narg narg, ...)
 {
@@ -523,6 +549,8 @@ mk_cl_char_downcase(MKCL, mkcl_object c)
   mkcl_word code = mkcl_char_code(env, c);
   mkcl_return_value(MKCL_CODE_CHAR(mkcl_char_downcase(code)));
 }
+
+struct mkcl_cfun mk_cl_digit_char_cfunobj = MKCL_CFUN_VA(mk_cl_digit_char, MK_CL_digit_char);
 
 mkcl_object mk_cl_digit_char(MKCL, mkcl_narg narg, mkcl_object weight, ...)
 {

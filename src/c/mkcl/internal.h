@@ -3,7 +3,7 @@
 */
 /*
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2016,2022 Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016,2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -115,7 +115,9 @@ extern "C" {
   mkcl_object mkcl_wrong_num_args_cfun_4(MKCL);
   mkcl_object mkcl_wrong_num_args_cfun_va(MKCL, mkcl_narg narg, ...);
 
+#if 0
   extern const mkcl_objectfn const mkcl_cfun_dispatch_table[64];
+#endif
 
 
 #define MKCL_CFUN0(fun, name)			\
@@ -229,22 +231,56 @@ extern "C" {
 #define MKCL_CFUN4(fun, name)			\
   {						\
     mkcl_t_cfun, 0, 0, 0,			\
-    {						\
-      mkcl_wrong_num_args_cfun_va,		\
       {						\
-	mkcl_wrong_num_args_cfun_0,		\
-	mkcl_wrong_num_args_cfun_1,		\
-	mkcl_wrong_num_args_cfun_2,		\
-	mkcl_wrong_num_args_cfun_3,		\
-	fun					\
+	mkcl_wrong_num_args_cfun_va,		\
+	  {					\
+	    mkcl_wrong_num_args_cfun_0,		\
+	      mkcl_wrong_num_args_cfun_1,	\
+	      mkcl_wrong_num_args_cfun_2,	\
+	      mkcl_wrong_num_args_cfun_3,	\
+	      fun				\
+	      }					\
+      },					\
+      name,					\
+	MKCL_OBJNULL,				\
+	fun,					\
+	mk_cl_Cnil,				\
+	MKCL_MAKE_FIXNUM(-1),			\
+	4,					\
+	NULL,					\
+	0,					\
+	NULL,					\
+	NULL,					\
+	mk_cl_Cnil,				\
+	mk_cl_Cnil				\
+	}
+
+
+mkcl_object mkcl_fun_va_trampoline_f0(MKCL);
+mkcl_object mkcl_fun_va_trampoline_f1(MKCL, mkcl_object x1);
+mkcl_object mkcl_fun_va_trampoline_f2(MKCL, mkcl_object x1, mkcl_object x2);
+mkcl_object mkcl_fun_va_trampoline_f3(MKCL, mkcl_object x1, mkcl_object x2, mkcl_object x3);
+mkcl_object mkcl_fun_va_trampoline_f4(MKCL, mkcl_object x1, mkcl_object x2, mkcl_object x3, mkcl_object x4);
+
+#define MKCL_CFUN_VA(fun, name)			\
+  {						\
+    mkcl_t_cfun, 0, 0, 0,			\
+    {						\
+      ((mkcl_objectfn) fun),			\
+      {						\
+	mkcl_fun_va_trampoline_f0,		\
+	mkcl_fun_va_trampoline_f1,		\
+	mkcl_fun_va_trampoline_f2,		\
+	mkcl_fun_va_trampoline_f3,		\
+	mkcl_fun_va_trampoline_f4		\
       }						\
     },						\
     name,					\
     MKCL_OBJNULL,				\
-    fun,					\
+    NULL,					\
     mk_cl_Cnil,					\
     MKCL_MAKE_FIXNUM(-1),			\
-    4,						\
+    -1,						\
     NULL,					\
     0,						\
     NULL,					\

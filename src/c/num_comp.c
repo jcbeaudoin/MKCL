@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011,2021, Jean-Claude Beaudoin.
+    Copyright (c) 2011,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -77,6 +77,8 @@ long_double_fix_compare(mkcl_word n, long double d)
   }
 }
 #endif
+
+struct mkcl_cfun mk_cl_E_cfunobj = MKCL_CFUN_VA(mk_cl_E, MK_CL_E);
 
 mkcl_object mk_cl_E(MKCL, mkcl_narg narg, mkcl_object num, ...)
 {
@@ -398,6 +400,8 @@ mkcl_number_compare(MKCL, mkcl_object x, mkcl_object y)
   }
 }
 
+struct mkcl_cfun mk_cl_NE_cfunobj = MKCL_CFUN_VA(mk_cl_NE, MK_CL_NE);
+
 mkcl_object mk_cl_NE(MKCL, mkcl_narg narg, ...)
 {
   mkcl_object numi = mk_cl_Cnil;
@@ -446,10 +450,17 @@ monotonic(MKCL, int s, int t, int narg, mkcl_va_list nums)
     mkcl_va_end(nums);                                          \
     return val; }
 
+struct mkcl_cfun mk_cl_LE_cfunobj = MKCL_CFUN_VA(mk_cl_LE, MK_CL_LE);
+struct mkcl_cfun mk_cl_GE_cfunobj = MKCL_CFUN_VA(mk_cl_GE, MK_CL_GE);
+struct mkcl_cfun mk_cl_L_cfunobj = MKCL_CFUN_VA(mk_cl_L, MK_CL_L);
+struct mkcl_cfun mk_cl_G_cfunobj = MKCL_CFUN_VA(mk_cl_G, MK_CL_G);
+
 mkcl_object mk_cl_LE MONOTONIC( 1, 0)
 mkcl_object mk_cl_GE MONOTONIC(-1, 0)
 mkcl_object mk_cl_L  MONOTONIC( 1, 1)
 mkcl_object mk_cl_G  MONOTONIC(-1, 1)
+
+struct mkcl_cfun mk_cl_max_cfunobj = MKCL_CFUN_VA(mk_cl_max, MK_CL_max);
 
 mkcl_object mk_cl_max(MKCL, mkcl_narg narg, mkcl_object max, ...)
 {
@@ -470,6 +481,8 @@ mkcl_object mk_cl_max(MKCL, mkcl_narg narg, mkcl_object max, ...)
     mkcl_return_value(max);
   }
 }
+
+struct mkcl_cfun mk_cl_min_cfunobj = MKCL_CFUN_VA(mk_cl_min, MK_CL_min);
 
 mkcl_object mk_cl_min(MKCL, mkcl_narg narg, mkcl_object min, ...)
 {

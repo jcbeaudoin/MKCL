@@ -442,6 +442,8 @@ mkcl_word_bit_length(mkcl_word i)
   return count;
 }
 
+struct mkcl_cfun mk_cl_logior_cfunobj = MKCL_CFUN_VA(mk_cl_logior, MK_CL_logior);
+
 mkcl_object mk_cl_logior(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -456,6 +458,8 @@ mkcl_object mk_cl_logior(MKCL, mkcl_narg narg, ...)
     mkcl_return_value(val);
   }
 }
+
+struct mkcl_cfun mk_cl_logxor_cfunobj = MKCL_CFUN_VA(mk_cl_logxor, MK_CL_logxor);
 
 mkcl_object mk_cl_logxor(MKCL, mkcl_narg narg, ...)
 {
@@ -472,6 +476,8 @@ mkcl_object mk_cl_logxor(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_logand_cfunobj = MKCL_CFUN_VA(mk_cl_logand, MK_CL_logand);
+
 mkcl_object mk_cl_logand(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -486,6 +492,8 @@ mkcl_object mk_cl_logand(MKCL, mkcl_narg narg, ...)
     mkcl_return_value(val);
   }
 }
+
+struct mkcl_cfun mk_cl_logeqv_cfunobj = MKCL_CFUN_VA(mk_cl_logeqv, MK_CL_logeqv);
 
 mkcl_object mk_cl_logeqv(MKCL, mkcl_narg narg, ...)
 {

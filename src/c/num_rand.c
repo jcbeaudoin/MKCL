@@ -218,6 +218,8 @@ mkcl_object mk_cl_random(MKCL, mkcl_narg narg, mkcl_object x, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_make_random_state_cfunobj = MKCL_CFUN_VA(mk_cl_make_random_state, MK_CL_make_random_state);
+
 mkcl_object mk_cl_make_random_state(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);

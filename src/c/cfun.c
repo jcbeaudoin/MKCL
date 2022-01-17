@@ -81,12 +81,12 @@ mkcl_make_cfun(MKCL, mkcl_objectfn_fixed c_function, mkcl_object name,
 {
   mkcl_object cf;
 
-  if (narg < 0 || narg >= MKCL_C_ARGUMENTS_LIMIT)
+  if ((narg < 0) || (narg >= MKCL_C_ARGUMENTS_LIMIT))
     mkcl_FEprogram_error(env, "mkcl_make_cfun: function ~S requires too many arguments. ~D",
 			 2, name, MKCL_MAKE_FIXNUM(narg));
 
   cf = mkcl_alloc_raw_cfun(env);
-  cf->cfun.f.entry = (((narg < 0) || (narg > 4)) ? mkcl_cfun_dispatch_table[narg] : (mkcl_objectfn) mkcl_wrong_num_args_cfun_va);
+  cf->cfun.f.entry = ((narg > 4) ? mkcl_cfun_dispatch_table[narg] : (mkcl_objectfn) mkcl_wrong_num_args_cfun_va);
   cf->cfun.f._[0] = ((narg == 0) ? c_function : (mkcl_objectfn_fixed) mkcl_wrong_num_args_cfun_0);
   cf->cfun.f._[1] = ((narg == 1) ? c_function : (mkcl_objectfn_fixed) mkcl_wrong_num_args_cfun_1);
   cf->cfun.f._[2] = ((narg == 2) ? c_function : (mkcl_objectfn_fixed) mkcl_wrong_num_args_cfun_2);
@@ -118,27 +118,27 @@ bool mkcl_equal_cfun(MKCL, struct mkcl_cfun * fun0, struct mkcl_cfun * fun1)
   return (val ? FALSE : TRUE);
 }
 
-static mkcl_object f0(MKCL)
+mkcl_object mkcl_fun_va_trampoline_f0(MKCL)
 {
   return env->function->cfun.f.entry(env, 0);
 }
 
-static mkcl_object f1(MKCL, mkcl_object x1)
+mkcl_object mkcl_fun_va_trampoline_f1(MKCL, mkcl_object x1)
 {
   return env->function->cfun.f.entry(env, 1, x1);
 }
 
-static mkcl_object f2(MKCL, mkcl_object x1, mkcl_object x2)
+mkcl_object mkcl_fun_va_trampoline_f2(MKCL, mkcl_object x1, mkcl_object x2)
 {
   return env->function->cfun.f.entry(env, 2, x1, x2);
 }
 
-static mkcl_object f3(MKCL, mkcl_object x1, mkcl_object x2, mkcl_object x3)
+mkcl_object mkcl_fun_va_trampoline_f3(MKCL, mkcl_object x1, mkcl_object x2, mkcl_object x3)
 {
   return env->function->cfun.f.entry(env, 3, x1, x2, x3);
 }
 
-static mkcl_object f4(MKCL, mkcl_object x1, mkcl_object x2, mkcl_object x3, mkcl_object x4)
+mkcl_object mkcl_fun_va_trampoline_f4(MKCL, mkcl_object x1, mkcl_object x2, mkcl_object x3, mkcl_object x4)
 {
   return env->function->cfun.f.entry(env, 4, x1, x2, x3, x4);
 }
@@ -151,11 +151,11 @@ mkcl_make_cfun_va(MKCL, mkcl_objectfn c_function, mkcl_object name,
 
   cf = mkcl_alloc_raw_cfun(env);
   cf->cfun.f.entry = c_function;
-  cf->cfun.f._[0] = f0;
-  cf->cfun.f._[1] = f1;
-  cf->cfun.f._[2] = f2;
-  cf->cfun.f._[3] = f3;
-  cf->cfun.f._[4] = f4;
+  cf->cfun.f._[0] = mkcl_fun_va_trampoline_f0;
+  cf->cfun.f._[1] = mkcl_fun_va_trampoline_f1;
+  cf->cfun.f._[2] = mkcl_fun_va_trampoline_f2;
+  cf->cfun.f._[3] = mkcl_fun_va_trampoline_f3;
+  cf->cfun.f._[4] = mkcl_fun_va_trampoline_f4;
   cf->cfun.name = name;
   cf->cfun.block = cblock;
   cf->cfun.old_entry_fixed = NULL;
@@ -389,11 +389,11 @@ mkcl_make_cclosure_va(MKCL, mkcl_object producer, mkcl_objectfn c_function,
 
   cc = mkcl_alloc_raw_cclosure(env);
   cc->cclosure.f.entry = c_function;
-  cc->cclosure.f._[0] = f0;
-  cc->cclosure.f._[1] = f1;
-  cc->cclosure.f._[2] = f2;
-  cc->cclosure.f._[3] = f3;
-  cc->cclosure.f._[4] = f4;
+  cc->cclosure.f._[0] = mkcl_fun_va_trampoline_f0;
+  cc->cclosure.f._[1] = mkcl_fun_va_trampoline_f1;
+  cc->cclosure.f._[2] = mkcl_fun_va_trampoline_f2;
+  cc->cclosure.f._[3] = mkcl_fun_va_trampoline_f3;
+  cc->cclosure.f._[4] = mkcl_fun_va_trampoline_f4;
   cc->cclosure.syms_cenv = syms_cenv;
   cc->cclosure.block = block;
   cc->cclosure.name = mk_cl_Cnil;

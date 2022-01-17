@@ -1479,6 +1479,8 @@ dir_recursive(MKCL, bool follow_symlinks, struct OSpath * wd_path, mkcl_object p
   return output;
 }
 
+struct mkcl_cfun mk_cl_directory_cfunobj = MKCL_CFUN_VA(mk_cl_directory, MK_CL_directory);
+
 mkcl_object mk_cl_directory(MKCL, mkcl_narg narg, mkcl_object pathspec, ...)
 {
   mkcl_call_stack_check(env);

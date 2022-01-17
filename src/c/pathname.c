@@ -1424,6 +1424,8 @@ mkcl_object mk_cl_parse_namestring(MKCL, const mkcl_narg narg, mkcl_object thing
   }
 }
 
+struct mkcl_cfun mk_cl_merge_pathnames_cfunobj = MKCL_CFUN_VA(mk_cl_merge_pathnames, MK_CL_merge_pathnames);
+
 mkcl_object mk_cl_merge_pathnames(MKCL, mkcl_narg narg, mkcl_object path, ...)
 {
   mkcl_call_stack_check(env);
@@ -1501,6 +1503,8 @@ mkcl_object mk_mkcl_meld_pathnames(MKCL, mkcl_narg narg, mkcl_object path, ...)
   mkcl_return_value(mkcl_meld_pathnames(env, path, defaults, default_version));
   }
 }
+
+struct mkcl_cfun mk_cl_make_pathname_cfunobj = MKCL_CFUN_VA(mk_cl_make_pathname, MK_CL_make_pathname);
 
 mkcl_object mk_cl_make_pathname(MKCL, mkcl_narg narg, ...)
 {
@@ -1719,6 +1723,8 @@ mk_cl_host_namestring(MKCL, mkcl_object pname)
 }
 
 #define EN_MATCH(e,p1,p2,el) (mkcl_equalp(e,p1->pathname.el, p2->pathname.el) ? mk_cl_Cnil : p1->pathname.el)
+
+struct mkcl_cfun mk_cl_enough_namestring_cfunobj = MKCL_CFUN_VA(mk_cl_enough_namestring, MK_CL_enough_namestring);
 
 mkcl_object mk_cl_enough_namestring(MKCL, mkcl_narg narg, mkcl_object path, ...)
 {

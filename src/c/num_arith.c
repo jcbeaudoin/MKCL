@@ -5,7 +5,7 @@
 /*
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011,2021 Jean-Claude Beaudoin.
+    Copyright (c) 2011,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,7 @@
 
 #include <stdlib.h>
 
+struct mkcl_cfun mk_cl_X_cfunobj = MKCL_CFUN_VA(mk_cl_X, MK_CL_X);
 /*  (*		)  */
 
 mkcl_object mk_cl_X(MKCL, mkcl_narg narg, ...)
@@ -262,6 +263,7 @@ mkcl_times(MKCL, mkcl_object x, mkcl_object y)
   }
 }
 
+struct mkcl_cfun mk_cl_P_cfunobj = MKCL_CFUN_VA(mk_cl_P, MK_CL_P);
 /* (+          )   */
 mkcl_object mk_cl_P(MKCL, mkcl_narg narg, ...)
 {
@@ -488,6 +490,7 @@ mkcl_plus(MKCL, mkcl_object x, mkcl_object y)
   }
 }
 
+struct mkcl_cfun mk_cl_M_cfunobj = MKCL_CFUN_VA(mk_cl_M, MK_CL_M);
 /*  (-		)  */
 mkcl_object mk_cl_M(MKCL, mkcl_narg narg, mkcl_object num, ...)
 {
@@ -786,6 +789,7 @@ mkcl_negate(MKCL, mkcl_object x)
   }
 }
 
+struct mkcl_cfun mk_cl_N_cfunobj = MKCL_CFUN_VA(mk_cl_N, MK_CL_N);
 /*  (/		)  */
 mkcl_object mk_cl_N(MKCL, mkcl_narg narg, mkcl_object num, ...)
 {
@@ -1019,6 +1023,8 @@ mkcl_integer_divide(MKCL, mkcl_object x, mkcl_object y)
   mkcl_FEtype_error_integer(env, x);
 }
 
+struct mkcl_cfun mk_cl_gcd_cfunobj = MKCL_CFUN_VA(mk_cl_gcd, MK_CL_gcd);
+
 mkcl_object mk_cl_gcd(MKCL, mkcl_narg narg, ...)
 {
   mkcl_object gcd;
@@ -1185,6 +1191,8 @@ mkcl_one_minus(MKCL, mkcl_object x)
     mkcl_FEtype_error_real(env, x);
   }
 }
+
+struct mkcl_cfun mk_cl_lcm_cfunobj = MKCL_CFUN_VA(mk_cl_lcm, MK_CL_lcm);
 
 mkcl_object mk_cl_lcm(MKCL, mkcl_narg narg, ...)
 {

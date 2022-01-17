@@ -832,6 +832,8 @@ mk_cl_tanh(MKCL, mkcl_object x)
   mkcl_return_value(output);
 }
 
+struct mkcl_cfun mk_cl_log_cfunobj = MKCL_CFUN_VA(mk_cl_log, MK_CL_log);
+
 mkcl_object mk_cl_log(MKCL, mkcl_narg narg, mkcl_object x, ...)
 {
   mkcl_call_stack_check(env);
@@ -845,6 +847,8 @@ mkcl_object mk_cl_log(MKCL, mkcl_narg narg, mkcl_object x, ...)
     mkcl_return_value(mkcl_log2(env, y, x));
   }
 }
+
+struct mkcl_cfun mk_cl_atan_cfunobj = MKCL_CFUN_VA(mk_cl_atan, MK_CL_atan);
 
 mkcl_object mk_cl_atan(MKCL, mkcl_narg narg, mkcl_object x, ...)
 {

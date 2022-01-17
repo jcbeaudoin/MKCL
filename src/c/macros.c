@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2021, Jean-Claude Beaudoin.
+    Copyright (c) 2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -86,6 +86,8 @@ search_macro_function(MKCL, mkcl_object name, mkcl_object lex_env)
     return mk_cl_Cnil;
 }
 
+struct mkcl_cfun mk_cl_macro_function_cfunobj = MKCL_CFUN_VA(mk_cl_macro_function, MK_CL_macro_function);
+
 mkcl_object mk_cl_macro_function(MKCL, mkcl_narg narg, mkcl_object sym, ...)
 {
   mkcl_call_stack_check(env);
@@ -102,6 +104,8 @@ mkcl_object mk_cl_macro_function(MKCL, mkcl_narg narg, mkcl_object sym, ...)
 	MKCL_VALUES(0) contains either the expansion or the original form.
 	MKCL_VALUES(1) is true when there was a macroexpansion.
 */
+
+struct mkcl_cfun mk_cl_macroexpand_1_cfunobj = MKCL_CFUN_VA(mk_cl_macroexpand_1, MK_CL_macroexpand_1);
 
 mkcl_object mk_cl_macroexpand_1(MKCL, mkcl_narg narg, mkcl_object form, ...)
 {
@@ -137,6 +141,8 @@ mkcl_object mk_cl_macroexpand_1(MKCL, mkcl_narg narg, mkcl_object form, ...)
 	Expands a form as many times as possible and returns the
 	finally expanded form.
 */
+struct mkcl_cfun mk_cl_macroexpand_cfunobj = MKCL_CFUN_VA(mk_cl_macroexpand, MK_CL_macroexpand);
+
 mkcl_object mk_cl_macroexpand(MKCL, mkcl_narg narg, mkcl_object form, ...)
 {
   mkcl_call_stack_check(env);

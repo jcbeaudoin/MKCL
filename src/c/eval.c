@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2012,2021 Jean-Claude Beaudoin.
+    Copyright (c) 2010-2012,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -63,6 +63,8 @@ mkcl_apply_from_temp_stack_frame(MKCL, mkcl_object frame, mkcl_object x)
   }
 }
 
+
+struct mkcl_cfun mk_cl_funcall_cfunobj = MKCL_CFUN_VA(mk_cl_funcall, MK_CL_funcall);
 
 mkcl_object
 mk_cl_funcall(MKCL, mkcl_narg narg, mkcl_object function, ...)
@@ -126,6 +128,8 @@ mk_cl_funcall(MKCL, mkcl_narg narg, mkcl_object function, ...)
   }
   return output;
 }
+
+struct mkcl_cfun mk_cl_apply_cfunobj = MKCL_CFUN_VA(mk_cl_apply, MK_CL_apply);
 
 mkcl_object mk_cl_apply(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_object lastarg, ...)
 {
@@ -271,6 +275,8 @@ mk_cl_eval(MKCL, mkcl_object form)
   mkcl_call_stack_check(env);
   return mk_si_eval_in_env(env, 1, form);
 }
+
+struct mkcl_cfun mk_cl_constantp_cfunobj = MKCL_CFUN_VA(mk_cl_constantp, MK_CL_constantp);
 
 mkcl_object mk_cl_constantp(MKCL, mkcl_narg narg, mkcl_object arg, ...)
 {

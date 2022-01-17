@@ -540,6 +540,8 @@ mkcl_make_hashtable_for_package(MKCL, mkcl_index hsize)
 }
 
 
+struct mkcl_cfun mk_cl_make_hash_table_cfunobj = MKCL_CFUN_VA(mk_cl_make_hash_table, MK_CL_make_hash_table);
+
 mkcl_object mk_cl_make_hash_table(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -768,6 +770,8 @@ mk_cl_hash_table_p(MKCL, mkcl_object ht)
   mkcl_call_stack_check(env);
   mkcl_return_value(((mkcl_type_of(ht) == mkcl_t_hashtable) ? mk_cl_Ct : mk_cl_Cnil));
 }
+
+struct mkcl_cfun mk_cl_gethash_cfunobj = MKCL_CFUN_VA(mk_cl_gethash, MK_CL_gethash);
 
 mkcl_object mk_cl_gethash(MKCL, mkcl_narg narg, mkcl_object key, mkcl_object ht, ...)
 {

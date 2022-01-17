@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2016,2021 Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -550,6 +550,8 @@ mkcl_FEwin32_stream_error(MKCL, mkcl_object stream, const char *msg, int narg, .
 /************************************
  * Higher level interface to errors *
  ************************************/
+
+struct mkcl_cfun mk_cl_error_cfunobj = MKCL_CFUN_VA(mk_cl_error, MK_CL_error);
 
 mkcl_object mk_cl_error(MKCL, mkcl_narg narg, mkcl_object datum, ...)
 {

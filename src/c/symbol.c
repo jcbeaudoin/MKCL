@@ -309,6 +309,8 @@ mkcl_keywordp(mkcl_object s)
   return (mkcl_type_of(s) == mkcl_t_symbol) && (s->symbol.hpack == mkcl_core.keyword_package);
 }
 
+struct mkcl_cfun mk_cl_get_cfunobj = MKCL_CFUN_VA(mk_cl_get, MK_CL_get);
+
 mkcl_object mk_cl_get(MKCL, mkcl_narg narg, mkcl_object sym, mkcl_object indicator, ...)
 {
   mkcl_call_stack_check(env);
@@ -342,6 +344,8 @@ mk_cl_symbol_plist(MKCL, mkcl_object sym)
   mkcl_call_stack_check(env);
   mkcl_return_value(*mkcl_symbol_plist(env, sym));
 }
+
+struct mkcl_cfun mk_cl_getf_cfunobj = MKCL_CFUN_VA(mk_cl_getf, MK_CL_getf);
 
 mkcl_object mk_cl_getf(MKCL, mkcl_narg narg, mkcl_object place, mkcl_object indicator, ...)
 {
@@ -389,6 +393,8 @@ mk_cl_symbol_name(MKCL, mkcl_object x)
   mkcl_return_value(mkcl_symbol_name(env, x));
 }
 
+struct mkcl_cfun mk_cl_copy_symbol_cfunobj = MKCL_CFUN_VA(mk_cl_copy_symbol, MK_CL_copy_symbol);
+
 mkcl_object mk_cl_copy_symbol(MKCL, mkcl_narg narg, mkcl_object sym, ...)
 {
   mkcl_call_stack_check(env);
@@ -411,6 +417,8 @@ mkcl_object mk_cl_copy_symbol(MKCL, mkcl_narg narg, mkcl_object sym, ...)
     mkcl_return_value(x);
   }
 }
+
+struct mkcl_cfun mk_cl_gensym_cfunobj = MKCL_CFUN_VA(mk_cl_gensym, MK_CL_gensym);
 
 mkcl_object mk_cl_gensym(MKCL, mkcl_narg narg, ...)
 {
@@ -461,6 +469,8 @@ static CRITICAL_SECTION gentemp_lock;
 #elif MKCL_PTHREADS
 static pthread_mutex_t gentemp_lock;
 #endif
+
+struct mkcl_cfun mk_cl_gentemp_cfunobj = MKCL_CFUN_VA(mk_cl_gentemp, MK_CL_gentemp);
 
 mkcl_object mk_cl_gentemp(MKCL, mkcl_narg narg, ...)
 {

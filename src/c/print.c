@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2019,2021, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2019,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -2168,6 +2168,8 @@ mkcl_object mk_cl_terpri(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_fresh_line_cfunobj = MKCL_CFUN_VA(mk_cl_fresh_line, MK_CL_fresh_line);
+
 mkcl_object mk_cl_fresh_line(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -2186,6 +2188,8 @@ mkcl_object mk_cl_fresh_line(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_finish_output_cfunobj = MKCL_CFUN_VA(mk_cl_finish_output, MK_CL_finish_output);
+
 mkcl_object mk_cl_finish_output(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -2202,6 +2206,8 @@ mkcl_object mk_cl_finish_output(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_force_output_cfunobj = MKCL_CFUN_VA(mk_cl_force_output, MK_CL_force_output);
+
 mkcl_object mk_cl_force_output(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -2214,6 +2220,8 @@ mkcl_object mk_cl_force_output(MKCL, mkcl_narg narg, ...)
     mkcl_return_value(mk_cl_Cnil);
   }
 }
+
+struct mkcl_cfun mk_cl_clear_output_cfunobj = MKCL_CFUN_VA(mk_cl_clear_output, MK_CL_clear_output);
 
 mkcl_object mk_cl_clear_output(MKCL, mkcl_narg narg, ...)
 {

@@ -1892,6 +1892,8 @@ mkcl_object mk_cl_peek_char(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_listen_cfunobj = MKCL_CFUN_VA(mk_cl_listen, MK_CL_listen);
+
 mkcl_object mk_cl_listen(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -1939,6 +1941,8 @@ mkcl_object mk_cl_read_char_no_hang(MKCL, mkcl_narg narg, ...)
       mkcl_FEend_of_file(env, strm);
   }
 }
+
+struct mkcl_cfun mk_cl_clear_input_cfunobj = MKCL_CFUN_VA(mk_cl_clear_input, MK_CL_clear_input);
 
 mkcl_object mk_cl_clear_input(MKCL, mkcl_narg narg, ...)
 {
@@ -2042,6 +2046,8 @@ mkcl_object mk_cl_read_sequence(MKCL, mkcl_narg narg, mkcl_object sequence, mkcl
   }
 }
 
+
+struct mkcl_cfun mk_cl_copy_readtable_cfunobj = MKCL_CFUN_VA(mk_cl_copy_readtable, MK_CL_copy_readtable);
 
 mkcl_object mk_cl_copy_readtable(MKCL, mkcl_narg narg, ...)
 {
@@ -2236,6 +2242,8 @@ mkcl_object mk_cl_set_macro_character(MKCL, mkcl_narg narg, mkcl_object c, mkcl_
   }
 }
 
+struct mkcl_cfun mk_cl_get_macro_character_cfunobj = MKCL_CFUN_VA(mk_cl_get_macro_character, MK_CL_get_macro_character);
+
 mkcl_object mk_cl_get_macro_character(MKCL, mkcl_narg narg, mkcl_object c, ...)
 {
   mkcl_call_stack_check(env);
@@ -2255,6 +2263,8 @@ mkcl_object mk_cl_get_macro_character(MKCL, mkcl_narg narg, mkcl_object c, ...)
     mkcl_return_2_values(dispatch, ((cat == mkcl_cat_non_terminating) ? mk_cl_Ct : mk_cl_Cnil));
   }
 }
+
+struct mkcl_cfun mk_cl_make_dispatch_macro_character_cfunobj = MKCL_CFUN_VA(mk_cl_make_dispatch_macro_character, MK_CL_make_dispatch_macro_character);
 
 mkcl_object mk_cl_make_dispatch_macro_character(MKCL, mkcl_narg narg, mkcl_object chr, ...)
 {
@@ -2328,6 +2338,8 @@ mkcl_object mk_cl_set_dispatch_macro_character(MKCL, mkcl_narg narg, mkcl_object
     mkcl_return_value(mk_cl_Ct);
   }
 }
+
+struct mkcl_cfun mk_cl_get_dispatch_macro_character_cfunobj = MKCL_CFUN_VA(mk_cl_get_dispatch_macro_character, MK_CL_get_dispatch_macro_character);
 
 mkcl_object mk_cl_get_dispatch_macro_character(MKCL, mkcl_narg narg, mkcl_object dspchr, mkcl_object subchr, ...)
 {

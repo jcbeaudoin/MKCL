@@ -5,7 +5,7 @@
 /*
     Copyright (c) 1990, Giuseppe Attardi and William F. Schelter.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2017,2021, Jean-Claude Beaudoin.
+    Copyright (c) 2011-2017,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -540,6 +540,8 @@ mk_si_load_source(MKCL, mkcl_object source, mkcl_object verbose, mkcl_object pri
   } MKCL_UNWIND_PROTECT_END;
   mkcl_return_value(mk_cl_Cnil);
 }
+
+struct mkcl_cfun mk_cl_load_cfunobj = MKCL_CFUN_VA(mk_cl_load, MK_CL_load);
 
 mkcl_object mk_cl_load(MKCL, mkcl_narg narg, mkcl_object source, ...)
 {

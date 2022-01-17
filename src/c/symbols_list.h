@@ -2,7 +2,7 @@
 /*
     Copyright (c) 1990, Giuseppe Attardi and William F. Schelter.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2017,2021-2022 Jean-Claude Beaudoin.
+    Copyright (c) 2010-2017,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -66,17 +66,17 @@ mkcl_symbol_initializer mkcl_root_symbol_inits[] = {
   {"&OPTIONAL", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"&REST", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"&WHOLE", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
-  {"+", CL_SPECIAL, mk_cl_P, -1, mk_cl_Cnil, NULL},
+  {"+", CL_SPECIAL, mk_cl_P, -1, mk_cl_Cnil, &mk_cl_P_cfunobj},
   {"++", CL_SPECIAL, NULL, -1, mk_cl_Cnil, NULL},
   {"+++", CL_SPECIAL, NULL, -1, mk_cl_Cnil, NULL},
-  {"-", CL_SPECIAL, mk_cl_M, -1, mk_cl_Cnil, NULL},
-  {"*", CL_SPECIAL, mk_cl_X, -1, mk_cl_Cnil, NULL},
+  {"-", CL_SPECIAL, mk_cl_M, -1, mk_cl_Cnil, &mk_cl_M_cfunobj},
+  {"*", CL_SPECIAL, mk_cl_X, -1, mk_cl_Cnil, &mk_cl_X_cfunobj},
   {"**", CL_SPECIAL, NULL, -1, mk_cl_Cnil, NULL},
   {"***", CL_SPECIAL, NULL, -1, mk_cl_Cnil, NULL},
-  {"/", CL_SPECIAL, mk_cl_N, -1, mk_cl_Cnil, NULL},
+  {"/", CL_SPECIAL, mk_cl_N, -1, mk_cl_Cnil, &mk_cl_N_cfunobj},
   {"//", CL_SPECIAL, NULL, -1, mk_cl_Cnil, NULL},
   {"///", CL_SPECIAL, NULL, -1, mk_cl_Cnil, NULL},
-  {"/=", CL_ORDINARY, mk_cl_NE, -1, MKCL_OBJNULL, NULL},
+  {"/=", CL_ORDINARY, mk_cl_NE, -1, MKCL_OBJNULL, &mk_cl_NE_cfunobj},
   {"*BREAK-ON-SIGNALS*", CL_SPECIAL, NULL, -1, mk_cl_Cnil, NULL},
   {"*COMPILE-FILE-PATHNAME*", CL_SPECIAL, NULL, -1, mk_cl_Cnil, NULL},
   {"*COMPILE-FILE-TRUENAME*", CL_SPECIAL, NULL, -1, mk_cl_Cnil, NULL},
@@ -124,27 +124,27 @@ mkcl_symbol_initializer mkcl_root_symbol_inits[] = {
   {"*TRACE-OUTPUT*", CL_SPECIAL, NULL, -1, MKCL_OBJNULL, NULL},
   {"1+", CL_ORDINARY, mk_cl_1P, 1, MKCL_OBJNULL, &mk_cl_1P_cfunobj},
   {"1-", CL_ORDINARY, mk_cl_1M, 1, MKCL_OBJNULL, &mk_cl_1M_cfunobj},
-  {"<", CL_ORDINARY, mk_cl_L, -1, MKCL_OBJNULL, NULL},
-  {"<=", CL_ORDINARY, mk_cl_LE, -1, MKCL_OBJNULL, NULL},
-  {"=", CL_ORDINARY, mk_cl_E, -1, MKCL_OBJNULL, NULL},
-  {">", CL_ORDINARY, mk_cl_G, -1, MKCL_OBJNULL, NULL},
-  {">=", CL_ORDINARY, mk_cl_GE, -1, MKCL_OBJNULL, NULL},
+  {"<", CL_ORDINARY, mk_cl_L, -1, MKCL_OBJNULL, &mk_cl_L_cfunobj},
+  {"<=", CL_ORDINARY, mk_cl_LE, -1, MKCL_OBJNULL, &mk_cl_LE_cfunobj},
+  {"=", CL_ORDINARY, mk_cl_E, -1, MKCL_OBJNULL, &mk_cl_E_cfunobj},
+  {">", CL_ORDINARY, mk_cl_G, -1, MKCL_OBJNULL, &mk_cl_G_cfunobj},
+  {">=", CL_ORDINARY, mk_cl_GE, -1, MKCL_OBJNULL, &mk_cl_GE_cfunobj},
   {"ABORT", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"ABS", CL_ORDINARY, mk_cl_abs, 1, MKCL_OBJNULL, &mk_cl_abs_cfunobj},
   {"ACONS", CL_ORDINARY, mk_cl_acons, 3, MKCL_OBJNULL, &mk_cl_acons_cfunobj},
   {"ACOS", CL_ORDINARY, MKCL_IN_LISP(mk_cl_acos), 1, MKCL_OBJNULL, NULL},
   {"ACOSH", CL_ORDINARY, MKCL_IN_LISP(mk_cl_acosh), 1, MKCL_OBJNULL, NULL},
-  {"ADJOIN", CL_ORDINARY, mk_cl_adjoin, -1, MKCL_OBJNULL, NULL},
-  {"ADJUST-ARRAY", CL_ORDINARY, MKCL_IN_LISP(mk_cl_adjust_array), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
+  {"ADJOIN", CL_ORDINARY, mk_cl_adjoin, -1, MKCL_OBJNULL, &mk_cl_adjoin_cfunobj},
+  {"ADJUST-ARRAY", CL_ORDINARY, MKCL_IN_LISP(mk_cl_adjust_array), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_adjust_array_cfunobj)}, /* proclaimed in sysfun.lsp */
   {"ADJUSTABLE-ARRAY-P", CL_ORDINARY, mk_cl_adjustable_array_p, 1, MKCL_OBJNULL, &mk_cl_adjustable_array_p_cfunobj},
   {"ALPHA-CHAR-P", CL_ORDINARY, mk_cl_alpha_char_p, 1, MKCL_OBJNULL, &mk_cl_alpha_char_p_cfunobj},
   {"ALPHANUMERICP", CL_ORDINARY, mk_cl_alphanumericp, 1, MKCL_OBJNULL, &mk_cl_alphanumericp_cfunobj},
   {"AND", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
-  {"APPEND", CL_ORDINARY, mk_cl_append, -1, MKCL_OBJNULL, NULL},
-  {"APPLY", CL_ORDINARY, mk_cl_apply, -1, MKCL_OBJNULL, NULL},
-  {"APROPOS", CL_ORDINARY, MKCL_IN_LISP(mk_cl_apropos), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"APROPOS-LIST", CL_ORDINARY, MKCL_IN_LISP(mk_cl_apropos_list), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"AREF", CL_ORDINARY, mk_cl_aref, -1, MKCL_OBJNULL, NULL},
+  {"APPEND", CL_ORDINARY, mk_cl_append, -1, MKCL_OBJNULL, &mk_cl_append_cfunobj},
+  {"APPLY", CL_ORDINARY, mk_cl_apply, -1, MKCL_OBJNULL, &mk_cl_apply_cfunobj},
+  {"APROPOS", CL_ORDINARY, MKCL_IN_LISP(mk_cl_apropos), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_apropos_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"APROPOS-LIST", CL_ORDINARY, MKCL_IN_LISP(mk_cl_apropos_list), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_apropos_list_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"AREF", CL_ORDINARY, mk_cl_aref, -1, MKCL_OBJNULL, &mk_cl_aref_cfunobj},
   {"ARITHMETIC-ERROR", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"ARITHMETIC-ERROR-OPERANDS", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"ARITHMETIC-ERROR-OPERATION", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
@@ -155,10 +155,10 @@ mkcl_symbol_initializer mkcl_root_symbol_inits[] = {
   {"ARRAY-DISPLACEMENT", CL_ORDINARY, mk_cl_array_displacement, 1, MKCL_OBJNULL, &mk_cl_array_displacement_cfunobj},
   {"ARRAY-ELEMENT-TYPE", CL_ORDINARY, mk_cl_array_element_type, 1, MKCL_OBJNULL, &mk_cl_array_element_type_cfunobj},
   {"ARRAY-HAS-FILL-POINTER-P", CL_ORDINARY, mk_cl_array_has_fill_pointer_p, 1, MKCL_OBJNULL, &mk_cl_array_has_fill_pointer_p_cfunobj},
-  {"ARRAY-IN-BOUNDS-P", CL_ORDINARY, MKCL_IN_LISP(mk_cl_array_in_bounds_p), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
+  {"ARRAY-IN-BOUNDS-P", CL_ORDINARY, MKCL_IN_LISP(mk_cl_array_in_bounds_p), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_array_in_bounds_p_cfunobj)}, /* proclaimed in sysfun.lsp */
   {"ARRAY-RANK", CL_ORDINARY, mk_cl_array_rank, 1, MKCL_OBJNULL, &mk_cl_array_rank_cfunobj},
   {"ARRAY-RANK-LIMIT", CL_CONSTANT, NULL, -1, MKCL_MAKE_FIXNUM(MKCL_ARANKLIM), NULL},
-  {"ARRAY-ROW-MAJOR-INDEX", CL_ORDINARY, mk_cl_array_row_major_index, -1, MKCL_OBJNULL, NULL},
+  {"ARRAY-ROW-MAJOR-INDEX", CL_ORDINARY, mk_cl_array_row_major_index, -1, MKCL_OBJNULL, &mk_cl_array_row_major_index_cfunobj},
   {"ARRAY-TOTAL-SIZE", CL_ORDINARY, mk_cl_array_total_size, 1, MKCL_OBJNULL, &mk_cl_array_total_size_cfunobj},
   {"ARRAY-TOTAL-SIZE-LIMIT", CL_CONSTANT, NULL, -1, MKCL_MAKE_FIXNUM(MKCL_ATOTLIM), NULL},
   {"ARRAYP", CL_ORDINARY, mk_cl_arrayp, 1, MKCL_OBJNULL, &mk_cl_arrayp_cfunobj},
@@ -166,29 +166,29 @@ mkcl_symbol_initializer mkcl_root_symbol_inits[] = {
   {"ASIN", CL_ORDINARY, MKCL_IN_LISP(mk_cl_asin), 1, MKCL_OBJNULL, NULL},
   {"ASINH", CL_ORDINARY, MKCL_IN_LISP(mk_cl_asinh), 1, MKCL_OBJNULL, NULL},
   {"ASSERT", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
-  {"ASSOC", CL_ORDINARY, mk_cl_assoc, -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"ASSOC-IF", CL_ORDINARY, MKCL_IN_LISP(mk_cl_assoc_if), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"ASSOC-IF-NOT", CL_ORDINARY, MKCL_IN_LISP(mk_cl_assoc_if_not), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"ATAN", CL_ORDINARY, mk_cl_atan, -1, MKCL_OBJNULL, NULL},
+  {"ASSOC", CL_ORDINARY, mk_cl_assoc, -1, MKCL_OBJNULL, &mk_cl_assoc_cfunobj}, /* proclaimed in sysfun.lsp */
+  {"ASSOC-IF", CL_ORDINARY, MKCL_IN_LISP(mk_cl_assoc_if), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_assoc_if_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"ASSOC-IF-NOT", CL_ORDINARY, MKCL_IN_LISP(mk_cl_assoc_if_not), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_assoc_if_not_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"ATAN", CL_ORDINARY, mk_cl_atan, -1, MKCL_OBJNULL, &mk_cl_atan_cfunobj},
   {"ATANH", CL_ORDINARY, MKCL_IN_LISP(mk_cl_atanh), 1, MKCL_OBJNULL, NULL},
   {"ATOM", CL_ORDINARY, mk_cl_atom, 1, MKCL_OBJNULL, &mk_cl_atom_cfunobj},
   {"BASE-CHAR", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"BASE-STRING", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"BIGNUM", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
-  {"BIT", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"BIT-AND", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_and), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"BIT-ANDC1", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_andc1), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"BIT-ANDC2", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_andc2), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"BIT-EQV", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_eqv), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"BIT-IOR", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_ior), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"BIT-NAND", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_nand), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"BIT-NOR", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_nor), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"BIT-NOT", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_not), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"BIT-ORC1", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_orc1), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"BIT-ORC2", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_orc2), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
+  {"BIT", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_bit_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"BIT-AND", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_and), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_bit_and_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"BIT-ANDC1", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_andc1), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_bit_andc1_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"BIT-ANDC2", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_andc2), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_bit_andc2_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"BIT-EQV", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_eqv), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_bit_eqv_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"BIT-IOR", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_ior), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_bit_ior_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"BIT-NAND", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_nand), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_bit_nand_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"BIT-NOR", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_nor), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_bit_nor_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"BIT-NOT", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_not), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_bit_not_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"BIT-ORC1", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_orc1), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_bit_orc1_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"BIT-ORC2", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_orc2), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_bit_orc2_cfunobj)}, /* proclaimed in sysfun.lsp */
   {"BIT-VECTOR", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"BIT-VECTOR-P", CL_ORDINARY, mk_cl_bit_vector_p, 1, MKCL_OBJNULL, &mk_cl_bit_vector_p_cfunobj},
-  {"BIT-XOR", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_xor), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
+  {"BIT-XOR", CL_ORDINARY, MKCL_IN_LISP(mk_cl_bit_xor), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_bit_xor_cfunobj)}, /* proclaimed in sysfun.lsp */
   {"BLOCK", CL_FORM, NULL, -1, MKCL_OBJNULL, NULL},
   {"BOOLE", CL_ORDINARY, mk_cl_boole, 3, MKCL_OBJNULL, &mk_cl_boole_cfunobj},
   {"BOOLE-1", CL_CONSTANT, NULL, -1, MKCL_MAKE_FIXNUM(MKCL_BOOL1), NULL},
@@ -213,7 +213,7 @@ mkcl_symbol_initializer mkcl_root_symbol_inits[] = {
   {"BREAK", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"BROADCAST-STREAM", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"BROADCAST-STREAM-STREAMS", CL_ORDINARY, mk_cl_broadcast_stream_streams, 1, MKCL_OBJNULL, &mk_cl_broadcast_stream_streams_cfunobj},
-  {"BUTLAST", CL_ORDINARY, mk_cl_butlast, -1, MKCL_OBJNULL, NULL},
+  {"BUTLAST", CL_ORDINARY, mk_cl_butlast, -1, MKCL_OBJNULL, &mk_cl_butlast_cfunobj},
   {"BYTE", CL_ORDINARY, MKCL_IN_LISP(mk_cl_byte), 2, MKCL_OBJNULL, NULL},
   {"BYTE-POSITION", CL_ORDINARY, MKCL_IN_LISP(mk_cl_byte_position), 1, MKCL_OBJNULL, NULL},
   {"BYTE-SIZE", CL_ORDINARY, MKCL_IN_LISP(mk_cl_byte_size), 1, MKCL_OBJNULL, NULL},
@@ -251,36 +251,36 @@ mkcl_symbol_initializer mkcl_root_symbol_inits[] = {
   {"CDDDR", CL_ORDINARY, mk_cl_cdddr, 1, MKCL_OBJNULL, &mk_cl_cdddr_cfunobj},
   {"CDDR", CL_ORDINARY, mk_cl_cddr, 1, MKCL_OBJNULL, &mk_cl_cddr_cfunobj},
   {"CDR", CL_ORDINARY, mk_cl_cdr, 1, MKCL_OBJNULL, &mk_cl_cdr_cfunobj},
-  {"CEILING", CL_ORDINARY, mk_cl_ceiling, -1, MKCL_OBJNULL, NULL},
+  {"CEILING", CL_ORDINARY, mk_cl_ceiling, -1, MKCL_OBJNULL, &mk_cl_ceiling_cfunobj},
   {"CELL-ERROR", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"CELL-ERROR-NAME", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
-  {"CERROR", CL_ORDINARY, mk_cl_cerror, -1, MKCL_OBJNULL, NULL},
+  {"CERROR", CL_ORDINARY, MKCL_IN_LISP(mk_cl_cerror), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_cerror_cfunobj)},
   {"CHAR", CL_ORDINARY, mk_cl_char, 2, MKCL_OBJNULL, &mk_cl_char_cfunobj},
   {"CHAR-CODE", CL_ORDINARY, mk_cl_char_code, 1, MKCL_OBJNULL, &mk_cl_char_code_cfunobj},
   {"CHAR-CODE-LIMIT", CL_CONSTANT, NULL, -1, MKCL_MAKE_FIXNUM(MKCL_CHAR_CODE_LIMIT), NULL},
   {"CHAR-DOWNCASE", CL_ORDINARY, mk_cl_char_downcase, 1, MKCL_OBJNULL, &mk_cl_char_downcase_cfunobj},
-  {"CHAR-EQUAL", CL_ORDINARY, mk_cl_char_equal, -1, MKCL_OBJNULL, NULL},
-  {"CHAR-GREATERP", CL_ORDINARY, mk_cl_char_greaterp, -1, MKCL_OBJNULL, NULL},
+  {"CHAR-EQUAL", CL_ORDINARY, mk_cl_char_equal, -1, MKCL_OBJNULL, &mk_cl_char_equal_cfunobj},
+  {"CHAR-GREATERP", CL_ORDINARY, mk_cl_char_greaterp, -1, MKCL_OBJNULL, &mk_cl_char_greaterp_cfunobj},
   {"CHAR-INT", CL_ORDINARY, mk_cl_char_int, 1, MKCL_OBJNULL, &mk_cl_char_int_cfunobj},
-  {"CHAR-LESSP", CL_ORDINARY, mk_cl_char_lessp, -1, MKCL_OBJNULL, NULL},
+  {"CHAR-LESSP", CL_ORDINARY, mk_cl_char_lessp, -1, MKCL_OBJNULL, &mk_cl_char_lessp_cfunobj},
   {"CHAR-NAME", CL_ORDINARY, mk_cl_char_name, 1, MKCL_OBJNULL, &mk_cl_char_name_cfunobj},
-  {"CHAR-NOT-EQUAL", CL_ORDINARY, mk_cl_char_not_equal, -1, MKCL_OBJNULL, NULL},
-  {"CHAR-NOT-GREATERP", CL_ORDINARY, mk_cl_char_not_greaterp, -1, MKCL_OBJNULL, NULL},
-  {"CHAR-NOT-LESSP", CL_ORDINARY, mk_cl_char_not_lessp, -1, MKCL_OBJNULL, NULL},
+  {"CHAR-NOT-EQUAL", CL_ORDINARY, mk_cl_char_not_equal, -1, MKCL_OBJNULL, &mk_cl_char_not_equal_cfunobj},
+  {"CHAR-NOT-GREATERP", CL_ORDINARY, mk_cl_char_not_greaterp, -1, MKCL_OBJNULL, &mk_cl_char_not_greaterp_cfunobj},
+  {"CHAR-NOT-LESSP", CL_ORDINARY, mk_cl_char_not_lessp, -1, MKCL_OBJNULL, &mk_cl_char_not_lessp_cfunobj},
   {"CHAR-UPCASE", CL_ORDINARY, mk_cl_char_upcase, 1, MKCL_OBJNULL, &mk_cl_char_upcase_cfunobj},
-  {"CHAR/=", CL_ORDINARY, mk_cl_charNE, -1, MKCL_OBJNULL, NULL},
-  {"CHAR<", CL_ORDINARY, mk_cl_charL, -1, MKCL_OBJNULL, NULL},
-  {"CHAR<=", CL_ORDINARY, mk_cl_charLE, -1, MKCL_OBJNULL, NULL},
-  {"CHAR=", CL_ORDINARY, mk_cl_charE, -1, MKCL_OBJNULL, NULL},
-  {"CHAR>", CL_ORDINARY, mk_cl_charG, -1, MKCL_OBJNULL, NULL},
-  {"CHAR>=", CL_ORDINARY, mk_cl_charGE, -1, MKCL_OBJNULL, NULL},
+  {"CHAR/=", CL_ORDINARY, mk_cl_charNE, -1, MKCL_OBJNULL, &mk_cl_charNE_cfunobj},
+  {"CHAR<", CL_ORDINARY, mk_cl_charL, -1, MKCL_OBJNULL, &mk_cl_charL_cfunobj},
+  {"CHAR<=", CL_ORDINARY, mk_cl_charLE, -1, MKCL_OBJNULL, &mk_cl_charLE_cfunobj},
+  {"CHAR=", CL_ORDINARY, mk_cl_charE, -1, MKCL_OBJNULL, &mk_cl_charE_cfunobj},
+  {"CHAR>", CL_ORDINARY, mk_cl_charG, -1, MKCL_OBJNULL, &mk_cl_charG_cfunobj},
+  {"CHAR>=", CL_ORDINARY, mk_cl_charGE, -1, MKCL_OBJNULL, &mk_cl_charGE_cfunobj},
   {"CHARACTER", CL_ORDINARY, mk_cl_character, 1, MKCL_OBJNULL, &mk_cl_character_cfunobj},
   {"CHARACTERP", CL_ORDINARY, mk_cl_characterp, 1, MKCL_OBJNULL, &mk_cl_characterp_cfunobj},
   {"CHECK-TYPE", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"CIS", CL_ORDINARY, MKCL_IN_LISP(mk_cl_cis), 1, MKCL_OBJNULL, NULL},
-  {"CLEAR-INPUT", CL_ORDINARY, mk_cl_clear_input, -1, MKCL_OBJNULL, NULL},
-  {"CLEAR-OUTPUT", CL_ORDINARY, mk_cl_clear_output, -1, MKCL_OBJNULL, NULL},
-  {"CLOSE", CL_ORDINARY, mk_cl_close, -1, MKCL_OBJNULL, NULL},
+  {"CLEAR-INPUT", CL_ORDINARY, mk_cl_clear_input, -1, MKCL_OBJNULL, &mk_cl_clear_input_cfunobj},
+  {"CLEAR-OUTPUT", CL_ORDINARY, mk_cl_clear_output, -1, MKCL_OBJNULL, &mk_cl_clear_output_cfunobj},
+  {"CLOSE", CL_ORDINARY, mk_cl_close, -1, MKCL_OBJNULL, &mk_cl_close_cfunobj},
   {"CLRHASH", CL_ORDINARY, mk_cl_clrhash, 1, MKCL_OBJNULL, &mk_cl_clrhash_cfunobj},
   {"CODE-CHAR", CL_ORDINARY, mk_cl_code_char, 1, MKCL_OBJNULL, &mk_cl_code_char_cfunobj},
   {"COERCE", CL_ORDINARY, MKCL_IN_LISP(mk_cl_coerce), 2, MKCL_OBJNULL, NULL},
@@ -293,34 +293,34 @@ mkcl_symbol_initializer mkcl_root_symbol_inits[] = {
   {"COMPILER-MACRO", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"COMPILER-MACRO-FUNCTION", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"COMPLEMENT", CL_ORDINARY, MKCL_IN_LISP(mk_cl_complement), 1, MKCL_OBJNULL, NULL},
-  {"COMPLEX", CL_ORDINARY, mk_cl_complex, -1, MKCL_OBJNULL, NULL},
+  {"COMPLEX", CL_ORDINARY, mk_cl_complex, -1, MKCL_OBJNULL, &mk_cl_complex_cfunobj},
   {"COMPLEXP", CL_ORDINARY, mk_cl_complexp, 1, MKCL_OBJNULL, &mk_cl_complexp_cfunobj},
   {"COMPUTE-RESTARTS", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
-  {"CONCATENATE", CL_ORDINARY, MKCL_IN_LISP(mk_cl_concatenate), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
+  {"CONCATENATE", CL_ORDINARY, MKCL_IN_LISP(mk_cl_concatenate), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_concatenate_cfunobj)}, /* proclaimed in sysfun.lsp */
   {"CONCATENATED-STREAM", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"CONCATENATED-STREAM-STREAMS", CL_ORDINARY, mk_cl_concatenated_stream_streams, 1, MKCL_OBJNULL, &mk_cl_concatenated_stream_streams_cfunobj},
   {"COND", CL_FORM, NULL, -1, MKCL_OBJNULL, NULL},
   {"CONDITION", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"CONJUGATE", CL_ORDINARY, mk_cl_conjugate, 1, MKCL_OBJNULL, &mk_cl_conjugate_cfunobj},
-  {"CONTINUE", CL_ORDINARY, MKCL_IN_LISP(mk_cl_continue), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
+  {"CONTINUE", CL_ORDINARY, MKCL_IN_LISP(mk_cl_continue), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_continue_cfunobj)}, /* proclaimed in sysfun.lsp */
   {"CONS", CL_ORDINARY, mk_cl_cons, 2, MKCL_OBJNULL, &mk_cl_cons_cfunobj},
   {"CONSP", CL_ORDINARY, mk_cl_consp, 1, MKCL_OBJNULL, &mk_cl_consp_cfunobj},
   {"CONSTANTLY", CL_ORDINARY, MKCL_IN_LISP(mk_cl_constantly), 1, MKCL_OBJNULL, NULL},
-  {"CONSTANTP", CL_ORDINARY, mk_cl_constantp, -1, MKCL_OBJNULL, NULL},
+  {"CONSTANTP", CL_ORDINARY, mk_cl_constantp, -1, MKCL_OBJNULL, &mk_cl_constantp_cfunobj},
   {"CONTROL-ERROR", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"COPY-ALIST", CL_ORDINARY, mk_cl_copy_alist, 1, MKCL_OBJNULL, &mk_cl_copy_alist_cfunobj},
   {"COPY-LIST", CL_ORDINARY, mk_cl_copy_list, 1, MKCL_OBJNULL, &mk_cl_copy_list_cfunobj},
-  {"COPY-PPRINT-DISPATCH", CL_ORDINARY, MKCL_NAME_PPRINT(mk_cl_copy_pprint_dispatch), -1, MKCL_OBJNULL, NULL},
-  {"COPY-READTABLE", CL_ORDINARY, mk_cl_copy_readtable, -1, MKCL_OBJNULL, NULL},
+  {"COPY-PPRINT-DISPATCH", CL_ORDINARY, MKCL_NAME_PPRINT(mk_cl_copy_pprint_dispatch), -1, MKCL_OBJNULL, MKCL_NAME_PPRINT(&mk_cl_copy_pprint_dispatch_cfunobj)},
+  {"COPY-READTABLE", CL_ORDINARY, mk_cl_copy_readtable, -1, MKCL_OBJNULL, &mk_cl_copy_readtable_cfunobj},
   {"COPY-SEQ", CL_ORDINARY, mk_cl_copy_seq, 1, MKCL_OBJNULL, &mk_cl_copy_seq_cfunobj},
   {"COPY-STRUCTURE", CL_ORDINARY, mk_cl_copy_structure, 1, MKCL_OBJNULL, &mk_cl_copy_structure_cfunobj},
-  {"COPY-SYMBOL", CL_ORDINARY, mk_cl_copy_symbol, -1, MKCL_OBJNULL, NULL},
+  {"COPY-SYMBOL", CL_ORDINARY, mk_cl_copy_symbol, -1, MKCL_OBJNULL, &mk_cl_copy_symbol_cfunobj},
   {"COPY-TREE", CL_ORDINARY, mk_cl_copy_tree, 1, MKCL_OBJNULL, &mk_cl_copy_tree_cfunobj},
   {"COS", CL_ORDINARY, mk_cl_cos, 1, MKCL_OBJNULL, &mk_cl_cos_cfunobj},
   {"COSH", CL_ORDINARY, mk_cl_cosh, 1, MKCL_OBJNULL, &mk_cl_cosh_cfunobj},
-  {"COUNT", CL_ORDINARY, MKCL_IN_LISP(mk_cl_count), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"COUNT-IF", CL_ORDINARY, MKCL_IN_LISP(mk_cl_count_if), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"COUNT-IF-NOT", CL_ORDINARY, MKCL_IN_LISP(mk_cl_count_if_not), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
+  {"COUNT", CL_ORDINARY, MKCL_IN_LISP(mk_cl_count), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_count_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"COUNT-IF", CL_ORDINARY, MKCL_IN_LISP(mk_cl_count_if), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_count_if_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"COUNT-IF-NOT", CL_ORDINARY, MKCL_IN_LISP(mk_cl_count_if_not), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_count_if_not_cfunobj)}, /* proclaimed in sysfun.lsp */
   {"CTYPECASE", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"DEBUG", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"DECF", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
@@ -328,7 +328,7 @@ mkcl_symbol_initializer mkcl_root_symbol_inits[] = {
   {"DECLARATION", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"DECLARE", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"DECODE-FLOAT", CL_ORDINARY, mk_cl_decode_float, 1, MKCL_OBJNULL, &mk_cl_decode_float_cfunobj},
-  {"DECODE-UNIVERSAL-TIME", CL_ORDINARY, MKCL_IN_LISP(mk_cl_decode_universal_time), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
+  {"DECODE-UNIVERSAL-TIME", CL_ORDINARY, MKCL_IN_LISP(mk_cl_decode_universal_time), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_decode_universal_time_cfunobj)}, /* proclaimed in sysfun.lsp */
   {"DEFCONSTANT", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"DEFINE-CONDITION", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"DEFINE-COMPILER-MACRO", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
@@ -343,19 +343,19 @@ mkcl_symbol_initializer mkcl_root_symbol_inits[] = {
   {"DEFTYPE", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"DEFUN", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"DEFVAR", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
-  {"DELETE", CL_ORDINARY, MKCL_IN_LISP(mk_cl_delete), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"DELETE-DUPLICATES", CL_ORDINARY, MKCL_IN_LISP(mk_cl_delete_duplicates), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
+  {"DELETE", CL_ORDINARY, MKCL_IN_LISP(mk_cl_delete), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_delete_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"DELETE-DUPLICATES", CL_ORDINARY, MKCL_IN_LISP(mk_cl_delete_duplicates), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_delete_duplicates_cfunobj)}, /* proclaimed in sysfun.lsp */
   {"DELETE-FILE", CL_ORDINARY, mk_cl_delete_file, 1, MKCL_OBJNULL, &mk_cl_delete_file_cfunobj},
-  {"DELETE-IF", CL_ORDINARY, MKCL_IN_LISP(mk_cl_delete_if), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"DELETE-IF-NOT", CL_ORDINARY, MKCL_IN_LISP(mk_cl_delete_if_not), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
+  {"DELETE-IF", CL_ORDINARY, MKCL_IN_LISP(mk_cl_delete_if), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_delete_if_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"DELETE-IF-NOT", CL_ORDINARY, MKCL_IN_LISP(mk_cl_delete_if_not), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_delete_if_not_cfunobj)}, /* proclaimed in sysfun.lsp */
   {"DELETE-PACKAGE", CL_ORDINARY, mk_cl_delete_package, 1, MKCL_OBJNULL, &mk_cl_delete_package_cfunobj},
   {"DENOMINATOR", CL_ORDINARY, mk_cl_denominator, 1, MKCL_OBJNULL, &mk_cl_denominator_cfunobj},
   {"DEPOSIT-FIELD", CL_ORDINARY, MKCL_IN_LISP(mk_cl_deposit_field), 3, MKCL_OBJNULL, NULL},
   {"DESCRIBE", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"DESTRUCTURING-BIND", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
-  {"DIGIT-CHAR", CL_ORDINARY, mk_cl_digit_char, -1, MKCL_OBJNULL, NULL},
-  {"DIGIT-CHAR-P", CL_ORDINARY, mk_cl_digit_char_p, -1, MKCL_OBJNULL, NULL},
-  {"DIRECTORY", CL_ORDINARY, mk_cl_directory, -1, MKCL_OBJNULL, NULL},
+  {"DIGIT-CHAR", CL_ORDINARY, mk_cl_digit_char, -1, MKCL_OBJNULL, &mk_cl_digit_char_cfunobj},
+  {"DIGIT-CHAR-P", CL_ORDINARY, mk_cl_digit_char_p, -1, MKCL_OBJNULL, &mk_cl_digit_char_p_cfunobj},
+  {"DIRECTORY", CL_ORDINARY, mk_cl_directory, -1, MKCL_OBJNULL, &mk_cl_directory_cfunobj},
   {"DIRECTORY-NAMESTRING", CL_ORDINARY, mk_cl_directory_namestring, 1, MKCL_OBJNULL, &mk_cl_directory_namestring_cfunobj},
   {"DISASSEMBLE", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"DIVISION-BY-ZERO", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
@@ -380,92 +380,92 @@ mkcl_symbol_initializer mkcl_root_symbol_inits[] = {
   {"ED", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"EIGHTH", CL_ORDINARY, mk_cl_eighth, 1, MKCL_OBJNULL, &mk_cl_eighth_cfunobj},
   {"ELT", CL_ORDINARY, mk_cl_elt, 2, MKCL_OBJNULL, &mk_cl_elt_cfunobj},
-  {"ENCODE-UNIVERSAL-TIME", CL_ORDINARY, MKCL_IN_LISP(mk_cl_encode_universal_time), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
+  {"ENCODE-UNIVERSAL-TIME", CL_ORDINARY, MKCL_IN_LISP(mk_cl_encode_universal_time), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_encode_universal_time_cfunobj)}, /* proclaimed in sysfun.lsp */
   {"END-OF-FILE", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"ENDP", CL_ORDINARY, mk_cl_endp, 1, MKCL_OBJNULL, &mk_cl_endp_cfunobj},
-  {"ENOUGH-NAMESTRING", CL_ORDINARY, mk_cl_enough_namestring, -1, MKCL_OBJNULL, NULL},
-  {"ENSURE-DIRECTORIES-EXIST", CL_ORDINARY, MKCL_IN_LISP(mk_cl_ensure_directories_exist), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
+  {"ENOUGH-NAMESTRING", CL_ORDINARY, mk_cl_enough_namestring, -1, MKCL_OBJNULL, &mk_cl_enough_namestring_cfunobj},
+  {"ENSURE-DIRECTORIES-EXIST", CL_ORDINARY, MKCL_IN_LISP(mk_cl_ensure_directories_exist), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_ensure_directories_exist_cfunobj)}, /* proclaimed in sysfun.lsp */
   {"EQ", CL_ORDINARY, mk_cl_eq, 2, MKCL_OBJNULL, &mk_cl_eq_cfunobj},
   {"EQL", CL_ORDINARY, mk_cl_eql, 2, MKCL_OBJNULL, &mk_cl_eql_cfunobj},
   {"EQUAL", CL_ORDINARY, mk_cl_equal, 2, MKCL_OBJNULL, &mk_cl_equal_cfunobj},
   {"EQUALP", CL_ORDINARY, mk_cl_equalp, 2, MKCL_OBJNULL, &mk_cl_equalp_cfunobj},
-  {"ERROR", CL_ORDINARY, mk_cl_error, -1, MKCL_OBJNULL, NULL},
+  {"ERROR", CL_ORDINARY, mk_cl_error, -1, MKCL_OBJNULL, &mk_cl_error_cfunobj},
   {"ETYPECASE", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"EVAL", CL_ORDINARY, mk_cl_eval, 1, MKCL_OBJNULL, &mk_cl_eval_cfunobj},
   {"EVAL-WHEN", CL_FORM, NULL, -1, MKCL_OBJNULL, NULL},
   {"EVENP", CL_ORDINARY, mk_cl_evenp, 1, MKCL_OBJNULL, &mk_cl_evenp_cfunobj},
-  {"EVERY", CL_ORDINARY, MKCL_IN_LISP(mk_cl_every), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
+  {"EVERY", CL_ORDINARY, MKCL_IN_LISP(mk_cl_every), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_every_cfunobj)}, /* proclaimed in sysfun.lsp */
   {"EXP", CL_ORDINARY, mk_cl_exp, 1, MKCL_OBJNULL, &mk_cl_exp_cfunobj},
-  {"EXPORT", CL_ORDINARY, mk_cl_export, -1, MKCL_OBJNULL, NULL},
+  {"EXPORT", CL_ORDINARY, mk_cl_export, -1, MKCL_OBJNULL, &mk_cl_export_cfunobj},
   {"EXPT", CL_ORDINARY, mk_cl_expt, 2, MKCL_OBJNULL, &mk_cl_expt_cfunobj},
   {"EXTENDED-CHAR", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"FBOUNDP", CL_ORDINARY, mk_cl_fboundp, 1, MKCL_OBJNULL, &mk_cl_fboundp_cfunobj},
-  {"FCEILING", CL_ORDINARY, MKCL_IN_LISP(mk_cl_fceiling), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
+  {"FCEILING", CL_ORDINARY, MKCL_IN_LISP(mk_cl_fceiling), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_fceiling_cfunobj)}, /* proclaimed in sysfun.lsp */
   {"FDEFINITION", CL_ORDINARY, mk_cl_fdefinition, 1, MKCL_OBJNULL, &mk_cl_fdefinition_cfunobj},
-  {"FFLOOR", CL_ORDINARY, MKCL_IN_LISP(mk_cl_ffloor), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
+  {"FFLOOR", CL_ORDINARY, MKCL_IN_LISP(mk_cl_ffloor), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_ffloor_cfunobj)}, /* proclaimed in sysfun.lsp */
   {"FIFTH", CL_ORDINARY, mk_cl_fifth, 1, MKCL_OBJNULL, &mk_cl_fifth_cfunobj},
   {"FILE-AUTHOR", CL_ORDINARY, mk_cl_file_author, 1, MKCL_OBJNULL, &mk_cl_file_author_cfunobj},
   {"FILE-ERROR", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"FILE-ERROR-PATHNAME", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"FILE-LENGTH", CL_ORDINARY, mk_cl_file_length, 1, MKCL_OBJNULL, &mk_cl_file_length_cfunobj},
   {"FILE-NAMESTRING", CL_ORDINARY, mk_cl_file_namestring, 1, MKCL_OBJNULL, &mk_cl_file_namestring_cfunobj},
-  {"FILE-POSITION", CL_ORDINARY, mk_cl_file_position, -1, MKCL_OBJNULL, NULL},
+  {"FILE-POSITION", CL_ORDINARY, mk_cl_file_position, -1, MKCL_OBJNULL, &mk_cl_file_position_cfunobj},
   {"FILE-STREAM", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"FILE-STRING-LENGTH", CL_ORDINARY, mk_cl_file_string_length, 2, MKCL_OBJNULL, &mk_cl_file_string_length_cfunobj},
   {"FILE-WRITE-DATE", CL_ORDINARY, mk_cl_file_write_date, 1, MKCL_OBJNULL, &mk_cl_file_write_date_cfunobj},
-  {"FILL", CL_ORDINARY, MKCL_IN_LISP(mk_cl_fill), -1, MKCL_OBJNULL, NULL},  /* proclaimed in sysfun.lsp */
+  {"FILL", CL_ORDINARY, MKCL_IN_LISP(mk_cl_fill), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_fill_cfunobj)},  /* proclaimed in sysfun.lsp */
   {"FILL-POINTER", CL_ORDINARY, mk_cl_fill_pointer, 1, MKCL_OBJNULL, &mk_cl_fill_pointer_cfunobj},
-  {"FIND", CL_ORDINARY, MKCL_IN_LISP(mk_cl_find), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
+  {"FIND", CL_ORDINARY, MKCL_IN_LISP(mk_cl_find), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_find_cfunobj)}, /* proclaimed in sysfun.lsp */
   {"FIND-ALL-SYMBOLS", CL_ORDINARY, MKCL_IN_LISP(mk_cl_find_all_symbols), 1, MKCL_OBJNULL, NULL},
-  {"FIND-IF", CL_ORDINARY, MKCL_IN_LISP(mk_cl_find_if), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"FIND-IF-NOT", CL_ORDINARY, MKCL_IN_LISP(mk_cl_find_if_not), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
+  {"FIND-IF", CL_ORDINARY, MKCL_IN_LISP(mk_cl_find_if), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_find_if_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"FIND-IF-NOT", CL_ORDINARY, MKCL_IN_LISP(mk_cl_find_if_not), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_find_if_not_cfunobj)}, /* proclaimed in sysfun.lsp */
   {"FIND-PACKAGE", CL_ORDINARY, mk_cl_find_package, 1, MKCL_OBJNULL, &mk_cl_find_package_cfunobj},
   {"FIND-RESTART", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
-  {"FIND-SYMBOL", CL_ORDINARY, mk_cl_find_symbol, -1, MKCL_OBJNULL, NULL},
-  {"FINISH-OUTPUT", CL_ORDINARY, mk_cl_finish_output, -1, MKCL_OBJNULL, NULL},
+  {"FIND-SYMBOL", CL_ORDINARY, mk_cl_find_symbol, -1, MKCL_OBJNULL, &mk_cl_find_symbol_cfunobj},
+  {"FINISH-OUTPUT", CL_ORDINARY, mk_cl_finish_output, -1, MKCL_OBJNULL, &mk_cl_finish_output_cfunobj},
   {"FIRST", CL_ORDINARY, mk_cl_car, 1, MKCL_OBJNULL, &mk_cl_first_cfunobj},
   {"FIXNUM", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"FLET", CL_FORM, NULL, -1, MKCL_OBJNULL, NULL},
-  {"FLOAT", CL_ORDINARY, mk_cl_float, -1, MKCL_OBJNULL, NULL},
+  {"FLOAT", CL_ORDINARY, mk_cl_float, -1, MKCL_OBJNULL, &mk_cl_float_cfunobj},
   {"FLOAT-DIGITS", CL_ORDINARY, mk_cl_float_digits, 1, MKCL_OBJNULL, &mk_cl_float_digits_cfunobj},
   {"FLOAT-PRECISION", CL_ORDINARY, mk_cl_float_precision, 1, MKCL_OBJNULL, &mk_cl_float_precision_cfunobj},
   {"FLOAT-RADIX", CL_ORDINARY, mk_cl_float_radix, 1, MKCL_OBJNULL, &mk_cl_float_radix_cfunobj},
-  {"FLOAT-SIGN", CL_ORDINARY, mk_cl_float_sign, -1, MKCL_OBJNULL, NULL},
+  {"FLOAT-SIGN", CL_ORDINARY, mk_cl_float_sign, -1, MKCL_OBJNULL, &mk_cl_float_sign_cfunobj},
   {"FLOATING-POINT-INEXACT", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"FLOATING-POINT-INVALID-OPERATION", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"FLOATING-POINT-OVERFLOW", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"FLOATING-POINT-UNDERFLOW", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"FLOATP", CL_ORDINARY, mk_cl_floatp, 1, MKCL_OBJNULL, &mk_cl_floatp_cfunobj},
-  {"FLOOR", CL_ORDINARY, mk_cl_floor, -1, MKCL_OBJNULL, NULL},
+  {"FLOOR", CL_ORDINARY, mk_cl_floor, -1, MKCL_OBJNULL, &mk_cl_floor_cfunobj},
   {"FMAKUNBOUND", CL_ORDINARY, mk_cl_fmakunbound, 1, MKCL_OBJNULL, &mk_cl_fmakunbound_cfunobj},
-  {"FORCE-OUTPUT", CL_ORDINARY, mk_cl_force_output, -1, MKCL_OBJNULL, NULL},
-  {"FORMAT", CL_ORDINARY, mk_cl_format, -1, MKCL_OBJNULL, NULL},
+  {"FORCE-OUTPUT", CL_ORDINARY, mk_cl_force_output, -1, MKCL_OBJNULL, &mk_cl_force_output_cfunobj},
+  {"FORMAT", CL_ORDINARY, mk_cl_format, -1, MKCL_OBJNULL, &mk_cl_format_cfunobj},
   {"FORMATTER", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"FOURTH", CL_ORDINARY, mk_cl_cadddr, 1, MKCL_OBJNULL, &mk_cl_fourth_cfunobj},
-  {"FRESH-LINE", CL_ORDINARY, mk_cl_fresh_line, -1, MKCL_OBJNULL, NULL},
-  {"FROUND", CL_ORDINARY, MKCL_IN_LISP(mk_cl_fround), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"FTRUNCATE", CL_ORDINARY, MKCL_IN_LISP(mk_cl_ftruncate), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
+  {"FRESH-LINE", CL_ORDINARY, mk_cl_fresh_line, -1, MKCL_OBJNULL, &mk_cl_fresh_line_cfunobj},
+  {"FROUND", CL_ORDINARY, MKCL_IN_LISP(mk_cl_fround), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_fround_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"FTRUNCATE", CL_ORDINARY, MKCL_IN_LISP(mk_cl_ftruncate), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_ftruncate_cfunobj)}, /* proclaimed in sysfun.lsp */
   {"FTYPE", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
-  {"FUNCALL", CL_ORDINARY, mk_cl_funcall, -1, MKCL_OBJNULL, NULL},
+  {"FUNCALL", CL_ORDINARY, mk_cl_funcall, -1, MKCL_OBJNULL, &mk_cl_funcall_cfunobj},
   {"FUNCTION-LAMBDA-EXPRESSION", CL_ORDINARY, mk_cl_function_lambda_expression, 1, MKCL_OBJNULL, &mk_cl_function_lambda_expression_cfunobj},
   {"FUNCTION", CL_FORM, NULL, -1, MKCL_OBJNULL, NULL},
   {"FUNCTION-KEYWORDS", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"FUNCTIONP", CL_ORDINARY, mk_cl_functionp, 1, MKCL_OBJNULL, &mk_cl_functionp_cfunobj},
-  {"GCD", CL_ORDINARY, mk_cl_gcd, -1, MKCL_OBJNULL, NULL},
-  {"GENSYM", CL_ORDINARY, mk_cl_gensym, -1, MKCL_OBJNULL, NULL},
-  {"GENTEMP", CL_ORDINARY, mk_cl_gentemp, -1, MKCL_OBJNULL, NULL},
-  {"GET", CL_ORDINARY, mk_cl_get, -1, MKCL_OBJNULL, NULL},
+  {"GCD", CL_ORDINARY, mk_cl_gcd, -1, MKCL_OBJNULL, &mk_cl_gcd_cfunobj},
+  {"GENSYM", CL_ORDINARY, mk_cl_gensym, -1, MKCL_OBJNULL, &mk_cl_gensym_cfunobj},
+  {"GENTEMP", CL_ORDINARY, mk_cl_gentemp, -1, MKCL_OBJNULL, &mk_cl_gentemp_cfunobj},
+  {"GET", CL_ORDINARY, mk_cl_get, -1, MKCL_OBJNULL, &mk_cl_get_cfunobj},
   {"GET-DECODED-TIME", CL_ORDINARY, MKCL_IN_LISP(mk_cl_get_decoded_time), 0, MKCL_OBJNULL, NULL},
-  {"GET-DISPATCH-MACRO-CHARACTER", CL_ORDINARY, mk_cl_get_dispatch_macro_character, -1, MKCL_OBJNULL, NULL},
+  {"GET-DISPATCH-MACRO-CHARACTER", CL_ORDINARY, mk_cl_get_dispatch_macro_character, -1, MKCL_OBJNULL, &mk_cl_get_dispatch_macro_character_cfunobj},
   {"GET-INTERNAL-REAL-TIME", CL_ORDINARY, mk_cl_get_internal_real_time, 0, MKCL_OBJNULL, &mk_cl_get_internal_real_time_cfunobj},
   {"GET-INTERNAL-RUN-TIME", CL_ORDINARY, mk_cl_get_internal_run_time, 0, MKCL_OBJNULL, &mk_cl_get_internal_run_time_cfunobj},
-  {"GET-MACRO-CHARACTER", CL_ORDINARY, mk_cl_get_macro_character, -1, MKCL_OBJNULL, NULL},
+  {"GET-MACRO-CHARACTER", CL_ORDINARY, mk_cl_get_macro_character, -1, MKCL_OBJNULL, &mk_cl_get_macro_character_cfunobj},
   {"GET-OUTPUT-STREAM-STRING", CL_ORDINARY, mk_cl_get_output_stream_string, 1, MKCL_OBJNULL, &mk_cl_get_output_stream_string_cfunobj},
   {"GET-PROPERTIES", CL_ORDINARY, mk_cl_get_properties, 2, MKCL_OBJNULL, &mk_cl_get_properties_cfunobj},
   {"GET-SETF-EXPANSION", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"GET-UNIVERSAL-TIME", CL_ORDINARY, mk_cl_get_universal_time, 0, MKCL_OBJNULL, &mk_cl_get_universal_time_cfunobj},
-  {"GETF", CL_ORDINARY, mk_cl_getf, -1, MKCL_OBJNULL, NULL},
-  {"GETHASH", CL_ORDINARY, mk_cl_gethash, -1, MKCL_OBJNULL, NULL},
+  {"GETF", CL_ORDINARY, mk_cl_getf, -1, MKCL_OBJNULL, &mk_cl_getf_cfunobj},
+  {"GETHASH", CL_ORDINARY, mk_cl_gethash, -1, MKCL_OBJNULL, &mk_cl_gethash_cfunobj},
   {"GO", CL_FORM, NULL, -1, MKCL_OBJNULL, NULL},
   {"GRAPHIC-CHAR-P", CL_ORDINARY, mk_cl_graphic_char_p, 1, MKCL_OBJNULL, &mk_cl_graphic_char_p_cfunobj},
   {"HANDLER-CASE", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
@@ -483,7 +483,7 @@ mkcl_symbol_initializer mkcl_root_symbol_inits[] = {
   {"IGNORE", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"IGNORE-ERRORS", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"IMAGPART", CL_ORDINARY, mk_cl_imagpart, 1, MKCL_OBJNULL, &mk_cl_imagpart_cfunobj},
-  {"IMPORT", CL_ORDINARY, mk_cl_import, -1, MKCL_OBJNULL, NULL},
+  {"IMPORT", CL_ORDINARY, mk_cl_import, -1, MKCL_OBJNULL, &mk_cl_import_cfunobj},
   {"IN-PACKAGE", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"INCF", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"INLINE", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
@@ -494,9 +494,9 @@ mkcl_symbol_initializer mkcl_root_symbol_inits[] = {
   {"INTEGER-LENGTH", CL_ORDINARY, mk_cl_integer_length, 1, MKCL_OBJNULL, &mk_cl_integer_length_cfunobj},
   {"INTEGERP", CL_ORDINARY, mk_cl_integerp, 1, MKCL_OBJNULL, &mk_cl_integerp_cfunobj},
   {"INTERACTIVE-STREAM-P", CL_ORDINARY, mk_cl_interactive_stream_p, 1, MKCL_OBJNULL, &mk_cl_interactive_stream_p_cfunobj},
-  {"INTERN", CL_ORDINARY, mk_cl_intern, -1, MKCL_OBJNULL, NULL},
+  {"INTERN", CL_ORDINARY, mk_cl_intern, -1, MKCL_OBJNULL, &mk_cl_intern_cfunobj},
   {"INTERNAL-TIME-UNITS-PER-SECOND", CL_CONSTANT, NULL, -1, MKCL_OBJNULL, NULL},
-  {"INTERSECTION", CL_ORDINARY, MKCL_IN_LISP(mk_cl_intersection), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
+  {"INTERSECTION", CL_ORDINARY, MKCL_IN_LISP(mk_cl_intersection), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_intersection_cfunobj)}, /* proclaimed in sysfun.lsp */
   {"INVOKE-DEBUGGER", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"INVOKE-RESTART", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"INVOKE-RESTART-INTERACTIVELY", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
@@ -507,8 +507,8 @@ mkcl_symbol_initializer mkcl_root_symbol_inits[] = {
   {"LAMBDA", CL_FORM, NULL, -1, MKCL_OBJNULL, NULL},
   {"LAMBDA-LIST-KEYWORDS", CL_CONSTANT, NULL, -1, MKCL_OBJNULL, NULL},
   {"LAMBDA-PARAMETERS-LIMIT", CL_CONSTANT, NULL, -1, MKCL_MAKE_FIXNUM(MKCL_LAMBDA_PARAMETERS_LIMIT), NULL},
-  {"LAST", CL_ORDINARY, mk_cl_last, -1, MKCL_OBJNULL, NULL},
-  {"LCM", CL_ORDINARY, mk_cl_lcm, -1, MKCL_OBJNULL, NULL},
+  {"LAST", CL_ORDINARY, mk_cl_last, -1, MKCL_OBJNULL, &mk_cl_last_cfunobj},
+  {"LCM", CL_ORDINARY, mk_cl_lcm, -1, MKCL_OBJNULL, &mk_cl_lcm_cfunobj},
   {"LDB", CL_ORDINARY, MKCL_IN_LISP(mk_cl_ldb), 2, MKCL_OBJNULL, NULL},
   {"LDB-TEST", CL_ORDINARY, MKCL_IN_LISP(mk_cl_ldb_test), 2, MKCL_OBJNULL, NULL},
   {"LDIFF", CL_ORDINARY, mk_cl_ldiff, 2, MKCL_OBJNULL, &mk_cl_ldiff_cfunobj},
@@ -533,33 +533,33 @@ mkcl_symbol_initializer mkcl_root_symbol_inits[] = {
   {"LET*", CL_FORM, NULL, -1, MKCL_OBJNULL, NULL},
   {"LISP-IMPLEMENTATION-TYPE", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"LISP-IMPLEMENTATION-VERSION", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
-  {"LIST", CL_ORDINARY, mk_cl_list, -1, MKCL_OBJNULL, NULL},
-  {"LIST*", CL_ORDINARY, mk_cl_listX, -1, MKCL_OBJNULL, NULL},
+  {"LIST", CL_ORDINARY, mk_cl_list, -1, MKCL_OBJNULL, &mk_cl_list_cfunobj},
+  {"LIST*", CL_ORDINARY, mk_cl_listX, -1, MKCL_OBJNULL, &mk_cl_listX_cfunobj},
   {"LIST-ALL-PACKAGES", CL_ORDINARY, mk_cl_list_all_packages, 0, MKCL_OBJNULL, &mk_cl_list_all_packages_cfunobj},
   {"LIST-LENGTH", CL_ORDINARY, mk_cl_list_length, 1, MKCL_OBJNULL, &mk_cl_list_length_cfunobj},
-  {"LISTEN", CL_ORDINARY, mk_cl_listen, -1, MKCL_OBJNULL, NULL},
+  {"LISTEN", CL_ORDINARY, mk_cl_listen, -1, MKCL_OBJNULL, &mk_cl_listen_cfunobj},
   {"LISTP", CL_ORDINARY, mk_cl_listp, 1, MKCL_OBJNULL, &mk_cl_listp_cfunobj},
-  {"LOAD", CL_ORDINARY, mk_cl_load, -1, MKCL_OBJNULL, NULL},
+  {"LOAD", CL_ORDINARY, mk_cl_load, -1, MKCL_OBJNULL, &mk_cl_load_cfunobj},
   {"LOAD-LOGICAL-PATHNAME-TRANSLATIONS", CL_ORDINARY, MKCL_IN_LISP(mk_cl_load_logical_pathname_translations), 1, MKCL_OBJNULL, NULL},
   {"LOAD-TIME-VALUE", CL_FORM, NULL, -1, MKCL_OBJNULL, NULL},
   {"LOCALLY", CL_FORM, NULL, -1, MKCL_OBJNULL, NULL},
-  {"LOG", CL_ORDINARY, mk_cl_log, -1, MKCL_OBJNULL, NULL},
-  {"LOGAND", CL_ORDINARY, mk_cl_logand, -1, MKCL_OBJNULL, NULL},
+  {"LOG", CL_ORDINARY, mk_cl_log, -1, MKCL_OBJNULL, &mk_cl_log_cfunobj},
+  {"LOGAND", CL_ORDINARY, mk_cl_logand, -1, MKCL_OBJNULL, &mk_cl_logand_cfunobj},
   {"LOGANDC1", CL_ORDINARY, mk_cl_logandc1, 2, MKCL_OBJNULL, &mk_cl_logandc1_cfunobj},
   {"LOGANDC2", CL_ORDINARY, mk_cl_logandc2, 2, MKCL_OBJNULL, &mk_cl_logandc2_cfunobj},
   {"LOGBITP", CL_ORDINARY, mk_cl_logbitp, 2, MKCL_OBJNULL, &mk_cl_logbitp_cfunobj},
-  {"LOGCOUNT", CL_ORDINARY, mk_cl_logcount, 1, MKCL_OBJNULL, & mk_cl_logcount_cfunobj},
-  {"LOGEQV", CL_ORDINARY, mk_cl_logeqv, -1, MKCL_OBJNULL, NULL},
+  {"LOGCOUNT", CL_ORDINARY, mk_cl_logcount, 1, MKCL_OBJNULL, &mk_cl_logcount_cfunobj},
+  {"LOGEQV", CL_ORDINARY, mk_cl_logeqv, -1, MKCL_OBJNULL, &mk_cl_logeqv_cfunobj},
   {"LOGICAL-PATHNAME", CL_ORDINARY, mk_cl_logical_pathname, 1, MKCL_OBJNULL, &mk_cl_logical_pathname_cfunobj},
   {"LOGICAL-PATHNAME-TRANSLATIONS", CL_ORDINARY, MKCL_IN_LISP(mk_cl_logical_pathname_translations), 1, MKCL_OBJNULL, NULL},
-  {"LOGIOR", CL_ORDINARY, mk_cl_logior, -1, MKCL_OBJNULL, NULL},
+  {"LOGIOR", CL_ORDINARY, mk_cl_logior, -1, MKCL_OBJNULL, &mk_cl_logior_cfunobj},
   {"LOGNAND", CL_ORDINARY, mk_cl_lognand, 2, MKCL_OBJNULL, &mk_cl_lognand_cfunobj},
   {"LOGNOR", CL_ORDINARY, mk_cl_lognor, 2, MKCL_OBJNULL, &mk_cl_lognor_cfunobj},
   {"LOGNOT", CL_ORDINARY, mk_cl_lognot, 1, MKCL_OBJNULL, &mk_cl_lognot_cfunobj},
   {"LOGORC1", CL_ORDINARY, mk_cl_logorc1, 2, MKCL_OBJNULL, &mk_cl_logorc1_cfunobj},
   {"LOGORC2", CL_ORDINARY, mk_cl_logorc2, 2, MKCL_OBJNULL, &mk_cl_logorc2_cfunobj},
   {"LOGTEST", CL_ORDINARY, MKCL_IN_LISP(mk_cl_logtest), 2, MKCL_OBJNULL, NULL},
-  {"LOGXOR", CL_ORDINARY, mk_cl_logxor, -1, MKCL_OBJNULL, NULL},
+  {"LOGXOR", CL_ORDINARY, mk_cl_logxor, -1, MKCL_OBJNULL, &mk_cl_logxor_cfunobj},
   {"LONG-FLOAT", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"LONG-FLOAT-EPSILON", CL_CONSTANT, NULL, -1, MKCL_OBJNULL, NULL},
   {"LONG-FLOAT-NEGATIVE-EPSILON", CL_CONSTANT, NULL, -1, MKCL_OBJNULL, NULL},
@@ -570,48 +570,48 @@ mkcl_symbol_initializer mkcl_root_symbol_inits[] = {
   {"MACHINE-INSTANCE", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"MACHINE-TYPE", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {"MACHINE-VERSION", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
-  {"MACRO-FUNCTION", CL_ORDINARY, mk_cl_macro_function, -1, MKCL_OBJNULL, NULL},
-  {"MACROEXPAND", CL_ORDINARY, mk_cl_macroexpand, -1, MKCL_OBJNULL, NULL},
-  {"MACROEXPAND-1", CL_ORDINARY, mk_cl_macroexpand_1, -1, MKCL_OBJNULL, NULL},
+  {"MACRO-FUNCTION", CL_ORDINARY, mk_cl_macro_function, -1, MKCL_OBJNULL, &mk_cl_macro_function_cfunobj},
+  {"MACROEXPAND", CL_ORDINARY, mk_cl_macroexpand, -1, MKCL_OBJNULL, &mk_cl_macroexpand_cfunobj},
+  {"MACROEXPAND-1", CL_ORDINARY, mk_cl_macroexpand_1, -1, MKCL_OBJNULL, &mk_cl_macroexpand_1_cfunobj},
   {"MACROLET", CL_FORM, NULL, -1, MKCL_OBJNULL, NULL},
-  {"MAKE-ARRAY", CL_ORDINARY, MKCL_IN_LISP(mk_cl_make_array), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"MAKE-BROADCAST-STREAM", CL_ORDINARY, mk_cl_make_broadcast_stream, -1, MKCL_OBJNULL, NULL},
+  {"MAKE-ARRAY", CL_ORDINARY, MKCL_IN_LISP(mk_cl_make_array), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_make_array_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"MAKE-BROADCAST-STREAM", CL_ORDINARY, mk_cl_make_broadcast_stream, -1, MKCL_OBJNULL, &mk_cl_make_broadcast_stream_cfunobj},
   {"MAKE-CONDITION", CL_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
-  {"MAKE-CONCATENATED-STREAM", CL_ORDINARY, mk_cl_make_concatenated_stream, -1, MKCL_OBJNULL, NULL},
-  {"MAKE-DISPATCH-MACRO-CHARACTER", CL_ORDINARY, mk_cl_make_dispatch_macro_character, -1, MKCL_OBJNULL, NULL},
+  {"MAKE-CONCATENATED-STREAM", CL_ORDINARY, mk_cl_make_concatenated_stream, -1, MKCL_OBJNULL, &mk_cl_make_concatenated_stream_cfunobj},
+  {"MAKE-DISPATCH-MACRO-CHARACTER", CL_ORDINARY, mk_cl_make_dispatch_macro_character, -1, MKCL_OBJNULL, &mk_cl_make_dispatch_macro_character_cfunobj},
   {"MAKE-ECHO-STREAM", CL_ORDINARY, mk_cl_make_echo_stream, 2, MKCL_OBJNULL, &mk_cl_make_echo_stream_cfunobj},
-  {"MAKE-HASH-TABLE", CL_ORDINARY, mk_cl_make_hash_table, -1, MKCL_OBJNULL, NULL},
-  {"MAKE-LIST", CL_ORDINARY, mk_cl_make_list, -1, MKCL_OBJNULL, NULL},
-  {"MAKE-PACKAGE", CL_ORDINARY, mk_cl_make_package, -1, MKCL_OBJNULL, NULL},
-  {"MAKE-PATHNAME", CL_ORDINARY, mk_cl_make_pathname, -1, MKCL_OBJNULL, NULL},
-  {"MAKE-RANDOM-STATE", CL_ORDINARY, mk_cl_make_random_state, -1, MKCL_OBJNULL, NULL},
-  {"MAKE-SEQUENCE", CL_ORDINARY, MKCL_IN_LISP(mk_cl_make_sequence), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"MAKE-STRING", CL_ORDINARY, mk_cl_make_string, -1, MKCL_OBJNULL, NULL},
-  {"MAKE-STRING-INPUT-STREAM", CL_ORDINARY, mk_cl_make_string_input_stream, -1, MKCL_OBJNULL, NULL},
-  {"MAKE-STRING-OUTPUT-STREAM", CL_ORDINARY, mk_cl_make_string_output_stream, -1, MKCL_OBJNULL, NULL},
+  {"MAKE-HASH-TABLE", CL_ORDINARY, mk_cl_make_hash_table, -1, MKCL_OBJNULL, &mk_cl_make_hash_table_cfunobj},
+  {"MAKE-LIST", CL_ORDINARY, mk_cl_make_list, -1, MKCL_OBJNULL, &mk_cl_make_list_cfunobj},
+  {"MAKE-PACKAGE", CL_ORDINARY, mk_cl_make_package, -1, MKCL_OBJNULL, &mk_cl_make_package_cfunobj},
+  {"MAKE-PATHNAME", CL_ORDINARY, mk_cl_make_pathname, -1, MKCL_OBJNULL, &mk_cl_make_pathname_cfunobj},
+  {"MAKE-RANDOM-STATE", CL_ORDINARY, mk_cl_make_random_state, -1, MKCL_OBJNULL, &mk_cl_make_random_state_cfunobj},
+  {"MAKE-SEQUENCE", CL_ORDINARY, MKCL_IN_LISP(mk_cl_make_sequence), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_make_sequence_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"MAKE-STRING", CL_ORDINARY, mk_cl_make_string, -1, MKCL_OBJNULL, &mk_cl_make_string_cfunobj},
+  {"MAKE-STRING-INPUT-STREAM", CL_ORDINARY, mk_cl_make_string_input_stream, -1, MKCL_OBJNULL, &mk_cl_make_string_input_stream_cfunobj},
+  {"MAKE-STRING-OUTPUT-STREAM", CL_ORDINARY, mk_cl_make_string_output_stream, -1, MKCL_OBJNULL, &mk_cl_make_string_output_stream_cfunobj},
   {"MAKE-SYMBOL", CL_ORDINARY, mk_cl_make_symbol, 1, MKCL_OBJNULL, &mk_cl_make_symbol_cfunobj},
   {"MAKE-SYNONYM-STREAM", CL_ORDINARY, mk_cl_make_synonym_stream, 1, MKCL_OBJNULL, &mk_cl_make_synonym_stream_cfunobj},
   {"MAKE-TWO-WAY-STREAM", CL_ORDINARY, mk_cl_make_two_way_stream, 2, MKCL_OBJNULL, &mk_cl_make_two_way_stream_cfunobj},
   {"MAKUNBOUND", CL_ORDINARY, mk_cl_makunbound, 1, MKCL_OBJNULL, &mk_cl_makunbound_cfunobj},
-  {"MAP", CL_ORDINARY, MKCL_IN_LISP(mk_cl_map), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"MAP-INTO", CL_ORDINARY, MKCL_IN_LISP(mk_cl_map_into), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"MAPC", CL_ORDINARY, mk_cl_mapc, -1, MKCL_OBJNULL, NULL},
-  {"MAPCAN", CL_ORDINARY, mk_cl_mapcan, -1, MKCL_OBJNULL, NULL},
-  {"MAPCAR", CL_ORDINARY, mk_cl_mapcar, -1, MKCL_OBJNULL, NULL},
-  {"MAPCON", CL_ORDINARY, mk_cl_mapcon, -1, MKCL_OBJNULL, NULL},
+  {"MAP", CL_ORDINARY, MKCL_IN_LISP(mk_cl_map), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_map_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"MAP-INTO", CL_ORDINARY, MKCL_IN_LISP(mk_cl_map_into), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_map_into_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"MAPC", CL_ORDINARY, mk_cl_mapc, -1, MKCL_OBJNULL, &mk_cl_mapc_cfunobj},
+  {"MAPCAN", CL_ORDINARY, mk_cl_mapcan, -1, MKCL_OBJNULL, &mk_cl_mapcan_cfunobj},
+  {"MAPCAR", CL_ORDINARY, mk_cl_mapcar, -1, MKCL_OBJNULL, &mk_cl_mapcar_cfunobj},
+  {"MAPCON", CL_ORDINARY, mk_cl_mapcon, -1, MKCL_OBJNULL, &mk_cl_mapcon_cfunobj},
   {"MAPHASH", CL_ORDINARY, mk_cl_maphash, 2, MKCL_OBJNULL, &mk_cl_maphash_cfunobj},
-  {"MAPL", CL_ORDINARY, mk_cl_mapl, -1, MKCL_OBJNULL, NULL},
-  {"MAPLIST", CL_ORDINARY, mk_cl_maplist, -1, MKCL_OBJNULL, NULL},
+  {"MAPL", CL_ORDINARY, mk_cl_mapl, -1, MKCL_OBJNULL, &mk_cl_mapl_cfunobj},
+  {"MAPLIST", CL_ORDINARY, mk_cl_maplist, -1, MKCL_OBJNULL, &mk_cl_maplist_cfunobj},
   {"MASK-FIELD", CL_ORDINARY, MKCL_IN_LISP(mk_cl_mask_field), 2, MKCL_OBJNULL, NULL},
-  {"MAX", CL_ORDINARY, mk_cl_max, -1, MKCL_OBJNULL, NULL},
-  {"MEMBER", CL_ORDINARY, mk_cl_member, -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"MEMBER-IF", CL_ORDINARY, MKCL_IN_LISP(mk_cl_member_if), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"MEMBER-IF-NOT", CL_ORDINARY, MKCL_IN_LISP(mk_cl_member_if_not), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"MERGE", CL_ORDINARY, MKCL_IN_LISP(mk_cl_merge), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
-  {"MERGE-PATHNAMES", CL_ORDINARY, mk_cl_merge_pathnames, -1, MKCL_OBJNULL, NULL},
-  {"MIN", CL_ORDINARY, mk_cl_min, -1, MKCL_OBJNULL, NULL},
+  {"MAX", CL_ORDINARY, mk_cl_max, -1, MKCL_OBJNULL, &mk_cl_max_cfunobj},
+  {"MEMBER", CL_ORDINARY, mk_cl_member, -1, MKCL_OBJNULL, &mk_cl_member_cfunobj}, /* proclaimed in sysfun.lsp */
+  {"MEMBER-IF", CL_ORDINARY, MKCL_IN_LISP(mk_cl_member_if), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_member_if_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"MEMBER-IF-NOT", CL_ORDINARY, MKCL_IN_LISP(mk_cl_member_if_not), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_member_if_not_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"MERGE", CL_ORDINARY, MKCL_IN_LISP(mk_cl_merge), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_merge_cfunobj)}, /* proclaimed in sysfun.lsp */
+  {"MERGE-PATHNAMES", CL_ORDINARY, mk_cl_merge_pathnames, -1, MKCL_OBJNULL, &mk_cl_merge_pathnames_cfunobj},
+  {"MIN", CL_ORDINARY, mk_cl_min, -1, MKCL_OBJNULL, &mk_cl_min_cfunobj},
   {"MINUSP", CL_ORDINARY, mk_cl_minusp, 1, MKCL_OBJNULL, &mk_cl_minusp_cfunobj},
-  {"MISMATCH", CL_ORDINARY, MKCL_IN_LISP(mk_cl_mismatch), -1, MKCL_OBJNULL, NULL}, /* proclaimed in sysfun.lsp */
+  {"MISMATCH", CL_ORDINARY, MKCL_IN_LISP(mk_cl_mismatch), -1, MKCL_OBJNULL, MKCL_IN_LISP(&mk_cl_mismatch_cfunobj)}, /* proclaimed in sysfun.lsp */
   {"MOD", CL_ORDINARY, mk_cl_mod, 2, MKCL_OBJNULL, &mk_cl_mod_cfunobj},
   {"MOST-NEGATIVE-DOUBLE-FLOAT", CL_CONSTANT, NULL, -1, MKCL_OBJNULL, NULL},
   {"MOST-NEGATIVE-FIXNUM", CL_CONSTANT, NULL, -1, MKCL_MAKE_FIXNUM(MKCL_MOST_NEGATIVE_FIXNUM), NULL},

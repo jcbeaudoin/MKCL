@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2017,2021 Jean-Claude Beaudoin.
+    Copyright (c) 2011-2017,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -196,6 +196,8 @@ mk_si_row_major_aset(MKCL, mkcl_object x, mkcl_object indx, mkcl_object val)
   mkcl_return_value(mkcl_aset_index(env, x, j, val));
 }
 
+struct mkcl_cfun mk_cl_array_row_major_index_cfunobj = MKCL_CFUN_VA(mk_cl_array_row_major_index, MK_CL_array_row_major_index);
+
 mkcl_object mk_cl_array_row_major_index(MKCL, const mkcl_narg narg, mkcl_object x, ...)
 {
   mkcl_call_stack_check(env);
@@ -304,6 +306,8 @@ mkcl_index mkcl_array_row_major_index_3_t(MKCL, mkcl_object a, mkcl_object i, mk
       return mkcl_array_row_major_index_3_index(env, a, i_i, i_j, i_k);
     }
 }
+
+struct mkcl_cfun mk_cl_aref_cfunobj = MKCL_CFUN_VA(mk_cl_aref, MK_CL_aref);
 
 mkcl_object mk_cl_aref(MKCL, const mkcl_narg narg, mkcl_object x, ...)
 {

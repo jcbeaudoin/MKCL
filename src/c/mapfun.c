@@ -4,7 +4,9 @@
 */
 /*
     Copyright (c) 1993, Giuseppe Attardi.
-    Copyright (c) 2001,2021 Juan Jose Garcia Ripoll.
+    Copyright (c) 2001, Juan Jose Garcia Ripoll.
+    Copyright (c) 2021-2022, Jean-Claude Beaudoin.
+
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -29,6 +31,8 @@
   if (narg == 0) {							\
     mkcl_FEprogram_error(env, "MAP*: Too few arguments", 0);		\
   }
+
+struct mkcl_cfun mk_cl_mapcar_cfunobj = MKCL_CFUN_VA(mk_cl_mapcar, MK_CL_mapcar);
 
 mkcl_object mk_cl_mapcar(MKCL, mkcl_narg narg, mkcl_object fun, ...)
 {
@@ -63,6 +67,8 @@ mkcl_object mk_cl_mapcar(MKCL, mkcl_narg narg, mkcl_object fun, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_maplist_cfunobj = MKCL_CFUN_VA(mk_cl_maplist, MK_CL_maplist);
+
 mkcl_object mk_cl_maplist(MKCL, mkcl_narg narg, mkcl_object fun, ...)
 {
   mkcl_object res, *val = &res;
@@ -96,6 +102,8 @@ mkcl_object mk_cl_maplist(MKCL, mkcl_narg narg, mkcl_object fun, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_mapc_cfunobj = MKCL_CFUN_VA(mk_cl_mapc, MK_CL_mapc);
+
 mkcl_object mk_cl_mapc(MKCL, mkcl_narg narg, mkcl_object fun, ...)
 {
   mkcl_object onelist;
@@ -128,6 +136,8 @@ mkcl_object mk_cl_mapc(MKCL, mkcl_narg narg, mkcl_object fun, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_mapl_cfunobj = MKCL_CFUN_VA(mk_cl_mapl, MK_CL_mapl);
+
 mkcl_object mk_cl_mapl(MKCL, mkcl_narg narg, mkcl_object fun, ...)
 {
   mkcl_object onelist;
@@ -159,6 +169,8 @@ mkcl_object mk_cl_mapl(MKCL, mkcl_narg narg, mkcl_object fun, ...)
     }
   }
 }
+
+struct mkcl_cfun mk_cl_mapcan_cfunobj = MKCL_CFUN_VA(mk_cl_mapcan, MK_CL_mapcan);
 
 mkcl_object mk_cl_mapcan(MKCL, mkcl_narg narg, mkcl_object fun, ...)
 {
@@ -193,6 +205,8 @@ mkcl_object mk_cl_mapcan(MKCL, mkcl_narg narg, mkcl_object fun, ...)
     }
   }
 }
+
+struct mkcl_cfun mk_cl_mapcon_cfunobj = MKCL_CFUN_VA(mk_cl_mapcon, MK_CL_mapcon);
 
 mkcl_object mk_cl_mapcon(MKCL, mkcl_narg narg, mkcl_object fun, ...)
 {

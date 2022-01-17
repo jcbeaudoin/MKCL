@@ -109,6 +109,8 @@ do_make_string(MKCL, mkcl_index s, mkcl_character code)
   return x;
 }
 
+struct mkcl_cfun mk_cl_make_string_cfunobj = MKCL_CFUN_VA(mk_cl_make_string, MK_CL_make_string);
+
 mkcl_object mk_cl_make_string(MKCL, mkcl_narg narg, mkcl_object size, ...)
 {
   mkcl_call_stack_check(env);

@@ -155,6 +155,8 @@ mkcl_object mk_cl_cdr(MKCL, mkcl_object x)
     mkcl_FEtype_error_list(env, x);
 }
 
+struct mkcl_cfun mk_cl_list_cfunobj = MKCL_CFUN_VA(mk_cl_list, MK_CL_list);
+
 mkcl_object mk_cl_list(MKCL, mkcl_narg narg, ...)
 {
   mkcl_object head = mk_cl_Cnil;
@@ -175,6 +177,8 @@ mkcl_object mk_cl_list(MKCL, mkcl_narg narg, ...)
     mkcl_return_value(head);
   }
 }
+
+struct mkcl_cfun mk_cl_listX_cfunobj = MKCL_CFUN_VA(mk_cl_listX, MK_CL_listX);
 
 mkcl_object mk_cl_listX(MKCL, mkcl_narg narg, ...)
 {
@@ -230,6 +234,8 @@ static mkcl_object copy_proper_tail(MKCL, mkcl_object * cursor_ptr)
 
   return root;
 }
+
+struct mkcl_cfun mk_cl_append_cfunobj = MKCL_CFUN_VA(mk_cl_append, MK_CL_append);
 
 mkcl_object mk_cl_append(MKCL, mkcl_narg narg, ...)
 {
@@ -559,6 +565,8 @@ mkcl_last(MKCL, mkcl_object l, mkcl_index n)
   }
 }
 
+struct mkcl_cfun mk_cl_last_cfunobj = MKCL_CFUN_VA(mk_cl_last, MK_CL_last);
+
 mkcl_object mk_cl_last(MKCL, mkcl_narg narg, mkcl_object l, ...)
 {
   mkcl_call_stack_check(env);
@@ -572,6 +580,8 @@ mkcl_object mk_cl_last(MKCL, mkcl_narg narg, mkcl_object l, ...)
       { mkcl_return_value(mkcl_last(env, l, mkcl_integer_to_index(env, k))); }
   }
 }
+
+struct mkcl_cfun mk_cl_make_list_cfunobj = MKCL_CFUN_VA(mk_cl_make_list, MK_CL_make_list);
 
 mkcl_object mk_cl_make_list(MKCL, mkcl_narg narg, mkcl_object size, ...)
 {
@@ -818,6 +828,8 @@ mkcl_butlast(MKCL, mkcl_object l, mkcl_index n)
   }
 }
 
+struct mkcl_cfun mk_cl_butlast_cfunobj = MKCL_CFUN_VA(mk_cl_butlast, MK_CL_butlast);
+
 mkcl_object mk_cl_butlast(MKCL, mkcl_narg narg, mkcl_object lis, ...)
 {
   mkcl_call_stack_check(env);
@@ -948,6 +960,8 @@ do_assoc(MKCL, struct cl_test *t, mkcl_object a_list)
   return mk_cl_Cnil;
 }
 
+
+struct mkcl_cfun mk_cl_assoc_cfunobj = MKCL_CFUN_VA(mk_cl_assoc, MK_CL_assoc);
 
 mkcl_object mk_cl_assoc(MKCL, mkcl_narg narg, mkcl_object item, mkcl_object a_list, ...)
 {
@@ -1159,6 +1173,8 @@ mkcl_object mk_cl_nsublis(MKCL, mkcl_narg narg, mkcl_object alist, mkcl_object t
   }
 }
 
+struct mkcl_cfun mk_cl_member_cfunobj = MKCL_CFUN_VA(mk_cl_member, MK_CL_member);
+
 mkcl_object mk_cl_member(MKCL, mkcl_narg narg, mkcl_object item, mkcl_object list, ...)
 {
   mkcl_call_stack_check(env);
@@ -1291,6 +1307,8 @@ mkcl_adjoin(MKCL, mkcl_object item, mkcl_object list)
     output = list;
   return output;
 }
+
+struct mkcl_cfun mk_cl_adjoin_cfunobj = MKCL_CFUN_VA(mk_cl_adjoin, MK_CL_adjoin);
 
 mkcl_object mk_cl_adjoin(MKCL, mkcl_narg narg, mkcl_object item, mkcl_object list, ...)
 {

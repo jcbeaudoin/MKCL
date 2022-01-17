@@ -383,6 +383,61 @@ mkcl_object mk_si_mangle_function_name(MKCL, mkcl_object symbol)
   mkcl_return_4_values(found, output, minarg, maxarg);
 }
 
+#ifdef MKCL_FINAL
+
+struct mkcl_cfun mk_cl_adjust_array_cfunobj = MKCL_CFUN_VA(mk_cl_adjust_array, MK_CL_adjust_array);
+struct mkcl_cfun mk_cl_apropos_cfunobj = MKCL_CFUN_VA(mk_cl_apropos, MK_CL_apropos);
+struct mkcl_cfun mk_cl_apropos_list_cfunobj = MKCL_CFUN_VA(mk_cl_apropos_list, MK_CL_apropos_list);
+struct mkcl_cfun mk_cl_array_in_bounds_p_cfunobj = MKCL_CFUN_VA(mk_cl_array_in_bounds_p, MK_CL_array_in_bounds_p);
+struct mkcl_cfun mk_cl_assoc_if_cfunobj = MKCL_CFUN_VA(mk_cl_assoc_if, MK_CL_assoc_if);
+struct mkcl_cfun mk_cl_assoc_if_not_cfunobj = MKCL_CFUN_VA(mk_cl_assoc_if_not, MK_CL_assoc_if_not);
+struct mkcl_cfun mk_cl_bit_cfunobj = MKCL_CFUN_VA(mk_cl_bit, MK_CL_bit);
+struct mkcl_cfun mk_cl_bit_and_cfunobj = MKCL_CFUN_VA(mk_cl_bit_and, MK_CL_bit_and);
+struct mkcl_cfun mk_cl_bit_andc1_cfunobj = MKCL_CFUN_VA(mk_cl_bit_andc1, MK_CL_bit_andc1);
+struct mkcl_cfun mk_cl_bit_andc2_cfunobj = MKCL_CFUN_VA(mk_cl_bit_andc2, MK_CL_bit_andc2);
+struct mkcl_cfun mk_cl_bit_eqv_cfunobj = MKCL_CFUN_VA(mk_cl_bit_eqv, MK_CL_bit_eqv);
+struct mkcl_cfun mk_cl_bit_ior_cfunobj = MKCL_CFUN_VA(mk_cl_bit_ior, MK_CL_bit_ior);
+struct mkcl_cfun mk_cl_bit_nand_cfunobj = MKCL_CFUN_VA(mk_cl_bit_nand, MK_CL_bit_nand);
+struct mkcl_cfun mk_cl_bit_nor_cfunobj = MKCL_CFUN_VA(mk_cl_bit_nor, MK_CL_bit_nor);
+struct mkcl_cfun mk_cl_bit_not_cfunobj = MKCL_CFUN_VA(mk_cl_bit_not, MK_CL_bit_not);
+struct mkcl_cfun mk_cl_bit_orc1_cfunobj = MKCL_CFUN_VA(mk_cl_bit_orc1, MK_CL_bit_orc1);
+struct mkcl_cfun mk_cl_bit_orc2_cfunobj = MKCL_CFUN_VA(mk_cl_bit_orc2, MK_CL_bit_orc2);
+struct mkcl_cfun mk_cl_bit_xor_cfunobj = MKCL_CFUN_VA(mk_cl_bit_xor, MK_CL_bit_xor);
+struct mkcl_cfun mk_cl_cerror_cfunobj = MKCL_CFUN_VA(mk_cl_cerror, MK_CL_cerror);
+struct mkcl_cfun mk_cl_concatenate_cfunobj = MKCL_CFUN_VA(mk_cl_concatenate, MK_CL_concatenate);
+struct mkcl_cfun mk_cl_continue_cfunobj = MKCL_CFUN_VA(mk_cl_continue, MK_CL_continue);
+struct mkcl_cfun mk_cl_copy_pprint_dispatch_cfunobj = MKCL_CFUN_VA(mk_cl_copy_pprint_dispatch, MK_CL_copy_pprint_dispatch);
+struct mkcl_cfun mk_cl_count_cfunobj = MKCL_CFUN_VA(mk_cl_count, MK_CL_count);
+struct mkcl_cfun mk_cl_count_if_cfunobj = MKCL_CFUN_VA(mk_cl_count_if, MK_CL_count_if);
+struct mkcl_cfun mk_cl_count_if_not_cfunobj = MKCL_CFUN_VA(mk_cl_count_if_not, MK_CL_count_if_not);
+struct mkcl_cfun mk_cl_decode_universal_time_cfunobj = MKCL_CFUN_VA(mk_cl_decode_universal_time, MK_CL_decode_universal_time);
+struct mkcl_cfun mk_cl_delete_cfunobj = MKCL_CFUN_VA(mk_cl_delete, MK_CL_delete);
+struct mkcl_cfun mk_cl_delete_duplicates_cfunobj = MKCL_CFUN_VA(mk_cl_delete_duplicates, MK_CL_delete_duplicates);
+struct mkcl_cfun mk_cl_delete_if_cfunobj = MKCL_CFUN_VA(mk_cl_delete_if, MK_CL_delete_if);
+struct mkcl_cfun mk_cl_delete_if_not_cfunobj = MKCL_CFUN_VA(mk_cl_delete_if_not, MK_CL_delete_if_not);
+struct mkcl_cfun mk_cl_encode_universal_time_cfunobj = MKCL_CFUN_VA(mk_cl_encode_universal_time, MK_CL_encode_universal_time);
+struct mkcl_cfun mk_cl_ensure_directories_exist_cfunobj = MKCL_CFUN_VA(mk_cl_ensure_directories_exist, MK_CL_ensure_directories_exist);
+struct mkcl_cfun mk_cl_every_cfunobj = MKCL_CFUN_VA(mk_cl_every, MK_CL_every);
+struct mkcl_cfun mk_cl_fceiling_cfunobj = MKCL_CFUN_VA(mk_cl_fceiling, MK_CL_fceiling);
+struct mkcl_cfun mk_cl_ffloor_cfunobj = MKCL_CFUN_VA(mk_cl_ffloor, MK_CL_ffloor);
+struct mkcl_cfun mk_cl_fill_cfunobj = MKCL_CFUN_VA(mk_cl_fill, MK_CL_fill);
+struct mkcl_cfun mk_cl_find_cfunobj = MKCL_CFUN_VA(mk_cl_find, MK_CL_find);
+struct mkcl_cfun mk_cl_find_if_cfunobj = MKCL_CFUN_VA(mk_cl_find_if, MK_CL_find_if);
+struct mkcl_cfun mk_cl_find_if_not_cfunobj = MKCL_CFUN_VA(mk_cl_find_if_not, MK_CL_find_if_not);
+struct mkcl_cfun mk_cl_fround_cfunobj = MKCL_CFUN_VA(mk_cl_fround, MK_CL_fround);
+struct mkcl_cfun mk_cl_ftruncate_cfunobj = MKCL_CFUN_VA(mk_cl_ftruncate, MK_CL_ftruncate);
+struct mkcl_cfun mk_cl_intersection_cfunobj = MKCL_CFUN_VA(mk_cl_intersection, MK_CL_intersection);
+struct mkcl_cfun mk_cl_make_array_cfunobj = MKCL_CFUN_VA(mk_cl_make_array, MK_CL_make_array);
+struct mkcl_cfun mk_cl_make_sequence_cfunobj = MKCL_CFUN_VA(mk_cl_make_sequence, MK_CL_make_sequence);
+struct mkcl_cfun mk_cl_map_cfunobj = MKCL_CFUN_VA(mk_cl_map, MK_CL_map);
+struct mkcl_cfun mk_cl_map_into_cfunobj = MKCL_CFUN_VA(mk_cl_map_into, MK_CL_map_into);
+struct mkcl_cfun mk_cl_member_if_cfunobj = MKCL_CFUN_VA(mk_cl_member_if, MK_CL_member_if);
+struct mkcl_cfun mk_cl_member_if_not_cfunobj = MKCL_CFUN_VA(mk_cl_member_if_not, MK_CL_member_if_not);
+struct mkcl_cfun mk_cl_merge_cfunobj = MKCL_CFUN_VA(mk_cl_merge, MK_CL_merge);
+struct mkcl_cfun mk_cl_mismatch_cfunobj = MKCL_CFUN_VA(mk_cl_mismatch, MK_CL_mismatch);
+
+#endif /* def MKCL_FINAL */
+
 static void
 make_this_symbol(MKCL, int i, struct mkcl_symbol * symbol, int code,
 		 const char *name,

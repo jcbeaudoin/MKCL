@@ -1687,6 +1687,8 @@ mkcl_make_string_output_stream(MKCL, mkcl_index line_length, bool extended, mkcl
 
 #define DEFAULT_OUTPUT_STRING_LENGTH 128
 
+struct mkcl_cfun mk_cl_make_string_output_stream_cfunobj = MKCL_CFUN_VA(mk_cl_make_string_output_stream, MK_CL_make_string_output_stream);
+
 mkcl_object mk_cl_make_string_output_stream(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -1932,6 +1934,8 @@ mkcl_make_string_input_stream(MKCL, mkcl_object strng, mkcl_index istart, mkcl_i
   }
   return strm;
 }
+
+struct mkcl_cfun mk_cl_make_string_input_stream_cfunobj = MKCL_CFUN_VA(mk_cl_make_string_input_stream, MK_CL_make_string_input_stream);
 
 mkcl_object mk_cl_make_string_input_stream(MKCL, mkcl_narg narg, mkcl_object strng, ...)
 {
@@ -2309,6 +2313,8 @@ static const struct mkcl_file_ops broadcast_ops = {
   generic_close
 };
 
+struct mkcl_cfun mk_cl_make_broadcast_stream_cfunobj = MKCL_CFUN_VA(mk_cl_make_broadcast_stream, MK_CL_make_broadcast_stream);
+
 mkcl_object mk_cl_make_broadcast_stream(MKCL, mkcl_narg narg, ...)
 {
   mkcl_object x, streams;
@@ -2639,6 +2645,8 @@ static const struct mkcl_file_ops concatenated_ops = {
   generic_column,
   generic_close
 };
+
+struct mkcl_cfun mk_cl_make_concatenated_stream_cfunobj = MKCL_CFUN_VA(mk_cl_make_concatenated_stream, MK_CL_make_concatenated_stream);
 
 mkcl_object mk_cl_make_concatenated_stream(MKCL, mkcl_narg narg, ...)
 {
@@ -4949,6 +4957,8 @@ mk_cl_file_length(MKCL, mkcl_object strm)
 }
 
 
+struct mkcl_cfun mk_cl_file_position_cfunobj = MKCL_CFUN_VA(mk_cl_file_position, MK_CL_file_position);
+
 mkcl_object mk_cl_file_position(MKCL, mkcl_narg narg, mkcl_object file_stream, ...)
 {
   mkcl_call_stack_check(env);
@@ -5411,6 +5421,8 @@ mkcl_object mk_si_ansi_close(MKCL, mkcl_object strm, mkcl_object abort)
   /* We simply drop 'abort' although ANSI-CL says to do otherwise. Fix it someday. JCB */
   mkcl_return_value(stream_dispatch_table(env, strm)->close(env, strm));
 }
+
+struct mkcl_cfun mk_cl_close_cfunobj = MKCL_CFUN_VA(mk_cl_close, MK_CL_close);
 
 mkcl_object mk_cl_close(MKCL, mkcl_narg narg, mkcl_object strm, ...)
 {
