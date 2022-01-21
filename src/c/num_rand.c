@@ -206,6 +206,8 @@ mkcl_make_random_state(MKCL, mkcl_object rs)
   return(z);
 }
 
+struct mkcl_cfun mk_cl_random_cfunobj = MKCL_CFUN_VA(mk_cl_random, MK_CL_random);
+
 mkcl_object mk_cl_random(MKCL, mkcl_narg narg, mkcl_object x, ...)
 {
   mkcl_call_stack_check(env);

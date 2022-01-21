@@ -402,6 +402,8 @@ file_kind(MKCL, mkcl_object os_filename, bool follow_links)
 }
 
 
+struct mkcl_cfun mk_si_file_kind_cfunobj = MKCL_CFUN_VA(mk_si_file_kind, MK_SI_file_kind);
+
 mkcl_object mk_si_file_kind(MKCL, mkcl_narg narg, mkcl_object filespec, ...)
 {
   mkcl_call_stack_check(env);
@@ -966,6 +968,8 @@ mkcl_homedir_pathname(MKCL, mkcl_object user)
   return mk_cl_parse_namestring(env, 3, namestring, mk_cl_Cnil, mk_cl_Cnil);
 }
 
+struct mkcl_cfun mk_cl_user_homedir_pathname_cfunobj = MKCL_CFUN_VA(mk_cl_user_homedir_pathname, MK_CL_user_homedir_pathname);
+
 mkcl_object mk_cl_user_homedir_pathname(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -1511,6 +1515,8 @@ mkcl_object mk_cl_directory(MKCL, mkcl_narg narg, mkcl_object pathspec, ...)
   }
 }
 
+struct mkcl_cfun mk_mkcl_getcwd_cfunobj = MKCL_CFUN_VA(mk_mkcl_getcwd, MK_MKCL_getcwd);
+
 mkcl_object mk_mkcl_getcwd(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -1638,6 +1644,8 @@ mk_si_get_SYS_library_pathname(MKCL)
   mkcl_return_value(SYS_libdir);
 }
 
+struct mkcl_cfun mk_mkcl_chdir_cfunobj = MKCL_CFUN_VA(mk_mkcl_chdir, MK_MKCL_chdir);
+
 mkcl_object mk_mkcl_chdir(MKCL, mkcl_narg narg, mkcl_object directory, ...)
 {
   mkcl_call_stack_check(env);
@@ -1687,6 +1695,8 @@ mk_mkcl_mkdir(MKCL, mkcl_object directory, mkcl_object mode)
 }
 
 /* For #'si:mkstemp we follow the same keyword argument defaults as #'cl:open. */
+struct mkcl_cfun mk_mkcl_mkstemp_cfunobj = MKCL_CFUN_VA(mk_mkcl_mkstemp, MK_MKCL_mkstemp);
+
 mkcl_object mk_mkcl_mkstemp(MKCL, mkcl_narg narg, mkcl_object template, ...)
 {
   mkcl_call_stack_check(env);

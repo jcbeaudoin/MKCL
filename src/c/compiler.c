@@ -2412,6 +2412,8 @@ c_listA(MKCL, mkcl_object args, int flags)
 /*
   Handles special declarations, removes declarations from body
  */
+struct mkcl_cfun mk_si_process_declarations_cfunobj = MKCL_CFUN_VA(mk_si_process_declarations, MK_SI_process_declarations);
+
 mkcl_object mk_si_process_declarations(MKCL, mkcl_narg narg, mkcl_object body, ...)
 {
   mkcl_call_stack_check(env);
@@ -2918,6 +2920,8 @@ mk_si_make_lambda(MKCL, mkcl_object name, mkcl_object rest)
   } MKCL_UNWIND_PROTECT_END;
   mkcl_return_value(lambda);
 }
+
+struct mkcl_cfun mk_si_eval_in_env_cfunobj = MKCL_CFUN_VA(mk_si_eval_in_env, MK_SI_eval_in_env);
 
 mkcl_object mk_si_eval_in_env(MKCL, mkcl_narg narg, mkcl_object form, ...)
 {

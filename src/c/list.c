@@ -420,6 +420,8 @@ tree_equal(MKCL, struct cl_test *t, mkcl_object x, mkcl_object y)
   }
 }
 
+struct mkcl_cfun mk_cl_tree_equal_cfunobj = MKCL_CFUN_VA(mk_cl_tree_equal, MK_CL_tree_equal);
+
 mkcl_object mk_cl_tree_equal(MKCL, mkcl_narg narg, mkcl_object x, mkcl_object y, ...)
 {
   mkcl_call_stack_check(env);
@@ -736,6 +738,8 @@ mk_cl_revappend(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_value(y);
 }
 
+struct mkcl_cfun mk_cl_nconc_cfunobj = MKCL_CFUN_VA(mk_cl_nconc, MK_CL_nconc);
+
 mkcl_object mk_cl_nconc(MKCL, mkcl_narg narg, ...)
 {
   mkcl_object head = mk_cl_Cnil, tail = mk_cl_Cnil;
@@ -868,6 +872,8 @@ mkcl_nbutlast(MKCL, mkcl_object l, mkcl_index n)
   }
   return mk_cl_Cnil;
 }
+
+struct mkcl_cfun mk_cl_nbutlast_cfunobj = MKCL_CFUN_VA(mk_cl_nbutlast, MK_CL_nbutlast);
 
 mkcl_object mk_cl_nbutlast(MKCL, mkcl_narg narg, mkcl_object lis, ...)
 {
@@ -1010,6 +1016,8 @@ subst(MKCL, struct cl_test *t, mkcl_object new_obj, mkcl_object tree)
   }
 }
 
+struct mkcl_cfun mk_cl_subst_cfunobj = MKCL_CFUN_VA(mk_cl_subst, MK_CL_subst);
+
 mkcl_object mk_cl_subst(MKCL, mkcl_narg narg, mkcl_object new_obj, mkcl_object old_obj, mkcl_object tree, ...)
 {
   mkcl_call_stack_check(env);
@@ -1061,6 +1069,8 @@ nsubst(MKCL, struct cl_test *t, mkcl_object new_obj, mkcl_object tree)
   return tree;
 }
 
+struct mkcl_cfun mk_cl_nsubst_cfunobj = MKCL_CFUN_VA(mk_cl_nsubst, MK_CL_nsubst);
+
 mkcl_object mk_cl_nsubst(MKCL, mkcl_narg narg, mkcl_object new_obj, mkcl_object old_obj, mkcl_object tree, ...)
 {
   mkcl_call_stack_check(env);
@@ -1100,6 +1110,8 @@ sublis(MKCL, struct cl_test *t, mkcl_object alist, mkcl_object tree)
   }
   return tree;
 }
+
+struct mkcl_cfun mk_cl_sublis_cfunobj = MKCL_CFUN_VA(mk_cl_sublis, MK_CL_sublis);
 
 mkcl_object mk_cl_sublis(MKCL, mkcl_narg narg, mkcl_object alist, mkcl_object tree, ...)
 {
@@ -1147,6 +1159,8 @@ nsublis(MKCL, struct cl_test *t, mkcl_object alist, mkcl_object tree)
   }
   return tree;
 }
+
+struct mkcl_cfun mk_cl_nsublis_cfunobj = MKCL_CFUN_VA(mk_cl_nsublis, MK_CL_nsublis);
 
 mkcl_object mk_cl_nsublis(MKCL, mkcl_narg narg, mkcl_object alist, mkcl_object tree, ...)
 {
@@ -1358,6 +1372,8 @@ mk_cl_acons(MKCL, mkcl_object x, mkcl_object y, mkcl_object z)
   mkcl_return_value(MKCL_CONS(env, MKCL_CONS(env, x, y), z));
 }
 
+struct mkcl_cfun mk_cl_pairlis_cfunobj = MKCL_CFUN_VA(mk_cl_pairlis, MK_CL_pairlis);
+
 mkcl_object mk_cl_pairlis(MKCL, mkcl_narg narg, mkcl_object keys, mkcl_object data, ...)
 {
   mkcl_call_stack_check(env);
@@ -1381,6 +1397,8 @@ mkcl_object mk_cl_pairlis(MKCL, mkcl_narg narg, mkcl_object keys, mkcl_object da
   }
 }
 
+
+struct mkcl_cfun mk_cl_rassoc_cfunobj = MKCL_CFUN_VA(mk_cl_rassoc, MK_CL_rassoc);
 
 mkcl_object mk_cl_rassoc(MKCL, mkcl_narg narg, mkcl_object item, mkcl_object a_list, ...)
 {

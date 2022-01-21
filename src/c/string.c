@@ -927,6 +927,8 @@ compare_base(unsigned char *s1, mkcl_index l1, unsigned char *s2, mkcl_index l2,
   }
 }
 
+struct mkcl_cfun mk_cl_stringE_cfunobj = MKCL_CFUN_VA(mk_cl_stringE, MK_CL_stringE);
+
 mkcl_object mk_cl_stringE(MKCL, mkcl_narg narg, mkcl_object string1, mkcl_object string2, ...)
 {
   mkcl_call_stack_check(env);
@@ -1044,6 +1046,8 @@ mkcl_string_E(MKCL, mkcl_object x, mkcl_object y)
 }
 
 
+struct mkcl_cfun mk_cl_string_equal_cfunobj = MKCL_CFUN_VA(mk_cl_string_equal, MK_CL_string_equal);
+
 mkcl_object mk_cl_string_equal(MKCL, mkcl_narg narg, mkcl_object string1, mkcl_object string2, ...)
 {
   mkcl_call_stack_check(env);
@@ -1128,6 +1132,8 @@ string_compare(MKCL, mkcl_narg narg, int sign1, int sign2, int case_sensitive, m
 #undef end2
 }
 
+struct mkcl_cfun mk_cl_stringL_cfunobj = MKCL_CFUN_VA(mk_cl_stringL, MK_CL_stringL);
+
 mkcl_object mk_cl_stringL(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -1137,6 +1143,8 @@ mkcl_object mk_cl_stringL(MKCL, mkcl_narg narg, ...)
     return string_compare(env, narg, -1, -1, 1, args);
   }
 }
+
+struct mkcl_cfun mk_cl_stringG_cfunobj = MKCL_CFUN_VA(mk_cl_stringG, MK_CL_stringG);
 
 mkcl_object mk_cl_stringG(MKCL, mkcl_narg narg, ...)
 {
@@ -1148,6 +1156,8 @@ mkcl_object mk_cl_stringG(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_stringLE_cfunobj = MKCL_CFUN_VA(mk_cl_stringLE, MK_CL_stringLE);
+
 mkcl_object mk_cl_stringLE(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -1157,6 +1167,8 @@ mkcl_object mk_cl_stringLE(MKCL, mkcl_narg narg, ...)
     return string_compare(env, narg, -1, 0, 1, args);
   }
 }
+
+struct mkcl_cfun mk_cl_stringGE_cfunobj = MKCL_CFUN_VA(mk_cl_stringGE, MK_CL_stringGE);
 
 mkcl_object mk_cl_stringGE(MKCL, mkcl_narg narg, ...)
 {
@@ -1169,6 +1181,8 @@ mkcl_object mk_cl_stringGE(MKCL, mkcl_narg narg, ...)
 }
 
 
+struct mkcl_cfun mk_cl_stringNE_cfunobj = MKCL_CFUN_VA(mk_cl_stringNE, MK_CL_stringNE);
+
 mkcl_object mk_cl_stringNE(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -1178,6 +1192,8 @@ mkcl_object mk_cl_stringNE(MKCL, mkcl_narg narg, ...)
     return string_compare(env, narg, -1, +1, 1, args);
   }
 }
+
+struct mkcl_cfun mk_cl_string_lessp_cfunobj = MKCL_CFUN_VA(mk_cl_string_lessp, MK_CL_string_lessp);
 
 mkcl_object mk_cl_string_lessp(MKCL, mkcl_narg narg, ...)
 {
@@ -1189,6 +1205,8 @@ mkcl_object mk_cl_string_lessp(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_string_greaterp_cfunobj = MKCL_CFUN_VA(mk_cl_string_greaterp, MK_CL_string_greaterp);
+
 mkcl_object mk_cl_string_greaterp(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -1198,6 +1216,8 @@ mkcl_object mk_cl_string_greaterp(MKCL, mkcl_narg narg, ...)
   return string_compare(env, narg, +1, +1, 0, args);
   }
 }
+
+struct mkcl_cfun mk_cl_string_not_greaterp_cfunobj = MKCL_CFUN_VA(mk_cl_string_not_greaterp, MK_CL_string_not_greaterp);
 
 mkcl_object mk_cl_string_not_greaterp(MKCL, mkcl_narg narg, ...)
 {
@@ -1209,6 +1229,8 @@ mkcl_object mk_cl_string_not_greaterp(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_string_not_lessp_cfunobj = MKCL_CFUN_VA(mk_cl_string_not_lessp, MK_CL_string_not_lessp);
+
 mkcl_object mk_cl_string_not_lessp(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -1218,6 +1240,8 @@ mkcl_object mk_cl_string_not_lessp(MKCL, mkcl_narg narg, ...)
     return string_compare(env, narg, 0, +1, 0, args);
   }
 }
+
+struct mkcl_cfun mk_cl_string_not_equal_cfunobj = MKCL_CFUN_VA(mk_cl_string_not_equal, MK_CL_string_not_equal);
 
 mkcl_object mk_cl_string_not_equal(MKCL, mkcl_narg narg, ...)
 {
@@ -1438,6 +1462,8 @@ char_upcase(mkcl_character c, bool *bp)
   return mkcl_char_upcase(c);
 }
 
+struct mkcl_cfun mk_cl_string_upcase_cfunobj = MKCL_CFUN_VA(mk_cl_string_upcase, MK_CL_string_upcase);
+
 mkcl_object mk_cl_string_upcase(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -1453,6 +1479,8 @@ char_downcase(mkcl_character c, bool *bp)
 {
   return mkcl_char_downcase(c);
 }
+
+struct mkcl_cfun mk_cl_string_downcase_cfunobj = MKCL_CFUN_VA(mk_cl_string_downcase, MK_CL_string_downcase);
 
 mkcl_object mk_cl_string_downcase(MKCL, mkcl_narg narg, ...)
 {
@@ -1480,6 +1508,8 @@ char_capitalize(mkcl_character c, bool *bp)
   }
   return c;
 }
+
+struct mkcl_cfun mk_cl_string_capitalize_cfunobj = MKCL_CFUN_VA(mk_cl_string_capitalize, MK_CL_string_capitalize);
 
 mkcl_object mk_cl_string_capitalize(MKCL, mkcl_narg narg, ...)
 {
@@ -1527,6 +1557,8 @@ nstring_case(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_casefun casefun, mkcl_v
 #undef end
 }
 
+struct mkcl_cfun mk_cl_nstring_upcase_cfunobj = MKCL_CFUN_VA(mk_cl_nstring_upcase, MK_CL_nstring_upcase);
+
 mkcl_object mk_cl_nstring_upcase(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -1536,6 +1568,8 @@ mkcl_object mk_cl_nstring_upcase(MKCL, mkcl_narg narg, ...)
     return nstring_case(env, narg, MK_CL_nstring_upcase, char_upcase, args);
   }
 }
+
+struct mkcl_cfun mk_cl_nstring_downcase_cfunobj = MKCL_CFUN_VA(mk_cl_nstring_downcase, MK_CL_nstring_downcase);
 
 mkcl_object mk_cl_nstring_downcase(MKCL, mkcl_narg narg, ...)
 {
@@ -1547,6 +1581,8 @@ mkcl_object mk_cl_nstring_downcase(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_nstring_capitalize_cfunobj = MKCL_CFUN_VA(mk_cl_nstring_capitalize, MK_CL_nstring_capitalize);
+
 mkcl_object mk_cl_nstring_capitalize(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -1556,6 +1592,8 @@ mkcl_object mk_cl_nstring_capitalize(MKCL, mkcl_narg narg, ...)
     return nstring_case(env, narg, MK_CL_nstring_capitalize, char_capitalize, args);
   }
 }
+
+struct mkcl_cfun mk_si_concatenate_base_strings_cfunobj = MKCL_CFUN_VA(mk_si_concatenate_base_strings, MK_SI_concatenate_base_strings);
 
 mkcl_object mk_si_concatenate_base_strings(MKCL, mkcl_narg narg, ...)
 {
@@ -1645,6 +1683,8 @@ mkcl_object mkcl_concatenate_3_base_strings(MKCL, mkcl_object str1, mkcl_object 
   memcpy(&(new->base_string.self[len1 + len2]), str3->base_string.self, len3);
   return new;
 }
+
+struct mkcl_cfun mk_si_concatenate_strings_cfunobj = MKCL_CFUN_VA(mk_si_concatenate_strings, MK_SI_concatenate_strings);
 
 mkcl_object mk_si_concatenate_strings(MKCL, mkcl_narg narg, ...)
 {
@@ -2748,6 +2788,8 @@ mkcl_object mk_si_utf_8_char(MKCL, mkcl_object utf_8, mkcl_object index_fix)
                        (invalid ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_si_utf_8Plus_cfunobj = MKCL_CFUN_VA(mk_si_utf_8Plus, MK_SI_utf_8Plus);
+
 mkcl_object mk_si_utf_8Plus(MKCL, mkcl_narg narg, ...)
 {
   mkcl_index len;
@@ -3247,9 +3289,8 @@ mkcl_object mk_si_utf_16_char(MKCL, mkcl_object utf_16, mkcl_object index_fix)
                        (invalid ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-#if 0
+
 struct mkcl_cfun mk_si_utf_16Plus_cfunobj = MKCL_CFUN_VA(mk_si_utf_16Plus, MK_SI_utf_16Plus);
-#endif
 
 mkcl_object mk_si_utf_16Plus(MKCL, mkcl_narg narg, ...)
 {

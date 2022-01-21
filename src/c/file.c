@@ -5337,6 +5337,8 @@ mkcl_open_stream(MKCL, mkcl_object fn, enum mkcl_smmode smm,
 }
 
 /* shouldn't it be "character" instead as default value for element-type? JCB */
+struct mkcl_cfun mk_cl_open_cfunobj = MKCL_CFUN_VA(mk_cl_open, MK_CL_open);
+
 mkcl_object mk_cl_open(MKCL, mkcl_narg narg, mkcl_object filename, ...)
 {
   mkcl_call_stack_check(env);

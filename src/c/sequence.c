@@ -134,6 +134,8 @@ mkcl_elt_set(MKCL, mkcl_object seq, mkcl_word index, mkcl_object val)
   mkcl_FEtype_error_seq_index(env, seq, MKCL_MAKE_FIXNUM(index));
 }
 
+struct mkcl_cfun mk_cl_subseq_cfunobj = MKCL_CFUN_VA(mk_cl_subseq, MK_CL_subseq);
+
 mkcl_object mk_cl_subseq(MKCL, mkcl_narg narg, mkcl_object sequence, mkcl_object start, ...)
 {
   mkcl_call_stack_check(env);

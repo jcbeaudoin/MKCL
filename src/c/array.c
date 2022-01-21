@@ -390,6 +390,8 @@ mkcl_vref(MKCL, mkcl_object v, mkcl_object index)
 
 		(si:aset value array dim0 ... dimN)
 */
+struct mkcl_cfun mk_si_aset_cfunobj = MKCL_CFUN_VA(mk_si_aset, MK_SI_aset);
+
 mkcl_object mk_si_aset(MKCL, const mkcl_narg narg, mkcl_object v, mkcl_object x, ...)
 {
   mkcl_call_stack_check(env);

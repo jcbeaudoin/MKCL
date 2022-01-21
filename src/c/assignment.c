@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2017,2021-2022 Jean-Claude Beaudoin.
+    Copyright (c) 2010-2017,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -51,6 +51,8 @@ mk_cl_set(MKCL, mkcl_object var, mkcl_object val)
   val = MKCL_SETQ(env, var, val);
   mkcl_return1(val);
 }
+
+struct mkcl_cfun mk_si_fset_cfunobj = MKCL_CFUN_VA(mk_si_fset, MK_SI_fset);
 
 mkcl_object mk_si_fset(MKCL, mkcl_narg narg, mkcl_object fname, mkcl_object def, ...)
 {

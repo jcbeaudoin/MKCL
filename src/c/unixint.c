@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyrignt (c) 2010-2019,2021 Jean-Claude Beaudoin. (Completely rewritten 2010)
+    Copyrignt (c) 2010-2019,2021-2022, Jean-Claude Beaudoin. (Completely rewritten 2010)
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -534,6 +534,8 @@ install_lisp_terminal_signal_handler(MKCL)
 
 /* End of new fully POSIX compliant signal code */
 #endif /* MKCL_UNIX */
+
+struct mkcl_cfun mk_si_setup_for_gdb_cfunobj = MKCL_CFUN_VA(mk_si_setup_for_gdb, MK_SI_setup_for_gdb);
 
 mkcl_object mk_si_setup_for_gdb(MKCL, mkcl_narg narg, ...)
 {

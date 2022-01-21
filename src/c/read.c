@@ -1592,6 +1592,8 @@ stream_or_default_input(MKCL, mkcl_object stream)
   return stream;
 }
 
+struct mkcl_cfun mk_cl_read_cfunobj = MKCL_CFUN_VA(mk_cl_read, MK_CL_read);
+
 mkcl_object mk_cl_read(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -1625,6 +1627,8 @@ mkcl_object mk_cl_read(MKCL, mkcl_narg narg, ...)
     mkcl_return_value(x);
   }
 }
+
+struct mkcl_cfun mk_cl_read_preserving_whitespace_cfunobj = MKCL_CFUN_VA(mk_cl_read_preserving_whitespace, MK_CL_read_preserving_whitespace);
 
 mkcl_object mk_cl_read_preserving_whitespace(MKCL, mkcl_narg narg, ...)
 {
@@ -1693,6 +1697,8 @@ do_read_delimited_list(MKCL, int d, mkcl_object in, bool proper_list)
   } while (1);
 }
 
+struct mkcl_cfun mk_cl_read_delimited_list_cfunobj = MKCL_CFUN_VA(mk_cl_read_delimited_list, MK_CL_read_delimited_list);
+
 mkcl_object mk_cl_read_delimited_list(MKCL, mkcl_narg narg, mkcl_object d, ...)
 {
   mkcl_call_stack_check(env);
@@ -1717,6 +1723,8 @@ mkcl_object mk_cl_read_delimited_list(MKCL, mkcl_narg narg, mkcl_object d, ...)
     mkcl_return_value(l);
   }
 }
+
+struct mkcl_cfun mk_cl_read_line_cfunobj = MKCL_CFUN_VA(mk_cl_read_line, MK_CL_read_line);
 
 mkcl_object mk_cl_read_line(MKCL, mkcl_narg narg, ...)
 {
@@ -1769,6 +1777,8 @@ mkcl_object mk_cl_read_line(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_read_char_cfunobj = MKCL_CFUN_VA(mk_cl_read_char, MK_CL_read_char);
+
 mkcl_object mk_cl_read_char(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -1793,6 +1803,8 @@ mkcl_object mk_cl_read_char(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_unread_char_cfunobj = MKCL_CFUN_VA(mk_cl_unread_char, MK_CL_unread_char);
+
 mkcl_object mk_cl_unread_char(MKCL, mkcl_narg narg, mkcl_object c, ...)
 {
   mkcl_call_stack_check(env);
@@ -1806,6 +1818,8 @@ mkcl_object mk_cl_unread_char(MKCL, mkcl_narg narg, mkcl_object c, ...)
     mkcl_return_value(mk_cl_Cnil);
   }
 }
+
+struct mkcl_cfun mk_cl_peek_char_cfunobj = MKCL_CFUN_VA(mk_cl_peek_char, MK_CL_peek_char);
 
 mkcl_object mk_cl_peek_char(MKCL, mkcl_narg narg, ...)
 {
@@ -1906,6 +1920,8 @@ mkcl_object mk_cl_listen(MKCL, mkcl_narg narg, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_read_char_no_hang_cfunobj = MKCL_CFUN_VA(mk_cl_read_char_no_hang, MK_CL_read_char_no_hang);
+
 mkcl_object mk_cl_read_char_no_hang(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -1956,6 +1972,8 @@ mkcl_object mk_cl_clear_input(MKCL, mkcl_narg narg, ...)
     mkcl_return_value(mk_cl_Cnil);
   }
 }
+
+struct mkcl_cfun mk_cl_parse_integer_cfunobj = MKCL_CFUN_VA(mk_cl_parse_integer, MK_CL_parse_integer);
 
 mkcl_object mk_cl_parse_integer(MKCL, mkcl_narg narg, mkcl_object strng, ...)
 {
@@ -2009,6 +2027,8 @@ mkcl_object mk_cl_parse_integer(MKCL, mkcl_narg narg, mkcl_object strng, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_read_byte_cfunobj = MKCL_CFUN_VA(mk_cl_read_byte, MK_CL_read_byte);
+
 mkcl_object mk_cl_read_byte(MKCL, mkcl_narg narg, mkcl_object binary_input_stream, ...)
 {
   mkcl_call_stack_check(env);
@@ -2028,6 +2048,8 @@ mkcl_object mk_cl_read_byte(MKCL, mkcl_narg narg, mkcl_object binary_input_strea
     mkcl_return_value(c);
   }
 }
+
+struct mkcl_cfun mk_cl_read_sequence_cfunobj = MKCL_CFUN_VA(mk_cl_read_sequence, MK_CL_read_sequence);
 
 mkcl_object mk_cl_read_sequence(MKCL, mkcl_narg narg, mkcl_object sequence, mkcl_object stream, ...)
 {
@@ -2181,6 +2203,8 @@ mkcl_invalid_constituent_character_p(mkcl_character c)
   return (c <= 32) || (c == 127);
 }
 
+struct mkcl_cfun mk_cl_set_syntax_from_char_cfunobj = MKCL_CFUN_VA(mk_cl_set_syntax_from_char, MK_CL_set_syntax_from_char);
+
 mkcl_object mk_cl_set_syntax_from_char(MKCL, mkcl_narg narg, mkcl_object tochr, mkcl_object fromchr, ...)
 {
   mkcl_call_stack_check(env);
@@ -2220,6 +2244,8 @@ mkcl_object mk_cl_set_syntax_from_char(MKCL, mkcl_narg narg, mkcl_object tochr, 
     mkcl_return_value(mk_cl_Ct);
   }
 }
+
+struct mkcl_cfun mk_cl_set_macro_character_cfunobj = MKCL_CFUN_VA(mk_cl_set_macro_character, MK_CL_set_macro_character);
 
 mkcl_object mk_cl_set_macro_character(MKCL, mkcl_narg narg, mkcl_object c, mkcl_object function, ...)
 {
@@ -2288,6 +2314,8 @@ mkcl_object mk_cl_make_dispatch_macro_character(MKCL, mkcl_narg narg, mkcl_objec
     mkcl_return_value(mk_cl_Ct);
   }
 }
+
+struct mkcl_cfun mk_cl_set_dispatch_macro_character_cfunobj = MKCL_CFUN_VA(mk_cl_set_dispatch_macro_character, MK_CL_set_dispatch_macro_character);
 
 mkcl_object mk_cl_set_dispatch_macro_character(MKCL, mkcl_narg narg, mkcl_object dspchr, mkcl_object subchr, mkcl_object fnc, ...)
 {

@@ -1088,6 +1088,8 @@ mk_cl_sxhash(MKCL, mkcl_object key)
   mkcl_return_value(MKCL_MAKE_FIXNUM(output & mask));
 }
 
+struct mkcl_cfun mk_si_hash_eql_cfunobj = MKCL_CFUN_VA(mk_si_hash_eql, MK_SI_hash_eql);
+
 mkcl_object mk_si_hash_eql(MKCL, mkcl_narg narg, ...)
 {
   mkcl_index h;
@@ -1106,6 +1108,8 @@ mkcl_object mk_si_hash_eql(MKCL, mkcl_narg narg, ...)
 }
 
 
+struct mkcl_cfun mk_si_hash_equal_cfunobj = MKCL_CFUN_VA(mk_si_hash_equal, MK_SI_hash_equal);
+
 mkcl_object mk_si_hash_equal(MKCL, mkcl_narg narg, ...)
 {
   mkcl_index h;
@@ -1122,6 +1126,8 @@ mkcl_object mk_si_hash_equal(MKCL, mkcl_narg narg, ...)
   mkcl_return_value(MKCL_MAKE_FIXNUM(h));
   }
 }
+
+struct mkcl_cfun mk_si_hash_equalp_cfunobj = MKCL_CFUN_VA(mk_si_hash_equalp, MK_SI_hash_equalp);
 
 mkcl_object mk_si_hash_equalp(MKCL, mkcl_narg narg, ...)
 {

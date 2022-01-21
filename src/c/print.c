@@ -1969,6 +1969,8 @@ potential_number_p(MKCL, mkcl_object strng, mkcl_word base)
 
 
 
+struct mkcl_cfun mk_cl_write_cfunobj = MKCL_CFUN_VA(mk_cl_write, MK_CL_write);
+
 mkcl_object mk_cl_write(MKCL, mkcl_narg narg, mkcl_object x, ...)
 {
   mkcl_call_stack_check(env);
@@ -2035,6 +2037,8 @@ mkcl_object mk_cl_write(MKCL, mkcl_narg narg, mkcl_object x, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_prin1_cfunobj = MKCL_CFUN_VA(mk_cl_prin1, MK_CL_prin1);
+
 mkcl_object mk_cl_prin1(MKCL, mkcl_narg narg, mkcl_object obj, ...)
 {
   mkcl_call_stack_check(env);
@@ -2047,6 +2051,8 @@ mkcl_object mk_cl_prin1(MKCL, mkcl_narg narg, mkcl_object obj, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_print_cfunobj = MKCL_CFUN_VA(mk_cl_print, MK_CL_print);
+
 mkcl_object mk_cl_print(MKCL, mkcl_narg narg, mkcl_object obj, ...)
 {
   mkcl_call_stack_check(env);
@@ -2058,6 +2064,8 @@ mkcl_object mk_cl_print(MKCL, mkcl_narg narg, mkcl_object obj, ...)
     mkcl_return_value(obj);
   }
 }
+
+struct mkcl_cfun mk_cl_pprint_cfunobj = MKCL_CFUN_VA(mk_cl_pprint, MK_CL_pprint);
 
 mkcl_object mk_cl_pprint(MKCL, mkcl_narg narg, mkcl_object obj, ...)
 {
@@ -2077,6 +2085,8 @@ mkcl_object mk_cl_pprint(MKCL, mkcl_narg narg, mkcl_object obj, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_princ_cfunobj = MKCL_CFUN_VA(mk_cl_princ, MK_CL_princ);
+
 mkcl_object mk_cl_princ(MKCL, mkcl_narg narg, mkcl_object obj, ...)
 {
   mkcl_call_stack_check(env);
@@ -2088,6 +2098,8 @@ mkcl_object mk_cl_princ(MKCL, mkcl_narg narg, mkcl_object obj, ...)
     mkcl_return_value(obj);
   }
 }
+
+struct mkcl_cfun mk_cl_write_char_cfunobj = MKCL_CFUN_VA(mk_cl_write_char, MK_CL_write_char);
 
 mkcl_object mk_cl_write_char(MKCL, mkcl_narg narg, mkcl_object c, ...)
 {
@@ -2102,6 +2114,8 @@ mkcl_object mk_cl_write_char(MKCL, mkcl_narg narg, mkcl_object c, ...)
     mkcl_return_value(c);
   }
 }
+
+struct mkcl_cfun mk_cl_write_string_cfunobj = MKCL_CFUN_VA(mk_cl_write_string, MK_CL_write_string);
 
 mkcl_object mk_cl_write_string(MKCL, const mkcl_narg narg, mkcl_object strng, ...)
 {
@@ -2129,6 +2143,8 @@ mkcl_object mk_cl_write_string(MKCL, const mkcl_narg narg, mkcl_object strng, ..
   }
 }
 
+struct mkcl_cfun mk_cl_write_line_cfunobj = MKCL_CFUN_VA(mk_cl_write_line, MK_CL_write_line);
+
 mkcl_object mk_cl_write_line(MKCL, const mkcl_narg narg, mkcl_object strng, ...)
 {
   mkcl_call_stack_check(env);
@@ -2155,6 +2171,8 @@ mkcl_object mk_cl_write_line(MKCL, const mkcl_narg narg, mkcl_object strng, ...)
   mkcl_return_value(strng);
   }
 }
+
+struct mkcl_cfun mk_cl_terpri_cfunobj = MKCL_CFUN_VA(mk_cl_terpri, MK_CL_terpri);
 
 mkcl_object mk_cl_terpri(MKCL, mkcl_narg narg, ...)
 {
@@ -2245,6 +2263,8 @@ mk_cl_write_byte(MKCL, mkcl_object integer, mkcl_object binary_output_stream)
   mkcl_write_byte(env, integer, binary_output_stream);
   mkcl_return_value(integer);
 }
+
+struct mkcl_cfun mk_cl_write_sequence_cfunobj = MKCL_CFUN_VA(mk_cl_write_sequence, MK_CL_write_sequence);
 
 mkcl_object mk_cl_write_sequence(MKCL, mkcl_narg narg, mkcl_object sequence, mkcl_object stream, ...)
 {

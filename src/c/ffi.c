@@ -766,6 +766,8 @@ void mkcl_fficall_align16(MKCL)
   fficall->buffer_sp = (char *) (((intptr_t) (fficall->buffer_sp + 0xF)) & ~((uintptr_t)0xF));
 }
 
+struct mkcl_cfun mk_si_call_cfun_cfunobj = MKCL_CFUN_VA(mk_si_call_cfun, MK_SI_call_cfun);
+
 mkcl_object mk_si_call_cfun(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_object return_type, mkcl_object arg_types, mkcl_object args, ...)
 {
   mkcl_call_stack_check(env);
@@ -807,6 +809,8 @@ mkcl_object mk_si_call_cfun(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_object r
       }
   }
 }
+
+struct mkcl_cfun mk_si_make_dynamic_callback_cfunobj = MKCL_CFUN_VA(mk_si_make_dynamic_callback, MK_SI_make_dynamic_callback);
 
 mkcl_object mk_si_make_dynamic_callback(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_object sym, mkcl_object rtype, mkcl_object argtypes, ...)
 {

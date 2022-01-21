@@ -1000,6 +1000,8 @@ mk_cl_package_nicknames(MKCL, mkcl_object p)
   mkcl_return_value(mk_cl_copy_list(env, p->pack.nicknames));
 }
 
+struct mkcl_cfun mk_cl_rename_package_cfunobj = MKCL_CFUN_VA(mk_cl_rename_package, MK_CL_rename_package);
+
 mkcl_object mk_cl_rename_package(MKCL, mkcl_narg narg, mkcl_object pack, mkcl_object new_name, ...)
 {
   mkcl_call_stack_check(env);
@@ -1136,6 +1138,8 @@ mkcl_object mk_cl_find_symbol(MKCL, mkcl_narg narg, mkcl_object strng, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_unintern_cfunobj = MKCL_CFUN_VA(mk_cl_unintern, MK_CL_unintern);
+
 mkcl_object mk_cl_unintern(MKCL, mkcl_narg narg, mkcl_object symbl, ...)
 {
   mkcl_call_stack_check(env);
@@ -1178,6 +1182,8 @@ mkcl_object mk_cl_export(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
     mkcl_return_value(mk_cl_Ct);
   }
 }
+
+struct mkcl_cfun mk_cl_unexport_cfunobj = MKCL_CFUN_VA(mk_cl_unexport, MK_CL_unexport);
 
 mkcl_object mk_cl_unexport(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
 {
@@ -1241,6 +1247,8 @@ mkcl_object mk_cl_import(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_shadowing_import_cfunobj = MKCL_CFUN_VA(mk_cl_shadowing_import, MK_CL_shadowing_import);
+
 mkcl_object mk_cl_shadowing_import(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
 {
   mkcl_call_stack_check(env);
@@ -1270,6 +1278,8 @@ mkcl_object mk_cl_shadowing_import(MKCL, mkcl_narg narg, mkcl_object symbols, ..
     mkcl_return_value(mk_cl_Ct);
   }
 }
+
+struct mkcl_cfun mk_cl_shadow_cfunobj = MKCL_CFUN_VA(mk_cl_shadow, MK_CL_shadow);
 
 mkcl_object mk_cl_shadow(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
 {
@@ -1304,6 +1314,8 @@ mkcl_object mk_cl_shadow(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_use_package_cfunobj = MKCL_CFUN_VA(mk_cl_use_package, MK_CL_use_package);
+
 mkcl_object mk_cl_use_package(MKCL, mkcl_narg narg, mkcl_object pack, ...)
 {
   mkcl_call_stack_check(env);
@@ -1336,6 +1348,8 @@ mkcl_object mk_cl_use_package(MKCL, mkcl_narg narg, mkcl_object pack, ...)
     mkcl_return_value(mk_cl_Ct);
   }
 }
+
+struct mkcl_cfun mk_cl_unuse_package_cfunobj = MKCL_CFUN_VA(mk_cl_unuse_package, MK_CL_unuse_package);
 
 mkcl_object mk_cl_unuse_package(MKCL, mkcl_narg narg, mkcl_object pack, ...)
 {

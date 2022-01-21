@@ -6,7 +6,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2017,2021, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2017,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -136,6 +136,8 @@ static mkcl_object read_command_output(MKCL, HANDLE child_stdout_read)
     }
   return output;
 }
+
+struct mkcl_cfun mk_mkcl_run_command_cfunobj = MKCL_CFUN_VA(mk_mkcl_run_command, MK_MKCL_run_command);
 
 mkcl_object mk_mkcl_run_command(MKCL, mkcl_narg narg, mkcl_object command, mkcl_object directory, ...)
 {
@@ -447,6 +449,8 @@ static int my_exec_command(mkcl_char8 * cmd_real_name, mkcl_char8 * cmd_line)
       return execvp(argv[0], (char **) argv);
   }
 }
+
+struct mkcl_cfun mk_mkcl_run_command_cfunobj = MKCL_CFUN_VA(mk_mkcl_run_command, MK_MKCL_run_command);
 
 mkcl_object mk_mkcl_run_command(MKCL, mkcl_narg narg, mkcl_object cmd_string, mkcl_object directory, ...)
 {
@@ -761,6 +765,8 @@ static mkcl_object build_unix_os_argv(MKCL, mkcl_object os_command, mkcl_object 
 
   return mkcl_funcall2(env, MK_CL_coerce->symbol.gfdef, os_argv_list, MK_CL_vector);
 }
+
+struct mkcl_cfun mk_mkcl_run_program_1_cfunobj = MKCL_CFUN_VA(mk_mkcl_run_program_1, MK_MKCL_run_program_1);
 
 mkcl_object mk_mkcl_run_program_1(MKCL, mkcl_narg narg, mkcl_object command, mkcl_object argv, ...)
 {
@@ -1798,6 +1804,8 @@ mkcl_object mk_mkcl_join_process(MKCL, mkcl_object proc)
 #endif
 }
 
+
+struct mkcl_cfun mk_mkcl_terminate_process_cfunobj = MKCL_CFUN_VA(mk_mkcl_terminate_process, MK_MKCL_terminate_process);
 
 mkcl_object mk_mkcl_terminate_process(MKCL, mkcl_narg narg, mkcl_object proc, ...)
 {

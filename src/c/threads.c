@@ -4,7 +4,7 @@
 */
 /*
     Copyright (c) 2003, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2019,2021, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2019,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -1651,6 +1651,8 @@ static void mkcl_create_finalization_thread(MKCL)
 
 /*************************************************************/
 
+struct mkcl_cfun mk_mt_make_thread_cfunobj = MKCL_CFUN_VA(mk_mt_make_thread, MK_MT_make_thread);
+
 mkcl_object mk_mt_make_thread(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -1801,6 +1803,8 @@ mk_mt_unblock_signals(MKCL)
 #endif
   mkcl_return_value(mk_cl_Cnil);
 }
+
+struct mkcl_cfun mk_mt_thread_preset_cfunobj = MKCL_CFUN_VA(mk_mt_thread_preset, MK_MT_thread_preset);
 
 mkcl_object
 mk_mt_thread_preset(MKCL, mkcl_narg narg, mkcl_object thread, mkcl_object function, ...)
@@ -2464,6 +2468,8 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
 }
 
 #endif /* MKCL_PTHREADS */
+
+struct mkcl_cfun mk_mt_interrupt_thread_cfunobj = MKCL_CFUN_VA(mk_mt_interrupt_thread, MK_MT_interrupt_thread);
 
 mkcl_object mk_mt_interrupt_thread(MKCL, mkcl_narg narg, mkcl_object thread, mkcl_object function, ...)
 {
@@ -3183,6 +3189,8 @@ mk_mt_thread_status(MKCL, mkcl_object thread)
 }
 
 
+struct mkcl_cfun mk_mt_thread_run_function_cfunobj = MKCL_CFUN_VA(mk_mt_thread_run_function, MK_MT_thread_run_function);
+
 mkcl_object
 mk_mt_thread_run_function(MKCL, mkcl_narg narg, mkcl_object name, mkcl_object function, ...)
 {
@@ -3210,6 +3218,8 @@ mk_mt_thread_run_function(MKCL, mkcl_narg narg, mkcl_object name, mkcl_object fu
 /*----------------------------------------------------------------------
  * LOCKS or MUTEX
  */
+
+struct mkcl_cfun mk_mt_make_lock_cfunobj = MKCL_CFUN_VA(mk_mt_make_lock, MK_MT_make_lock);
 
 mkcl_object mk_mt_make_lock(MKCL, mkcl_narg narg, ...)
 {
@@ -3368,6 +3378,8 @@ mk_mt_giveup_lock(MKCL, mkcl_object lock)
 
 static const mkcl_base_string_object(timeout_format_control_string_obj, "Timeout value ~S is not a positive real number.");
 static const mkcl_object timeout_format_control_string = (mkcl_object) &timeout_format_control_string_obj;
+
+struct mkcl_cfun mk_mt_get_lock_cfunobj = MKCL_CFUN_VA(mk_mt_get_lock, MK_MT_get_lock);
 
 mkcl_object mk_mt_get_lock(MKCL, mkcl_narg narg, mkcl_object lock, ...)
 {
@@ -3557,6 +3569,8 @@ mkcl_object mk_mt_make_rwlock(MKCL)
   mkcl_return_value(output);
 }
 
+struct mkcl_cfun mk_mt_giveup_rwlock_cfunobj = MKCL_CFUN_VA(mk_mt_giveup_rwlock, MK_MT_giveup_rwlock);
+
 mkcl_object mk_mt_giveup_rwlock(MKCL, mkcl_narg narg, mkcl_object rwlock, ...)
 {
   mkcl_call_stack_check(env);
@@ -3598,6 +3612,8 @@ mkcl_object mk_mt_giveup_rwlock(MKCL, mkcl_narg narg, mkcl_object rwlock, ...)
   }
 }
 
+
+struct mkcl_cfun mk_mt_get_read_rwlock_cfunobj = MKCL_CFUN_VA(mk_mt_get_read_rwlock, MK_MT_get_read_rwlock);
 
 mkcl_object mk_mt_get_read_rwlock(MKCL, mkcl_narg narg, mkcl_object rwlock, ...)
 {
@@ -3682,6 +3698,8 @@ mkcl_object mk_mt_get_read_rwlock(MKCL, mkcl_narg narg, mkcl_object rwlock, ...)
     mkcl_return_value(mk_cl_Ct);
   }
 }
+
+struct mkcl_cfun mk_mt_get_write_rwlock_cfunobj = MKCL_CFUN_VA(mk_mt_get_write_rwlock, MK_MT_get_write_rwlock);
 
 mkcl_object mk_mt_get_write_rwlock(MKCL, mkcl_narg narg, mkcl_object rwlock, ...)
 {
@@ -3771,6 +3789,8 @@ mkcl_object mk_mt_get_write_rwlock(MKCL, mkcl_narg narg, mkcl_object rwlock, ...
 /*----------------------------------------------------------------------
  * SEMAPHORES
  */
+
+struct mkcl_cfun mk_mt_make_semaphore_cfunobj = MKCL_CFUN_VA(mk_mt_make_semaphore, MK_MT_make_semaphore);
 
 mkcl_object mk_mt_make_semaphore(MKCL, mkcl_narg narg, ...)
 {
@@ -3866,6 +3886,8 @@ mkcl_object mk_mt_semaphore_count(MKCL, mkcl_object sem)
   }
 }
 
+struct mkcl_cfun mk_mt_semaphore_signal_cfunobj = MKCL_CFUN_VA(mk_mt_semaphore_signal, MK_MT_semaphore_signal);
+
 mkcl_object mk_mt_semaphore_signal(MKCL, mkcl_narg narg, mkcl_object sem, ...)
 {
   mkcl_call_stack_check(env);
@@ -3916,6 +3938,8 @@ mkcl_object mk_mt_semaphore_signal(MKCL, mkcl_narg narg, mkcl_object sem, ...)
     }
   }
 }
+
+struct mkcl_cfun mk_mt_semaphore_wait_cfunobj = MKCL_CFUN_VA(mk_mt_semaphore_wait, MK_MT_semaphore_wait);
 
 mkcl_object mk_mt_semaphore_wait(MKCL, mkcl_narg narg, mkcl_object sem, ...)
 {
@@ -4067,6 +4091,8 @@ mk_mt_make_condition_variable(MKCL)
 # error Incomplete mt::semaphore-wait().
 #endif
 }
+
+struct mkcl_cfun mk_mt_condition_wait_cfunobj = MKCL_CFUN_VA(mk_mt_condition_wait, MK_MT_condition_wait);
 
 mkcl_object mk_mt_condition_wait(MKCL, mkcl_narg narg, mkcl_object cv, mkcl_object lock, ...)
 {

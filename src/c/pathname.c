@@ -895,6 +895,8 @@ mk_cl_logical_pathname(MKCL, mkcl_object x)
   mkcl_return_value(x);
 }
 
+struct mkcl_cfun mk_cl_wild_pathname_p_cfunobj = MKCL_CFUN_VA(mk_cl_wild_pathname_p, MK_CL_wild_pathname_p);
+
 mkcl_object mk_cl_wild_pathname_p(MKCL, mkcl_narg narg, mkcl_object pathname, ...)
 {
   mkcl_call_stack_check(env);
@@ -1366,6 +1368,8 @@ mk_cl_namestring(MKCL, mkcl_object x)
   mkcl_return_value(mkcl_namestring(env, x, TRUE));
 }
 
+struct mkcl_cfun mk_cl_parse_namestring_cfunobj = MKCL_CFUN_VA(mk_cl_parse_namestring, MK_CL_parse_namestring);
+
 mkcl_object mk_cl_parse_namestring(MKCL, const mkcl_narg narg, mkcl_object thing, ...)
 {
   mkcl_call_stack_check(env);
@@ -1464,6 +1468,8 @@ mkcl_object mk_cl_merge_pathnames(MKCL, mkcl_narg narg, mkcl_object path, ...)
     mkcl_return_value(mkcl_merge_pathnames(env, path, defaults, default_version));
   }
 }
+
+struct mkcl_cfun mk_mkcl_meld_pathnames_cfunobj = MKCL_CFUN_VA(mk_mkcl_meld_pathnames, MK_MKCL_meld_pathnames);
 
 mkcl_object mk_mkcl_meld_pathnames(MKCL, mkcl_narg narg, mkcl_object path, ...)
 {
@@ -1584,6 +1590,8 @@ mk_mkcl_logical_pathname_p(MKCL, mkcl_object pname)
   mkcl_return_value(((mkcl_type_of(pname) == mkcl_t_pathname && pname->pathname.logical) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
+struct mkcl_cfun mk_cl_pathname_host_cfunobj = MKCL_CFUN_VA(mk_cl_pathname_host, MK_CL_pathname_host);
+
 mkcl_object mk_cl_pathname_host(MKCL, mkcl_narg narg, mkcl_object pname, ...)
 {
   mkcl_call_stack_check(env);
@@ -1599,6 +1607,8 @@ mkcl_object mk_cl_pathname_host(MKCL, mkcl_narg narg, mkcl_object pname, ...)
                        : pname->pathname.host));
   }
 }
+
+struct mkcl_cfun mk_cl_pathname_device_cfunobj = MKCL_CFUN_VA(mk_cl_pathname_device, MK_CL_pathname_device);
 
 mkcl_object mk_cl_pathname_device(MKCL, mkcl_narg narg, mkcl_object pname, ...)
 {
@@ -1616,6 +1626,8 @@ mkcl_object mk_cl_pathname_device(MKCL, mkcl_narg narg, mkcl_object pname, ...)
   }
 }
 
+struct mkcl_cfun mk_cl_pathname_directory_cfunobj = MKCL_CFUN_VA(mk_cl_pathname_directory, MK_CL_pathname_directory);
+
 mkcl_object mk_cl_pathname_directory(MKCL, mkcl_narg narg, mkcl_object pname, ...)
 {
   mkcl_call_stack_check(env);
@@ -1632,6 +1644,8 @@ mkcl_object mk_cl_pathname_directory(MKCL, mkcl_narg narg, mkcl_object pname, ..
   }
 }
 
+struct mkcl_cfun mk_cl_pathname_name_cfunobj = MKCL_CFUN_VA(mk_cl_pathname_name, MK_CL_pathname_name);
+
 mkcl_object mk_cl_pathname_name(MKCL, mkcl_narg narg, mkcl_object pname, ...)
 {
   mkcl_call_stack_check(env);
@@ -1647,6 +1661,8 @@ mkcl_object mk_cl_pathname_name(MKCL, mkcl_narg narg, mkcl_object pname, ...)
             : pname->pathname.name));
   }
 }
+
+struct mkcl_cfun mk_cl_pathname_type_cfunobj = MKCL_CFUN_VA(mk_cl_pathname_type, MK_CL_pathname_type);
 
 mkcl_object mk_cl_pathname_type(MKCL, mkcl_narg narg, mkcl_object pname, ...)
 {
@@ -1921,6 +1937,8 @@ coerce_to_from_pathname(MKCL, mkcl_object x, mkcl_object host)
   }
 }
 
+struct mkcl_cfun mk_si_pathname_translations_cfunobj = MKCL_CFUN_VA(mk_si_pathname_translations, MK_SI_pathname_translations);
+
 mkcl_object mk_si_pathname_translations(MKCL, mkcl_narg narg, mkcl_object host, ...)
 {
   mkcl_call_stack_check(env);
@@ -2147,6 +2165,8 @@ copy_list_wildcards(MKCL, mkcl_object *wilds, mkcl_object to)
   return l;
 }
 
+struct mkcl_cfun mk_cl_translate_pathname_cfunobj = MKCL_CFUN_VA(mk_cl_translate_pathname, MK_CL_translate_pathname);
+
 mkcl_object mk_cl_translate_pathname(MKCL, mkcl_narg narg, mkcl_object source, mkcl_object from, mkcl_object to, ...)
 {
   mkcl_call_stack_check(env);
@@ -2236,6 +2256,8 @@ mkcl_object mk_cl_translate_pathname(MKCL, mkcl_narg narg, mkcl_object source, m
     mkcl_FEerror(env, "Number of wildcards in ~S do not match  ~S", 2, from, to);
   }
 }
+
+struct mkcl_cfun mk_cl_translate_logical_pathname_cfunobj = MKCL_CFUN_VA(mk_cl_translate_logical_pathname, MK_CL_translate_logical_pathname);
 
 mkcl_object mk_cl_translate_logical_pathname(MKCL, mkcl_narg narg, mkcl_object source, ...)
 {

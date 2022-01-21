@@ -5,7 +5,7 @@
 /*
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2011-2014,2021 Jean-Claude Beaudoin.
+    Copyright (c) 2011-2014,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -28,6 +28,7 @@
  * called instead.
  */
 
+
 extern mkcl_object
 mk_cl_upgraded_array_element_type(MKCL, mkcl_narg narg, mkcl_object type, ...)
 {
@@ -41,6 +42,8 @@ mk_cl_array_dimensions(MKCL, mkcl_object array)
   mkcl_call_stack_check(env);
   return mkcl_funcall1(env, MK_CL_array_dimensions->symbol.gfdef, array);
 }
+
+struct mkcl_cfun mk_cl_vector_push_extend_cfunobj = MKCL_CFUN_VA(mk_cl_vector_push_extend, MK_CL_vector_push_extend);
 
 extern mkcl_object
 mk_cl_vector_push_extend(MKCL, mkcl_narg narg, mkcl_object elt, mkcl_object vector, ...)

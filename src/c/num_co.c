@@ -726,6 +726,8 @@ mkcl_truncate2(MKCL, mkcl_object x, mkcl_object y)
     return mkcl_floor2(env, x, y);
 }
 
+struct mkcl_cfun mk_cl_truncate_cfunobj = MKCL_CFUN_VA(mk_cl_truncate, MK_CL_truncate);
+
 mkcl_object mk_cl_truncate(MKCL, mkcl_narg narg, mkcl_object x, ...)
 {
   mkcl_call_stack_check(env);
@@ -863,6 +865,8 @@ mkcl_round2(MKCL, mkcl_object x, mkcl_object y)
   }
   mkcl_return_2_values(v0, v1);
 }
+
+struct mkcl_cfun mk_cl_round_cfunobj = MKCL_CFUN_VA(mk_cl_round, MK_CL_round);
 
 mkcl_object mk_cl_round(MKCL, mkcl_narg narg, mkcl_object x, ...)
 {

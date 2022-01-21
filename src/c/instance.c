@@ -276,6 +276,8 @@ mk_si_copy_instance(MKCL, mkcl_object x)
   mkcl_return_value(y);
 }
 
+struct mkcl_cfun mk_cl_find_class_cfunobj = MKCL_CFUN_VA(mk_cl_find_class, MK_CL_find_class);
+
 mkcl_object mk_cl_find_class(MKCL, mkcl_narg narg, mkcl_object name, ...)
 {
   mkcl_call_stack_check(env);

@@ -19,6 +19,8 @@
 #include <mkcl/mkcl.h>
 #include <mkcl/internal.h>
 
+struct mkcl_cfun mk_cl_values_cfunobj = MKCL_CFUN_VA(mk_cl_values, MK_CL_values);
+
 mkcl_object mk_cl_values(MKCL, mkcl_narg narg, ...)
 {
   int i;

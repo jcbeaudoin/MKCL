@@ -496,6 +496,8 @@ mkcl_clone_cclosure(MKCL, mkcl_object c0, mkcl_object new_cenv)
    must be twin closures (ie: they were closed over the same environment).
    Any other object will be passed through as is to the value list without any cloning.
 */
+struct mkcl_cfun mk_si_clone_closure_cfunobj = MKCL_CFUN_VA(mk_si_clone_closure, MK_SI_clone_closure);
+
 mkcl_object mk_si_clone_closure(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
@@ -1265,3 +1267,84 @@ mkcl_object mk_si_update_function_references(MKCL, mkcl_object fun)
       mkcl_FEerror(env, "In mk_si_update_function_references ~S is not a function.", 1, fun);
     }
 }
+
+
+struct mkcl_cfun mk_si_member1_cfunobj =   {
+  mkcl_t_cfun, 0, 0, 0,
+  {
+    (mkcl_objectfn)dispatch5,
+    {
+      mkcl_wrong_num_args_cfun_0,
+      mkcl_wrong_num_args_cfun_1,
+      mkcl_wrong_num_args_cfun_2,
+      mkcl_wrong_num_args_cfun_3,
+      mkcl_wrong_num_args_cfun_4
+    }
+  },
+  MK_SI_member1,
+  MKCL_OBJNULL,
+  mk_si_member1,
+  mk_cl_Cnil,
+  MKCL_MAKE_FIXNUM(-1),
+  5,
+  NULL,
+  0,
+  NULL,
+  NULL,
+  mk_cl_Cnil,
+  mk_cl_Cnil
+};
+
+
+struct mkcl_cfun mk_si_make_vector_cfunobj =   {
+  mkcl_t_cfun, 0, 0, 0,
+  {
+    (mkcl_objectfn)dispatch6,
+    {
+      mkcl_wrong_num_args_cfun_0,
+      mkcl_wrong_num_args_cfun_1,
+      mkcl_wrong_num_args_cfun_2,
+      mkcl_wrong_num_args_cfun_3,
+      mkcl_wrong_num_args_cfun_4
+    }
+  },
+  MK_SI_make_vector,
+  MKCL_OBJNULL,
+  mk_si_make_vector,
+  mk_cl_Cnil,
+  MKCL_MAKE_FIXNUM(-1),
+  6,
+  NULL,
+  0,
+  NULL,
+  NULL,
+  mk_cl_Cnil,
+  mk_cl_Cnil
+};
+
+struct mkcl_cfun mk_si_make_pure_array_cfunobj =   {
+  mkcl_t_cfun, 0, 0, 0,
+  {
+    (mkcl_objectfn)dispatch6,
+    {
+      mkcl_wrong_num_args_cfun_0,
+      mkcl_wrong_num_args_cfun_1,
+      mkcl_wrong_num_args_cfun_2,
+      mkcl_wrong_num_args_cfun_3,
+      mkcl_wrong_num_args_cfun_4
+    }
+  },
+  MK_SI_make_pure_array,
+  MKCL_OBJNULL,
+  mk_si_make_pure_array,
+  mk_cl_Cnil,
+  MKCL_MAKE_FIXNUM(-1),
+  6,
+  NULL,
+  0,
+  NULL,
+  NULL,
+  mk_cl_Cnil,
+  mk_cl_Cnil
+};
+

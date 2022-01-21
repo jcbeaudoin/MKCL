@@ -590,6 +590,8 @@ mk_si_putprop(MKCL, mkcl_object sym, mkcl_object value, mkcl_object indicator)
 }
 
 /* Added for defstruct. Beppe */
+struct mkcl_cfun mk_si_put_properties_cfunobj = MKCL_CFUN_VA(mk_si_put_properties, MK_SI_put_properties);
+
 mkcl_object mk_si_put_properties(MKCL, mkcl_narg narg, mkcl_object sym, ...)
 {
   mkcl_call_stack_check(env);
