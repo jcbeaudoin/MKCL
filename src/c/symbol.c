@@ -153,6 +153,8 @@ mk_cl_make_symbol(MKCL, mkcl_object str)
     x->symbol.sys_plist = mk_cl_Cnil;
     x->symbol.properly_named_class = mk_cl_Cnil;
     x->symbol.C_name = mk_cl_Cnil;
+    x->symbol._C_name = NULL;
+    x->symbol._name = NULL;
 
     mkcl_return_value(x);
   }

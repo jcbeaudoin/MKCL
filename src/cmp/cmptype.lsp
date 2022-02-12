@@ -2,7 +2,7 @@
 ;;;;
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
-;;;;  Copyright (c) 2011, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2011,2022, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -219,9 +219,11 @@
 
 (defun simple-type-propagator (fname &rest form-types)
   (declare (ignore form-types))
-  (let ((arg-types (get-arg-types fname))
-	(return-type (or (get-return-type fname) '(VALUES &REST T))))
-    (values arg-types return-type)))
+  (let ((return-type (or (get-return-type fname) '(VALUES &REST T)))) ;; (values &rest t) as default return type? JCB
+    (multiple-value-bind (arg-types found)
+        (get-arg-types fname)
+      (values (if found arg-types '*) return-type)))
+  )
 
 (defun propagate-types (fname forms lisp-forms)
   (multiple-value-bind (arg-types return-type)
@@ -229,7 +231,8 @@
 		 #'simple-type-propagator)
 	     fname
 	     forms)
-    (when arg-types
+      ;;(format t "~&In propagate-types: fname = ~S, arg-types = ~S.~%" fname arg-types)
+    (when (listp arg-types)
       (do* ((types arg-types (rest types))
 	    (fl forms (rest fl))
 	    (al lisp-forms (rest al))

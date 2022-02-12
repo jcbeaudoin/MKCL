@@ -5,7 +5,7 @@
     Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
     Copyright (c) 1990, Giuseppe Attardi.
     Copyright (c) 2001, Juan Jose Garcia Ripoll.
-    Copyright (c) 2010-2016,2021, Jean-Claude Beaudoin.
+    Copyright (c) 2010-2016,2021-2022, Jean-Claude Beaudoin.
 
     MKCL is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -309,6 +309,8 @@ extern "C" {
     mkcl_index special_index;
     mkcl_hash_value hashed_name;   /* hash value of name */
     mkcl_object C_name;            /* name that directly denotes this mkcl_symbol object in C. */
+    const char * _C_name;
+    const char * _name;
   };
 #define MKCL_SYM_FUN(sym)	((sym)->symbol.gfdef)
 
@@ -824,6 +826,7 @@ extern "C" {
     mkcl_object * fun_refs;     /* pointer to a vector of function objects */
     mkcl_object owner;          /* ignored by output-cfuns */
     mkcl_object C_name;         /* name that directly denotes this mkcl_cfun object in C. */
+    const char * _C_name;
   };
 
   struct mkcl_cclosure {	/*  compiled closure header  */

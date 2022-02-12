@@ -4,6 +4,7 @@
 
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
+;;;;  Copyright (c) 2022, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    ECoLisp is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -35,7 +36,7 @@
 		    (c1call-symbol fun (cdr form)))
 		   ((and (consp fun) (eq (car fun) 'LAMBDA))
 		    (c1funcall form))
-		   (t (cmperr "~s is not a valid lambda expression as operator of a compound form." fun)))))
+		   (t (cmperr "~s is not a valid lambda expression as operator of a compound form ~S." fun form)))))
 	  (t (c1constant-value form :always t)))))
   (if (eq form '*cmperr-tag*)
       (c1nil)
@@ -75,11 +76,13 @@
 	(return-from c1call-local (unoptimized-long-call `#',fname args)))
       (let* ((forms (c1args* args))
 	     (lambda-form (fun-lambda fun))
-	     (return-type (or (get-local-return-type fun) 'T))
+	     (return-type (multiple-value-bind (rtype found)
+			      (get-local-return-type fun)
+			    (if found rtype 'T)))  ;; why do we filter undeclared return type to T? JCB
 	     (arg-types (get-local-arg-types fun)))
 	(declare (ignore lambda-form))
 	;; Add type information to the arguments.
-	(when arg-types
+	(when (listp arg-types)
 	  (let ((fl nil))
 	    (dolist (form forms)
 	      (cond ((endp arg-types) (push form fl))

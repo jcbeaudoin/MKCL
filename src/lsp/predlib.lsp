@@ -23,14 +23,14 @@
   (si:fill-array-with-elt *subtypep-cache* nil 0 nil)
   (si:fill-array-with-elt *upgraded-array-element-type-cache* nil 0 nil))
 
-(defun create-type-name (name)
+(defun validate-type-name (name)
   (when (member name *alien-declarations*)
     (error "Symbol ~s is a declaration specifier and cannot be used to name a new type" name)))
 
 (defun do-deftype (name form function)
   (unless (symbolp name)
     (error "~s is not a valid type specifier" name))
-  (create-type-name name)
+  (validate-type-name name)
   (put-sysprop name 'DEFTYPE-FORM form)
   (put-sysprop name 'DEFTYPE-DEFINITION function)
   (subtypep-clear-cache)
@@ -418,8 +418,8 @@ and is not adjustable."
           ((when (> x high) (return-from in-interval-p nil))))
     (return-from in-interval-p t)))
 
-(defun error-type-specifier (type)
-  (error "~S is not a valid type specifier." type))
+(defmacro error-type-specifier (type)
+  `(error "~S is not a valid type specifier." ,type))
 
 (defun match-dimensions (array pat)
   (or (eq pat '*)
@@ -766,6 +766,7 @@ Returns T if X belongs to TYPE; NIL otherwise."
 ;;			COERCE
 ;;************************************************************
 
+#-(and)
 (defun error-coerce (object type)
   (error 'simple-type-error
 	 :datum object
@@ -778,70 +779,76 @@ Returns T if X belongs to TYPE; NIL otherwise."
   "Args: (x type)
 Coerces X to an object of the specified type, if possible.  Signals an error
 if not possible."
-  (when (typep-in-env object type nil)
-    ;; Just return as it is.
-    (return-from coerce object))
-  (cond ((atom type)
-	 (case type
-	   ((T) object)
-	   (LIST
-            ;; cl:loop is not defined yet so we use a more explicit form of looping.
-            (do ((io (make-seq-iterator object) (seq-iterator-next object io))
-                 (root nil)
-	         (head nil))
-	        ((null io) root)
-                (let ((cell (cons (seq-iterator-ref object io) nil)))
-                  (if root (rplacd head cell)
-                    (setq root cell))
-                  (setq head cell))))
-           (BASE-CHAR (let ((new (character object)))
-                        (if (mkcl:base-char-p new) new (error-coerce object type))))
-	   (CHARACTER (character object))
-	   (FLOAT (float object))
-	   (SINGLE-FLOAT (float object 0.0F0))
-	   (SHORT-FLOAT (float object 0.0S0))
-	   (DOUBLE-FLOAT (float object 0.0D0))
-	   (LONG-FLOAT (float object 0.0L0))
-	   (COMPLEX (complex (realpart object) (imagpart object)))
-	   (FUNCTION (coerce-to-function object))
-	   ((VECTOR SIMPLE-VECTOR
-	     #+unicode SIMPLE-BASE-STRING SIMPLE-STRING
-	     #+unicode BASE-STRING STRING
-	     BIT-VECTOR SIMPLE-BIT-VECTOR)
-	    (concatenate type object))
-	   (t
-	    (if (and (or (subtypep type 'list) (subtypep type 'vector))
-                     (or (listp object) (vectorp object)))
-		(concatenate type object)
-              (let ((expanded-type (expand-deftype type)))
-                (if (not (eq type expanded-type))
-                    (coerce object expanded-type)
-                  (error-coerce object type)))))))
-	((eq (setq aux (first type)) 'COMPLEX)
-	 (if (second type)
-	     (complex (coerce (realpart object) (second type))
-		      (coerce (imagpart object) (second type)))
+  (macrolet ((error-coerce (object type)
+	      `(error 'simple-type-error
+		      :datum ,object
+		      :expected-type ,type
+		      :format-control "Cannot coerce ~S to type ~S."
+		      :format-arguments (list ,object ,type))))
+    (when (typep-in-env object type nil)
+      ;; Just return as it is.
+      (return-from coerce object))
+    (cond ((atom type)
+	   (case type
+		 ((T) object)
+		 (LIST
+		  ;; cl:loop is not defined yet so we use a more explicit form of looping.
+		  (do ((io (make-seq-iterator object) (seq-iterator-next object io))
+		       (root nil)
+		       (head nil))
+		      ((null io) root)
+		      (let ((cell (cons (seq-iterator-ref object io) nil)))
+			(if root (rplacd head cell)
+			  (setq root cell))
+			(setq head cell))))
+		 (BASE-CHAR (let ((new (character object)))
+			      (if (mkcl:base-char-p new) new (error-coerce object type))))
+		 (CHARACTER (character object))
+		 (FLOAT (float object))
+		 (SINGLE-FLOAT (float object 0.0F0))
+		 (SHORT-FLOAT (float object 0.0S0))
+		 (DOUBLE-FLOAT (float object 0.0D0))
+		 (LONG-FLOAT (float object 0.0L0))
+		 (COMPLEX (complex (realpart object) (imagpart object)))
+		 (FUNCTION (coerce-to-function object))
+		 ((VECTOR SIMPLE-VECTOR
+			  #+unicode SIMPLE-BASE-STRING SIMPLE-STRING
+			  #+unicode BASE-STRING STRING
+			  BIT-VECTOR SIMPLE-BIT-VECTOR)
+		  (concatenate type object))
+		 (t
+		  (if (and (or (subtypep type 'list) (subtypep type 'vector))
+			   (or (listp object) (vectorp object)))
+		      (concatenate type object)
+		    (let ((expanded-type (expand-deftype type)))
+		      (if (not (eq type expanded-type))
+			  (coerce object expanded-type)
+			(error-coerce object type)))))))
+	  ((eq (setq aux (first type)) 'COMPLEX)
+	   (if (second type)
+	       (complex (coerce (realpart object) (second type))
+			(coerce (imagpart object) (second type)))
 	     (complex (realpart object) (imagpart object))))
-	((member aux '(SINGLE-FLOAT SHORT-FLOAT DOUBLE-FLOAT LONG-FLOAT FLOAT))
-	 (setq aux (coerce object aux))
-	 (unless (typep-in-env aux type nil)
-	   (error-coerce object type))
-	 aux)
-        #-(and) ;; not in the spec.
-	((eq aux 'AND)
-	 (dolist (type (rest type))
-	   (setq aux (coerce aux type)))
-	 (unless (typep-in-env aux type nil)
-	   (error-coerce object type))
-	 aux)
-	((and (or (subtypep type 'list) (subtypep type 'vector))
-              (or (listp object) (vectorp object)))
-	 (concatenate type object))
-	(t
-         (let ((expanded-type (expand-deftype type)))
-           (if (not (eq type expanded-type))
-               (coerce object expanded-type)
-             (error-coerce object type))))))
+	  ((member aux '(SINGLE-FLOAT SHORT-FLOAT DOUBLE-FLOAT LONG-FLOAT FLOAT))
+	   (setq aux (coerce object aux))
+	   (unless (typep-in-env aux type nil)
+	     (error-coerce object type))
+	   aux)
+	  #-(and) ;; not in the spec.
+	  ((eq aux 'AND)
+	   (dolist (type (rest type))
+	     (setq aux (coerce aux type)))
+	   (unless (typep-in-env aux type nil)
+	     (error-coerce object type))
+	   aux)
+	  ((and (or (subtypep type 'list) (subtypep type 'vector))
+		(or (listp object) (vectorp object)))
+	   (concatenate type object))
+	  (t
+	   (let ((expanded-type (expand-deftype type)))
+	     (if (not (eq type expanded-type))
+		 (coerce object expanded-type)
+	       (error-coerce object type)))))))
 
 ;;************************************************************
 ;;			SUBTYPEP
@@ -1617,26 +1624,123 @@ if not possible."
 
 (defun valid-type-specifier (type)
   (ignore-errors
-     (if (subtypep type 'T)
-	 (values t (type-filter type))
-         (values nil nil))))
+    (if (subtypep type 'T)
+	(values t (type-filter type))
+      (values nil nil))))
+
+
+#|
+;;; cl:defstruct is not defined yet so we hand-expand parts of it.
+(defstruct (proclaimed-function (:type vector))
+  arg-types
+  return-type
+  required-arg-count
+  C-name
+  )
+|#
+(defun proclaimed-function-name (x) (svref x 1))
+
+(defun proclaimed-function-arg-types (x) (svref x 2))
+
+(defun proclaimed-function-return-type (x) (svref x 3))
+
+(defun proclaimed-function-required-arg-count (x) (svref x 4))
+
+(defun proclaimed-function-C-name (x) (svref x 5))
+
+(defun set-proclaimed-function-name (x v) (svset x 1 v))
+
+(defun set-proclaimed-function-arg-types (x v) (svset x 2 v))
+
+(defun set-proclaimed-function-return-type (x v) (svset x 3 v))
+
+(defun set-proclaimed-function-required-arg-count (x v) (svset x 4 v))
+
+(defun set-proclaimed-function-C-name (x v) (svset x 5 v))
+
+(defun make-proclaimed-function (&key name (arg-types '*) (return-type '*) required-arg-count C-name)
+  (let ((it (si:make-vector t 6 nil nil nil 0)))
+    (svset it 0 'proclaimed-function-info)
+    (set-proclaimed-function-name it name)
+    (set-proclaimed-function-arg-types it arg-types)
+    (set-proclaimed-function-return-type it return-type)
+    (set-proclaimed-function-required-arg-count it required-arg-count)
+    (set-proclaimed-function-C-name it C-name)
+    it
+    )
+  )
+
 
 
 ;;; The valid return type declaration is:
 ;;;	(( VALUES {type}* )) or ( {type}* ).
 
-(defun function-return-type (return-types)
-  (cond ((endp return-types) t)
-        ((and (consp (car return-types))
-              (eq (caar return-types) 'VALUES))
-         (cond ((not (endp (cdr return-types)))
-                (warn "The function return types ~s is illegal." return-types)
-                t)
-               ((or (endp (cdar return-types))
-                    (member (cadar return-types) '(&optional &rest &key)))
-                t)
-               (t (type-filter (car return-types) t))))
-        (t (type-filter (car return-types)))))
+
+;; [&key (keyword-name var)* [&allow-other-keys]]
+(defun validate-arg-typespec-key (spec)
+  (if (null spec)
+      nil
+    (if (not (consp spec))
+	(error "Arg-typespec &key part must be a proper list. Not this: ~S." spec)
+      (let ((spec-head (pop spec)))
+	(if (eq spec-head '&allow-other-keys)
+	    (cons spec-head nil)
+	  (let ((tail (validate-arg-typespec-key spec)))
+	    (if (not (consp spec-head))
+		(error "In arg-typespec, &key parameter specifier must be of form (keyword typespec) not ~S." spec-head)
+	      (let ((arg-keyword (pop spec-head)))
+		(if (not (symbolp arg-keyword))
+		    (error "In arg-typespec, &key parameter ~S needs to be a symbol." arg-keyword)
+		  (if (not (consp spec-head))
+		      (error "In arg-typespec, missing typespec for &key parameter ~S." arg-keyword)
+		    (let ((arg-typespec (pop spec-head)))
+		      (if spec-head
+			  (error "In arg-typespec, extraneous data ~S after typespec for &key parameter ~S." spec-head arg-keyword)
+			(cons (list arg-keyword (type-filter arg-typespec)) tail)))))))))))))
+
+(defun validate-arg-typespec-rest (spec)
+  (if (null spec)
+      (error "In arg-typespec, missing typespec for &rest.")
+    (if (not (consp spec))
+	(error "Arg-typespec must be a proper list. Not this: ~S." spec)
+      (let ((spec-head (pop spec)) (tail nil))
+	(cond ((null spec))
+	      ((and (consp spec) (eq '&key (car spec)))
+	       (setq tail (cons '&key (validate-arg-typespec-key (cdr spec)))))
+	      (t (error "In arg-typespec, only &key can follow a &rest typespec, not this: ~S." spec)))
+	(cons (type-filter spec-head) tail)))))
+
+(defun validate-arg-typespec-optionals (spec)
+  (if (null spec)
+      nil
+    (if (not (consp spec))
+	(error "Arg-typespec must be a proper list. Not this: ~S." spec)
+      (let ((spec-head (pop spec)))
+	(cond ((eq spec-head '&rest) (cons '&rest (validate-arg-typespec-rest spec)))
+	      ((eq spec-head '&key) (cons '&key (validate-arg-typespec-key spec)))
+	      (t (let ((tail (validate-arg-typespec-optionals spec)))
+		   (cons (type-filter spec-head) tail))))))))
+
+(defun validate-arg-typespec (spec)
+  (if (null spec)
+      (values 0 nil)
+    (if (not (consp spec))
+	(error "Arg-typespec must be a proper list. Not this: ~S." spec)
+      (let ((spec-head (pop spec)))
+	(cond ((eq spec-head '&optional) (values 0 (cons '&optional (validate-arg-typespec-optionals spec))))
+	      ((eq spec-head '&rest) (values 0 (cons '&rest (validate-arg-typespec-rest spec))))
+	      ((eq spec-head '&key) (values 0 (cons '&key (validate-arg-typespec-key spec))))
+	      (t (multiple-value-bind (sub-count tail)
+		     (validate-arg-typespec spec)
+		   (values (1+ sub-count) (cons (type-filter spec-head) tail)))))))))
+
+(defun validate-function-return-type (return-types)
+  (if (and (consp return-types) (eq (car return-types) 'VALUES))
+      (let ((value-typespec (cdr return-types)))
+	(cons 'VALUES (nth-value 1 (validate-arg-typespec value-typespec))))
+    (type-filter return-types)))
+
+
 
 (defun add-function-proclamation (fname decl)
   (if (si::valid-function-name-p fname)
@@ -1649,15 +1753,25 @@ if not possible."
 	      (t (warn "The function proclamation ~s ~s is not valid." fname decl)))
 	(cond ((null l))
 	      ((and (consp l) (null (rest l)))
-	       (setf return-types (function-return-type l)))
+	       (setf return-types (car l)))
 	      (t (warn "The function proclamation ~s ~s is not valid." fname decl)))
-	(if (eq arg-types '*)
-	    (rem-sysprop fname 'SI::PROCLAIMED-ARG-TYPES)
-	    (put-sysprop fname 'SI::PROCLAIMED-ARG-TYPES arg-types))
-	(if (eq return-types '*)
-	    (rem-sysprop fname 'SI::PROCLAIMED-RETURN-TYPE)
-	    (put-sysprop fname 'SI::PROCLAIMED-RETURN-TYPE return-types)))
-      (warn "The function proclamation ~s ~s is not valid." fname decl)))
+
+	(let ((finfo (get-sysprop fname 'SI::PROCLAIMED-FUNCTION-INFORMATION))
+	      (required-arg-count nil))
+
+	  (unless (eq arg-types '*)
+	    (multiple-value-setq (required-arg-count arg-types) (validate-arg-typespec arg-types)))
+	  (unless (eq return-types '*)
+	    (setq return-types (validate-function-return-type return-types)))
+	  (unless finfo
+	    (setq finfo (make-proclaimed-function :name fname))
+	    (put-sysprop fname 'SI::PROCLAIMED-FUNCTION-INFORMATION finfo))
+	  (set-proclaimed-function-arg-types finfo arg-types)
+	  (set-proclaimed-function-return-type finfo return-types)
+	  (set-proclaimed-function-required-arg-count finfo required-arg-count)
+	  )
+	)
+    (error "Function proclamation on an invalid function name ~s." fname)))
 
 (defun type-name-p (name)
   (or (get-sysprop name 'SI::DEFTYPE-DEFINITION)
@@ -1734,25 +1848,37 @@ if not possible."
      (warn "The ~A proclamation is not supported at this moment." decl-name))
     (DECLARATION
      (do-declaration (rest decl) #'error))
+    (ANNUL #| do some processing of declarations to annul. |#
+     (dolist (decl-spec (cdr decl))
+       )
+     )
     (MKCL:C-EXPORT-FNAME ;; This declaration cannot be used on globally named closures (ie: produced by a "defun"). JCB
      (dolist (x (cdr decl))
-       (cond ((symbolp x)
-	      (multiple-value-bind (found c-name)
-		  (si::mangle-function-name x)
-		(if found
-		    (warn "The function ~s is already in the runtime. C-EXPORT-FNAME declaration ignored." x)
-		    (put-sysprop x 'Lfun c-name))))
-	     ((consp x)
-	      (destructuring-bind (arg0 arg1) x
-                (let (lisp-name c-name)
-                  (cond ((and (symbolp arg0) (stringp arg1)) (setq lisp-name arg0 c-name arg1))
-                        ((and (stringp arg0) (symbolp arg1)) (setq lisp-name arg1 c-name arg0))
-                        (t (warn "Ignoring invalid arguments (~S ~S) in proclamation ~S." arg0 arg1 decl)))
-		  (if (si::mangle-function-name lisp-name)
-		      (warn "The function ~s is already in the runtime. C-EXPORT-FNAME declaration ignored." lisp-name)
-		    (put-sysprop lisp-name 'Lfun c-name)))))
-	     (t
-	      (error "Syntax error in proclamation ~s" decl)))))
+       (let (lisp-name c-name found)
+	 (cond ((symbolp x)
+		(setq lisp-name x)
+		(multiple-value-setq (found c-name)
+		  (si::mangle-function-name lisp-name)
+		  ))
+	       ((consp x)
+		(destructuring-bind (arg0 arg1) x
+		  (cond ((and (symbolp arg0) (stringp arg1)) (setq lisp-name arg0 c-name arg1))
+			((and (stringp arg0) (symbolp arg1)) (setq lisp-name arg1 c-name arg0))
+			(t (warn "Ignoring invalid arguments (~S ~S) in proclamation ~S." arg0 arg1 decl)))
+		  ))
+	       (t
+		(error "Syntax error in proclamation ~s" decl)))
+	 (let ((finfo (get-sysprop lisp-name 'SI::PROCLAIMED-FUNCTION-INFORMATION)))
+	   (when (null finfo)
+	     (setq finfo (make-proclaimed-function :name lisp-name))
+	     (put-sysprop lisp-name 'SI::PROCLAIMED-FUNCTION-INFORMATION finfo))
+	   (set-proclaimed-function-C-name finfo c-name)
+	   (when (eq '* (proclaimed-function-arg-types finfo))
+	     (warn 'mkcl::simple-style-warning
+		   :format-control "~&C-EXPORT-FNAME Funciton ~S has no proclaimed signature. Using default signature.~%"
+		   :format-arguments 
+		   (list lisp-name)))))
+       ))
     ((ARRAY ATOM BASE-CHAR BIGNUM BIT BIT-VECTOR CHARACTER COMPILED-FUNCTION
       COMPLEX CONS DOUBLE-FLOAT EXTENDED-CHAR FIXNUM FLOAT HASH-TABLE INTEGER KEYWORD LIST
       LONG-FLOAT NIL NULL NUMBER PACKAGE PATHNAME RANDOM-STATE RATIO RATIONAL
@@ -1774,5 +1900,5 @@ if not possible."
 	   (t
 	    (warn "The declaration specifier ~s is unknown." decl-name))))))
 
-
 (declaim (ftype (function (T T) boolean) subclassp))
+

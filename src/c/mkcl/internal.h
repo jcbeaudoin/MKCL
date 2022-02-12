@@ -144,7 +144,8 @@ extern "C" {
 	NULL,					\
 	NULL,					\
 	mk_cl_Cnil,				\
-	mk_cl_Cnil				\
+	mk_cl_Cnil,				\
+	#fun					\
 	}
 
 #define MKCL_CFUN1(fun, name)			\
@@ -171,7 +172,8 @@ extern "C" {
 	NULL,					\
 	NULL,					\
 	mk_cl_Cnil,				\
-	mk_cl_Cnil				\
+	mk_cl_Cnil,				\
+	#fun					\
 	}
 
 #define MKCL_CFUN2(fun, name)			\
@@ -198,7 +200,8 @@ extern "C" {
 	NULL,					\
 	NULL,					\
 	mk_cl_Cnil,				\
-	mk_cl_Cnil				\
+	mk_cl_Cnil,				\
+	#fun					\
 	}
 
 #define MKCL_CFUN3(fun, name)			\
@@ -225,7 +228,8 @@ extern "C" {
 	NULL,					\
 	NULL,					\
 	mk_cl_Cnil,				\
-	mk_cl_Cnil				\
+	mk_cl_Cnil,				\
+	#fun					\
 	}
 
 #define MKCL_CFUN4(fun, name)			\
@@ -252,7 +256,8 @@ extern "C" {
 	NULL,					\
 	NULL,					\
 	mk_cl_Cnil,				\
-	mk_cl_Cnil				\
+	mk_cl_Cnil,				\
+	#fun					\
 	}
 
 
@@ -275,19 +280,20 @@ mkcl_object mkcl_fun_va_trampoline_f4(MKCL, mkcl_object x1, mkcl_object x2, mkcl
 	mkcl_fun_va_trampoline_f4		\
       }						\
     },						\
-    name,					\
-    MKCL_OBJNULL,				\
-    NULL,					\
-    mk_cl_Cnil,					\
-    MKCL_MAKE_FIXNUM(-1),			\
-    -1,						\
-    NULL,					\
-    0,						\
-    NULL,					\
-    NULL,					\
-    mk_cl_Cnil,					\
-    mk_cl_Cnil					\
-  }
+      name,					\
+	MKCL_OBJNULL,				\
+	NULL,					\
+	mk_cl_Cnil,				\
+	MKCL_MAKE_FIXNUM(-1),			\
+	-1,					\
+	NULL,					\
+	0,					\
+	NULL,					\
+	NULL,					\
+	mk_cl_Cnil,				\
+	mk_cl_Cnil,				\
+	#fun					\
+	}
 
 
 

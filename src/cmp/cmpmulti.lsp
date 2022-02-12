@@ -2,7 +2,7 @@
 ;;;;
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
-;;;;  Copyright (c) 2015,2021 Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2015,2021-2022, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -163,13 +163,17 @@
 	    vars (make-c1form* 'MULTIPLE-VALUE-SETQ :type (c1form-primary-type value) :args vars value))))))
 
 (defun c1form-values-number (form)
-  (let ((type (c1form-type form)))
+  (let ((type (c1form-type form)) opt-pos)
     (cond ((or (eq type 'T) (eq type '*))
 	   (values 0 MULTIPLE-VALUES-LIMIT))
 	  ((or (atom type) (not (eq (first type) 'VALUES)))
 	   (values 1 1))
-	  ((or (member '&rest type) (member 'optional type))
+	  ((or (member '&rest type) (member '&key type) (member '&allow-other-keys type))
 	   (values 0 MULTIPLE-VALUES-LIMIT))
+	  ((setq opt-pos (position '&optional type))
+	   (let ((min (1- opt-pos)) ;; remove VALUES from the count.
+		 (max (- (length type) 2))) ;; we have to remove VALUES and &OPTIONAL.
+	     (values min max)))
 	  (t
 	   (let ((l (1- (length type))))
 	     (values l l))))))
@@ -183,8 +187,9 @@
       (let ((*destination* 'VALUES))
 	(c2expr* form)
 	(dotimes (i nvalues)
-	  (funcall (if use-bind #'bind-var #'set-var)
-		   (values-loc i) (pop vars))))
+	  (when vars
+	    (funcall (if use-bind #'bind-var #'set-var)
+		     (values-loc i) (pop vars)))))
     (let ((*destination* (pop vars)))
       (c2expr* form)))
   (dolist (v vars)

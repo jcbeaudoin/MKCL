@@ -2,7 +2,7 @@
 ;;;;
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
-;;;;  Copyright (c) 2010-2018, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2018,2022, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -281,7 +281,7 @@
 (defun define-structure (name conc-name type named slots slot-descriptions
 			 copier include print-function print-object constructors
 			 offset name-offset documentation predicate source)
-  (create-type-name name)
+  (validate-type-name name)
   ;; We are going to modify this list!!!
   (setf slot-descriptions (copy-tree slot-descriptions))
   ;; FIXME! We could do the same with ENSURE-CLASS!

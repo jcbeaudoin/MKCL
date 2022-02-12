@@ -32,7 +32,7 @@ mk_cl_identity(MKCL, mkcl_object x)
   mkcl_return_value(x);
 }
 
-struct mkcl_cfun mk_cl_not_cfunobj = MKCL_CFUN1(mk_cl_null, MK_CL_not);
+struct mkcl_cfun mk_cl_not_cfunobj = MKCL_CFUN1(mk_cl_not, MK_CL_not);
 struct mkcl_cfun mk_cl_null_cfunobj = MKCL_CFUN1(mk_cl_null, MK_CL_null);
 
 mkcl_object

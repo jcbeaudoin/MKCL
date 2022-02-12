@@ -4,7 +4,7 @@
 
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
-;;;;  Copyright (c) 2010,2019,2021 Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010,2019,2021-2022, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -146,8 +146,10 @@
    ;; Call to a function whose C language function name is known,
    ;; either because it has been proclaimed so, or because it belongs
    ;; to the runtime.
-   ((and (<= (cmp-env-optimization 'debug) 1)
-	 (setf fd (get-sysprop fname 'si::Lfun))
+   ((and ;;(<= (cmp-env-optimization 'debug) 1)
+	 ;;(setf fd (get-sysprop fname 'si::Lfun))
+	 (setf fd (let ((finfo (get-sysprop fname 'si::proclaimed-function-information)))
+		    (when finfo (si::proclaimed-function-C-name finfo))))
 	 (multiple-value-setq (found minarg maxarg) (get-proclaimed-narg fname)))
     ;;(format t "~&About to call call-exported-function-loc on: ~S~%" fname)(finish-output) ;; debug JCB
     (call-exported-function-loc fname args fd minarg maxarg nil))
@@ -178,9 +180,13 @@
 	      (wt-h ");"))
 	    (progn
 	      (wt-nl-h "#ifdef __cplusplus")
-	      (wt-nl-h "extern mkcl_object " fun-c-name "(MKCL,...);")
+	      (wt-nl-h "extern mkcl_object " fun-c-name "(MKCL,")
+	      (dotimes (i minarg) (wt-h "mkcl_object,"))
+	      (wt-h "...);")
 	      (wt-nl-h "#else")
-	      (wt-nl-h "extern mkcl_object " fun-c-name "(MKCL,mkcl_narg,...);")
+	      (wt-nl-h "extern mkcl_object " fun-c-name "(MKCL,mkcl_narg,")
+	      (dotimes (i minarg) (wt-h "mkcl_object,"))
+	      (wt-h "...);")
 	      (wt-nl-h "#endif")))
 	(setf (gethash fun-c-name *compiler-declared-globals*) 1))))
   (let ((fun (make-fun :name fname :global t :cfun fun-c-name :lambda 'NIL

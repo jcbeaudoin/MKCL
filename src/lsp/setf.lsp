@@ -2,7 +2,7 @@
 ;;;;
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
-;;;;  Copyright (c) 2015, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2015,2022, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -15,9 +15,20 @@
 
 (in-package "SYSTEM")
 
+#-(and) ;; moved to a flet.
 (defun check-stores-number (context stores-list n)
   (unless (= (length stores-list) n)
     (error "~d store-variables expected in setf form ~a." n context)))
+
+#-(and) ;; moved to a flet
+(defun setf-structure-access (struct type index newvalue)
+  (cond
+    ((or (eq type 'list) (eq type 'vector))
+     `(sys:elt-set ,struct ,index ,newvalue))
+    ((consp type)
+     `(si::aset ,newvalue (the ,type ,struct) ,index))
+    (t `(sys::structure-set ,struct ',type ,index ,newvalue))))
+
 
 ;;; DEFSETF macro.
 (defmacro defsetf (access-fn &rest rest)
@@ -42,20 +53,23 @@ by (documentation 'SYMBOL 'setf)."
 	    ,@(si::expand-set-documentation access-fn 'setf (cadr rest))
 	    ',access-fn))
 	(t
-	 (let* ((store (second rest))
-		(args (first rest))
-		(body+ (cddr rest))
-                )
-           (multiple-value-bind (decls body doc)
-               (process-declarations body+ t)
-	   (check-stores-number 'DEFSETF store 1)
-	   `(define-when (compile load eval)
-	      (put-sysprop ',access-fn 'SETF-LAMBDA #'(lambda (,@store ,@args) (declare ,@decls) (block ,access-fn ,@body)))
-	      (rem-sysprop ',access-fn 'SETF-UPDATE-FN)
-	      (rem-sysprop ',access-fn 'SETF-METHOD)
-	      (rem-sysprop ',access-fn 'SETF-SYMBOL)
-	      ,@(si::expand-set-documentation access-fn 'setf doc)
-	      ',access-fn))))))
+	 (flet ((check-stores-number (context stores-list n)
+		  (unless (= (length stores-list) n)
+		    (error "~d store-variables expected in setf form ~a." n context))))
+	   (let* ((store (second rest))
+		  (args (first rest))
+		  (body+ (cddr rest))
+		  )
+	     (multiple-value-bind (decls body doc)
+	         (process-declarations body+ t)
+	       (check-stores-number 'DEFSETF store 1)
+	       `(define-when (compile load eval)
+		  (put-sysprop ',access-fn 'SETF-LAMBDA #'(lambda (,@store ,@args) (declare ,@decls) (block ,access-fn ,@body)))
+		  (rem-sysprop ',access-fn 'SETF-UPDATE-FN)
+		  (rem-sysprop ',access-fn 'SETF-METHOD)
+		  (rem-sysprop ',access-fn 'SETF-SYMBOL)
+		  ,@(si::expand-set-documentation access-fn 'setf doc)
+		  ',access-fn)))))))
 
 
 ;;; DEFINE-SETF-METHOD macro.
@@ -125,22 +139,29 @@ Does not check if the third gang is a single-element list."
 	  ((setq f (get-sysprop (car form) 'SETF-METHOD))
 	   (apply f env (cdr form)))
 	  (t
-	   (let* ((name (car form)) writer)
-	     (multiple-value-bind (store vars inits all)
-		 (rename-arguments (cdr form))
-	       (setq writer
-		     (cond ((setq f (get-sysprop name 'SETF-UPDATE-FN))
-			    `(,f ,@all ,store))
-			   ((setq f (get-sysprop name 'STRUCTURE-ACCESS))
-			    (setf-structure-access (car all) (car f) (cdr f) store))
-			   ((setq f (get-sysprop (car form) 'SETF-LAMBDA))
-			    (apply f store all))
-			   ((and (setq f (macroexpand-1 form env)) (not (equal f form)))
-			    (return-from get-setf-expansion
-			      (get-setf-expansion f env)))
-			   (t
-			    `(funcall #'(SETF ,name) ,store ,@all))))
-	       (values vars inits (list store) writer (cons name all))))))))
+	   (flet ((setf-structure-access (struct type index newvalue)
+                    (cond
+		     ((or (eq type 'list) (eq type 'vector))
+		      `(sys:elt-set ,struct ,index ,newvalue))
+		     ((consp type)
+		      `(si::aset ,newvalue (the ,type ,struct) ,index))
+		     (t `(sys::structure-set ,struct ',type ,index ,newvalue)))))
+	     (let* ((name (car form)) writer)
+	       (multiple-value-bind (store vars inits all)
+		   (rename-arguments (cdr form))
+		 (setq writer
+		       (cond ((setq f (get-sysprop name 'SETF-UPDATE-FN))
+			      `(,f ,@all ,store))
+			     ((setq f (get-sysprop name 'STRUCTURE-ACCESS))
+			      (setf-structure-access (car all) (car f) (cdr f) store))
+			     ((setq f (get-sysprop (car form) 'SETF-LAMBDA))
+			      (apply f store all))
+			     ((and (setq f (macroexpand-1 form env)) (not (equal f form)))
+			      (return-from get-setf-expansion
+					   (get-setf-expansion f env)))
+			     (t
+			      `(funcall #'(SETF ,name) ,store ,@all))))
+				    (values vars inits (list store) writer (cons name all)))))))))
 
 ;;;; SETF definitions.
 
@@ -307,14 +328,6 @@ Does not check if the third gang is a single-element list."
            (multiple-value-bind ,stores ,newvalue
              (declare (:read-only ,@stores))
              ,store-form))))))
-
-(defun setf-structure-access (struct type index newvalue)
-  (cond
-    ((or (eq type 'list) (eq type 'vector))
-     `(sys:elt-set ,struct ,index ,newvalue))
-    ((consp type)
-     `(si::aset ,newvalue (the ,type ,struct) ,index))
-    (t `(sys::structure-set ,struct ',type ,index ,newvalue))))
 
 (defun setf-expand (l env)
   (cond ((endp l) nil)

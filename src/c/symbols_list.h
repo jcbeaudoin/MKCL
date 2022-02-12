@@ -1525,7 +1525,7 @@ mkcl_symbol_initializer mkcl_root_symbol_inits[] = {
   {MKCL_EXT_ "CL-INDEX", MKCL_EXT_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
 
   {SYS_ "DO-DEFTYPE", SI_ORDINARY, MKCL_IN_LISP(mk_si_do_deftype), 3, MKCL_OBJNULL, MKCL_IN_LISP(&mk_si_do_deftype_cfunobj)},
-  {SYS_ "CREATE-TYPE-NAME", SI_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
+  {SYS_ "VALIDATE-TYPE-NAME", SI_ORDINARY, NULL, -1, MKCL_OBJNULL, NULL},
   {SYS_ "*ALIEN-DECLARATIONS*", SI_SPECIAL, NULL, -1, mk_cl_Cnil, NULL},
 
   {SYS_ "LOAD-BINARY", SI_ORDINARY, mk_si_load_binary, 4, MKCL_OBJNULL, &mk_si_load_binary_cfunobj},

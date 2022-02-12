@@ -1,4 +1,16 @@
 /* -*- mode: c  -*- */
+/*
+    Copyright (c) 2010-2022, Jean-Claude Beaudoin.
+    Copyright by a number of previous anonymous authors
+              presumed to be the same as for the rest of MKCL.
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 3 of the License, or (at your option) any later version.
+
+    See file '../../Copyright' for full details.
+*/
 
 #include <mkcl/mkcl.h>
 #include <ctype.h>
@@ -339,45 +351,36 @@ mkcl_object mk_si_mangle_function_name(MKCL, mkcl_object symbol)
   if (mkcl_Null(symbol)) symbol = ((mkcl_object) &mk_cl_Cnil_symbol);
   else if (!MKCL_SYMBOLP(symbol)) { mkcl_return_2_values(mk_cl_Cnil, mk_cl_Cnil); }
 
-#if 1
-  if (((mkcl_object) &(mkcl_root_symbols[0])) <= symbol
-      && symbol < ((mkcl_object) &(mkcl_root_symbols[NB_STATIC_SYMBOLS-1])))
-    {
-      mkcl_index i = (struct mkcl_symbol *)symbol - mkcl_root_symbols;
-
-      const char * c_name = mkcl_root_symbols_to_c_fun_name_map[i].translation;
-      int narg = mkcl_root_symbols_to_c_fun_name_map[i].narg;
-      mkcl_object output = mk_cl_Cnil;
-
-      if (c_name)
-	{
-	  found = mk_cl_Ct;
-	  output = mkcl_make_simple_base_string(env, (char *) c_name);
-	  if (narg >= 0)
-	    minarg = maxarg = MKCL_MAKE_FIXNUM(narg);
-	}
-      else
-	{
-	  found = output = mk_cl_Cnil;
-	}
-      mkcl_return_4_values(found, output, minarg, maxarg);
-    }
-#else
   mkcl_object fun = symbol->symbol.gfdef;
 
   if (mkcl_type_of(fun) == mkcl_t_cfun)
     {
       mkcl_narg narg = fun->cfun.narg;
+      const char * _C_name = fun->cfun._C_name;
       mkcl_object output = fun->cfun.C_name;
 
       if (mkcl_Null(output))
-	found = mk_cl_Cnil;
+	{
+	  if (_C_name)
+	    {
+	      output = mkcl_make_simple_base_string(env, (char *) _C_name);
+	      fun->cfun.C_name = output;
+	      found = mk_cl_Ct;
+	      if (narg >= 0)
+		minarg = maxarg = MKCL_MAKE_FIXNUM(narg);
+	    }
+	  else
+	    found = mk_cl_Cnil;
+	}
       else
-	{ found = mk_cl_Ct; minarg = maxarg = MKCL_MAKE_FIXNUM(narg); }
+	{
+	  found = mk_cl_Ct;
+	  if (narg >= 0)
+	    minarg = maxarg = MKCL_MAKE_FIXNUM(narg);
+	}
 
       mkcl_return_4_values(found, output, minarg, maxarg);
     }
-#endif
   
   mkcl_object output = mangle_full_symbol_name(env, symbol, "");
   mkcl_return_4_values(found, output, minarg, maxarg);
@@ -547,9 +550,8 @@ struct mkcl_cfun mk_si_shutdown_mkcl_threads_cfunobj = MKCL_CFUN4(mk_si_shutdown
 
 
 static void
-make_this_symbol(MKCL, int i, struct mkcl_symbol * symbol, int code,
-		 const char *name,
-		 mkcl_objectfn fun, int narg, mkcl_object value)
+make_this_symbol(MKCL, int i, struct mkcl_symbol * symbol, int code, const char * _name,
+		 mkcl_objectfn fun, int narg, mkcl_object value, struct mkcl_cfun * funobj)
 {
   enum mkcl_stype stp;
   mkcl_object package;
@@ -581,14 +583,14 @@ make_this_symbol(MKCL, int i, struct mkcl_symbol * symbol, int code,
   {
     const char format[] = "mkcl_root_symbols[%d]";
 #if 1
-    const int C_name_size = sizeof(format) + 5; /* should be good enough for 10k symbols. JCB */
+    const int _C_name_size = sizeof(format) + 5; /* should be good enough for 10k symbols. JCB */
 #else
-    const int C_name_size = snprintf(NULL, 0, format, i); /* safer but slower. JCB */
+    const int _C_name_size = snprintf(NULL, 0, format, i); /* safer but slower. JCB */
 #endif
-    char * C_name = mkcl_alloc(env, C_name_size);
-    snprintf(C_name, C_name_size, format, i);
-    mkcl_object _name = mkcl_make_simple_base_string(env, (char *) name);
-    mkcl_object _C_name = mkcl_make_simple_base_string(env, (char *) C_name);
+    char * _C_name = mkcl_alloc(env, _C_name_size);
+    snprintf(_C_name, _C_name_size, format, i);
+    mkcl_object name = mkcl_make_simple_base_string(env, (char *) _name);
+    mkcl_object C_name = mkcl_make_simple_base_string(env, _C_name);
 
     symbol->t = mkcl_t_symbol;
     symbol->special_index = MKCL_NOT_A_SPECIAL_INDEX;
@@ -600,9 +602,11 @@ make_this_symbol(MKCL, int i, struct mkcl_symbol * symbol, int code,
     symbol->properly_named_class = mk_cl_Cnil;
     symbol->stype = stp;
     symbol->hpack = package;
-    symbol->name = _name;
-    symbol->hashed_name = mkcl_hash_base_string(_name->base_string.self, _name->base_string.fillp, 0);
-    symbol->C_name = _C_name; /* just for now. */
+    symbol->name = name;
+    symbol->_name = _name;
+    symbol->hashed_name = mkcl_hash_base_string(name->base_string.self, name->base_string.fillp, 0);
+    symbol->_C_name = _C_name; /* just for now. */
+    symbol->C_name = C_name; /* just for now. */
   }
 
   if (package == mkcl_core.keyword_package) {
@@ -616,14 +620,8 @@ make_this_symbol(MKCL, int i, struct mkcl_symbol * symbol, int code,
   }
   if (form) {
     symbol->stype |= mkcl_stp_special_form;
-  } else if (fun) {
-    mkcl_object f;
-    if (narg >= 0) {
-      f = mkcl_make_cfun(env, (mkcl_objectfn_fixed) fun, (mkcl_object) symbol, MKCL_OBJNULL, narg, NULL);
-    } else {
-      f = mkcl_make_cfun_va(env, fun, (mkcl_object) symbol, MKCL_OBJNULL, NULL);
-    }
-    symbol->gfdef = f;
+  } else if (funobj) {
+    symbol->gfdef = (mkcl_object) funobj;
     if (macro) symbol->stype |= mkcl_stp_macro;
   }
 }
@@ -639,12 +637,13 @@ mkcl_init_all_symbols(MKCL)
   /* We skip NIL and T, thus we start at 2. */
   for (i = 2; mkcl_root_symbol_inits[i].name != NULL; i++) {
     struct mkcl_symbol * s = &(mkcl_root_symbols[i]);
+    struct mkcl_cfun * funobj = mkcl_root_symbol_inits[i].funobj;
     code = mkcl_root_symbol_inits[i].type;
     name = mkcl_root_symbol_inits[i].name;
     fun = (mkcl_objectfn)mkcl_root_symbol_inits[i].fun;
     narg = mkcl_root_symbol_inits[i].narg;
     value = mkcl_root_symbol_inits[i].value;
-    make_this_symbol(env, i, s, code, name, fun, narg, value);
+    make_this_symbol(env, i, s, code, name, fun, narg, value, funobj);
   }
 }
 

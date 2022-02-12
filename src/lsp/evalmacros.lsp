@@ -2,7 +2,7 @@
 ;;;;
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
-;;;;  Copyright (c) 2011-2015, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2011-2015,2022, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -296,6 +296,7 @@ values of the last FORM.  If no FORM is given, returns NIL."
     (push `(,(car vl) (NTH ,n ,sym)) bind))
   )
 
+#-(and)
 (defun while-until (test body jmp-op)
   (let ((label (gensym))
 	(exit (gensym)))
@@ -307,10 +308,28 @@ values of the last FORM.  If no FORM is given, returns NIL."
 	(,jmp-op ,test (GO ,label)))))
 
 (defmacro sys::while (test &body body)
-  (while-until test body 'when))
+  ;;(while-until test body 'when)
+  #+(and)
+  (let ((label (gensym))
+	(exit (gensym)))
+    `(TAGBODY
+        (GO ,exit)
+      ,label
+        ,@body
+      ,exit
+	(when ,test (GO ,label)))))
 
 (defmacro sys::until (test &body body)
-  (while-until test body 'unless))
+  ;;(while-until test body 'unless)
+  #+(and)
+  (let ((label (gensym))
+	(exit (gensym)))
+    `(TAGBODY
+        (GO ,exit)
+      ,label
+        ,@body
+      ,exit
+	(unless ,test (GO ,label)))))
 
 #|
 (defmacro case (keyform &rest clauses &aux (form nil) (key (gensym)))

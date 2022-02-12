@@ -2,7 +2,7 @@
 ;;;;
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
-;;;;  Copyright (c) 2011-2016,2021 Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2011-2016,2021-2022, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -108,23 +108,29 @@
   (let ((x (assoc fname *function-declarations*)))
     (if x
 	(values (second x) t)
-	(get-sysprop fname 'SI::PROCLAIMED-ARG-TYPES))))
+      (let ((finfo (si::get-sysprop fname 'SI::PROCLAIMED-FUNCTION-INFORMATION)))
+	(if finfo
+ 	    (values (si::proclaimed-function-arg-types finfo) t)
+	  (values '* nil))))))
 
 (defun get-return-type (fname)
   (let ((x (assoc fname *function-declarations*)))
     (if x
 	(values (third x) t)
-	(get-sysprop fname 'SI::PROCLAIMED-RETURN-TYPE))))
+      (let ((finfo (si::get-sysprop fname 'SI::PROCLAIMED-FUNCTION-INFORMATION)))
+	(if finfo
+	    (values (si::proclaimed-function-return-type finfo) t)
+	  (values '* nil))))))
 
 (defun get-local-arg-types (fun &aux x)
   (if (setq x (assoc fun *function-declarations*))
       (values (second x) t)
-      (values nil nil)))
+      (values '* nil)))
 
 (defun get-local-return-type (fun &aux x)
   (if (setq x (assoc fun *function-declarations*))
       (values (caddr x) t)
-      (values nil nil)))
+      (values '* nil)))
 
 (defun get-proclaimed-narg (fun-name)
   (multiple-value-bind (arg-list found)
@@ -240,6 +246,7 @@
 	      ((OPTIMIZE FTYPE INLINE NOTINLINE DECLARATION
 		VALUES SI::C-GLOBAL SI::NO-CHECK-TYPE)
 	       (push decl others))
+	      (ANNUL #| do some processing of declarations to annul. |#)
 	      (otherwise
 	       (if (member decl-name si::*alien-declarations*)
 		   (push decl others)

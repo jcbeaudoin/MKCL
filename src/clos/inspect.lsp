@@ -1,7 +1,7 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: CLOS -*-
 ;;;;
 ;;;;  Copyright (c) 1992, Giuseppe Attardi.
-;;;;  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2012,2022, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    MKCL is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -321,7 +321,7 @@ q (or Q):             quits the inspection.~%~
 	     (si::inspect-read-line)
 	     (throw 'SI::ABORT-INSPECT nil))
 	    ((#\e #\E)
-	     (si::select-E))
+	     (si::select-E instance))
 	    ((#\q #\Q)
 	     (si::inspect-read-line)
 	     (throw 'SI::QUIT-INSPECT nil))
@@ -372,7 +372,7 @@ q (or Q):             quits the inspection.~%~
 	     (si::inspect-read-line)
 	     (throw 'SI::ABORT-INSPECT nil))
 	    ((#\e #\E)
-	     (si::select-E))
+	     (si::select-E instance))
 	    ((#\q #\Q)
 	     (si::inspect-read-line)
 	     (throw 'SI::QUIT-INSPECT nil))
@@ -422,7 +422,7 @@ q (or Q):             quits the inspection.~%~
 	     (si::inspect-read-line)
 	     (throw 'SI::ABORT-INSPECT nil))
 	    ((#\e #\E)
-	     (si::select-E))
+	     (si::select-E instance))
 	    ((#\q #\Q)
 	     (si::inspect-read-line)
 	     (throw 'SI::QUIT-INSPECT nil))

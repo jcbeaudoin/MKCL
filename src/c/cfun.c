@@ -104,6 +104,7 @@ mkcl_make_cfun(MKCL, mkcl_objectfn_fixed c_function, mkcl_object name,
   cf->cfun.fun_refs = NULL;
   cf->cfun.owner = mk_cl_Cnil;
   cf->cfun.C_name = mk_cl_Cnil;
+  cf->cfun._C_name = NULL;
 
   if (anchor != NULL)
     *anchor = cf;
@@ -168,6 +169,7 @@ mkcl_make_cfun_va(MKCL, mkcl_objectfn c_function, mkcl_object name,
   cf->cfun.fun_refs = NULL;
   cf->cfun.owner = mk_cl_Cnil;
   cf->cfun.C_name = mk_cl_Cnil;
+  cf->cfun._C_name = NULL;
 
   if (anchor != NULL)
     *anchor = cf;
@@ -1292,7 +1294,8 @@ struct mkcl_cfun mk_si_member1_cfunobj =   {
   NULL,
   NULL,
   mk_cl_Cnil,
-  mk_cl_Cnil
+  mk_cl_Cnil,
+  "mk_si_member1"
 };
 
 
@@ -1319,7 +1322,8 @@ struct mkcl_cfun mk_si_make_vector_cfunobj =   {
   NULL,
   NULL,
   mk_cl_Cnil,
-  mk_cl_Cnil
+  mk_cl_Cnil,
+  "mk_si_make_vector"
 };
 
 struct mkcl_cfun mk_si_make_pure_array_cfunobj =   {
@@ -1345,6 +1349,7 @@ struct mkcl_cfun mk_si_make_pure_array_cfunobj =   {
   NULL,
   NULL,
   mk_cl_Cnil,
-  mk_cl_Cnil
+  mk_cl_Cnil,
+  "mk_si_make_pure_array"
 };
 

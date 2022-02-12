@@ -4,7 +4,7 @@
 
 ;;;;  Copyright (c) 1984, Taiichi Yuasa and Masami Hagiya.
 ;;;;  Copyright (c) 1990, Giuseppe Attardi.
-;;;;  Copyright (c) 2010-2015, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2015,2022, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -367,8 +367,10 @@
   (mapcar #'t2expr args))
 
 (defun exported-fname (name)
-  (let (cname found)
-    (if (and (symbolp name) (setf cname (get-sysprop name 'si::Lfun)))
+  (let* ((finfo (and (symbolp name) (get-sysprop name 'si::proclaimed-function-information)))
+	 (cname (if finfo (si::proclaimed-function-C-name finfo) nil))
+	 found)
+    (if cname ;;(and (symbolp name) (setf cname (get-sysprop name 'si::Lfun)))
         (values cname t)
       (if (multiple-value-setq (found cname) (si::mangle-function-name name))
 	  (values cname t)

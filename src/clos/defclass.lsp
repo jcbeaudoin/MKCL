@@ -1,7 +1,7 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: CLOS -*-
 ;;;;
 ;;;;  Copyright (c) 1992, Giuseppe Attardi.
-;;;;  Copyright (c) 2010-2015, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2015,2022, Jean-Claude Beaudoin.
 ;;;;
 ;;;;    This program is free software; you can redistribute it and/or
 ;;;;    modify it under the terms of the GNU Lesser General Public
@@ -118,7 +118,7 @@
 	 (setf old-class nil)))
      (setf new-class (apply #'ensure-class-using-class old-class name initargs))
      (when name
-       (si:create-type-name name)
+       (si:validate-type-name name)
        (setf (find-class name) new-class))
      new-class)))
 
