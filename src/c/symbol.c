@@ -105,7 +105,10 @@ static void mkcl_FEtype_error_plist(MKCL, mkcl_object x) /*__attribute__((noretu
       mk_cl_Cnil,                                               \
       mk_cl_Cnil,                                               \
       MKCL_NOT_A_SPECIAL_INDEX,					\
-      name_hash_val						\
+      name_hash_val,						\
+      mk_cl_Cnil,						\
+      NULL,							\
+      NULL							\
       }
 
 static struct mkcl_symbol _symbol_proto = MKCL_SYMBOL_INITIALIZER(mk_cl_Cnil, 0, mk_cl_Cnil, MKCL_OBJNULL, mk_cl_Cnil);

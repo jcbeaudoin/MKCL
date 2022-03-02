@@ -270,6 +270,11 @@ extern "C" {
     volatile mkcl_object children;
     volatile mkcl_object detached_children;
 
+    struct mkcl_symbol Cnil_symbol;
+    struct mkcl_symbol Ct_symbol;
+    struct mkcl_symbol unbound_symbol;
+    struct mkcl_symbol protect_tag_symbol;
+
 #ifdef HASHTABLE_STATS /* JCB */
     mkcl_object hashtables[mkcl_htt_package + 1];
 #endif

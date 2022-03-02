@@ -1099,7 +1099,6 @@ mkcl_init_alloc(void)
 
   MK_GC_clear_roots();
   MK_GC_add_roots(&mkcl_core, (&mkcl_core + 1));
-  MK_GC_add_roots(mkcl_root_symbols, (mkcl_root_symbols + mkcl_root_symbols_count));
 
   MK_GC_set_warn_proc(no_warnings);
   alloc_initialized = TRUE;

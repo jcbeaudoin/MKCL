@@ -260,7 +260,6 @@ static void setup_initial_thread_bindings(MKCL)
 
 static const mkcl_object mkcl_T = mk_cl_Ct; /* debugging convenience. */
 
-
 static void _mkcl_boot_inner(MKCL)
 {
   mkcl_init_early_unixint(env);
@@ -331,9 +330,45 @@ static void _mkcl_boot_inner(MKCL)
 #endif
   }
 
-#if 1
+  {
+    mkcl_object sym_name = mkcl_make_simple_base_string(env, "UNBOUND");
+    mkcl_object sym_C_name = mkcl_make_simple_base_string(env, "mk_si_unbound_symbol");
+    mkcl_hash_value sym_hashed_name = mkcl_hash_base_string(sym_name->base_string.self, sym_name->base_string.fillp, 0);
+
+    mk_si_unbound_symbol.t = mkcl_t_symbol;
+    mk_si_unbound_symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;
+    mk_si_unbound_symbol.value = MKCL_UNBOUND;
+    mk_si_unbound_symbol.name = sym_name;
+    mk_si_unbound_symbol.hashed_name = sym_hashed_name;
+    mk_si_unbound_symbol.gfdef = ((mkcl_object) &mk_si_unbound_cfunobj);
+    mk_si_unbound_symbol.plist = mk_cl_Cnil;
+    mk_si_unbound_symbol.sys_plist = mk_cl_Cnil;
+    mk_si_unbound_symbol.hpack = mk_cl_Cnil;
+    mk_si_unbound_symbol.properly_named_class = mk_cl_Cnil;
+    mk_si_unbound_symbol.stype = mkcl_stp_constant;
+    mk_si_unbound_symbol.C_name = sym_C_name;
+  }
+
+  {
+    mkcl_object sym_name = mkcl_make_simple_base_string(env, "PROTECT_TAG");
+    mkcl_object sym_C_name = mkcl_make_simple_base_string(env, "mk_si_protect_tag_symbol");
+    mkcl_hash_value sym_hashed_name = mkcl_hash_base_string(sym_name->base_string.self, sym_name->base_string.fillp, 0);
+
+    mk_si_protect_tag_symbol.t = mkcl_t_symbol;
+    mk_si_protect_tag_symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;
+    mk_si_protect_tag_symbol.value = MKCL_OBJNULL;
+    mk_si_protect_tag_symbol.name = sym_name;
+    mk_si_protect_tag_symbol.hashed_name = sym_hashed_name;
+    mk_si_protect_tag_symbol.gfdef = mk_cl_Cnil;
+    mk_si_protect_tag_symbol.plist = mk_cl_Cnil;
+    mk_si_protect_tag_symbol.sys_plist = mk_cl_Cnil;
+    mk_si_protect_tag_symbol.hpack = mk_cl_Cnil;
+    mk_si_protect_tag_symbol.properly_named_class = mk_cl_Cnil;
+    mk_si_protect_tag_symbol.stype = mkcl_stp_ordinary;
+    mk_si_protect_tag_symbol.C_name = sym_C_name;
+  }
+
   mkcl_core.packages = mk_cl_Cnil;
-#endif
   mkcl_core.packages_to_be_created = mk_cl_Cnil;
 
   mkcl_core.lisp_package =
@@ -399,6 +434,14 @@ static void _mkcl_boot_inner(MKCL)
 #endif
   mkcl_import2(env, mk_cl_Ct, mkcl_core.lisp_package);
   mkcl_export2(env, mk_cl_Ct, mkcl_core.lisp_package);
+
+  mk_si_unbound_symbol.hpack = mkcl_core.system_package;
+  mkcl_import2(env, MK_SI_UNBOUND, mkcl_core.system_package);
+  mkcl_export2(env, MK_SI_UNBOUND, mkcl_core.system_package);
+
+  mk_si_protect_tag_symbol.hpack = mkcl_core.system_package;
+  mkcl_import2(env, MK_SI_PROTECT_TAG, mkcl_core.system_package);
+  mkcl_export2(env, MK_SI_PROTECT_TAG, mkcl_core.system_package);
 
   /* These must come _after_ the packages and NIL/T have been created */
   mkcl_init_all_symbols(env);

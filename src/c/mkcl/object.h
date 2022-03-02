@@ -288,11 +288,18 @@ extern "C" {
 
 #define mk_cl_Cnil              ((mkcl_object) NULL)
 
-#define	mk_cl_Cnil_symbol	mkcl_root_symbols[0]
-#define	mk_cl_Ct_symbol		mkcl_root_symbols[1]
+# define mk_cl_Cnil_symbol        mkcl_core.Cnil_symbol
+# define mk_cl_Ct_symbol          mkcl_core.Ct_symbol
+# define mk_si_unbound_symbol     mkcl_core.unbound_symbol
+# define mk_si_protect_tag_symbol mkcl_core.protect_tag_symbol
+
+
 #define	mk_cl_Ct		((mkcl_object) &mk_cl_Ct_symbol)
-#define MKCL_UNBOUND		((mkcl_object) &mkcl_root_symbols[2])
-#define MKCL_PROTECT_TAG	((mkcl_object) &mkcl_root_symbols[3])
+#define MK_SI_UNBOUND		((mkcl_object) &mk_si_unbound_symbol)
+#define MK_SI_PROTECT_TAG	((mkcl_object) &mk_si_protect_tag_symbol)
+
+#define MKCL_UNBOUND MK_SI_UNBOUND /* For backward compatibility. JCB */
+#define MKCL_PROTECT_TAG MK_SI_PROTECT_TAG /* For backward compatibility. JCB */
 
 #define MKCL_NOT_A_SPECIAL_INDEX (~((mkcl_index)0))
 
@@ -309,8 +316,8 @@ extern "C" {
     mkcl_index special_index;
     mkcl_hash_value hashed_name;   /* hash value of name */
     mkcl_object C_name;            /* name that directly denotes this mkcl_symbol object in C. */
-    const char * _C_name;
-    const char * _name;
+    char * _C_name;
+    char * _name;
   };
 #define MKCL_SYM_FUN(sym)	((sym)->symbol.gfdef)
 
@@ -1290,6 +1297,15 @@ extern "C" {
     else mkcl_fill_base_string_from_string(_env, name, 0, str);
 #endif
 
+
+#define MKCL_BASE_STRING_OBJECT_INITIALIZER(chars) {	\
+    (int8_t)mkcl_t_base_string, 0, FALSE, FALSE,	\
+      mk_cl_Cnil,					\
+      (sizeof(chars)-1),				\
+      (sizeof(chars)-1),				\
+      (chars),						\
+      mkcl_base_char_index, mkcl_base_char_set_index,	\
+      }
 
 #define mkcl_base_string_object(name, chars)		\
   struct mkcl_base_string name = {			\

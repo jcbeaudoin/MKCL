@@ -81,11 +81,6 @@ const mkcl_index mkcl_root_symbols_count = NB_STATIC_SYMBOLS - 1;
 
 struct mkcl_symbol mkcl_root_symbols[NB_STATIC_SYMBOLS] = { 0 };
 
-#define mkcl_root_symbol_inits mkcl_root_symbols_to_c_fun_name_map
-#define mkcl_symbol_initializer mkcl_symbol_to_c_fun_name
-#include "symbols_list2.h"
-#undef mkcl_root_symbol_inits
-#undef mkcl_symbol_initializer
 
 static mkcl_index mangled_char_size(mkcl_character ch)
 {
@@ -634,8 +629,8 @@ mkcl_init_all_symbols(MKCL)
   mkcl_object s, value;
   mkcl_objectfn fun;
 
-  /* We skip NIL and T, thus we start at 2. */
-  for (i = 2; mkcl_root_symbol_inits[i].name != NULL; i++) {
+  /* We skip NIL and T and UNBOUND and PROTECT_TAG, thus we start at 4. */
+  for (i = 4; mkcl_root_symbol_inits[i].name != NULL; i++) {
     struct mkcl_symbol * s = &(mkcl_root_symbols[i]);
     struct mkcl_cfun * funobj = mkcl_root_symbol_inits[i].funobj;
     code = mkcl_root_symbol_inits[i].type;
