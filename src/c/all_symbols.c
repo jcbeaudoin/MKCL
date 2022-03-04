@@ -598,7 +598,7 @@ make_this_symbol(MKCL, int i, struct mkcl_symbol * symbol, int code, const char 
     symbol->stype = stp;
     symbol->hpack = package;
     symbol->name = name;
-    symbol->_name = _name;
+    symbol->_name = (char *) _name;
     symbol->hashed_name = mkcl_hash_base_string(name->base_string.self, name->base_string.fillp, 0);
     symbol->_C_name = _C_name; /* just for now. */
     symbol->C_name = C_name; /* just for now. */
