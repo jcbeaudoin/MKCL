@@ -48,6 +48,60 @@ struct mkcl_core_struct mkcl_core;
 
 /************************ GLOBAL INITIALIZATION ***********************/
 
+
+#define NB_FEATURES (sizeof(features)/sizeof(features[0]))
+
+static struct mkcl_cons features[] = {
+#ifdef MKCL_RELATIVE_PACKAGE_NAMES
+  MKCL_CONS_INIT(MK_KEY_relative_package_names, mk_cl_Cnil),
+#endif
+  MKCL_CONS_INIT(MK_KEY_unicode, mk_cl_Cnil),
+#ifdef _MSC_VER
+  MKCL_CONS_INIT(MK_KEY_msvc, mk_cl_Cnil),
+  MKCL_CONS_INIT(MK_KEY_windows, mk_cl_Cnil),
+#endif
+#ifdef __MINGW32__
+# ifdef __MINGW64__
+  MKCL_CONS_INIT(MK_KEY_mingw64, mk_cl_Cnil),
+# else
+  MKCL_CONS_INIT(MK_KEY_mingw32, mk_cl_Cnil),
+# endif
+  MKCL_CONS_INIT(MK_KEY_windows, mk_cl_Cnil),
+#endif
+#if __FreeBSD__
+  MKCL_CONS_INIT(MK_KEY_freebsd, mk_cl_Cnil),
+#endif
+#if __ANDROID__
+  MKCL_CONS_INIT(MK_KEY_android, mk_cl_Cnil),
+#endif
+#ifdef __linux
+  MKCL_CONS_INIT(MK_KEY_linux, mk_cl_Cnil),
+#endif
+#ifdef __unix
+  MKCL_CONS_INIT(MK_KEY_unix, mk_cl_Cnil),
+#endif
+#ifdef MKCL_IEEE_FP
+  MKCL_CONS_INIT(MK_KEY_ieee_floating_point, mk_cl_Cnil),
+#endif
+#ifdef MKCL_LITTLE_ENDIAN
+  MKCL_CONS_INIT(MK_KEY_little_endian, mk_cl_Cnil),
+#endif
+#if defined(__i386) || defined(__pentium)
+  MKCL_CONS_INIT(MK_KEY_x86, mk_cl_Cnil),
+#elif defined(__x86_64)
+  MKCL_CONS_INIT(MK_KEY_x86_64, mk_cl_Cnil),
+#elif defined(__aarch64__)
+  MKCL_CONS_INIT(MK_KEY_aarch64, mk_cl_Cnil),
+#elif defined(__arm__)
+  MKCL_CONS_INIT(MK_KEY_arm, mk_cl_Cnil),
+#endif
+  MKCL_CONS_INIT(MK_KEY_ansi_cl, mk_cl_Cnil),
+  MKCL_CONS_INIT(MK_KEY_common_lisp, mk_cl_Cnil),
+  MKCL_CONS_INIT(MK_KEY_common, mk_cl_Cnil),
+  MKCL_CONS_INIT(MK_KEY_mkcl, mk_cl_Cnil),
+};
+
+
 static mkcl_index ARGC = 0;
 static char **ARGV = NULL;
 
@@ -81,54 +135,6 @@ static mkcl_word option_values[MKCL_OPT_MAXIMUM] = {
   1024*1024, 	/* MKCL_OPT_HEAP_SAFETY_AREA, in nb. of bytes */
 };
 
-#define NB_FEATURES (sizeof(feature_names)/sizeof(feature_names[0]))
-
-static const char * const feature_names[] = {
-        "MKCL", "COMMON", "COMMON-LISP", "ANSI-CL",
-#if defined(__i386) || defined(__pentium)
-	"X86",
-#elif defined(__x86_64)
-	"X86-64",
-#elif defined(__aarch64__)
-	"AARCH64",
-#elif defined(__arm__)
-	"ARM",
-#endif
-#ifdef MKCL_LITTLE_ENDIAN
-	"LITTLE-ENDIAN",
-#endif
-#ifdef MKCL_IEEE_FP
-        "IEEE-FLOATING-POINT",
-#endif
-#ifdef __unix
-	"UNIX",
-#endif
-#ifdef __linux
-        "LINUX",
-#endif
-#if __ANDROID__
-        "ANDROID",
-#endif
-#if __FreeBSD__
-        "FREEBSD",
-#endif
-#ifdef __MINGW32__
-	"WINDOWS",
-# ifdef __MINGW64__
-	"MINGW64",
-# else
-	"MINGW32",
-# endif
-#endif
-#ifdef _MSC_VER
-	"WINDOWS",
-	"MSVC",
-#endif
-	"UNICODE",
-#ifdef MKCL_RELATIVE_PACKAGE_NAMES
-	"RELATIVE-PACKAGE-NAMES",
-#endif
-};
 
 mkcl_word
 mkcl_get_option(mkcl_option option)
@@ -274,177 +280,7 @@ static void _mkcl_boot_inner(MKCL)
   mkcl_core.hashtables[mkcl_htt_package] = mk_cl_Cnil;
 #endif
 
-  /*
-   * 1) Initialize symbols and packages
-   */
-  {
-    mkcl_object sym_name = mkcl_make_simple_base_string(env, "NIL");
-    mkcl_object sym_C_name = mkcl_make_simple_base_string(env, "mk_cl_Cnil_symbol");
-    mkcl_hash_value sym_hashed_name = mkcl_hash_base_string(sym_name->base_string.self, sym_name->base_string.fillp, 0);
-
-    mk_cl_Cnil_symbol.t = mkcl_t_symbol;
-    mk_cl_Cnil_symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;
-    mk_cl_Cnil_symbol.value = mk_cl_Cnil;
-    mk_cl_Cnil_symbol.name = sym_name;
-    mk_cl_Cnil_symbol.hashed_name = sym_hashed_name;
-    mk_cl_Cnil_symbol.gfdef = mk_cl_Cnil;
-    mk_cl_Cnil_symbol.plist = mk_cl_Cnil;
-    mk_cl_Cnil_symbol.sys_plist = mk_cl_Cnil;
-    mk_cl_Cnil_symbol.hpack = mk_cl_Cnil;
-    mk_cl_Cnil_symbol.properly_named_class = mk_cl_Cnil;
-    mk_cl_Cnil_symbol.stype = mkcl_stp_constant;
-    mk_cl_Cnil_symbol.C_name = sym_C_name;
-  }
-
-  {
-    mkcl_object sym_name = mkcl_make_simple_base_string(env, "T");
-    mkcl_object sym_C_name = mkcl_make_simple_base_string(env, "mk_cl_Ct_symbol");
-    mkcl_hash_value sym_hashed_name = mkcl_hash_base_string(sym_name->base_string.self, sym_name->base_string.fillp, 0);
-
-#if !__clang__
-  mk_cl_Ct->symbol.t = mkcl_t_symbol;
-  mk_cl_Ct->symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;
-  mk_cl_Ct->symbol.value = mk_cl_Ct;
-  mk_cl_Ct->symbol.name = sym_name;
-  mk_cl_Ct->symbol.hashed_name = sym_hashed_name;
-  mk_cl_Ct->symbol.gfdef = mk_cl_Cnil;
-  mk_cl_Ct->symbol.plist = mk_cl_Cnil;
-  mk_cl_Ct->symbol.sys_plist = mk_cl_Cnil;
-  mk_cl_Ct->symbol.hpack = mk_cl_Cnil;
-  mk_cl_Ct->symbol.properly_named_class = mk_cl_Cnil;
-  mk_cl_Ct->symbol.stype = mkcl_stp_constant;
-  mk_cl_Ct->symbol.C_name = sym_C_name;
-#else
-  mk_cl_Ct_symbol.t = mkcl_t_symbol;
-  mk_cl_Ct_symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;
-  mk_cl_Ct_symbol.value = mk_cl_Ct;
-  mk_cl_Ct_symbol.name = sym_name;
-  mk_cl_Ct_symbol.hashed_name = sym_hashed_name;
-  mk_cl_Ct_symbol.gfdef = mk_cl_Cnil;
-  mk_cl_Ct_symbol.plist = mk_cl_Cnil;
-  mk_cl_Ct_symbol.sys_plist = mk_cl_Cnil;
-  mk_cl_Ct_symbol.hpack = mk_cl_Cnil;
-  mk_cl_Ct_symbol.properly_named_class = mk_cl_Cnil;
-  mk_cl_Ct_symbol.stype = mkcl_stp_constant;
-  mk_cl_Ct_symbol.C_name = sym_C_name;
-#endif
-  }
-
-  {
-    mkcl_object sym_name = mkcl_make_simple_base_string(env, "UNBOUND");
-    mkcl_object sym_C_name = mkcl_make_simple_base_string(env, "mk_si_unbound_symbol");
-    mkcl_hash_value sym_hashed_name = mkcl_hash_base_string(sym_name->base_string.self, sym_name->base_string.fillp, 0);
-
-    mk_si_unbound_symbol.t = mkcl_t_symbol;
-    mk_si_unbound_symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;
-    mk_si_unbound_symbol.value = MKCL_UNBOUND;
-    mk_si_unbound_symbol.name = sym_name;
-    mk_si_unbound_symbol.hashed_name = sym_hashed_name;
-    mk_si_unbound_symbol.gfdef = ((mkcl_object) &mk_si_unbound_cfunobj);
-    mk_si_unbound_symbol.plist = mk_cl_Cnil;
-    mk_si_unbound_symbol.sys_plist = mk_cl_Cnil;
-    mk_si_unbound_symbol.hpack = mk_cl_Cnil;
-    mk_si_unbound_symbol.properly_named_class = mk_cl_Cnil;
-    mk_si_unbound_symbol.stype = mkcl_stp_constant;
-    mk_si_unbound_symbol.C_name = sym_C_name;
-  }
-
-  {
-    mkcl_object sym_name = mkcl_make_simple_base_string(env, "PROTECT_TAG");
-    mkcl_object sym_C_name = mkcl_make_simple_base_string(env, "mk_si_protect_tag_symbol");
-    mkcl_hash_value sym_hashed_name = mkcl_hash_base_string(sym_name->base_string.self, sym_name->base_string.fillp, 0);
-
-    mk_si_protect_tag_symbol.t = mkcl_t_symbol;
-    mk_si_protect_tag_symbol.special_index = MKCL_NOT_A_SPECIAL_INDEX;
-    mk_si_protect_tag_symbol.value = MKCL_OBJNULL;
-    mk_si_protect_tag_symbol.name = sym_name;
-    mk_si_protect_tag_symbol.hashed_name = sym_hashed_name;
-    mk_si_protect_tag_symbol.gfdef = mk_cl_Cnil;
-    mk_si_protect_tag_symbol.plist = mk_cl_Cnil;
-    mk_si_protect_tag_symbol.sys_plist = mk_cl_Cnil;
-    mk_si_protect_tag_symbol.hpack = mk_cl_Cnil;
-    mk_si_protect_tag_symbol.properly_named_class = mk_cl_Cnil;
-    mk_si_protect_tag_symbol.stype = mkcl_stp_ordinary;
-    mk_si_protect_tag_symbol.C_name = sym_C_name;
-  }
-
-  mkcl_core.packages = mk_cl_Cnil;
-  mkcl_core.packages_to_be_created = mk_cl_Cnil;
-
-  mkcl_core.lisp_package =
-    mkcl_make_sized_package(env, mkcl_make_simple_base_string(env, "COMMON-LISP"),
-			    mk_cl_list(env, 2,
-				       mkcl_make_simple_base_string(env, "CL"),
-				       mkcl_make_simple_base_string(env, "LISP")),
-			    mk_cl_Cnil, MKCL_MAKE_FIXNUM(1400), MKCL_MAKE_FIXNUM(16));
-  mkcl_core.user_package =
-    mkcl_make_package(env, mkcl_make_simple_base_string(env, "COMMON-LISP-USER"),
-		     mk_cl_list(env, 2,
-				mkcl_make_simple_base_string(env, "CL-USER"),
-				mkcl_make_simple_base_string(env, "USER")),
-		     mkcl_list1(env, mkcl_core.lisp_package));
-  mkcl_core.keyword_package =
-    mkcl_make_sized_package(env, mkcl_make_simple_base_string(env, "KEYWORD"),
-			    mk_cl_Cnil, mk_cl_Cnil, MKCL_MAKE_FIXNUM(1000), MKCL_MAKE_FIXNUM(16));
-  mkcl_core.mkcl_ext_package =
-    mkcl_make_sized_package(env, mkcl_make_simple_base_string(env, "MKCL"),
-			    mk_cl_list(env, 2,
-				       mkcl_make_simple_base_string(env, "MKCL-EXTENSIONS"),
-				       /* mkcl_make_simple_base_string(env, "EXT"), */ /* temporary, for the transition period. */
-				       mkcl_make_simple_base_string(env, "MK-EXT")),
-			    mkcl_list1(env, mkcl_core.lisp_package),
-			    MKCL_MAKE_FIXNUM(200), MKCL_MAKE_FIXNUM(16));
-  mkcl_core.system_package =
-    mkcl_make_sized_package(env, mkcl_make_simple_base_string(env, "SI"),
-			    mk_cl_list(env, 2,
-				       mkcl_make_simple_base_string(env, "SYSTEM"),
-				       mkcl_make_simple_base_string(env, "SYS")),
-			    mk_cl_list(env, 2, mkcl_core.lisp_package, mkcl_core.mkcl_ext_package),
-			    MKCL_MAKE_FIXNUM(580), MKCL_MAKE_FIXNUM(1800));
-  mkcl_core.clos_package =
-    mkcl_make_sized_package(env, mkcl_make_simple_base_string(env, "CLOS"),
-			    mk_cl_Cnil, mkcl_list1(env, mkcl_core.lisp_package),
-			    MKCL_MAKE_FIXNUM(16), MKCL_MAKE_FIXNUM(650));
-  mkcl_core.ffi_package =
-    mkcl_make_sized_package(env, mkcl_make_simple_base_string(env, "FFI"),
-			    mk_cl_Cnil,
-			    mk_cl_list(env, 2, mkcl_core.lisp_package, mkcl_core.mkcl_ext_package),
-			    MKCL_MAKE_FIXNUM(75), MKCL_MAKE_FIXNUM(30));
-  mkcl_core.mt_package =
-    mkcl_make_sized_package(env, mkcl_make_simple_base_string(env, "MT"),
-			    mk_cl_list(env, 3,
-				       mkcl_make_simple_base_string(env, "MULTI-THREADING"),
-				       mkcl_make_simple_base_string(env, "MP"),
-				       mkcl_make_simple_base_string(env, "MULTIPROCESSING")),
-			    mkcl_list1(env, mkcl_core.lisp_package),
-			    MKCL_MAKE_FIXNUM(90), MKCL_MAKE_FIXNUM(40));
-  mkcl_core.gray_package = mkcl_make_sized_package(env, mkcl_make_simple_base_string(env, "GRAY"),
-						   mk_cl_Cnil,
-						   mkcl_list1(env, mkcl_core.lisp_package),
-						   MKCL_MAKE_FIXNUM(1400), MKCL_MAKE_FIXNUM(140));
-
-  mk_cl_Cnil_symbol.hpack = mkcl_core.lisp_package;
-  mkcl_import2(env, mk_cl_Cnil, mkcl_core.lisp_package);
-  mkcl_export2(env, mk_cl_Cnil, mkcl_core.lisp_package);
-
-#if !__clang__
-  mk_cl_Ct->symbol.hpack = mkcl_core.lisp_package;
-#else
-  mk_cl_Ct_symbol.hpack = mkcl_core.lisp_package;
-#endif
-  mkcl_import2(env, mk_cl_Ct, mkcl_core.lisp_package);
-  mkcl_export2(env, mk_cl_Ct, mkcl_core.lisp_package);
-
-  mk_si_unbound_symbol.hpack = mkcl_core.system_package;
-  mkcl_import2(env, MK_SI_UNBOUND, mkcl_core.system_package);
-  mkcl_export2(env, MK_SI_UNBOUND, mkcl_core.system_package);
-
-  mk_si_protect_tag_symbol.hpack = mkcl_core.system_package;
-  mkcl_import2(env, MK_SI_PROTECT_TAG, mkcl_core.system_package);
-  mkcl_export2(env, MK_SI_PROTECT_TAG, mkcl_core.system_package);
-
-  /* These must come _after_ the packages and NIL/T have been created */
-  mkcl_init_all_symbols(env);
+  mkcl_init_all_packages(env);
 
   mk_si_gc_on(env);
 
@@ -636,19 +472,27 @@ static void _mkcl_boot_inner(MKCL)
    * Features.
    */
   {
-    int i;
-    mkcl_object features;
+    static struct mkcl_cons lambda_list_keywords[] = {
+      MKCL_CONS_INIT(MK_CL_LKEY_optional, &lambda_list_keywords[1]),
+      MKCL_CONS_INIT(MK_CL_LKEY_rest, &lambda_list_keywords[2]),
+      MKCL_CONS_INIT(MK_CL_LKEY_key, &lambda_list_keywords[3]),
+      MKCL_CONS_INIT(MK_CL_LKEY_allow_other_keys, &lambda_list_keywords[4]),
+      MKCL_CONS_INIT(MK_CL_LKEY_aux, &lambda_list_keywords[5]),
+      MKCL_CONS_INIT(MK_CL_LKEY_whole, &lambda_list_keywords[6]),
+      MKCL_CONS_INIT(MK_CL_LKEY_environment, &lambda_list_keywords[7]),
+      MKCL_CONS_INIT(MK_CL_LKEY_body, mk_cl_Cnil)
+    };
 
-    MKCL_SET(MK_CL_LAMBDA_LIST_KEYWORDS,
-	     mk_cl_list(env, 8,
-			MK_CL_LKEY_optional, MK_CL_LKEY_rest, MK_CL_LKEY_key, MK_CL_LKEY_allow_other_keys,
-			MK_CL_LKEY_aux, MK_CL_LKEY_whole, MK_CL_LKEY_environment, MK_CL_LKEY_body));
-    
-    for (i = 0, features = mk_cl_Cnil; i < NB_FEATURES; i++) {
-      features = MKCL_CONS(env, mkcl_make_keyword(env, feature_names[i]),features);
+    MKCL_SET(MK_CL_LAMBDA_LIST_KEYWORDS, (mkcl_object) &lambda_list_keywords);
+  }
+
+  {
+    int i;
+
+    for (i = 0; i < (NB_FEATURES - 1); i++) {
+      features[i].cdr = (mkcl_object) &features[i + 1];
     }
-    
-    MKCL_SET(MK_CL_DYNVAR_features, features);
+    MKCL_SET(MK_CL_DYNVAR_features, (mkcl_object) &features);
   }
 
   MKCL_SET(MK_CL_DYNVAR_package, mkcl_core.lisp_package);

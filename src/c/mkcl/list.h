@@ -52,5 +52,11 @@
 #define MKCL_CDDDAR(x)	MKCL_CDR(MKCL_CDDAR(x))
 #define MKCL_CDDDDR(x)	MKCL_CDR(MKCL_CDDDR(x))
 
+
+#define mkcl_list_object(name, inits)\
+  struct mkcl_cons name[] = inits;
+
+#define MKCL_CONS_INIT(car, cdr) { mkcl_t_cons, 0, 0, 0, ((mkcl_object) (car)), ((mkcl_object) (cdr)), mk_cl_Cnil }
+
 #endif /* MKCL_LIST_H */
 

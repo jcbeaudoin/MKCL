@@ -1298,7 +1298,7 @@ extern "C" {
 #endif
 
 
-#define MKCL_BASE_STRING_OBJECT_INITIALIZER(chars) {	\
+#define MKCL_BASE_STRING_INIT(chars) {			\
     (int8_t)mkcl_t_base_string, 0, FALSE, FALSE,	\
       mk_cl_Cnil,					\
       (sizeof(chars)-1),				\

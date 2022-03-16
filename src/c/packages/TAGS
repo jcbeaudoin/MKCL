@@ -1,0 +1,514 @@
+
+hash.c,149
+mkcl_hash_value hash_base_string(8,56
+void add_entry_to_hash(12,195
+static bool base_string_equal(21,485
+struct mkcl_symbol * find_symbol(30,753
+
+build_package_FFI.c,1445
+struct mkcl_function_declaration 8,57
+  struct mkcl_base_string symbol_name;9,92
+  struct mkcl_base_string function_object_denotator;10,131
+struct mkcl_function_declaration mkcl_ffi_declare_lisp_functions[mkcl_ffi_declare_lisp_functions13,188
+struct mkcl_special_declaration 17,264
+  struct mkcl_base_string symbol_name;18,298
+  struct mkcl_base_string value_denotator;19,337
+struct mkcl_special_declaration mkcl_ffi_declare_specials[mkcl_ffi_declare_specials22,384
+const struct mkcl_symbol blank_symbol 30,653
+void init_ffi_package(34,722
+mkcl_index ffi_internal_symbol_index(119,3202
+mkcl_index ffi_external_symbol_index(124,3314
+mkcl_index ffi_internal_entry_index(129,3426
+mkcl_index ffi_external_entry_index(134,3541
+void print_ffi_internal_symbol_C_names(141,3658
+void print_ffi_external_symbol_C_names(153,3946
+const char * symbol_type(165,4234
+void print_ffi_internal_symbol_initializers(178,4628
+void print_ffi_external_symbol_initializers(212,5918
+void print_ffi_internal_hashtable_entry_initializers(247,7209
+void print_ffi_internal_hashtable_vector_initializer(281,8107
+void print_ffi_external_hashtable_entry_initializers(299,8532
+void print_ffi_external_hashtable_vector_initializer(333,9430
+void print_ffi_package(351,9855
+static struct mkcl_base_string const extra_exposed_symbols[extra_exposed_symbols363,10267
+void expose_ffi_symbol(367,10371
+void expose_ffi_package(379,10778
+int main(389,10955
+
+build_package_MT.c,1634
+struct mkcl_function_declaration 8,56
+  struct mkcl_base_string symbol_name;9,91
+  struct mkcl_base_string function_object_denotator;10,130
+struct mkcl_function_declaration mkcl_mt_declare_lisp_functions[mkcl_mt_declare_lisp_functions13,187
+struct mkcl_variable_declaration 64,4059
+  struct mkcl_base_string symbol_name;65,4094
+  struct mkcl_base_string value_denotator;66,4133
+struct mkcl_variable_declaration mkcl_mt_declare_specials[mkcl_mt_declare_specials69,4180
+struct mkcl_variable_declaration mkcl_mt_declare_constants[mkcl_mt_declare_constants73,4304
+struct exposed_symbol 81,4695
+  struct mkcl_base_string symbol_name;82,4719
+  char * exposition;83,4758
+static struct exposed_symbol const exposed_symbols[exposed_symbols86,4783
+const struct mkcl_symbol blank_symbol 151,8500
+void init_mt_package(154,8568
+mkcl_index mt_internal_symbol_index(262,11653
+mkcl_index mt_external_symbol_index(267,11763
+mkcl_index mt_internal_entry_index(272,11873
+mkcl_index mt_external_entry_index(277,11987
+void print_mt_internal_symbol_C_names(284,12103
+void print_mt_external_symbol_C_names(296,12388
+const char * symbol_type(308,12673
+void print_mt_internal_symbol_initializers(321,13067
+void print_mt_external_symbol_initializers(355,14351
+void print_mt_internal_hashtable_entry_initializers(390,15636
+void print_mt_internal_hashtable_vector_initializer(424,16529
+void print_mt_external_hashtable_entry_initializers(442,16952
+void print_mt_external_hashtable_vector_initializer(476,17845
+void print_mt_package(494,18268
+void expose_mt_symbol(506,18671
+void expose_mt_package(524,19260
+int main(534,19423
+
+build_package_GRAY.c,1657
+struct mkcl_function_declaration 8,58
+  struct mkcl_base_string symbol_name;9,93
+  struct mkcl_base_string function_object_denotator;10,132
+struct mkcl_function_declaration mkcl_gray_declare_lisp_functions[mkcl_gray_declare_lisp_functions13,189
+struct mkcl_variable_declaration 16,265
+  struct mkcl_base_string symbol_name;17,300
+  struct mkcl_base_string value_denotator;18,339
+struct mkcl_variable_declaration mkcl_gray_declare_specials[mkcl_gray_declare_specials21,386
+struct mkcl_variable_declaration mkcl_gray_declare_constants[mkcl_gray_declare_constants24,456
+struct exposed_symbol 27,527
+  struct mkcl_base_string symbol_name;28,551
+  char * exposition;29,590
+static struct exposed_symbol const exposed_symbols[exposed_symbols32,615
+const struct mkcl_symbol blank_symbol 59,2185
+void init_gray_package(62,2253
+mkcl_index gray_internal_symbol_index(165,5244
+mkcl_index gray_external_symbol_index(170,5358
+mkcl_index gray_internal_entry_index(175,5472
+mkcl_index gray_external_entry_index(180,5588
+void print_gray_internal_symbol_C_names(187,5706
+void print_gray_external_symbol_C_names(199,5997
+const char * symbol_type(211,6288
+void print_gray_internal_symbol_initializers(224,6682
+void print_gray_external_symbol_initializers(258,7978
+void print_gray_internal_hashtable_entry_initializers(293,9275
+void print_gray_internal_hashtable_vector_initializer(327,10178
+void print_gray_external_hashtable_entry_initializers(345,10605
+void print_gray_external_hashtable_vector_initializer(379,11508
+void print_gray_package(397,11935
+void expose_gray_symbol(409,12356
+void expose_gray_package(423,12911
+int main(433,13078
+
+build_package_MKCL.c,1888
+struct mkcl_function_declaration 8,58
+  struct mkcl_base_string symbol_name;9,93
+  struct mkcl_base_string function_object_denotator;10,132
+struct mkcl_function_declaration mkcl_mkcl_declare_lisp_functions[mkcl_mkcl_declare_lisp_functions13,189
+struct mkcl_function_declaration mkcl_mkcl_declare_macros[mkcl_mkcl_declare_macros67,4433
+struct mkcl_function_declaration mkcl_mkcl_declare_special_operators[mkcl_mkcl_declare_special_operators70,4501
+struct mkcl_variable_declaration 74,4638
+  struct mkcl_base_string symbol_name;75,4673
+  struct mkcl_base_string value_denotator;76,4712
+struct mkcl_variable_declaration mkcl_mkcl_declare_specials[mkcl_mkcl_declare_specials79,4759
+struct mkcl_variable_declaration mkcl_mkcl_declare_constants[mkcl_mkcl_declare_constants86,5143
+struct exposed_symbol 98,5931
+  struct mkcl_base_string symbol_name;99,5955
+  char * exposition;100,5994
+static struct exposed_symbol const exposed_symbols[exposed_symbols103,6019
+const struct mkcl_symbol blank_symbol 187,11008
+void init_mkcl_package(190,11076
+mkcl_index mkcl_internal_symbol_index(329,15065
+mkcl_index mkcl_external_symbol_index(334,15179
+mkcl_index mkcl_internal_entry_index(339,15293
+mkcl_index mkcl_external_entry_index(344,15409
+void print_mkcl_internal_symbol_C_names(351,15527
+void print_mkcl_external_symbol_C_names(363,15818
+const char * symbol_type(375,16109
+void print_mkcl_internal_symbol_initializers(388,16503
+void print_mkcl_external_symbol_initializers(422,17799
+void print_mkcl_internal_hashtable_entry_initializers(457,19096
+void print_mkcl_internal_hashtable_vector_initializer(491,19999
+void print_mkcl_external_hashtable_entry_initializers(509,20426
+void print_mkcl_external_hashtable_vector_initializer(543,21329
+void print_mkcl_package(561,21756
+void expose_mkcl_symbol(573,22177
+void expose_mkcl_package(587,22730
+int main(597,22897
+
+build_package_CLOS.c,1867
+struct mkcl_function_declaration 8,58
+  struct mkcl_base_string symbol_name;9,93
+  struct mkcl_base_string function_object_denotator;10,132
+struct mkcl_function_declaration mkcl_clos_declare_lisp_functions[mkcl_clos_declare_lisp_functions13,189
+struct mkcl_function_declaration mkcl_clos_declare_macros[mkcl_clos_declare_macros18,509
+struct mkcl_function_declaration mkcl_clos_declare_special_operators[mkcl_clos_declare_special_operators21,577
+struct mkcl_variable_declaration 24,656
+  struct mkcl_base_string symbol_name;25,691
+  struct mkcl_base_string value_denotator;26,730
+struct mkcl_variable_declaration mkcl_clos_declare_specials[mkcl_clos_declare_specials29,777
+struct mkcl_variable_declaration mkcl_clos_declare_constants[mkcl_clos_declare_constants52,2267
+struct exposed_symbol 55,2338
+  struct mkcl_base_string symbol_name;56,2362
+  char * exposition;57,2401
+static struct exposed_symbol const exposed_symbols[exposed_symbols60,2426
+const struct mkcl_symbol blank_symbol 71,3014
+void init_clos_package(74,3082
+mkcl_index clos_internal_symbol_index(213,7071
+mkcl_index clos_external_symbol_index(218,7185
+mkcl_index clos_internal_entry_index(223,7299
+mkcl_index clos_external_entry_index(228,7415
+void print_clos_internal_symbol_C_names(235,7533
+void print_clos_external_symbol_C_names(247,7824
+const char * symbol_type(259,8115
+void print_clos_internal_symbol_initializers(272,8509
+void print_clos_external_symbol_initializers(306,9805
+void print_clos_internal_hashtable_entry_initializers(341,11102
+void print_clos_internal_hashtable_vector_initializer(375,12005
+void print_clos_external_hashtable_entry_initializers(393,12432
+void print_clos_external_hashtable_vector_initializer(427,13335
+void print_clos_package(445,13762
+void expose_clos_symbol(457,14183
+void expose_clos_package(471,14736
+int main(481,14903
+
+build_package_KEYWORD.c,748
+struct exposed_symbol 8,61
+  struct mkcl_base_string symbol_name;9,85
+  char * exposition;10,124
+static struct exposed_symbol const exposed_symbols[exposed_symbols13,149
+const struct mkcl_symbol blank_symbol 240,11687
+void init_keyword_package(243,11755
+mkcl_index keyword_external_symbol_index(272,12601
+mkcl_index keyword_external_entry_index(277,12721
+void print_keyword_external_symbol_C_names(284,12842
+void print_keyword_external_symbol_initializers(297,13143
+void print_keyword_external_hashtable_entry_initializers(327,14303
+void print_keyword_external_hashtable_vector_initializer(361,15221
+void print_keyword_package(379,15654
+void expose_keyword_symbol(387,15897
+void expose_keyword_package(398,16353
+int main(408,16526
+
+build_package_SI.c,1873
+struct mkcl_function_declaration 8,56
+  struct mkcl_base_string symbol_name;9,91
+  struct mkcl_base_string function_object_denotator;10,130
+struct mkcl_function_declaration mkcl_si_declare_lisp_functions[mkcl_si_declare_lisp_functions13,187
+struct mkcl_function_declaration mkcl_si_declare_macros[mkcl_si_declare_macros283,22053
+struct mkcl_function_declaration mkcl_si_declare_special_operators[mkcl_si_declare_special_operators286,22119
+struct mkcl_variable_declaration 289,22196
+  struct mkcl_base_string symbol_name;290,22231
+  struct mkcl_base_string value_denotator;291,22270
+struct mkcl_variable_declaration mkcl_si_declare_specials[mkcl_si_declare_specials294,22317
+struct mkcl_variable_declaration mkcl_si_declare_constants[mkcl_si_declare_constants477,34422
+struct exposed_symbol 504,36333
+  struct mkcl_base_string symbol_name;505,36357
+  char * exposition;506,36396
+static struct exposed_symbol const exposed_symbols[exposed_symbols509,36421
+const struct mkcl_symbol blank_symbol 882,59142
+void init_si_package(885,59210
+mkcl_index si_internal_symbol_index(1024,63141
+mkcl_index si_external_symbol_index(1029,63251
+mkcl_index si_internal_entry_index(1034,63361
+mkcl_index si_external_entry_index(1039,63475
+void print_si_internal_symbol_C_names(1046,63591
+void print_si_external_symbol_C_names(1058,63876
+const char * symbol_type(1070,64161
+void print_si_internal_symbol_initializers(1083,64555
+void print_si_external_symbol_initializers(1117,65839
+void print_si_internal_hashtable_entry_initializers(1152,67124
+void print_si_internal_hashtable_vector_initializer(1186,68017
+void print_si_external_hashtable_entry_initializers(1204,68440
+void print_si_external_hashtable_vector_initializer(1238,69333
+void print_si_package(1256,69756
+void expose_si_symbol(1268,70159
+void expose_si_package(1282,70700
+int main(1292,70863
+
+build_package_CL.c,1885
+struct mkcl_function_declaration 8,56
+  struct mkcl_base_string symbol_name;9,91
+  struct mkcl_base_string function_object_denotator;10,130
+struct mkcl_function_declaration mkcl_cl_declare_lisp_functions[mkcl_cl_declare_lisp_functions13,187
+struct mkcl_function_declaration mkcl_cl_declare_macros[mkcl_cl_declare_macros576,42030
+struct mkcl_function_declaration mkcl_cl_declare_special_operators[mkcl_cl_declare_special_operators579,42096
+struct mkcl_variable_declaration 626,44640
+  struct mkcl_base_string symbol_name;627,44675
+  struct mkcl_base_string value_denotator;628,44714
+struct mkcl_variable_declaration mkcl_cl_declare_specials[mkcl_cl_declare_specials631,44761
+struct mkcl_variable_declaration mkcl_cl_declare_constants[mkcl_cl_declare_constants689,48116
+struct exposed_symbol 754,52963
+  struct mkcl_base_string symbol_name;755,52987
+  char * exposition;756,53026
+static struct exposed_symbol const exposed_symbols[exposed_symbols759,53051
+const struct mkcl_symbol blank_symbol 1503,93995
+void init_cl_package(1506,94063
+mkcl_index cl_internal_symbol_index(1667,98844
+mkcl_index cl_external_symbol_index(1672,98954
+mkcl_index cl_internal_entry_index(1677,99064
+mkcl_index cl_external_entry_index(1682,99178
+void print_cl_internal_symbol_C_names(1689,99294
+void print_cl_external_symbol_C_names(1701,99579
+const char * symbol_type(1713,99864
+void print_cl_internal_symbol_initializers(1726,100258
+void print_cl_external_symbol_initializers(1760,101542
+void print_cl_internal_hashtable_entry_initializers(1795,102827
+void print_cl_internal_hashtable_vector_initializer(1829,103720
+void print_cl_external_hashtable_entry_initializers(1847,104143
+void print_cl_external_hashtable_vector_initializer(1890,105277
+void print_cl_package(1908,105700
+void expose_cl_symbol(1920,106103
+void expose_cl_package(1934,106644
+int main(1944,106807
+
+build_package.h,460
+#define VAL_DENOT(18,518
+#define FUN_DENOT(27,731
+struct mkcl_package mkcl_cl_package;36,944
+struct mkcl_package mkcl_si_package;37,981
+struct mkcl_package mkcl_key_package;38,1018
+struct mkcl_package mkcl_mt_package;39,1056
+struct mkcl_package mkcl_clos_package;40,1093
+struct mkcl_package mkcl_mkcl_package;41,1132
+struct mkcl_package mkcl_gray_package;42,1171
+struct mkcl_package mkcl_ffi_package;43,1210
+#define BLANK_SYMBOL_INITIALIZER 45,1249
+
+FFI_package_base.h,995
+#define SYMBOL_NAME(2,1
+static struct mkcl_base_string const mkcl_ffi_external_symbol_names[mkcl_ffi_external_symbol_names11,215
+struct mkcl_base_string const mkcl_ffi_internal_symbol_names[mkcl_ffi_internal_symbol_names66,2029
+#define internal_count 88,2729
+#define external_count 89,2798
+#define internal_size 90,2867
+#define external_size 91,2892
+static struct mkcl_hashtable_entry internal_entries[internal_entries93,2918
+static struct mkcl_hashtable_entry external_entries[external_entries94,2973
+static struct mkcl_hashtable_entry * internal_vector[internal_vector96,3029
+static struct mkcl_hashtable_entry * external_vector[external_vector97,3085
+static struct mkcl_singlefloat rehash_size_factor 99,3142
+static struct mkcl_singlefloat rehash_threshold 100,3233
+static struct mkcl_hashtable internal_ht 102,3324
+static struct mkcl_hashtable external_ht 116,3774
+static struct mkcl_base_string ffi_package_name 130,4224
+struct mkcl_package mkcl_ffi_package 132,4295
+
+FFI_package_core_stubs.h,460
+struct mkcl_symbol mkcl_ffi_external_symbols[mkcl_ffi_external_symbols2,1
+struct mkcl_symbol mkcl_ffi_internal_symbols[mkcl_ffi_internal_symbols5,65
+static struct mkcl_hashtable_entry internal_entries[internal_entries7,128
+static struct mkcl_hashtable_entry external_entries[external_entries11,242
+static struct mkcl_hashtable_entry * internal_vector[internal_vector15,356
+static struct mkcl_hashtable_entry * external_vector[external_vector16,436
+
+MT_package_base.h,998
+#define SYMBOL_NAME(2,1
+static struct mkcl_base_string const mkcl_mt_external_symbol_names[mkcl_mt_external_symbol_names11,215
+struct mkcl_base_string const mkcl_mt_internal_symbol_names[mkcl_mt_internal_symbol_names78,2359
+#define internal_count 107,3569
+#define external_count 108,3637
+#define internal_size 109,3705
+#define external_size 110,3730
+static struct mkcl_hashtable_entry internal_entries[internal_entries112,3756
+static struct mkcl_hashtable_entry external_entries[external_entries113,3811
+static struct mkcl_hashtable_entry * internal_vector[internal_vector115,3867
+static struct mkcl_hashtable_entry * external_vector[external_vector116,3923
+static struct mkcl_singlefloat rehash_size_factor 118,3980
+static struct mkcl_singlefloat rehash_threshold 119,4071
+static struct mkcl_hashtable internal_ht 121,4162
+static struct mkcl_hashtable external_ht 135,4612
+static struct mkcl_base_string mt_package_name 149,5062
+struct mkcl_package mkcl_mt_package 151,5131
+
+MT_package_core_stubs.h,456
+struct mkcl_symbol mkcl_mt_external_symbols[mkcl_mt_external_symbols2,1
+struct mkcl_symbol mkcl_mt_internal_symbols[mkcl_mt_internal_symbols5,64
+static struct mkcl_hashtable_entry internal_entries[internal_entries7,126
+static struct mkcl_hashtable_entry external_entries[external_entries11,240
+static struct mkcl_hashtable_entry * internal_vector[internal_vector15,354
+static struct mkcl_hashtable_entry * external_vector[external_vector16,434
+
+MKCL_package_base.h,1066
+#define MKCL_IN_LISP(2,18
+#define MKCL_IN_LISP(4,50
+#define SYMBOL_NAME(7,87
+static struct mkcl_base_string const mkcl_mkcl_external_symbol_names[mkcl_mkcl_external_symbol_names16,301
+struct mkcl_base_string const mkcl_mkcl_internal_symbol_names[mkcl_mkcl_internal_symbol_names146,4683
+#define internal_count 150,4756
+#define external_count 151,4826
+#define internal_size 152,4896
+#define external_size 153,4921
+static struct mkcl_hashtable_entry internal_entries[internal_entries155,4948
+static struct mkcl_hashtable_entry external_entries[external_entries156,5003
+static struct mkcl_hashtable_entry * internal_vector[internal_vector158,5059
+static struct mkcl_hashtable_entry * external_vector[external_vector159,5115
+static struct mkcl_singlefloat rehash_size_factor 161,5172
+static struct mkcl_singlefloat rehash_threshold 162,5263
+static struct mkcl_hashtable internal_ht 164,5354
+static struct mkcl_hashtable external_ht 178,5805
+static struct mkcl_base_string mkcl_package_name 192,6256
+struct mkcl_package mkcl_mkcl_package 194,6329
+
+MKCL_package_core_stubs.h,464
+struct mkcl_symbol mkcl_mkcl_external_symbols[mkcl_mkcl_external_symbols2,1
+struct mkcl_symbol mkcl_mkcl_internal_symbols[mkcl_mkcl_internal_symbols5,66
+static struct mkcl_hashtable_entry internal_entries[internal_entries7,130
+static struct mkcl_hashtable_entry external_entries[external_entries11,250
+static struct mkcl_hashtable_entry * internal_vector[internal_vector15,364
+static struct mkcl_hashtable_entry * external_vector[external_vector16,444
+
+CLOS_package_base.h,1078
+#define MKCL_IN_LISP(4,20
+#define MKCL_IN_LISP(6,52
+#define SYMBOL_NAME(9,89
+static struct mkcl_base_string const mkcl_clos_external_symbol_names[mkcl_clos_external_symbol_names18,303
+struct mkcl_base_string const mkcl_clos_internal_symbol_names[mkcl_clos_internal_symbol_names22,383
+#define internal_count 504,20337
+#define external_count 505,20407
+#define internal_size 506,20477
+#define external_size 507,20503
+static struct mkcl_hashtable_entry internal_entries[internal_entries509,20529
+static struct mkcl_hashtable_entry external_entries[external_entries510,20584
+static struct mkcl_hashtable_entry * internal_vector[internal_vector512,20640
+static struct mkcl_hashtable_entry * external_vector[external_vector513,20696
+static struct mkcl_singlefloat rehash_size_factor 515,20753
+static struct mkcl_singlefloat rehash_threshold 516,20844
+static struct mkcl_hashtable internal_ht 518,20935
+static struct mkcl_hashtable external_ht 532,21385
+static struct mkcl_base_string mkcl_package_name 546,21835
+struct mkcl_package mkcl_clos_package 548,21908
+
+CLOS_package_core_stubs.h,464
+struct mkcl_symbol mkcl_clos_external_symbols[mkcl_clos_external_symbols2,1
+struct mkcl_symbol mkcl_clos_internal_symbols[mkcl_clos_internal_symbols5,66
+static struct mkcl_hashtable_entry internal_entries[internal_entries7,130
+static struct mkcl_hashtable_entry external_entries[external_entries11,244
+static struct mkcl_hashtable_entry * internal_vector[internal_vector15,364
+static struct mkcl_hashtable_entry * external_vector[external_vector16,446
+
+GRAY_package_base.h,1010
+#define SYMBOL_NAME(2,1
+static struct mkcl_base_string const mkcl_gray_external_symbol_names[mkcl_gray_external_symbol_names11,215
+struct mkcl_base_string const mkcl_gray_internal_symbol_names[mkcl_gray_internal_symbol_names47,1575
+#define internal_count 151,6919
+#define external_count 152,6989
+#define internal_size 153,7059
+#define external_size 154,7085
+static struct mkcl_hashtable_entry internal_entries[internal_entries156,7111
+static struct mkcl_hashtable_entry external_entries[external_entries157,7166
+static struct mkcl_hashtable_entry * internal_vector[internal_vector159,7222
+static struct mkcl_hashtable_entry * external_vector[external_vector160,7278
+static struct mkcl_singlefloat rehash_size_factor 162,7335
+static struct mkcl_singlefloat rehash_threshold 163,7426
+static struct mkcl_hashtable internal_ht 165,7517
+static struct mkcl_hashtable external_ht 179,7967
+static struct mkcl_base_string gray_package_name 193,8417
+struct mkcl_package mkcl_gray_package 195,8490
+
+GRAY_package_core_stubs.h,464
+struct mkcl_symbol mkcl_gray_external_symbols[mkcl_gray_external_symbols2,1
+struct mkcl_symbol mkcl_gray_internal_symbols[mkcl_gray_internal_symbols5,66
+static struct mkcl_hashtable_entry internal_entries[internal_entries7,130
+static struct mkcl_hashtable_entry external_entries[external_entries11,244
+static struct mkcl_hashtable_entry * internal_vector[internal_vector15,358
+static struct mkcl_hashtable_entry * external_vector[external_vector16,438
+
+KEYWORD_package_base.h,758
+#define MKCL_IN_LISP(4,20
+#define MKCL_IN_LISP(6,52
+#define SYMBOL_NAME(9,89
+static struct mkcl_base_string const mkcl_keyword_external_symbol_names[mkcl_keyword_external_symbol_names18,303
+#define external_count 612,16693
+#define external_size 613,16766
+static struct mkcl_hashtable_entry external_entries[external_entries615,16794
+static struct mkcl_hashtable_entry * external_vector[external_vector617,16850
+static struct mkcl_singlefloat rehash_size_factor 619,16907
+static struct mkcl_singlefloat rehash_threshold 620,16998
+static struct mkcl_hashtable external_ht 622,17089
+static struct mkcl_hashtable internal_ht 636,17539
+static struct mkcl_base_string mkcl_package_name 650,17953
+struct mkcl_package mkcl_keyword_package 652,18029
+
+KEYWORD_package_core_stubs.h,235
+struct mkcl_symbol mkcl_keyword_external_symbols[mkcl_keyword_external_symbols2,1
+static struct mkcl_hashtable_entry external_entries[external_entries4,68
+static struct mkcl_hashtable_entry * external_vector[external_vector8,182
+
+SI_package_base.h,1085
+#define MKCL_IN_LISP(4,20
+#define MKCL_IN_LISP(6,52
+#define SYMBOL_NAME(9,89
+static struct mkcl_base_string const mkcl_si_external_symbol_names[mkcl_si_external_symbol_names18,303
+struct mkcl_base_string const mkcl_si_internal_symbol_names[mkcl_si_internal_symbol_names443,14697
+#define internal_count 1764,65178
+#define external_count 1765,65246
+#define internal_size 1766,65314
+#define external_size 1767,65341
+static struct mkcl_hashtable_entry internal_entries[internal_entries1769,65368
+static struct mkcl_hashtable_entry external_entries[external_entries1770,65423
+static struct mkcl_hashtable_entry * internal_vector[internal_vector1772,65479
+static struct mkcl_hashtable_entry * external_vector[external_vector1773,65535
+static struct mkcl_singlefloat rehash_size_factor 1775,65592
+static struct mkcl_singlefloat rehash_threshold 1776,65683
+static struct mkcl_hashtable internal_ht 1778,65774
+static struct mkcl_hashtable external_ht 1792,66224
+static struct mkcl_base_string mkcl_package_name 1806,66674
+struct mkcl_package mkcl_si_package 1808,66745
+
+SI_package_core_stubs.h,456
+struct mkcl_symbol mkcl_si_external_symbols[mkcl_si_external_symbols2,1
+struct mkcl_symbol mkcl_si_internal_symbols[mkcl_si_internal_symbols5,64
+static struct mkcl_hashtable_entry internal_entries[internal_entries7,126
+static struct mkcl_hashtable_entry external_entries[external_entries11,240
+static struct mkcl_hashtable_entry * internal_vector[internal_vector15,354
+static struct mkcl_hashtable_entry * external_vector[external_vector16,436
+
+CL_package_base.h,1111
+#define MKCL_NAME_PPRINT(2,1
+#define MKCL_IN_LISP(5,64
+#define MKCL_IN_LISP(7,96
+#define SYMBOL_NAME(10,133
+struct mkcl_base_string const mkcl_cl_external_symbol_names[mkcl_cl_external_symbol_names19,347
+struct mkcl_base_string const mkcl_cl_internal_symbol_names[mkcl_cl_internal_symbol_names1001,30271
+#define internal_count 1005,30342
+#define external_count 1006,30410
+#define internal_size 1007,30478
+#define external_size 1008,30503
+static struct mkcl_hashtable_entry internal_entries[internal_entries1010,30531
+static struct mkcl_hashtable_entry external_entries[external_entries1011,30586
+static struct mkcl_hashtable_entry * internal_vector[internal_vector1013,30642
+static struct mkcl_hashtable_entry * external_vector[external_vector1014,30698
+static struct mkcl_singlefloat rehash_size_factor 1016,30755
+static struct mkcl_singlefloat rehash_threshold 1017,30846
+static struct mkcl_hashtable internal_ht 1019,30937
+static struct mkcl_hashtable external_ht 1033,31388
+static struct mkcl_base_string mkcl_package_name 1047,31839
+struct mkcl_package mkcl_cl_package 1049,31919
+
+CL_package_core_stubs.h,456
+struct mkcl_symbol mkcl_cl_external_symbols[mkcl_cl_external_symbols2,1
+struct mkcl_symbol mkcl_cl_internal_symbols[mkcl_cl_internal_symbols5,64
+static struct mkcl_hashtable_entry internal_entries[internal_entries7,126
+static struct mkcl_hashtable_entry external_entries[external_entries11,246
+static struct mkcl_hashtable_entry * internal_vector[internal_vector15,360
+static struct mkcl_hashtable_entry * external_vector[external_vector16,442
+
+CL_package.h,0
+
+SI_package.h,0
+
+KEYWORD_package.h,0
+
+GRAY_package.h,0
+
+CLOS_package.h,0
+
+MKCL_package.h,0
+
+MT_package.h,0
+
+FFI_package.h,0

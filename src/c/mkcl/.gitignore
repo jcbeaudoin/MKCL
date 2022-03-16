@@ -3,3 +3,4 @@ configpre.h
 gc
 config-install.h
 C_exported_symbols_in_*.h
+expose_symbols_in_*.h

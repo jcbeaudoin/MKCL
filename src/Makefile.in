@@ -331,8 +331,8 @@ help.doc: dump-doc.lsp mkcl-small$(EXE) doc/help.lsp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load dump-doc.lsp
 
 
-mkcl_min$(EXE): $(LIBRARIES) mkclmin.@LIBEXT@ c/cinit.o c/all_symbols.o .gdbinit
-	$(CC) $(LDFLAGS) -o $@ c/cinit.o c/all_symbols.o mkclmin.@LIBEXT@ $(LIBRARIES) $(LIBS)
+mkcl_min$(EXE): $(LIBRARIES) mkclmin.@LIBEXT@ mkclmintop.@LIBEXT@ c/cinit.o .gdbinit
+	$(CC) $(LDFLAGS) -o $@ c/cinit.o mkclmintop.@LIBEXT@ mkclmin.@LIBEXT@ $(LIBRARIES) $(LIBS)
 
 
 .gdbinit: util/gdbinit
@@ -341,11 +341,11 @@ mkcl_min$(EXE): $(LIBRARIES) mkclmin.@LIBEXT@ c/cinit.o c/all_symbols.o .gdbinit
 c/cinit.o: c/GNUmakefile c/cinit.c c/mkcl/mkcl.h
 	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile cinit.o
 
+c/all_symbols_min.o: c/GNUmakefile c/all_symbols.c c/symbols_list.h c/symbols_list2.h c/mkcl/mkcl.h
+	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile all_symbols_min.o
+
 c/all_symbols.o: c/GNUmakefile c/all_symbols.c c/symbols_list.h c/symbols_list2.h c/mkcl/mkcl.h
 	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile all_symbols.o
-
-c/all_symbols2.o: c/GNUmakefile c/all_symbols.c c/symbols_list.h c/symbols_list2.h c/mkcl/mkcl.h
-	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile all_symbols2.o
 
 lsp/config.lsp: lsp/config.pre
 	sed -e 's,@mkcldir\\@,$(mkcldir),g' < lsp/config.pre > lsp/config.lsp
@@ -418,7 +418,10 @@ libmkcc1.a: ../contrib/tinycc/libmkcc1.a
 mkclmin.@LIBEXT@: c/GNUmakefile c/mkcl/mkcl.h $(MKCL_HFILES) c/*.c c/arch/*.c c/*.h
 	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile ../mkclmin.@LIBEXT@
 
-mkcltop.@LIBEXT@: c/GNUmakefile c/all_symbols2.o
+mkclmintop.@LIBEXT@: c/GNUmakefile c/all_symbols_min.o
+	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile ../mkclmintop.@LIBEXT@
+
+mkcltop.@LIBEXT@: c/GNUmakefile c/all_symbols.o
 	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile ../mkcltop.@LIBEXT@
 
 gc/.libs/@LIBPREFIX@gc.@LIBEXT@: gc/*.c gc/include/*.h gc/include/*/*.h

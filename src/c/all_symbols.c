@@ -381,7 +381,7 @@ mkcl_object mk_si_mangle_function_name(MKCL, mkcl_object symbol)
   mkcl_return_4_values(found, output, minarg, maxarg);
 }
 
-#ifdef MKCL_FINAL
+#ifndef MKCL_MIN
 
 struct mkcl_cfun mk_cl_adjust_array_cfunobj = MKCL_CFUN_VA(mk_cl_adjust_array, MK_CL_adjust_array);
 struct mkcl_cfun mk_cl_apropos_cfunobj = MKCL_CFUN_VA(mk_cl_apropos, MK_CL_apropos);
@@ -571,7 +571,7 @@ make_this_symbol(MKCL, int i, struct mkcl_symbol * symbol, int code, const char 
   case MT_PACKAGE: package = mkcl_core.mt_package; break;
   case CLOS_PACKAGE: package = mkcl_core.clos_package; break;
   case GRAY_PACKAGE: package = mkcl_core.gray_package; break;
-  case FFI_PACKAGE: package = mkcl_core.ffi_package; break;
+  case FFI_PACKAGE: package = mkcl_core.ffi_package; /* return; */ break;
   default: mkcl_lose(env, "Unknown package in make_this_symbol");
   }
 

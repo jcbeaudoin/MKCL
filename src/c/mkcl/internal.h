@@ -38,6 +38,7 @@ extern "C" {
   /* booting */
   extern int mkcl_init_alloc(void);
   extern void mkcl_init_system_properties(MKCL);
+  extern void mkcl_init_all_packages(MKCL);
   extern void mkcl_init_all_symbols(MKCL);
   extern void mkcl_init_gentemp(MKCL);
   extern void mkcl_init_backq(MKCL);
