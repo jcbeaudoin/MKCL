@@ -33,14 +33,14 @@ struct mkcl_symbol * find_symbol(const struct mkcl_base_string * const name, str
       NULL, NULL,					\
       }
 
-struct mkcl_package mkcl_package_cl;
-struct mkcl_package mkcl_package_si;
-struct mkcl_package mkcl_package_keyword;
-struct mkcl_package mkcl_package_mt;
-struct mkcl_package mkcl_package_clos;
-struct mkcl_package mkcl_package_mkcl;
-struct mkcl_package mkcl_package_gray;
-struct mkcl_package mkcl_package_ffi;
+extern struct mkcl_package mkcl_package_cl;
+extern struct mkcl_package mkcl_package_si;
+extern struct mkcl_package mkcl_package_keyword;
+extern struct mkcl_package mkcl_package_mt;
+extern struct mkcl_package mkcl_package_clos;
+extern struct mkcl_package mkcl_package_mkcl;
+extern struct mkcl_package mkcl_package_gray;
+extern struct mkcl_package mkcl_package_ffi;
 
 #define BLANK_SYMBOL_INITIALIZER {					\
     mkcl_t_symbol, 0, mkcl_stp_ordinary, 0, /* MKCL_HEADER(stype) */	\

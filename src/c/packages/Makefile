@@ -96,7 +96,7 @@ test_USER.o: test_USER.c USER_package.h
 test: test_FFI.o test_MT.o test_GRAY.o test_MKCL.o test_CLOS.o test_KEYWORD.o test_SI.o test_CL.o test_USER.o
 
 clean:
-	rm -f *.o $(LIB_OBJS)
+	rm -f *.o $(LIB_OBJS) TAGS
 	rm -f build_package_FFI expose_package_FFI
 	rm -f build_package_MT expose_package_MT
 	rm -f build_package_GRAY expose_package_GRAY

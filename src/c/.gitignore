@@ -1,7 +1,7 @@
-GNUmakefile
-makefile.depend
-dpp
-dpp.exe
-Makefile
-symbols_list2.h
+/GNUmakefile
+/makefile.depend
+/dpp
+/dpp.exe
+/Makefile
+/symbols_list2.h
 /*.s
