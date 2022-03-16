@@ -1,0 +1,5 @@
+!Makefile
+*_package_core.h
+build_package_*
+expose_package_*
+expose_symbols_in_*.h
