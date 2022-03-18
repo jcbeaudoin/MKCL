@@ -416,7 +416,7 @@ Returns the original value of the leftmost PLACE."
   (unless (and (consp places+newvalue) (consp (cdr places+newvalue)))
     (simple-program-error "SHIFTF: too few or improper arguments: ~S" shiftf-form))
   (let (var-val-pairs-list stores-list store-forms access-forms)
-    (destructuring-bind (newvalue . rplaces) (nreverse places+newvalue)
+    (destructuring-bind (newvalue . rplaces) (reverse places+newvalue)
       (dolist (place rplaces)
         (multiple-value-bind (vars vals stores1 store-form access-form)
             (get-setf-expansion place env)
@@ -444,7 +444,7 @@ the PLACE to its right.  The rightmost PLACE gets the value of the leftmost
 PLACE.  Returns NIL."
   (let (var-val-pairs-list stores-list store-forms access-forms
         (last-stores 0)) ;; 0 is not a valid list of store variables and marks it as such until replacement.
-    (dolist (place (nreverse places))
+    (dolist (place (reverse places))
       (multiple-value-bind (vars vals stores store-form access-form)
           (get-setf-expansion place env)
         (push (mapcar #'list vars vals) var-val-pairs-list)
