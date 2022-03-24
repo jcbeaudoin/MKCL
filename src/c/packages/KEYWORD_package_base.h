@@ -17,6 +17,7 @@
 #define MKCL_IN_LISP(x) x
 #endif
 
+#ifdef MKCL_PACKAGE_BUILDER
 #define SYMBOL_NAME(it) {				\
     (int8_t)mkcl_t_base_string, 0, FALSE, FALSE,	\
       mk_cl_Cnil,					\
@@ -25,6 +26,9 @@
       (it),						\
       NULL, NULL,					\
       }
+#else
+# define SYMBOL_NAME(it) MKCL_BASE_STRING_INIT(it)
+#endif
 
 static struct mkcl_base_string const mkcl_keyword_external_symbol_names[] = {
   SYMBOL_NAME("ARGUMENT-PRECEDENCE-ORDER"),
@@ -633,9 +637,15 @@ static struct mkcl_singlefloat rehash_threshold = { mkcl_t_singlefloat, 0, 0, 0,
 static struct mkcl_hashtable external_ht = {
   mkcl_t_hashtable, 0, mkcl_htt_package, 0, /* MKCL_HEADER2(test,lockable) */
   external_vector, /* data */
+#ifndef MKCL_PACKAGE_BUILDER
+  mkcl_search_hash_package, /* search_fun */
+  mkcl_hash_equal_package, /* hash_fun */
+  mkcl_equality_fun_package, /* equality_fun */
+#else
   NULL, /* search_fun */
   NULL, /* hash_fun */
   NULL, /* equality_fun */
+#endif
   external_count, /* entries */
   external_size, /* size */
   (mkcl_object) &rehash_size_factor, /* rehash_size */
@@ -647,9 +657,15 @@ static struct mkcl_hashtable external_ht = {
 static struct mkcl_hashtable internal_ht = {
   mkcl_t_hashtable, 0, mkcl_htt_package, 0, /* MKCL_HEADER2(test,lockable) */
   NULL, /* data */
+#ifndef MKCL_PACKAGE_BUILDER
+  mkcl_search_hash_package, /* search_fun */
+  mkcl_hash_equal_package, /* hash_fun */
+  mkcl_equality_fun_package, /* equality_fun */
+#else
   NULL, /* search_fun */
   NULL, /* hash_fun */
   NULL, /* equality_fun */
+#endif
   0, /* entries */
   0, /* size */
   (mkcl_object) &rehash_size_factor, /* rehash_size */
@@ -669,5 +685,7 @@ struct mkcl_package mkcl_package_keyword = {
   mk_cl_Cnil, /* usedby */
   (mkcl_object) &internal_ht, /* internal */
   (mkcl_object) &external_ht, /* external */
+#ifndef MKCL_WINDOWS
   PTHREAD_MUTEX_INITIALIZER /* lock */
+#endif
 };

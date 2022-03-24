@@ -683,7 +683,7 @@ static struct exposed_symbol const exposed_symbols[] = {
   {SYMBOL_NAME("INSTANCE-REF"), "MK_SI_instance_ref"},
   {SYMBOL_NAME("INSTANCE-REF-SAFE"), "MK_SI_instance_ref_safe"},
   {SYMBOL_NAME("INSTANCE-SET"), "MK_SI_instance_set"},
-  {SYMBOL_NAME("INSTANCE-SIG-SET"), "MK_SI_instance_sig_set"},
+  {SYMBOL_NAME("INSTANCE-SIG-SET2"), "MK_SI_instance_sig_set2"},
   {SYMBOL_NAME("INTERRUPT-STATUS"), "MK_SI_interrupt_status"},
   {SYMBOL_NAME("LAMBDA-BLOCK"), "MK_SI_lambda_block"},
   {SYMBOL_NAME("LIBC-ERROR-STRING"), "MK_SI_libc_error_string"},
@@ -1302,9 +1302,9 @@ void expose_si_symbol(const struct exposed_symbol * exposed_symbol)
 
   printf("#define %s ", exposed_symbol->exposition);
   if (internalp)
-    printf("&mkcl_si_internal_symbols[%lu]\n", si_internal_symbol_index(sym));
+    printf("mkcl_si_internal_symbols[%lu]\n", si_internal_symbol_index(sym));
   else
-    printf("&mkcl_si_external_symbols[%lu]\n", si_external_symbol_index(sym)); 
+    printf("mkcl_si_external_symbols[%lu]\n", si_external_symbol_index(sym)); 
 }
 
 void expose_si_package(void)

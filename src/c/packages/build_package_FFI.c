@@ -399,9 +399,9 @@ void expose_ffi_symbol(const struct mkcl_base_string * sym_name)
 
   printf("#define MK_FFI_%s ", sym_name->self);
   if (internalp)
-    printf("&mkcl_ffi_internal_symbols[%lu]\n", ffi_internal_symbol_index(sym));
+    printf("mkcl_ffi_internal_symbols[%lu]\n", ffi_internal_symbol_index(sym));
   else
-    printf("&mkcl_ffi_external_symbols[%lu]\n", ffi_external_symbol_index(sym)); 
+    printf("mkcl_ffi_external_symbols[%lu]\n", ffi_external_symbol_index(sym)); 
 }
 
 void expose_ffi_package(void)

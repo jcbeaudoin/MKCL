@@ -66,28 +66,28 @@ build_package_CL: build_package_CL.o hash.o
 expose_package_CL: build_package_CL.o hash.o
 	$(CC) $(LDFLAGS) -o $@ build_package_CL.o hash.o
 
-test_FFI.o: test_FFI.c FFI_package.h
+test_FFI.o: test_FFI.c FFI_package.h FFI_package_core.h
 	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -fPIC -O0 -g -c test_FFI.c -o test_FFI.o
 
-test_MT.o: test_MT.c MT_package.h
+test_MT.o: test_MT.c MT_package.h MT_package_core.h
 	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -fPIC -O0 -g -c test_MT.c -o test_MT.o
 
-test_GRAY.o: test_GRAY.c GRAY_package.h
+test_GRAY.o: test_GRAY.c GRAY_package.h GRAY_package_core.h
 	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -fPIC -O0 -g -c test_GRAY.c -o test_GRAY.o
 
-test_MKCL.o: test_MKCL.c MKCL_package.h
+test_MKCL.o: test_MKCL.c MKCL_package.h MKCL_package_core.h
 	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -fPIC -O0 -g -c test_MKCL.c -o test_MKCL.o
 
-test_CLOS.o: test_CLOS.c CLOS_package.h
+test_CLOS.o: test_CLOS.c CLOS_package.h CLOS_package_core.h
 	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -fPIC -O0 -g -c test_CLOS.c -o test_CLOS.o
 
-test_KEYWORD.o: test_KEYWORD.c KEYWORD_package.h
+test_KEYWORD.o: test_KEYWORD.c KEYWORD_package.h KEYWORD_package_core.h
 	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -fPIC -O0 -g -c test_KEYWORD.c -o test_KEYWORD.o
 
-test_SI.o: test_SI.c SI_package.h
+test_SI.o: test_SI.c SI_package.h SI_package_core.h
 	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -fPIC -O0 -g -c test_SI.c -o test_SI.o
 
-test_CL.o: test_CL.c CL_package.h
+test_CL.o: test_CL.c CL_package.h CL_package_core.h
 	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -fPIC -O0 -g -c test_CL.c -o test_CL.o
 
 test_USER.o: test_USER.c USER_package.h
@@ -135,21 +135,21 @@ MT_package.h: MT_package_core_stubs.h MT_package_base.h
 
 FFI_package.h: FFI_package_core_stubs.h FFI_package_base.h
 
-build_package_FFI.o: build_package.h FFI_package.h
+build_package_FFI.o: build_package.h FFI_package.h FFI_package_core_stubs.h FFI_package_base.h
 
-build_package_MT.o: build_package.h MT_package.h
+build_package_MT.o: build_package.h MT_package.h MT_package_core_stubs.h MT_package_base.h
 
-build_package_MKCL.o: build_package.h MKCL_package.h
+build_package_MKCL.o: build_package.h MKCL_package.h MKCL_package_core_stubs.h MKCL_package_base.h
 
-build_package_CLOS.o: build_package.h CLOS_package.h
+build_package_CLOS.o: build_package.h CLOS_package.h CLOS_package_core_stubs.h CLOS_package_base.h
 
-build_package_GRAY.o: build_package.h GRAY_package.h
+build_package_GRAY.o: build_package.h GRAY_package.h GRAY_package_core_stubs.h GRAY_package_base.h
 
-build_package_KEYWORD.o: build_package.h KEYWORD_package.h
+build_package_KEYWORD.o: build_package.h KEYWORD_package.h KEYWORD_package_core_stubs.h KEYWORD_package_base.h
 
-build_package_SI.o: build_package.h SI_package.h
+build_package_SI.o: build_package.h SI_package.h SI_package_core_stubs.h SI_package_base.h
 
-build_package_CL.o: build_package.h CL_package.h
+build_package_CL.o: build_package.h CL_package.h CL_package_core_stubs.h CL_package_base.h
 
 hash.o: build_package.h ../newhash.h
 

@@ -421,7 +421,7 @@ void expose_keyword_symbol(const struct exposed_symbol * exposed_symbol)
   if ( sym == NULL ) { printf("Exposed symbol not found: %s\n", exposed_symbol->symbol_name.self); exit(1); }
 
   printf("#define %s ", exposed_symbol->exposition);
-  printf("&mkcl_keyword_external_symbols[%lu]\n", keyword_external_symbol_index(sym)); 
+  printf("mkcl_keyword_external_symbols[%lu]\n", keyword_external_symbol_index(sym)); 
 }
 
 void expose_keyword_package(void)

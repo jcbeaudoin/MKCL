@@ -132,8 +132,8 @@ static struct exposed_symbol const exposed_symbols[] = {
   { SYMBOL_NAME("CONDITION-SIGNAL"), "MK_MT_condition_signal" },
   { SYMBOL_NAME("CONDITION-BROADCAST"), "MK_MT_condition_broadcast" },
   { SYMBOL_NAME("INTERRUPT-THREAD"), "MK_MT_interrupt_thread" },
-  { SYMBOL_NAME("JOIN-THREAD"), "MK_MT_thread_join" },
-  { SYMBOL_NAME("DETACH-THREAD"), "MK_MT_thread_detach" },
+  { SYMBOL_NAME("JOIN-THREAD"), "MK_MT_join_thread" },
+  { SYMBOL_NAME("DETACH-THREAD"), "MK_MT_detach_thread" },
   { SYMBOL_NAME("THREAD-PLIST"), "MK_MT_thread_plist" },
   { SYMBOL_NAME("SET-THREAD-PLIST"), "MK_MT_set_thread_plist" },
   { SYMBOL_NAME("ABANDON-THREAD"), "MK_MT_abandon_thread" },
@@ -535,18 +535,12 @@ void expose_mt_symbol(const struct exposed_symbol * exposed_symbol)
 {
   bool internalp;
   struct mkcl_symbol * sym = find_symbol(&exposed_symbol->symbol_name, &mkcl_package_mt, &internalp);
-#if 0
-  char * _name = strdup(sym_name->self);
-  char * s = _name;
-
-  for (; *s; s++) { if (*s == '-') *s = '_'; } /* replace - by _ in symbol name. */
-#endif
 
   printf("#define %s ", exposed_symbol->exposition);
   if (internalp)
-    printf("&mkcl_mt_internal_symbols[%lu]\n", mt_internal_symbol_index(sym));
+    printf("mkcl_mt_internal_symbols[%lu]\n", mt_internal_symbol_index(sym));
   else
-    printf("&mkcl_mt_external_symbols[%lu]\n", mt_external_symbol_index(sym)); 
+    printf("mkcl_mt_external_symbols[%lu]\n", mt_external_symbol_index(sym)); 
 }
 
 void expose_mt_package(void)

@@ -1875,9 +1875,9 @@ void print_cl_external_hashtable_entry_initializers(void)
 	{
 	  if (i == 0) /* this is the special case of NIL. */
 	    {
-	      printf("mk_cl_Cnil, ");
+	      printf("(mkcl_object) &mkcl_cl_external_symbol_names[0], ");
 	      printf("%luUL, ", entry->hashed_key);
-	      printf("(mkcl_object) &mkcl_cl_external_symbols[0], ");
+	      printf("mk_cl_Cnil, ");
 	    }
 	  else
 	    {
@@ -1954,9 +1954,9 @@ void expose_cl_symbol(const struct exposed_symbol * exposed_symbol)
 
   printf("#define %s ", exposed_symbol->exposition);
   if (internalp)
-    printf("&mkcl_cl_internal_symbols[%lu]\n", cl_internal_symbol_index(sym));
+    printf("mkcl_cl_internal_symbols[%lu]\n", cl_internal_symbol_index(sym));
   else
-    printf("&mkcl_cl_external_symbols[%lu]\n", cl_external_symbol_index(sym)); 
+    printf("mkcl_cl_external_symbols[%lu]\n", cl_external_symbol_index(sym)); 
 }
 
 void expose_cl_package(void)

@@ -189,7 +189,7 @@ static struct exposed_symbol const exposed_symbols[] = {
   { SYMBOL_NAME("STREAM-FILENAME"), "MK_MKCL_stream_filename"},
   { SYMBOL_NAME("SYSTEM"), "MK_MKCL_system"},
   { SYMBOL_NAME("TERMINATE-PROCESS"), "MK_MKCL_terminate_process"},
-  { SYMBOL_NAME("WRITE-TO-BASE-STRING"), "MK_mkcl_write_to_base_string"},
+  { SYMBOL_NAME("WRITE-TO-BASE-STRING"), "MK_MKCL_write_to_base_string"},
   { SYMBOL_NAME("*ALL-CURRENT-WORKING-DIRECTORIES*"), "MK_MKCL_DYNVAR_all_current_working_directories"},
   { SYMBOL_NAME("*CURRENT-WORKING-DIRECTORY*"), "MK_MKCL_DYNVAR_current_working_directory"},
 };
@@ -608,9 +608,9 @@ void expose_mkcl_symbol(const struct exposed_symbol * exposed_symbol)
 
   printf("#define %s ", exposed_symbol->exposition);
   if (internalp)
-    printf("&mkcl_mkcl_internal_symbols[%lu]\n", mkcl_internal_symbol_index(sym));
+    printf("mkcl_mkcl_internal_symbols[%lu]\n", mkcl_internal_symbol_index(sym));
   else
-    printf("&mkcl_mkcl_external_symbols[%lu]\n", mkcl_external_symbol_index(sym)); 
+    printf("mkcl_mkcl_external_symbols[%lu]\n", mkcl_external_symbol_index(sym)); 
 }
 
 void expose_mkcl_package(void)

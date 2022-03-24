@@ -491,9 +491,9 @@ void expose_clos_symbol(const struct exposed_symbol * exposed_symbol)
 
   printf("#define %s ", exposed_symbol->exposition);
   if (internalp)
-    printf("&mkcl_clos_internal_symbols[%lu]\n", clos_internal_symbol_index(sym));
+    printf("mkcl_clos_internal_symbols[%lu]\n", clos_internal_symbol_index(sym));
   else
-    printf("&mkcl_clos_external_symbols[%lu]\n", clos_external_symbol_index(sym)); 
+    printf("mkcl_clos_external_symbols[%lu]\n", clos_external_symbol_index(sym)); 
 }
 
 void expose_clos_package(void)
