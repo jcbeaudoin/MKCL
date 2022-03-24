@@ -31,31 +31,31 @@
 # include <pthread_np.h>
 #endif
 
-struct mkcl_cfun mk_si_disable_interrupts_cfunobj = MKCL_CFUN0(mk_si_disable_interrupts, MK_SI_disable_interrupts);
+struct mkcl_cfun mk_si_disable_interrupts_cfunobj = MKCL_CFUN0(mk_si_disable_interrupts, (mkcl_object) &MK_SI_disable_interrupts);
 
 mkcl_object mk_si_disable_interrupts(MKCL)
 { /* Returns T if interrupts were enabled, NIL otherwise. */
   mkcl_return_value(((env->disable_interrupts) ? mk_cl_Cnil : (mkcl_disable_interrupts(env), mk_cl_Ct)));
 }
 
-struct mkcl_cfun mk_si_enable_interrupts_cfunobj = MKCL_CFUN0(mk_si_enable_interrupts, MK_SI_enable_interrupts);
+struct mkcl_cfun mk_si_enable_interrupts_cfunobj = MKCL_CFUN0(mk_si_enable_interrupts, (mkcl_object) &MK_SI_enable_interrupts);
 
 mkcl_object mk_si_enable_interrupts(MKCL)
 {
   mkcl_return_value((mkcl_enable_interrupts(env), mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_si_interrupt_status_cfunobj = MKCL_CFUN0(mk_si_interrupt_status, MK_SI_interrupt_status);
+struct mkcl_cfun mk_si_interrupt_status_cfunobj = MKCL_CFUN0(mk_si_interrupt_status, (mkcl_object) &MK_SI_interrupt_status);
 
 mkcl_object mk_si_interrupt_status(MKCL)
 {
 #if MKCL_DEBUG_INTERRUPT_MASK
   mkcl_call_stack_check(env);
-  mkcl_return_3_values(((env->disable_interrupts) ? MK_KEY_disabled : MK_KEY_enabled),
+  mkcl_return_3_values(((env->disable_interrupts) ? ((mkcl_object) &MK_KEY_disabled) : ((mkcl_object) &MK_KEY_enabled)),
                        mkcl_cstring_to_string(env, env->interrupt_disabler_file),
                        mkcl_make_unsigned_integer(env, env->interrupt_disabler_lineno));
 #else
-  mkcl_return_value(((env->disable_interrupts) ? MK_KEY_disabled : MK_KEY_enabled));
+  mkcl_return_value(((env->disable_interrupts) ? ((mkcl_object) &MK_KEY_disabled) : ((mkcl_object) &MK_KEY_enabled)));
 #endif
 }
 
@@ -68,7 +68,7 @@ mkcl_call_stack_overflow(MKCL, char * const stack_mark_address)
      optimizing away the stack_mark by making its data flow analysis more difficult. */
   if (env->cs_overflowing)
     /* We should write a message to some log when this happens but right now we have nowhere to do it. JCB */
-    mk_mt_abandon_thread(env, MK_KEY_terminated); /* Already overflowing and out of overflow space! must abort right now! */
+    mk_mt_abandon_thread(env, ((mkcl_object) &MK_KEY_terminated)); /* Already overflowing and out of overflow space! must abort right now! */
   else
     {
       /* We could try 1024 instead of 4096 but less may not work because we need a call depth of at least 5. */
@@ -82,9 +82,9 @@ mkcl_call_stack_overflow(MKCL, char * const stack_mark_address)
 	env->cs_limit = env->cs_org + env->cs_size - call_stack_emergency_reserve;
 #endif
 	env->cs_overflowing = TRUE;
-	mk_cl_error(env, 5, MK_MKCL_stack_overflow,
-		    MK_KEY_size, mkcl_make_unsigned_integer(env, env->cs_size),
-		    MK_KEY_type, MK_SI_call_stack);
+	mk_cl_error(env, 5, (mkcl_object) &MK_MKCL_stack_overflow,
+		    (mkcl_object) &MK_KEY_size, mkcl_make_unsigned_integer(env, env->cs_size),
+		    (mkcl_object) &MK_KEY_type, (mkcl_object) &MK_SI_call_stack);
       } MKCL_UNWIND_PROTECT_EXIT {
 	env->cs_limit = old_cs_limit;
 	env->cs_overflowing = FALSE;
@@ -143,7 +143,7 @@ mkcl_grow_temp_stack(MKCL)
       mkcl_object * top = env->temp_stack_top;
 
       if (top >= env->temp_stack_upper_bound)
-	mk_mt_abandon_thread(env, MK_KEY_terminated); /* Already overflowing and out of overflow space! must abort right now! */
+	mk_mt_abandon_thread(env, (mkcl_object) &MK_KEY_terminated); /* Already overflowing and out of overflow space! must abort right now! */
       else
 	return top;
     }
@@ -166,9 +166,9 @@ mkcl_grow_temp_stack(MKCL)
 	    old_upper_bound = env->temp_stack_upper_bound;
 	    env->temp_stack_upper_bound = env->temp_stack + env->temp_stack_size;
 	    env->temp_stack_overflowing = TRUE;
-	    mk_cl_error(env, 5, MK_MKCL_stack_overflow,
-			MK_KEY_size, mkcl_make_unsigned_integer(env, size_limit),
-			MK_KEY_type, MK_SI_lisp_temp_stack);
+	    mk_cl_error(env, 5, (mkcl_object) &MK_MKCL_stack_overflow,
+			(mkcl_object) &MK_KEY_size, mkcl_make_unsigned_integer(env, size_limit),
+			(mkcl_object) &MK_KEY_type, (mkcl_object) &MK_SI_lisp_temp_stack);
 	  } MKCL_UNWIND_PROTECT_EXIT {
 	    env->temp_stack_upper_bound = old_upper_bound;
 	    env->temp_stack_overflowing = FALSE;
@@ -253,7 +253,7 @@ mkcl_bds_push(MKCL, mkcl_object s)
 
 bool mkcl_trace_specials = FALSE;
 
-struct mkcl_cfun mk_si_trace_specials_cfunobj = MKCL_CFUN0(mk_si_trace_specials, MK_SI_trace_specials);
+struct mkcl_cfun mk_si_trace_specials_cfunobj = MKCL_CFUN0(mk_si_trace_specials, (mkcl_object) &MK_SI_trace_specials);
 
 mkcl_object
 mk_si_trace_specials(MKCL)
@@ -262,7 +262,7 @@ mk_si_trace_specials(MKCL)
   mkcl_return_value(mk_cl_Ct);
 }
 
-struct mkcl_cfun mk_si_untrace_specials_cfunobj = MKCL_CFUN0(mk_si_untrace_specials, MK_SI_untrace_specials);
+struct mkcl_cfun mk_si_untrace_specials_cfunobj = MKCL_CFUN0(mk_si_untrace_specials, (mkcl_object) &MK_SI_untrace_specials);
 
 mkcl_object
 mk_si_untrace_specials(MKCL)
@@ -346,7 +346,7 @@ mkcl_grow_bds_stack(MKCL)
       struct mkcl_bds_bd * top = env->bds_top;
 
       if (top >= env->bds_upper_bound)
-	mk_mt_abandon_thread(env, MK_KEY_terminated); /* Already overflowing and out of overflow space! must abort right now! */
+	mk_mt_abandon_thread(env, (mkcl_object) &MK_KEY_terminated); /* Already overflowing and out of overflow space! must abort right now! */
       else
 	return;
     }
@@ -369,9 +369,9 @@ mkcl_grow_bds_stack(MKCL)
 	    old_upper_bound = env->bds_upper_bound;
 	    env->bds_upper_bound = env->bds_org + env->bds_size;
 	    env->bds_overflowing = TRUE;
-	    mk_cl_error(env, 5, MK_MKCL_stack_overflow,
-			MK_KEY_size, mkcl_make_unsigned_integer(env, size_limit),
-			MK_KEY_type, MK_SI_binding_stack);
+	    mk_cl_error(env, 5, (mkcl_object) &MK_MKCL_stack_overflow,
+			(mkcl_object) &MK_KEY_size, mkcl_make_unsigned_integer(env, size_limit),
+			(mkcl_object) &MK_KEY_type, (mkcl_object) &MK_SI_binding_stack);
 	  } MKCL_UNWIND_PROTECT_EXIT {
 	    env->bds_upper_bound = old_upper_bound;
 	    env->bds_overflowing = FALSE;
@@ -413,7 +413,7 @@ get_bds_ptr(MKCL, mkcl_object x)
   mkcl_FEerror(env, "~S is an illegal bds index. BDS_TOP = ~S.", 2, x, mk_si_bds_top(env));
 }
 
-struct mkcl_cfun mk_si_bds_top_cfunobj = MKCL_CFUN0(mk_si_bds_top, MK_SI_bds_top);
+struct mkcl_cfun mk_si_bds_top_cfunobj = MKCL_CFUN0(mk_si_bds_top, (mkcl_object) &MK_SI_bds_top);
 
 mkcl_object
 mk_si_bds_top(MKCL)
@@ -421,7 +421,7 @@ mk_si_bds_top(MKCL)
   mkcl_return_value(MKCL_MAKE_FIXNUM(env->bds_top - env->bds_org));
 }
 
-struct mkcl_cfun mk_si_bds_var_cfunobj = MKCL_CFUN1(mk_si_bds_var, MK_SI_bds_var);
+struct mkcl_cfun mk_si_bds_var_cfunobj = MKCL_CFUN1(mk_si_bds_var, (mkcl_object) &MK_SI_bds_var);
 
 mkcl_object
 mk_si_bds_var(MKCL, mkcl_object arg)
@@ -430,7 +430,7 @@ mk_si_bds_var(MKCL, mkcl_object arg)
   mkcl_return_value(get_bds_ptr(env, arg)->symbol);
 }
 
-struct mkcl_cfun mk_si_bds_val_cfunobj = MKCL_CFUN1(mk_si_bds_val, MK_SI_bds_val);
+struct mkcl_cfun mk_si_bds_val_cfunobj = MKCL_CFUN1(mk_si_bds_val, (mkcl_object) &MK_SI_bds_val);
 
 mkcl_object
 mk_si_bds_val(MKCL, mkcl_object arg)
@@ -459,7 +459,7 @@ ihs_function_name(mkcl_object x)
     mkcl_t_bytecode_case:
       y = x->bytecode.name;
       if (mkcl_Null(y))
-        return(MK_CL_lambda);
+        return((mkcl_object) &MK_CL_lambda);
       else
         return y;
 
@@ -491,7 +491,7 @@ mk_si_ihs_top_function_name(MKCL)
   mkcl_return_value(ihs_function_name(env->ihs_top->function));
 }
 
-struct mkcl_cfun mk_si_ihs_top_cfunobj = MKCL_CFUN0(mk_si_ihs_top, MK_SI_ihs_top);
+struct mkcl_cfun mk_si_ihs_top_cfunobj = MKCL_CFUN0(mk_si_ihs_top, (mkcl_object) &MK_SI_ihs_top);
 
 mkcl_object
 mk_si_ihs_top(MKCL)
@@ -499,7 +499,7 @@ mk_si_ihs_top(MKCL)
   mkcl_return_value(MKCL_MAKE_FIXNUM(env->ihs_top->index));
 }
 
-struct mkcl_cfun mk_si_ihs_prev_cfunobj = MKCL_CFUN1(mk_si_ihs_prev, MK_SI_ihs_prev);
+struct mkcl_cfun mk_si_ihs_prev_cfunobj = MKCL_CFUN1(mk_si_ihs_prev, (mkcl_object) &MK_SI_ihs_prev);
 
 mkcl_object
 mk_si_ihs_prev(MKCL, mkcl_object x)
@@ -508,7 +508,7 @@ mk_si_ihs_prev(MKCL, mkcl_object x)
   mkcl_return_value(mk_cl_1M(env, x));
 }
 
-struct mkcl_cfun mk_si_ihs_next_cfunobj = MKCL_CFUN1(mk_si_ihs_next, MK_SI_ihs_next);
+struct mkcl_cfun mk_si_ihs_next_cfunobj = MKCL_CFUN1(mk_si_ihs_next, (mkcl_object) &MK_SI_ihs_next);
 
 mkcl_object
 mk_si_ihs_next(MKCL, mkcl_object x)
@@ -517,7 +517,7 @@ mk_si_ihs_next(MKCL, mkcl_object x)
   mkcl_return_value(mk_cl_1P(env, x));
 }
 
-struct mkcl_cfun mk_si_ihs_fun_cfunobj = MKCL_CFUN1(mk_si_ihs_fun, MK_SI_ihs_fun);
+struct mkcl_cfun mk_si_ihs_fun_cfunobj = MKCL_CFUN1(mk_si_ihs_fun, (mkcl_object) &MK_SI_ihs_fun);
 
 mkcl_object
 mk_si_ihs_fun(MKCL, mkcl_object arg)
@@ -526,7 +526,7 @@ mk_si_ihs_fun(MKCL, mkcl_object arg)
   mkcl_return_value(get_ihs_ptr(env, mkcl_integer_to_index(env, arg))->function);
 }
 
-struct mkcl_cfun mk_si_ihs_env_cfunobj = MKCL_CFUN1(mk_si_ihs_env, MK_SI_ihs_env);
+struct mkcl_cfun mk_si_ihs_env_cfunobj = MKCL_CFUN1(mk_si_ihs_env, (mkcl_object) &MK_SI_ihs_env);
 
 mkcl_object
 mk_si_ihs_env(MKCL, mkcl_object arg)
@@ -535,7 +535,7 @@ mk_si_ihs_env(MKCL, mkcl_object arg)
   mkcl_return_value(get_ihs_ptr(env, mkcl_integer_to_index(env, arg))->lex_env);
 }
 
-struct mkcl_cfun mk_si_ihs_bds_marker_cfunobj = MKCL_CFUN1(mk_si_ihs_bds_marker, MK_SI_ihs_bds_marker);
+struct mkcl_cfun mk_si_ihs_bds_marker_cfunobj = MKCL_CFUN1(mk_si_ihs_bds_marker, (mkcl_object) &MK_SI_ihs_bds_marker);
 
 mkcl_object
 mk_si_ihs_bds_marker(MKCL, mkcl_object arg)
@@ -589,7 +589,7 @@ grow_frs_stack(MKCL)
       struct mkcl_frame * top = env->frs_top;
 
       if (top >= env->frs_upper_bound)
-	mk_mt_abandon_thread(env, MK_KEY_terminated); /* Already overflowing and out of overflow space! must abort right now! */
+	mk_mt_abandon_thread(env, (mkcl_object) &MK_KEY_terminated); /* Already overflowing and out of overflow space! must abort right now! */
       else
 	return;
     }
@@ -612,9 +612,9 @@ grow_frs_stack(MKCL)
 	    old_upper_bound = env->frs_upper_bound;
 	    env->frs_upper_bound = env->frs_org + env->frs_size;
 	    env->frs_overflowing = TRUE;
-	    mk_cl_error(env, 5, MK_MKCL_stack_overflow,
-			MK_KEY_size, mkcl_make_unsigned_integer(env, size_limit),
-			MK_KEY_type, MK_SI_frame_stack);
+	    mk_cl_error(env, 5, (mkcl_object) &MK_MKCL_stack_overflow,
+			(mkcl_object) &MK_KEY_size, mkcl_make_unsigned_integer(env, size_limit),
+			(mkcl_object) &MK_KEY_type, (mkcl_object) &MK_SI_frame_stack);
 	  } MKCL_UNWIND_PROTECT_EXIT {
 	    env->frs_upper_bound = old_upper_bound;
 	    env->frs_overflowing = FALSE;
@@ -700,7 +700,7 @@ get_frame_ptr(MKCL, mkcl_object x)
   mkcl_FEerror(env, "~S is an illegal frs index. FRS_TOP = ~S.", 2, x, mk_si_frs_top(env));
 }
 
-struct mkcl_cfun mk_si_frs_top_cfunobj = MKCL_CFUN0(mk_si_frs_top, MK_SI_frs_top);
+struct mkcl_cfun mk_si_frs_top_cfunobj = MKCL_CFUN0(mk_si_frs_top, (mkcl_object) &MK_SI_frs_top);
 
 mkcl_object
 mk_si_frs_top(MKCL)
@@ -708,7 +708,7 @@ mk_si_frs_top(MKCL)
   mkcl_return_value(MKCL_MAKE_FIXNUM(env->frs_top - env->frs_org)); /* Any overflow detection? JCB */
 }
 
-struct mkcl_cfun mk_si_frs_bds_cfunobj = MKCL_CFUN1(mk_si_frs_bds, MK_SI_frs_bds);
+struct mkcl_cfun mk_si_frs_bds_cfunobj = MKCL_CFUN1(mk_si_frs_bds, (mkcl_object) &MK_SI_frs_bds);
 
 mkcl_object
 mk_si_frs_bds(MKCL, mkcl_object arg)
@@ -717,7 +717,7 @@ mk_si_frs_bds(MKCL, mkcl_object arg)
   mkcl_return_value(MKCL_MAKE_FIXNUM(get_frame_ptr(env, arg)->frs_bds_top_index));
 }
 
-struct mkcl_cfun mk_si_frs_tag_cfunobj = MKCL_CFUN1(mk_si_frs_tag, MK_SI_frs_tag);
+struct mkcl_cfun mk_si_frs_tag_cfunobj = MKCL_CFUN1(mk_si_frs_tag, (mkcl_object) &MK_SI_frs_tag);
 
 mkcl_object
 mk_si_frs_tag(MKCL, mkcl_object arg)
@@ -726,7 +726,7 @@ mk_si_frs_tag(MKCL, mkcl_object arg)
   mkcl_return_value(get_frame_ptr(env, arg)->frs_val);
 }
 
-struct mkcl_cfun mk_si_frs_ihs_cfunobj = MKCL_CFUN1(mk_si_frs_ihs, MK_SI_frs_ihs);
+struct mkcl_cfun mk_si_frs_ihs_cfunobj = MKCL_CFUN1(mk_si_frs_ihs, (mkcl_object) &MK_SI_frs_ihs);
 
 mkcl_object
 mk_si_frs_ihs(MKCL, mkcl_object arg)
@@ -735,7 +735,7 @@ mk_si_frs_ihs(MKCL, mkcl_object arg)
   mkcl_return_value(MKCL_MAKE_FIXNUM(get_frame_ptr(env, arg)->frs_ihs->index));
 }
 
-struct mkcl_cfun mk_si_sch_frs_base_cfunobj = MKCL_CFUN2(mk_si_sch_frs_base, MK_SI_sch_frs_base);
+struct mkcl_cfun mk_si_sch_frs_base_cfunobj = MKCL_CFUN2(mk_si_sch_frs_base, (mkcl_object) &MK_SI_sch_frs_base);
 
 mkcl_object
 mk_si_sch_frs_base(MKCL, mkcl_object fr, mkcl_object ihs)
@@ -762,7 +762,7 @@ _mkcl_va_sp(MKCL, mkcl_narg narg)
 
 /********************* INITIALIZATION ***********************/
 
-struct mkcl_cfun mk_si_set_binding_stack_limit_cfunobj = MKCL_CFUN1(mk_si_set_binding_stack_limit, MK_SI_set_binding_stack_limit);
+struct mkcl_cfun mk_si_set_binding_stack_limit_cfunobj = MKCL_CFUN1(mk_si_set_binding_stack_limit, (mkcl_object) &MK_SI_set_binding_stack_limit);
 
 mkcl_object
 mk_si_set_binding_stack_limit(MKCL, mkcl_object size_limit)
@@ -779,7 +779,7 @@ mk_si_set_binding_stack_limit(MKCL, mkcl_object size_limit)
   mkcl_return_value(mkcl_make_unsigned_integer(env, the_size_limit));
 }
 
-struct mkcl_cfun mk_si_set_frame_stack_limit_cfunobj = MKCL_CFUN1(mk_si_set_frame_stack_limit, MK_SI_set_frame_stack_limit);
+struct mkcl_cfun mk_si_set_frame_stack_limit_cfunobj = MKCL_CFUN1(mk_si_set_frame_stack_limit, (mkcl_object) &MK_SI_set_frame_stack_limit);
 
 mkcl_object
 mk_si_set_frame_stack_limit(MKCL, mkcl_object size_limit)
@@ -796,7 +796,7 @@ mk_si_set_frame_stack_limit(MKCL, mkcl_object size_limit)
   mkcl_return_value(mkcl_make_unsigned_integer(env, the_size_limit));
 }
 
-struct mkcl_cfun mk_si_set_lisp_temp_stack_limit_cfunobj = MKCL_CFUN1(mk_si_set_lisp_temp_stack_limit, MK_SI_set_lisp_temp_stack_limit);
+struct mkcl_cfun mk_si_set_lisp_temp_stack_limit_cfunobj = MKCL_CFUN1(mk_si_set_lisp_temp_stack_limit, (mkcl_object) &MK_SI_set_lisp_temp_stack_limit);
 
 mkcl_object
 mk_si_set_lisp_temp_stack_limit(MKCL, mkcl_object size_limit)
@@ -813,7 +813,7 @@ mk_si_set_lisp_temp_stack_limit(MKCL, mkcl_object size_limit)
   mkcl_return_value(mkcl_make_unsigned_integer(env, the_size_limit));
 }
 
-struct mkcl_cfun mk_si_get_call_stack_limit_cfunobj = MKCL_CFUN0(mk_si_get_call_stack_limit, MK_SI_get_call_stack_limit);
+struct mkcl_cfun mk_si_get_call_stack_limit_cfunobj = MKCL_CFUN0(mk_si_get_call_stack_limit, (mkcl_object) &MK_SI_get_call_stack_limit);
 
 mkcl_object
 mk_si_get_call_stack_limit(MKCL)
@@ -829,7 +829,7 @@ mk_si_get_call_stack_limit(MKCL)
   mkcl_return_2_values(mkcl_make_unsigned_integer(env, cs_size), mkcl_make_unsigned_integer(env, cs_top_index));
 }
 
-struct mkcl_cfun mk_si_get_binding_stack_limit_cfunobj = MKCL_CFUN0(mk_si_get_binding_stack_limit, MK_SI_get_binding_stack_limit);
+struct mkcl_cfun mk_si_get_binding_stack_limit_cfunobj = MKCL_CFUN0(mk_si_get_binding_stack_limit, (mkcl_object) &MK_SI_get_binding_stack_limit);
 
 mkcl_object
 mk_si_get_binding_stack_limit(MKCL)
@@ -838,7 +838,7 @@ mk_si_get_binding_stack_limit(MKCL)
   mkcl_return_2_values(mkcl_make_unsigned_integer(env, env->bds_size_limit), mk_si_bds_top(env));
 }
 
-struct mkcl_cfun mk_si_get_frame_stack_limit_cfunobj = MKCL_CFUN0(mk_si_get_frame_stack_limit, MK_SI_get_frame_stack_limit);
+struct mkcl_cfun mk_si_get_frame_stack_limit_cfunobj = MKCL_CFUN0(mk_si_get_frame_stack_limit, (mkcl_object) &MK_SI_get_frame_stack_limit);
 
 mkcl_object
 mk_si_get_frame_stack_limit(MKCL)
@@ -847,7 +847,7 @@ mk_si_get_frame_stack_limit(MKCL)
   mkcl_return_2_values(mkcl_make_unsigned_integer(env, env->frs_size_limit), mk_si_frs_top(env));
 }
 
-struct mkcl_cfun mk_si_get_lisp_temp_stack_limit_cfunobj = MKCL_CFUN0(mk_si_get_lisp_temp_stack_limit, MK_SI_get_lisp_temp_stack_limit);
+struct mkcl_cfun mk_si_get_lisp_temp_stack_limit_cfunobj = MKCL_CFUN0(mk_si_get_lisp_temp_stack_limit, (mkcl_object) &MK_SI_get_lisp_temp_stack_limit);
 
 mkcl_object
 mk_si_get_lisp_temp_stack_limit(MKCL)
@@ -1071,7 +1071,7 @@ mkcl_init_stacks(MKCL, mkcl_env new_env, struct mkcl_thread_init_parameters * pa
   new_env->bds_top = new_env->bds_org;
   /* The following dummy binding at the very bottom of the bds stack is in fact
      a place holder never to be poped, acting as a kind of underflow guard. JCB */
-  new_env->bds_org->symbol = MK_CL_DYNVAR_package;
+  new_env->bds_org->symbol = (mkcl_object) &MK_CL_DYNVAR_package;
   new_env->bds_org->value = MKCL_OBJNULL;
   new_env->bds_upper_bound = new_env->bds_org + size;
 

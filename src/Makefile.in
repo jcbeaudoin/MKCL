@@ -128,7 +128,7 @@ base: mkcc$(EXE) mkcl-config $(TARGETS) help.doc
 
 contribs: extension-contribs asdf-contribs
 
-extension-contribs: ../contrib/unicode/UnicodeData.txt $(EXTENSION_CONTRIB_FASLS) $(EXTENSION_CONTRIB_ASDS) $(EXTENSION_CONTRIB_AS2S) # $(EXTENSION_CONTRIB_STATIC_LIBS)
+extension-contribs: ../contrib/unicode/UnicodeData.txt $(EXTENSION_CONTRIB_FASLS) $(EXTENSION_CONTRIB_ASDS) $(EXTENSION_CONTRIB_AS2S)
 
 asdf-contribs: $(ASDF_FASLS) $(ASDF2_FASLS) $(ASDF_CONTRIB_FASLS) $(ASDF_CONTRIB_STATIC_LIBS) $(ASDF_CONTRIB_ASDS) $(ASDF_CONTRIB_AS2S)
 
@@ -499,7 +499,6 @@ install-base: base libmkcc1.a
 	    $(INSTALL_LIBRARY) $$i $(DESTDIR)$(mkcldir); \
 	  fi \
 	done
-	$(INSTALL_DATA) c/dpp$(EXE) $(DESTDIR)$(mkcldir)
 	$(INSTALL_DATA) mkcl_min$(EXE) $(DESTDIR)$(mkcldir)
 	$(INSTALL_DATA) cmp/cmp.asd cmp/cmp.as2 $(DESTDIR)$(mkcldir)
 	if [ -f cmp/CMP.a ] ; then $(INSTALL_DATA) cmp/CMP.a $(DESTDIR)$(mkcldir); fi
@@ -520,7 +519,7 @@ install-extension-contribs: extension-contribs
 	  fi \
 	done
 
-install-asdf-contribs: asdf-contribs # $(ASDF_FASLS) $(ASDF2_FASLS) $(ASDF_CONTRIB_FASLS)
+install-asdf-contribs: asdf-contribs
 	$(mkinstalldirs) $(DESTDIR)$(mkcldir)/contrib/
 	for i in asdf-stage/*.as2 asdf-stage/*.asd; do $(INSTALL_DATA) $${i} $(DESTDIR)$(mkcldir)/contrib/; done
 	for i in ext/asdf.fasb ext/asdf3.fasb ext/asdf2.fasb ext/asdf.a ext/asdf3.a ext/asdf2.a $(ASDF_CONTRIB_FASLS) $(ASDF_CONTRIB_STATIC_LIBS); do \

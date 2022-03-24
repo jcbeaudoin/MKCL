@@ -21,7 +21,7 @@
 
 #include <stdlib.h>
 
-struct mkcl_cfun mk_cl_X_cfunobj = MKCL_CFUN_VA(mk_cl_X, MK_CL_X);
+struct mkcl_cfun mk_cl_X_cfunobj = MKCL_CFUN_VA(mk_cl_X, (mkcl_object) &MK_CL_X);
 /*  (*		)  */
 
 mkcl_object mk_cl_X(MKCL, mkcl_narg narg, ...)
@@ -30,7 +30,7 @@ mkcl_object mk_cl_X(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_CL_X, 0, narg, narg, nums);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_CL_X, 0, narg, narg, nums);
 
     /* INV: type check in mkcl_times() */
     while (narg--)
@@ -263,7 +263,7 @@ mkcl_times(MKCL, mkcl_object x, mkcl_object y)
   }
 }
 
-struct mkcl_cfun mk_cl_P_cfunobj = MKCL_CFUN_VA(mk_cl_P, MK_CL_P);
+struct mkcl_cfun mk_cl_P_cfunobj = MKCL_CFUN_VA(mk_cl_P, (mkcl_object) &MK_CL_P);
 /* (+          )   */
 mkcl_object mk_cl_P(MKCL, mkcl_narg narg, ...)
 {
@@ -271,7 +271,7 @@ mkcl_object mk_cl_P(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_CL_P, 0, narg, narg, nums);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_CL_P, 0, narg, narg, nums);
 
     /* INV: type check is in mkcl_plus() */
     while (narg--)
@@ -490,7 +490,7 @@ mkcl_plus(MKCL, mkcl_object x, mkcl_object y)
   }
 }
 
-struct mkcl_cfun mk_cl_M_cfunobj = MKCL_CFUN_VA(mk_cl_M, MK_CL_M);
+struct mkcl_cfun mk_cl_M_cfunobj = MKCL_CFUN_VA(mk_cl_M, (mkcl_object) &MK_CL_M);
 /*  (-		)  */
 mkcl_object mk_cl_M(MKCL, mkcl_narg narg, mkcl_object num, ...)
 {
@@ -498,7 +498,7 @@ mkcl_object mk_cl_M(MKCL, mkcl_narg narg, mkcl_object num, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_CL_M, 1, narg, num, nums);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_CL_M, 1, narg, num, nums);
 
     /* INV: argument type check in number_{negate,minus}() */
     if (narg == 1)
@@ -717,7 +717,7 @@ mkcl_minus(MKCL, mkcl_object x, mkcl_object y)
   }
 }
 
-struct mkcl_cfun mk_cl_conjugate_cfunobj = MKCL_CFUN1(mk_cl_conjugate, MK_CL_conjugate);
+struct mkcl_cfun mk_cl_conjugate_cfunobj = MKCL_CFUN1(mk_cl_conjugate, (mkcl_object) &MK_CL_conjugate);
 
 mkcl_object
 mk_cl_conjugate(MKCL, mkcl_object c)
@@ -789,17 +789,17 @@ mkcl_negate(MKCL, mkcl_object x)
   }
 }
 
-struct mkcl_cfun mk_cl_N_cfunobj = MKCL_CFUN_VA(mk_cl_N, MK_CL_N);
+struct mkcl_cfun mk_cl_N_cfunobj = MKCL_CFUN_VA(mk_cl_N, (mkcl_object) &MK_CL_N);
 /*  (/		)  */
 mkcl_object mk_cl_N(MKCL, mkcl_narg narg, mkcl_object num, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_CL_N, 1, narg, num, nums);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_CL_N, 1, narg, num, nums);
 
     /* INV: type check is in mkcl_divide() */
     if (narg == 0)
-      mkcl_FEwrong_num_arguments(env, MK_CL_N, 1, -1, narg);
+      mkcl_FEwrong_num_arguments(env, (mkcl_object) &MK_CL_N, 1, -1, narg);
     if (narg == 1)
       { mkcl_va_end(nums); mkcl_return_value(mkcl_divide(env, MKCL_MAKE_FIXNUM(1), num)); }
     while (--narg)
@@ -1023,7 +1023,7 @@ mkcl_integer_divide(MKCL, mkcl_object x, mkcl_object y)
   mkcl_FEtype_error_integer(env, x);
 }
 
-struct mkcl_cfun mk_cl_gcd_cfunobj = MKCL_CFUN_VA(mk_cl_gcd, MK_CL_gcd);
+struct mkcl_cfun mk_cl_gcd_cfunobj = MKCL_CFUN_VA(mk_cl_gcd, (mkcl_object) &MK_CL_gcd);
 
 mkcl_object mk_cl_gcd(MKCL, mkcl_narg narg, ...)
 {
@@ -1031,7 +1031,7 @@ mkcl_object mk_cl_gcd(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_CL_gcd, 0, narg, narg, nums);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_CL_gcd, 0, narg, narg, nums);
 
     if (narg == 0)
       { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(0)) }
@@ -1091,7 +1091,7 @@ mk_cl_1P(MKCL, mkcl_object x)
   mkcl_return_value(mkcl_one_plus(env, x));
 }
 
-struct mkcl_cfun mk_cl_1P_cfunobj = MKCL_CFUN1(mk_cl_1P, MK_CL_1P);
+struct mkcl_cfun mk_cl_1P_cfunobj = MKCL_CFUN1(mk_cl_1P, (mkcl_object) &MK_CL_1P);
 
 
 mkcl_object
@@ -1145,7 +1145,7 @@ mk_cl_1M(MKCL, mkcl_object x)
   mkcl_return_value(mkcl_one_minus(env, x));
 }
 
-struct mkcl_cfun mk_cl_1M_cfunobj = MKCL_CFUN1(mk_cl_1M, MK_CL_1M);
+struct mkcl_cfun mk_cl_1M_cfunobj = MKCL_CFUN1(mk_cl_1M, (mkcl_object) &MK_CL_1M);
 
 mkcl_object
 mkcl_one_minus(MKCL, mkcl_object x)
@@ -1192,7 +1192,7 @@ mkcl_one_minus(MKCL, mkcl_object x)
   }
 }
 
-struct mkcl_cfun mk_cl_lcm_cfunobj = MKCL_CFUN_VA(mk_cl_lcm, MK_CL_lcm);
+struct mkcl_cfun mk_cl_lcm_cfunobj = MKCL_CFUN_VA(mk_cl_lcm, (mkcl_object) &MK_CL_lcm);
 
 mkcl_object mk_cl_lcm(MKCL, mkcl_narg narg, ...)
 {
@@ -1200,7 +1200,7 @@ mkcl_object mk_cl_lcm(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_CL_lcm, 0, narg, narg, nums);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_CL_lcm, 0, narg, narg, nums);
 
     if (narg == 0)
       { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(1)); }

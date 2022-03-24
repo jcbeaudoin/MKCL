@@ -338,7 +338,7 @@ mkcl_boole(MKCL, int op, mkcl_object x, mkcl_object y)
   return x;
 }
 
-struct mkcl_cfun mk_cl_lognot_cfunobj = MKCL_CFUN1(mk_cl_lognot, MK_CL_lognot);
+struct mkcl_cfun mk_cl_lognot_cfunobj = MKCL_CFUN1(mk_cl_lognot, (mkcl_object) &MK_CL_lognot);
 
 mkcl_object
 mk_cl_lognot(MKCL, mkcl_object x)
@@ -442,13 +442,13 @@ mkcl_word_bit_length(mkcl_word i)
   return count;
 }
 
-struct mkcl_cfun mk_cl_logior_cfunobj = MKCL_CFUN_VA(mk_cl_logior, MK_CL_logior);
+struct mkcl_cfun mk_cl_logior_cfunobj = MKCL_CFUN_VA(mk_cl_logior, (mkcl_object) &MK_CL_logior);
 
 mkcl_object mk_cl_logior(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_CL_logior, 0, narg, narg, nums);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_CL_logior, 0, narg, narg, nums);
 
     if (narg == 0)
       { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(0)); }
@@ -459,13 +459,13 @@ mkcl_object mk_cl_logior(MKCL, mkcl_narg narg, ...)
   }
 }
 
-struct mkcl_cfun mk_cl_logxor_cfunobj = MKCL_CFUN_VA(mk_cl_logxor, MK_CL_logxor);
+struct mkcl_cfun mk_cl_logxor_cfunobj = MKCL_CFUN_VA(mk_cl_logxor, (mkcl_object) &MK_CL_logxor);
 
 mkcl_object mk_cl_logxor(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_CL_logxor, 0, narg, narg, nums);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_CL_logxor, 0, narg, narg, nums);
 
     if (narg == 0)
       { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(0)); }
@@ -476,13 +476,13 @@ mkcl_object mk_cl_logxor(MKCL, mkcl_narg narg, ...)
   }
 }
 
-struct mkcl_cfun mk_cl_logand_cfunobj = MKCL_CFUN_VA(mk_cl_logand, MK_CL_logand);
+struct mkcl_cfun mk_cl_logand_cfunobj = MKCL_CFUN_VA(mk_cl_logand, (mkcl_object) &MK_CL_logand);
 
 mkcl_object mk_cl_logand(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_CL_logand, 0, narg, narg, nums);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_CL_logand, 0, narg, narg, nums);
 
     if (narg == 0)
       { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(-1)); }
@@ -493,13 +493,13 @@ mkcl_object mk_cl_logand(MKCL, mkcl_narg narg, ...)
   }
 }
 
-struct mkcl_cfun mk_cl_logeqv_cfunobj = MKCL_CFUN_VA(mk_cl_logeqv, MK_CL_logeqv);
+struct mkcl_cfun mk_cl_logeqv_cfunobj = MKCL_CFUN_VA(mk_cl_logeqv, (mkcl_object) &MK_CL_logeqv);
 
 mkcl_object mk_cl_logeqv(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_CL_logeqv, 0, narg, narg, nums);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_CL_logeqv, 0, narg, narg, nums);
 
     if (narg == 0)
       { mkcl_va_end(nums); mkcl_return_value(MKCL_MAKE_FIXNUM(-1)); }
@@ -510,7 +510,7 @@ mkcl_object mk_cl_logeqv(MKCL, mkcl_narg narg, ...)
   }
 }
 
-struct mkcl_cfun mk_cl_lognand_cfunobj = MKCL_CFUN2(mk_cl_lognand, MK_CL_lognand);
+struct mkcl_cfun mk_cl_lognand_cfunobj = MKCL_CFUN2(mk_cl_lognand, (mkcl_object) &MK_CL_lognand);
 
 mkcl_object
 mk_cl_lognand(MKCL, mkcl_object x, mkcl_object y)
@@ -519,7 +519,7 @@ mk_cl_lognand(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_value(mkcl_boole(env, MKCL_BOOLNAND, x, y));
 }
 
-struct mkcl_cfun mk_cl_lognor_cfunobj = MKCL_CFUN2(mk_cl_lognor, MK_CL_lognor);
+struct mkcl_cfun mk_cl_lognor_cfunobj = MKCL_CFUN2(mk_cl_lognor, (mkcl_object) &MK_CL_lognor);
 
 mkcl_object
 mk_cl_lognor(MKCL, mkcl_object x, mkcl_object y)
@@ -528,7 +528,7 @@ mk_cl_lognor(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_value(mkcl_boole(env, MKCL_BOOLNOR, x, y));
 }
 
-struct mkcl_cfun mk_cl_logandc1_cfunobj = MKCL_CFUN2(mk_cl_logandc1, MK_CL_logandc1);
+struct mkcl_cfun mk_cl_logandc1_cfunobj = MKCL_CFUN2(mk_cl_logandc1, (mkcl_object) &MK_CL_logandc1);
 
 mkcl_object
 mk_cl_logandc1(MKCL, mkcl_object x, mkcl_object y)
@@ -537,7 +537,7 @@ mk_cl_logandc1(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_value(mkcl_boole(env, MKCL_BOOLANDC1, x, y));
 }
 
-struct mkcl_cfun mk_cl_logandc2_cfunobj = MKCL_CFUN2(mk_cl_logandc2, MK_CL_logandc2);
+struct mkcl_cfun mk_cl_logandc2_cfunobj = MKCL_CFUN2(mk_cl_logandc2, (mkcl_object) &MK_CL_logandc2);
 
 mkcl_object
 mk_cl_logandc2(MKCL, mkcl_object x, mkcl_object y)
@@ -546,7 +546,7 @@ mk_cl_logandc2(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_value(mkcl_boole(env, MKCL_BOOLANDC2, x, y));
 }
 
-struct mkcl_cfun mk_cl_logorc1_cfunobj = MKCL_CFUN2(mk_cl_logorc1, MK_CL_logorc1);
+struct mkcl_cfun mk_cl_logorc1_cfunobj = MKCL_CFUN2(mk_cl_logorc1, (mkcl_object) &MK_CL_logorc1);
 
 mkcl_object
 mk_cl_logorc1(MKCL, mkcl_object x, mkcl_object y)
@@ -555,7 +555,7 @@ mk_cl_logorc1(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_value(mkcl_boole(env, MKCL_BOOLORC1, x, y));
 }
 
-struct mkcl_cfun mk_cl_logorc2_cfunobj = MKCL_CFUN2(mk_cl_logorc2, MK_CL_logorc2);
+struct mkcl_cfun mk_cl_logorc2_cfunobj = MKCL_CFUN2(mk_cl_logorc2, (mkcl_object) &MK_CL_logorc2);
 
 mkcl_object
 mk_cl_logorc2(MKCL, mkcl_object x, mkcl_object y)
@@ -574,7 +574,7 @@ coerce_to_logical_operator(MKCL, mkcl_object o)
   return op;
 }
 
-struct mkcl_cfun mk_cl_boole_cfunobj = MKCL_CFUN3(mk_cl_boole, MK_CL_boole);
+struct mkcl_cfun mk_cl_boole_cfunobj = MKCL_CFUN3(mk_cl_boole, (mkcl_object) &MK_CL_boole);
 
 mkcl_object
 mk_cl_boole(MKCL, mkcl_object o, mkcl_object x, mkcl_object y)
@@ -584,7 +584,7 @@ mk_cl_boole(MKCL, mkcl_object o, mkcl_object x, mkcl_object y)
   mkcl_return_value(mkcl_boole(env, coerce_to_logical_operator(env, o), x, y))
 }
 
-struct mkcl_cfun mk_cl_logbitp_cfunobj = MKCL_CFUN2(mk_cl_logbitp, MK_CL_logbitp);
+struct mkcl_cfun mk_cl_logbitp_cfunobj = MKCL_CFUN2(mk_cl_logbitp, (mkcl_object) &MK_CL_logbitp);
 
 mkcl_object
 mk_cl_logbitp(MKCL, mkcl_object p, mkcl_object x)
@@ -615,7 +615,7 @@ mk_cl_logbitp(MKCL, mkcl_object p, mkcl_object x)
   mkcl_return_value((i ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_ash_cfunobj = MKCL_CFUN2(mk_cl_ash, MK_CL_ash);
+struct mkcl_cfun mk_cl_ash_cfunobj = MKCL_CFUN2(mk_cl_ash, (mkcl_object) &MK_CL_ash);
 
 mkcl_object
 mk_cl_ash(MKCL, mkcl_object x, mkcl_object y)
@@ -656,7 +656,7 @@ mk_cl_ash(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_value(r);
 }
 
-struct mkcl_cfun mk_cl_logcount_cfunobj = MKCL_CFUN1(mk_cl_logcount, MK_CL_logcount);
+struct mkcl_cfun mk_cl_logcount_cfunobj = MKCL_CFUN1(mk_cl_logcount, (mkcl_object) &MK_CL_logcount);
 
 mkcl_object
 mk_cl_logcount(MKCL, mkcl_object x)
@@ -687,7 +687,7 @@ mkcl_integer_length(MKCL, mkcl_object x)
   return count;
 }
 
-struct mkcl_cfun mk_cl_integer_length_cfunobj = MKCL_CFUN1(mk_cl_integer_length, MK_CL_integer_length);
+struct mkcl_cfun mk_cl_integer_length_cfunobj = MKCL_CFUN1(mk_cl_integer_length, (mkcl_object) &MK_CL_integer_length);
 
 mkcl_object
 mk_cl_integer_length(MKCL, mkcl_object x)
@@ -696,7 +696,7 @@ mk_cl_integer_length(MKCL, mkcl_object x)
   mkcl_return_value(MKCL_MAKE_FIXNUM(mkcl_integer_length(env, x)));
 }
 
-struct mkcl_cfun mk_si_bit_array_op_cfunobj = MKCL_CFUN4(mk_si_bit_array_op, MK_SI_bit_array_op);
+struct mkcl_cfun mk_si_bit_array_op_cfunobj = MKCL_CFUN4(mk_si_bit_array_op, (mkcl_object) &MK_SI_bit_array_op);
 
 mkcl_object
 mk_si_bit_array_op(MKCL, mkcl_object o, mkcl_object x, mkcl_object y, mkcl_object r)
@@ -743,7 +743,7 @@ mk_si_bit_array_op(MKCL, mkcl_object o, mkcl_object x, mkcl_object y, mkcl_objec
     }
   L1:
     if (mkcl_Null(r)) {
-      r = mk_si_make_vector(env, MK_CL_bit, MKCL_MAKE_FIXNUM(d), mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil);
+      r = mk_si_make_vector(env, (mkcl_object) &MK_CL_bit, MKCL_MAKE_FIXNUM(d), mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil);
     }
   } else {
     if (mkcl_type_of(x) != mkcl_t_array)

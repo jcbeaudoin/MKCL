@@ -270,11 +270,6 @@ extern "C" {
     volatile mkcl_object children;
     volatile mkcl_object detached_children;
 
-    struct mkcl_symbol Cnil_symbol;
-    struct mkcl_symbol Ct_symbol;
-    struct mkcl_symbol unbound_symbol;
-    struct mkcl_symbol protect_tag_symbol;
-
 #ifdef HASHTABLE_STATS /* JCB */
     mkcl_object hashtables[mkcl_htt_package + 1];
 #endif
@@ -2670,26 +2665,26 @@ extern "C" {
   extern MKCL_API mkcl_object mkcl_cstring16_to_string(MKCL, mkcl_char16 * str);
 
 #if MKCL_WINDOWS
-#define mkcl_alloc_OSstring mkcl_alloc_utf_16
-#define mkcl_string_to_OSstring mk_si_utf_16
-#define mkcl_cstring_to_OSstring mkcl_cstring_to_utf_16
-#define mkcl_cstring_copy_to_OSstring mkcl_cstring_to_utf_16
-#define mkcl_OSstring_nconc mkcl_utf_16_nconc
-#define mkcl_OSstring_push_extend(env, str, ch) mkcl_utf_16_push_extend(env, str, ch, NULL)
-#define mkcl_OSstring_self(str) (str->UTF_16.self)
-#define mkcl_OSstring_size(str) (str->UTF_16.fillp)
-#define mkcl_OSstring_set_fillp(str, new_fillp) (str->UTF_16.fillp = new_fillp)
-#define mkcl_OSstring_to_string(env, str) mkcl_utf_16_to_string(env, str)
+# define mkcl_alloc_OSstring mkcl_alloc_utf_16
+# define mkcl_string_to_OSstring mk_si_utf_16
+# define mkcl_cstring_to_OSstring mkcl_cstring_to_utf_16
+# define mkcl_cstring_copy_to_OSstring mkcl_cstring_to_utf_16
+# define mkcl_OSstring_nconc mkcl_utf_16_nconc
+# define mkcl_OSstring_push_extend(env, str, ch) mkcl_utf_16_push_extend(env, str, ch, NULL)
+# define mkcl_OSstring_self(str) (str->UTF_16.self)
+# define mkcl_OSstring_size(str) (str->UTF_16.fillp)
+# define mkcl_OSstring_set_fillp(str, new_fillp) (str->UTF_16.fillp = new_fillp)
+# define mkcl_OSstring_to_string(env, str) mkcl_utf_16_to_string(env, str)
   static inline mkcl_character mkcl_OSstring_last(MKCL, mkcl_object str)
   {
     bool invalid = FALSE;
     
     return mkcl_utf_16_last(env, str, &invalid);
   }
-#define mkcl_rawOSstring_to_string(env, str) mkcl_cstring16_to_string(env, str)
+# define mkcl_rawOSstring_to_string(env, str) mkcl_cstring16_to_string(env, str)
 
   typedef mkcl_char16 * mkcl_OSstring_raw_type;
-#define MKCL_OSSTRINGP(str) MKCL_UTF_16_P(str)
+# define MKCL_OSSTRINGP(str) MKCL_UTF_16_P(str)
 #else
   extern MKCL_API mkcl_object mkcl_alloc_OSstring(MKCL, mkcl_index size);
   extern MKCL_API mkcl_object mkcl_string_to_OSstring(MKCL, mkcl_object string);
@@ -2712,10 +2707,10 @@ extern "C" {
     
     return (MKCL_UTF_8_P(str) ? mkcl_utf_8_last(env, str, &invalid) : mkcl_base_string_last(env, str));
   }
-#define mkcl_rawOSstring_to_string(env, str) mkcl_cstring_to_string(env, ((char *) str))
+# define mkcl_rawOSstring_to_string(env, str) mkcl_cstring_to_string(env, ((char *) str))
 
   typedef mkcl_char8 * mkcl_OSstring_raw_type;
-#define MKCL_OSSTRINGP(str) (MKCL_UTF_8_P(str) || MKCL_BASE_STRING_P(str))
+# define MKCL_OSSTRINGP(str) (MKCL_UTF_8_P(str) || MKCL_BASE_STRING_P(str))
 #endif
 
   extern MKCL_API mkcl_object mk_mkcl_octets(MKCL, mkcl_object obj);

@@ -21,7 +21,7 @@
 #include <mkcl/mkcl-inl.h>
 
 
-struct mkcl_cfun mk_cl_elt_cfunobj = MKCL_CFUN2(mk_cl_elt, MK_CL_elt);
+struct mkcl_cfun mk_cl_elt_cfunobj = MKCL_CFUN2(mk_cl_elt, (mkcl_object) &MK_CL_elt);
 
 mkcl_object
 mk_cl_elt(MKCL, mkcl_object x, mkcl_object i)
@@ -75,7 +75,7 @@ mkcl_elt(MKCL, mkcl_object seq, mkcl_word index)
   mkcl_FEtype_error_seq_index(env, seq, MKCL_MAKE_FIXNUM(index));
 }
 
-struct mkcl_cfun mk_si_elt_set_cfunobj = MKCL_CFUN3(mk_si_elt_set, MK_SI_elt_set);
+struct mkcl_cfun mk_si_elt_set_cfunobj = MKCL_CFUN3(mk_si_elt_set, (mkcl_object) &MK_SI_elt_set);
 
 mkcl_object
 mk_si_elt_set(MKCL, mkcl_object seq, mkcl_object index, mkcl_object val)
@@ -134,7 +134,7 @@ mkcl_elt_set(MKCL, mkcl_object seq, mkcl_word index, mkcl_object val)
   mkcl_FEtype_error_seq_index(env, seq, MKCL_MAKE_FIXNUM(index));
 }
 
-struct mkcl_cfun mk_cl_subseq_cfunobj = MKCL_CFUN_VA(mk_cl_subseq, MK_CL_subseq);
+struct mkcl_cfun mk_cl_subseq_cfunobj = MKCL_CFUN_VA(mk_cl_subseq, (mkcl_object) &MK_CL_subseq);
 
 mkcl_object mk_cl_subseq(MKCL, mkcl_narg narg, mkcl_object sequence, mkcl_object start, ...)
 {
@@ -145,7 +145,7 @@ mkcl_object mk_cl_subseq(MKCL, mkcl_narg narg, mkcl_object sequence, mkcl_object
     mkcl_word s, e;
     mkcl_word i;
     mkcl_object end = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_listen, narg, 2, start, &end);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_listen, narg, 2, start, &end);
 
     s = mkcl_integer_to_index(env, start);
     if (mkcl_Null(end))
@@ -227,7 +227,7 @@ mkcl_object mk_cl_subseq(MKCL, mkcl_narg narg, mkcl_object sequence, mkcl_object
   }
 }
 
-struct mkcl_cfun mk_cl_copy_seq_cfunobj = MKCL_CFUN1(mk_cl_copy_seq, MK_CL_copy_seq);
+struct mkcl_cfun mk_cl_copy_seq_cfunobj = MKCL_CFUN1(mk_cl_copy_seq, (mkcl_object) &MK_CL_copy_seq);
 
 mkcl_object
 mk_cl_copy_seq(MKCL, mkcl_object x)
@@ -236,7 +236,7 @@ mk_cl_copy_seq(MKCL, mkcl_object x)
   return mk_cl_subseq(env, 2, x, MKCL_MAKE_FIXNUM(0));
 }
 
-struct mkcl_cfun mk_cl_length_cfunobj = MKCL_CFUN1(mk_cl_length, MK_CL_length);
+struct mkcl_cfun mk_cl_length_cfunobj = MKCL_CFUN1(mk_cl_length, (mkcl_object) &MK_CL_length);
 
 mkcl_object
 mk_cl_length(MKCL, mkcl_object x)
@@ -310,7 +310,7 @@ mkcl_index mkcl_string_length(MKCL, mkcl_object x)
 }
 
 
-struct mkcl_cfun mk_cl_reverse_cfunobj = MKCL_CFUN1(mk_cl_reverse, MK_CL_reverse);
+struct mkcl_cfun mk_cl_reverse_cfunobj = MKCL_CFUN1(mk_cl_reverse, (mkcl_object) &MK_CL_reverse);
 
 mkcl_object
 mk_cl_reverse(MKCL, mkcl_object seq)
@@ -352,7 +352,7 @@ mk_cl_reverse(MKCL, mkcl_object seq)
   mkcl_return_value(output);
 }
 
-struct mkcl_cfun mk_cl_nreverse_cfunobj = MKCL_CFUN1(mk_cl_nreverse, MK_CL_nreverse);
+struct mkcl_cfun mk_cl_nreverse_cfunobj = MKCL_CFUN1(mk_cl_nreverse, (mkcl_object) &MK_CL_nreverse);
 
 mkcl_object
 mk_cl_nreverse(MKCL, mkcl_object seq)

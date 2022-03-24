@@ -26,7 +26,7 @@
 		(macro . function-closure)	for macros
 		special				for special forms.
 */
-struct mkcl_cfun mk_cl_symbol_function_cfunobj = MKCL_CFUN1(mk_cl_symbol_function, MK_CL_symbol_function);
+struct mkcl_cfun mk_cl_symbol_function_cfunobj = MKCL_CFUN1(mk_cl_symbol_function, (mkcl_object) &MK_CL_symbol_function);
 
 mkcl_object
 mk_cl_symbol_function(MKCL, mkcl_object sym)
@@ -40,17 +40,17 @@ mk_cl_symbol_function(MKCL, mkcl_object sym)
       mkcl_object output = MKCL_SYM_FUN(sym);
 
       if (sym_type & mkcl_stp_special_form) {
-	output = MK_CL_special;
+	output = (mkcl_object) &MK_CL_special;
       } else if (mkcl_Null(output)) {
 	mkcl_FEundefined_function(env, sym);
       } else if (sym_type & mkcl_stp_macro) {
-	output = MKCL_CONS(env, MK_SI_macro, output);
+	output = MKCL_CONS(env, (mkcl_object) &MK_SI_macro, output);
       }
       mkcl_return_value(output);
     }
 }
 
-struct mkcl_cfun mk_cl_fdefinition_cfunobj = MKCL_CFUN1(mk_cl_fdefinition, MK_CL_fdefinition);
+struct mkcl_cfun mk_cl_fdefinition_cfunobj = MKCL_CFUN1(mk_cl_fdefinition, (mkcl_object) &MK_CL_fdefinition);
 
 mkcl_object
 mk_cl_fdefinition(MKCL, mkcl_object fname)
@@ -59,7 +59,7 @@ mk_cl_fdefinition(MKCL, mkcl_object fname)
   mkcl_return_value(((MKCL_SYMBOLP(fname)) ? mk_cl_symbol_function(env, fname) : mkcl_fdefinition(env, fname)));
 }
 
-struct mkcl_cfun mk_cl_fboundp_cfunobj = MKCL_CFUN1(mk_cl_fboundp, MK_CL_fboundp);
+struct mkcl_cfun mk_cl_fboundp_cfunobj = MKCL_CFUN1(mk_cl_fboundp, (mkcl_object) &MK_CL_fboundp);
 
 mkcl_object
 mk_cl_fboundp(MKCL, mkcl_object fname)
@@ -72,12 +72,12 @@ mk_cl_fboundp(MKCL, mkcl_object fname)
     mkcl_return_value((((fname->symbol.stype & mkcl_stp_special_form)
 	       || MKCL_SYM_FUN(fname) != mk_cl_Cnil) ? mk_cl_Ct : mk_cl_Cnil));
   } else if (MKCL_LISTP(fname)) {
-    if (MKCL_CAR(fname) == MK_CL_setf) {
+    if (MKCL_CAR(fname) == ((mkcl_object) &MK_CL_setf)) {
       mkcl_object sym = MKCL_CDR(fname);
       if (MKCL_CONSP(sym) && MKCL_CDR(sym) == mk_cl_Cnil) {
 	sym = MKCL_CAR(sym);
 	if (MKCL_SYMBOLP(sym))
-	  mkcl_return_value(mk_si_get_sysprop(env, sym, MK_SI_setf_symbol));
+	  mkcl_return_value(mk_si_get_sysprop(env, sym, (mkcl_object) &MK_SI_setf_symbol));
       }
     }
   }
@@ -104,18 +104,18 @@ mkcl_fdefinition(MKCL, mkcl_object fun)
     mkcl_object sym = MKCL_CDR(fun);
     if (!MKCL_CONSP(sym))
       mkcl_FEinvalid_function_name(env, fun);
-    if (MKCL_CAR(fun) == MK_CL_setf) {
+    if (MKCL_CAR(fun) == ((mkcl_object) &MK_CL_setf)) {
       if (MKCL_CDR(sym) != mk_cl_Cnil)
 	mkcl_FEinvalid_function_name(env, fun);
       sym = MKCL_CAR(sym);
       if (mkcl_type_of(sym) != mkcl_t_symbol)
 	mkcl_FEinvalid_function_name(env, fun);
-      output = mk_si_get_sysprop(env, sym, MK_SI_setf_symbol);
+      output = mk_si_get_sysprop(env, sym, (mkcl_object) &MK_SI_setf_symbol);
       if (mkcl_Null(output))
 	mkcl_FEundefined_function(env, fun);
-    } else if (MKCL_CAR(fun) == MK_CL_lambda) {
+    } else if (MKCL_CAR(fun) == ((mkcl_object) &MK_CL_lambda)) {
       return mk_si_make_lambda(env, mk_cl_Cnil, sym);
-    } else if (MKCL_CAR(fun) == MK_SI_lambda_block) {
+    } else if (MKCL_CAR(fun) == ((mkcl_object) &MK_SI_lambda_block)) {
       return mk_si_make_lambda(env, MKCL_CAR(sym), MKCL_CDR(sym));
     } else {
       mkcl_FEinvalid_function_name(env, fun);
@@ -126,7 +126,7 @@ mkcl_fdefinition(MKCL, mkcl_object fun)
   return output;
 }
 
-struct mkcl_cfun mk_si_coerce_to_function_cfunobj = MKCL_CFUN1(mk_si_coerce_to_function, MK_SI_coerce_to_function);
+struct mkcl_cfun mk_si_coerce_to_function_cfunobj = MKCL_CFUN1(mk_si_coerce_to_function, (mkcl_object) &MK_SI_coerce_to_function);
 
 mkcl_object
 mk_si_coerce_to_function(MKCL, mkcl_object fun)
@@ -143,7 +143,7 @@ mk_si_coerce_to_function(MKCL, mkcl_object fun)
   mkcl_return_value(fun);
 }
 
-struct mkcl_cfun mk_cl_symbol_value_cfunobj = MKCL_CFUN1(mk_cl_symbol_value, MK_CL_symbol_value);
+struct mkcl_cfun mk_cl_symbol_value_cfunobj = MKCL_CFUN1(mk_cl_symbol_value, (mkcl_object) &MK_CL_symbol_value);
 
 mkcl_object
 mk_cl_symbol_value(MKCL, mkcl_object sym)
@@ -164,7 +164,7 @@ mk_cl_symbol_value(MKCL, mkcl_object sym)
   mkcl_return_value(value);
 }
 
-struct mkcl_cfun mk_cl_boundp_cfunobj = MKCL_CFUN1(mk_cl_boundp, MK_CL_boundp);
+struct mkcl_cfun mk_cl_boundp_cfunobj = MKCL_CFUN1(mk_cl_boundp, (mkcl_object) &MK_CL_boundp);
 
 mkcl_object
 mk_cl_boundp(MKCL, mkcl_object sym)
@@ -185,7 +185,7 @@ mk_cl_boundp(MKCL, mkcl_object sym)
   mkcl_return_value(output);
 }
 
-struct mkcl_cfun mk_cl_special_operator_p_cfunobj = MKCL_CFUN1(mk_cl_special_operator_p, MK_CL_special_operator_p);
+struct mkcl_cfun mk_cl_special_operator_p_cfunobj = MKCL_CFUN1(mk_cl_special_operator_p, (mkcl_object) &MK_CL_special_operator_p);
 
 mkcl_object
 mk_cl_special_operator_p(MKCL, mkcl_object form)

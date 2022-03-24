@@ -92,7 +92,7 @@ mkcl_abs(MKCL, mkcl_object x)
   return x;
 }
 
-struct mkcl_cfun mk_cl_abs_cfunobj = MKCL_CFUN1(mk_cl_abs, MK_CL_abs);
+struct mkcl_cfun mk_cl_abs_cfunobj = MKCL_CFUN1(mk_cl_abs, (mkcl_object) &MK_CL_abs);
 
 mkcl_object
 mk_cl_abs(MKCL, mkcl_object x)
@@ -116,7 +116,7 @@ mkcl_word_expt(mkcl_word x, mkcl_word y)
   return(z);
 }
 
-struct mkcl_cfun mk_cl_exp_cfunobj = MKCL_CFUN1(mk_cl_exp, MK_CL_exp);
+struct mkcl_cfun mk_cl_exp_cfunobj = MKCL_CFUN1(mk_cl_exp, (mkcl_object) &MK_CL_exp);
 
 mkcl_object
 mk_cl_exp(MKCL, mkcl_object x)
@@ -151,14 +151,14 @@ mk_cl_exp(MKCL, mkcl_object x)
     break;
   }
   default:
-    x = mkcl_type_error(env, MK_CL_exp, "exponent", x, MK_CL_number);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_exp, "exponent", x, (mkcl_object) &MK_CL_number);
     goto AGAIN;
   }
   MKCL_MATHERR_TEST(env);
   mkcl_return_value(output);
 }
 
-struct mkcl_cfun mk_cl_expt_cfunobj = MKCL_CFUN2(mk_cl_expt, MK_CL_expt);
+struct mkcl_cfun mk_cl_expt_cfunobj = MKCL_CFUN2(mk_cl_expt, (mkcl_object) &MK_CL_expt);
 
 mkcl_object
 mk_cl_expt(MKCL, mkcl_object x, mkcl_object y)
@@ -169,10 +169,10 @@ mk_cl_expt(MKCL, mkcl_object x, mkcl_object y)
   mkcl_call_stack_check(env);
  /* AGAIN: */
   while ((ty = mkcl_type_of(y), !MKCL_NUMBER_TYPE_P(ty))) {
-    y = mkcl_type_error(env, MK_CL_exp, "exponent", y, MK_CL_number);
+    y = mkcl_type_error(env, (mkcl_object) &MK_CL_exp, "exponent", y, (mkcl_object) &MK_CL_number);
   }
   while ((tx = mkcl_type_of(x), !MKCL_NUMBER_TYPE_P(tx))) {
-    x = mkcl_type_error(env, MK_CL_exp, "basis", x, MK_CL_number);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_exp, "basis", x, (mkcl_object) &MK_CL_number);
   }
   if (mkcl_zerop(env, y)) {
     /* INV: The most specific numeric types come first. */
@@ -318,7 +318,7 @@ mkcl_log1(MKCL, mkcl_object x)
       output = mkcl_log1_complex(env, x, MKCL_MAKE_FIXNUM(0));
       break;
     default:
-      x = mkcl_type_error(env, MK_CL_log, "argument", x, MK_CL_number);
+      x = mkcl_type_error(env, (mkcl_object) &MK_CL_log, "argument", x, (mkcl_object) &MK_CL_number);
       goto AGAIN;
       /* We do not reach here */
       ;
@@ -386,7 +386,7 @@ mkcl_log1p(MKCL, mkcl_object x)
       output = mkcl_log1_complex(env, mkcl_plus(env, x, MKCL_MAKE_FIXNUM(1)), MKCL_MAKE_FIXNUM(0));
       break;
     default:
-      x = mkcl_type_error(env, MK_CL_log, "argument", x, MK_CL_number);
+      x = mkcl_type_error(env, (mkcl_object) &MK_CL_log, "argument", x, (mkcl_object) &MK_CL_number);
       goto AGAIN;
       ;
     }
@@ -394,7 +394,7 @@ mkcl_log1p(MKCL, mkcl_object x)
   return output;
 }
 
-struct mkcl_cfun mk_si_log1p_cfunobj = MKCL_CFUN1(mk_si_log1p, MK_SI_log1p);
+struct mkcl_cfun mk_si_log1p_cfunobj = MKCL_CFUN1(mk_si_log1p, (mkcl_object) &MK_SI_log1p);
 
 mkcl_object
 mk_si_log1p(MKCL, mkcl_object x)
@@ -403,7 +403,7 @@ mk_si_log1p(MKCL, mkcl_object x)
   mkcl_return_value(mkcl_log1p(env, x));
 }
 
-struct mkcl_cfun mk_cl_sqrt_cfunobj = MKCL_CFUN1(mk_cl_sqrt, MK_CL_sqrt);
+struct mkcl_cfun mk_cl_sqrt_cfunobj = MKCL_CFUN1(mk_cl_sqrt, (mkcl_object) &MK_CL_sqrt);
 
 mkcl_object
 mk_cl_sqrt(MKCL, mkcl_object x)
@@ -416,7 +416,7 @@ mk_cl_sqrt(MKCL, mkcl_object x)
  AGAIN:
   tx = mkcl_type_of(x);
   if (!MKCL_NUMBER_TYPE_P(tx)) {
-    x = mkcl_type_error(env, MK_CL_sqrt, "argument", x, MK_CL_number);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_sqrt, "argument", x, (mkcl_object) &MK_CL_number);
     goto AGAIN;
   }
   if (tx == mkcl_t_complex) {
@@ -566,7 +566,7 @@ mkcl_atan1(MKCL, mkcl_object y)
   }
 }
 
-struct mkcl_cfun mk_cl_sin_cfunobj = MKCL_CFUN1(mk_cl_sin, MK_CL_sin);
+struct mkcl_cfun mk_cl_sin_cfunobj = MKCL_CFUN1(mk_cl_sin, (mkcl_object) &MK_CL_sin);
 
 mkcl_object
 mk_cl_sin(MKCL, mkcl_object x)
@@ -603,7 +603,7 @@ mk_cl_sin(MKCL, mkcl_object x)
     break;
   }
   default:
-    x = mkcl_type_error(env, MK_CL_sin, "argument", x, MK_CL_number);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_sin, "argument", x, (mkcl_object) &MK_CL_number);
     goto AGAIN;
   }
   MKCL_MATHERR_TEST(env);
@@ -611,7 +611,7 @@ mk_cl_sin(MKCL, mkcl_object x)
 }
 
 
-struct mkcl_cfun mk_cl_cos_cfunobj = MKCL_CFUN1(mk_cl_cos, MK_CL_cos);
+struct mkcl_cfun mk_cl_cos_cfunobj = MKCL_CFUN1(mk_cl_cos, (mkcl_object) &MK_CL_cos);
 
 mkcl_object
 mk_cl_cos(MKCL, mkcl_object x)
@@ -649,7 +649,7 @@ mk_cl_cos(MKCL, mkcl_object x)
     break;
   }
   default:
-    x = mkcl_type_error(env, MK_CL_cos, "argument", x, MK_CL_number);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_cos, "argument", x, (mkcl_object) &MK_CL_number);
     goto AGAIN;
   }
   MKCL_MATHERR_TEST(env);
@@ -668,7 +668,7 @@ static double safe_tanf(double x) { return tan(x); }
 # define safe_tanf(x) tanf(x)
 #endif
 
-struct mkcl_cfun mk_cl_tan_cfunobj = MKCL_CFUN1(mk_cl_tan, MK_CL_tan);
+struct mkcl_cfun mk_cl_tan_cfunobj = MKCL_CFUN1(mk_cl_tan, (mkcl_object) &MK_CL_tan);
 
 mkcl_object
 mk_cl_tan(MKCL, mkcl_object x)
@@ -698,14 +698,14 @@ mk_cl_tan(MKCL, mkcl_object x)
     break;
   }
   default:
-    x = mkcl_type_error(env, MK_CL_tan, "argument", x, MK_CL_number);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_tan, "argument", x, (mkcl_object) &MK_CL_number);
     goto AGAIN;
   }
   MKCL_MATHERR_TEST(env);
   mkcl_return_value(output);
 }
 
-struct mkcl_cfun mk_cl_sinh_cfunobj = MKCL_CFUN1(mk_cl_sinh, MK_CL_sinh);
+struct mkcl_cfun mk_cl_sinh_cfunobj = MKCL_CFUN1(mk_cl_sinh, (mkcl_object) &MK_CL_sinh);
 
 mkcl_object
 mk_cl_sinh(MKCL, mkcl_object x)
@@ -743,14 +743,14 @@ mk_cl_sinh(MKCL, mkcl_object x)
     break;
   }
   default:
-    x = mkcl_type_error(env, MK_CL_sinh, "argument", x, MK_CL_number);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_sinh, "argument", x, (mkcl_object) &MK_CL_number);
     goto AGAIN;
   }
   MKCL_MATHERR_TEST(env);
   mkcl_return_value(output);
 }
 
-struct mkcl_cfun mk_cl_cosh_cfunobj = MKCL_CFUN1(mk_cl_cosh, MK_CL_cosh);
+struct mkcl_cfun mk_cl_cosh_cfunobj = MKCL_CFUN1(mk_cl_cosh, (mkcl_object) &MK_CL_cosh);
 
 mkcl_object
 mk_cl_cosh(MKCL, mkcl_object x)
@@ -788,14 +788,14 @@ mk_cl_cosh(MKCL, mkcl_object x)
     break;
   }
   default:
-    x = mkcl_type_error(env, MK_CL_cosh, "argument", x, MK_CL_number);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_cosh, "argument", x, (mkcl_object) &MK_CL_number);
     goto AGAIN;
   }
   MKCL_MATHERR_TEST(env);
   mkcl_return_value(output);
 }
 
-struct mkcl_cfun mk_cl_tanh_cfunobj = MKCL_CFUN1(mk_cl_tanh, MK_CL_tanh);
+struct mkcl_cfun mk_cl_tanh_cfunobj = MKCL_CFUN1(mk_cl_tanh, (mkcl_object) &MK_CL_tanh);
 
 mkcl_object
 mk_cl_tanh(MKCL, mkcl_object x)
@@ -825,21 +825,21 @@ mk_cl_tanh(MKCL, mkcl_object x)
     break;
   }
   default:
-    x = mkcl_type_error(env, MK_CL_tanh, "argument", x, MK_CL_number);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_tanh, "argument", x, (mkcl_object) &MK_CL_number);
     goto AGAIN;
   }
   MKCL_MATHERR_TEST(env);
   mkcl_return_value(output);
 }
 
-struct mkcl_cfun mk_cl_log_cfunobj = MKCL_CFUN_VA(mk_cl_log, MK_CL_log);
+struct mkcl_cfun mk_cl_log_cfunobj = MKCL_CFUN_VA(mk_cl_log, (mkcl_object) &MK_CL_log);
 
 mkcl_object mk_cl_log(MKCL, mkcl_narg narg, mkcl_object x, ...)
 {
   mkcl_call_stack_check(env);
   {
     mkcl_object y = MKCL_OBJNULL;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_log, narg, 1, x, &y);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_log, narg, 1, x, &y);
 
     /* INV: type check in mkcl_log1() and mkcl_log2() */
     if (y == MKCL_OBJNULL)
@@ -848,14 +848,14 @@ mkcl_object mk_cl_log(MKCL, mkcl_narg narg, mkcl_object x, ...)
   }
 }
 
-struct mkcl_cfun mk_cl_atan_cfunobj = MKCL_CFUN_VA(mk_cl_atan, MK_CL_atan);
+struct mkcl_cfun mk_cl_atan_cfunobj = MKCL_CFUN_VA(mk_cl_atan, (mkcl_object) &MK_CL_atan);
 
 mkcl_object mk_cl_atan(MKCL, mkcl_narg narg, mkcl_object x, ...)
 {
   mkcl_call_stack_check(env);
   {
     mkcl_object y = MKCL_OBJNULL;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_atan, narg, 1, x, &y);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_atan, narg, 1, x, &y);
 
     /* INV: type check in mkcl_atan() & mkcl_atan2() */
     /* FIXME mkcl_atan() and mkcl_atan2() produce generic errors

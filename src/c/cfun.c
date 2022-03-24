@@ -498,14 +498,14 @@ mkcl_clone_cclosure(MKCL, mkcl_object c0, mkcl_object new_cenv)
    must be twin closures (ie: they were closed over the same environment).
    Any other object will be passed through as is to the value list without any cloning.
 */
-struct mkcl_cfun mk_si_clone_closure_cfunobj = MKCL_CFUN_VA(mk_si_clone_closure, MK_SI_clone_closure);
+struct mkcl_cfun mk_si_clone_closure_cfunobj = MKCL_CFUN_VA(mk_si_clone_closure, (mkcl_object) &MK_SI_clone_closure);
 
 mkcl_object mk_si_clone_closure(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
     mkcl_object head = mk_cl_Cnil;
-    mkcl_setup_for_rest(env, MK_SI_clone_closure, 0, narg, narg, args);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_SI_clone_closure, 0, narg, narg, args);
     {
       mkcl_object tail;
       mkcl_object c0;
@@ -590,11 +590,11 @@ mk_si_closure_siblings_p(MKCL, mkcl_object c1, mkcl_object c2)
 void
 mkcl_FEinvalid_cdisplay(MKCL, mkcl_object obj)
 {
-  mkcl_FEwrong_type_argument(env, MK_SI_compiled_closure_display, obj);
+  mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_SI_compiled_closure_display, obj);
 }
 
 
-struct mkcl_cfun mk_si_closure_depth_cfunobj = MKCL_CFUN1(mk_si_closure_depth, MK_SI_closure_depth);
+struct mkcl_cfun mk_si_closure_depth_cfunobj = MKCL_CFUN1(mk_si_closure_depth, (mkcl_object) &MK_SI_closure_depth);
 
 mkcl_object
 mk_si_closure_depth(MKCL, mkcl_object disp)
@@ -605,7 +605,7 @@ mk_si_closure_depth(MKCL, mkcl_object disp)
   mkcl_return_value(mkcl_make_unsigned_integer(env, disp->display.nb_levels));
 }
 
-struct mkcl_cfun mk_si_closure_level_cfunobj = MKCL_CFUN2(mk_si_closure_level, MK_SI_closure_level);
+struct mkcl_cfun mk_si_closure_level_cfunobj = MKCL_CFUN2(mk_si_closure_level, (mkcl_object) &MK_SI_closure_level);
 
 mkcl_object
 mk_si_closure_level(MKCL, mkcl_object disp, mkcl_object i)
@@ -622,18 +622,18 @@ mk_si_closure_level(MKCL, mkcl_object disp, mkcl_object i)
     { mkcl_return_value(mk_cl_Cnil); }
 }
 
-struct mkcl_cfun mk_si_closure_level_size_cfunobj = MKCL_CFUN1(mk_si_closure_level_size, MK_SI_closure_level_size);
+struct mkcl_cfun mk_si_closure_level_size_cfunobj = MKCL_CFUN1(mk_si_closure_level_size, (mkcl_object) &MK_SI_closure_level_size);
 
 mkcl_object
 mk_si_closure_level_size(MKCL, mkcl_object level)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(level) != mkcl_t_clevel_block)
-    mkcl_FEwrong_type_argument(env, MK_SI_compiled_closure_level, level);
+    mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_SI_compiled_closure_level, level);
   mkcl_return_value(mkcl_make_unsigned_integer(env, level->lblock.nb_vars));
 }
 
-struct mkcl_cfun mk_si_closure_level_var_cfunobj = MKCL_CFUN2(mk_si_closure_level_var, MK_SI_closure_level_var);
+struct mkcl_cfun mk_si_closure_level_var_cfunobj = MKCL_CFUN2(mk_si_closure_level_var, (mkcl_object) &MK_SI_closure_level_var);
 
 mkcl_object
 mk_si_closure_level_var(MKCL, mkcl_object level, mkcl_object i)
@@ -642,7 +642,7 @@ mk_si_closure_level_var(MKCL, mkcl_object level, mkcl_object i)
   mkcl_index index = mkcl_integer_to_index(env, i);
 
   if (mkcl_type_of(level) != mkcl_t_clevel_block)
-    mkcl_FEwrong_type_argument(env, MK_SI_compiled_closure_level, level);
+    mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_SI_compiled_closure_level, level);
 
   if (level->lblock.nb_vars > index)
     { mkcl_return_value(level->lblock.var[index]); }
@@ -650,7 +650,7 @@ mk_si_closure_level_var(MKCL, mkcl_object level, mkcl_object i)
     { mkcl_return_value(MKCL_OBJNULL); }
 }
 
-struct mkcl_cfun mk_si_closure_level_set_var_cfunobj = MKCL_CFUN3(mk_si_closure_level_set_var, MK_SI_closure_level_set_var);
+struct mkcl_cfun mk_si_closure_level_set_var_cfunobj = MKCL_CFUN3(mk_si_closure_level_set_var, (mkcl_object) &MK_SI_closure_level_set_var);
 
 mkcl_object
 mk_si_closure_level_set_var(MKCL, mkcl_object level, mkcl_object i, mkcl_object val)
@@ -659,7 +659,7 @@ mk_si_closure_level_set_var(MKCL, mkcl_object level, mkcl_object i, mkcl_object 
   mkcl_index index = mkcl_integer_to_index(env, i);
 
   if (mkcl_type_of(level) != mkcl_t_clevel_block)
-    mkcl_FEwrong_type_argument(env, MK_SI_compiled_closure_level, level);
+    mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_SI_compiled_closure_level, level);
 
   if (level->lblock.nb_vars > index)
     level->lblock.var[index] = val;
@@ -667,42 +667,42 @@ mk_si_closure_level_set_var(MKCL, mkcl_object level, mkcl_object i, mkcl_object 
   mkcl_return_value(val);
 }
 
-struct mkcl_cfun mk_si_closure_level_outer_level_cfunobj = MKCL_CFUN1(mk_si_closure_level_outer_level, MK_SI_closure_level_outer_level);
+struct mkcl_cfun mk_si_closure_level_outer_level_cfunobj = MKCL_CFUN1(mk_si_closure_level_outer_level, (mkcl_object) &MK_SI_closure_level_outer_level);
 
 mkcl_object
 mk_si_closure_level_outer_level(MKCL, mkcl_object level)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(level) != mkcl_t_clevel_block)
-    mkcl_FEwrong_type_argument(env, MK_SI_compiled_closure_level, level);
+    mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_SI_compiled_closure_level, level);
   mkcl_return_value(level->lblock.outer);
 }
 
 void
 mkcl_def_c_function(MKCL, mkcl_object sym, mkcl_objectfn_fixed c_function, int narg)
 {
-  mk_si_fset(env, 2, sym, mkcl_make_cfun(env, c_function, sym, mkcl_symbol_value(env, MK_SI_DYNVAR_cblock), narg, NULL));
+  mk_si_fset(env, 2, sym, mkcl_make_cfun(env, c_function, sym, mkcl_symbol_value(env, (mkcl_object) &MK_SI_DYNVAR_cblock), narg, NULL));
 }
 
 void
 mkcl_def_c_macro(MKCL, mkcl_object sym, mkcl_objectfn_fixed c_function, int narg)
 {
-  mk_si_fset(env, 3, sym, mkcl_make_cfun(env, c_function, sym, mkcl_symbol_value(env, MK_SI_DYNVAR_cblock), 2, NULL), mk_cl_Ct);
+  mk_si_fset(env, 3, sym, mkcl_make_cfun(env, c_function, sym, mkcl_symbol_value(env, (mkcl_object) &MK_SI_DYNVAR_cblock), 2, NULL), mk_cl_Ct);
 }
 
 void
 mkcl_def_c_macro_va(MKCL, mkcl_object sym, mkcl_objectfn c_function)
 {
-  mk_si_fset(env, 3, sym, mkcl_make_cfun_va(env, c_function, sym, mkcl_symbol_value(env, MK_SI_DYNVAR_cblock), NULL), mk_cl_Ct);
+  mk_si_fset(env, 3, sym, mkcl_make_cfun_va(env, c_function, sym, mkcl_symbol_value(env, (mkcl_object) &MK_SI_DYNVAR_cblock), NULL), mk_cl_Ct);
 }
 
 void
 mkcl_def_c_function_va(MKCL, mkcl_object sym, mkcl_objectfn c_function)
 {
-  mk_si_fset(env, 2, sym, mkcl_make_cfun_va(env, c_function, sym, mkcl_symbol_value(env, MK_SI_DYNVAR_cblock), NULL));
+  mk_si_fset(env, 2, sym, mkcl_make_cfun_va(env, c_function, sym, mkcl_symbol_value(env, (mkcl_object) &MK_SI_DYNVAR_cblock), NULL));
 }
 
-struct mkcl_cfun mk_si_compiled_function_name_cfunobj = MKCL_CFUN1(mk_si_compiled_function_name, MK_SI_compiled_function_name);
+struct mkcl_cfun mk_si_compiled_function_name_cfunobj = MKCL_CFUN1(mk_si_compiled_function_name, (mkcl_object) &MK_SI_compiled_function_name);
 
 mkcl_object
 mk_si_compiled_function_name(MKCL, mkcl_object fun)
@@ -725,7 +725,7 @@ mk_si_compiled_function_name(MKCL, mkcl_object fun)
   mkcl_return_value(output);
 }
 
-struct mkcl_cfun mk_si_set_compiled_function_name_cfunobj = MKCL_CFUN2(mk_si_set_compiled_function_name, MK_SI_set_compiled_function_name);
+struct mkcl_cfun mk_si_set_compiled_function_name_cfunobj = MKCL_CFUN2(mk_si_set_compiled_function_name, (mkcl_object) &MK_SI_set_compiled_function_name);
 
 mkcl_object
 mk_si_set_compiled_function_name(MKCL, mkcl_object fun, mkcl_object name)
@@ -746,7 +746,7 @@ mk_si_set_compiled_function_name(MKCL, mkcl_object fun, mkcl_object name)
   mkcl_return_value(name);
 }
 
-struct mkcl_cfun mk_cl_function_lambda_expression_cfunobj = MKCL_CFUN1(mk_cl_function_lambda_expression, MK_CL_function_lambda_expression);
+struct mkcl_cfun mk_cl_function_lambda_expression_cfunobj = MKCL_CFUN1(mk_cl_function_lambda_expression, (mkcl_object) &MK_CL_function_lambda_expression);
 
 mkcl_object
 mk_cl_function_lambda_expression(MKCL, mkcl_object fun)
@@ -764,9 +764,9 @@ mk_cl_function_lambda_expression(MKCL, mkcl_object fun)
     name = fun->bytecode.name;
     lambda_expr = fun->bytecode.definition;
     if (name == mk_cl_Cnil)
-      lambda_expr = mk_cl_cons(env, MK_CL_lambda, lambda_expr);
-    else if (name != MK_SI_bytecode)
-      lambda_expr = mk_cl_listX(env, 3, MK_SI_lambda_block, name, lambda_expr);
+      lambda_expr = mk_cl_cons(env, (mkcl_object) &MK_CL_lambda, lambda_expr);
+    else if (name != (mkcl_object) &MK_SI_bytecode)
+      lambda_expr = mk_cl_listX(env, 3, (mkcl_object) &MK_SI_lambda_block, name, lambda_expr);
     break;
   case mkcl_t_cfun:
     name = fun->cfun.name;
@@ -794,7 +794,7 @@ mk_cl_function_lambda_expression(MKCL, mkcl_object fun)
   mkcl_return_3_values(lambda_expr, closure_p, name);
 }
 
-struct mkcl_cfun mk_si_closurep_cfunobj = MKCL_CFUN1(mk_si_closurep, MK_SI_closurep);
+struct mkcl_cfun mk_si_closurep_cfunobj = MKCL_CFUN1(mk_si_closurep, (mkcl_object) &MK_SI_closurep);
 
 mkcl_object
 mk_si_closurep(MKCL, mkcl_object fun)
@@ -809,7 +809,7 @@ mk_si_closurep(MKCL, mkcl_object fun)
     }
 }
 
-struct mkcl_cfun mk_si_closure_env_cfunobj = MKCL_CFUN1(mk_si_closure_env, MK_SI_closure_env);
+struct mkcl_cfun mk_si_closure_env_cfunobj = MKCL_CFUN1(mk_si_closure_env, (mkcl_object) &MK_SI_closure_env);
 
 mkcl_object
 mk_si_closure_env(MKCL, mkcl_object fun)
@@ -825,7 +825,7 @@ mk_si_closure_env(MKCL, mkcl_object fun)
     }
 }
 
-struct mkcl_cfun mk_si_closure_producer_cfunobj = MKCL_CFUN1(mk_si_closure_producer, MK_SI_closure_producer);
+struct mkcl_cfun mk_si_closure_producer_cfunobj = MKCL_CFUN1(mk_si_closure_producer, (mkcl_object) &MK_SI_closure_producer);
 
 mkcl_object
 mk_si_closure_producer(MKCL, mkcl_object fun)
@@ -841,7 +841,7 @@ mk_si_closure_producer(MKCL, mkcl_object fun)
     }
 }
 
-struct mkcl_cfun mk_si_compiled_function_block_cfunobj = MKCL_CFUN1(mk_si_compiled_function_block, MK_SI_compiled_function_block);
+struct mkcl_cfun mk_si_compiled_function_block_cfunobj = MKCL_CFUN1(mk_si_compiled_function_block, (mkcl_object) &MK_SI_compiled_function_block);
 
 mkcl_object
 mk_si_compiled_function_block(MKCL, mkcl_object fun)
@@ -860,7 +860,7 @@ mk_si_compiled_function_block(MKCL, mkcl_object fun)
   mkcl_return_value(output);
 }
 
-struct mkcl_cfun mk_si_compiled_function_file_cfunobj = MKCL_CFUN1(mk_si_compiled_function_file, MK_SI_compiled_function_file);
+struct mkcl_cfun mk_si_compiled_function_file_cfunobj = MKCL_CFUN1(mk_si_compiled_function_file, (mkcl_object) &MK_SI_compiled_function_file);
 
 mkcl_object
 mk_si_compiled_function_file(MKCL, mkcl_object b)
@@ -907,7 +907,7 @@ mkcl_set_function_source_file_info(MKCL, mkcl_object b, mkcl_object source, mkcl
   }
 }
 
-struct mkcl_cfun mk_si_compiled_function_owner_cfunobj = MKCL_CFUN1(mk_si_compiled_function_owner, MK_SI_compiled_function_owner);
+struct mkcl_cfun mk_si_compiled_function_owner_cfunobj = MKCL_CFUN1(mk_si_compiled_function_owner, (mkcl_object) &MK_SI_compiled_function_owner);
 
 mkcl_object
 mk_si_compiled_function_owner(MKCL, mkcl_object fun)
@@ -930,7 +930,7 @@ mk_si_compiled_function_owner(MKCL, mkcl_object fun)
   mkcl_return_value(owner);
 }
 
-struct mkcl_cfun mk_si_set_compiled_function_owner_cfunobj = MKCL_CFUN2(mk_si_set_compiled_function_owner, MK_SI_set_compiled_function_owner);
+struct mkcl_cfun mk_si_set_compiled_function_owner_cfunobj = MKCL_CFUN2(mk_si_set_compiled_function_owner, (mkcl_object) &MK_SI_set_compiled_function_owner);
 
 mkcl_object
 mk_si_set_compiled_function_owner(MKCL, mkcl_object fun, mkcl_object owner)
@@ -1132,7 +1132,7 @@ mkcl_object * mkcl_build_fun_refs_from_syms(MKCL, mkcl_object fun_or_cblock, mkc
 	  if (!mkcl_Null(cblock))
 	    fun_ref = find_fun_ref_in_cblock_locals(env, cblock, sym);
 	  if (mkcl_Null(fun_ref))
-	    fun_refs[i] = mkcl_funcall2(env, MK_SI_generate_forward_fun_ref_handler->symbol.gfdef, fun_or_cblock, MKCL_MAKE_FIXNUM(i));
+	    fun_refs[i] = mkcl_funcall2(env, MK_SI_generate_forward_fun_ref_handler.gfdef, fun_or_cblock, MKCL_MAKE_FIXNUM(i));
 	  else
 	    fun_refs[i] = fun_ref;
 	}
@@ -1150,7 +1150,7 @@ mkcl_object * mkcl_build_fun_refs_from_syms(MKCL, mkcl_object fun_or_cblock, mkc
 }
 
 
-struct mkcl_cfun mk_si_get_fun_ref_sym_cfunobj = MKCL_CFUN2(mk_si_get_fun_ref_sym, MK_SI_get_fun_ref_sym);
+struct mkcl_cfun mk_si_get_fun_ref_sym_cfunobj = MKCL_CFUN2(mk_si_get_fun_ref_sym, (mkcl_object) &MK_SI_get_fun_ref_sym);
 
 mkcl_object mk_si_get_fun_ref_sym(MKCL, mkcl_object fun, mkcl_object index)
 {
@@ -1184,7 +1184,7 @@ int mkcl_fun_refs_trap(MKCL, mkcl_object fun, const mkcl_object * const fun_refs
       if ( mkcl_type_of(fun_refs[i]) == mkcl_t_cclosure
 	   && !mkcl_Null(fun_refs[i]->cclosure.producer)
 	   && mkcl_type_of(fun_refs[i]->cclosure.producer) == mkcl_t_cfun
-	   && (MK_SI_generate_forward_fun_ref_handler == fun_refs[i]->cclosure.producer->cfun.name))
+	   && (((mkcl_object) &MK_SI_generate_forward_fun_ref_handler) == fun_refs[i]->cclosure.producer->cfun.name))
 	mkcl_funcall1(env, fun_refs[i], fun); /* Invoke forward handler */
     }
   return 1;
@@ -1197,7 +1197,7 @@ mkcl_object mkcl_fun_ref_fdefinition(MKCL, const mkcl_object * const fun_refs, m
   if (mkcl_type_of(fun_ref) == mkcl_t_cclosure
       && !mkcl_Null(fun_ref->cclosure.producer) 
       && mkcl_type_of(fun_ref->cclosure.producer) == mkcl_t_cfun
-      && (MK_SI_generate_forward_fun_ref_handler == fun_ref->cclosure.producer->cfun.name))
+      && (((mkcl_object) &MK_SI_generate_forward_fun_ref_handler) == fun_ref->cclosure.producer->cfun.name))
     {
       /* We are in the forward reference case. */
       volatile mkcl_object * closure_aux_var = fun_ref->cclosure.cenv->display.level[1]->lblock.var;
@@ -1208,7 +1208,7 @@ mkcl_object mkcl_fun_ref_fdefinition(MKCL, const mkcl_object * const fun_refs, m
       else
 	{
 	  /* Here we need to grab the mt::+forward-reference-lock+ */
-	  mkcl_object f_r_lock = mkcl_symbol_value(env, MK_MT_CONSTANT_forward_reference_lock);
+	  mkcl_object f_r_lock = mkcl_symbol_value(env, (mkcl_object) &MK_MT_CONSTANT_forward_reference_lock);
 	  volatile mkcl_object locked = mk_cl_Cnil;
           mkcl_object fname;
 
@@ -1249,7 +1249,7 @@ mkcl_object mkcl_fun_ref_fdefinition(MKCL, const mkcl_object * const fun_refs, m
 }
 
 
-struct mkcl_cfun mk_si_update_function_references_cfunobj = MKCL_CFUN1(mk_si_update_function_references, MK_SI_update_function_references);
+struct mkcl_cfun mk_si_update_function_references_cfunobj = MKCL_CFUN1(mk_si_update_function_references, (mkcl_object) &MK_SI_update_function_references);
 
 mkcl_object mk_si_update_function_references(MKCL, mkcl_object fun)
 {
@@ -1283,7 +1283,7 @@ struct mkcl_cfun mk_si_member1_cfunobj =   {
       mkcl_wrong_num_args_cfun_4
     }
   },
-  MK_SI_member1,
+  (mkcl_object) &MK_SI_member1,
   MKCL_OBJNULL,
   mk_si_member1,
   mk_cl_Cnil,
@@ -1311,7 +1311,7 @@ struct mkcl_cfun mk_si_make_vector_cfunobj =   {
       mkcl_wrong_num_args_cfun_4
     }
   },
-  MK_SI_make_vector,
+  (mkcl_object) &MK_SI_make_vector,
   MKCL_OBJNULL,
   mk_si_make_vector,
   mk_cl_Cnil,
@@ -1338,7 +1338,7 @@ struct mkcl_cfun mk_si_make_pure_array_cfunobj =   {
       mkcl_wrong_num_args_cfun_4
     }
   },
-  MK_SI_make_pure_array,
+  (mkcl_object) &MK_SI_make_pure_array,
   MKCL_OBJNULL,
   mk_si_make_pure_array,
   mk_cl_Cnil,

@@ -44,18 +44,18 @@
 #   define DO_DETECT_FPE(e, f)						\
   if (isnan(f)) {							\
     if ((e)->fpe_control_bits & FE_INVALID)				\
-      mk_cl_error(e,1, MK_CL_floating_point_invalid_operation);        \
+      mk_cl_error(e,1, (mkcl_object) &MK_CL_floating_point_invalid_operation);        \
   } else if (!isfinite(f)) {						\
     if ((e)->fpe_control_bits & FE_DIVBYZERO)				\
-      mk_cl_error(e,1, MK_CL_division_by_zero);                        \
+      mk_cl_error(e,1, (mkcl_object) &MK_CL_division_by_zero);                        \
   }
 #  endif
 # else
 #  define DO_DETECT_FPE(e, f)						\
   if (isnan(f)) {							\
-    mk_cl_error(e, 1, MK_CL_floating_point_invalid_operation);		\
+    mk_cl_error(e, 1, (mkcl_object) &MK_CL_floating_point_invalid_operation);		\
   } else if (!isfinite(f)) {						\
-    mk_cl_error(e, 1, MK_CL_division_by_zero);				\
+    mk_cl_error(e, 1, (mkcl_object) &MK_CL_division_by_zero);				\
   }
 # endif
 #endif
@@ -77,11 +77,11 @@ mkcl_integer_to_word(MKCL, mkcl_object x)
 #endif
   }
 #if MKCL_WORD_BITS == 64
-  mkcl_FEwrong_type_argument(env, MK_MKCL_integer64, x);
+  mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_MKCL_integer64, x);
 #elif MKCL_WORD_BITS == 32
-  mkcl_FEwrong_type_argument(env, MK_MKCL_integer32, x);
+  mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_MKCL_integer32, x);
 #else
-  mkcl_FEwrong_type_argument(env, MK_CL_integer, x);
+  mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_CL_integer, x);
 #endif
 }
 
@@ -103,24 +103,24 @@ mkcl_integer_to_index(MKCL, mkcl_object x)
 #error "Don't know how to convert from lisp bignum to native C unsigned integer."
 #endif
   }
-  mk_cl_error(env, 9, MK_CL_simple_type_error, MK_KEY_format_control,
+  mk_cl_error(env, 9, (mkcl_object) &MK_CL_simple_type_error, (mkcl_object) &MK_KEY_format_control,
 	      mkcl_make_simple_base_string(env, "Not a non-negative fixnum ~S"),
-	      MK_KEY_format_arguments, mk_cl_list(env, 1,x),
-	      MK_KEY_expected_type,
+	      (mkcl_object) &MK_KEY_format_arguments, mk_cl_list(env, 1,x),
+	      (mkcl_object) &MK_KEY_expected_type,
 #if MKCL_WORD_BITS == 64
-	      MK_MKCL_natural64,
+	      (mkcl_object) &MK_MKCL_natural64,
 #elif MKCL_WORD_BITS == 32
-	      MK_MKCL_natural32,
+	      (mkcl_object) &MK_MKCL_natural32,
 #else
 	      mk_cl_list(env, 3,
-			 MK_CL_integer,
+			 (mkcl_object) &MK_CL_integer,
 			 MKCL_MAKE_FIXNUM(0),
 			 mkcl_one_minus(env, mkcl_ash(env,
 						      MKCL_MAKE_FIXNUM(1),
 						      MKCL_WORD_BITS))
 			 ),
 #endif
-	      MK_KEY_datum, x);
+	      (mkcl_object) &MK_KEY_datum, x);
 }
 
 mkcl_word
@@ -136,7 +136,7 @@ mkcl_fixnum_in_range(MKCL, mkcl_object fun, const char *what, mkcl_object value,
     }
     value = mkcl_type_error(env, fun, what, value,
 			    mk_cl_list(env, 3,
-				       MK_CL_integer,
+				       (mkcl_object) &MK_CL_integer,
 				       MKCL_MAKE_FIXNUM(min),
 				       MKCL_MAKE_FIXNUM(max)));
   } while(1);
@@ -174,8 +174,8 @@ mkcl_to_uint8_t(MKCL, mkcl_object x)
 	return (uint8_t)y;
       }
     }
-    x = mkcl_type_error(env, MK_CL_coerce, "variable", x,
-			mk_cl_list(env, 3, MK_CL_integer, MKCL_MAKE_FIXNUM(0), MKCL_MAKE_FIXNUM(UINT8_MAX)));
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_coerce, "variable", x,
+			mk_cl_list(env, 3, (mkcl_object) &MK_CL_integer, MKCL_MAKE_FIXNUM(0), MKCL_MAKE_FIXNUM(UINT8_MAX)));
   } while(1);
 }
 
@@ -189,8 +189,8 @@ mkcl_to_int8_t(MKCL, mkcl_object x)
 	return (int8_t)y;
       }
     }
-    x = mkcl_type_error(env, MK_CL_coerce, "variable", x,
-			mk_cl_list(env, 3, MK_CL_integer, MKCL_MAKE_FIXNUM(INT8_MIN), MKCL_MAKE_FIXNUM(INT8_MAX)));
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_coerce, "variable", x,
+			mk_cl_list(env, 3, (mkcl_object) &MK_CL_integer, MKCL_MAKE_FIXNUM(INT8_MIN), MKCL_MAKE_FIXNUM(INT8_MAX)));
   } while(1);
 }
 
@@ -208,8 +208,8 @@ mkcl_to_uint16_t(MKCL, mkcl_object x)
 	return (mkcl_uint16_t)y;
       }
     }
-    x = mkcl_type_error(env, MK_CL_coerce, "variable", x,
-			mk_cl_list(env, 3, MK_CL_integer, MKCL_MAKE_FIXNUM(0), MKCL_MAKE_FIXNUM(UINT16_MAX)));
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_coerce, "variable", x,
+			mk_cl_list(env, 3, (mkcl_object) &MK_CL_integer, MKCL_MAKE_FIXNUM(0), MKCL_MAKE_FIXNUM(UINT16_MAX)));
   } while(1);
 }
 
@@ -223,8 +223,8 @@ mkcl_to_int16_t(MKCL, mkcl_object x)
 	return (mkcl_int16_t)y;
       }
     }
-    x = mkcl_type_error(env, MK_CL_coerce, "variable", x,
-			mk_cl_list(env, 3, MK_CL_integer, MKCL_MAKE_FIXNUM(INT16_MIN), MKCL_MAKE_FIXNUM(INT16_MAX)));
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_coerce, "variable", x,
+			mk_cl_list(env, 3, (mkcl_object) &MK_CL_integer, MKCL_MAKE_FIXNUM(INT16_MIN), MKCL_MAKE_FIXNUM(INT16_MAX)));
   } while(1);
 }
 
@@ -239,8 +239,8 @@ mkcl_to_uint32_t(MKCL, mkcl_object x)
 	return (mkcl_uint32_t)y;
       }
     }
-    x = mkcl_type_error(env, MK_CL_coerce, "variable", x,
-			mk_cl_list(env, 3, MK_CL_integer, MKCL_MAKE_FIXNUM(0), mkcl_make_unsigned_integer(env, UINT32_MAX)));
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_coerce, "variable", x,
+			mk_cl_list(env, 3, (mkcl_object) &MK_CL_integer, MKCL_MAKE_FIXNUM(0), mkcl_make_unsigned_integer(env, UINT32_MAX)));
   } while(1);
 }
 
@@ -254,9 +254,9 @@ mkcl_to_int32_t(MKCL, mkcl_object x)
 	return (mkcl_int32_t)y;
       }
     }
-    x = mkcl_type_error(env, MK_CL_coerce, "variable", x,
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_coerce, "variable", x,
 			mk_cl_list(env, 3,
-				   MK_CL_integer,
+				   (mkcl_object) &MK_CL_integer,
 				   mkcl_make_integer(env, INT32_MIN),
 				   mkcl_make_integer(env, INT32_MAX)));
   } while(1);
@@ -285,8 +285,8 @@ mkcl_to_uint64_t(MKCL, mkcl_object x)
 	}
       }
     }
-    x = mkcl_type_error(env, MK_CL_coerce, "variable", x,
-			mk_cl_list(env, 3,MK_CL_integer,MKCL_MAKE_FIXNUM(0),
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_coerce, "variable", x,
+			mk_cl_list(env, 3,(mkcl_object) &MK_CL_integer,MKCL_MAKE_FIXNUM(0),
 				   mkcl_one_minus(env, mkcl_ash(env, MKCL_MAKE_FIXNUM(1), 64))));
   } while(1);
 }
@@ -310,8 +310,8 @@ mkcl_to_int64_t(MKCL, mkcl_object x)
 	return (output << 32) + mpz_get_ui(copy->big.big_num);
       }
     }
-    x = mkcl_type_error(env, MK_CL_coerce, "variable", x,
-			mk_cl_list(env, 3,MK_CL_integer,
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_coerce, "variable", x,
+			mk_cl_list(env, 3,(mkcl_object) &MK_CL_integer,
 				   mkcl_negate(env, mkcl_ash(env, MKCL_MAKE_FIXNUM(1), 63)),
 				   mkcl_one_minus(env, mkcl_ash(env, MKCL_MAKE_FIXNUM(1), 63))));
   } while(1);
@@ -401,17 +401,17 @@ mkcl_deliver_fpe(MKCL)
   if (fetestexcept(env->fpe_control_bits)) {
     mkcl_object condition;
     if (fetestexcept(bits & FE_DIVBYZERO))
-      condition = MK_CL_division_by_zero;
+      condition = (mkcl_object) &MK_CL_division_by_zero;
     else if (fetestexcept(bits & FE_INVALID))
-      condition = MK_CL_floating_point_invalid_operation;
+      condition = (mkcl_object) &MK_CL_floating_point_invalid_operation;
     else if (fetestexcept(bits & FE_OVERFLOW))
-      condition = MK_CL_floating_point_overflow;
+      condition = (mkcl_object) &MK_CL_floating_point_overflow;
     else if (fetestexcept(bits & FE_UNDERFLOW))
-      condition = MK_CL_floating_point_underflow;
+      condition = (mkcl_object) &MK_CL_floating_point_underflow;
     else if (fetestexcept(bits & FE_INEXACT))
-      condition = MK_CL_floating_point_inexact;
+      condition = (mkcl_object) &MK_CL_floating_point_inexact;
     else
-      condition = MK_CL_arithmetic_error;
+      condition = (mkcl_object) &MK_CL_arithmetic_error;
     feclearexcept(FE_ALL_EXCEPT);
     mk_cl_error(env, 1, condition);
   }
@@ -512,7 +512,7 @@ mkcl_make_complex(MKCL, mkcl_object r, mkcl_object i)
       break;
 #endif
     default:
-      i = mkcl_type_error(env, MK_CL_complex,"imaginary part", i, MK_CL_real);
+      i = mkcl_type_error(env, (mkcl_object) &MK_CL_complex,"imaginary part", i, (mkcl_object) &MK_CL_real);
       goto AGAIN;
     }
     break;
@@ -534,7 +534,7 @@ mkcl_make_complex(MKCL, mkcl_object r, mkcl_object i)
       break;
 #endif
     default:
-      i = mkcl_type_error(env, MK_CL_complex,"imaginary part", i, MK_CL_real);
+      i = mkcl_type_error(env, (mkcl_object) &MK_CL_complex,"imaginary part", i, (mkcl_object) &MK_CL_real);
       goto AGAIN;
     }
     break;
@@ -553,7 +553,7 @@ mkcl_make_complex(MKCL, mkcl_object r, mkcl_object i)
       break;
 #endif
     default:
-      i = mkcl_type_error(env, MK_CL_complex,"imaginary part", i, MK_CL_real);
+      i = mkcl_type_error(env, (mkcl_object) &MK_CL_complex,"imaginary part", i, (mkcl_object) &MK_CL_real);
       goto AGAIN;
     }
     break;
@@ -564,7 +564,7 @@ mkcl_make_complex(MKCL, mkcl_object r, mkcl_object i)
     break;
 #endif
   default:
-    r = mkcl_type_error(env, MK_CL_complex,"real part", r, MK_CL_real);
+    r = mkcl_type_error(env, (mkcl_object) &MK_CL_complex,"real part", r, (mkcl_object) &MK_CL_real);
     goto AGAIN;
 
   }
@@ -771,8 +771,8 @@ mkcl_to_long_double(MKCL, mkcl_object x)
 }
 #endif
 
-struct mkcl_cfun mk_cl_rational_cfunobj = MKCL_CFUN1(mk_cl_rational, MK_CL_rational);
-struct mkcl_cfun mk_cl_rationalize_cfunobj = MKCL_CFUN1(mk_cl_rationalize, MK_CL_rationalize);
+struct mkcl_cfun mk_cl_rational_cfunobj = MKCL_CFUN1(mk_cl_rational, (mkcl_object) &MK_CL_rational);
+struct mkcl_cfun mk_cl_rationalize_cfunobj = MKCL_CFUN1(mk_cl_rationalize, (mkcl_object) &MK_CL_rationalize);
 
 mkcl_object
 mk_cl_rational(MKCL, mkcl_object x)
@@ -827,7 +827,7 @@ mk_cl_rational(MKCL, mkcl_object x)
   }
 #endif
   default:
-    x = mkcl_type_error(env, MK_CL_rational,"argument",x,MK_CL_number);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_rational,"argument",x,(mkcl_object) &MK_CL_number);
     goto AGAIN;
   }
   mkcl_return_value(x);
@@ -884,60 +884,60 @@ mkcl_init_number(MKCL)
   mkcl_object num;
 
   num = mkcl_make_singlefloat(env, FLT_MAX);
-  MKCL_SET(MK_CL_MOST_POSITIVE_SHORT_FLOAT, num);
-  MKCL_SET(MK_CL_MOST_POSITIVE_SINGLE_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_MOST_POSITIVE_SHORT_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_MOST_POSITIVE_SINGLE_FLOAT, num);
 
   num = mkcl_make_singlefloat(env, -FLT_MAX);
-  MKCL_SET(MK_CL_MOST_NEGATIVE_SHORT_FLOAT, num);
-  MKCL_SET(MK_CL_MOST_NEGATIVE_SINGLE_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_MOST_NEGATIVE_SHORT_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_MOST_NEGATIVE_SINGLE_FLOAT, num);
 
   num = mkcl_make_singlefloat(env, FLT_MIN);
-  MKCL_SET(MK_CL_LEAST_POSITIVE_SHORT_FLOAT, num);
-  MKCL_SET(MK_CL_LEAST_POSITIVE_SINGLE_FLOAT, num);
-  MKCL_SET(MK_CL_LEAST_POSITIVE_NORMALIZED_SHORT_FLOAT, num);
-  MKCL_SET(MK_CL_LEAST_POSITIVE_NORMALIZED_SINGLE_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_LEAST_POSITIVE_SHORT_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_LEAST_POSITIVE_SINGLE_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_LEAST_POSITIVE_NORMALIZED_SHORT_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_LEAST_POSITIVE_NORMALIZED_SINGLE_FLOAT, num);
 
   num = mkcl_make_singlefloat(env, -FLT_MIN);
-  MKCL_SET(MK_CL_LEAST_NEGATIVE_SHORT_FLOAT, num);
-  MKCL_SET(MK_CL_LEAST_NEGATIVE_SINGLE_FLOAT, num);
-  MKCL_SET(MK_CL_LEAST_NEGATIVE_NORMALIZED_SHORT_FLOAT, num);
-  MKCL_SET(MK_CL_LEAST_NEGATIVE_NORMALIZED_SINGLE_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_LEAST_NEGATIVE_SHORT_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_LEAST_NEGATIVE_SINGLE_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_LEAST_NEGATIVE_NORMALIZED_SHORT_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_LEAST_NEGATIVE_NORMALIZED_SINGLE_FLOAT, num);
 
   num = mkcl_make_doublefloat(env, DBL_MAX);
-  MKCL_SET(MK_CL_MOST_POSITIVE_DOUBLE_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_MOST_POSITIVE_DOUBLE_FLOAT, num);
 
 #ifdef MKCL_LONG_FLOAT
   num = mkcl_make_longfloat(env, LDBL_MAX);
 #endif
-  MKCL_SET(MK_CL_MOST_POSITIVE_LONG_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_MOST_POSITIVE_LONG_FLOAT, num);
 
   num = mkcl_make_doublefloat(env, -DBL_MAX);
-  MKCL_SET(MK_CL_MOST_NEGATIVE_DOUBLE_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_MOST_NEGATIVE_DOUBLE_FLOAT, num);
 
 #ifdef MKCL_LONG_FLOAT
   num = mkcl_make_longfloat(env, -LDBL_MAX);
 #endif
-  MKCL_SET(MK_CL_MOST_NEGATIVE_LONG_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_MOST_NEGATIVE_LONG_FLOAT, num);
 
   num = mkcl_make_doublefloat(env, DBL_MIN);
-  MKCL_SET(MK_CL_LEAST_POSITIVE_DOUBLE_FLOAT, num);
-  MKCL_SET(MK_CL_LEAST_POSITIVE_NORMALIZED_DOUBLE_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_LEAST_POSITIVE_DOUBLE_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_LEAST_POSITIVE_NORMALIZED_DOUBLE_FLOAT, num);
 
 #ifdef MKCL_LONG_FLOAT
   num = mkcl_make_longfloat(env, LDBL_MIN);
 #endif
-  MKCL_SET(MK_CL_LEAST_POSITIVE_LONG_FLOAT, num);
-  MKCL_SET(MK_CL_LEAST_POSITIVE_NORMALIZED_LONG_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_LEAST_POSITIVE_LONG_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_LEAST_POSITIVE_NORMALIZED_LONG_FLOAT, num);
 
   num = mkcl_make_doublefloat(env, -DBL_MIN);
-  MKCL_SET(MK_CL_LEAST_NEGATIVE_DOUBLE_FLOAT, num);
-  MKCL_SET(MK_CL_LEAST_NEGATIVE_NORMALIZED_DOUBLE_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_LEAST_NEGATIVE_DOUBLE_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_LEAST_NEGATIVE_NORMALIZED_DOUBLE_FLOAT, num);
 
 #ifdef MKCL_LONG_FLOAT
   num = mkcl_make_longfloat(env, -LDBL_MIN);
 #endif
-  MKCL_SET(MK_CL_LEAST_NEGATIVE_LONG_FLOAT, num);
-  MKCL_SET(MK_CL_LEAST_NEGATIVE_NORMALIZED_LONG_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_LEAST_NEGATIVE_LONG_FLOAT, num);
+  MKCL_SET((mkcl_object) &MK_CL_LEAST_NEGATIVE_NORMALIZED_LONG_FLOAT, num);
 
   mkcl_core.singlefloat_zero = mkcl_alloc_raw_singlefloat(env);
   mkcl_single_float(mkcl_core.singlefloat_zero) = 0.0F;
@@ -980,9 +980,9 @@ mkcl_init_number(MKCL)
 		     mkcl_make_singlefloat(env, 2.0));
 
 #ifdef MKCL_LONG_FLOAT
-  MKCL_SET(MK_CL_pi, mkcl_make_longfloat(env, MKCL_PI_L));
+  MKCL_SET((mkcl_object) &MK_CL_pi, mkcl_make_longfloat(env, MKCL_PI_L));
 #else
-  MKCL_SET(MK_CL_pi, mkcl_make_doublefloat(env, MKCL_PI_D));
+  MKCL_SET((mkcl_object) &MK_CL_pi, mkcl_make_doublefloat(env, MKCL_PI_D));
 #endif
-  MKCL_SET(MK_CL_DYNVAR_random_state, mkcl_make_random_state(env, mk_cl_Ct));
+  MKCL_SET((mkcl_object) &MK_CL_DYNVAR_random_state, mkcl_make_random_state(env, mk_cl_Ct));
 }

@@ -151,7 +151,7 @@ get_run_time(MKCL, struct timespec *ts)
 #endif
 }
 
-struct mkcl_cfun mk_cl_sleep_cfunobj = MKCL_CFUN1(mk_cl_sleep, MK_CL_sleep);
+struct mkcl_cfun mk_cl_sleep_cfunobj = MKCL_CFUN1(mk_cl_sleep, (mkcl_object) &MK_CL_sleep);
 
 mkcl_object
 mk_cl_sleep(MKCL, mkcl_object z)
@@ -161,10 +161,10 @@ mk_cl_sleep(MKCL, mkcl_object z)
 
   /* INV: mkcl_minusp() makes sure `z' is real */
   if (mkcl_minusp(env, z))
-    mk_cl_error(env, 9, MK_CL_simple_type_error, MK_KEY_format_control,
+    mk_cl_error(env, 9, (mkcl_object) &MK_CL_simple_type_error, (mkcl_object) &MK_KEY_format_control,
                 mkcl_make_simple_base_string(env, "Not a non-negative number ~S"),
-                MK_KEY_format_arguments, mk_cl_list(env, 1, z),
-                MK_KEY_expected_type, MK_CL_real, MK_KEY_datum, z);
+                (mkcl_object) &MK_KEY_format_arguments, mk_cl_list(env, 1, z),
+                (mkcl_object) &MK_KEY_expected_type, (mkcl_object) &MK_CL_real, (mkcl_object) &MK_KEY_datum, z);
 
   if (fe_inexact_on)
     fedisableexcept(FE_INEXACT);
@@ -201,7 +201,7 @@ mk_cl_sleep(MKCL, mkcl_object z)
       else
 	duration = target_ms - now_ms;
 
-      MKCL_LIBC_Zzz(env, MK_KEY_io, val = SleepEx(duration, TRUE)); /* The "alertable" version. */
+      MKCL_LIBC_Zzz(env, (mkcl_object) &MK_KEY_io, val = SleepEx(duration, TRUE)); /* The "alertable" version. */
 
       MKCL_LIBC_NO_INTR(env, GetSystemTimeAsFileTime(&system_time));
       uli_system_time.LowPart = system_time.dwLowDateTime;
@@ -231,7 +231,7 @@ mk_cl_sleep(MKCL, mkcl_object z)
       do
 	{
 	  struct timespec req = rem;
-	  MKCL_LIBC_Zzz(env, MK_KEY_io, rc = nanosleep(&req, &rem)); /* We should use clock_nanosleep() instead. JCB */
+	  MKCL_LIBC_Zzz(env, (mkcl_object) &MK_KEY_io, rc = nanosleep(&req, &rem)); /* We should use clock_nanosleep() instead. JCB */
 	}
       while (rc && errno == EINTR);
       mk_mt_test_for_thread_shutdown(env);
@@ -296,7 +296,7 @@ mk_cl_get_internal_run_time(MKCL) /* Should take a "thread" as optional argument
   mkcl_return_value(timespec_to_time(env, ts.tv_sec, ts.tv_nsec));
 }
 
-struct mkcl_cfun mk_cl_get_internal_run_time_cfunobj = MKCL_CFUN0(mk_cl_get_internal_run_time, MK_CL_get_internal_run_time);
+struct mkcl_cfun mk_cl_get_internal_run_time_cfunobj = MKCL_CFUN0(mk_cl_get_internal_run_time, (mkcl_object) &MK_CL_get_internal_run_time);
 
 
 mkcl_object
@@ -309,7 +309,7 @@ mk_cl_get_internal_real_time(MKCL)
   mkcl_return_value(timespec_to_time(env, ts.tv_sec - beginning.tv_sec, ts.tv_nsec - beginning.tv_nsec));
 }
 
-struct mkcl_cfun mk_cl_get_internal_real_time_cfunobj = MKCL_CFUN0(mk_cl_get_internal_real_time, MK_CL_get_internal_real_time);
+struct mkcl_cfun mk_cl_get_internal_real_time_cfunobj = MKCL_CFUN0(mk_cl_get_internal_real_time, (mkcl_object) &MK_CL_get_internal_real_time);
 
 
 mkcl_object
@@ -321,7 +321,7 @@ mk_cl_get_universal_time(MKCL)
   mkcl_return_value(mkcl_plus(env, utc, mkcl_core.Jan1st1970UT));
 }
 
-struct mkcl_cfun mk_cl_get_universal_time_cfunobj = MKCL_CFUN0(mk_cl_get_universal_time, MK_CL_get_universal_time);
+struct mkcl_cfun mk_cl_get_universal_time_cfunobj = MKCL_CFUN0(mk_cl_get_universal_time, (mkcl_object) &MK_CL_get_universal_time);
 
 mkcl_object
 mk_si_get_local_time_zone(MKCL)
@@ -363,7 +363,7 @@ mk_si_get_local_time_zone(MKCL)
   mkcl_return_value(mkcl_make_ratio(env, MKCL_MAKE_FIXNUM(zone_bias_in_minutes), MKCL_MAKE_FIXNUM(60)));
 }
 
-struct mkcl_cfun mk_si_get_local_time_zone_cfunobj = MKCL_CFUN0(mk_si_get_local_time_zone, MK_SI_get_local_time_zone);
+struct mkcl_cfun mk_si_get_local_time_zone_cfunobj = MKCL_CFUN0(mk_si_get_local_time_zone, (mkcl_object) &MK_SI_get_local_time_zone);
 
 void
 mkcl_init_unixtime(MKCL)
@@ -371,9 +371,9 @@ mkcl_init_unixtime(MKCL)
   get_real_time(env, &beginning);
   
 #if MKCL_WORD_BITS < 64
-  MKCL_SET(MK_CL_internal_time_units_per_second, MKCL_MAKE_FIXNUM(1000 * 1000)); /* microseconds */
+  MKCL_SET((mkcl_object) &MK_CL_internal_time_units_per_second, MKCL_MAKE_FIXNUM(1000 * 1000)); /* microseconds */
 #else
-  MKCL_SET(MK_CL_internal_time_units_per_second, MKCL_MAKE_FIXNUM(1000 * 1000 * 1000)); /* nanoseconds */
+  MKCL_SET((mkcl_object) &MK_CL_internal_time_units_per_second, MKCL_MAKE_FIXNUM(1000 * 1000 * 1000)); /* nanoseconds */
 #endif
   
   /* This is the number of seconds between 00:00:00 January 1st, 1900 GMT and 00:00:00 January 1st, 1970 GMT. */

@@ -19,7 +19,7 @@
 #include <mkcl/mkcl.h>
 #include <mkcl/internal.h>
 
-struct mkcl_cfun mk_cl_values_cfunobj = MKCL_CFUN_VA(mk_cl_values, MK_CL_values);
+struct mkcl_cfun mk_cl_values_cfunobj = MKCL_CFUN_VA(mk_cl_values, (mkcl_object) &MK_CL_values);
 
 mkcl_object mk_cl_values(MKCL, mkcl_narg narg, ...)
 {
@@ -27,7 +27,7 @@ mkcl_object mk_cl_values(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_CL_values, 0, narg, narg, args);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_CL_values, 0, narg, narg, args);
 
     if (narg > MKCL_MULTIPLE_VALUES_LIMIT)
       mkcl_FEerror(env, "Too many values in VALUES",0);
@@ -41,7 +41,7 @@ mkcl_object mk_cl_values(MKCL, mkcl_narg narg, ...)
   }
 }
 
-struct mkcl_cfun mk_cl_values_list_cfunobj = MKCL_CFUN1(mk_cl_values_list, MK_CL_values_list);
+struct mkcl_cfun mk_cl_values_list_cfunobj = MKCL_CFUN1(mk_cl_values_list, (mkcl_object) &MK_CL_values_list);
 
 mkcl_object
 mk_cl_values_list(MKCL, mkcl_object list)

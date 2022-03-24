@@ -47,7 +47,7 @@
 	      (si::put-sysprop ',name :callback
 	                       (list
 	                        (ffi:c-inline () () :object
-	                                      ,(format nil "mkcl_make_foreign(env,MK_KEY_pointer_void,0,~a)" c-name)
+	                                      ,(format nil "mkcl_make_foreign(env,(mkcl_object) &MK_KEY_pointer_void,0,~a)" c-name)
 	                                      :one-liner t))))))))))
 
 (defconstant +foreign-elt-type-codes+

@@ -22,7 +22,7 @@
 #include <string.h>
 
 
-struct mkcl_cfun mk_si_specialp_cfunobj = MKCL_CFUN1(mk_si_specialp, MK_SI_specialp);
+struct mkcl_cfun mk_si_specialp_cfunobj = MKCL_CFUN1(mk_si_specialp, (mkcl_object) &MK_SI_specialp);
 
 mkcl_object
 mk_si_specialp(MKCL, mkcl_object sym)
@@ -209,7 +209,7 @@ mkcl_parse_key(MKCL,
       }
     }
     /* the key is a new one */
-    if (keyword == MK_KEY_allow_other_keys) {
+    if (keyword == ((mkcl_object) &MK_KEY_allow_other_keys)) {
       if (supplied_allow_other_keys == MKCL_OBJNULL)
 	supplied_allow_other_keys = value;
     } else if (unknown_keyword == MKCL_OBJNULL)
@@ -244,7 +244,7 @@ void mkcl_receive_1_keyword_argument(MKCL, const mkcl_object fname, mkcl_va_list
         if (!key_arg_seen)
         { *key_var_ref = value; key_arg_seen = true; }
       }
-    else if (keyword == MK_KEY_allow_other_keys)
+    else if (keyword == ((mkcl_object) &MK_KEY_allow_other_keys))
       {
         if (!allow_other_keys_argument_seen)
           { allow_other_keys_argument_value = value; allow_other_keys_argument_seen = true; }
@@ -271,7 +271,7 @@ void mkcl_receive_0_keyword_arguments(MKCL, const mkcl_object fname, mkcl_va_lis
     const mkcl_object keyword = mkcl_va_arg(ARGS);
     const mkcl_object value = mkcl_va_arg(ARGS);
 
-    if (keyword == MK_KEY_allow_other_keys)
+    if (keyword == ((mkcl_object) &MK_KEY_allow_other_keys))
       {
         if (!allow_other_keys_argument_seen)
           { allow_other_keys_argument_value = value; allow_other_keys_argument_seen = true; }
@@ -310,7 +310,7 @@ void mkcl_receive_2_keyword_arguments(MKCL, const mkcl_object fname, mkcl_va_lis
         if (!key2_arg_seen)
         { *key2_var_ref = value; key2_arg_seen = true; }
       }
-    else if (keyword == MK_KEY_allow_other_keys)
+    else if (keyword == ((mkcl_object) &MK_KEY_allow_other_keys))
       {
         if (!allow_other_keys_argument_seen)
           { allow_other_keys_argument_value = value; allow_other_keys_argument_seen = true; }
@@ -355,7 +355,7 @@ void mkcl_receive_3_keyword_arguments(MKCL, const mkcl_object fname, mkcl_va_lis
         if (!key3_arg_seen)
         { *key3_var_ref = value; key3_arg_seen = true; }
       }
-    else if (keyword == MK_KEY_allow_other_keys)
+    else if (keyword == ((mkcl_object) &MK_KEY_allow_other_keys))
       {
         if (!allow_other_keys_argument_seen)
           { allow_other_keys_argument_value = value; allow_other_keys_argument_seen = true; }
@@ -406,7 +406,7 @@ void mkcl_receive_4_keyword_arguments(MKCL, const mkcl_object fname, mkcl_va_lis
         if (!key4_arg_seen)
         { *key4_var_ref = value; key4_arg_seen = true; }
       }
-    else if (keyword == MK_KEY_allow_other_keys)
+    else if (keyword == ((mkcl_object) &MK_KEY_allow_other_keys))
       {
         if (!allow_other_keys_argument_seen)
           { allow_other_keys_argument_value = value; allow_other_keys_argument_seen = true; }
@@ -444,7 +444,7 @@ void mkcl_receive_N_keyword_arguments(MKCL, const mkcl_object fname, mkcl_va_lis
           if (!key_params[i].key_arg_seen)
             { *(key_params[i].key_var_ref) = value; key_params[i].key_arg_seen = true; goto NEXT_ARG; }
       }
-    if (keyword == MK_KEY_allow_other_keys)
+    if (keyword == ((mkcl_object) &MK_KEY_allow_other_keys))
       {
         if (!allow_other_keys_argument_seen)
           { allow_other_keys_argument_value = value; allow_other_keys_argument_seen = true; }
@@ -527,7 +527,7 @@ static mkcl_object convert_cmp_lexical_info(MKCL, mkcl_object cmp_env)
   return lex_env;
 }
 
-struct mkcl_cfun mk_si_convert_cmp_lexical_info_cfunobj = MKCL_CFUN1(mk_si_convert_cmp_lexical_info, MK_SI_convert_cmp_lexical_info);
+struct mkcl_cfun mk_si_convert_cmp_lexical_info_cfunobj = MKCL_CFUN1(mk_si_convert_cmp_lexical_info, (mkcl_object) &MK_SI_convert_cmp_lexical_info);
 
 mkcl_object mk_si_convert_cmp_lexical_info(MKCL, mkcl_object cmp_env)
 {
@@ -535,7 +535,7 @@ mkcl_object mk_si_convert_cmp_lexical_info(MKCL, mkcl_object cmp_env)
   if (mkcl_Null(cmp_env))
     { mkcl_return_value(mk_cl_Cnil); }
   else if ( mkcl_type_of(cmp_env) != mkcl_t_cmp_dbg_lex_level )
-    { mkcl_FEwrong_type_argument(env, MK_SI_compiled_debug_information, cmp_env); }
+    { mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_SI_compiled_debug_information, cmp_env); }
   else
     {
       mkcl_object lex_env = convert_cmp_lexical_info(env, cmp_env);

@@ -59,7 +59,7 @@ number_remainder(MKCL, mkcl_object x, mkcl_object y, mkcl_object q)
 /* Coerce non-float X to single-float if one arg,
    otherwise coerce to same float type as second arg */
 
-struct mkcl_cfun mk_cl_float_cfunobj = MKCL_CFUN_VA(mk_cl_float, MK_CL_float);
+struct mkcl_cfun mk_cl_float_cfunobj = MKCL_CFUN_VA(mk_cl_float, (mkcl_object) &MK_CL_float);
 
 mkcl_object mk_cl_float(MKCL, mkcl_narg narg, mkcl_object x, ...)
 {
@@ -67,7 +67,7 @@ mkcl_object mk_cl_float(MKCL, mkcl_narg narg, mkcl_object x, ...)
   {
     mkcl_type ty, tx;
     mkcl_object y = MKCL_OBJNULL;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_float, narg, 1, x, &y);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_float, narg, 1, x, &y);
 
   AGAIN:
     if (y != MKCL_OBJNULL) {
@@ -100,19 +100,19 @@ mkcl_object mk_cl_float(MKCL, mkcl_narg narg, mkcl_object x, ...)
         break;
 #endif
       default:
-        y = mkcl_type_error(env, MK_CL_float,"prototype",y,MK_CL_float);
+        y = mkcl_type_error(env, (mkcl_object) &MK_CL_float,"prototype",y,(mkcl_object) &MK_CL_float);
         goto AGAIN;
       }
       break;
     default:
-      x = mkcl_type_error(env, MK_CL_float,"argument",x,MK_CL_real);
+      x = mkcl_type_error(env, (mkcl_object) &MK_CL_float,"argument",x,(mkcl_object) &MK_CL_real);
       goto AGAIN;
     }
     mkcl_return_value(x);
   }
 }
 
-struct mkcl_cfun mk_cl_numerator_cfunobj = MKCL_CFUN1(mk_cl_numerator, MK_CL_numerator);
+struct mkcl_cfun mk_cl_numerator_cfunobj = MKCL_CFUN1(mk_cl_numerator, (mkcl_object) &MK_CL_numerator);
 
 mkcl_object
 mk_cl_numerator(MKCL, mkcl_object x)
@@ -127,13 +127,13 @@ mk_cl_numerator(MKCL, mkcl_object x)
   case mkcl_t_bignum:
     break;
   default:
-    x = mkcl_type_error(env, MK_CL_numerator,"argument",x,MK_CL_rational);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_numerator,"argument",x,(mkcl_object) &MK_CL_rational);
     goto AGAIN;
   }
   mkcl_return_value(x);
 }
 
-struct mkcl_cfun mk_cl_denominator_cfunobj = MKCL_CFUN1(mk_cl_denominator, MK_CL_denominator);
+struct mkcl_cfun mk_cl_denominator_cfunobj = MKCL_CFUN1(mk_cl_denominator, (mkcl_object) &MK_CL_denominator);
 
 mkcl_object
 mk_cl_denominator(MKCL, mkcl_object x)
@@ -149,7 +149,7 @@ mk_cl_denominator(MKCL, mkcl_object x)
     x = MKCL_MAKE_FIXNUM(1);
     break;
   default:
-    x = mkcl_type_error(env, MK_CL_numerator,"argument",x,MK_CL_rational);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_numerator,"argument",x,(mkcl_object) &MK_CL_rational);
     goto AGAIN;
   }
   mkcl_return_value(x);
@@ -194,7 +194,7 @@ mkcl_floor1(MKCL, mkcl_object x)
   }
 #endif
   default:
-    x = mkcl_type_error(env, MK_CL_floor, "argument", x, MK_CL_real);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_floor, "argument", x, (mkcl_object) &MK_CL_real);
     goto AGAIN;
   }
   mkcl_return_2_values(v0, v1);
@@ -207,7 +207,7 @@ mkcl_floor2(MKCL, mkcl_object x, mkcl_object y)
   mkcl_type ty;
  AGAIN:
   while ((ty = mkcl_type_of(y), !MKCL_NUMBER_TYPE_P(ty))) {
-    y = mkcl_type_error(env, MK_CL_floor,"divisor",y,MK_CL_real);
+    y = mkcl_type_error(env, (mkcl_object) &MK_CL_floor,"divisor",y,(mkcl_object) &MK_CL_real);
   }
   switch(mkcl_type_of(x)) {
   case mkcl_t_fixnum:
@@ -392,20 +392,20 @@ mkcl_floor2(MKCL, mkcl_object x, mkcl_object y)
   }
 #endif
   default:
-    x = mkcl_type_error(env, MK_CL_floor,"argument",x,MK_CL_real);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_floor,"argument",x,(mkcl_object) &MK_CL_real);
     goto AGAIN;
   }
   mkcl_return_2_values(v0, v1);
 }
 
-struct mkcl_cfun mk_cl_floor_cfunobj = MKCL_CFUN_VA(mk_cl_floor, MK_CL_floor);
+struct mkcl_cfun mk_cl_floor_cfunobj = MKCL_CFUN_VA(mk_cl_floor, (mkcl_object) &MK_CL_floor);
 
 mkcl_object mk_cl_floor(MKCL, mkcl_narg narg, mkcl_object x, ...)
 {
   mkcl_call_stack_check(env);
   {
     mkcl_object y = MKCL_OBJNULL;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_floor, narg, 1, x, &y);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_floor, narg, 1, x, &y);
 
     if (narg == 1)
       x = mkcl_floor1(env, x);
@@ -454,7 +454,7 @@ mkcl_ceiling1(MKCL, mkcl_object x)
   }
 #endif
   default:
-    x = mkcl_type_error(env, MK_CL_ceiling,"argument",x,MK_CL_real);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_ceiling,"argument",x,(mkcl_object) &MK_CL_real);
     goto AGAIN;
   }
   mkcl_return_2_values(v0, v1);
@@ -467,7 +467,7 @@ mkcl_ceiling2(MKCL, mkcl_object x, mkcl_object y)
   mkcl_type ty;
  AGAIN:
   while ((ty = mkcl_type_of(y), !MKCL_NUMBER_TYPE_P(ty))) {
-    y = mkcl_type_error(env, MK_CL_ceiling,"divisor",y,MK_CL_real);
+    y = mkcl_type_error(env, (mkcl_object) &MK_CL_ceiling,"divisor",y,(mkcl_object) &MK_CL_real);
   }
   switch(mkcl_type_of(x)) {
   case mkcl_t_fixnum:
@@ -649,20 +649,20 @@ mkcl_ceiling2(MKCL, mkcl_object x, mkcl_object y)
   }
 #endif
   default:
-    x = mkcl_type_error(env, MK_CL_ceiling,"argument",x,MK_CL_real);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_ceiling,"argument",x,(mkcl_object) &MK_CL_real);
     goto AGAIN;
   }
   mkcl_return_2_values(v0, v1);
 }
 
-struct mkcl_cfun mk_cl_ceiling_cfunobj = MKCL_CFUN_VA(mk_cl_ceiling, MK_CL_ceiling);
+struct mkcl_cfun mk_cl_ceiling_cfunobj = MKCL_CFUN_VA(mk_cl_ceiling, (mkcl_object) &MK_CL_ceiling);
 
 mkcl_object mk_cl_ceiling(MKCL, mkcl_narg narg, mkcl_object x, ...)
 {
   mkcl_call_stack_check(env);
   {
     mkcl_object y = MKCL_OBJNULL;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_ceiling, narg, 1, x, &y);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_ceiling, narg, 1, x, &y);
 
     if (narg == 1)
       x = mkcl_ceiling1(env, x);
@@ -711,7 +711,7 @@ mkcl_truncate1(MKCL, mkcl_object x)
   }
 #endif
   default:
-    x = mkcl_type_error(env, MK_CL_truncate,"argument",x,MK_CL_real);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_truncate,"argument",x,(mkcl_object) &MK_CL_real);
     goto AGAIN;
   }
   mkcl_return_2_values(v0, v1);
@@ -726,14 +726,14 @@ mkcl_truncate2(MKCL, mkcl_object x, mkcl_object y)
     return mkcl_floor2(env, x, y);
 }
 
-struct mkcl_cfun mk_cl_truncate_cfunobj = MKCL_CFUN_VA(mk_cl_truncate, MK_CL_truncate);
+struct mkcl_cfun mk_cl_truncate_cfunobj = MKCL_CFUN_VA(mk_cl_truncate, (mkcl_object) &MK_CL_truncate);
 
 mkcl_object mk_cl_truncate(MKCL, mkcl_narg narg, mkcl_object x, ...)
 {
   mkcl_call_stack_check(env);
   {
     mkcl_object y = MKCL_OBJNULL;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_truncate, narg, 1, x, &y);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_truncate, narg, 1, x, &y);
 
     if (narg == 1)
       x = mkcl_truncate1(env, x);
@@ -822,7 +822,7 @@ mkcl_round1(MKCL, mkcl_object x)
   }
 #endif
   default:
-    x = mkcl_type_error(env, MK_CL_round,"argument",x,MK_CL_real);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_round,"argument",x,(mkcl_object) &MK_CL_real);
     goto AGAIN;
   }
   mkcl_return_2_values(v0, v1);
@@ -866,14 +866,14 @@ mkcl_round2(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_2_values(v0, v1);
 }
 
-struct mkcl_cfun mk_cl_round_cfunobj = MKCL_CFUN_VA(mk_cl_round, MK_CL_round);
+struct mkcl_cfun mk_cl_round_cfunobj = MKCL_CFUN_VA(mk_cl_round, (mkcl_object) &MK_CL_round);
 
 mkcl_object mk_cl_round(MKCL, mkcl_narg narg, mkcl_object x, ...)
 {
   mkcl_call_stack_check(env);
   {
     mkcl_object y = MKCL_OBJNULL;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_round, narg, 1, x, &y);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_round, narg, 1, x, &y);
 
     if (narg == 1)
       x = mkcl_round1(env, x);
@@ -884,7 +884,7 @@ mkcl_object mk_cl_round(MKCL, mkcl_narg narg, mkcl_object x, ...)
 }
 
 
-struct mkcl_cfun mk_cl_mod_cfunobj = MKCL_CFUN2(mk_cl_mod, MK_CL_mod);
+struct mkcl_cfun mk_cl_mod_cfunobj = MKCL_CFUN2(mk_cl_mod, (mkcl_object) &MK_CL_mod);
 
 mkcl_object
 mk_cl_mod(MKCL, mkcl_object x, mkcl_object y)
@@ -895,7 +895,7 @@ mk_cl_mod(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_value(MKCL_VALUES(1));
 }
 
-struct mkcl_cfun mk_cl_rem_cfunobj = MKCL_CFUN2(mk_cl_rem, MK_CL_rem);
+struct mkcl_cfun mk_cl_rem_cfunobj = MKCL_CFUN2(mk_cl_rem, (mkcl_object) &MK_CL_rem);
 
 mkcl_object
 mk_cl_rem(MKCL, mkcl_object x, mkcl_object y)
@@ -905,7 +905,7 @@ mk_cl_rem(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_value(MKCL_VALUES(1));
 }
 
-struct mkcl_cfun mk_cl_decode_float_cfunobj = MKCL_CFUN1(mk_cl_decode_float, MK_CL_decode_float);
+struct mkcl_cfun mk_cl_decode_float_cfunobj = MKCL_CFUN1(mk_cl_decode_float, (mkcl_object) &MK_CL_decode_float);
 
 mkcl_object
 mk_cl_decode_float(MKCL, mkcl_object x)
@@ -958,13 +958,13 @@ mk_cl_decode_float(MKCL, mkcl_object x)
   }
 #endif
   default:
-    x = mkcl_type_error(env, MK_CL_decode_float,"argument",x,MK_CL_float);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_decode_float,"argument",x,(mkcl_object) &MK_CL_float);
     goto AGAIN;
   }
   mkcl_return_3_values(x, MKCL_MAKE_FIXNUM(e), sign);
 }
 
-struct mkcl_cfun mk_cl_scale_float_cfunobj = MKCL_CFUN2(mk_cl_scale_float, MK_CL_scale_float);
+struct mkcl_cfun mk_cl_scale_float_cfunobj = MKCL_CFUN2(mk_cl_scale_float, (mkcl_object) &MK_CL_scale_float);
 
 mkcl_object
 mk_cl_scale_float(MKCL, mkcl_object x, mkcl_object y)
@@ -976,7 +976,7 @@ mk_cl_scale_float(MKCL, mkcl_object x, mkcl_object y)
   if (MKCL_FIXNUMP(y)) {
     k = mkcl_fixnum_to_word(y);
   } else {
-    y = mkcl_type_error(env, MK_CL_scale_float,"exponent",y,MK_CL_fixnum);
+    y = mkcl_type_error(env, (mkcl_object) &MK_CL_scale_float,"exponent",y,(mkcl_object) &MK_CL_fixnum);
     goto AGAIN;
   }
   switch (mkcl_type_of(x)) {
@@ -992,25 +992,25 @@ mk_cl_scale_float(MKCL, mkcl_object x, mkcl_object y)
     break;
 #endif
   default:
-    x = mkcl_type_error(env, MK_CL_scale_float, "argument", x, MK_CL_float);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_scale_float, "argument", x, (mkcl_object) &MK_CL_float);
     goto AGAIN;
   }
   mkcl_return_value(x);
 }
 
-struct mkcl_cfun mk_cl_float_radix_cfunobj = MKCL_CFUN1(mk_cl_float_radix, MK_CL_float_radix);
+struct mkcl_cfun mk_cl_float_radix_cfunobj = MKCL_CFUN1(mk_cl_float_radix, (mkcl_object) &MK_CL_float_radix);
 
 mkcl_object
 mk_cl_float_radix(MKCL, mkcl_object x)
 {
   mkcl_call_stack_check(env);
   while (mk_cl_floatp(env, x) != mk_cl_Ct) {
-    x = mkcl_type_error(env, MK_CL_float_radix, "argument", x, MK_CL_float);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_float_radix, "argument", x, (mkcl_object) &MK_CL_float);
   }
   mkcl_return_value(MKCL_MAKE_FIXNUM(FLT_RADIX));
 }
 
-struct mkcl_cfun mk_cl_float_sign_cfunobj = MKCL_CFUN_VA(mk_cl_float_sign, MK_CL_float_sign);
+struct mkcl_cfun mk_cl_float_sign_cfunobj = MKCL_CFUN_VA(mk_cl_float_sign, (mkcl_object) &MK_CL_float_sign);
 
 mkcl_object mk_cl_float_sign(MKCL, mkcl_narg narg, mkcl_object x, ...)
 {
@@ -1019,7 +1019,7 @@ mkcl_object mk_cl_float_sign(MKCL, mkcl_narg narg, mkcl_object x, ...)
 
     int negativep;
     mkcl_object y = mk_cl_float(env, 2, MKCL_MAKE_FIXNUM(1), x);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_float_sign, narg, 1, x, &y);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_float_sign, narg, 1, x, &y);
 
   AGAIN:
     switch (mkcl_type_of(x)) {
@@ -1035,7 +1035,7 @@ mkcl_object mk_cl_float_sign(MKCL, mkcl_narg narg, mkcl_object x, ...)
       break;
 #endif
     default:
-      x = mkcl_type_error(env, MK_CL_float_sign,"argument",x,MK_CL_float);
+      x = mkcl_type_error(env, (mkcl_object) &MK_CL_float_sign,"argument",x,(mkcl_object) &MK_CL_float);
       goto AGAIN;
     }
     switch (mkcl_type_of(y)) {
@@ -1060,14 +1060,14 @@ mkcl_object mk_cl_float_sign(MKCL, mkcl_narg narg, mkcl_object x, ...)
       break;
 #endif
     default:
-      y = mkcl_type_error(env, MK_CL_float_sign, "prototype", y, MK_CL_float);
+      y = mkcl_type_error(env, (mkcl_object) &MK_CL_float_sign, "prototype", y, (mkcl_object) &MK_CL_float);
       goto AGAIN;
     }
     mkcl_return_value(y);
   }
 }
 
-struct mkcl_cfun mk_cl_float_digits_cfunobj = MKCL_CFUN1(mk_cl_float_digits, MK_CL_float_digits);
+struct mkcl_cfun mk_cl_float_digits_cfunobj = MKCL_CFUN1(mk_cl_float_digits, (mkcl_object) &MK_CL_float_digits);
 
 mkcl_object
 mk_cl_float_digits(MKCL, mkcl_object x)
@@ -1087,13 +1087,13 @@ mk_cl_float_digits(MKCL, mkcl_object x)
     break;
 #endif
   default:
-    x = mkcl_type_error(env, MK_CL_float_digits, "argument", x, MK_CL_float);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_float_digits, "argument", x, (mkcl_object) &MK_CL_float);
     goto AGAIN;
   }
   mkcl_return_value(x);
 }
 
-struct mkcl_cfun mk_cl_float_precision_cfunobj = MKCL_CFUN1(mk_cl_float_precision, MK_CL_float_precision);
+struct mkcl_cfun mk_cl_float_precision_cfunobj = MKCL_CFUN1(mk_cl_float_precision, (mkcl_object) &MK_CL_float_precision);
 
 mkcl_object
 mk_cl_float_precision(MKCL, mkcl_object x)
@@ -1154,13 +1154,13 @@ mk_cl_float_precision(MKCL, mkcl_object x)
     break;
 #endif
   default:
-    x = mkcl_type_error(env, MK_CL_float_precision, "argument", x, MK_CL_float);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_float_precision, "argument", x, (mkcl_object) &MK_CL_float);
     goto AGAIN;
   }
   mkcl_return_value(MKCL_MAKE_FIXNUM(precision));
 }
 
-struct mkcl_cfun mk_cl_integer_decode_float_cfunobj = MKCL_CFUN1(mk_cl_integer_decode_float, MK_CL_integer_decode_float);
+struct mkcl_cfun mk_cl_integer_decode_float_cfunobj = MKCL_CFUN1(mk_cl_integer_decode_float, (mkcl_object) &MK_CL_integer_decode_float);
 
 mkcl_object
 mk_cl_integer_decode_float(MKCL, mkcl_object x)
@@ -1225,27 +1225,27 @@ mk_cl_integer_decode_float(MKCL, mkcl_object x)
     }
     break;
   default:
-    x = mkcl_type_error(env, MK_CL_integer_decode_float, "argument", x, MK_CL_float);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_integer_decode_float, "argument", x, (mkcl_object) &MK_CL_float);
     goto AGAIN;
   }
   mkcl_return_3_values(x, MKCL_MAKE_FIXNUM(e), MKCL_MAKE_FIXNUM(s));
 }
 
 
-struct mkcl_cfun mk_cl_complex_cfunobj = MKCL_CFUN_VA(mk_cl_complex, MK_CL_complex);
+struct mkcl_cfun mk_cl_complex_cfunobj = MKCL_CFUN_VA(mk_cl_complex, (mkcl_object) &MK_CL_complex);
 
 mkcl_object mk_cl_complex(MKCL, mkcl_narg narg, mkcl_object r, ...)
 {
   mkcl_call_stack_check(env);
   {
     mkcl_object i = MKCL_MAKE_FIXNUM(0);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_floor, narg, 1, r, &i);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_floor, narg, 1, r, &i);
 
     mkcl_return_value(mkcl_make_complex(env, r, i));
   }
 }
 
-struct mkcl_cfun mk_cl_realpart_cfunobj = MKCL_CFUN1(mk_cl_realpart, MK_CL_realpart);
+struct mkcl_cfun mk_cl_realpart_cfunobj = MKCL_CFUN1(mk_cl_realpart, (mkcl_object) &MK_CL_realpart);
 
 mkcl_object
 mk_cl_realpart(MKCL, mkcl_object x)
@@ -1266,13 +1266,13 @@ mk_cl_realpart(MKCL, mkcl_object x)
     x = x->_complex.real;
     break;
   default:
-    x = mkcl_type_error(env, MK_CL_realpart, "argument", x, MK_CL_number);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_realpart, "argument", x, (mkcl_object) &MK_CL_number);
     goto AGAIN;
   }
   mkcl_return_value(x);
 }
 
-struct mkcl_cfun mk_cl_imagpart_cfunobj = MKCL_CFUN1(mk_cl_imagpart, MK_CL_imagpart);
+struct mkcl_cfun mk_cl_imagpart_cfunobj = MKCL_CFUN1(mk_cl_imagpart, (mkcl_object) &MK_CL_imagpart);
 
 mkcl_object
 mk_cl_imagpart(MKCL, mkcl_object x)
@@ -1309,7 +1309,7 @@ mk_cl_imagpart(MKCL, mkcl_object x)
     x = x->_complex.imag;
     break;
   default:
-    x = mkcl_type_error(env, MK_CL_imagpart, "argument", x, MK_CL_number);
+    x = mkcl_type_error(env, (mkcl_object) &MK_CL_imagpart, "argument", x, (mkcl_object) &MK_CL_number);
     goto AGAIN;
   }
   mkcl_return_value(x);

@@ -152,7 +152,7 @@ mk_si_set_raw_funcallable(MKCL, mkcl_object instance, mkcl_object function)
 {
   mkcl_call_stack_check(env);
   if (!MKCL_INSTANCEP(instance))
-    mkcl_FEwrong_type_argument(env, MK_SI_instance, instance);
+    mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_SI_instance, instance);
   if (mkcl_Null(function)) {
     if (instance->instance.isgf == 2) {
       int length = instance->instance.length-1;
@@ -189,14 +189,14 @@ mk_si_set_raw_funcallable(MKCL, mkcl_object instance, mkcl_object function)
   mkcl_return_value(instance);
 }
 
-struct mkcl_cfun mk_clos_set_funcallable_instance_function_cfunobj = MKCL_CFUN2(mk_clos_set_funcallable_instance_function, MK_CLOS_set_funcallable_instance_function);
+struct mkcl_cfun mk_clos_set_funcallable_instance_function_cfunobj = MKCL_CFUN2(mk_clos_set_funcallable_instance_function, (mkcl_object) &MK_CLOS_set_funcallable_instance_function);
 
 mkcl_object
 mk_clos_set_funcallable_instance_function(MKCL, mkcl_object x, mkcl_object function_or_t)
 {
   mkcl_call_stack_check(env);
   if (!MKCL_INSTANCEP(x))
-    mkcl_FEwrong_type_argument(env, MK_SI_instance, x);
+    mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_SI_instance, x);
   if (x->instance.isgf == MKCL_USER_DISPATCH) {
     reshape_instance(env, x, -1);
     x->instance.isgf = MKCL_NOT_FUNCALLABLE;
@@ -218,7 +218,7 @@ mk_clos_set_funcallable_instance_function(MKCL, mkcl_object x, mkcl_object funct
     x->instance.f._[3] = mkcl_FEnot_funcallable_fixed;
     x->instance.f._[4] = mkcl_FEnot_funcallable_fixed;
   } else if (mkcl_Null(mk_cl_functionp(env, function_or_t))) {
-    mkcl_FEwrong_type_argument(env, MK_CL_function, function_or_t);
+    mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_CL_function, function_or_t);
   } else {
     reshape_instance(env, x, +1);
     x->instance.slots[x->instance.length - 1] = function_or_t;
@@ -233,7 +233,7 @@ mk_clos_set_funcallable_instance_function(MKCL, mkcl_object x, mkcl_object funct
   mkcl_return_value(x);
 }
 
-struct mkcl_cfun mk_si_generic_function_p_cfunobj = MKCL_CFUN1(mk_si_generic_function_p, MK_SI_generic_function_p);
+struct mkcl_cfun mk_si_generic_function_p_cfunobj = MKCL_CFUN1(mk_si_generic_function_p, (mkcl_object) &MK_SI_generic_function_p);
 
 mkcl_object
 mk_si_generic_function_p(MKCL, mkcl_object x)
@@ -296,7 +296,7 @@ _mkcl_set_method_hash_size(struct mkcl_env_struct *env, mkcl_index size)
   do_clear_method_hash(env, mk_cl_Ct);
 }
 
-struct mkcl_cfun mk_si_clear_gfun_cache_cfunobj = MKCL_CFUN1(mk_si_clear_gfun_cache, MK_SI_clear_gfun_cache);
+struct mkcl_cfun mk_si_clear_gfun_cache_cfunobj = MKCL_CFUN1(mk_si_clear_gfun_cache, (mkcl_object) &MK_SI_clear_gfun_cache);
 
 mkcl_object
 mk_si_clear_gfun_cache(MKCL, mkcl_object what)
@@ -482,7 +482,7 @@ compute_applicable_method(MKCL, mkcl_object frame, mkcl_object gf)
        p != frame->frame.base; ) {
     arglist = MKCL_CONS(env, *(--p), arglist);
   }
-  return mkcl_funcall2(env, MK_CLOS_compute_effective_method_for_cache->symbol.gfdef, gf, arglist);
+  return mkcl_funcall2(env, MK_CLOS_compute_effective_method_for_cache.gfdef, gf, arglist);
 }
 
 mkcl_object

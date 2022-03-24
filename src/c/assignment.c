@@ -38,7 +38,7 @@ static pthread_mutex_t system_properties_lock;
 # error Incomplete definition of SYSTEM_PROPERTIES_LOCK().
 #endif
 
-struct mkcl_cfun mk_cl_set_cfunobj = MKCL_CFUN2(mk_cl_set, MK_CL_set);
+struct mkcl_cfun mk_cl_set_cfunobj = MKCL_CFUN2(mk_cl_set, (mkcl_object) &MK_CL_set);
 
 mkcl_object
 mk_cl_set(MKCL, mkcl_object var, mkcl_object val)
@@ -52,7 +52,7 @@ mk_cl_set(MKCL, mkcl_object var, mkcl_object val)
   mkcl_return1(val);
 }
 
-struct mkcl_cfun mk_si_fset_cfunobj = MKCL_CFUN_VA(mk_si_fset, MK_SI_fset);
+struct mkcl_cfun mk_si_fset_cfunobj = MKCL_CFUN_VA(mk_si_fset, (mkcl_object) &MK_SI_fset);
 
 mkcl_object mk_si_fset(MKCL, mkcl_narg narg, mkcl_object fname, mkcl_object def, ...)
 {
@@ -64,7 +64,7 @@ mkcl_object mk_si_fset(MKCL, mkcl_narg narg, mkcl_object fname, mkcl_object def,
     int type;
     mkcl_object macro = mk_cl_Cnil;
     mkcl_object pprint = mk_cl_Cnil;
-    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, MK_SI_fset, narg, 2, def, &macro, &pprint);
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, (mkcl_object) &MK_SI_fset, narg, 2, def, &macro, &pprint);
 
     if (mkcl_Null(sym)) sym = ((mkcl_object) &mk_cl_Cnil_symbol);
     if (mkcl_Null(mk_cl_functionp(env, def))) mkcl_FEinvalid_function(env, def);
@@ -93,16 +93,16 @@ mkcl_object mk_si_fset(MKCL, mkcl_narg narg, mkcl_object fname, mkcl_object def,
     } else {
       if (mflag)
         mkcl_FEerror(env, "~S is not a valid name for a macro.", 1, fname);
-      mk_si_put_sysprop(env, sym, MK_SI_setf_symbol, def);
-      mk_si_rem_sysprop(env, sym, MK_SI_setf_lambda);
-      mk_si_rem_sysprop(env, sym, MK_SI_setf_method);
-      mk_si_rem_sysprop(env, sym, MK_SI_setf_update);
+      mk_si_put_sysprop(env, sym, (mkcl_object) &MK_SI_setf_symbol, def);
+      mk_si_rem_sysprop(env, sym, (mkcl_object) &MK_SI_setf_lambda);
+      mk_si_rem_sysprop(env, sym, (mkcl_object) &MK_SI_setf_method);
+      mk_si_rem_sysprop(env, sym, (mkcl_object) &MK_SI_setf_update);
     }
     mkcl_return_value(def);
   }
  }
 
-struct mkcl_cfun mk_cl_makunbound_cfunobj = MKCL_CFUN1(mk_cl_makunbound, MK_CL_makunbound);
+struct mkcl_cfun mk_cl_makunbound_cfunobj = MKCL_CFUN1(mk_cl_makunbound, (mkcl_object) &MK_CL_makunbound);
 
 mkcl_object
 mk_cl_makunbound(MKCL, mkcl_object sym)
@@ -114,7 +114,7 @@ mk_cl_makunbound(MKCL, mkcl_object sym)
   mkcl_return_value(sym);
 }
 
-struct mkcl_cfun mk_cl_fmakunbound_cfunobj = MKCL_CFUN1(mk_cl_fmakunbound, MK_CL_fmakunbound);
+struct mkcl_cfun mk_cl_fmakunbound_cfunobj = MKCL_CFUN1(mk_cl_fmakunbound, (mkcl_object) &MK_CL_fmakunbound);
 
 mkcl_object
 mk_cl_fmakunbound(MKCL, mkcl_object fname)
@@ -132,16 +132,16 @@ mk_cl_fmakunbound(MKCL, mkcl_object fname)
     mkcl_symbol_type_set(env, sym, mkcl_symbol_type(env, sym) & ~mkcl_stp_macro);
     MKCL_SYM_FUN(sym) = mk_cl_Cnil;
   } else {
-    mk_si_rem_sysprop(env, sym, MK_SI_setf_symbol);
-    mk_si_rem_sysprop(env, sym, MK_SI_setf_lambda);
-    mk_si_rem_sysprop(env, sym, MK_SI_setf_method);
-    mk_si_rem_sysprop(env, sym, MK_SI_setf_update);
+    mk_si_rem_sysprop(env, sym, (mkcl_object) &MK_SI_setf_symbol);
+    mk_si_rem_sysprop(env, sym, (mkcl_object) &MK_SI_setf_lambda);
+    mk_si_rem_sysprop(env, sym, (mkcl_object) &MK_SI_setf_method);
+    mk_si_rem_sysprop(env, sym, (mkcl_object) &MK_SI_setf_update);
   }
   mkcl_return_value(fname);
 }
 
 
-struct mkcl_cfun mk_si_get_sysprop_cfunobj = MKCL_CFUN2(mk_si_get_sysprop, MK_SI_get_sysprop);
+struct mkcl_cfun mk_si_get_sysprop_cfunobj = MKCL_CFUN2(mk_si_get_sysprop, (mkcl_object) &MK_SI_get_sysprop);
 
 mkcl_object
 mk_si_get_sysprop(MKCL, mkcl_object sym, mkcl_object prop)
@@ -170,7 +170,7 @@ mk_si_get_sysprop(MKCL, mkcl_object sym, mkcl_object prop)
     }
 }
 
-struct mkcl_cfun mk_si_put_sysprop_cfunobj = MKCL_CFUN3(mk_si_put_sysprop, MK_SI_put_sysprop);
+struct mkcl_cfun mk_si_put_sysprop_cfunobj = MKCL_CFUN3(mk_si_put_sysprop, (mkcl_object) &MK_SI_put_sysprop);
 
 mkcl_object
 mk_si_put_sysprop(MKCL, mkcl_object sym, mkcl_object prop, mkcl_object value)
@@ -216,7 +216,7 @@ mk_si_put_sysprop(MKCL, mkcl_object sym, mkcl_object prop, mkcl_object value)
     }
 }
 
-struct mkcl_cfun mk_si_rem_sysprop_cfunobj = MKCL_CFUN2(mk_si_rem_sysprop, MK_SI_rem_sysprop);
+struct mkcl_cfun mk_si_rem_sysprop_cfunobj = MKCL_CFUN2(mk_si_rem_sysprop, (mkcl_object) &MK_SI_rem_sysprop);
 
 mkcl_object
 mk_si_rem_sysprop(MKCL, mkcl_object sym, mkcl_object prop)
@@ -267,7 +267,7 @@ mk_si_rem_sysprop(MKCL, mkcl_object sym, mkcl_object prop)
     }
 }
 
-struct mkcl_cfun mk_si_system_properties_cfunobj = MKCL_CFUN0(mk_si_system_properties, MK_SI_system_properties);
+struct mkcl_cfun mk_si_system_properties_cfunobj = MKCL_CFUN0(mk_si_system_properties, (mkcl_object) &MK_SI_system_properties);
 
 mkcl_object
 mk_si_system_properties(MKCL)
@@ -281,7 +281,7 @@ mk_si_system_properties(MKCL)
 void mkcl_init_system_properties(MKCL)
 {
   mkcl_core.system_properties =
-    mk_cl__make_hash_table(env, MK_CL_equal, MKCL_MAKE_FIXNUM(1024), /* size */
+    mk_cl__make_hash_table(env, (mkcl_object) &MK_CL_equal, MKCL_MAKE_FIXNUM(1024), /* size */
 			   mkcl_make_singlefloat(env, 1.5f), /* rehash-size */
 			   mkcl_make_singlefloat(env, 0.75f)); /* rehash-threshold */
 

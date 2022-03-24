@@ -288,11 +288,10 @@ extern "C" {
 
 #define mk_cl_Cnil              ((mkcl_object) NULL)
 
-# define mk_cl_Cnil_symbol        mkcl_core.Cnil_symbol
-# define mk_cl_Ct_symbol          mkcl_core.Ct_symbol
-# define mk_si_unbound_symbol     mkcl_core.unbound_symbol
-# define mk_si_protect_tag_symbol mkcl_core.protect_tag_symbol
-
+#define mk_cl_Cnil_symbol        (mkcl_cl_external_symbols[0])
+#define mk_cl_Ct_symbol          (mkcl_cl_external_symbols[1])
+#define mk_si_unbound_symbol     (mkcl_si_external_symbols[0])
+#define mk_si_protect_tag_symbol (mkcl_si_external_symbols[1])
 
 #define	mk_cl_Ct		((mkcl_object) &mk_cl_Ct_symbol)
 #define MK_SI_UNBOUND		((mkcl_object) &mk_si_unbound_symbol)

@@ -77,6 +77,16 @@ extern "C" {
   extern bool mkcl_early_boot;
   extern mkcl_jmp_buf mkcl_early_boot_error_handler;
 
+  extern mkcl_object mkcl_setup_package_cl(void);
+  extern mkcl_object mkcl_setup_package_si(void);
+  extern mkcl_object mkcl_setup_package_keyword(void);
+  extern mkcl_object mkcl_setup_package_gray(void);
+  extern mkcl_object mkcl_setup_package_clos(void);
+  extern mkcl_object mkcl_setup_package_mkcl(void);
+  extern mkcl_object mkcl_setup_package_mt(void);
+  extern mkcl_object mkcl_setup_package_ffi(void);
+  extern mkcl_object mkcl_setup_package_user(void);
+
 
   /* array.d */
 
@@ -115,10 +125,6 @@ extern "C" {
   mkcl_object mkcl_wrong_num_args_cfun_3(MKCL);
   mkcl_object mkcl_wrong_num_args_cfun_4(MKCL);
   mkcl_object mkcl_wrong_num_args_cfun_va(MKCL, mkcl_narg narg, ...);
-
-#if 0
-  extern const mkcl_objectfn const mkcl_cfun_dispatch_table[64];
-#endif
 
 
 #define MKCL_CFUN0(fun, name)			\
@@ -262,11 +268,11 @@ extern "C" {
 	}
 
 
-mkcl_object mkcl_fun_va_trampoline_f0(MKCL);
-mkcl_object mkcl_fun_va_trampoline_f1(MKCL, mkcl_object x1);
-mkcl_object mkcl_fun_va_trampoline_f2(MKCL, mkcl_object x1, mkcl_object x2);
-mkcl_object mkcl_fun_va_trampoline_f3(MKCL, mkcl_object x1, mkcl_object x2, mkcl_object x3);
-mkcl_object mkcl_fun_va_trampoline_f4(MKCL, mkcl_object x1, mkcl_object x2, mkcl_object x3, mkcl_object x4);
+  mkcl_object mkcl_fun_va_trampoline_f0(MKCL);
+  mkcl_object mkcl_fun_va_trampoline_f1(MKCL, mkcl_object x1);
+  mkcl_object mkcl_fun_va_trampoline_f2(MKCL, mkcl_object x1, mkcl_object x2);
+  mkcl_object mkcl_fun_va_trampoline_f3(MKCL, mkcl_object x1, mkcl_object x2, mkcl_object x3);
+  mkcl_object mkcl_fun_va_trampoline_f4(MKCL, mkcl_object x1, mkcl_object x2, mkcl_object x3, mkcl_object x4);
 
 #define MKCL_CFUN_VA(fun, name)			\
   {						\
@@ -546,6 +552,8 @@ mkcl_object mkcl_fun_va_trampoline_f4(MKCL, mkcl_object x1, mkcl_object x2, mkcl
 
   extern void mkcl_package_sethash_new(MKCL, const mkcl_object key, const mkcl_object hashtable, const mkcl_object value, const mkcl_hash_value hashed_key);
 
+  extern struct mkcl_hashtable_entry * mkcl_search_hash_package(MKCL, mkcl_object key, mkcl_object hashtable);
+  extern bool mkcl_equality_fun_package(MKCL, mkcl_object s1, mkcl_object s2);
 
 
   /* gfun.d, clos/kernel.lsp */
@@ -562,6 +570,23 @@ mkcl_object mkcl_fun_va_trampoline_f4(MKCL, mkcl_object x1, mkcl_object x2, mkcl
   extern mkcl_object mkcl_find_symbol_nolock(MKCL, mkcl_object name, mkcl_object p, int *intern_flag);
   extern mkcl_object _mkcl_alloc_package(MKCL, mkcl_object name);
   extern mkcl_object _mkcl_alloc_sized_package(MKCL, mkcl_object name, mkcl_index internal_count, mkcl_index external_count);
+
+  extern struct mkcl_symbol mkcl_ffi_external_symbols[];
+  extern struct mkcl_symbol mkcl_ffi_internal_symbols[];
+  extern struct mkcl_symbol mkcl_mt_external_symbols[];
+  extern struct mkcl_symbol mkcl_mt_internal_symbols[];
+  extern struct mkcl_symbol mkcl_mkcl_external_symbols[];
+  extern struct mkcl_symbol mkcl_mkcl_internal_symbols[];
+  extern struct mkcl_symbol mkcl_clos_external_symbols[];
+  extern struct mkcl_symbol mkcl_clos_internal_symbols[];
+  extern struct mkcl_symbol mkcl_gray_external_symbols[];
+  extern struct mkcl_symbol mkcl_gray_internal_symbols[];
+  extern struct mkcl_symbol mkcl_keyword_external_symbols[];
+  extern struct mkcl_symbol mkcl_si_external_symbols[];
+  extern struct mkcl_symbol mkcl_si_internal_symbols[];
+  extern struct mkcl_symbol mkcl_cl_external_symbols[];
+  extern struct mkcl_symbol mkcl_cl_internal_symbols[];
+
 
   /* print.d */
 
@@ -692,13 +717,13 @@ mkcl_object mkcl_fun_va_trampoline_f4(MKCL, mkcl_object x1, mkcl_object x2, mkcl
   void mkcl_deliver_fpe(MKCL);
 
 
-#include <mkcl/C_exported_symbols_in_CL.h>
-#include <mkcl/C_exported_symbols_in_CLOS.h>
-#include <mkcl/C_exported_symbols_in_GRAY.h>
-#include <mkcl/C_exported_symbols_in_KEYWORDS.h>
-#include <mkcl/C_exported_symbols_in_MKCL.h>
-#include <mkcl/C_exported_symbols_in_MT.h>
-#include <mkcl/C_exported_symbols_in_SI.h>
+#include <mkcl/expose_symbols_in_CL.h>
+#include <mkcl/expose_symbols_in_SI.h>
+#include <mkcl/expose_symbols_in_KEYWORD.h>
+#include <mkcl/expose_symbols_in_CLOS.h>
+#include <mkcl/expose_symbols_in_MKCL.h>
+#include <mkcl/expose_symbols_in_GRAY.h>
+#include <mkcl/expose_symbols_in_MT.h>
 
 #ifdef __cplusplus
 }

@@ -21,7 +21,7 @@
 #include <mkcl/mkcl-inl.h>
 #include <mkcl/internal.h>
 
-struct mkcl_cfun mk_si_apply_from_temp_stack_frame_cfunobj = MKCL_CFUN2(mk_si_apply_from_temp_stack_frame, MK_SI_apply_from_temp_stack_frame);
+struct mkcl_cfun mk_si_apply_from_temp_stack_frame_cfunobj = MKCL_CFUN2(mk_si_apply_from_temp_stack_frame, (mkcl_object) &MK_SI_apply_from_temp_stack_frame);
 
 mkcl_object
 mkcl_apply_from_temp_stack_frame(MKCL, mkcl_object frame, mkcl_object x)
@@ -64,7 +64,7 @@ mkcl_apply_from_temp_stack_frame(MKCL, mkcl_object frame, mkcl_object x)
 }
 
 
-struct mkcl_cfun mk_cl_funcall_cfunobj = MKCL_CFUN_VA(mk_cl_funcall, MK_CL_funcall);
+struct mkcl_cfun mk_cl_funcall_cfunobj = MKCL_CFUN_VA(mk_cl_funcall, (mkcl_object) &MK_CL_funcall);
 
 mkcl_object
 mk_cl_funcall(MKCL, mkcl_narg narg, mkcl_object function, ...)
@@ -129,13 +129,13 @@ mk_cl_funcall(MKCL, mkcl_narg narg, mkcl_object function, ...)
   return output;
 }
 
-struct mkcl_cfun mk_cl_apply_cfunobj = MKCL_CFUN_VA(mk_cl_apply, MK_CL_apply);
+struct mkcl_cfun mk_cl_apply_cfunobj = MKCL_CFUN_VA(mk_cl_apply, (mkcl_object) &MK_CL_apply);
 
 mkcl_object mk_cl_apply(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_object lastarg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_CL_apply, 2, narg, lastarg, args);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_CL_apply, 2, narg, lastarg, args);
 
     if (narg == 2 && mkcl_type_of(lastarg) == mkcl_t_temp_stack_frame) {
       {
@@ -267,7 +267,7 @@ mkcl_object mk_cl_apply(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_object lasta
   }
 }
 
-struct mkcl_cfun mk_cl_eval_cfunobj = MKCL_CFUN1(mk_cl_eval, MK_CL_eval);
+struct mkcl_cfun mk_cl_eval_cfunobj = MKCL_CFUN1(mk_cl_eval, (mkcl_object) &MK_CL_eval);
 
 mkcl_object
 mk_cl_eval(MKCL, mkcl_object form)
@@ -276,7 +276,7 @@ mk_cl_eval(MKCL, mkcl_object form)
   return mk_si_eval_in_env(env, 1, form);
 }
 
-struct mkcl_cfun mk_cl_constantp_cfunobj = MKCL_CFUN_VA(mk_cl_constantp, MK_CL_constantp);
+struct mkcl_cfun mk_cl_constantp_cfunobj = MKCL_CFUN_VA(mk_cl_constantp, (mkcl_object) &MK_CL_constantp);
 
 mkcl_object mk_cl_constantp(MKCL, mkcl_narg narg, mkcl_object arg, ...)
 {
@@ -284,11 +284,11 @@ mkcl_object mk_cl_constantp(MKCL, mkcl_narg narg, mkcl_object arg, ...)
   {
     mkcl_object flag;
     mkcl_object lex_env = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_constantp, narg, 1, arg, &lex_env);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_constantp, narg, 1, arg, &lex_env);
 
     switch (mkcl_type_of(arg)) {
     case mkcl_t_cons:
-      if (MKCL_CAR(arg) == MK_CL_quote) {
+      if (MKCL_CAR(arg) == ((mkcl_object) &MK_CL_quote)) {
         flag = mk_cl_Ct;
       } else {
         flag = mk_cl_Cnil;

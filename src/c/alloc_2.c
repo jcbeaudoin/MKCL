@@ -101,7 +101,7 @@ static pthread_mutex_t oom_handler_lock;
  *		OBJECT ALLOCATION			  *
  **********************************************************/
 
-struct mkcl_cfun mk_si_set_heap_size_limit_cfunobj = MKCL_CFUN1(mk_si_set_heap_size_limit, MK_SI_set_heap_size_limit);
+struct mkcl_cfun mk_si_set_heap_size_limit_cfunobj = MKCL_CFUN1(mk_si_set_heap_size_limit, (mkcl_object) &MK_SI_set_heap_size_limit);
 
 mkcl_object
 mk_si_set_heap_size_limit(MKCL, mkcl_object size_limit) /* This function should acquire the OOM lock. */
@@ -125,7 +125,7 @@ mk_si_set_heap_size_limit(MKCL, mkcl_object size_limit) /* This function should 
   mkcl_return_value(size_limit);
 }
 
-struct mkcl_cfun mk_si_get_heap_size_limit_cfunobj = MKCL_CFUN0(mk_si_get_heap_size_limit, MK_SI_get_heap_size_limit);
+struct mkcl_cfun mk_si_get_heap_size_limit_cfunobj = MKCL_CFUN0(mk_si_get_heap_size_limit, (mkcl_object) &MK_SI_get_heap_size_limit);
 
 mkcl_object
 mk_si_get_heap_size_limit(MKCL) /* This function should acquire the OOM lock. */
@@ -160,7 +160,7 @@ static void grow_memory(MKCL)
       MK_GC_FREE(mkcl_core.safety_region);
       mkcl_core.safety_region = NULL;
       /* env->string_pool = mk_cl_Cnil; */
-      mk_cl_error(env, 1, MK_MKCL_storage_exhausted);
+      mk_cl_error(env, 1, (mkcl_object) &MK_MKCL_storage_exhausted);
     } else {
       /* No possibility of continuing */
       mkcl_lose(env, "Memory exhausted, quitting program.");
@@ -172,7 +172,7 @@ static void grow_memory(MKCL)
     MK_GC_set_max_heap_size(mkcl_core.max_heap_size);
     OUT_OF_MEMORY_UNLOCK();
     mkcl_set_interrupt_status(env, &old_intr);
-    mk_cl_cerror(env, 2, (mkcl_object) &extend_str_obj, MK_MKCL_storage_exhausted); /* Ask for extension */
+    mk_cl_cerror(env, 2, (mkcl_object) &extend_str_obj, (mkcl_object) &MK_MKCL_storage_exhausted); /* Ask for extension */
   }
 
   mkcl_disable_interrupts(env);
@@ -937,7 +937,7 @@ static struct mkcl_alloc_stats * mkcl_alloc_alloc_stats(MKCL)
   return stats;
 }
 
-struct mkcl_cfun mk_si_reset_allocation_statistics_cfunobj = MKCL_CFUN0(mk_si_reset_allocation_statistics, MK_SI_reset_allocation_statistics);
+struct mkcl_cfun mk_si_reset_allocation_statistics_cfunobj = MKCL_CFUN0(mk_si_reset_allocation_statistics, (mkcl_object) &MK_SI_reset_allocation_statistics);
 
 mkcl_object mk_si_reset_allocation_statistics(MKCL)
 {
@@ -1392,7 +1392,7 @@ static void call_finalizer_on_mkcl_object(void * obj, void * client_data)
     }
 }
 
-struct mkcl_cfun mk_si_get_finalizer_cfunobj = MKCL_CFUN1(mk_si_get_finalizer, MK_SI_get_finalizer);
+struct mkcl_cfun mk_si_get_finalizer_cfunobj = MKCL_CFUN1(mk_si_get_finalizer, (mkcl_object) &MK_SI_get_finalizer);
 
 mkcl_object
 mk_si_get_finalizer(MKCL, mkcl_object o)
@@ -1419,7 +1419,7 @@ mk_si_get_finalizer(MKCL, mkcl_object o)
   mkcl_return_value(output);
 }
 
-struct mkcl_cfun mk_si_set_finalizer_cfunobj = MKCL_CFUN2(mk_si_set_finalizer, MK_SI_set_finalizer);
+struct mkcl_cfun mk_si_set_finalizer_cfunobj = MKCL_CFUN2(mk_si_set_finalizer, (mkcl_object) &MK_SI_set_finalizer);
 
 mkcl_object
 mk_si_set_finalizer(MKCL, mkcl_object obj, mkcl_object finalizer)
@@ -1436,7 +1436,7 @@ mk_si_set_finalizer(MKCL, mkcl_object obj, mkcl_object finalizer)
   mkcl_return_no_value;
 }
 
-struct mkcl_cfun mk_si_gc_stats_cfunobj = MKCL_CFUN1(mk_si_gc_stats, MK_SI_gc_stats);
+struct mkcl_cfun mk_si_gc_stats_cfunobj = MKCL_CFUN1(mk_si_gc_stats, (mkcl_object) &MK_SI_gc_stats);
 
 mkcl_object
 mk_si_gc_stats(MKCL, mkcl_object enable)
@@ -1493,7 +1493,7 @@ mk_si_gc_stats(MKCL, mkcl_object enable)
                        old_status);
 }
 
-struct mkcl_cfun mk_si_mem_stats_cfunobj = MKCL_CFUN0(mk_si_mem_stats, MK_SI_mem_stats);
+struct mkcl_cfun mk_si_mem_stats_cfunobj = MKCL_CFUN0(mk_si_mem_stats, (mkcl_object) &MK_SI_mem_stats);
 
 mkcl_object
 mk_si_mem_stats(MKCL)
@@ -1533,7 +1533,7 @@ static void mkcl_count_GC_collections(void)
  *		GARBAGE COLLECTION			  *
  **********************************************************/
 
-struct mkcl_cfun mk_si_scrub_values_cfunobj = MKCL_CFUN0(mk_si_scrub_values, MK_SI_scrub_values);
+struct mkcl_cfun mk_si_scrub_values_cfunobj = MKCL_CFUN0(mk_si_scrub_values, (mkcl_object) &MK_SI_scrub_values);
 
 mkcl_object mk_si_scrub_values(MKCL)
 {
@@ -1545,14 +1545,14 @@ mkcl_object mk_si_scrub_values(MKCL)
   mkcl_return_no_value;
 }
 
-struct mkcl_cfun mk_si_gc_cfunobj = MKCL_CFUN_VA(mk_si_gc, MK_SI_gc);
+struct mkcl_cfun mk_si_gc_cfunobj = MKCL_CFUN_VA(mk_si_gc, (mkcl_object) &MK_SI_gc);
 
 mkcl_object mk_si_gc(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
     mkcl_object area = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_SI_gc, narg, 0, narg, &area);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_SI_gc, narg, 0, narg, &area);
     mk_si_trim_dynamic_cons_stack(env);
     mk_si_scrub_values(env);
     MKCL_GC_NO_INTR(env, MK_GC_gcollect());
@@ -1560,7 +1560,7 @@ mkcl_object mk_si_gc(MKCL, mkcl_narg narg, ...)
   }
 }
 
-struct mkcl_cfun mk_si_gc_dump_cfunobj = MKCL_CFUN0(mk_si_gc_dump, MK_SI_gc_dump);
+struct mkcl_cfun mk_si_gc_dump_cfunobj = MKCL_CFUN0(mk_si_gc_dump, (mkcl_object) &MK_SI_gc_dump);
 
 mkcl_object
 mk_si_gc_dump(MKCL)
@@ -1569,7 +1569,7 @@ mk_si_gc_dump(MKCL)
   mkcl_return_no_value;
 }
 
-struct mkcl_cfun mk_si_gc_off_cfunobj = MKCL_CFUN0(mk_si_gc_off, MK_SI_gc_off);
+struct mkcl_cfun mk_si_gc_off_cfunobj = MKCL_CFUN0(mk_si_gc_off, (mkcl_object) &MK_SI_gc_off);
 
 mkcl_object
 mk_si_gc_off(MKCL)
@@ -1578,7 +1578,7 @@ mk_si_gc_off(MKCL)
   mkcl_return_no_value;
 }
 
-struct mkcl_cfun mk_si_gc_on_cfunobj = MKCL_CFUN0(mk_si_gc_on, MK_SI_gc_on);
+struct mkcl_cfun mk_si_gc_on_cfunobj = MKCL_CFUN0(mk_si_gc_on, (mkcl_object) &MK_SI_gc_on);
 
 mkcl_object
 mk_si_gc_on(MKCL)
@@ -1596,7 +1596,7 @@ static void mkcl_GC_abort(const char * const msg)
   fflush(stderr);
 #endif
   if (env)
-    mk_mt_abandon_thread(env, MK_KEY_gc_abort);
+    mk_mt_abandon_thread(env, (mkcl_object) &MK_KEY_gc_abort);
   else
     mkcl_thread_exit(env, MKCL_GC_ABORT); /* This one should never be called unless we're really confused. */
 }
@@ -1611,7 +1611,7 @@ static void mkcl_GC_exit(const int status)
   fflush(stderr);
 #endif
   if (env)
-    mk_mt_abandon_thread(env, MK_KEY_gc_exit);
+    mk_mt_abandon_thread(env, (mkcl_object) &MK_KEY_gc_exit);
   else
     mkcl_thread_exit(env, MKCL_GC_EXIT); /* This one should never be called unless we're really confused. */
 }
@@ -1674,7 +1674,7 @@ mkcl_object mkcl_unpin(MKCL, mkcl_object pin)
 }
 #endif
 
-struct mkcl_cfun mk_si_sample_allocation_statistics_cfunobj = MKCL_CFUN0(mk_si_sample_allocation_statistics, MK_SI_sample_allocation_statistics);
+struct mkcl_cfun mk_si_sample_allocation_statistics_cfunobj = MKCL_CFUN0(mk_si_sample_allocation_statistics, (mkcl_object) &MK_SI_sample_allocation_statistics);
 
 mkcl_object mk_si_sample_allocation_statistics(MKCL)
 {
@@ -1685,89 +1685,89 @@ mkcl_object mk_si_sample_allocation_statistics(MKCL)
     struct mkcl_alloc_stats alloc = *(env->alloc); /* snapshot */
 
     if (alloc.process)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_MKCL_process, mkcl_make_unsigned_integer(env, alloc.process)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_MKCL_process, mkcl_make_unsigned_integer(env, alloc.process)), stats);
     if (alloc.UTF_16)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_SI_utf_16, mkcl_make_unsigned_integer(env, alloc.UTF_16)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_SI_utf_16, mkcl_make_unsigned_integer(env, alloc.UTF_16)), stats);
     if (alloc.UTF_8)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_SI_utf_8, mkcl_make_unsigned_integer(env, alloc.UTF_8)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_SI_utf_8, mkcl_make_unsigned_integer(env, alloc.UTF_8)), stats);
     if (alloc.clevel_block)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_SI_compiled_closure_level, mkcl_make_unsigned_integer(env, alloc.clevel_block)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_SI_compiled_closure_level, mkcl_make_unsigned_integer(env, alloc.clevel_block)), stats);
     if (alloc.cdisplay)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_SI_compiled_closure_display, mkcl_make_unsigned_integer(env, alloc.cdisplay)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_SI_compiled_closure_display, mkcl_make_unsigned_integer(env, alloc.cdisplay)), stats);
 #if 0
     if (alloc.frame)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_SI_temp_stack_frame, mkcl_make_unsigned_integer(env, alloc.frame)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_SI_temp_stack_frame, mkcl_make_unsigned_integer(env, alloc.frame)), stats);
 #endif
     if (alloc.foreign)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_SI_foreign, mkcl_make_unsigned_integer(env, alloc.foreign)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_SI_foreign, mkcl_make_unsigned_integer(env, alloc.foreign)), stats);
     if (alloc.codeblock)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_SI_code_block, mkcl_make_unsigned_integer(env, alloc.codeblock)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_SI_code_block, mkcl_make_unsigned_integer(env, alloc.codeblock)), stats);
     if (alloc.condition_variable)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_MT_condition_variable, mkcl_make_unsigned_integer(env, alloc.condition_variable)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_MT_condition_variable, mkcl_make_unsigned_integer(env, alloc.condition_variable)), stats);
     if (alloc.semaphore)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_MT_semaphore, mkcl_make_unsigned_integer(env, alloc.semaphore)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_MT_semaphore, mkcl_make_unsigned_integer(env, alloc.semaphore)), stats);
     if (alloc.rwlock)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_MT_rwlock, mkcl_make_unsigned_integer(env, alloc.rwlock)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_MT_rwlock, mkcl_make_unsigned_integer(env, alloc.rwlock)), stats);
     if (alloc.lock)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_MT_lock, mkcl_make_unsigned_integer(env, alloc.lock)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_MT_lock, mkcl_make_unsigned_integer(env, alloc.lock)), stats);
     if (alloc.thread)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_MT_thread, mkcl_make_unsigned_integer(env, alloc.thread)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_MT_thread, mkcl_make_unsigned_integer(env, alloc.thread)), stats);
     if (alloc.structure)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_structure_object, mkcl_make_unsigned_integer(env, alloc.structure)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_structure_object, mkcl_make_unsigned_integer(env, alloc.structure)), stats);
     if (alloc.pathname)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_pathname, mkcl_make_unsigned_integer(env, alloc.pathname)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_pathname, mkcl_make_unsigned_integer(env, alloc.pathname)), stats);
     if (alloc.readtable)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_readtable, mkcl_make_unsigned_integer(env, alloc.readtable)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_readtable, mkcl_make_unsigned_integer(env, alloc.readtable)), stats);
     if (alloc.random)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_random_state, mkcl_make_unsigned_integer(env, alloc.random)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_random_state, mkcl_make_unsigned_integer(env, alloc.random)), stats);
     if (alloc.stream)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_stream, mkcl_make_unsigned_integer(env, alloc.stream)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_stream, mkcl_make_unsigned_integer(env, alloc.stream)), stats);
     if (alloc.hashtable)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_hash_table, mkcl_make_unsigned_integer(env, alloc.hashtable)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_hash_table, mkcl_make_unsigned_integer(env, alloc.hashtable)), stats);
     if (alloc.instance)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_standard_object, mkcl_make_unsigned_integer(env, alloc.instance)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_standard_object, mkcl_make_unsigned_integer(env, alloc.instance)), stats);
     if (alloc.bclosure)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_SI_bytecode_closure, mkcl_make_unsigned_integer(env, alloc.bclosure)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_SI_bytecode_closure, mkcl_make_unsigned_integer(env, alloc.bclosure)), stats);
     if (alloc.bytecode)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_SI_bytecode, mkcl_make_unsigned_integer(env, alloc.bytecode)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_SI_bytecode, mkcl_make_unsigned_integer(env, alloc.bytecode)), stats);
     if (alloc.cclosure)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_SI_compiled_closure, mkcl_make_unsigned_integer(env, alloc.cclosure)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_SI_compiled_closure, mkcl_make_unsigned_integer(env, alloc.cclosure)), stats);
     if (alloc.cfun)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_compiled_function, mkcl_make_unsigned_integer(env, alloc.cfun)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_compiled_function, mkcl_make_unsigned_integer(env, alloc.cfun)), stats);
     if (alloc.bitvector)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_bit_vector, mkcl_make_unsigned_integer(env, alloc.bitvector)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_bit_vector, mkcl_make_unsigned_integer(env, alloc.bitvector)), stats);
     if (alloc.base_string)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_base_string, mkcl_make_unsigned_integer(env, alloc.base_string)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_base_string, mkcl_make_unsigned_integer(env, alloc.base_string)), stats);
     if (alloc.string)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_string, mkcl_make_unsigned_integer(env, alloc.string)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_string, mkcl_make_unsigned_integer(env, alloc.string)), stats);
     if (alloc.vector)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_vector, mkcl_make_unsigned_integer(env, alloc.vector)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_vector, mkcl_make_unsigned_integer(env, alloc.vector)), stats);
     if (alloc.array)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_array, mkcl_make_unsigned_integer(env, alloc.array)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_array, mkcl_make_unsigned_integer(env, alloc.array)), stats);
     if (alloc.package)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_package, mkcl_make_unsigned_integer(env, alloc.package)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_package, mkcl_make_unsigned_integer(env, alloc.package)), stats);
     if (alloc.symbol)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_symbol, mkcl_make_unsigned_integer(env, alloc.symbol)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_symbol, mkcl_make_unsigned_integer(env, alloc.symbol)), stats);
     if (alloc.complex)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_complex, mkcl_make_unsigned_integer(env, alloc.complex)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_complex, mkcl_make_unsigned_integer(env, alloc.complex)), stats);
     if (alloc.longfloat)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_long_float, mkcl_make_unsigned_integer(env, alloc.longfloat)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_long_float, mkcl_make_unsigned_integer(env, alloc.longfloat)), stats);
     if (alloc.doublefloat)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_double_float, mkcl_make_unsigned_integer(env, alloc.doublefloat)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_double_float, mkcl_make_unsigned_integer(env, alloc.doublefloat)), stats);
     if (alloc.singlefloat)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_single_float, mkcl_make_unsigned_integer(env, alloc.singlefloat)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_single_float, mkcl_make_unsigned_integer(env, alloc.singlefloat)), stats);
     if (alloc.ratio)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_ratio, mkcl_make_unsigned_integer(env, alloc.ratio)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_ratio, mkcl_make_unsigned_integer(env, alloc.ratio)), stats);
     if (alloc.bignum)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_bignum, mkcl_make_unsigned_integer(env, alloc.bignum)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_bignum, mkcl_make_unsigned_integer(env, alloc.bignum)), stats);
     if (alloc.cons)
-      stats = mkcl_cons(env, mkcl_cons(env, MK_CL_cons, mkcl_make_unsigned_integer(env, alloc.cons)), stats);
+      stats = mkcl_cons(env, mkcl_cons(env, (mkcl_object) &MK_CL_cons, mkcl_make_unsigned_integer(env, alloc.cons)), stats);
   }
   mkcl_return_value(stats);
 }
 
 
-struct mkcl_cfun mk_si_room_report_cfunobj = MKCL_CFUN1(mk_si_room_report, MK_SI_room_report);
+struct mkcl_cfun mk_si_room_report_cfunobj = MKCL_CFUN1(mk_si_room_report, (mkcl_object) &MK_SI_room_report);
 
 mkcl_object
 mk_si_room_report(MKCL, mkcl_object label)

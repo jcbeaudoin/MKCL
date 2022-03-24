@@ -30,7 +30,7 @@ mkcl_allocate_instance(MKCL, mkcl_object clas, mkcl_index size)
   return x;
 }
 
-struct mkcl_cfun mk_si_allocate_raw_instance_cfunobj = MKCL_CFUN3(mk_si_allocate_raw_instance, MK_SI_allocate_raw_instance);
+struct mkcl_cfun mk_si_allocate_raw_instance_cfunobj = MKCL_CFUN3(mk_si_allocate_raw_instance, (mkcl_object) &MK_SI_allocate_raw_instance);
 
 mkcl_object
 mk_si_allocate_raw_instance(MKCL, mkcl_object orig, mkcl_object clas, mkcl_object size)
@@ -55,7 +55,7 @@ mk_si_allocate_raw_instance(MKCL, mkcl_object orig, mkcl_object clas, mkcl_objec
   mkcl_return_value(orig);
 }
 
-struct mkcl_cfun mk_si_instance_sig_cfunobj = MKCL_CFUN1(mk_si_instance_sig, MK_SI_instance_sig);
+struct mkcl_cfun mk_si_instance_sig_cfunobj = MKCL_CFUN1(mk_si_instance_sig, (mkcl_object) &MK_SI_instance_sig);
 
 mkcl_object
 mk_si_instance_sig(MKCL, mkcl_object x)
@@ -66,7 +66,7 @@ mk_si_instance_sig(MKCL, mkcl_object x)
   mkcl_return_value(x->instance.sig);
 }
 
-struct mkcl_cfun mk_si_instance_sig_set_cfunobj = MKCL_CFUN1(mk_si_instance_sig_set, MK_SI_instance_sig_set);
+struct mkcl_cfun mk_si_instance_sig_set_cfunobj = MKCL_CFUN1(mk_si_instance_sig_set, (mkcl_object) &MK_SI_instance_sig_set);
 
 mkcl_object
 mk_si_instance_sig_set(MKCL, mkcl_object x)
@@ -77,7 +77,7 @@ mk_si_instance_sig_set(MKCL, mkcl_object x)
   mkcl_return_value((x->instance.sig = MKCL_CLASS_SLOTS(MKCL_CLASS_OF(x))));
 }
 
-struct mkcl_cfun mk_si_instance_sig_set2_cfunobj = MKCL_CFUN2(mk_si_instance_sig_set2, MK_SI_instance_sig_set2);
+struct mkcl_cfun mk_si_instance_sig_set2_cfunobj = MKCL_CFUN2(mk_si_instance_sig_set2, (mkcl_object) &MK_SI_instance_sig_set2);
 
 mkcl_object
 mk_si_instance_sig_set2(MKCL, mkcl_object x, mkcl_object sig)
@@ -88,7 +88,7 @@ mk_si_instance_sig_set2(MKCL, mkcl_object x, mkcl_object sig)
   mkcl_return_value((x->instance.sig = sig));
 }
 
-struct mkcl_cfun mk_si_instance_class_cfunobj = MKCL_CFUN1(mk_si_instance_class, MK_SI_instance_class);
+struct mkcl_cfun mk_si_instance_class_cfunobj = MKCL_CFUN1(mk_si_instance_class, (mkcl_object) &MK_SI_instance_class);
 
 mkcl_object
 mk_si_instance_class(MKCL, mkcl_object x)
@@ -99,7 +99,7 @@ mk_si_instance_class(MKCL, mkcl_object x)
   mkcl_return_value(MKCL_CLASS_OF(x));
 }
 
-struct mkcl_cfun mk_si_instance_length_cfunobj = MKCL_CFUN1(mk_si_instance_length, MK_SI_instance_length);
+struct mkcl_cfun mk_si_instance_length_cfunobj = MKCL_CFUN1(mk_si_instance_length, (mkcl_object) &MK_SI_instance_length);
 
 mkcl_object
 mk_si_instance_length(MKCL, mkcl_object x)
@@ -111,7 +111,7 @@ mk_si_instance_length(MKCL, mkcl_object x)
     { mkcl_return_value(mkcl_make_unsigned_integer(env, x->instance.length)); }
 }
 
-struct mkcl_cfun mk_si_instance_class_set_cfunobj = MKCL_CFUN2(mk_si_instance_class_set, MK_SI_instance_class_set);
+struct mkcl_cfun mk_si_instance_class_set_cfunobj = MKCL_CFUN2(mk_si_instance_class_set, (mkcl_object) &MK_SI_instance_class_set);
 
 mkcl_object
 mk_si_instance_class_set(MKCL, mkcl_object x, mkcl_object y)
@@ -128,7 +128,7 @@ mk_si_instance_class_set(MKCL, mkcl_object x, mkcl_object y)
 void
 mkcl_FEtype_error_instance_index(MKCL, mkcl_object instance, mkcl_object ndx)
 {
-  mk_cl_error(env, 5, MK_MKCL_invalid_slot, MK_KEY_name, ndx, MK_KEY_instance, instance);
+  mk_cl_error(env, 5, (mkcl_object) &MK_MKCL_invalid_slot, (mkcl_object) &MK_KEY_name, ndx, (mkcl_object) &MK_KEY_instance, instance);
 }
 
 
@@ -145,8 +145,8 @@ mkcl_instance_ref(MKCL, mkcl_object x, mkcl_word i)
 }
 #endif
 
-struct mkcl_cfun mk_si_instance_ref_cfunobj = MKCL_CFUN2(mk_si_instance_ref, MK_SI_instance_ref);
-struct mkcl_cfun mk_clos_funcallable_standard_instance_access_cfunobj = MKCL_CFUN2(mk_si_instance_ref, MK_CLOS_funcallable_standard_instance_access);
+struct mkcl_cfun mk_si_instance_ref_cfunobj = MKCL_CFUN2(mk_si_instance_ref, (mkcl_object) &MK_SI_instance_ref);
+struct mkcl_cfun mk_clos_funcallable_standard_instance_access_cfunobj = MKCL_CFUN2(mk_si_instance_ref, (mkcl_object) &MK_CLOS_funcallable_standard_instance_access);
 
 mkcl_object
 mk_si_instance_ref(MKCL, mkcl_object x, mkcl_object index)
@@ -163,7 +163,7 @@ mk_si_instance_ref(MKCL, mkcl_object x, mkcl_object index)
   { mkcl_return_value(x->instance.slots[i]); }
 }
 
-struct mkcl_cfun mk_si_instance_ref_safe_cfunobj = MKCL_CFUN2(mk_si_instance_ref_safe, MK_SI_instance_ref_safe);
+struct mkcl_cfun mk_si_instance_ref_safe_cfunobj = MKCL_CFUN2(mk_si_instance_ref_safe, (mkcl_object) &MK_SI_instance_ref_safe);
 
 mkcl_object
 mk_si_instance_ref_safe(MKCL, mkcl_object x, mkcl_object index)
@@ -178,7 +178,7 @@ mk_si_instance_ref_safe(MKCL, mkcl_object x, mkcl_object index)
     mkcl_FEtype_error_instance_index(env, x, index);
   x = x->instance.slots[i];
   if (mkcl_unlikely(x == MKCL_UNBOUND))
-    mk_cl_error(env, 5, MK_CL_unbound_slot, MK_KEY_name, index, MK_KEY_instance, x);
+    mk_cl_error(env, 5, (mkcl_object) &MK_CL_unbound_slot, (mkcl_object) &MK_KEY_name, index, (mkcl_object) &MK_KEY_instance, x);
   mkcl_return_value(x);
 }
 
@@ -195,7 +195,7 @@ mkcl_instance_set(MKCL, mkcl_object x, mkcl_word i, mkcl_object v)
 }
 #endif
 
-struct mkcl_cfun mk_si_instance_set_cfunobj = MKCL_CFUN3(mk_si_instance_set, MK_SI_instance_set);
+struct mkcl_cfun mk_si_instance_set_cfunobj = MKCL_CFUN3(mk_si_instance_set, (mkcl_object) &MK_SI_instance_set);
 
 mkcl_object
 mk_si_instance_set(MKCL, mkcl_object x, mkcl_object index, mkcl_object value)
@@ -213,7 +213,7 @@ mk_si_instance_set(MKCL, mkcl_object x, mkcl_object index, mkcl_object value)
   { x->instance.slots[i] = value; mkcl_return_value(value); }
 }
 
-struct mkcl_cfun mk_si_instancep_cfunobj = MKCL_CFUN1(mk_si_instancep, MK_SI_instancep);
+struct mkcl_cfun mk_si_instancep_cfunobj = MKCL_CFUN1(mk_si_instancep, (mkcl_object) &MK_SI_instancep);
 
 mkcl_object
 mk_si_instancep(MKCL, mkcl_object x)
@@ -229,10 +229,10 @@ mk_si_unbound(MKCL)
   mkcl_return_value(MKCL_UNBOUND);
 }
 
-struct mkcl_cfun mk_si_unbound_cfunobj = MKCL_CFUN0(mk_si_unbound, MK_SI_CONSTANT_unbound);
+struct mkcl_cfun mk_si_unbound_cfunobj = MKCL_CFUN0(mk_si_unbound, (mkcl_object) &MK_SI_CONSTANT_unbound);
 
 
-struct mkcl_cfun mk_si_sl_boundp_cfunobj = MKCL_CFUN1(mk_si_sl_boundp, MK_SI_sl_boundp);
+struct mkcl_cfun mk_si_sl_boundp_cfunobj = MKCL_CFUN1(mk_si_sl_boundp, (mkcl_object) &MK_SI_sl_boundp);
 
 mkcl_object
 mk_si_sl_boundp(MKCL, mkcl_object x)
@@ -240,7 +240,7 @@ mk_si_sl_boundp(MKCL, mkcl_object x)
   mkcl_return_value(((x == MKCL_UNBOUND) ? mk_cl_Cnil : mk_cl_Ct));
 }
 
-struct mkcl_cfun mk_si_sl_makunbound_cfunobj = MKCL_CFUN2(mk_si_sl_makunbound, MK_SI_sl_makunbound);
+struct mkcl_cfun mk_si_sl_makunbound_cfunobj = MKCL_CFUN2(mk_si_sl_makunbound, (mkcl_object) &MK_SI_sl_makunbound);
 
 mkcl_object
 mk_si_sl_makunbound(MKCL, mkcl_object x, mkcl_object index)
@@ -257,7 +257,7 @@ mk_si_sl_makunbound(MKCL, mkcl_object x, mkcl_object index)
   mkcl_return_value(x);
 }
 
-struct mkcl_cfun mk_si_copy_instance_cfunobj = MKCL_CFUN1(mk_si_copy_instance, MK_SI_copy_instance);
+struct mkcl_cfun mk_si_copy_instance_cfunobj = MKCL_CFUN1(mk_si_copy_instance, (mkcl_object) &MK_SI_copy_instance);
 
 mkcl_object
 mk_si_copy_instance(MKCL, mkcl_object x)
@@ -276,7 +276,7 @@ mk_si_copy_instance(MKCL, mkcl_object x)
   mkcl_return_value(y);
 }
 
-struct mkcl_cfun mk_cl_find_class_cfunobj = MKCL_CFUN_VA(mk_cl_find_class, MK_CL_find_class);
+struct mkcl_cfun mk_cl_find_class_cfunobj = MKCL_CFUN_VA(mk_cl_find_class, (mkcl_object) &MK_CL_find_class);
 
 mkcl_object mk_cl_find_class(MKCL, mkcl_narg narg, mkcl_object name, ...)
 {
@@ -285,7 +285,7 @@ mkcl_object mk_cl_find_class(MKCL, mkcl_narg narg, mkcl_object name, ...)
     mkcl_object class, hash;
     mkcl_object errorp = mk_cl_Ct;
     mkcl_object lex_env = mk_cl_Cnil;
-    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, MK_CL_find_class, narg, 1, name, &errorp, &lex_env);
+    MKCL_RECEIVE_2_OPTIONAL_ARGUMENTS(env, (mkcl_object) &MK_CL_find_class, narg, 1, name, &errorp, &lex_env);
 
     do {
       if (mkcl_Null(name)) {
@@ -308,12 +308,12 @@ mkcl_object mk_cl_find_class(MKCL, mkcl_narg narg, mkcl_object name, ...)
             { mkcl_return_value(class); }
         }
       else
-        name = mkcl_type_error(env, MK_CL_find_class, "symbol", name, MK_CL_symbol);
+        name = mkcl_type_error(env, (mkcl_object) &MK_CL_find_class, "symbol", name, (mkcl_object) &MK_CL_symbol);
     } while(1);
   }
 }
 
-struct mkcl_cfun mk_si_set_class_proper_name_cfunobj = MKCL_CFUN2(mk_si_set_class_proper_name, MK_SI_set_class_proper_name);
+struct mkcl_cfun mk_si_set_class_proper_name_cfunobj = MKCL_CFUN2(mk_si_set_class_proper_name, (mkcl_object) &MK_SI_set_class_proper_name);
 
 mkcl_object mk_si_set_class_proper_name(MKCL, mkcl_object sym, mkcl_object class)
 {
@@ -324,7 +324,7 @@ mkcl_object mk_si_set_class_proper_name(MKCL, mkcl_object sym, mkcl_object class
     mkcl_FEtype_error_instance(env, class);
 
   if (mkcl_Null(sym) || (mkcl_type_of(sym) != mkcl_t_symbol))
-    mkcl_FEwrong_type_argument(env, MK_CL_symbol, sym);
+    mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_CL_symbol, sym);
 
   sym->symbol.properly_named_class = class;
   mkcl_return_value(class);
@@ -334,7 +334,7 @@ mkcl_object
 mkcl_slot_value(MKCL, mkcl_object x, const char *slot)
 {
   mkcl_object slot_name = mkcl_fast_read_from_cstring(env, (char *) slot);
-  return mkcl_funcall2(env, MK_CL_slot_value->symbol.gfdef, x, slot_name);
+  return mkcl_funcall2(env, MK_CL_slot_value.gfdef, x, slot_name);
 }
 
 mkcl_object
@@ -401,7 +401,7 @@ enum mkcl_built_in_classes {
   MKCL_BUILTIN_UTF_16
 };
 
-struct mkcl_cfun mk_cl_class_of_cfunobj = MKCL_CFUN1(mk_cl_class_of, MK_CL_class_of);
+struct mkcl_cfun mk_cl_class_of_cfunobj = MKCL_CFUN1(mk_cl_class_of, (mkcl_object) &MK_CL_class_of);
 
 mkcl_object
 mk_cl_class_of(MKCL, mkcl_object x)
@@ -515,7 +515,7 @@ mk_cl_class_of(MKCL, mkcl_object x)
   }
   {
     mkcl_object output;
-    x = MKCL_SYM_VAL(env, MK_CLOS_DYNVAR_builtin_classes);
+    x = MKCL_SYM_VAL(env, (mkcl_object) &MK_CLOS_DYNVAR_builtin_classes);
     /* We have to be careful because *builtin-classes* might be empty! */
     if (mkcl_Null(x)) {
       output = mk_cl_find_class(env, 1,mk_cl_Ct);

@@ -69,7 +69,7 @@ mkcl_internal_C_error(MKCL, const char * const s, const char * const file, const
   if (mkcl_early_boot)
     mkcl_longjmp(mkcl_early_boot_error_handler, 1);
   else
-    mk_mt_abandon_thread(env, MK_KEY_aborted);
+    mk_mt_abandon_thread(env, (mkcl_object) &MK_KEY_aborted);
 }
 
 void mkcl_internal_error(MKCL, const char * const s, const char * const file, const int lineno)
@@ -87,7 +87,7 @@ mkcl_FEerror(MKCL, const char *s, int narg, ...)
 {
   mkcl_va_list args;
   mkcl_va_start(env, args, narg, narg, 0);
-  mkcl_funcall2(env, MK_SI_universal_error_handler->symbol.gfdef,
+  mkcl_funcall2(env, MK_SI_universal_error_handler.gfdef,
 		mkcl_make_simple_base_string(env, (char *) s),	 /*  condition text  */
 		mkcl_grab_rest_args(env, args, FALSE));
   mkcl_lose(env, "Should not have returned from universal-error-handler");
@@ -120,17 +120,17 @@ mkcl_FEprogram_error(MKCL, const char *s, int narg, ...)
   mkcl_va_start(env, args, narg, narg, 0);
   text = mkcl_make_simple_base_string(env, (char *) s);
   real_args = mkcl_grab_rest_args(env, args, FALSE);
-  if (mk_cl_boundp(env, MK_SI_DYNVAR_current_form) != mk_cl_Cnil) {
+  if (mk_cl_boundp(env, (mkcl_object) &MK_SI_DYNVAR_current_form) != mk_cl_Cnil) {
     /* When mkcl_FEprogram_error is invoked from the compiler, we can
      * provide information about the offending form.
      */
-    mkcl_object stmt = mkcl_symbol_value(env, MK_SI_DYNVAR_current_form);
+    mkcl_object stmt = mkcl_symbol_value(env, (mkcl_object) &MK_SI_DYNVAR_current_form);
     if (stmt != mk_cl_Cnil) {
       real_args = mk_cl_list(env, 3, stmt, text, real_args);
       text = mkcl_make_simple_base_string(env, "In form~%~S~%~?");
     }
   }
-  mk_cl_error(env, 5, MK_SI_simple_program_error, MK_KEY_format_control, text, MK_KEY_format_arguments, real_args);
+  mk_cl_error(env, 5, (mkcl_object) &MK_SI_simple_program_error, (mkcl_object) &MK_KEY_format_control, text, (mkcl_object) &MK_KEY_format_arguments, real_args);
   mkcl_lose(env, "Returned from mk_cl_error()");
 }
 
@@ -140,9 +140,9 @@ mkcl_FEcontrol_error(MKCL, const char *s, int narg, ...)
   mkcl_va_list args;
   mkcl_va_start(env, args, narg, narg, 0);
   mk_cl_error(env, 5,
-	      MK_SI_simple_control_error,
-	      MK_KEY_format_control, mkcl_make_simple_base_string(env, (char *) s),
-	      MK_KEY_format_arguments, mkcl_grab_rest_args(env, args, FALSE));
+	      (mkcl_object) &MK_SI_simple_control_error,
+	      (mkcl_object) &MK_KEY_format_control, mkcl_make_simple_base_string(env, (char *) s),
+	      (mkcl_object) &MK_KEY_format_arguments, mkcl_grab_rest_args(env, args, FALSE));
   mkcl_lose(env, "Returned from mk_cl_error()");
 }
 
@@ -152,10 +152,10 @@ mkcl_FEreader_error(MKCL, const char *s, mkcl_object stream, int narg, ...)
   mkcl_va_list args;
   mkcl_va_start(env, args, narg, narg, 0);
   mk_cl_error(env, 7,
-	      MK_SI_simple_reader_error,
-	      MK_KEY_format_control, mkcl_make_simple_base_string(env, (char *) s),
-	      MK_KEY_format_arguments, mkcl_grab_rest_args(env, args, FALSE),
-	      MK_KEY_stream, stream);
+	      (mkcl_object) &MK_SI_simple_reader_error,
+	      (mkcl_object) &MK_KEY_format_control, mkcl_make_simple_base_string(env, (char *) s),
+	      (mkcl_object) &MK_KEY_format_arguments, mkcl_grab_rest_args(env, args, FALSE),
+	      (mkcl_object) &MK_KEY_stream, stream);
   mkcl_lose(env, "Returned from mk_cl_error()");
 }
 
@@ -169,43 +169,43 @@ mkcl_FEcannot_open(MKCL, mkcl_object fn)
 void
 mkcl_FEend_of_file(MKCL, mkcl_object strm)
 {
-  mk_cl_error(env, 3, MK_CL_end_of_file, MK_KEY_stream, strm);
+  mk_cl_error(env, 3, (mkcl_object) &MK_CL_end_of_file, (mkcl_object) &MK_KEY_stream, strm);
 }
 
 void
 mkcl_FEclosed_stream(MKCL, mkcl_object strm)
 {
-  mk_cl_error(env, 3, MK_SI_closed_stream_error, MK_KEY_stream, strm);
+  mk_cl_error(env, 3, (mkcl_object) &MK_SI_closed_stream_error, (mkcl_object) &MK_KEY_stream, strm);
 }
 
 void
 mkcl_FEwrong_type_argument(MKCL, mkcl_object type, mkcl_object value)
 {
-  mk_cl_error(env, 5, MK_CL_type_error, MK_KEY_datum, value, MK_KEY_expected_type, type);
+  mk_cl_error(env, 5, (mkcl_object) &MK_CL_type_error, (mkcl_object) &MK_KEY_datum, value, (mkcl_object) &MK_KEY_expected_type, type);
 }
 
 void
 mkcl_FEnot_fixnum_type(MKCL, mkcl_object value)
 {
-  mk_cl_error(env, 5, MK_CL_type_error, MK_KEY_datum, value, MK_KEY_expected_type, MK_CL_fixnum);
+  mk_cl_error(env, 5, (mkcl_object) &MK_CL_type_error, (mkcl_object) &MK_KEY_datum, value, (mkcl_object) &MK_KEY_expected_type, (mkcl_object) &MK_CL_fixnum);
 }
 
 void
 mkcl_FEnot_codeblock_type(MKCL, mkcl_object value)
 {
-  mk_cl_error(env, 5, MK_CL_type_error, MK_KEY_datum, value, MK_KEY_expected_type, MK_SI_code_block);
+  mk_cl_error(env, 5, (mkcl_object) &MK_CL_type_error, (mkcl_object) &MK_KEY_datum, value, (mkcl_object) &MK_KEY_expected_type, (mkcl_object) &MK_SI_code_block);
 }
 
 void
 mkcl_FEunbound_variable(MKCL, mkcl_object sym)
 {
-  mk_cl_error(env, 3, MK_CL_unbound_variable, MK_KEY_name, sym);
+  mk_cl_error(env, 3, (mkcl_object) &MK_CL_unbound_variable, (mkcl_object) &MK_KEY_name, sym);
 }
 
 void
 mkcl_FEundefined_function(MKCL, mkcl_object fname)
 {
-  mk_cl_error(env, 3, MK_CL_undefined_function, MK_KEY_name, fname);
+  mk_cl_error(env, 3, (mkcl_object) &MK_CL_undefined_function, (mkcl_object) &MK_KEY_name, fname);
 }
 
 /*************
@@ -257,17 +257,17 @@ mkcl_FEillegal_variable_name(MKCL, mkcl_object v)
 void
 mkcl_FEinvalid_function(MKCL, mkcl_object obj)
 {
-  mkcl_FEwrong_type_argument(env, MK_CL_function, obj);
+  mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_CL_function, obj);
 }
 
 void
 mkcl_FEinvalid_function_name(MKCL, mkcl_object fname)
 {
-  mk_cl_error(env, 9, MK_CL_simple_type_error, MK_KEY_format_control,
+  mk_cl_error(env, 9, (mkcl_object) &MK_CL_simple_type_error, (mkcl_object) &MK_KEY_format_control,
 	      mkcl_make_simple_base_string(env, "Not a valid function name ~D"),
-	      MK_KEY_format_arguments, mk_cl_list(env, 1, fname),
-	      MK_KEY_expected_type, mk_cl_list(env, 2, MK_CL_satisfies, MK_SI_valid_function_name_p),
-	      MK_KEY_datum, fname);
+	      (mkcl_object) &MK_KEY_format_arguments, mk_cl_list(env, 1, fname),
+	      (mkcl_object) &MK_KEY_expected_type, mk_cl_list(env, 2, (mkcl_object) &MK_CL_satisfies, (mkcl_object) &MK_SI_valid_function_name_p),
+	      (mkcl_object) &MK_KEY_datum, fname);
 }
 
 /* Bootstrap version. The permanent version is in conditions.lsp.   */
@@ -295,7 +295,7 @@ universal_error_handler(MKCL, mkcl_object err, mkcl_object args)
   if (mkcl_early_boot)
     mkcl_longjmp(mkcl_early_boot_error_handler, 1);
   else
-    mk_mt_abandon_thread(env, MK_KEY_aborted);
+    mk_mt_abandon_thread(env, (mkcl_object) &MK_KEY_aborted);
 }
 
 void
@@ -307,13 +307,13 @@ mkcl_FEillegal_index(MKCL, mkcl_object x, mkcl_object i)
 void
 mkcl_FEtype_error_symbol(MKCL, mkcl_object obj)
 {
-  mkcl_FEwrong_type_argument(env, MK_CL_symbol, obj);
+  mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_CL_symbol, obj);
 }
 
 void
 mkcl_FEdivision_by_zero(MKCL, mkcl_object x, mkcl_object y)
 {
-  mk_cl_error(env, 5, MK_CL_division_by_zero, MK_KEY_operation, MK_CL_N, MK_KEY_operands, mk_cl_list(env, 2, x, y));
+  mk_cl_error(env, 5, (mkcl_object) &MK_CL_division_by_zero, (mkcl_object) &MK_KEY_operation, (mkcl_object) &MK_CL_N, (mkcl_object) &MK_KEY_operands, mk_cl_list(env, 2, x, y));
 }
 
 
@@ -349,7 +349,7 @@ mkcl_libc_error_string(MKCL, mkcl_word errno_value)
   return errno_msg;
 }
 
-struct mkcl_cfun mk_si_errno_string_cfunobj = MKCL_CFUN0(mk_si_errno_string, MK_SI_errno_string);
+struct mkcl_cfun mk_si_errno_string_cfunobj = MKCL_CFUN0(mk_si_errno_string, (mkcl_object) &MK_SI_errno_string);
 
 mkcl_object
 mk_si_errno_string(MKCL)
@@ -358,7 +358,7 @@ mk_si_errno_string(MKCL)
   mkcl_return_value(mkcl_libc_error_string(env, errno));
 }
 
-struct mkcl_cfun mk_si_libc_error_string_cfunobj = MKCL_CFUN1(mk_si_libc_error_string, MK_SI_libc_error_string);
+struct mkcl_cfun mk_si_libc_error_string_cfunobj = MKCL_CFUN1(mk_si_libc_error_string, (mkcl_object) &MK_SI_libc_error_string);
 
 mkcl_object
 mk_si_libc_error_string(MKCL, mkcl_object errno_val)
@@ -413,12 +413,12 @@ mkcl_FElibc_file_error(MKCL, mkcl_object pathname, const char *msg, int narg, ..
   rest = mkcl_grab_rest_args(env, args, FALSE);
 
   mk_cl_error(env, 7,
-	      MK_SI_OS_file_error,
-	      MK_KEY_pathname,
+	      (mkcl_object) &MK_SI_OS_file_error,
+	      (mkcl_object) &MK_KEY_pathname,
 	      pathname,
-	      MK_KEY_format_control,
+	      (mkcl_object) &MK_KEY_format_control,
 	      mkcl_make_simple_base_string(env, "~?~%OS Explanation: (errno == ~D) ~A"),
-	      MK_KEY_format_arguments,
+	      (mkcl_object) &MK_KEY_format_arguments,
 	      mk_cl_list(env, 4,
 			 mkcl_make_simple_base_string(env, (char *) msg),
 			 rest,
@@ -439,12 +439,12 @@ mkcl_FElibc_stream_error(MKCL, mkcl_object stream, const char *msg, int narg, ..
   rest = mkcl_grab_rest_args(env, args, FALSE);
 
   mk_cl_error(env, 7,
-	      MK_SI_OS_stream_error,
-	      MK_KEY_stream,
+	      (mkcl_object) &MK_SI_OS_stream_error,
+	      (mkcl_object) &MK_KEY_stream,
 	      stream,
-	      MK_KEY_format_control,
+	      (mkcl_object) &MK_KEY_format_control,
 	      mkcl_make_simple_base_string(env, "~?~%OS Explanation: (errno == ~D) ~A"),
-	      MK_KEY_format_arguments,
+	      (mkcl_object) &MK_KEY_format_arguments,
 	      mk_cl_list(env, 4,
 			 mkcl_make_simple_base_string(env, (char *) msg),
 			 rest,
@@ -502,12 +502,12 @@ mkcl_FEwin32_file_error(MKCL, mkcl_object pathname, const char *msg, int narg, .
   }
 
   mk_cl_error(env, 7,
-	      MK_SI_OS_file_error,
-	      MK_KEY_pathname,
+	      (mkcl_object) &MK_SI_OS_file_error,
+	      (mkcl_object) &MK_KEY_pathname,
 	      pathname,
-	      MK_KEY_format_control,
+	      (mkcl_object) &MK_KEY_format_control,
 	      mkcl_make_simple_base_string(env, "~?~%OS Explanation: ~A"),
-	      MK_KEY_format_arguments,
+	      (mkcl_object) &MK_KEY_format_arguments,
 	      mk_cl_list(env, 3,
 			 mkcl_make_simple_base_string(env, (char *) msg),
 			 rest,
@@ -535,12 +535,12 @@ mkcl_FEwin32_stream_error(MKCL, mkcl_object stream, const char *msg, int narg, .
   }
 
   mk_cl_error(env, 7,
-	      MK_SI_OS_stream_error,
-	      MK_KEY_stream,
+	      (mkcl_object) &MK_SI_OS_stream_error,
+	      (mkcl_object) &MK_KEY_stream,
 	      stream,
-	      MK_KEY_format_control,
+	      (mkcl_object) &MK_KEY_format_control,
 	      mkcl_make_simple_base_string(env, "~?~%OS Explanation: ~A"),
-	      MK_KEY_format_arguments,
+	      (mkcl_object) &MK_KEY_format_arguments,
 	      mk_cl_list(env, 3,
 			 mkcl_make_simple_base_string(env, (char *) msg),
 			 rest,
@@ -553,18 +553,18 @@ mkcl_FEwin32_stream_error(MKCL, mkcl_object stream, const char *msg, int narg, .
  * Higher level interface to errors *
  ************************************/
 
-struct mkcl_cfun mk_cl_error_cfunobj = MKCL_CFUN_VA(mk_cl_error, MK_CL_error);
+struct mkcl_cfun mk_cl_error_cfunobj = MKCL_CFUN_VA(mk_cl_error, (mkcl_object) &MK_CL_error);
 
 mkcl_object mk_cl_error(MKCL, mkcl_narg narg, mkcl_object datum, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_CL_error, 1, narg, datum, args);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_CL_error, 1, narg, datum, args);
 
     mkcl_object rest = mkcl_grab_rest_args(env, args, FALSE);
 
     mkcl_va_end(args);
-    mkcl_funcall2(env, MK_SI_universal_error_handler->symbol.gfdef, datum, rest);
+    mkcl_funcall2(env, MK_SI_universal_error_handler.gfdef, datum, rest);
     mkcl_lose(env, "Should not have returned from universal-error-handler");
   }
 }
@@ -573,5 +573,5 @@ mkcl_object mk_cl_error(MKCL, mkcl_narg narg, mkcl_object datum, ...)
 void
 mkcl_init_error(MKCL)
 {
-  mkcl_def_c_function(env, MK_SI_universal_error_handler, universal_error_handler, 2); /* bootstrap version. */
+  mkcl_def_c_function(env, (mkcl_object) &MK_SI_universal_error_handler, universal_error_handler, 2); /* bootstrap version. */
 }

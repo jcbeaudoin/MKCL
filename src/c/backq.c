@@ -36,7 +36,7 @@ kwote(MKCL, mkcl_object x)
   mkcl_type t = mkcl_type_of(x);
   if ((t == mkcl_t_symbol && !mkcl_Null(x) && !mkcl_keywordp(x)) ||
       t == mkcl_t_cons || t == mkcl_t_vector)
-    x = MKCL_CONS(env, MK_CL_quote, mkcl_list1(env, x));
+    x = MKCL_CONS(env, (mkcl_object) &MK_CL_quote, mkcl_list1(env, x));
   return x;
 }
 
@@ -58,11 +58,11 @@ _mkcl_backq_cdr(MKCL, mkcl_object *px)
 
   if (MKCL_ATOM(x))
     return(QUOTE);
-  if (MKCL_CAR(x) == MK_SI_unquote) {
+  if (MKCL_CAR(x) == ((mkcl_object) &MK_SI_unquote)) {
     *px = MKCL_CADR(x);
     return(EVAL);
   }
-  if (MKCL_CAR(x) == MK_SI_unquote_splice || MKCL_CAR(x) == MK_SI_unquote_nsplice)
+  if (MKCL_CAR(x) == ((mkcl_object) &MK_SI_unquote_splice) || MKCL_CAR(x) == ((mkcl_object) &MK_SI_unquote_nsplice))
     mkcl_FEerror(env, ",@ or ,. has appeared in an illegal position.", 0);
 
   ax = MKCL_CAR(x); dx = MKCL_CDR(x);
@@ -129,7 +129,7 @@ _mkcl_backq_cdr(MKCL, mkcl_object *px)
 	out = LIST;
 	goto OUTPUT;
       }
-      dx = MKCL_CONS(env, MK_CL_list, dx);
+      dx = MKCL_CONS(env, (mkcl_object) &MK_CL_list, dx);
       break;
     case LISTX:
       if (a == QUOTE) {
@@ -140,13 +140,13 @@ _mkcl_backq_cdr(MKCL, mkcl_object *px)
 	out = LISTX;
 	goto OUTPUT;
       }
-      dx = MKCL_CONS(env, MK_CL_listX, dx);
+      dx = MKCL_CONS(env, (mkcl_object) &MK_CL_listX, dx);
       break;
     case APPEND:
-      dx = MKCL_CONS(env, MK_CL_append, dx);
+      dx = MKCL_CONS(env, (mkcl_object) &MK_CL_append, dx);
       break;
     case NCONC:
-      dx = MKCL_CONS(env, MK_CL_nconc, dx);
+      dx = MKCL_CONS(env, (mkcl_object) &MK_CL_nconc, dx);
       break;
     default:
       mkcl_lose(env, "backquote botch");
@@ -193,19 +193,19 @@ _mkcl_backq_car(MKCL, mkcl_object *px)
  AGAIN:
   if (MKCL_ATOM(x))
     return(QUOTE);
-  if (MKCL_CAR(x) == MK_SI_quasiquote) {
+  if (MKCL_CAR(x) == ((mkcl_object) &MK_SI_quasiquote)) {
     x = *px = backq(env, MKCL_CADR(x));
     goto AGAIN;
   }
-  if (MKCL_CAR(x) == MK_SI_unquote) {
+  if (MKCL_CAR(x) == ((mkcl_object) &MK_SI_unquote)) {
     *px = MKCL_CADR(x);
     return EVAL;
   }
-  if (MKCL_CAR(x) == MK_SI_unquote_splice) {
+  if (MKCL_CAR(x) == ((mkcl_object) &MK_SI_unquote_splice)) {
     *px = MKCL_CADR(x);
     return APPEND;
   }
-  if (MKCL_CAR(x) == MK_SI_unquote_nsplice) {
+  if (MKCL_CAR(x) == ((mkcl_object) &MK_SI_unquote_nsplice)) {
     *px = MKCL_CADR(x);
     return NCONC;
   }
@@ -216,19 +216,19 @@ _mkcl_backq_car(MKCL, mkcl_object *px)
     return(d);
 
   case LIST:
-    *px = MKCL_CONS(env, MK_CL_list, *px);
+    *px = MKCL_CONS(env, (mkcl_object) &MK_CL_list, *px);
     break;
 
   case LISTX:
-    *px = MKCL_CONS(env, MK_CL_listX, *px);
+    *px = MKCL_CONS(env, (mkcl_object) &MK_CL_listX, *px);
     break;
 
   case APPEND:
-    *px = MKCL_CONS(env, MK_CL_append, *px);
+    *px = MKCL_CONS(env, (mkcl_object) &MK_CL_append, *px);
     break;
 
   case NCONC:
-    *px = MKCL_CONS(env, MK_CL_nconc, *px);
+    *px = MKCL_CONS(env, (mkcl_object) &MK_CL_nconc, *px);
     break;
 
   default:
@@ -261,6 +261,6 @@ quasiquote_macro(MKCL, mkcl_object whole, mkcl_object lex_env)
 void
 mkcl_init_backq(MKCL)
 {
-  mkcl_def_c_macro(env, MK_SI_quasiquote, quasiquote_macro, 2);
+  mkcl_def_c_macro(env, (mkcl_object) &MK_SI_quasiquote, quasiquote_macro, 2);
 }
 

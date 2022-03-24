@@ -15,19 +15,19 @@
 ;;
 ;; Configuration file for MKCL
 ;;
-(in-package "COMMON-LISP")
+(in-package "SYSTEM")
 
 ;;
 ;; * Short and long site names
 ;;
 ;; Edit these with the name of your site:
 ;;
-(defun short-site-name ()
+(defun cl:short-site-name ()
   "Args: ()
 Returns, as a string, the location of the machine on which MKCL runs."
   nil)
 
-(defun long-site-name () 
+(defun cl:long-site-name () 
   "Args: ()
 Returns, as a string, the location of the machine on which MKCL runs."
   nil)
@@ -55,7 +55,7 @@ Returns the version of your MKCL as a string."
 Returns the version of your MKCL as a string."
   "@MKCL_PATCH_LEVEL@")
 
-(defun lisp-implementation-version ()
+(defun cl:lisp-implementation-version ()
   "Args:()
 Returns the version of your MKCL as a string."
   (or (mkcl:git-describe-this-mkcl) (si:mkcl-version)))
@@ -63,7 +63,7 @@ Returns the version of your MKCL as a string."
 
 
 
-(defun machine-type ()
+(defun cl:machine-type ()
   "Args: ()
 Returns, as a string, the type of the machine on which MKCL runs."
   (or (mkcl:getenv "HOSTTYPE")
@@ -72,7 +72,7 @@ Returns, as a string, the type of the machine on which MKCL runs."
       (nth-value 4 (si:uname))
       "@ARCHITECTURE@"))
 
-(defun machine-instance ()
+(defun cl:machine-instance ()
   "Args: ()
 Returns, as a string, the identifier of the machine on which MKCL runs."
   (or (mkcl:getenv "HOSTNAME")
@@ -81,7 +81,7 @@ Returns, as a string, the identifier of the machine on which MKCL runs."
       (nth-value 1 (si:uname))
       ))
 
-(defun machine-version ()
+(defun cl:machine-version ()
   "Args: ()
 Returns, as a string, the version of the machine on which MKCL runs. Obtained from
 uname(2) where available."
@@ -89,19 +89,16 @@ uname(2) where available."
       (mkcl:getenv "PROCESSOR_LEVEL")))
 
 
-(defun software-type ()
+(defun cl:software-type ()
   "Args: ()
 Returns, as a string, the type of the software under which MKCL runs."
   (or (nth-value 0 (si:uname)) "@SOFTWARE_TYPE@"))
 
-(defun software-version ()
+(defun cl:software-version ()
   "Args: ()
 Returns, as a string, the version of the software under which MKCL runs."
   (or (nth-value 2 (si:uname))
-      #.(let ((aux "@SOFTWARE_VERSION@"))
-	  (if (plusp (length aux))
-	      aux
-	      nil))))
+      (and (plusp (length "@SOFTWARE_VERSION@")) "@SOFTWARE_VERSION@")))
 
 ;;
 ;; * Set configuration of basic logical pathnames.

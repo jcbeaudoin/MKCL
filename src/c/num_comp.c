@@ -78,7 +78,7 @@ long_double_fix_compare(mkcl_word n, long double d)
 }
 #endif
 
-struct mkcl_cfun mk_cl_E_cfunobj = MKCL_CFUN_VA(mk_cl_E, MK_CL_E);
+struct mkcl_cfun mk_cl_E_cfunobj = MKCL_CFUN_VA(mk_cl_E, (mkcl_object) &MK_CL_E);
 
 mkcl_object mk_cl_E(MKCL, mkcl_narg narg, mkcl_object num, ...)
 {
@@ -86,7 +86,7 @@ mkcl_object mk_cl_E(MKCL, mkcl_narg narg, mkcl_object num, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_CL_E, 1, narg, num, nums);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_CL_E, 1, narg, num, nums);
 
     /* ANSI: Need not signal error for 1 argument */
     /* INV: For >= 2 arguments, mkcl_number_equalp() performs checks */
@@ -400,7 +400,7 @@ mkcl_number_compare(MKCL, mkcl_object x, mkcl_object y)
   }
 }
 
-struct mkcl_cfun mk_cl_NE_cfunobj = MKCL_CFUN_VA(mk_cl_NE, MK_CL_NE);
+struct mkcl_cfun mk_cl_NE_cfunobj = MKCL_CFUN_VA(mk_cl_NE, (mkcl_object) &MK_CL_NE);
 
 mkcl_object mk_cl_NE(MKCL, mkcl_narg narg, ...)
 {
@@ -409,7 +409,7 @@ mkcl_object mk_cl_NE(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_CL_NE, 0, narg, narg, nums);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_CL_NE, 0, narg, narg, nums);
 
     if (narg == 0)
       mkcl_FEwrong_num_arguments_anonym(env, 1, -1, narg);
@@ -450,23 +450,23 @@ monotonic(MKCL, int s, int t, int narg, mkcl_va_list nums)
     mkcl_va_end(nums);                                          \
     return val; }
 
-struct mkcl_cfun mk_cl_LE_cfunobj = MKCL_CFUN_VA(mk_cl_LE, MK_CL_LE);
-struct mkcl_cfun mk_cl_GE_cfunobj = MKCL_CFUN_VA(mk_cl_GE, MK_CL_GE);
-struct mkcl_cfun mk_cl_L_cfunobj = MKCL_CFUN_VA(mk_cl_L, MK_CL_L);
-struct mkcl_cfun mk_cl_G_cfunobj = MKCL_CFUN_VA(mk_cl_G, MK_CL_G);
+struct mkcl_cfun mk_cl_LE_cfunobj = MKCL_CFUN_VA(mk_cl_LE, (mkcl_object) &MK_CL_LE);
+struct mkcl_cfun mk_cl_GE_cfunobj = MKCL_CFUN_VA(mk_cl_GE, (mkcl_object) &MK_CL_GE);
+struct mkcl_cfun mk_cl_L_cfunobj = MKCL_CFUN_VA(mk_cl_L, (mkcl_object) &MK_CL_L);
+struct mkcl_cfun mk_cl_G_cfunobj = MKCL_CFUN_VA(mk_cl_G, (mkcl_object) &MK_CL_G);
 
 mkcl_object mk_cl_LE MONOTONIC( 1, 0)
 mkcl_object mk_cl_GE MONOTONIC(-1, 0)
 mkcl_object mk_cl_L  MONOTONIC( 1, 1)
 mkcl_object mk_cl_G  MONOTONIC(-1, 1)
 
-struct mkcl_cfun mk_cl_max_cfunobj = MKCL_CFUN_VA(mk_cl_max, MK_CL_max);
+struct mkcl_cfun mk_cl_max_cfunobj = MKCL_CFUN_VA(mk_cl_max, (mkcl_object) &MK_CL_max);
 
 mkcl_object mk_cl_max(MKCL, mkcl_narg narg, mkcl_object max, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_CL_max, 1, narg, max, nums);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_CL_max, 1, narg, max, nums);
 
     /* INV: type check occurs in mkcl_number_compare() for the rest of
        numbers, but for the first argument it happens in mkcl_zerop(). */
@@ -482,13 +482,13 @@ mkcl_object mk_cl_max(MKCL, mkcl_narg narg, mkcl_object max, ...)
   }
 }
 
-struct mkcl_cfun mk_cl_min_cfunobj = MKCL_CFUN_VA(mk_cl_min, MK_CL_min);
+struct mkcl_cfun mk_cl_min_cfunobj = MKCL_CFUN_VA(mk_cl_min, (mkcl_object) &MK_CL_min);
 
 mkcl_object mk_cl_min(MKCL, mkcl_narg narg, mkcl_object min, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_CL_min, 1, narg, min, nums);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_CL_min, 1, narg, min, nums);
 
     /* INV: type check occurs in mkcl_number_compare() for the rest of
        numbers, but for the first argument it happens in mkcl_zerop(). */

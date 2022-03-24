@@ -58,14 +58,6 @@ MKCL_HFILES = mkcl/config.h \
               mkcl/object.h \
               mkcl/stacks.h
 
-C_EXPORTED_SYMBOLS_H_IN_MKCL =  mkcl/C_exported_symbols_in_CL.h \
-                                mkcl/C_exported_symbols_in_CLOS.h \
-                                mkcl/C_exported_symbols_in_GRAY.h \
-                                mkcl/C_exported_symbols_in_KEYWORDS.h \
-                                mkcl/C_exported_symbols_in_MKCL.h \
-                                mkcl/C_exported_symbols_in_MT.h \
-                                mkcl/C_exported_symbols_in_SI.h
-
 
 EXPOSE_SYMBOLS_H_IN_MKCL =  mkcl/expose_symbols_in_CL.h 	\
                             mkcl/expose_symbols_in_SI.h 	\
@@ -77,7 +69,6 @@ EXPOSE_SYMBOLS_H_IN_MKCL =  mkcl/expose_symbols_in_CL.h 	\
                             mkcl/expose_symbols_in_FFI.h
 
 PACKAGES_OBJS = all_packages.o package_FFI.o package_MT.o package_MKCL.o package_CLOS.o package_GRAY.o package_KEYWORD.o package_SI.o package_CL.o package_USER.o
-#PACKAGES_OBJS = 
 
 OBJS	= symbol.o package.o list.o \
 	apply.o eval.o interpreter.o compiler.o disassembler.o \
@@ -103,7 +94,7 @@ DCFILES = $(OBJS:%.o=%.c)
 all:
 	$(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile all2
 
-all2: ../mkclmin.a ../mkclmintop.a ../mkcltop.a cinit.o #all_symbols_min.o all_symbols.o cinit.o
+all2: ../mkclmin.a ../mkclmintop.a ../mkcltop.a cinit.o
 
 .c.s:
 	$(CC) $(CFLAGS) -fverbose-asm -S -o $@ -c $<
@@ -111,11 +102,6 @@ all2: ../mkclmin.a ../mkclmintop.a ../mkcltop.a cinit.o #all_symbols_min.o all_s
 .c.o:
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-.dh.h:
-	$(DPP) $< $@
-
-
-$(C_EXPORTED_SYMBOLS_H_IN_MKCL): $(DPP)
 
 mkcl/gc/gc.h: ../gc/include/gc.h
 	mkdir -p mkcl/gc
@@ -124,7 +110,7 @@ mkcl/gc/gc.h: ../gc/include/gc.h
 mkcl/mkcl-gc.h: mkcl/gc/gc.h
 	touch $@
 
-mkcl/internal.h: $(C_EXPORTED_SYMBOLS_H_IN_MKCL) $(EXPOSE_SYMBOLS_H_IN_MKCL)
+mkcl/internal.h: $(EXPOSE_SYMBOLS_H_IN_MKCL)
 
 
 mkcl/expose_symbols_in_FFI.h: packages/expose_symbols_in_FFI.h
@@ -195,12 +181,10 @@ packages/expose_symbols_in_CL.h:
 clean:
 	$(RM) $(OBJS) $(OBJS:%.o=%.s) all_symbols_min.o all_symbols.o cinit.o core core.* a.out
 	$(RM) $(PACKAGES_OBJS) $(PACKAGES_OBJS:%.o=%_min.o)
-	$(RM) mkcl/gc/*.h $(C_EXPORTED_SYMBOLS_H_IN_MKCL) $(EXPOSE_SYMBOLS_H_IN_MKCL)
-	$(RM) $(DPP)
+	$(RM) mkcl/gc/*.h $(EXPOSE_SYMBOLS_H_IN_MKCL)
 	cd packages; $(MAKE) clean
 
 distclean: clean
-	$(RM) symbols_list2.h # all_symbols.c cinit.c
 	$(RM) GNUmakefile makefile.depend
 	$(RM) Makefile
 	cd packages; $(MAKE) distclean
@@ -211,17 +195,6 @@ realclean: distclean
 
 
 # Build rules
-
-$(DPP): dpp.c symbols_list2.h
-	$(TRUE_CC) -O2 dpp.c  -o $@
-
-symbols_list2.h: symbols_list.h
-	cpp -DDPP symbols_list.h | \
-	sed -e 's%{\([A-Z ]*.*".*"\),[^,]*,[ ]*NULL,.*}%{\1,NULL,-1}%g' \
-	    -e 's%{\([A-Z ]*.*".*"\),[^,]*,[ ]*\([^,]*\),[ ]*\([^,]*\),.*}%{\1,"\2",\3}%g' \
-	    -e 's%{NULL.*%{NULL,NULL,-1}};%' > $@-$$$$; \
-	mv $@-$$$$ $@ # We do this here to assure the "atomic" creation of symbols_list2.h.
-
 
 
 unixfsys.o: unixfsys.c
@@ -239,19 +212,19 @@ arch/ffi_x86.o: arch/ffi_x86.c
 #
 # These files are interrelated
 #
-all_symbols_min.o: GNUmakefile all_symbols.c symbols_list.h symbols_list2.h mkcl/mkcl.h
+all_symbols_min.o: GNUmakefile all_symbols.c mkcl/mkcl.h
 	$(CC) $(CFLAGS) -DMKCL_MIN -c all_symbols.c -o $@
 
-all_symbols.o: GNUmakefile all_symbols.c symbols_list.h symbols_list2.h mkcl/mkcl.h
+all_symbols.o: GNUmakefile all_symbols.c mkcl/mkcl.h
 	$(CC) $(CFLAGS) -c all_symbols.c -o $@
 
 cinit.o: GNUmakefile cinit.c
 	$(CC) $(CFLAGS) -c cinit.c -o $@
 
-all_packages_min.o: GNUmakefile all_packages.c symbols_list.h symbols_list2.h mkcl/mkcl.h
+all_packages_min.o: GNUmakefile all_packages.c mkcl/mkcl.h
 	$(CC) $(CFLAGS) -DMKCL_MIN -c all_packages.c -o $@
 
-all_packages.o: GNUmakefile all_packages.c symbols_list.h symbols_list2.h mkcl/mkcl.h
+all_packages.o: GNUmakefile all_packages.c mkcl/mkcl.h
 	$(CC) $(CFLAGS) -c all_packages.c -o $@
 
 packages/FFI_package.h: packages/FFI_package_base.h packages/FFI_package_core.h

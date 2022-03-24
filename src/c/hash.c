@@ -394,7 +394,7 @@ _search_hash(MKCL, const mkcl_hash_value hashed_key, bool (*equality_fun)(__MKCL
     }
 }
 
-static struct mkcl_hashtable_entry *
+struct mkcl_hashtable_entry *
 mkcl_search_hash_package(MKCL, mkcl_object key, mkcl_object hashtable)
 {
   return _search_hash(env, hashtable->hash.hash_fun(env, key), hashtable->hash.equality_fun, key, hashtable);
@@ -574,6 +574,9 @@ mkcl_extend_hashtable(MKCL, mkcl_object hashtable)
   }
 }
 
+bool mkcl_equality_fun_package(MKCL, mkcl_object s1, mkcl_object s2)
+{ return mkcl_string_E(env, s1, s2); }
+
 mkcl_object
 mkcl_make_hashtable_for_package(MKCL, mkcl_index hsize)
 {
@@ -599,7 +602,11 @@ mkcl_make_hashtable_for_package(MKCL, mkcl_index hsize)
 
   h->hash.search_fun = mkcl_search_hash_package;
   h->hash.hash_fun = mkcl_hash_equal_package;
+#if 0
   h->hash.equality_fun = mkcl_string_E;
+#else
+  h->hash.equality_fun = mkcl_equality_fun_package;  
+#endif
 
   h->hash.free_bucket = NULL;
 
@@ -618,17 +625,17 @@ mkcl_make_hashtable_for_package(MKCL, mkcl_index hsize)
 }
 
 
-struct mkcl_cfun mk_cl_make_hash_table_cfunobj = MKCL_CFUN_VA(mk_cl_make_hash_table, MK_CL_make_hash_table);
+struct mkcl_cfun mk_cl_make_hash_table_cfunobj = MKCL_CFUN_VA(mk_cl_make_hash_table, (mkcl_object) &MK_CL_make_hash_table);
 
 mkcl_object mk_cl_make_hash_table(MKCL, mkcl_narg narg, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_object test = MK_CL_eql;
+    mkcl_object test = (mkcl_object) &MK_CL_eql;
     mkcl_object size = MKCL_MAKE_FIXNUM(1024);
     mkcl_object rehash_size = mkcl_make_singlefloat(env, 1.5);
     mkcl_object rehash_threshold = mkcl_make_singlefloat(env, 0.7);
-    MKCL_RECEIVE_4_KEYWORD_ARGUMENTS(env, MK_CL_make_hash_table, narg, 0, narg, MK_KEY_test, &test, MK_KEY_size, &size, MK_KEY_rehash_size, &rehash_size, MK_KEY_rehash_threshold, &rehash_threshold);
+    MKCL_RECEIVE_4_KEYWORD_ARGUMENTS(env, (mkcl_object) &MK_CL_make_hash_table, narg, 0, narg, (mkcl_object) &MK_KEY_test, &test, (mkcl_object) &MK_KEY_size, &size, (mkcl_object) &MK_KEY_rehash_size, &rehash_size, (mkcl_object) &MK_KEY_rehash_threshold, &rehash_threshold);
 
     mkcl_return_value(mk_cl__make_hash_table(env, test, size, rehash_size, rehash_threshold));
   }
@@ -647,18 +654,18 @@ mk_cl__make_hash_table(MKCL, mkcl_object test, mkcl_object size,
   /*
    * Argument checking
    */
-  if (test == MK_CL_eq || test == MKCL_SYM_FUN(MK_CL_eq))
+  if (test == ((mkcl_object) &MK_CL_eq) || test == MKCL_SYM_FUN((mkcl_object) &MK_CL_eq))
     { htt = mkcl_htt_eq; search_fun = mkcl_search_hash_eq; hash_fun = hash_eq; equality_fun = _mkcl_eq; }
-  else if (test == MK_CL_eql || test == MKCL_SYM_FUN(MK_CL_eql))
+  else if (test == ((mkcl_object) &MK_CL_eql) || test == MKCL_SYM_FUN((mkcl_object) &MK_CL_eql))
     { htt = mkcl_htt_eql; search_fun = mkcl_search_hash_eql; hash_fun = hash_eql; equality_fun = mkcl_eql; }
-  else if (test == MK_CL_equal || test == MKCL_SYM_FUN(MK_CL_equal))
+  else if (test == ((mkcl_object) &MK_CL_equal) || test == MKCL_SYM_FUN((mkcl_object) &MK_CL_equal))
     { htt = mkcl_htt_equal; search_fun = mkcl_search_hash_equal; hash_fun = hash_equal; equality_fun = mkcl_equal; }
-  else if (test == MK_CL_equalp || test == MKCL_SYM_FUN(MK_CL_equalp))
+  else if (test == ((mkcl_object) &MK_CL_equalp) || test == MKCL_SYM_FUN((mkcl_object) &MK_CL_equalp))
     { htt = mkcl_htt_equalp; search_fun = mkcl_search_hash_equalp; hash_fun = hash_equalp; equality_fun = mkcl_equalp; }
   else
     mkcl_FEerror(env, "~S is an illegal hash-table test function.", 1, test);
 
-  hsize = mkcl_fixnum_in_range(env, MK_CL_make_hash_table, "size", size, 0, MKCL_ATOTLIM);;
+  hsize = mkcl_fixnum_in_range(env, (mkcl_object) &MK_CL_make_hash_table, "size", size, 0, MKCL_ATOTLIM);;
   if (hsize < 16) {
     hsize = 16;
   }
@@ -666,7 +673,7 @@ mk_cl__make_hash_table(MKCL, mkcl_object test, mkcl_object size,
   if (!mkcl_plusp(env, rehash_size)) {
   ERROR1:
     rehash_size =
-      mkcl_type_error(env, MK_CL_make_hash_table,"rehash-size",
+      mkcl_type_error(env, (mkcl_object) &MK_CL_make_hash_table,"rehash-size",
 		      rehash_size,
 		      mkcl_fast_read_from_cstring(env, "(OR (INTEGER 1 *) (FLOAT (1.0) *))"));
     goto AGAIN;
@@ -684,7 +691,7 @@ mk_cl__make_hash_table(MKCL, mkcl_object test, mkcl_object size,
 	 mkcl_number_compare(env, rehash_threshold, MKCL_MAKE_FIXNUM(1)) > 0)
     {
       rehash_threshold =
-	mkcl_type_error(env, MK_CL_make_hash_table,"rehash-threshold",
+	mkcl_type_error(env, (mkcl_object) &MK_CL_make_hash_table,"rehash-threshold",
 			rehash_threshold,
 			mkcl_fast_read_from_cstring(env, "(REAL 0 1)"));
     }
@@ -817,7 +824,7 @@ print_stats_for_hset(mkcl_object hset)
 #endif
 }
 
-struct mkcl_cfun mk_si_hash_tables_statistics_cfunobj = MKCL_CFUN0(mk_si_hash_tables_statistics, MK_SI_hash_tables_statistics);
+struct mkcl_cfun mk_si_hash_tables_statistics_cfunobj = MKCL_CFUN0(mk_si_hash_tables_statistics, (mkcl_object) &MK_SI_hash_tables_statistics);
 
 mkcl_object
 mk_si_hash_tables_statistics(MKCL)
@@ -840,7 +847,7 @@ mk_si_hash_tables_statistics(MKCL)
   mkcl_return_value(mk_cl_Cnil);
 }
 
-struct mkcl_cfun mk_cl_hash_table_p_cfunobj = MKCL_CFUN1(mk_cl_hash_table_p, MK_CL_hash_table_p);
+struct mkcl_cfun mk_cl_hash_table_p_cfunobj = MKCL_CFUN1(mk_cl_hash_table_p, (mkcl_object) &MK_CL_hash_table_p);
 
 mkcl_object
 mk_cl_hash_table_p(MKCL, mkcl_object ht)
@@ -849,7 +856,7 @@ mk_cl_hash_table_p(MKCL, mkcl_object ht)
   mkcl_return_value(((mkcl_type_of(ht) == mkcl_t_hashtable) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_gethash_cfunobj = MKCL_CFUN_VA(mk_cl_gethash, MK_CL_gethash);
+struct mkcl_cfun mk_cl_gethash_cfunobj = MKCL_CFUN_VA(mk_cl_gethash, (mkcl_object) &MK_CL_gethash);
 
 mkcl_object mk_cl_gethash(MKCL, mkcl_narg narg, mkcl_object key, mkcl_object ht, ...)
 {
@@ -857,7 +864,7 @@ mkcl_object mk_cl_gethash(MKCL, mkcl_narg narg, mkcl_object key, mkcl_object ht,
   {
     struct mkcl_hashtable_entry *e;
     mkcl_object no_value = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_gethash, narg, 2, ht, &no_value);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_gethash, narg, 2, ht, &no_value);
 
     mkcl_assert_type_hash_table(env, ht);
     e = mkcl_search_hash(env, key, ht);
@@ -868,7 +875,7 @@ mkcl_object mk_cl_gethash(MKCL, mkcl_narg narg, mkcl_object key, mkcl_object ht,
   }
 }
 
-struct mkcl_cfun mk_si_hash_set_cfunobj = MKCL_CFUN3(mk_si_hash_set, MK_SI_hash_set);
+struct mkcl_cfun mk_si_hash_set_cfunobj = MKCL_CFUN3(mk_si_hash_set, (mkcl_object) &MK_SI_hash_set);
 
 mkcl_object
 mk_si_hash_set(MKCL, mkcl_object key, mkcl_object ht, mkcl_object val)
@@ -969,7 +976,7 @@ mkcl_remhash(MKCL, mkcl_object key, mkcl_object hashtable)
     }
 }
 
-struct mkcl_cfun mk_cl_remhash_cfunobj = MKCL_CFUN2(mk_cl_remhash, MK_CL_remhash);
+struct mkcl_cfun mk_cl_remhash_cfunobj = MKCL_CFUN2(mk_cl_remhash, (mkcl_object) &MK_CL_remhash);
 
 mkcl_object
 mk_cl_remhash(MKCL, mkcl_object key, mkcl_object ht)
@@ -1007,7 +1014,7 @@ do_clrhash(mkcl_object ht)
   }
 }
 
-struct mkcl_cfun mk_cl_clrhash_cfunobj = MKCL_CFUN1(mk_cl_clrhash, MK_CL_clrhash);
+struct mkcl_cfun mk_cl_clrhash_cfunobj = MKCL_CFUN1(mk_cl_clrhash, (mkcl_object) &MK_CL_clrhash);
 
 mkcl_object
 mk_cl_clrhash(MKCL, mkcl_object ht)
@@ -1020,7 +1027,7 @@ mk_cl_clrhash(MKCL, mkcl_object ht)
   mkcl_return_value(ht);
 }
 
-struct mkcl_cfun mk_cl_hash_table_test_cfunobj = MKCL_CFUN1(mk_cl_hash_table_test, MK_CL_hash_table_test);
+struct mkcl_cfun mk_cl_hash_table_test_cfunobj = MKCL_CFUN1(mk_cl_hash_table_test, (mkcl_object) &MK_CL_hash_table_test);
 
 mkcl_object
 mk_cl_hash_table_test(MKCL, mkcl_object ht)
@@ -1029,17 +1036,17 @@ mk_cl_hash_table_test(MKCL, mkcl_object ht)
   mkcl_object output;
   mkcl_assert_type_hash_table(env, ht);
   switch(ht->hash.test) {
-  case mkcl_htt_eq: output = MK_CL_eq; break;
-  case mkcl_htt_eql: output = MK_CL_eql; break;
-  case mkcl_htt_equal: output = MK_CL_equal; break;
-  case mkcl_htt_equalp: output = MK_CL_equalp; break;
+  case mkcl_htt_eq: output = (mkcl_object) &MK_CL_eq; break;
+  case mkcl_htt_eql: output = (mkcl_object) &MK_CL_eql; break;
+  case mkcl_htt_equal: output = (mkcl_object) &MK_CL_equal; break;
+  case mkcl_htt_equalp: output = (mkcl_object) &MK_CL_equalp; break;
   case mkcl_htt_package:
-  default: output = MK_CL_equal;
+  default: output = (mkcl_object) &MK_CL_equal;
   }
   mkcl_return_value(output);
 }
 
-struct mkcl_cfun mk_cl_hash_table_size_cfunobj = MKCL_CFUN1(mk_cl_hash_table_size, MK_CL_hash_table_size);
+struct mkcl_cfun mk_cl_hash_table_size_cfunobj = MKCL_CFUN1(mk_cl_hash_table_size, (mkcl_object) &MK_CL_hash_table_size);
 
 mkcl_object
 mk_cl_hash_table_size(MKCL, mkcl_object ht)
@@ -1049,7 +1056,7 @@ mk_cl_hash_table_size(MKCL, mkcl_object ht)
   mkcl_return_value(MKCL_MAKE_FIXNUM(ht->hash.size));
 }
 
-struct mkcl_cfun mk_cl_hash_table_count_cfunobj = MKCL_CFUN1(mk_cl_hash_table_count, MK_CL_hash_table_count);
+struct mkcl_cfun mk_cl_hash_table_count_cfunobj = MKCL_CFUN1(mk_cl_hash_table_count, (mkcl_object) &MK_CL_hash_table_count);
 
 mkcl_object
 mk_cl_hash_table_count(MKCL, mkcl_object ht)
@@ -1105,7 +1112,7 @@ mkcl_hash_table_iterate(MKCL, mkcl_narg narg)
   mkcl_return_3_values(mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil);
 }
 
-struct mkcl_cfun mk_si_hash_table_iterator_cfunobj = MKCL_CFUN1(mk_si_hash_table_iterator, MK_SI_hash_table_iterator);
+struct mkcl_cfun mk_si_hash_table_iterator_cfunobj = MKCL_CFUN1(mk_si_hash_table_iterator, (mkcl_object) &MK_SI_hash_table_iterator);
 
 mkcl_object
 mk_si_hash_table_iterator(MKCL, mkcl_object ht)
@@ -1131,11 +1138,11 @@ mk_si_hash_table_iterator(MKCL, mkcl_object ht)
 
     mkcl_return_value(mkcl_make_cclosure_va(env, mk_cl_Cnil, (mkcl_objectfn)mkcl_hash_table_iterate, 1,
 				   closure_syms_block, closure_block,
-				   MK_SI_hash_table_iterator, -1));
+				   (mkcl_object) &MK_SI_hash_table_iterator, -1));
   }
 }
 
-struct mkcl_cfun mk_cl_hash_table_rehash_size_cfunobj = MKCL_CFUN1(mk_cl_hash_table_rehash_size, MK_CL_hash_table_rehash_size);
+struct mkcl_cfun mk_cl_hash_table_rehash_size_cfunobj = MKCL_CFUN1(mk_cl_hash_table_rehash_size, (mkcl_object) &MK_CL_hash_table_rehash_size);
 
 mkcl_object
 mk_cl_hash_table_rehash_size(MKCL, mkcl_object ht)
@@ -1145,7 +1152,7 @@ mk_cl_hash_table_rehash_size(MKCL, mkcl_object ht)
   mkcl_return_value(ht->hash.rehash_size);
 }
 
-struct mkcl_cfun mk_cl_hash_table_rehash_threshold_cfunobj = MKCL_CFUN1(mk_cl_hash_table_rehash_threshold, MK_CL_hash_table_rehash_threshold);
+struct mkcl_cfun mk_cl_hash_table_rehash_threshold_cfunobj = MKCL_CFUN1(mk_cl_hash_table_rehash_threshold, (mkcl_object) &MK_CL_hash_table_rehash_threshold);
 
 mkcl_object
 mk_cl_hash_table_rehash_threshold(MKCL, mkcl_object ht)
@@ -1155,7 +1162,7 @@ mk_cl_hash_table_rehash_threshold(MKCL, mkcl_object ht)
   mkcl_return_value(ht->hash.threshold);
 }
 
-struct mkcl_cfun mk_cl_sxhash_cfunobj = MKCL_CFUN1(mk_cl_sxhash, MK_CL_sxhash);
+struct mkcl_cfun mk_cl_sxhash_cfunobj = MKCL_CFUN1(mk_cl_sxhash, (mkcl_object) &MK_CL_sxhash);
 
 mkcl_object
 mk_cl_sxhash(MKCL, mkcl_object key)
@@ -1166,7 +1173,7 @@ mk_cl_sxhash(MKCL, mkcl_object key)
   mkcl_return_value(MKCL_MAKE_FIXNUM(output & mask));
 }
 
-struct mkcl_cfun mk_si_hash_eql_cfunobj = MKCL_CFUN_VA(mk_si_hash_eql, MK_SI_hash_eql);
+struct mkcl_cfun mk_si_hash_eql_cfunobj = MKCL_CFUN_VA(mk_si_hash_eql, (mkcl_object) &MK_SI_hash_eql);
 
 mkcl_object mk_si_hash_eql(MKCL, mkcl_narg narg, ...)
 {
@@ -1174,7 +1181,7 @@ mkcl_object mk_si_hash_eql(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_SI_hash_eql, 0, narg, narg, args);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_SI_hash_eql, 0, narg, narg, args);
 
   for (h = 0; narg; narg--) {
     mkcl_object o = mkcl_va_arg(args);
@@ -1186,7 +1193,7 @@ mkcl_object mk_si_hash_eql(MKCL, mkcl_narg narg, ...)
 }
 
 
-struct mkcl_cfun mk_si_hash_equal_cfunobj = MKCL_CFUN_VA(mk_si_hash_equal, MK_SI_hash_equal);
+struct mkcl_cfun mk_si_hash_equal_cfunobj = MKCL_CFUN_VA(mk_si_hash_equal, (mkcl_object) &MK_SI_hash_equal);
 
 mkcl_object mk_si_hash_equal(MKCL, mkcl_narg narg, ...)
 {
@@ -1194,7 +1201,7 @@ mkcl_object mk_si_hash_equal(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_SI_hash_equal, 0, narg, narg, args);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_SI_hash_equal, 0, narg, narg, args);
 
   for (h = 0; narg; narg--) {
     mkcl_object o = mkcl_va_arg(args);
@@ -1205,7 +1212,7 @@ mkcl_object mk_si_hash_equal(MKCL, mkcl_narg narg, ...)
   }
 }
 
-struct mkcl_cfun mk_si_hash_equalp_cfunobj = MKCL_CFUN_VA(mk_si_hash_equalp, MK_SI_hash_equalp);
+struct mkcl_cfun mk_si_hash_equalp_cfunobj = MKCL_CFUN_VA(mk_si_hash_equalp, (mkcl_object) &MK_SI_hash_equalp);
 
 mkcl_object mk_si_hash_equalp(MKCL, mkcl_narg narg, ...)
 {
@@ -1213,7 +1220,7 @@ mkcl_object mk_si_hash_equalp(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_SI_hash_equalp, 0, narg, narg, args);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_SI_hash_equalp, 0, narg, narg, args);
 
     for (h = 0; narg; narg--) {
       mkcl_object o = mkcl_va_arg(args);
@@ -1224,7 +1231,7 @@ mkcl_object mk_si_hash_equalp(MKCL, mkcl_narg narg, ...)
   }
 }
 
-struct mkcl_cfun mk_cl_maphash_cfunobj = MKCL_CFUN2(mk_cl_maphash, MK_CL_maphash);
+struct mkcl_cfun mk_cl_maphash_cfunobj = MKCL_CFUN2(mk_cl_maphash, (mkcl_object) &MK_CL_maphash);
 
 mkcl_object
 mk_cl_maphash(MKCL, mkcl_object fun, mkcl_object ht)

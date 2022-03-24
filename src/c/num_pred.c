@@ -128,7 +128,7 @@ mkcl_evenp(MKCL, mkcl_object x)
   mkcl_FEtype_error_integer(env, x);
 }
 
-struct mkcl_cfun mk_cl_zerop_cfunobj = MKCL_CFUN1(mk_cl_zerop, MK_CL_zerop);
+struct mkcl_cfun mk_cl_zerop_cfunobj = MKCL_CFUN1(mk_cl_zerop, (mkcl_object) &MK_CL_zerop);
 
 mkcl_object
 mk_cl_zerop(MKCL, mkcl_object x)
@@ -137,7 +137,7 @@ mk_cl_zerop(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_zerop(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_plusp_cfunobj = MKCL_CFUN1(mk_cl_plusp, MK_CL_plusp);
+struct mkcl_cfun mk_cl_plusp_cfunobj = MKCL_CFUN1(mk_cl_plusp, (mkcl_object) &MK_CL_plusp);
 
 mkcl_object
 mk_cl_plusp(MKCL, mkcl_object x)
@@ -146,7 +146,7 @@ mk_cl_plusp(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_plusp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_minusp_cfunobj = MKCL_CFUN1(mk_cl_minusp, MK_CL_minusp);
+struct mkcl_cfun mk_cl_minusp_cfunobj = MKCL_CFUN1(mk_cl_minusp, (mkcl_object) &MK_CL_minusp);
 
 mkcl_object
 mk_cl_minusp(MKCL, mkcl_object x)
@@ -155,7 +155,7 @@ mk_cl_minusp(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_minusp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_oddp_cfunobj = MKCL_CFUN1(mk_cl_oddp, MK_CL_oddp);
+struct mkcl_cfun mk_cl_oddp_cfunobj = MKCL_CFUN1(mk_cl_oddp, (mkcl_object) &MK_CL_oddp);
 
 mkcl_object
 mk_cl_oddp(MKCL, mkcl_object x)
@@ -164,7 +164,7 @@ mk_cl_oddp(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_oddp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_evenp_cfunobj = MKCL_CFUN1(mk_cl_evenp, MK_CL_evenp);
+struct mkcl_cfun mk_cl_evenp_cfunobj = MKCL_CFUN1(mk_cl_evenp, (mkcl_object) &MK_CL_evenp);
 
 mkcl_object
 mk_cl_evenp(MKCL, mkcl_object x)
@@ -173,7 +173,7 @@ mk_cl_evenp(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_evenp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_si_float_nan_p_cfunobj = MKCL_CFUN1(mk_si_float_nan_p, MK_SI_float_nan_p);
+struct mkcl_cfun mk_si_float_nan_p_cfunobj = MKCL_CFUN1(mk_si_float_nan_p, (mkcl_object) &MK_SI_float_nan_p);
 
 mkcl_object
 mk_si_float_nan_p(MKCL, mkcl_object x)
@@ -182,7 +182,7 @@ mk_si_float_nan_p(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_float_nan_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_si_float_infinity_p_cfunobj = MKCL_CFUN1(mk_si_float_infinity_p, MK_SI_float_infinity_p);
+struct mkcl_cfun mk_si_float_infinity_p_cfunobj = MKCL_CFUN1(mk_si_float_infinity_p, (mkcl_object) &MK_SI_float_infinity_p);
 
 mkcl_object
 mk_si_float_infinity_p(MKCL, mkcl_object x)

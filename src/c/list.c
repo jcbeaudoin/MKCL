@@ -98,13 +98,13 @@ setup_test(MKCL, struct cl_test *t, mkcl_object item, mkcl_object test,
     if (test_not != mk_cl_Cnil)
       mkcl_FEerror(env, "Both :TEST and :TEST-NOT are specified.", 0);
     t->test_function = test = mk_si_coerce_to_function(env, test);
-    if (test == MKCL_SYM_FUN(MK_CL_eq)) {
+    if (test == MKCL_SYM_FUN((mkcl_object) &MK_CL_eq)) {
       t->test_c_function = test_eq;
-    } else if (test == MKCL_SYM_FUN(MK_CL_eql)) {
+    } else if (test == MKCL_SYM_FUN((mkcl_object) &MK_CL_eql)) {
       t->test_c_function = test_eql;
-    } else if (test == MKCL_SYM_FUN(MK_CL_equal)) {
+    } else if (test == MKCL_SYM_FUN((mkcl_object) &MK_CL_equal)) {
       t->test_c_function = test_equal;
-    } else if (test == MKCL_SYM_FUN(MK_CL_equalp)) {
+    } else if (test == MKCL_SYM_FUN((mkcl_object) &MK_CL_equalp)) {
       t->test_c_function = test_equalp;
     } else {
       t->test_c_function = test_compare;
@@ -129,8 +129,8 @@ setup_test(MKCL, struct cl_test *t, mkcl_object item, mkcl_object test,
   }
 }
 
-struct mkcl_cfun mk_cl_car_cfunobj = MKCL_CFUN1(mk_cl_car, MK_CL_car);
-struct mkcl_cfun mk_cl_first_cfunobj = MKCL_CFUN1(mk_cl_car, MK_CL_first);
+struct mkcl_cfun mk_cl_car_cfunobj = MKCL_CFUN1(mk_cl_car, (mkcl_object) &MK_CL_car);
+struct mkcl_cfun mk_cl_first_cfunobj = MKCL_CFUN1(mk_cl_car, (mkcl_object) &MK_CL_first);
 
 mkcl_object mk_cl_car(MKCL, mkcl_object x)
 {
@@ -142,8 +142,8 @@ mkcl_object mk_cl_car(MKCL, mkcl_object x)
     mkcl_FEtype_error_list(env, x);
 }
 
-struct mkcl_cfun mk_cl_cdr_cfunobj = MKCL_CFUN1(mk_cl_cdr, MK_CL_cdr);
-struct mkcl_cfun mk_cl_rest_cfunobj = MKCL_CFUN1(mk_cl_cdr, MK_CL_rest);
+struct mkcl_cfun mk_cl_cdr_cfunobj = MKCL_CFUN1(mk_cl_cdr, (mkcl_object) &MK_CL_cdr);
+struct mkcl_cfun mk_cl_rest_cfunobj = MKCL_CFUN1(mk_cl_cdr, (mkcl_object) &MK_CL_rest);
 
 mkcl_object mk_cl_cdr(MKCL, mkcl_object x)
 {
@@ -155,7 +155,7 @@ mkcl_object mk_cl_cdr(MKCL, mkcl_object x)
     mkcl_FEtype_error_list(env, x);
 }
 
-struct mkcl_cfun mk_cl_list_cfunobj = MKCL_CFUN_VA(mk_cl_list, MK_CL_list);
+struct mkcl_cfun mk_cl_list_cfunobj = MKCL_CFUN_VA(mk_cl_list, (mkcl_object) &MK_CL_list);
 
 mkcl_object mk_cl_list(MKCL, mkcl_narg narg, ...)
 {
@@ -163,7 +163,7 @@ mkcl_object mk_cl_list(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_CL_list, 0, narg, narg, args);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_CL_list, 0, narg, narg, args);
 
     if (narg--) {
       mkcl_object tail = head = mkcl_list1(env, mkcl_va_arg(args));
@@ -178,7 +178,7 @@ mkcl_object mk_cl_list(MKCL, mkcl_narg narg, ...)
   }
 }
 
-struct mkcl_cfun mk_cl_listX_cfunobj = MKCL_CFUN_VA(mk_cl_listX, MK_CL_listX);
+struct mkcl_cfun mk_cl_listX_cfunobj = MKCL_CFUN_VA(mk_cl_listX, (mkcl_object) &MK_CL_listX);
 
 mkcl_object mk_cl_listX(MKCL, mkcl_narg narg, ...)
 {
@@ -186,10 +186,10 @@ mkcl_object mk_cl_listX(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_CL_listX, 0, narg, narg, args);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_CL_listX, 0, narg, narg, args);
 
     if (narg == 0)
-      mkcl_FEwrong_num_arguments(env, MK_CL_listX, 1, -1, narg);
+      mkcl_FEwrong_num_arguments(env, (mkcl_object) &MK_CL_listX, 1, -1, narg);
     head = mkcl_va_arg(args);
     if (--narg) {
       mkcl_object tail = head = mkcl_list1(env, head);
@@ -235,7 +235,7 @@ static mkcl_object copy_proper_tail(MKCL, mkcl_object * cursor_ptr)
   return root;
 }
 
-struct mkcl_cfun mk_cl_append_cfunobj = MKCL_CFUN_VA(mk_cl_append, MK_CL_append);
+struct mkcl_cfun mk_cl_append_cfunobj = MKCL_CFUN_VA(mk_cl_append, (mkcl_object) &MK_CL_append);
 
 mkcl_object mk_cl_append(MKCL, mkcl_narg narg, ...)
 {
@@ -243,7 +243,7 @@ mkcl_object mk_cl_append(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_CL_append, 0, narg, narg, rest);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_CL_append, 0, narg, narg, rest);
 
     if ( narg == 1 )
       head = mkcl_va_arg(rest);
@@ -310,34 +310,34 @@ mkcl_append(MKCL, mkcl_object x, mkcl_object y)
     code; mkcl_return1(arg);				\
   E:	mkcl_FEtype_error_list(env, arg);}
 
-struct mkcl_cfun mk_cl_caar_cfunobj = MKCL_CFUN1(mk_cl_caar, MK_CL_caar);
-struct mkcl_cfun mk_cl_cadr_cfunobj = MKCL_CFUN1(mk_cl_cadr, MK_CL_cadr);
-struct mkcl_cfun mk_cl_cdar_cfunobj = MKCL_CFUN1(mk_cl_cdar, MK_CL_cdar);
-struct mkcl_cfun mk_cl_cddr_cfunobj = MKCL_CFUN1(mk_cl_cddr, MK_CL_cddr);
-struct mkcl_cfun mk_cl_caaar_cfunobj = MKCL_CFUN1(mk_cl_caaar, MK_CL_caaar);
-struct mkcl_cfun mk_cl_caadr_cfunobj = MKCL_CFUN1(mk_cl_caadr, MK_CL_caadr);
-struct mkcl_cfun mk_cl_cadar_cfunobj = MKCL_CFUN1(mk_cl_cadar, MK_CL_cadar);
-struct mkcl_cfun mk_cl_caddr_cfunobj = MKCL_CFUN1(mk_cl_caddr, MK_CL_caddr);
-struct mkcl_cfun mk_cl_cdaar_cfunobj = MKCL_CFUN1(mk_cl_cdaar, MK_CL_cdaar);
-struct mkcl_cfun mk_cl_cdadr_cfunobj = MKCL_CFUN1(mk_cl_cdadr, MK_CL_cdadr);
-struct mkcl_cfun mk_cl_cddar_cfunobj = MKCL_CFUN1(mk_cl_cddar, MK_CL_cddar);
-struct mkcl_cfun mk_cl_cdddr_cfunobj = MKCL_CFUN1(mk_cl_cdddr, MK_CL_cdddr);
-struct mkcl_cfun mk_cl_caaaar_cfunobj = MKCL_CFUN1(mk_cl_caaaar, MK_CL_caaaar);
-struct mkcl_cfun mk_cl_caaadr_cfunobj = MKCL_CFUN1(mk_cl_caaadr, MK_CL_caaadr);
-struct mkcl_cfun mk_cl_caadar_cfunobj = MKCL_CFUN1(mk_cl_caadar, MK_CL_caadar);
-struct mkcl_cfun mk_cl_caaddr_cfunobj = MKCL_CFUN1(mk_cl_caaddr, MK_CL_caaddr);
-struct mkcl_cfun mk_cl_cadaar_cfunobj = MKCL_CFUN1(mk_cl_cadaar, MK_CL_cadaar);
-struct mkcl_cfun mk_cl_cadadr_cfunobj = MKCL_CFUN1(mk_cl_cadadr, MK_CL_cadadr);
-struct mkcl_cfun mk_cl_caddar_cfunobj = MKCL_CFUN1(mk_cl_caddar, MK_CL_caddar);
-struct mkcl_cfun mk_cl_cadddr_cfunobj = MKCL_CFUN1(mk_cl_cadddr, MK_CL_cadddr);
-struct mkcl_cfun mk_cl_cdaaar_cfunobj = MKCL_CFUN1(mk_cl_cdaaar, MK_CL_cdaaar);
-struct mkcl_cfun mk_cl_cdaadr_cfunobj = MKCL_CFUN1(mk_cl_cdaadr, MK_CL_cdaadr);
-struct mkcl_cfun mk_cl_cdadar_cfunobj = MKCL_CFUN1(mk_cl_cdadar, MK_CL_cdadar);
-struct mkcl_cfun mk_cl_cdaddr_cfunobj = MKCL_CFUN1(mk_cl_cdaddr, MK_CL_cdaddr);
-struct mkcl_cfun mk_cl_cddaar_cfunobj = MKCL_CFUN1(mk_cl_cddaar, MK_CL_cddaar);
-struct mkcl_cfun mk_cl_cddadr_cfunobj = MKCL_CFUN1(mk_cl_cddadr, MK_CL_cddadr);
-struct mkcl_cfun mk_cl_cdddar_cfunobj = MKCL_CFUN1(mk_cl_cdddar, MK_CL_cdddar);
-struct mkcl_cfun mk_cl_cddddr_cfunobj = MKCL_CFUN1(mk_cl_cddddr, MK_CL_cddddr);
+struct mkcl_cfun mk_cl_caar_cfunobj = MKCL_CFUN1(mk_cl_caar, (mkcl_object) &MK_CL_caar);
+struct mkcl_cfun mk_cl_cadr_cfunobj = MKCL_CFUN1(mk_cl_cadr, (mkcl_object) &MK_CL_cadr);
+struct mkcl_cfun mk_cl_cdar_cfunobj = MKCL_CFUN1(mk_cl_cdar, (mkcl_object) &MK_CL_cdar);
+struct mkcl_cfun mk_cl_cddr_cfunobj = MKCL_CFUN1(mk_cl_cddr, (mkcl_object) &MK_CL_cddr);
+struct mkcl_cfun mk_cl_caaar_cfunobj = MKCL_CFUN1(mk_cl_caaar, (mkcl_object) &MK_CL_caaar);
+struct mkcl_cfun mk_cl_caadr_cfunobj = MKCL_CFUN1(mk_cl_caadr, (mkcl_object) &MK_CL_caadr);
+struct mkcl_cfun mk_cl_cadar_cfunobj = MKCL_CFUN1(mk_cl_cadar, (mkcl_object) &MK_CL_cadar);
+struct mkcl_cfun mk_cl_caddr_cfunobj = MKCL_CFUN1(mk_cl_caddr, (mkcl_object) &MK_CL_caddr);
+struct mkcl_cfun mk_cl_cdaar_cfunobj = MKCL_CFUN1(mk_cl_cdaar, (mkcl_object) &MK_CL_cdaar);
+struct mkcl_cfun mk_cl_cdadr_cfunobj = MKCL_CFUN1(mk_cl_cdadr, (mkcl_object) &MK_CL_cdadr);
+struct mkcl_cfun mk_cl_cddar_cfunobj = MKCL_CFUN1(mk_cl_cddar, (mkcl_object) &MK_CL_cddar);
+struct mkcl_cfun mk_cl_cdddr_cfunobj = MKCL_CFUN1(mk_cl_cdddr, (mkcl_object) &MK_CL_cdddr);
+struct mkcl_cfun mk_cl_caaaar_cfunobj = MKCL_CFUN1(mk_cl_caaaar, (mkcl_object) &MK_CL_caaaar);
+struct mkcl_cfun mk_cl_caaadr_cfunobj = MKCL_CFUN1(mk_cl_caaadr, (mkcl_object) &MK_CL_caaadr);
+struct mkcl_cfun mk_cl_caadar_cfunobj = MKCL_CFUN1(mk_cl_caadar, (mkcl_object) &MK_CL_caadar);
+struct mkcl_cfun mk_cl_caaddr_cfunobj = MKCL_CFUN1(mk_cl_caaddr, (mkcl_object) &MK_CL_caaddr);
+struct mkcl_cfun mk_cl_cadaar_cfunobj = MKCL_CFUN1(mk_cl_cadaar, (mkcl_object) &MK_CL_cadaar);
+struct mkcl_cfun mk_cl_cadadr_cfunobj = MKCL_CFUN1(mk_cl_cadadr, (mkcl_object) &MK_CL_cadadr);
+struct mkcl_cfun mk_cl_caddar_cfunobj = MKCL_CFUN1(mk_cl_caddar, (mkcl_object) &MK_CL_caddar);
+struct mkcl_cfun mk_cl_cadddr_cfunobj = MKCL_CFUN1(mk_cl_cadddr, (mkcl_object) &MK_CL_cadddr);
+struct mkcl_cfun mk_cl_cdaaar_cfunobj = MKCL_CFUN1(mk_cl_cdaaar, (mkcl_object) &MK_CL_cdaaar);
+struct mkcl_cfun mk_cl_cdaadr_cfunobj = MKCL_CFUN1(mk_cl_cdaadr, (mkcl_object) &MK_CL_cdaadr);
+struct mkcl_cfun mk_cl_cdadar_cfunobj = MKCL_CFUN1(mk_cl_cdadar, (mkcl_object) &MK_CL_cdadar);
+struct mkcl_cfun mk_cl_cdaddr_cfunobj = MKCL_CFUN1(mk_cl_cdaddr, (mkcl_object) &MK_CL_cdaddr);
+struct mkcl_cfun mk_cl_cddaar_cfunobj = MKCL_CFUN1(mk_cl_cddaar, (mkcl_object) &MK_CL_cddaar);
+struct mkcl_cfun mk_cl_cddadr_cfunobj = MKCL_CFUN1(mk_cl_cddadr, (mkcl_object) &MK_CL_cddadr);
+struct mkcl_cfun mk_cl_cdddar_cfunobj = MKCL_CFUN1(mk_cl_cdddar, (mkcl_object) &MK_CL_cdddar);
+struct mkcl_cfun mk_cl_cddddr_cfunobj = MKCL_CFUN1(mk_cl_cddddr, (mkcl_object) &MK_CL_cddddr);
 
 defcxr(caar, x, car(car(x)))
 defcxr(cadr, x, car(cdr(x)))
@@ -371,17 +371,17 @@ defcxr(cddddr, x, cdr(cdr(cdr(cdr(x)))))
 #undef cdr
 #undef defcxr
 
-struct mkcl_cfun mk_cl_second_cfunobj = MKCL_CFUN1(mk_cl_cadr, MK_CL_second);
-struct mkcl_cfun mk_cl_third_cfunobj = MKCL_CFUN1(mk_cl_caddr, MK_CL_third);
-struct mkcl_cfun mk_cl_fourth_cfunobj = MKCL_CFUN1(mk_cl_cadddr, MK_CL_fourth);
+struct mkcl_cfun mk_cl_second_cfunobj = MKCL_CFUN1(mk_cl_cadr, (mkcl_object) &MK_CL_second);
+struct mkcl_cfun mk_cl_third_cfunobj = MKCL_CFUN1(mk_cl_caddr, (mkcl_object) &MK_CL_third);
+struct mkcl_cfun mk_cl_fourth_cfunobj = MKCL_CFUN1(mk_cl_cadddr, (mkcl_object) &MK_CL_fourth);
 
 
-struct mkcl_cfun mk_cl_fifth_cfunobj = MKCL_CFUN1(mk_cl_fifth, MK_CL_fifth);
-struct mkcl_cfun mk_cl_sixth_cfunobj = MKCL_CFUN1(mk_cl_sixth, MK_CL_sixth);
-struct mkcl_cfun mk_cl_seventh_cfunobj = MKCL_CFUN1(mk_cl_seventh, MK_CL_seventh);
-struct mkcl_cfun mk_cl_eighth_cfunobj = MKCL_CFUN1(mk_cl_eighth, MK_CL_eighth);
-struct mkcl_cfun mk_cl_ninth_cfunobj = MKCL_CFUN1(mk_cl_ninth, MK_CL_ninth);
-struct mkcl_cfun mk_cl_tenth_cfunobj = MKCL_CFUN1(mk_cl_tenth, MK_CL_tenth);
+struct mkcl_cfun mk_cl_fifth_cfunobj = MKCL_CFUN1(mk_cl_fifth, (mkcl_object) &MK_CL_fifth);
+struct mkcl_cfun mk_cl_sixth_cfunobj = MKCL_CFUN1(mk_cl_sixth, (mkcl_object) &MK_CL_sixth);
+struct mkcl_cfun mk_cl_seventh_cfunobj = MKCL_CFUN1(mk_cl_seventh, (mkcl_object) &MK_CL_seventh);
+struct mkcl_cfun mk_cl_eighth_cfunobj = MKCL_CFUN1(mk_cl_eighth, (mkcl_object) &MK_CL_eighth);
+struct mkcl_cfun mk_cl_ninth_cfunobj = MKCL_CFUN1(mk_cl_ninth, (mkcl_object) &MK_CL_ninth);
+struct mkcl_cfun mk_cl_tenth_cfunobj = MKCL_CFUN1(mk_cl_tenth, (mkcl_object) &MK_CL_tenth);
 
 #define LENTH(n) (MKCL, mkcl_object x) {		\
     mkcl_object val = mkcl_nth(env, n, x);		\
@@ -420,7 +420,7 @@ tree_equal(MKCL, struct cl_test *t, mkcl_object x, mkcl_object y)
   }
 }
 
-struct mkcl_cfun mk_cl_tree_equal_cfunobj = MKCL_CFUN_VA(mk_cl_tree_equal, MK_CL_tree_equal);
+struct mkcl_cfun mk_cl_tree_equal_cfunobj = MKCL_CFUN_VA(mk_cl_tree_equal, (mkcl_object) &MK_CL_tree_equal);
 
 mkcl_object mk_cl_tree_equal(MKCL, mkcl_narg narg, mkcl_object x, mkcl_object y, ...)
 {
@@ -431,7 +431,7 @@ mkcl_object mk_cl_tree_equal(MKCL, mkcl_narg narg, mkcl_object x, mkcl_object y,
     mkcl_object output;
     mkcl_object test;
     mkcl_object test_not;
-    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, MK_CL_tree_equal, narg, 2, y, MK_KEY_test, &test, MK_KEY_test_not, &test_not);
+    MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, (mkcl_object) &MK_CL_tree_equal, narg, 2, y, (mkcl_object) &MK_KEY_test, &test, (mkcl_object) &MK_KEY_test_not, &test_not);
 
     setup_test(env, &t, mk_cl_Cnil, test, test_not, mk_cl_Cnil);
     output = tree_equal(env, &t, x, y) ? mk_cl_Ct : mk_cl_Cnil;
@@ -440,7 +440,7 @@ mkcl_object mk_cl_tree_equal(MKCL, mkcl_narg narg, mkcl_object x, mkcl_object y,
   }
  }
 
-struct mkcl_cfun mk_cl_endp_cfunobj = MKCL_CFUN1(mk_cl_endp, MK_CL_endp);
+struct mkcl_cfun mk_cl_endp_cfunobj = MKCL_CFUN1(mk_cl_endp, (mkcl_object) &MK_CL_endp);
 
 mkcl_object
 mk_cl_endp(MKCL, mkcl_object x)
@@ -465,7 +465,7 @@ mkcl_endp(MKCL, mkcl_object x)
     mkcl_FEtype_error_list(env, x);
 }
 
-struct mkcl_cfun mk_cl_list_length_cfunobj = MKCL_CFUN1(mk_cl_list_length, MK_CL_list_length);
+struct mkcl_cfun mk_cl_list_length_cfunobj = MKCL_CFUN1(mk_cl_list_length, (mkcl_object) &MK_CL_list_length);
 
 mkcl_object
 mk_cl_list_length(MKCL, mkcl_object x)
@@ -488,7 +488,7 @@ mk_cl_list_length(MKCL, mkcl_object x)
   mkcl_return_value(MKCL_MAKE_FIXNUM(n));
 }
 
-struct mkcl_cfun mk_cl_nth_cfunobj = MKCL_CFUN2(mk_cl_nth, MK_CL_nth);
+struct mkcl_cfun mk_cl_nth_cfunobj = MKCL_CFUN2(mk_cl_nth, (mkcl_object) &MK_CL_nth);
 
 mkcl_object
 mk_cl_nth(MKCL, mkcl_object n, mkcl_object x)
@@ -515,7 +515,7 @@ mkcl_nth(MKCL, mkcl_word n, mkcl_object x)
     mkcl_FEtype_error_list(env, x);
 }
 
-struct mkcl_cfun mk_cl_nthcdr_cfunobj = MKCL_CFUN2(mk_cl_nthcdr, MK_CL_nthcdr);
+struct mkcl_cfun mk_cl_nthcdr_cfunobj = MKCL_CFUN2(mk_cl_nthcdr, (mkcl_object) &MK_CL_nthcdr);
 
 mkcl_object
 mk_cl_nthcdr(MKCL, mkcl_object n, mkcl_object x)
@@ -567,14 +567,14 @@ mkcl_last(MKCL, mkcl_object l, mkcl_index n)
   }
 }
 
-struct mkcl_cfun mk_cl_last_cfunobj = MKCL_CFUN_VA(mk_cl_last, MK_CL_last);
+struct mkcl_cfun mk_cl_last_cfunobj = MKCL_CFUN_VA(mk_cl_last, (mkcl_object) &MK_CL_last);
 
 mkcl_object mk_cl_last(MKCL, mkcl_narg narg, mkcl_object l, ...)
 {
   mkcl_call_stack_check(env);
   {
     mkcl_object k = MKCL_MAKE_FIXNUM(1);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_last, narg, 1, l, &k);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_last, narg, 1, l, &k);
 
     if (mkcl_type_of(k) == mkcl_t_bignum)
       { mkcl_return_value(l); }
@@ -583,7 +583,7 @@ mkcl_object mk_cl_last(MKCL, mkcl_narg narg, mkcl_object l, ...)
   }
 }
 
-struct mkcl_cfun mk_cl_make_list_cfunobj = MKCL_CFUN_VA(mk_cl_make_list, MK_CL_make_list);
+struct mkcl_cfun mk_cl_make_list_cfunobj = MKCL_CFUN_VA(mk_cl_make_list, (mkcl_object) &MK_CL_make_list);
 
 mkcl_object mk_cl_make_list(MKCL, mkcl_narg narg, mkcl_object size, ...)
 {
@@ -592,7 +592,7 @@ mkcl_object mk_cl_make_list(MKCL, mkcl_narg narg, mkcl_object size, ...)
   mkcl_object initial_element = mk_cl_Cnil;
 
   mkcl_call_stack_check(env);
-  MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, MK_CL_make_list, narg, 1, size, MK_KEY_initial_element, &initial_element);
+  MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, (mkcl_object) &MK_CL_make_list, narg, 1, size, (mkcl_object) &MK_KEY_initial_element, &initial_element);
   /* INV: mkcl_integer_to_index() signals a type-error if SIZE is not a integer >=0 */
   i = mkcl_integer_to_index(env, size);
   while (i-- > 0)
@@ -622,7 +622,7 @@ mkcl_copy_proper_list(MKCL, mkcl_object x)
   return copy;
 }
 
-struct mkcl_cfun mk_cl_copy_list_cfunobj = MKCL_CFUN1(mk_cl_copy_list, MK_CL_copy_list);
+struct mkcl_cfun mk_cl_copy_list_cfunobj = MKCL_CFUN1(mk_cl_copy_list, (mkcl_object) &MK_CL_copy_list);
 
 mkcl_object
 mk_cl_copy_list(MKCL, mkcl_object x)
@@ -679,7 +679,7 @@ duplicate_pairs(MKCL, mkcl_object x)
   return mkcl_list1(env, p);
 }
 
-struct mkcl_cfun mk_cl_copy_alist_cfunobj = MKCL_CFUN1(mk_cl_copy_alist, MK_CL_copy_alist);
+struct mkcl_cfun mk_cl_copy_alist_cfunobj = MKCL_CFUN1(mk_cl_copy_alist, (mkcl_object) &MK_CL_copy_alist);
 
 mkcl_object
 mk_cl_copy_alist(MKCL, mkcl_object x)
@@ -717,7 +717,7 @@ do_copy_tree(MKCL, mkcl_object x)
   return x;
 }
 
-struct mkcl_cfun mk_cl_copy_tree_cfunobj = MKCL_CFUN1(mk_cl_copy_tree, MK_CL_copy_tree);
+struct mkcl_cfun mk_cl_copy_tree_cfunobj = MKCL_CFUN1(mk_cl_copy_tree, (mkcl_object) &MK_CL_copy_tree);
 
 mkcl_object
 mk_cl_copy_tree(MKCL, mkcl_object x)
@@ -726,7 +726,7 @@ mk_cl_copy_tree(MKCL, mkcl_object x)
   mkcl_return_value(do_copy_tree(env, x));
 }
 
-struct mkcl_cfun mk_cl_revappend_cfunobj = MKCL_CFUN2(mk_cl_revappend, MK_CL_revappend);
+struct mkcl_cfun mk_cl_revappend_cfunobj = MKCL_CFUN2(mk_cl_revappend, (mkcl_object) &MK_CL_revappend);
 
 mkcl_object
 mk_cl_revappend(MKCL, mkcl_object x, mkcl_object y)
@@ -738,7 +738,7 @@ mk_cl_revappend(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_value(y);
 }
 
-struct mkcl_cfun mk_cl_nconc_cfunobj = MKCL_CFUN_VA(mk_cl_nconc, MK_CL_nconc);
+struct mkcl_cfun mk_cl_nconc_cfunobj = MKCL_CFUN_VA(mk_cl_nconc, (mkcl_object) &MK_CL_nconc);
 
 mkcl_object mk_cl_nconc(MKCL, mkcl_narg narg, ...)
 {
@@ -746,7 +746,7 @@ mkcl_object mk_cl_nconc(MKCL, mkcl_narg narg, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_CL_nconc, 0, narg, narg, lists);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_CL_nconc, 0, narg, narg, lists);
 
     while (narg--) {
       mkcl_object new_tail, other = mkcl_va_arg(lists);
@@ -781,7 +781,7 @@ mkcl_nconc(MKCL, mkcl_object l, mkcl_object y)
   }
 }
 
-struct mkcl_cfun mk_cl_nreconc_cfunobj = MKCL_CFUN2(mk_cl_nreconc, MK_CL_nreconc);
+struct mkcl_cfun mk_cl_nreconc_cfunobj = MKCL_CFUN2(mk_cl_nreconc, (mkcl_object) &MK_CL_nreconc);
 
 mkcl_object
 mk_cl_nreconc(MKCL, mkcl_object l, mkcl_object y)
@@ -832,14 +832,14 @@ mkcl_butlast(MKCL, mkcl_object l, mkcl_index n)
   }
 }
 
-struct mkcl_cfun mk_cl_butlast_cfunobj = MKCL_CFUN_VA(mk_cl_butlast, MK_CL_butlast);
+struct mkcl_cfun mk_cl_butlast_cfunobj = MKCL_CFUN_VA(mk_cl_butlast, (mkcl_object) &MK_CL_butlast);
 
 mkcl_object mk_cl_butlast(MKCL, mkcl_narg narg, mkcl_object lis, ...)
 {
   mkcl_call_stack_check(env);
   {
     mkcl_object nn = MKCL_MAKE_FIXNUM(1);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_butlast, narg, 1, lis, &nn);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_butlast, narg, 1, lis, &nn);
 
     /* INV: No list has more than MKCL_MOST_POSITIVE_FIXNUM elements */
     if (mkcl_type_of(nn) == mkcl_t_bignum)
@@ -873,14 +873,14 @@ mkcl_nbutlast(MKCL, mkcl_object l, mkcl_index n)
   return mk_cl_Cnil;
 }
 
-struct mkcl_cfun mk_cl_nbutlast_cfunobj = MKCL_CFUN_VA(mk_cl_nbutlast, MK_CL_nbutlast);
+struct mkcl_cfun mk_cl_nbutlast_cfunobj = MKCL_CFUN_VA(mk_cl_nbutlast, (mkcl_object) &MK_CL_nbutlast);
 
 mkcl_object mk_cl_nbutlast(MKCL, mkcl_narg narg, mkcl_object lis, ...)
 {
   mkcl_call_stack_check(env);
   {
     mkcl_object nn = MKCL_MAKE_FIXNUM(1);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_butlast, narg, 1, lis, &nn);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_butlast, narg, 1, lis, &nn);
 
     /* INV: No list has more than MKCL_MOST_POSITIVE_FIXNUM elements */
     if (mkcl_type_of(nn) == mkcl_t_bignum)
@@ -891,7 +891,7 @@ mkcl_object mk_cl_nbutlast(MKCL, mkcl_narg narg, mkcl_object lis, ...)
   }
 }
 
-struct mkcl_cfun mk_cl_ldiff_cfunobj = MKCL_CFUN2(mk_cl_ldiff, MK_CL_ldiff);
+struct mkcl_cfun mk_cl_ldiff_cfunobj = MKCL_CFUN2(mk_cl_ldiff, (mkcl_object) &MK_CL_ldiff);
 
 mkcl_object
 mk_cl_ldiff(MKCL, mkcl_object x, mkcl_object y)
@@ -925,7 +925,7 @@ mk_cl_ldiff(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_value(head);
 }
 
-struct mkcl_cfun mk_cl_rplaca_cfunobj = MKCL_CFUN2(mk_cl_rplaca, MK_CL_rplaca);
+struct mkcl_cfun mk_cl_rplaca_cfunobj = MKCL_CFUN2(mk_cl_rplaca, (mkcl_object) &MK_CL_rplaca);
 
 mkcl_object
 mk_cl_rplaca(MKCL, mkcl_object x, mkcl_object v)
@@ -936,7 +936,7 @@ mk_cl_rplaca(MKCL, mkcl_object x, mkcl_object v)
   mkcl_return_value(x);
 }
 
-struct mkcl_cfun mk_cl_rplacd_cfunobj = MKCL_CFUN2(mk_cl_rplacd, MK_CL_rplacd);
+struct mkcl_cfun mk_cl_rplacd_cfunobj = MKCL_CFUN2(mk_cl_rplacd, (mkcl_object) &MK_CL_rplacd);
 
 mkcl_object
 mk_cl_rplacd(MKCL, mkcl_object x, mkcl_object v)
@@ -967,7 +967,7 @@ do_assoc(MKCL, struct cl_test *t, mkcl_object a_list)
 }
 
 
-struct mkcl_cfun mk_cl_assoc_cfunobj = MKCL_CFUN_VA(mk_cl_assoc, MK_CL_assoc);
+struct mkcl_cfun mk_cl_assoc_cfunobj = MKCL_CFUN_VA(mk_cl_assoc, (mkcl_object) &MK_CL_assoc);
 
 mkcl_object mk_cl_assoc(MKCL, mkcl_narg narg, mkcl_object item, mkcl_object a_list, ...)
 {
@@ -978,7 +978,7 @@ mkcl_object mk_cl_assoc(MKCL, mkcl_narg narg, mkcl_object item, mkcl_object a_li
     mkcl_object test_not = mk_cl_Cnil;
     mkcl_object key = mk_cl_Cnil;
 
-    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, MK_CL_assoc, narg, 2, a_list, MK_KEY_test, &test, MK_KEY_test_not, &test_not, MK_KEY_key, &key);
+    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, (mkcl_object) &MK_CL_assoc, narg, 2, a_list, (mkcl_object) &MK_KEY_test, &test, (mkcl_object) &MK_KEY_test_not, &test_not, (mkcl_object) &MK_KEY_key, &key);
 
     setup_test(env, &t, item, test, test_not, key);
     a_list = do_assoc(env, &t, a_list);
@@ -1016,7 +1016,7 @@ subst(MKCL, struct cl_test *t, mkcl_object new_obj, mkcl_object tree)
   }
 }
 
-struct mkcl_cfun mk_cl_subst_cfunobj = MKCL_CFUN_VA(mk_cl_subst, MK_CL_subst);
+struct mkcl_cfun mk_cl_subst_cfunobj = MKCL_CFUN_VA(mk_cl_subst, (mkcl_object) &MK_CL_subst);
 
 mkcl_object mk_cl_subst(MKCL, mkcl_narg narg, mkcl_object new_obj, mkcl_object old_obj, mkcl_object tree, ...)
 {
@@ -1028,7 +1028,7 @@ mkcl_object mk_cl_subst(MKCL, mkcl_narg narg, mkcl_object new_obj, mkcl_object o
     mkcl_object test_not = mk_cl_Cnil;
     mkcl_object key = mk_cl_Cnil;
 
-    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, MK_CL_subst, narg, 3, tree, MK_KEY_test, &test, MK_KEY_test_not, &test_not, MK_KEY_key, &key);
+    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, (mkcl_object) &MK_CL_subst, narg, 3, tree, (mkcl_object) &MK_KEY_test, &test, (mkcl_object) &MK_KEY_test_not, &test_not, (mkcl_object) &MK_KEY_key, &key);
 
     setup_test(env, &t, old_obj, test, test_not, key);
     output = subst(env, &t, new_obj, tree);
@@ -1069,7 +1069,7 @@ nsubst(MKCL, struct cl_test *t, mkcl_object new_obj, mkcl_object tree)
   return tree;
 }
 
-struct mkcl_cfun mk_cl_nsubst_cfunobj = MKCL_CFUN_VA(mk_cl_nsubst, MK_CL_nsubst);
+struct mkcl_cfun mk_cl_nsubst_cfunobj = MKCL_CFUN_VA(mk_cl_nsubst, (mkcl_object) &MK_CL_nsubst);
 
 mkcl_object mk_cl_nsubst(MKCL, mkcl_narg narg, mkcl_object new_obj, mkcl_object old_obj, mkcl_object tree, ...)
 {
@@ -1080,7 +1080,7 @@ mkcl_object mk_cl_nsubst(MKCL, mkcl_narg narg, mkcl_object new_obj, mkcl_object 
     mkcl_object test_not = mk_cl_Cnil;
     mkcl_object key = mk_cl_Cnil;
     
-    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, MK_CL_subst, narg, 3, tree, MK_KEY_test, &test, MK_KEY_test_not, &test_not, MK_KEY_key, &key);
+    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, (mkcl_object) &MK_CL_subst, narg, 3, tree, (mkcl_object) &MK_KEY_test, &test, (mkcl_object) &MK_KEY_test_not, &test_not, (mkcl_object) &MK_KEY_key, &key);
 
     setup_test(env, &t, old_obj, test, test_not, key);
     tree = nsubst(env, &t, new_obj, tree);
@@ -1111,7 +1111,7 @@ sublis(MKCL, struct cl_test *t, mkcl_object alist, mkcl_object tree)
   return tree;
 }
 
-struct mkcl_cfun mk_cl_sublis_cfunobj = MKCL_CFUN_VA(mk_cl_sublis, MK_CL_sublis);
+struct mkcl_cfun mk_cl_sublis_cfunobj = MKCL_CFUN_VA(mk_cl_sublis, (mkcl_object) &MK_CL_sublis);
 
 mkcl_object mk_cl_sublis(MKCL, mkcl_narg narg, mkcl_object alist, mkcl_object tree, ...)
 {
@@ -1127,7 +1127,7 @@ mkcl_object mk_cl_sublis(MKCL, mkcl_narg narg, mkcl_object alist, mkcl_object tr
     mkcl_object test_not = mk_cl_Cnil;
     mkcl_object key = mk_cl_Cnil;
     
-    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, MK_CL_sublis, narg, 2, tree, MK_KEY_test, &test, MK_KEY_test_not, &test_not, MK_KEY_key, &key);
+    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, (mkcl_object) &MK_CL_sublis, narg, 2, tree, (mkcl_object) &MK_KEY_test, &test, (mkcl_object) &MK_KEY_test_not, &test_not, (mkcl_object) &MK_KEY_key, &key);
 
     setup_test(env, t, mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil, key);
     setup_test(env, t+1, mk_cl_Cnil, test, test_not, mk_cl_Cnil);
@@ -1160,7 +1160,7 @@ nsublis(MKCL, struct cl_test *t, mkcl_object alist, mkcl_object tree)
   return tree;
 }
 
-struct mkcl_cfun mk_cl_nsublis_cfunobj = MKCL_CFUN_VA(mk_cl_nsublis, MK_CL_nsublis);
+struct mkcl_cfun mk_cl_nsublis_cfunobj = MKCL_CFUN_VA(mk_cl_nsublis, (mkcl_object) &MK_CL_nsublis);
 
 mkcl_object mk_cl_nsublis(MKCL, mkcl_narg narg, mkcl_object alist, mkcl_object tree, ...)
 {
@@ -1176,7 +1176,7 @@ mkcl_object mk_cl_nsublis(MKCL, mkcl_narg narg, mkcl_object alist, mkcl_object t
     mkcl_object test_not = mk_cl_Cnil;
     mkcl_object key = mk_cl_Cnil;
     
-    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, MK_CL_nsublis, narg, 2, tree, MK_KEY_test, &test, MK_KEY_test_not, &test_not, MK_KEY_key, &key);
+    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, (mkcl_object) &MK_CL_nsublis, narg, 2, tree, (mkcl_object) &MK_KEY_test, &test, (mkcl_object) &MK_KEY_test_not, &test_not, (mkcl_object) &MK_KEY_key, &key);
 
     setup_test(env, t, mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil, key);
     setup_test(env, t+1, mk_cl_Cnil, test, test_not, mk_cl_Cnil);
@@ -1187,7 +1187,7 @@ mkcl_object mk_cl_nsublis(MKCL, mkcl_narg narg, mkcl_object alist, mkcl_object t
   }
 }
 
-struct mkcl_cfun mk_cl_member_cfunobj = MKCL_CFUN_VA(mk_cl_member, MK_CL_member);
+struct mkcl_cfun mk_cl_member_cfunobj = MKCL_CFUN_VA(mk_cl_member, (mkcl_object) &MK_CL_member);
 
 mkcl_object mk_cl_member(MKCL, mkcl_narg narg, mkcl_object item, mkcl_object list, ...)
 {
@@ -1199,7 +1199,7 @@ mkcl_object mk_cl_member(MKCL, mkcl_narg narg, mkcl_object item, mkcl_object lis
     mkcl_object test_not = mk_cl_Cnil;
     mkcl_object key = mk_cl_Cnil;
     
-    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, MK_CL_member, narg, 2, list, MK_KEY_test, &test, MK_KEY_test_not, &test_not, MK_KEY_key, &key);
+    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, (mkcl_object) &MK_CL_member, narg, 2, list, (mkcl_object) &MK_KEY_test, &test, (mkcl_object) &MK_KEY_test_not, &test_not, (mkcl_object) &MK_KEY_key, &key);
 
     setup_test(env, &t, item, test, test_not, key);
     mkcl_loop_for_in(env, list) {
@@ -1231,7 +1231,7 @@ mkcl_memq(MKCL, mkcl_object x, mkcl_object l)
   return(mk_cl_Cnil);
 }
 
-struct mkcl_cfun mk_si_memq_cfunobj = MKCL_CFUN2(mk_si_memq, MK_SI_memq);
+struct mkcl_cfun mk_si_memq_cfunobj = MKCL_CFUN2(mk_si_memq, (mkcl_object) &MK_SI_memq);
 
 mkcl_object
 mk_si_memq(MKCL, mkcl_object x, mkcl_object l)
@@ -1285,7 +1285,7 @@ mk_si_member1(MKCL,
   mkcl_return_value(list);
 }
 
-struct mkcl_cfun mk_cl_tailp_cfunobj = MKCL_CFUN2(mk_cl_tailp, MK_CL_tailp);
+struct mkcl_cfun mk_cl_tailp_cfunobj = MKCL_CFUN2(mk_cl_tailp, (mkcl_object) &MK_CL_tailp);
 
 mkcl_object
 mk_cl_tailp(MKCL, mkcl_object y, mkcl_object x)
@@ -1322,7 +1322,7 @@ mkcl_adjoin(MKCL, mkcl_object item, mkcl_object list)
   return output;
 }
 
-struct mkcl_cfun mk_cl_adjoin_cfunobj = MKCL_CFUN_VA(mk_cl_adjoin, MK_CL_adjoin);
+struct mkcl_cfun mk_cl_adjoin_cfunobj = MKCL_CFUN_VA(mk_cl_adjoin, (mkcl_object) &MK_CL_adjoin);
 
 mkcl_object mk_cl_adjoin(MKCL, mkcl_narg narg, mkcl_object item, mkcl_object list, ...)
 {
@@ -1334,13 +1334,13 @@ mkcl_object mk_cl_adjoin(MKCL, mkcl_narg narg, mkcl_object item, mkcl_object lis
     mkcl_object test_not = mk_cl_Cnil;
     mkcl_object key = mk_cl_Cnil;
     
-    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, MK_CL_adjoin, narg, 2, list, MK_KEY_test, &test, MK_KEY_test_not, &test_not, MK_KEY_key, &key);
+    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, (mkcl_object) &MK_CL_adjoin, narg, 2, list, (mkcl_object) &MK_KEY_test, &test, (mkcl_object) &MK_KEY_test_not, &test_not, (mkcl_object) &MK_KEY_key, &key);
 
     {
       if (narg == 2)
         output = mkcl_adjoin(env, item, list);
       else if (narg < 2)
-        mkcl_FEwrong_num_arguments(env, MK_CL_adjoin, 2, -1, narg);
+        mkcl_FEwrong_num_arguments(env, (mkcl_object) &MK_CL_adjoin, 2, -1, narg);
       else
         {
           output = mk_si_member1(env, item, list, test, test_not, key);
@@ -1354,7 +1354,7 @@ mkcl_object mk_cl_adjoin(MKCL, mkcl_narg narg, mkcl_object item, mkcl_object lis
   }
 }
 
-struct mkcl_cfun mk_cl_cons_cfunobj = MKCL_CFUN2(mk_cl_cons, MK_CL_cons);
+struct mkcl_cfun mk_cl_cons_cfunobj = MKCL_CFUN2(mk_cl_cons, (mkcl_object) &MK_CL_cons);
 
 mkcl_object
 mk_cl_cons(MKCL, mkcl_object x, mkcl_object y)
@@ -1363,7 +1363,7 @@ mk_cl_cons(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_value(MKCL_CONS(env, x, y));
 }
 
-struct mkcl_cfun mk_cl_acons_cfunobj = MKCL_CFUN3(mk_cl_acons, MK_CL_acons);
+struct mkcl_cfun mk_cl_acons_cfunobj = MKCL_CFUN3(mk_cl_acons, (mkcl_object) &MK_CL_acons);
 
 mkcl_object
 mk_cl_acons(MKCL, mkcl_object x, mkcl_object y, mkcl_object z)
@@ -1372,7 +1372,7 @@ mk_cl_acons(MKCL, mkcl_object x, mkcl_object y, mkcl_object z)
   mkcl_return_value(MKCL_CONS(env, MKCL_CONS(env, x, y), z));
 }
 
-struct mkcl_cfun mk_cl_pairlis_cfunobj = MKCL_CFUN_VA(mk_cl_pairlis, MK_CL_pairlis);
+struct mkcl_cfun mk_cl_pairlis_cfunobj = MKCL_CFUN_VA(mk_cl_pairlis, (mkcl_object) &MK_CL_pairlis);
 
 mkcl_object mk_cl_pairlis(MKCL, mkcl_narg narg, mkcl_object keys, mkcl_object data, ...)
 {
@@ -1380,7 +1380,7 @@ mkcl_object mk_cl_pairlis(MKCL, mkcl_narg narg, mkcl_object keys, mkcl_object da
   {
     mkcl_object k, d;
     mkcl_object a_list = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_pairlis, narg, 2, data, &a_list);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_pairlis, narg, 2, data, &a_list);
 
     k = keys;
     d = data;
@@ -1398,7 +1398,7 @@ mkcl_object mk_cl_pairlis(MKCL, mkcl_narg narg, mkcl_object keys, mkcl_object da
 }
 
 
-struct mkcl_cfun mk_cl_rassoc_cfunobj = MKCL_CFUN_VA(mk_cl_rassoc, MK_CL_rassoc);
+struct mkcl_cfun mk_cl_rassoc_cfunobj = MKCL_CFUN_VA(mk_cl_rassoc, (mkcl_object) &MK_CL_rassoc);
 
 mkcl_object mk_cl_rassoc(MKCL, mkcl_narg narg, mkcl_object item, mkcl_object a_list, ...)
 {
@@ -1409,7 +1409,7 @@ mkcl_object mk_cl_rassoc(MKCL, mkcl_narg narg, mkcl_object item, mkcl_object a_l
     mkcl_object test_not = mk_cl_Cnil;
     mkcl_object key = mk_cl_Cnil;
     
-    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, MK_CL_rassoc, narg, 2, a_list, MK_KEY_test, &test, MK_KEY_test_not, &test_not, MK_KEY_key, &key);
+    MKCL_RECEIVE_3_KEYWORD_ARGUMENTS(env, (mkcl_object) &MK_CL_rassoc, narg, 2, a_list, (mkcl_object) &MK_KEY_test, &test, (mkcl_object) &MK_KEY_test_not, &test_not, (mkcl_object) &MK_KEY_key, &key);
 
     setup_test(env, &t, item, test, test_not, key);
     mkcl_loop_for_in(env, a_list) {
@@ -1495,18 +1495,18 @@ mkcl_assqlp(MKCL, mkcl_object x, mkcl_object l)
 
 /********************************/
 
-struct mkcl_cfun mk_si_dyn_cons_cfunobj = MKCL_CFUN2(mk_si_dyn_cons, MK_SI_dyn_cons);
+struct mkcl_cfun mk_si_dyn_cons_cfunobj = MKCL_CFUN2(mk_si_dyn_cons, (mkcl_object) &MK_SI_dyn_cons);
 
 mkcl_object
 mk_si_dyn_cons(MKCL, mkcl_object car, mkcl_object cdr)
 {
   mkcl_call_stack_check(env);
-  mkcl_object stack_cell = MKCL_SYM_VAL(env, MK_SI_DYNVAR_dynamic_cons_stack);
+  mkcl_object stack_cell = MKCL_SYM_VAL(env, (mkcl_object) &MK_SI_DYNVAR_dynamic_cons_stack);
 
   if (mkcl_Null(stack_cell))
     {
       stack_cell = mkcl_cons(env, mkcl_cons(env, mk_cl_Cnil, mk_cl_Cnil), mk_cl_Cnil);
-      MKCL_SETQ(env, MK_SI_DYNVAR_dynamic_cons_stack, stack_cell);
+      MKCL_SETQ(env, (mkcl_object) &MK_SI_DYNVAR_dynamic_cons_stack, stack_cell);
     }
   {
     mkcl_object next_stack_cell = MKCL_CONS_CDR(stack_cell);
@@ -1523,7 +1523,7 @@ mk_si_dyn_cons(MKCL, mkcl_object car, mkcl_object cdr)
 	next_stack_cell = new_cells;
 	MKCL_RPLACD(stack_cell, next_stack_cell);
       }
-    MKCL_SETQ(env, MK_SI_DYNVAR_dynamic_cons_stack, next_stack_cell);
+    MKCL_SETQ(env, (mkcl_object) &MK_SI_DYNVAR_dynamic_cons_stack, next_stack_cell);
     it = MKCL_CONS_CAR(stack_cell);
     MKCL_RPLACA(it, car);
     MKCL_RPLACD(it, cdr);
@@ -1532,17 +1532,17 @@ mk_si_dyn_cons(MKCL, mkcl_object car, mkcl_object cdr)
   }
 }
 
-struct mkcl_cfun mk_si_trim_dynamic_cons_stack_cfunobj = MKCL_CFUN0(mk_si_trim_dynamic_cons_stack, MK_SI_trim_dynamic_cons_stack);
+struct mkcl_cfun mk_si_trim_dynamic_cons_stack_cfunobj = MKCL_CFUN0(mk_si_trim_dynamic_cons_stack, (mkcl_object) &MK_SI_trim_dynamic_cons_stack);
 
 mkcl_object mk_si_trim_dynamic_cons_stack(MKCL)
 {
   mkcl_call_stack_check(env);
-  mkcl_object stack_cell = MKCL_SYM_VAL(env, MK_SI_DYNVAR_dynamic_cons_stack);
+  mkcl_object stack_cell = MKCL_SYM_VAL(env, (mkcl_object) &MK_SI_DYNVAR_dynamic_cons_stack);
 
   if (mkcl_Null(stack_cell))
     {
       stack_cell = mkcl_cons(env, mkcl_cons(env, mk_cl_Cnil, mk_cl_Cnil), mk_cl_Cnil);
-      MKCL_SETQ(env, MK_SI_DYNVAR_dynamic_cons_stack, stack_cell);      
+      MKCL_SETQ(env, (mkcl_object) &MK_SI_DYNVAR_dynamic_cons_stack, stack_cell);      
     }
   else
     MKCL_RPLACD(stack_cell, mk_cl_Cnil);

@@ -53,52 +53,52 @@ struct mkcl_core_struct mkcl_core;
 
 static struct mkcl_cons features[] = {
 #ifdef MKCL_RELATIVE_PACKAGE_NAMES
-  MKCL_CONS_INIT(MK_KEY_relative_package_names, mk_cl_Cnil),
+  MKCL_CONS_INIT((mkcl_object) &MK_KEY_relative_package_names, mk_cl_Cnil),
 #endif
-  MKCL_CONS_INIT(MK_KEY_unicode, mk_cl_Cnil),
+  MKCL_CONS_INIT((mkcl_object) &MK_KEY_unicode, mk_cl_Cnil),
 #ifdef _MSC_VER
-  MKCL_CONS_INIT(MK_KEY_msvc, mk_cl_Cnil),
-  MKCL_CONS_INIT(MK_KEY_windows, mk_cl_Cnil),
+  MKCL_CONS_INIT((mkcl_object) &MK_KEY_msvc, mk_cl_Cnil),
+  MKCL_CONS_INIT((mkcl_object) &MK_KEY_windows, mk_cl_Cnil),
 #endif
 #ifdef __MINGW32__
 # ifdef __MINGW64__
-  MKCL_CONS_INIT(MK_KEY_mingw64, mk_cl_Cnil),
+  MKCL_CONS_INIT((mkcl_object) &MK_KEY_mingw64, mk_cl_Cnil),
 # else
-  MKCL_CONS_INIT(MK_KEY_mingw32, mk_cl_Cnil),
+  MKCL_CONS_INIT((mkcl_object) &MK_KEY_mingw32, mk_cl_Cnil),
 # endif
-  MKCL_CONS_INIT(MK_KEY_windows, mk_cl_Cnil),
+  MKCL_CONS_INIT((mkcl_object) &MK_KEY_windows, mk_cl_Cnil),
 #endif
 #if __FreeBSD__
-  MKCL_CONS_INIT(MK_KEY_freebsd, mk_cl_Cnil),
+  MKCL_CONS_INIT((mkcl_object) &MK_KEY_freebsd, mk_cl_Cnil),
 #endif
 #if __ANDROID__
-  MKCL_CONS_INIT(MK_KEY_android, mk_cl_Cnil),
+  MKCL_CONS_INIT((mkcl_object) &MK_KEY_android, mk_cl_Cnil),
 #endif
 #ifdef __linux
-  MKCL_CONS_INIT(MK_KEY_linux, mk_cl_Cnil),
+  MKCL_CONS_INIT((mkcl_object) &MK_KEY_linux, mk_cl_Cnil),
 #endif
 #ifdef __unix
-  MKCL_CONS_INIT(MK_KEY_unix, mk_cl_Cnil),
+  MKCL_CONS_INIT((mkcl_object) &MK_KEY_unix, mk_cl_Cnil),
 #endif
 #ifdef MKCL_IEEE_FP
-  MKCL_CONS_INIT(MK_KEY_ieee_floating_point, mk_cl_Cnil),
+  MKCL_CONS_INIT((mkcl_object) &MK_KEY_ieee_floating_point, mk_cl_Cnil),
 #endif
 #ifdef MKCL_LITTLE_ENDIAN
-  MKCL_CONS_INIT(MK_KEY_little_endian, mk_cl_Cnil),
+  MKCL_CONS_INIT((mkcl_object) &MK_KEY_little_endian, mk_cl_Cnil),
 #endif
 #if defined(__i386) || defined(__pentium)
-  MKCL_CONS_INIT(MK_KEY_x86, mk_cl_Cnil),
+  MKCL_CONS_INIT((mkcl_object) &MK_KEY_x86, mk_cl_Cnil),
 #elif defined(__x86_64)
-  MKCL_CONS_INIT(MK_KEY_x86_64, mk_cl_Cnil),
+  MKCL_CONS_INIT((mkcl_object) &MK_KEY_x86_64, mk_cl_Cnil),
 #elif defined(__aarch64__)
-  MKCL_CONS_INIT(MK_KEY_aarch64, mk_cl_Cnil),
+  MKCL_CONS_INIT((mkcl_object) &MK_KEY_aarch64, mk_cl_Cnil),
 #elif defined(__arm__)
-  MKCL_CONS_INIT(MK_KEY_arm, mk_cl_Cnil),
+  MKCL_CONS_INIT((mkcl_object) &MK_KEY_arm, mk_cl_Cnil),
 #endif
-  MKCL_CONS_INIT(MK_KEY_ansi_cl, mk_cl_Cnil),
-  MKCL_CONS_INIT(MK_KEY_common_lisp, mk_cl_Cnil),
-  MKCL_CONS_INIT(MK_KEY_common, mk_cl_Cnil),
-  MKCL_CONS_INIT(MK_KEY_mkcl, mk_cl_Cnil),
+  MKCL_CONS_INIT((mkcl_object) &MK_KEY_ansi_cl, mk_cl_Cnil),
+  MKCL_CONS_INIT((mkcl_object) &MK_KEY_common_lisp, mk_cl_Cnil),
+  MKCL_CONS_INIT((mkcl_object) &MK_KEY_common, mk_cl_Cnil),
+  MKCL_CONS_INIT((mkcl_object) &MK_KEY_mkcl, mk_cl_Cnil),
 };
 
 
@@ -195,7 +195,7 @@ static mkcl_object mkcl_true_self(MKCL)
   return self_truename;
 }
 
-struct mkcl_cfun mk_si_self_truename_cfunobj = MKCL_CFUN0(mk_si_self_truename, MK_SI_self_truename);
+struct mkcl_cfun mk_si_self_truename_cfunobj = MKCL_CFUN0(mk_si_self_truename, (mkcl_object) &MK_SI_self_truename);
 
 mkcl_object mk_si_self_truename(MKCL)
 {
@@ -204,55 +204,55 @@ mkcl_object mk_si_self_truename(MKCL)
 
 static const mkcl_object initial_thread_bindings[] =
   {
-    MK_CL_DYNVAR_break_on_signals,
-    MK_CL_DYNVAR_compile_print,
-    MK_CL_DYNVAR_compile_verbose,
-    MK_CL_DYNVAR_debugger_hook,
-    MK_CL_DYNVAR_default_pathname_defaults,
-    MK_CL_DYNVAR_gensym_counter,
-    MK_CL_DYNVAR_load_print,
-    MK_CL_DYNVAR_load_verbose,
-    MK_CL_DYNVAR_macroexpand_hook,
-    MK_CL_DYNVAR_package,
-    MK_CL_DYNVAR_print_array,
-    MK_CL_DYNVAR_print_base,
-    MK_CL_DYNVAR_print_case,
-    MK_CL_DYNVAR_print_circle,
-    MK_CL_DYNVAR_print_escape,
-    MK_CL_DYNVAR_print_gensym,
-    MK_CL_DYNVAR_print_length,
-    MK_CL_DYNVAR_print_level,
-    MK_CL_DYNVAR_print_lines,
-    MK_CL_DYNVAR_print_miser_width,
-    MK_CL_DYNVAR_print_pprint_dispatch,
-    MK_CL_DYNVAR_print_pretty,
-    MK_CL_DYNVAR_print_radix,
-    MK_CL_DYNVAR_print_readably,
-    MK_CL_DYNVAR_print_right_margin,
-    MK_CL_DYNVAR_random_state,
-    MK_CL_DYNVAR_read_base,
-    MK_CL_DYNVAR_read_default_float_format,
-    MK_CL_DYNVAR_read_eval,
-    MK_CL_DYNVAR_read_suppress,
-    MK_CL_DYNVAR_readtable,
-    MK_CL_DYNVAR_standard_input,
-    MK_CL_DYNVAR_standard_output,
-    MK_CL_DYNVAR_error_output,
-    MK_CL_DYNVAR_trace_output,
-    MK_CL_DYNVAR_terminal_io,
-    MK_CL_DYNVAR_query_io,
-    MK_CL_DYNVAR_debug_io,
-    MK_SI_DYNVAR_dribble_closer,
-    MK_MT_DYNVAR_thread,
-    MK_SI_DYNVAR_restart_clusters,
-    MK_SI_DYNVAR_condition_restarts,
-    MK_SI_DYNVAR_handler_clusters,
-    MK_SI_DYNVAR_dynamic_cons_stack,
-    MK_SI_DYNVAR_default_floating_point_exception_set,
-    MK_SI_DYNVAR_os_string_format,
-    MK_SI_DYNVAR_default_external_format,
-    MK_MKCL_DYNVAR_current_working_directory,
-    MK_MKCL_DYNVAR_all_current_working_directories
+    (mkcl_object) &MK_CL_DYNVAR_break_on_signals,
+    (mkcl_object) &MK_CL_DYNVAR_compile_print,
+    (mkcl_object) &MK_CL_DYNVAR_compile_verbose,
+    (mkcl_object) &MK_CL_DYNVAR_debugger_hook,
+    (mkcl_object) &MK_CL_DYNVAR_default_pathname_defaults,
+    (mkcl_object) &MK_CL_DYNVAR_gensym_counter,
+    (mkcl_object) &MK_CL_DYNVAR_load_print,
+    (mkcl_object) &MK_CL_DYNVAR_load_verbose,
+    (mkcl_object) &MK_CL_DYNVAR_macroexpand_hook,
+    (mkcl_object) &MK_CL_DYNVAR_package,
+    (mkcl_object) &MK_CL_DYNVAR_print_array,
+    (mkcl_object) &MK_CL_DYNVAR_print_base,
+    (mkcl_object) &MK_CL_DYNVAR_print_case,
+    (mkcl_object) &MK_CL_DYNVAR_print_circle,
+    (mkcl_object) &MK_CL_DYNVAR_print_escape,
+    (mkcl_object) &MK_CL_DYNVAR_print_gensym,
+    (mkcl_object) &MK_CL_DYNVAR_print_length,
+    (mkcl_object) &MK_CL_DYNVAR_print_level,
+    (mkcl_object) &MK_CL_DYNVAR_print_lines,
+    (mkcl_object) &MK_CL_DYNVAR_print_miser_width,
+    (mkcl_object) &MK_CL_DYNVAR_print_pprint_dispatch,
+    (mkcl_object) &MK_CL_DYNVAR_print_pretty,
+    (mkcl_object) &MK_CL_DYNVAR_print_radix,
+    (mkcl_object) &MK_CL_DYNVAR_print_readably,
+    (mkcl_object) &MK_CL_DYNVAR_print_right_margin,
+    (mkcl_object) &MK_CL_DYNVAR_random_state,
+    (mkcl_object) &MK_CL_DYNVAR_read_base,
+    (mkcl_object) &MK_CL_DYNVAR_read_default_float_format,
+    (mkcl_object) &MK_CL_DYNVAR_read_eval,
+    (mkcl_object) &MK_CL_DYNVAR_read_suppress,
+    (mkcl_object) &MK_CL_DYNVAR_readtable,
+    (mkcl_object) &MK_CL_DYNVAR_standard_input,
+    (mkcl_object) &MK_CL_DYNVAR_standard_output,
+    (mkcl_object) &MK_CL_DYNVAR_error_output,
+    (mkcl_object) &MK_CL_DYNVAR_trace_output,
+    (mkcl_object) &MK_CL_DYNVAR_terminal_io,
+    (mkcl_object) &MK_CL_DYNVAR_query_io,
+    (mkcl_object) &MK_CL_DYNVAR_debug_io,
+    (mkcl_object) &MK_SI_DYNVAR_dribble_closer,
+    (mkcl_object) &MK_MT_DYNVAR_thread,
+    (mkcl_object) &MK_SI_DYNVAR_restart_clusters,
+    (mkcl_object) &MK_SI_DYNVAR_condition_restarts,
+    (mkcl_object) &MK_SI_DYNVAR_handler_clusters,
+    (mkcl_object) &MK_SI_DYNVAR_dynamic_cons_stack,
+    (mkcl_object) &MK_SI_DYNVAR_default_floating_point_exception_set,
+    (mkcl_object) &MK_SI_DYNVAR_os_string_format,
+    (mkcl_object) &MK_SI_DYNVAR_default_external_format,
+    (mkcl_object) &MK_MKCL_DYNVAR_current_working_directory,
+    (mkcl_object) &MK_MKCL_DYNVAR_all_current_working_directories
   };
 
 static void setup_initial_thread_bindings(MKCL)
@@ -317,8 +317,8 @@ static void _mkcl_boot_inner(MKCL)
   mkcl_init_error(env);
 
 #if MKCL_WINDOWS
-  MKCL_SET(MK_SI_DYNVAR_os_string_format, MK_KEY_utf_16le); /* This is in fact an immutable constant. */
-  mkcl_core.default_default_external_format = MK_KEY_ascii; /* Bootstrap value */
+  MKCL_SET((mkcl_object) &MK_SI_DYNVAR_os_string_format, (mkcl_object) &MK_KEY_utf_16le); /* This is in fact an immutable constant. */
+  mkcl_core.default_default_external_format = (mkcl_object) &MK_KEY_ascii; /* Bootstrap value */
 #elif MKCL_UNIX
   mkcl_object saved_locale = mkcl_make_base_string_copy(env, setlocale(LC_ALL, NULL));
   setlocale(LC_ALL, ""); /* Imports locale settings from environment. */
@@ -330,15 +330,15 @@ static void _mkcl_boot_inner(MKCL)
     mkcl_object os_external_format = mkcl_intern(env, (mkcl_object) &os_codeset_name_obj, mkcl_core.keyword_package, &intern_flag);
    
     if (0 == strcmp(os_codeset, "ANSI_X3.4-1968"))
-      os_external_format = MK_KEY_us_ascii;
-    MKCL_SET(MK_SI_DYNVAR_os_string_format, os_external_format);
+      os_external_format = (mkcl_object) &MK_KEY_us_ascii;
+    MKCL_SET((mkcl_object) &MK_SI_DYNVAR_os_string_format, os_external_format);
     mkcl_core.default_default_external_format = os_external_format;
   }
   setlocale(LC_ALL, (char *) saved_locale->base_string.self); /* Puts locale back to its previous settings. */
 #else
 # error Incomplete _mkcl_boot_inner().
 #endif
-  MKCL_SET(MK_SI_DYNVAR_default_external_format, mkcl_core.default_default_external_format);
+  MKCL_SET((mkcl_object) &MK_SI_DYNVAR_default_external_format, mkcl_core.default_default_external_format);
 
 
   /*
@@ -347,10 +347,10 @@ static void _mkcl_boot_inner(MKCL)
   mkcl_core.pathname_translations = mk_cl_Cnil;
   mkcl_core.SYS_library_pathname = mk_cl_Cnil;
   mkcl_core.empty_default_pathname_defaults = mkcl_make_pathname(env,
-								 mkcl_core.localhost_string, MK_KEY_unspecific, mk_cl_Cnil,
+								 mkcl_core.localhost_string, (mkcl_object) &MK_KEY_unspecific, mk_cl_Cnil,
 								 mk_cl_Cnil, mk_cl_Cnil, mk_cl_Cnil);
 
-  MKCL_SET(MK_CL_DYNVAR_default_pathname_defaults, mkcl_core.empty_default_pathname_defaults);
+  MKCL_SET((mkcl_object) &MK_CL_DYNVAR_default_pathname_defaults, mkcl_core.empty_default_pathname_defaults);
 
   mkcl_core.self = mkcl_argv(env, 0);
   mkcl_core.self_truename = mkcl_true_self(env);
@@ -371,7 +371,7 @@ static void _mkcl_boot_inner(MKCL)
     int i;
     const int nb_base_chars = MKCL_NB_ELEMS(base_char_names);
     mkcl_object base_char_names_table
-      = mk_cl__make_hash_table(env, MK_CL_equalp, MKCL_MAKE_FIXNUM(3 * nb_base_chars), /* size */
+      = mk_cl__make_hash_table(env, (mkcl_object) &MK_CL_equalp, MKCL_MAKE_FIXNUM(3 * nb_base_chars), /* size */
 			       mkcl_make_singlefloat(env, 1.5f), /* rehash-size */
 			       mkcl_make_singlefloat(env, 0.9f)); /* rehash-threshold */
     
@@ -408,22 +408,22 @@ static void _mkcl_boot_inner(MKCL)
   /*
    * Ininitialize numbers
    */
-  MKCL_SET(MK_SI_c_int_max, mkcl_make_integer(env, INT_MAX));
-  MKCL_SET(MK_SI_c_int_min, mkcl_make_integer(env, INT_MIN));
-  MKCL_SET(MK_SI_c_long_max, mkcl_make_integer(env, LONG_MAX));
-  MKCL_SET(MK_SI_c_long_min, mkcl_make_integer(env, LONG_MIN));
-  MKCL_SET(MK_SI_c_uint_max, mkcl_make_unsigned_integer(env, UINT_MAX));
-  MKCL_SET(MK_SI_c_ulong_max, mkcl_make_unsigned_integer(env, ULONG_MAX));
+  MKCL_SET((mkcl_object) &MK_SI_c_int_max, mkcl_make_integer(env, INT_MAX));
+  MKCL_SET((mkcl_object) &MK_SI_c_int_min, mkcl_make_integer(env, INT_MIN));
+  MKCL_SET((mkcl_object) &MK_SI_c_long_max, mkcl_make_integer(env, LONG_MAX));
+  MKCL_SET((mkcl_object) &MK_SI_c_long_min, mkcl_make_integer(env, LONG_MIN));
+  MKCL_SET((mkcl_object) &MK_SI_c_uint_max, mkcl_make_unsigned_integer(env, UINT_MAX));
+  MKCL_SET((mkcl_object) &MK_SI_c_ulong_max, mkcl_make_unsigned_integer(env, ULONG_MAX));
 
   mkcl_init_number(env);
 
-  MKCL_SET(MK_SI_c_long_long_min, mkcl_make_int64_t(env, INT64_MIN));
-  MKCL_SET(MK_SI_c_long_long_max, mkcl_make_int64_t(env, INT64_MAX));
-  MKCL_SET(MK_SI_c_ulong_long_max, mkcl_make_uint64_t(env, UINT64_MAX));
+  MKCL_SET((mkcl_object) &MK_SI_c_long_long_min, mkcl_make_int64_t(env, INT64_MIN));
+  MKCL_SET((mkcl_object) &MK_SI_c_long_long_max, mkcl_make_int64_t(env, INT64_MAX));
+  MKCL_SET((mkcl_object) &MK_SI_c_ulong_long_max, mkcl_make_uint64_t(env, UINT64_MAX));
 
   mkcl_init_unixtime(env);
 
-  MKCL_SET(MK_MT_DYNVAR_thread, env->own_thread);
+  MKCL_SET((mkcl_object) &MK_MT_DYNVAR_thread, env->own_thread);
 
   /*
    * Initialize I/O subsystem.
@@ -431,41 +431,41 @@ static void _mkcl_boot_inner(MKCL)
   mkcl_init_file(env);
   mkcl_init_read(env);
 
-  MKCL_SET(MK_CL_DYNVAR_print_case, MK_KEY_upcase);
+  MKCL_SET((mkcl_object) &MK_CL_DYNVAR_print_case, (mkcl_object) &MK_KEY_upcase);
 
   mkcl_core.shutdown_thread = mk_cl_Cnil;
-  mkcl_core.shutdown_gate = mk_mt_make_lock(env, 4, MK_KEY_name, MK_SI_CONSTANT_shutdown_gate, MK_KEY_recursive, mk_cl_Cnil);
-  MKCL_SET(MK_SI_CONSTANT_shutdown_gate, mkcl_core.shutdown_gate);
+  mkcl_core.shutdown_gate = mk_mt_make_lock(env, 4, (mkcl_object) &MK_KEY_name, (mkcl_object) &MK_SI_CONSTANT_shutdown_gate, (mkcl_object) &MK_KEY_recursive, mk_cl_Cnil);
+  MKCL_SET((mkcl_object) &MK_SI_CONSTANT_shutdown_gate, mkcl_core.shutdown_gate);
 
   /*
    * Set up hooks for LOAD, errors and macros.
    */
-  MKCL_SET(MK_MT_CONSTANT_forward_reference_lock, mk_mt_make_lock(env, 2, MK_KEY_name, MK_MT_CONSTANT_forward_reference_lock));
-  MKCL_SET(MK_MT_CONSTANT_load_compile_lock, mk_mt_make_lock(env, 4, MK_KEY_name, MK_MT_CONSTANT_load_compile_lock, MK_KEY_recursive, mk_cl_Ct));
+  MKCL_SET((mkcl_object) &MK_MT_CONSTANT_forward_reference_lock, mk_mt_make_lock(env, 2, (mkcl_object) &MK_KEY_name, (mkcl_object) &MK_MT_CONSTANT_forward_reference_lock));
+  MKCL_SET((mkcl_object) &MK_MT_CONSTANT_load_compile_lock, mk_mt_make_lock(env, 4, (mkcl_object) &MK_KEY_name, (mkcl_object) &MK_MT_CONSTANT_load_compile_lock, (mkcl_object) &MK_KEY_recursive, mk_cl_Ct));
   {
     mkcl_object load_hooks  = mk_cl_list(env, 11,
-					 MKCL_CONS(env, mkcl_make_simple_base_string(env, "fasb"), MK_SI_load_binary),
-					 MKCL_CONS(env, mkcl_make_simple_base_string(env, "FASB"), MK_SI_load_binary),
-					 MKCL_CONS(env, mkcl_make_simple_base_string(env, "fas"), MK_SI_load_binary),
-					 MKCL_CONS(env, mkcl_make_simple_base_string(env, "FAS"), MK_SI_load_binary),
-					 MKCL_CONS(env, mkcl_make_simple_base_string(env, "fasl"), MK_SI_load_binary),
-					 MKCL_CONS(env, mkcl_make_simple_base_string(env, "FASL"), MK_SI_load_binary),
-					 MKCL_CONS(env, mkcl_make_simple_base_string(env, "lsp"), MK_SI_load_source),
-					 MKCL_CONS(env, mkcl_make_simple_base_string(env, "LSP"), MK_SI_load_source),
-					 MKCL_CONS(env, mkcl_make_simple_base_string(env, "lisp"), MK_SI_load_source),
-					 MKCL_CONS(env, mkcl_make_simple_base_string(env, "LISP"), MK_SI_load_source),
-					 MKCL_CONS(env, mk_cl_Cnil, MK_SI_load_source));
-    MKCL_SET(MK_SI_DYNVAR_load_hooks, load_hooks);
+					 MKCL_CONS(env, mkcl_make_simple_base_string(env, "fasb"), (mkcl_object) &MK_SI_load_binary),
+					 MKCL_CONS(env, mkcl_make_simple_base_string(env, "FASB"), (mkcl_object) &MK_SI_load_binary),
+					 MKCL_CONS(env, mkcl_make_simple_base_string(env, "fas"), (mkcl_object) &MK_SI_load_binary),
+					 MKCL_CONS(env, mkcl_make_simple_base_string(env, "FAS"), (mkcl_object) &MK_SI_load_binary),
+					 MKCL_CONS(env, mkcl_make_simple_base_string(env, "fasl"), (mkcl_object) &MK_SI_load_binary),
+					 MKCL_CONS(env, mkcl_make_simple_base_string(env, "FASL"), (mkcl_object) &MK_SI_load_binary),
+					 MKCL_CONS(env, mkcl_make_simple_base_string(env, "lsp"), (mkcl_object) &MK_SI_load_source),
+					 MKCL_CONS(env, mkcl_make_simple_base_string(env, "LSP"), (mkcl_object) &MK_SI_load_source),
+					 MKCL_CONS(env, mkcl_make_simple_base_string(env, "lisp"), (mkcl_object) &MK_SI_load_source),
+					 MKCL_CONS(env, mkcl_make_simple_base_string(env, "LISP"), (mkcl_object) &MK_SI_load_source),
+					 MKCL_CONS(env, mk_cl_Cnil, (mkcl_object) &MK_SI_load_source));
+    MKCL_SET((mkcl_object) &MK_SI_DYNVAR_load_hooks, load_hooks);
   }
-  MKCL_SET(MK_CL_DYNVAR_load_verbose, mk_cl_Cnil);
+  MKCL_SET((mkcl_object) &MK_CL_DYNVAR_load_verbose, mk_cl_Cnil);
 
   mkcl_init_macros(env);
 
   /*
    * Set up infrastructure for CLOS.
    */
-  MKCL_SET(MK_SI_DYNVAR_class_name_hash_table,
-	   mk_cl__make_hash_table(env, MK_CL_eq, MKCL_MAKE_FIXNUM(1024), /* size */
+  MKCL_SET((mkcl_object) &MK_SI_DYNVAR_class_name_hash_table,
+	   mk_cl__make_hash_table(env, (mkcl_object) &MK_CL_eq, MKCL_MAKE_FIXNUM(1024), /* size */
 				  mkcl_make_singlefloat(env, 1.5f), /* rehash-size */
 				  mkcl_make_singlefloat(env, 0.75f))); /* rehash-threshold */
   /*
@@ -473,17 +473,17 @@ static void _mkcl_boot_inner(MKCL)
    */
   {
     static struct mkcl_cons lambda_list_keywords[] = {
-      MKCL_CONS_INIT(MK_CL_LKEY_optional, &lambda_list_keywords[1]),
-      MKCL_CONS_INIT(MK_CL_LKEY_rest, &lambda_list_keywords[2]),
-      MKCL_CONS_INIT(MK_CL_LKEY_key, &lambda_list_keywords[3]),
-      MKCL_CONS_INIT(MK_CL_LKEY_allow_other_keys, &lambda_list_keywords[4]),
-      MKCL_CONS_INIT(MK_CL_LKEY_aux, &lambda_list_keywords[5]),
-      MKCL_CONS_INIT(MK_CL_LKEY_whole, &lambda_list_keywords[6]),
-      MKCL_CONS_INIT(MK_CL_LKEY_environment, &lambda_list_keywords[7]),
-      MKCL_CONS_INIT(MK_CL_LKEY_body, mk_cl_Cnil)
+      MKCL_CONS_INIT((mkcl_object) &MK_CL_LKEY_optional, &lambda_list_keywords[1]),
+      MKCL_CONS_INIT((mkcl_object) &MK_CL_LKEY_rest, &lambda_list_keywords[2]),
+      MKCL_CONS_INIT((mkcl_object) &MK_CL_LKEY_key, &lambda_list_keywords[3]),
+      MKCL_CONS_INIT((mkcl_object) &MK_CL_LKEY_allow_other_keys, &lambda_list_keywords[4]),
+      MKCL_CONS_INIT((mkcl_object) &MK_CL_LKEY_aux, &lambda_list_keywords[5]),
+      MKCL_CONS_INIT((mkcl_object) &MK_CL_LKEY_whole, &lambda_list_keywords[6]),
+      MKCL_CONS_INIT((mkcl_object) &MK_CL_LKEY_environment, &lambda_list_keywords[7]),
+      MKCL_CONS_INIT((mkcl_object) &MK_CL_LKEY_body, mk_cl_Cnil)
     };
 
-    MKCL_SET(MK_CL_LAMBDA_LIST_KEYWORDS, (mkcl_object) &lambda_list_keywords);
+    MKCL_SET((mkcl_object) &MK_CL_LAMBDA_LIST_KEYWORDS, (mkcl_object) &lambda_list_keywords);
   }
 
   {
@@ -492,15 +492,15 @@ static void _mkcl_boot_inner(MKCL)
     for (i = 0; i < (NB_FEATURES - 1); i++) {
       features[i].cdr = (mkcl_object) &features[i + 1];
     }
-    MKCL_SET(MK_CL_DYNVAR_features, (mkcl_object) &features);
+    MKCL_SET((mkcl_object) &MK_CL_DYNVAR_features, (mkcl_object) &features);
   }
 
-  MKCL_SET(MK_CL_DYNVAR_package, mkcl_core.lisp_package);
+  MKCL_SET((mkcl_object) &MK_CL_DYNVAR_package, mkcl_core.lisp_package);
 
   {
     mkcl_object fpe_set = mk_si_initial_floating_point_exception_set(env);
     
-    MKCL_SET(MK_SI_DYNVAR_default_floating_point_exception_set, fpe_set); /* global */
+    MKCL_SET((mkcl_object) &MK_SI_DYNVAR_default_floating_point_exception_set, fpe_set); /* global */
   }
 
   setup_initial_thread_bindings(env);
@@ -511,8 +511,8 @@ static void _mkcl_boot_inner(MKCL)
 
   mkcl_read_VV(env, mk_cl_Cnil, mkcl_init_lib_LSP, mk_cl_Cnil);
 
-  MKCL_SET(MK_CL_DYNVAR_package, mkcl_core.user_package); /* global */
-  MKCL_SETQ(env, MK_CL_DYNVAR_package, mkcl_core.user_package); /* thread-local */
+  MKCL_SET((mkcl_object) &MK_CL_DYNVAR_package, mkcl_core.user_package); /* global */
+  MKCL_SETQ(env, (mkcl_object) &MK_CL_DYNVAR_package, mkcl_core.user_package); /* thread-local */
 
   /* At this point the full Common Lisp library is available. */
   mkcl_init_late_unixint(env);
@@ -732,7 +732,7 @@ static void _mkcl_final_clean_up(MKCL)
 #endif
 }
 
-struct mkcl_cfun mk_si_shutdown_mkcl_cfunobj = MKCL_CFUN4(mk_si_shutdown_mkcl, MK_SI_shutdown_mkcl);
+struct mkcl_cfun mk_si_shutdown_mkcl_cfunobj = MKCL_CFUN4(mk_si_shutdown_mkcl, (mkcl_object) &MK_SI_shutdown_mkcl);
 
 mkcl_object mk_si_shutdown_mkcl(MKCL, mkcl_object code, mkcl_object watchdog_thread, mkcl_object verbose, mkcl_object clean)
 {
@@ -761,50 +761,50 @@ long mkcl_exit_status(MKCL)
   
   if (MKCL_FIXNUMP(result_value))
     return mkcl_fixnum_to_word(result_value);
-  else if (result_value == MK_KEY_canceled)
+  else if (result_value == ((mkcl_object) &MK_KEY_canceled))
     return MKCL_THREAD_CANCELED;
-  else if (result_value == MK_KEY_terminated)
+  else if (result_value == ((mkcl_object) &MK_KEY_terminated))
     return MKCL_THREAD_TERMINATED;
-  else if (result_value == MK_KEY_invalid_value)
+  else if (result_value == ((mkcl_object) &MK_KEY_invalid_value))
     return MKCL_THREAD_INVALID_VALUE;
-  else if (result_value == MK_KEY_imported)
+  else if (result_value == ((mkcl_object) &MK_KEY_imported))
     return MKCL_THREAD_INVALID_VALUE;
-  else if (result_value == MK_KEY_imported_and_gc_registered)
+  else if (result_value == ((mkcl_object) &MK_KEY_imported_and_gc_registered))
     return MKCL_THREAD_INVALID_VALUE;
-  else if (result_value == MK_KEY_aborted)
+  else if (result_value == ((mkcl_object) &MK_KEY_aborted))
     return MKCL_THREAD_ABORTED;
-  else if (result_value == MK_KEY_gc_abort)
+  else if (result_value == ((mkcl_object) &MK_KEY_gc_abort))
     return MKCL_GC_ABORT;
-  else if (result_value == MK_KEY_gc_exit)
+  else if (result_value == ((mkcl_object) &MK_KEY_gc_exit))
     return MKCL_GC_EXIT;
   else
     return MKCL_THREAD_UNKNOWN_ERROR;
 }
 
-struct mkcl_cfun mk_si_shutdown_in_progress_p_cfunobj = MKCL_CFUN0(mk_si_shutdown_in_progress_p, MK_SI_shutdown_in_progress_p);
+struct mkcl_cfun mk_si_shutdown_in_progress_p_cfunobj = MKCL_CFUN0(mk_si_shutdown_in_progress_p, (mkcl_object) &MK_SI_shutdown_in_progress_p);
 
 mkcl_object mk_si_shutdown_in_progress_p(MKCL) /* to be called with si::+shutdown-gate+ held. */
 {
   mkcl_return_value((mkcl_Null(mkcl_core.shutdown_thread) ? mk_cl_Cnil : mk_cl_Ct));
 }
 
-struct mkcl_cfun mk_si_register_shutdown_thread_cfunobj = MKCL_CFUN1(mk_si_register_shutdown_thread, MK_SI_register_shutdown_thread);
+struct mkcl_cfun mk_si_register_shutdown_thread_cfunobj = MKCL_CFUN1(mk_si_register_shutdown_thread, (mkcl_object) &MK_SI_register_shutdown_thread);
 
 mkcl_object mk_si_register_shutdown_thread(MKCL, mkcl_object shutdown_thread) /* to be called with si::+shutdown-gate+ held. */
 {
   if (mkcl_type_of(shutdown_thread) != mkcl_t_thread)
-    mkcl_FEwrong_type_argument(env, MK_MT_thread, shutdown_thread);
+    mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_MT_thread, shutdown_thread);
   mkcl_core.shutdown_thread = shutdown_thread;
   mkcl_return_value(shutdown_thread);
 }
 
-struct mkcl_cfun mk_si_register_shutdown_watchdog_thread_cfunobj = MKCL_CFUN2(mk_si_register_shutdown_watchdog_thread, MK_SI_register_shutdown_watchdog_thread);
+struct mkcl_cfun mk_si_register_shutdown_watchdog_thread_cfunobj = MKCL_CFUN2(mk_si_register_shutdown_watchdog_thread, (mkcl_object) &MK_SI_register_shutdown_watchdog_thread);
 
 mkcl_object mk_si_register_shutdown_watchdog_thread(MKCL, mkcl_object watchdog_thread, mkcl_object will_clean_up)
 {
   mkcl_call_stack_check(env);
   if (mkcl_type_of(watchdog_thread) != mkcl_t_thread)
-    mkcl_FEwrong_type_argument(env, MK_MT_thread, watchdog_thread);
+    mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_MT_thread, watchdog_thread);
 
   mk_mt_get_lock(env, 1, mkcl_core.shutdown_gate);
   mkcl_core.shutdown_watchdog_thread = watchdog_thread;
@@ -813,7 +813,7 @@ mkcl_object mk_si_register_shutdown_watchdog_thread(MKCL, mkcl_object watchdog_t
   mkcl_return_value(watchdog_thread);
 }
 
-struct mkcl_cfun mk_si_shutdown_watchdog_thread_cfunobj = MKCL_CFUN0(mk_si_shutdown_watchdog_thread, MK_SI_shutdown_watchdog_thread);
+struct mkcl_cfun mk_si_shutdown_watchdog_thread_cfunobj = MKCL_CFUN0(mk_si_shutdown_watchdog_thread, (mkcl_object) &MK_SI_shutdown_watchdog_thread);
 
 mkcl_object mk_si_shutdown_watchdog_thread(MKCL) /* to be called with si::+shutdown-gate+ held. */
 {
@@ -856,7 +856,7 @@ static mkcl_object join_thread(MKCL, mkcl_object shutdown_thread)
 
   result_value = shutdown_thread->thread.result_value;
   if (result_value == MKCL_OBJNULL)
-    result_value = MK_KEY_invalid_value;
+    result_value = (mkcl_object) &MK_KEY_invalid_value;
 
 #if MKCL_WINDOWS
   CloseHandle(os_thread);
@@ -881,7 +881,7 @@ int mkcl_shutdown_watchdog(MKCL) /* We expect to run this function with interrup
   fprintf(stderr, "\n;; MKCL in shutdown watchdog.\n"); fflush(stderr);
 #endif
   /* Shutdown all lisp threads. */
-  if (!(result_value == MK_KEY_gc_abort || result_value == MK_KEY_gc_exit)) /* Shutdown is pointless if GC is kaput. */
+  if (!(result_value == ((mkcl_object) &MK_KEY_gc_abort) || result_value == ((mkcl_object) &MK_KEY_gc_exit))) /* Shutdown is pointless if GC is kaput. */
     {
       MKCL_CATCH_ALL_BEGIN(env) { /* Make sure we have minimal safety wrappers on in case of an abort. */
 	MKCL_SETUP_CALL_STACK_ROOT_GUARD(env);
@@ -907,7 +907,7 @@ int mkcl_shutdown_watchdog(MKCL) /* We expect to run this function with interrup
         MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
       } MKCL_CATCH_ALL_IF_CAUGHT {
         MKCL_UNSET_CALL_STACK_ROOT_GUARD(env);
-	own_thread->thread.result_value = MK_KEY_invalid_value;
+	own_thread->thread.result_value = (mkcl_object) &MK_KEY_invalid_value;
       } MKCL_CATCH_ALL_END;
     }
 
@@ -956,7 +956,7 @@ mkcl_index mkcl_argc(void)
   return ARGC;
 }
 
-struct mkcl_cfun mk_mkcl_argc_cfunobj = MKCL_CFUN0(mk_mkcl_argc, MK_MKCL_argc);
+struct mkcl_cfun mk_mkcl_argc_cfunobj = MKCL_CFUN0(mk_mkcl_argc, (mkcl_object) &MK_MKCL_argc);
 
 mkcl_object
 mk_mkcl_argc(MKCL)
@@ -984,7 +984,7 @@ mkcl_argv(MKCL, mkcl_index index)
 		 2, mkcl_make_unsigned_integer(env, index), mkcl_make_unsigned_integer(env, ARGC - 1));
 }
 
-struct mkcl_cfun mk_mkcl_argv_cfunobj = MKCL_CFUN1(mk_mkcl_argv, MK_MKCL_argv);
+struct mkcl_cfun mk_mkcl_argv_cfunobj = MKCL_CFUN1(mk_mkcl_argv, (mkcl_object) &MK_MKCL_argv);
 
 mkcl_object
 mk_mkcl_argv(MKCL, mkcl_object index)
@@ -1104,14 +1104,14 @@ mkcl_object mkcl_getenv(MKCL, mkcl_object var)
 }
 
 
-struct mkcl_cfun mk_mkcl_getenv_cfunobj = MKCL_CFUN1(mk_mkcl_getenv, MK_MKCL_getenv);
+struct mkcl_cfun mk_mkcl_getenv_cfunobj = MKCL_CFUN1(mk_mkcl_getenv, (mkcl_object) &MK_MKCL_getenv);
 
 mkcl_object
 mk_mkcl_getenv(MKCL, mkcl_object var)
 {
   mkcl_call_stack_check(env);
   while (!MKCL_STRINGP(var))
-    var = mkcl_type_error(env, MK_MKCL_getenv, "argument", var, MK_CL_string);
+    var = mkcl_type_error(env, (mkcl_object) &MK_MKCL_getenv, "argument", var, (mkcl_object) &MK_CL_string);
   mkcl_return_value(mkcl_getenv(env, var));
 }
 
@@ -1162,21 +1162,21 @@ mkcl_setenv(MKCL, mkcl_object var, mkcl_object value)
 #endif
 }
 
-struct mkcl_cfun mk_mkcl_setenv_cfunobj = MKCL_CFUN2(mk_mkcl_setenv, MK_MKCL_setenv);
+struct mkcl_cfun mk_mkcl_setenv_cfunobj = MKCL_CFUN2(mk_mkcl_setenv, (mkcl_object) &MK_MKCL_setenv);
 
 mkcl_object
 mk_mkcl_setenv(MKCL, mkcl_object var, mkcl_object value)
 {
   mkcl_call_stack_check(env);
   while (!MKCL_STRINGP(var))
-    var = mkcl_type_error(env, MK_MKCL_setenv, "argument", var, MK_CL_string);
+    var = mkcl_type_error(env, (mkcl_object) &MK_MKCL_setenv, "argument", var, (mkcl_object) &MK_CL_string);
   if (!mkcl_Null(value))
     while (!MKCL_STRINGP(value))
-      value = mkcl_type_error(env, MK_MKCL_setenv, "argument", value, MK_CL_string);
+      value = mkcl_type_error(env, (mkcl_object) &MK_MKCL_setenv, "argument", value, (mkcl_object) &MK_CL_string);
   mkcl_return_value(mkcl_setenv(env, var, value));
 }
 
-struct mkcl_cfun mk_si_gdb_cfunobj = MKCL_CFUN0(mk_si_gdb, MK_SI_gdb);
+struct mkcl_cfun mk_si_gdb_cfunobj = MKCL_CFUN0(mk_si_gdb, (mkcl_object) &MK_SI_gdb);
 
 mkcl_object
 mk_si_gdb(MKCL)

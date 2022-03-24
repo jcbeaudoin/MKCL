@@ -40,10 +40,10 @@ mkcl_FEpackage_error(MKCL, mkcl_object package, char *message, int narg, ...)
   mkcl_va_list args;
   mkcl_va_start(env, args, narg, narg, 0);
   mk_cl_error(env, 7,
-	      MK_SI_simple_package_error,
-	      MK_KEY_format_control, mkcl_make_simple_base_string(env, message),
-	      MK_KEY_format_arguments, (narg ? mkcl_grab_rest_args(env, args, FALSE) : mkcl_list1(env, package)),
-	      MK_KEY_package, package);
+	      (mkcl_object) &MK_SI_simple_package_error,
+	      (mkcl_object) &MK_KEY_format_control, mkcl_make_simple_base_string(env, message),
+	      (mkcl_object) &MK_KEY_format_arguments, (narg ? mkcl_grab_rest_args(env, args, FALSE) : mkcl_list1(env, package)),
+	      (mkcl_object) &MK_KEY_package, package);
 }
 
 void
@@ -64,10 +64,10 @@ mkcl_CEpackage_error(MKCL, mkcl_object package, char *message, char *continue_me
 
   mk_cl_cerror(env, 8,
 	       mkcl_make_simple_base_string(env, continue_message),
-	       MK_SI_simple_package_error,
-	       MK_KEY_format_control, mkcl_make_simple_base_string(env, message),
-	       MK_KEY_format_arguments, format_args,
-	       MK_KEY_package, package);
+	       (mkcl_object) &MK_SI_simple_package_error,
+	       (mkcl_object) &MK_KEY_format_control, mkcl_make_simple_base_string(env, message),
+	       (mkcl_object) &MK_KEY_format_arguments, format_args,
+	       (mkcl_object) &MK_KEY_package, package);
 }
 
 static bool
@@ -162,7 +162,7 @@ mkcl_make_sized_package(MKCL, mkcl_object name, mkcl_object nicknames, mkcl_obje
 	mkcl_object other_name = MKCL_CONS_CAR(pair);
 	if (mkcl_equal(env, other_name, name)
 	    || 
-	    !mkcl_Null(mkcl_funcall4(env, MK_CL_member->symbol.gfdef, other_name, nicknames, MK_KEY_test, MK_CL_stringE->symbol.gfdef)))
+	    !mkcl_Null(mkcl_funcall4(env, MK_CL_member.gfdef, other_name, nicknames, (mkcl_object) &MK_KEY_test, MK_CL_stringE.gfdef)))
 	  {
 	    mkcl_object next = MKCL_CONS_CDR(l);
 	    x = MKCL_CONS_CDR(pair);
@@ -184,10 +184,10 @@ mkcl_make_sized_package(MKCL, mkcl_object name, mkcl_object nicknames, mkcl_obje
     }
 
     {
-      mkcl_index _external_size = mkcl_fixnum_in_range(env, MK_CL_make_package,
+      mkcl_index _external_size = mkcl_fixnum_in_range(env, (mkcl_object) &MK_CL_make_package,
 						       "external-size", external_size,
 						       0, MKCL_ATOTLIM);
-      mkcl_index _internal_size = mkcl_fixnum_in_range(env, MK_CL_make_package,
+      mkcl_index _internal_size = mkcl_fixnum_in_range(env, (mkcl_object) &MK_CL_make_package,
 						       "internal-size", internal_size,
 						       0, MKCL_ATOTLIM);
       x = _mkcl_alloc_sized_package(env, name, _external_size, _internal_size);
@@ -308,15 +308,15 @@ mkcl_find_package_nolock(MKCL, mkcl_object name)
   /* Note that this function may actually be called _before_ symbols are set up
    * and bound! */
   if (mkcl_get_option(MKCL_OPT_BOOTED)
-      && MKCL_SYM_FUN(MK_SI_find_relative_package) != mk_cl_Cnil
-      && MKCL_SYM_VAL(env, MK_SI_DYNVAR_relative_package_names) != mk_cl_Cnil) {
+      && MKCL_SYM_FUN((mkcl_object) &MK_SI_find_relative_package) != mk_cl_Cnil
+      && MKCL_SYM_VAL(env, (mkcl_object) &MK_SI_DYNVAR_relative_package_names) != mk_cl_Cnil) {
     return mk_si_find_relative_package(env, name);
   }
 #endif
   return mk_cl_Cnil;
 }
 
-struct mkcl_cfun mk_si_coerce_to_package_cfunobj = MKCL_CFUN1(mk_si_coerce_to_package, MK_SI_coerce_to_package);
+struct mkcl_cfun mk_si_coerce_to_package_cfunobj = MKCL_CFUN1(mk_si_coerce_to_package, (mkcl_object) &MK_SI_coerce_to_package);
 
 mkcl_object
 mk_si_coerce_to_package(MKCL, mkcl_object p)
@@ -334,9 +334,9 @@ mk_si_coerce_to_package(MKCL, mkcl_object p)
 mkcl_object
 mkcl_current_package(MKCL)
 {
-  mkcl_object x = mkcl_symbol_value(env, MK_CL_DYNVAR_package);
+  mkcl_object x = mkcl_symbol_value(env, (mkcl_object) &MK_CL_DYNVAR_package);
   if (mkcl_type_of(x) != mkcl_t_package) {
-    MKCL_SETQ(env, MK_CL_DYNVAR_package, mkcl_core.user_package);
+    MKCL_SETQ(env, (mkcl_object) &MK_CL_DYNVAR_package, mkcl_core.user_package);
     mkcl_FEerror(env, "The value of *PACKAGE*, ~S, was not a package", 1, x);
   }
   return x;
@@ -359,7 +359,7 @@ mkcl_intern(MKCL, mkcl_object name, mkcl_object p, int *intern_flag)
   mkcl_object s, ul;
   volatile bool locked = false;
 
-  name = mkcl_check_type_string(env, MK_CL_intern, name);
+  name = mkcl_check_type_string(env, (mkcl_object) &MK_CL_intern, name);
   p = mk_si_coerce_to_package(env, p);
 
   MKCL_UNWIND_PROTECT_BEGIN(env) {
@@ -618,7 +618,7 @@ mkcl_export2(MKCL, mkcl_object s, mkcl_object p)
   } MKCL_UNWIND_PROTECT_END;
 }
 
-struct mkcl_cfun mk_cl_delete_package_cfunobj = MKCL_CFUN1(mk_cl_delete_package, MK_CL_delete_package);
+struct mkcl_cfun mk_cl_delete_package_cfunobj = MKCL_CFUN1(mk_cl_delete_package, (mkcl_object) &MK_CL_delete_package);
 
 mkcl_object
 mk_cl_delete_package(MKCL, mkcl_object p)
@@ -930,7 +930,7 @@ mkcl_unuse_package(MKCL, mkcl_object x, mkcl_object p)
   } MKCL_UNWIND_PROTECT_END;
 }
 
-struct mkcl_cfun mk_cl_make_package_cfunobj = MKCL_CFUN_VA(mk_cl_make_package, MK_CL_make_package);
+struct mkcl_cfun mk_cl_make_package_cfunobj = MKCL_CFUN_VA(mk_cl_make_package, (mkcl_object) &MK_CL_make_package);
 
 mkcl_object mk_cl_make_package(MKCL, mkcl_narg narg, mkcl_object pack_name, ...)
 {
@@ -940,27 +940,27 @@ mkcl_object mk_cl_make_package(MKCL, mkcl_narg narg, mkcl_object pack_name, ...)
     mkcl_object use = MKCL_CONS(env, mkcl_core.lisp_package, mk_cl_Cnil);
     mkcl_object internal_size = MKCL_MAKE_FIXNUM(129);
     mkcl_object external_size = MKCL_MAKE_FIXNUM(129);
-    MKCL_RECEIVE_4_KEYWORD_ARGUMENTS(env, MK_CL_make_package, narg, 1, pack_name,
-				     MK_KEY_nicknames, &nicknames,
-				     MK_KEY_use, &use,
-				     MK_KEY_external_size, &external_size,
-				     MK_KEY_internal_size, &internal_size);
+    MKCL_RECEIVE_4_KEYWORD_ARGUMENTS(env, (mkcl_object) &MK_CL_make_package, narg, 1, pack_name,
+				     (mkcl_object) &MK_KEY_nicknames, &nicknames,
+				     (mkcl_object) &MK_KEY_use, &use,
+				     (mkcl_object) &MK_KEY_external_size, &external_size,
+				     (mkcl_object) &MK_KEY_internal_size, &internal_size);
     /* INV: mkcl_make_package() performs type checking */
     mkcl_return_value(mkcl_make_sized_package(env, pack_name, nicknames, use, external_size, internal_size));
   }
 }
 
-struct mkcl_cfun mk_si_select_package_cfunobj = MKCL_CFUN1(mk_si_select_package, MK_SI_select_package);
+struct mkcl_cfun mk_si_select_package_cfunobj = MKCL_CFUN1(mk_si_select_package, (mkcl_object) &MK_SI_select_package);
 
 mkcl_object
 mk_si_select_package(MKCL, mkcl_object pack_name)
 {
   mkcl_call_stack_check(env);
   mkcl_object p = mk_si_coerce_to_package(env, pack_name);
-  mkcl_return_value((MKCL_SETQ(env, MK_CL_DYNVAR_package, p)));
+  mkcl_return_value((MKCL_SETQ(env, (mkcl_object) &MK_CL_DYNVAR_package, p)));
 }
 
-struct mkcl_cfun mk_cl_find_package_cfunobj = MKCL_CFUN1(mk_cl_find_package, MK_CL_find_package);
+struct mkcl_cfun mk_cl_find_package_cfunobj = MKCL_CFUN1(mk_cl_find_package, (mkcl_object) &MK_CL_find_package);
 
 mkcl_object
 mk_cl_find_package(MKCL, mkcl_object p)
@@ -979,7 +979,7 @@ mk_cl_find_package(MKCL, mkcl_object p)
   mkcl_return_value(package);
 }
 
-struct mkcl_cfun mk_cl_package_name_cfunobj = MKCL_CFUN1(mk_cl_package_name, MK_CL_package_name);
+struct mkcl_cfun mk_cl_package_name_cfunobj = MKCL_CFUN1(mk_cl_package_name, (mkcl_object) &MK_CL_package_name);
 
 mkcl_object
 mk_cl_package_name(MKCL, mkcl_object p)
@@ -989,7 +989,7 @@ mk_cl_package_name(MKCL, mkcl_object p)
   mkcl_return_value(mkcl_copy_string(env, p->pack.name));
 }
 
-struct mkcl_cfun mk_cl_package_nicknames_cfunobj = MKCL_CFUN1(mk_cl_package_nicknames, MK_CL_package_nicknames);
+struct mkcl_cfun mk_cl_package_nicknames_cfunobj = MKCL_CFUN1(mk_cl_package_nicknames, (mkcl_object) &MK_CL_package_nicknames);
 
 mkcl_object
 mk_cl_package_nicknames(MKCL, mkcl_object p)
@@ -1000,21 +1000,21 @@ mk_cl_package_nicknames(MKCL, mkcl_object p)
   mkcl_return_value(mk_cl_copy_list(env, p->pack.nicknames));
 }
 
-struct mkcl_cfun mk_cl_rename_package_cfunobj = MKCL_CFUN_VA(mk_cl_rename_package, MK_CL_rename_package);
+struct mkcl_cfun mk_cl_rename_package_cfunobj = MKCL_CFUN_VA(mk_cl_rename_package, (mkcl_object) &MK_CL_rename_package);
 
 mkcl_object mk_cl_rename_package(MKCL, mkcl_narg narg, mkcl_object pack, mkcl_object new_name, ...)
 {
   mkcl_call_stack_check(env);
   {
     mkcl_object new_nicknames = mk_cl_Cnil;
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_rename_package, narg, 2, new_name, &new_nicknames);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_rename_package, narg, 2, new_name, &new_nicknames);
 
     /* INV: mkcl_rename_package() type checks and coerces pack to package */
     mkcl_return_value(mkcl_rename_package(env, pack, new_name, new_nicknames));
   }
 }
 
-struct mkcl_cfun mk_cl_package_use_list_cfunobj = MKCL_CFUN1(mk_cl_package_use_list, MK_CL_package_use_list);
+struct mkcl_cfun mk_cl_package_use_list_cfunobj = MKCL_CFUN1(mk_cl_package_use_list, (mkcl_object) &MK_CL_package_use_list);
 
 mkcl_object
 mk_cl_package_use_list(MKCL, mkcl_object p)
@@ -1023,7 +1023,7 @@ mk_cl_package_use_list(MKCL, mkcl_object p)
   return mk_cl_copy_list(env, mk_si_coerce_to_package(env, p)->pack.uses);
 }
 
-struct mkcl_cfun mk_cl_package_used_by_list_cfunobj = MKCL_CFUN1(mk_cl_package_used_by_list, MK_CL_package_used_by_list);
+struct mkcl_cfun mk_cl_package_used_by_list_cfunobj = MKCL_CFUN1(mk_cl_package_used_by_list, (mkcl_object) &MK_CL_package_used_by_list);
 
 mkcl_object
 mk_cl_package_used_by_list(MKCL, mkcl_object p)
@@ -1032,7 +1032,7 @@ mk_cl_package_used_by_list(MKCL, mkcl_object p)
   return mk_cl_copy_list(env, mk_si_coerce_to_package(env, p)->pack.usedby);
 }
 
-struct mkcl_cfun mk_cl_package_shadowing_symbols_cfunobj = MKCL_CFUN1(mk_cl_package_shadowing_symbols, MK_CL_package_shadowing_symbols);
+struct mkcl_cfun mk_cl_package_shadowing_symbols_cfunobj = MKCL_CFUN1(mk_cl_package_shadowing_symbols, (mkcl_object) &MK_CL_package_shadowing_symbols);
 
 mkcl_object
 mk_cl_package_shadowing_symbols(MKCL, mkcl_object p)
@@ -1041,7 +1041,7 @@ mk_cl_package_shadowing_symbols(MKCL, mkcl_object p)
   return mk_cl_copy_list(env, mk_si_coerce_to_package(env, p)->pack.shadowings);
 }
 
-struct mkcl_cfun mk_si_close_package_cfunobj = MKCL_CFUN1(mk_si_close_package, MK_SI_close_package);
+struct mkcl_cfun mk_si_close_package_cfunobj = MKCL_CFUN1(mk_si_close_package, (mkcl_object) &MK_SI_close_package);
 
 mkcl_object
 mk_si_close_package(MKCL, mkcl_object p)
@@ -1052,7 +1052,7 @@ mk_si_close_package(MKCL, mkcl_object p)
   mkcl_return_value(p);
 }
 
-struct mkcl_cfun mk_si_reopen_package_cfunobj = MKCL_CFUN1(mk_si_reopen_package, MK_SI_reopen_package);
+struct mkcl_cfun mk_si_reopen_package_cfunobj = MKCL_CFUN1(mk_si_reopen_package, (mkcl_object) &MK_SI_reopen_package);
 
 mkcl_object
 mk_si_reopen_package(MKCL, mkcl_object p)
@@ -1063,7 +1063,7 @@ mk_si_reopen_package(MKCL, mkcl_object p)
   mkcl_return_value(p);
 }
 
-struct mkcl_cfun mk_si_package_closed_p_cfunobj = MKCL_CFUN1(mk_si_package_closed_p, MK_SI_package_closed_p);
+struct mkcl_cfun mk_si_package_closed_p_cfunobj = MKCL_CFUN1(mk_si_package_closed_p, (mkcl_object) &MK_SI_package_closed_p);
 
 mkcl_object
 mk_si_package_closed_p(MKCL, mkcl_object p)
@@ -1073,7 +1073,7 @@ mk_si_package_closed_p(MKCL, mkcl_object p)
   mkcl_return_value((p->pack.closed ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_list_all_packages_cfunobj = MKCL_CFUN0(mk_cl_list_all_packages, MK_CL_list_all_packages);
+struct mkcl_cfun mk_cl_list_all_packages_cfunobj = MKCL_CFUN0(mk_cl_list_all_packages, (mkcl_object) &MK_CL_list_all_packages);
 
 mkcl_object
 mk_cl_list_all_packages(MKCL)
@@ -1092,7 +1092,7 @@ mk_cl_list_all_packages(MKCL)
   mkcl_return_value(packages);
 }
 
-struct mkcl_cfun mk_cl_intern_cfunobj = MKCL_CFUN_VA(mk_cl_intern, MK_CL_intern);
+struct mkcl_cfun mk_cl_intern_cfunobj = MKCL_CFUN_VA(mk_cl_intern, (mkcl_object) &MK_CL_intern);
 
 mkcl_object mk_cl_intern(MKCL, mkcl_narg narg, mkcl_object strng, ...)
 {
@@ -1101,21 +1101,21 @@ mkcl_object mk_cl_intern(MKCL, mkcl_narg narg, mkcl_object strng, ...)
     mkcl_object sym = mk_cl_Cnil;
     int intern_flag;
     mkcl_object p = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_intern, narg, 1, strng, &p);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_intern, narg, 1, strng, &p);
 
     sym = mkcl_intern(env, strng, p, &intern_flag);
     if (intern_flag == MKCL_SYMBOL_IS_INTERNAL)
-      { mkcl_return_2_values(sym, MK_KEY_internal); }
+      { mkcl_return_2_values(sym, (mkcl_object) &MK_KEY_internal); }
     else if (intern_flag == MKCL_SYMBOL_IS_EXTERNAL)
-      { mkcl_return_2_values(sym, MK_KEY_external); }
+      { mkcl_return_2_values(sym, (mkcl_object) &MK_KEY_external); }
     else if (intern_flag == MKCL_SYMBOL_IS_INHERITED)
-      { mkcl_return_2_values(sym, MK_KEY_inherited); }
+      { mkcl_return_2_values(sym, (mkcl_object) &MK_KEY_inherited); }
     else
       { mkcl_return_2_values(sym, mk_cl_Cnil); }
   }
 }
 
-struct mkcl_cfun mk_cl_find_symbol_cfunobj = MKCL_CFUN_VA(mk_cl_find_symbol, MK_CL_find_symbol);
+struct mkcl_cfun mk_cl_find_symbol_cfunobj = MKCL_CFUN_VA(mk_cl_find_symbol, (mkcl_object) &MK_CL_find_symbol);
 
 mkcl_object mk_cl_find_symbol(MKCL, mkcl_narg narg, mkcl_object strng, ...)
 {
@@ -1124,41 +1124,41 @@ mkcl_object mk_cl_find_symbol(MKCL, mkcl_narg narg, mkcl_object strng, ...)
     mkcl_object x;
     int intern_flag;
     mkcl_object p = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_find_symbol, narg, 1, strng, &p);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_find_symbol, narg, 1, strng, &p);
 
     x = mkcl_find_symbol(env, strng, p, &intern_flag);
     if (intern_flag == MKCL_SYMBOL_IS_INTERNAL)
-      { mkcl_return_2_values(x, MK_KEY_internal); }
+      { mkcl_return_2_values(x, (mkcl_object) &MK_KEY_internal); }
     else if (intern_flag == MKCL_SYMBOL_IS_EXTERNAL)
-      { mkcl_return_2_values(x, MK_KEY_external); }
+      { mkcl_return_2_values(x, (mkcl_object) &MK_KEY_external); }
     else if (intern_flag == MKCL_SYMBOL_IS_INHERITED)
-      { mkcl_return_2_values(x, MK_KEY_inherited); }
+      { mkcl_return_2_values(x, (mkcl_object) &MK_KEY_inherited); }
     else
       { mkcl_return_2_values(mk_cl_Cnil, mk_cl_Cnil); }
   }
 }
 
-struct mkcl_cfun mk_cl_unintern_cfunobj = MKCL_CFUN_VA(mk_cl_unintern, MK_CL_unintern);
+struct mkcl_cfun mk_cl_unintern_cfunobj = MKCL_CFUN_VA(mk_cl_unintern, (mkcl_object) &MK_CL_unintern);
 
 mkcl_object mk_cl_unintern(MKCL, mkcl_narg narg, mkcl_object symbl, ...)
 {
   mkcl_call_stack_check(env);
   {
     mkcl_object p = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_unintern, narg, 1, symbl, &p);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_unintern, narg, 1, symbl, &p);
 
     mkcl_return_value((mkcl_unintern(env, symbl, p) ? mk_cl_Ct : mk_cl_Cnil));
   }
 }
 
-struct mkcl_cfun mk_cl_export_cfunobj = MKCL_CFUN_VA(mk_cl_export, MK_CL_export);
+struct mkcl_cfun mk_cl_export_cfunobj = MKCL_CFUN_VA(mk_cl_export, (mkcl_object) &MK_CL_export);
 
 mkcl_object mk_cl_export(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
 {
   mkcl_call_stack_check(env);
   {
     mkcl_object pack = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_export, narg, 1, symbols, &pack);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_export, narg, 1, symbols, &pack);
 
   BEGIN:
     switch (mkcl_type_of(symbols)) {
@@ -1175,22 +1175,22 @@ mkcl_object mk_cl_export(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
       break;
     
     default:
-      symbols = mkcl_type_error(env, MK_CL_export, "argument", symbols,
-                                mk_cl_list(env, 3, MK_CL_or, MK_CL_symbol, MK_CL_list));
+      symbols = mkcl_type_error(env, (mkcl_object) &MK_CL_export, "argument", symbols,
+                                mk_cl_list(env, 3, (mkcl_object) &MK_CL_or, (mkcl_object) &MK_CL_symbol, (mkcl_object) &MK_CL_list));
       goto BEGIN;
     }
     mkcl_return_value(mk_cl_Ct);
   }
 }
 
-struct mkcl_cfun mk_cl_unexport_cfunobj = MKCL_CFUN_VA(mk_cl_unexport, MK_CL_unexport);
+struct mkcl_cfun mk_cl_unexport_cfunobj = MKCL_CFUN_VA(mk_cl_unexport, (mkcl_object) &MK_CL_unexport);
 
 mkcl_object mk_cl_unexport(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
 {
   mkcl_call_stack_check(env);
   {
     mkcl_object pack = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_unexport, narg, 1, symbols, &pack);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_unexport, narg, 1, symbols, &pack);
 
   BEGIN:
     switch (mkcl_type_of(symbols)) {
@@ -1207,22 +1207,22 @@ mkcl_object mk_cl_unexport(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
       break;
     
     default:
-      symbols = mkcl_type_error(env, MK_CL_unexport, "argument", symbols,
-                                mk_cl_list(env, 3, MK_CL_or, MK_CL_symbol, MK_CL_list));
+      symbols = mkcl_type_error(env, (mkcl_object) &MK_CL_unexport, "argument", symbols,
+                                mk_cl_list(env, 3, (mkcl_object) &MK_CL_or, (mkcl_object) &MK_CL_symbol, (mkcl_object) &MK_CL_list));
       goto BEGIN;
     }
     mkcl_return_value(mk_cl_Ct);
   }
 }
 
-struct mkcl_cfun mk_cl_import_cfunobj = MKCL_CFUN_VA(mk_cl_import, MK_CL_import);
+struct mkcl_cfun mk_cl_import_cfunobj = MKCL_CFUN_VA(mk_cl_import, (mkcl_object) &MK_CL_import);
 
 mkcl_object mk_cl_import(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
 {
   mkcl_call_stack_check(env);
   {
     mkcl_object pack = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_import, narg, 1, symbols, &pack);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_import, narg, 1, symbols, &pack);
 
   BEGIN:
     switch (mkcl_type_of(symbols)) {
@@ -1239,22 +1239,22 @@ mkcl_object mk_cl_import(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
       break;
     
     default:
-      symbols = mkcl_type_error(env, MK_CL_import, "argument", symbols,
-                                mk_cl_list(env, 3, MK_CL_or, MK_CL_symbol, MK_CL_list));
+      symbols = mkcl_type_error(env, (mkcl_object) &MK_CL_import, "argument", symbols,
+                                mk_cl_list(env, 3, (mkcl_object) &MK_CL_or, (mkcl_object) &MK_CL_symbol, (mkcl_object) &MK_CL_list));
       goto BEGIN;
     }
     mkcl_return_value(mk_cl_Ct);
   }
 }
 
-struct mkcl_cfun mk_cl_shadowing_import_cfunobj = MKCL_CFUN_VA(mk_cl_shadowing_import, MK_CL_shadowing_import);
+struct mkcl_cfun mk_cl_shadowing_import_cfunobj = MKCL_CFUN_VA(mk_cl_shadowing_import, (mkcl_object) &MK_CL_shadowing_import);
 
 mkcl_object mk_cl_shadowing_import(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
 {
   mkcl_call_stack_check(env);
   {
     mkcl_object pack = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_shadowing_import, narg, 1, symbols, &pack);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_shadowing_import, narg, 1, symbols, &pack);
 
   BEGIN:
     switch (mkcl_type_of(symbols)) {
@@ -1271,22 +1271,22 @@ mkcl_object mk_cl_shadowing_import(MKCL, mkcl_narg narg, mkcl_object symbols, ..
       break;
     
     default:
-      symbols = mkcl_type_error(env, MK_CL_shadowing_import, "argument", symbols,
-                                mk_cl_list(env, 3, MK_CL_or, MK_CL_symbol, MK_CL_list));
+      symbols = mkcl_type_error(env, (mkcl_object) &MK_CL_shadowing_import, "argument", symbols,
+                                mk_cl_list(env, 3, (mkcl_object) &MK_CL_or, (mkcl_object) &MK_CL_symbol, (mkcl_object) &MK_CL_list));
       goto BEGIN;
     }
     mkcl_return_value(mk_cl_Ct);
   }
 }
 
-struct mkcl_cfun mk_cl_shadow_cfunobj = MKCL_CFUN_VA(mk_cl_shadow, MK_CL_shadow);
+struct mkcl_cfun mk_cl_shadow_cfunobj = MKCL_CFUN_VA(mk_cl_shadow, (mkcl_object) &MK_CL_shadow);
 
 mkcl_object mk_cl_shadow(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
 {
   mkcl_call_stack_check(env);
   {
     mkcl_object pack = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_shadow, narg, 1, symbols, &pack);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_shadow, narg, 1, symbols, &pack);
 
   BEGIN:
     switch (mkcl_type_of(symbols)) {
@@ -1306,22 +1306,22 @@ mkcl_object mk_cl_shadow(MKCL, mkcl_narg narg, mkcl_object symbols, ...)
       } mkcl_end_loop_for_in;
       break;
     default:
-      symbols = mkcl_type_error(env, MK_CL_shadow, "", symbols,
-                                mk_cl_list(env, 3, MK_CL_or, MK_CL_symbol, MK_CL_list));
+      symbols = mkcl_type_error(env, (mkcl_object) &MK_CL_shadow, "", symbols,
+                                mk_cl_list(env, 3, (mkcl_object) &MK_CL_or, (mkcl_object) &MK_CL_symbol, (mkcl_object) &MK_CL_list));
       goto BEGIN;
     }
     mkcl_return_value(mk_cl_Ct);
   }
 }
 
-struct mkcl_cfun mk_cl_use_package_cfunobj = MKCL_CFUN_VA(mk_cl_use_package, MK_CL_use_package);
+struct mkcl_cfun mk_cl_use_package_cfunobj = MKCL_CFUN_VA(mk_cl_use_package, (mkcl_object) &MK_CL_use_package);
 
 mkcl_object mk_cl_use_package(MKCL, mkcl_narg narg, mkcl_object pack, ...)
 {
   mkcl_call_stack_check(env);
   {
     mkcl_object pa = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_use_package, narg, 1, pack, &pa);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_use_package, narg, 1, pack, &pa);
 
   BEGIN:
     switch (mkcl_type_of(pack)) {
@@ -1349,14 +1349,14 @@ mkcl_object mk_cl_use_package(MKCL, mkcl_narg narg, mkcl_object pack, ...)
   }
 }
 
-struct mkcl_cfun mk_cl_unuse_package_cfunobj = MKCL_CFUN_VA(mk_cl_unuse_package, MK_CL_unuse_package);
+struct mkcl_cfun mk_cl_unuse_package_cfunobj = MKCL_CFUN_VA(mk_cl_unuse_package, (mkcl_object) &MK_CL_unuse_package);
 
 mkcl_object mk_cl_unuse_package(MKCL, mkcl_narg narg, mkcl_object pack, ...)
 {
   mkcl_call_stack_check(env);
   {
     mkcl_object pa = ((narg == 1) ? mkcl_current_package(env) : mk_cl_Cnil);
-    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, MK_CL_unuse_package, narg, 1, pack, &pa);
+    MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_CL_unuse_package, narg, 1, pack, &pa);
 
   BEGIN:
     switch (mkcl_type_of(pack)) {
@@ -1384,7 +1384,7 @@ mkcl_object mk_cl_unuse_package(MKCL, mkcl_narg narg, mkcl_object pack, ...)
   }
 }
 
-struct mkcl_cfun mk_si_package_hash_tables_cfunobj = MKCL_CFUN1(mk_si_package_hash_tables, MK_SI_package_hash_tables);
+struct mkcl_cfun mk_si_package_hash_tables_cfunobj = MKCL_CFUN1(mk_si_package_hash_tables, (mkcl_object) &MK_SI_package_hash_tables);
 
 mkcl_object
 mk_si_package_hash_tables(MKCL, mkcl_object p)
@@ -1406,7 +1406,7 @@ mk_si_package_hash_tables(MKCL, mkcl_object p)
   mkcl_return_3_values(he, hi, u);
 }
 
-struct mkcl_cfun mk_si_packages_in_waiting_cfunobj = MKCL_CFUN0(mk_si_packages_in_waiting, MK_SI_packages_in_waiting);
+struct mkcl_cfun mk_si_packages_in_waiting_cfunobj = MKCL_CFUN0(mk_si_packages_in_waiting, (mkcl_object) &MK_SI_packages_in_waiting);
 
 mkcl_object mk_si_packages_in_waiting(MKCL)
 {

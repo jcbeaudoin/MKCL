@@ -22,9 +22,9 @@
 
 #include <mkcl/internal.h>
 
-struct mkcl_cfun mk_cl_identity_cfunobj = MKCL_CFUN1(mk_cl_identity, MK_CL_identity);
+struct mkcl_cfun mk_cl_identity_cfunobj = MKCL_CFUN1(mk_cl_identity, (mkcl_object) &MK_CL_identity);
 
-struct mkcl_cfun mk_si_clear_compiler_properties_cfunobj = MKCL_CFUN1(mk_cl_identity, MK_SI_clear_compiler_properties);
+struct mkcl_cfun mk_si_clear_compiler_properties_cfunobj = MKCL_CFUN1(mk_cl_identity, (mkcl_object) &MK_SI_clear_compiler_properties);
 
 mkcl_object
 mk_cl_identity(MKCL, mkcl_object x)
@@ -32,8 +32,8 @@ mk_cl_identity(MKCL, mkcl_object x)
   mkcl_return_value(x);
 }
 
-struct mkcl_cfun mk_cl_not_cfunobj = MKCL_CFUN1(mk_cl_not, MK_CL_not);
-struct mkcl_cfun mk_cl_null_cfunobj = MKCL_CFUN1(mk_cl_null, MK_CL_null);
+struct mkcl_cfun mk_cl_not_cfunobj = MKCL_CFUN1(mk_cl_not, (mkcl_object) &MK_CL_not);
+struct mkcl_cfun mk_cl_null_cfunobj = MKCL_CFUN1(mk_cl_null, (mkcl_object) &MK_CL_null);
 
 mkcl_object
 mk_cl_null(MKCL, mkcl_object x)
@@ -41,7 +41,7 @@ mk_cl_null(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_Null(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_symbolp_cfunobj = MKCL_CFUN1(mk_cl_symbolp, MK_CL_symbolp);
+struct mkcl_cfun mk_cl_symbolp_cfunobj = MKCL_CFUN1(mk_cl_symbolp, (mkcl_object) &MK_CL_symbolp);
 
 mkcl_object
 mk_cl_symbolp(MKCL, mkcl_object x)
@@ -49,7 +49,7 @@ mk_cl_symbolp(MKCL, mkcl_object x)
   mkcl_return_value((MKCL_SYMBOLP(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_atom_cfunobj = MKCL_CFUN1(mk_cl_atom, MK_CL_atom);
+struct mkcl_cfun mk_cl_atom_cfunobj = MKCL_CFUN1(mk_cl_atom, (mkcl_object) &MK_CL_atom);
 
 mkcl_object
 mk_cl_atom(MKCL, mkcl_object x)
@@ -57,7 +57,7 @@ mk_cl_atom(MKCL, mkcl_object x)
   mkcl_return_value((MKCL_ATOM(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_consp_cfunobj = MKCL_CFUN1(mk_cl_consp, MK_CL_consp);
+struct mkcl_cfun mk_cl_consp_cfunobj = MKCL_CFUN1(mk_cl_consp, (mkcl_object) &MK_CL_consp);
 
 mkcl_object
 mk_cl_consp(MKCL, mkcl_object x)
@@ -65,7 +65,7 @@ mk_cl_consp(MKCL, mkcl_object x)
   mkcl_return_value((MKCL_CONSP(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_listp_cfunobj = MKCL_CFUN1(mk_cl_listp, MK_CL_listp);
+struct mkcl_cfun mk_cl_listp_cfunobj = MKCL_CFUN1(mk_cl_listp, (mkcl_object) &MK_CL_listp);
 
 mkcl_object
 mk_cl_listp(MKCL, mkcl_object x)
@@ -73,7 +73,7 @@ mk_cl_listp(MKCL, mkcl_object x)
   mkcl_return_value(((MKCL_LISTP(x)) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_numberp_cfunobj = MKCL_CFUN1(mk_cl_numberp, MK_CL_numberp);
+struct mkcl_cfun mk_cl_numberp_cfunobj = MKCL_CFUN1(mk_cl_numberp, (mkcl_object) &MK_CL_numberp);
 
 mkcl_object
 mk_cl_numberp(MKCL, mkcl_object x)
@@ -82,7 +82,7 @@ mk_cl_numberp(MKCL, mkcl_object x)
   mkcl_return_value((MKCL_NUMBER_TYPE_P(t) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_integerp_cfunobj = MKCL_CFUN1(mk_cl_integerp, MK_CL_integerp);
+struct mkcl_cfun mk_cl_integerp_cfunobj = MKCL_CFUN1(mk_cl_integerp, (mkcl_object) &MK_CL_integerp);
 
 mkcl_object
 mk_cl_integerp(MKCL, mkcl_object x)
@@ -91,7 +91,7 @@ mk_cl_integerp(MKCL, mkcl_object x)
   mkcl_return_value(((t == mkcl_t_fixnum || t == mkcl_t_bignum) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_rationalp_cfunobj = MKCL_CFUN1(mk_cl_rationalp, MK_CL_rationalp);
+struct mkcl_cfun mk_cl_rationalp_cfunobj = MKCL_CFUN1(mk_cl_rationalp, (mkcl_object) &MK_CL_rationalp);
 
 mkcl_object
 mk_cl_rationalp(MKCL, mkcl_object x)
@@ -99,7 +99,7 @@ mk_cl_rationalp(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_rationalp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_floatp_cfunobj = MKCL_CFUN1(mk_cl_floatp, MK_CL_floatp);
+struct mkcl_cfun mk_cl_floatp_cfunobj = MKCL_CFUN1(mk_cl_floatp, (mkcl_object) &MK_CL_floatp);
 
 mkcl_object
 mk_cl_floatp(MKCL, mkcl_object x)
@@ -107,7 +107,7 @@ mk_cl_floatp(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_floatp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_realp_cfunobj = MKCL_CFUN1(mk_cl_realp, MK_CL_realp);
+struct mkcl_cfun mk_cl_realp_cfunobj = MKCL_CFUN1(mk_cl_realp, (mkcl_object) &MK_CL_realp);
 
 mkcl_object
 mk_cl_realp(MKCL, mkcl_object x)
@@ -115,7 +115,7 @@ mk_cl_realp(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_realp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_complexp_cfunobj = MKCL_CFUN1(mk_cl_complexp, MK_CL_complexp);
+struct mkcl_cfun mk_cl_complexp_cfunobj = MKCL_CFUN1(mk_cl_complexp, (mkcl_object) &MK_CL_complexp);
 
 mkcl_object
 mk_cl_complexp(MKCL, mkcl_object x)
@@ -123,7 +123,7 @@ mk_cl_complexp(MKCL, mkcl_object x)
   mkcl_return_value((MKCL_COMPLEXP(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_characterp_cfunobj = MKCL_CFUN1(mk_cl_characterp, MK_CL_characterp);
+struct mkcl_cfun mk_cl_characterp_cfunobj = MKCL_CFUN1(mk_cl_characterp, (mkcl_object) &MK_CL_characterp);
 
 mkcl_object
 mk_cl_characterp(MKCL, mkcl_object x)
@@ -131,7 +131,7 @@ mk_cl_characterp(MKCL, mkcl_object x)
   mkcl_return_value((MKCL_CHARACTERP(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_mkcl_base_char_p_cfunobj = MKCL_CFUN1(mk_mkcl_base_char_p, MK_MKCL_base_char_p);
+struct mkcl_cfun mk_mkcl_base_char_p_cfunobj = MKCL_CFUN1(mk_mkcl_base_char_p, (mkcl_object) &MK_MKCL_base_char_p);
 
 mkcl_object
 mk_mkcl_base_char_p(MKCL, mkcl_object c)
@@ -139,7 +139,7 @@ mk_mkcl_base_char_p(MKCL, mkcl_object c)
   mkcl_return_value(((MKCL_CHARACTERP(c) && MKCL_BASE_CHAR_P(c)) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_stringp_cfunobj = MKCL_CFUN1(mk_cl_stringp, MK_CL_stringp);
+struct mkcl_cfun mk_cl_stringp_cfunobj = MKCL_CFUN1(mk_cl_stringp, (mkcl_object) &MK_CL_stringp);
 
 mkcl_object
 mk_cl_stringp(MKCL, mkcl_object x)
@@ -147,7 +147,7 @@ mk_cl_stringp(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_stringp(env, x)? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_bit_vector_p_cfunobj = MKCL_CFUN1(mk_cl_bit_vector_p, MK_CL_bit_vector_p);
+struct mkcl_cfun mk_cl_bit_vector_p_cfunobj = MKCL_CFUN1(mk_cl_bit_vector_p, (mkcl_object) &MK_CL_bit_vector_p);
 
 mkcl_object
 mk_cl_bit_vector_p(MKCL, mkcl_object x)
@@ -155,7 +155,7 @@ mk_cl_bit_vector_p(MKCL, mkcl_object x)
   mkcl_return_value(((mkcl_type_of(x) == mkcl_t_bitvector) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_vectorp_cfunobj = MKCL_CFUN1(mk_cl_vectorp, MK_CL_vectorp);
+struct mkcl_cfun mk_cl_vectorp_cfunobj = MKCL_CFUN1(mk_cl_vectorp, (mkcl_object) &MK_CL_vectorp);
 
 mkcl_object
 mk_cl_vectorp(MKCL, mkcl_object x)
@@ -164,7 +164,7 @@ mk_cl_vectorp(MKCL, mkcl_object x)
   mkcl_return_value((MKCL_VECTORP(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_simple_string_p_cfunobj = MKCL_CFUN1(mk_cl_simple_string_p, MK_CL_simple_string_p);
+struct mkcl_cfun mk_cl_simple_string_p_cfunobj = MKCL_CFUN1(mk_cl_simple_string_p, (mkcl_object) &MK_CL_simple_string_p);
 
 mkcl_object
 mk_cl_simple_string_p(MKCL, mkcl_object x)
@@ -172,7 +172,7 @@ mk_cl_simple_string_p(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_simple_string_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_si_simple_base_string_p_cfunobj = MKCL_CFUN1(mk_si_simple_base_string_p, MK_SI_simple_base_string_p);
+struct mkcl_cfun mk_si_simple_base_string_p_cfunobj = MKCL_CFUN1(mk_si_simple_base_string_p, (mkcl_object) &MK_SI_simple_base_string_p);
 
 mkcl_object
 mk_si_simple_base_string_p(MKCL, mkcl_object x)
@@ -180,7 +180,7 @@ mk_si_simple_base_string_p(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_simple_base_string_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_si_base_string_p_cfunobj = MKCL_CFUN1(mk_si_base_string_p, MK_SI_base_string_p);
+struct mkcl_cfun mk_si_base_string_p_cfunobj = MKCL_CFUN1(mk_si_base_string_p, (mkcl_object) &MK_SI_base_string_p);
 
 mkcl_object
 mk_si_base_string_p(MKCL, mkcl_object x)
@@ -188,7 +188,7 @@ mk_si_base_string_p(MKCL, mkcl_object x)
   mkcl_return_value(((mkcl_type_of(x) == mkcl_t_base_string) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_simple_bit_vector_p_cfunobj = MKCL_CFUN1(mk_cl_simple_bit_vector_p, MK_CL_simple_bit_vector_p);
+struct mkcl_cfun mk_cl_simple_bit_vector_p_cfunobj = MKCL_CFUN1(mk_cl_simple_bit_vector_p, (mkcl_object) &MK_CL_simple_bit_vector_p);
 
 mkcl_object
 mk_cl_simple_bit_vector_p(MKCL, mkcl_object x)
@@ -196,7 +196,7 @@ mk_cl_simple_bit_vector_p(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_simple_bit_vector_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_simple_vector_p_cfunobj = MKCL_CFUN1(mk_cl_simple_vector_p, MK_CL_simple_vector_p);
+struct mkcl_cfun mk_cl_simple_vector_p_cfunobj = MKCL_CFUN1(mk_cl_simple_vector_p, (mkcl_object) &MK_CL_simple_vector_p);
 
 mkcl_object
 mk_cl_simple_vector_p(MKCL, mkcl_object x)
@@ -204,7 +204,7 @@ mk_cl_simple_vector_p(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_simple_vector_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_arrayp_cfunobj = MKCL_CFUN1(mk_cl_arrayp, MK_CL_arrayp);
+struct mkcl_cfun mk_cl_arrayp_cfunobj = MKCL_CFUN1(mk_cl_arrayp, (mkcl_object) &MK_CL_arrayp);
 
 mkcl_object
 mk_cl_arrayp(MKCL, mkcl_object x)
@@ -213,7 +213,7 @@ mk_cl_arrayp(MKCL, mkcl_object x)
   mkcl_return_value((MKCL_ARRAY_TYPE_P(t) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_packagep_cfunobj = MKCL_CFUN1(mk_cl_packagep, MK_CL_packagep);
+struct mkcl_cfun mk_cl_packagep_cfunobj = MKCL_CFUN1(mk_cl_packagep, (mkcl_object) &MK_CL_packagep);
 
 mkcl_object
 mk_cl_packagep(MKCL, mkcl_object x)
@@ -221,7 +221,7 @@ mk_cl_packagep(MKCL, mkcl_object x)
   mkcl_return_value(((mkcl_type_of(x) == mkcl_t_package) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_functionp_cfunobj = MKCL_CFUN1(mk_cl_functionp, MK_CL_functionp);
+struct mkcl_cfun mk_cl_functionp_cfunobj = MKCL_CFUN1(mk_cl_functionp, (mkcl_object) &MK_CL_functionp);
 
 mkcl_object
 mk_cl_functionp(MKCL, mkcl_object x)
@@ -229,7 +229,7 @@ mk_cl_functionp(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_functionp(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_compiled_function_p_cfunobj = MKCL_CFUN1(mk_cl_compiled_function_p, MK_CL_compiled_function_p);
+struct mkcl_cfun mk_cl_compiled_function_p_cfunobj = MKCL_CFUN1(mk_cl_compiled_function_p, (mkcl_object) &MK_CL_compiled_function_p);
 
 mkcl_object
 mk_cl_compiled_function_p(MKCL, mkcl_object x)
@@ -237,7 +237,7 @@ mk_cl_compiled_function_p(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_compiled_function_p(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_si_bytecodep_cfunobj = MKCL_CFUN1(mk_si_bytecodep, MK_SI_bytecodep);
+struct mkcl_cfun mk_si_bytecodep_cfunobj = MKCL_CFUN1(mk_si_bytecodep, (mkcl_object) &MK_SI_bytecodep);
 
 mkcl_object
 mk_si_bytecodep(MKCL, mkcl_object x)
@@ -245,7 +245,7 @@ mk_si_bytecodep(MKCL, mkcl_object x)
   mkcl_return_value((mkcl_bytecodep(env, x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_cl_eq_cfunobj = MKCL_CFUN2(mk_cl_eq, MK_CL_eq);
+struct mkcl_cfun mk_cl_eq_cfunobj = MKCL_CFUN2(mk_cl_eq, (mkcl_object) &MK_CL_eq);
 
 mkcl_object
 mk_cl_eq(MKCL, mkcl_object x, mkcl_object y)
@@ -325,7 +325,7 @@ mkcl_eql(MKCL, mkcl_object x, mkcl_object y)
 }
 #endif
 
-struct mkcl_cfun mk_cl_eql_cfunobj = MKCL_CFUN2(mk_cl_eql, MK_CL_eql);
+struct mkcl_cfun mk_cl_eql_cfunobj = MKCL_CFUN2(mk_cl_eql, (mkcl_object) &MK_CL_eql);
 
 mkcl_object
 mk_cl_eql(MKCL, mkcl_object x, mkcl_object y)
@@ -424,7 +424,7 @@ mkcl_equal(MKCL, register mkcl_object x, mkcl_object y)
   }
 }
 
-struct mkcl_cfun mk_cl_equal_cfunobj = MKCL_CFUN2(mk_cl_equal, MK_CL_equal);
+struct mkcl_cfun mk_cl_equal_cfunobj = MKCL_CFUN2(mk_cl_equal, (mkcl_object) &MK_CL_equal);
 
 mkcl_object
 mk_cl_equal(MKCL, mkcl_object x, mkcl_object y)
@@ -503,9 +503,9 @@ mkcl_equalp(MKCL, mkcl_object x, mkcl_object y)
     if ((ty != tx)
         || (MKCL_CLASS_OF(x) != MKCL_CLASS_OF(y))
         || (x->instance.sig != MKCL_UNBOUND) /* A hack meant to be equivalent to !structurep but faster. JCB */
-        /* otherwise we'd have to use the slower: _mkcl_structure_subtypep(MKCL_CLASS_OF(x), MK_CL_structure-object') */
+        /* otherwise we'd have to use the slower: _mkcl_structure_subtypep(MKCL_CLASS_OF(x), (mkcl_object) &MK_CL_structure-object') */
         || (y->instance.sig != MKCL_UNBOUND) /* A hack meant to be equivalent to !structurep but faster. JCB */
-        /* otherwise we'd have to use the slower: _mkcl_structure_subtypep(MKCL_CLASS_OF(y), MK_CL_structure-object') */
+        /* otherwise we'd have to use the slower: _mkcl_structure_subtypep(MKCL_CLASS_OF(y), (mkcl_object) &MK_CL_structure-object') */
 	|| (x->instance.length != y->instance.length) /* should we force an instance update? JCB */
 	)                                             /* No since only structures can be compared slot-wise. */
       return(FALSE);
@@ -559,7 +559,7 @@ mkcl_equalp(MKCL, mkcl_object x, mkcl_object y)
   }
 }
 
-struct mkcl_cfun mk_cl_equalp_cfunobj = MKCL_CFUN2(mk_cl_equalp, MK_CL_equalp);
+struct mkcl_cfun mk_cl_equalp_cfunobj = MKCL_CFUN2(mk_cl_equalp, (mkcl_object) &MK_CL_equalp);
 
 mkcl_object
 mk_cl_equalp(MKCL, mkcl_object x, mkcl_object y)
@@ -568,7 +568,7 @@ mk_cl_equalp(MKCL, mkcl_object x, mkcl_object y)
   mkcl_return_value((mkcl_equalp(env, x, y) ? mk_cl_Ct : mk_cl_Cnil))
 }
 
-struct mkcl_cfun mk_mkcl_fixnump_cfunobj = MKCL_CFUN1(mk_mkcl_fixnump, MK_MKCL_fixnump);
+struct mkcl_cfun mk_mkcl_fixnump_cfunobj = MKCL_CFUN1(mk_mkcl_fixnump, (mkcl_object) &MK_MKCL_fixnump);
 
 mkcl_object
 mk_mkcl_fixnump(MKCL, mkcl_object x)
@@ -576,7 +576,7 @@ mk_mkcl_fixnump(MKCL, mkcl_object x)
   mkcl_return_value((MKCL_FIXNUMP(x) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_si_unbound_value_p_cfunobj = MKCL_CFUN1(mk_si_unbound_value_p, MK_SI_unbound_value_p);
+struct mkcl_cfun mk_si_unbound_value_p_cfunobj = MKCL_CFUN1(mk_si_unbound_value_p, (mkcl_object) &MK_SI_unbound_value_p);
 
 mkcl_object
 mk_si_unbound_value_p(MKCL, mkcl_object val)

@@ -45,13 +45,13 @@ bool _mkcl_structure_subtypep(mkcl_object x, mkcl_object y)
       return(FALSE);
     if (x == y)
       return(TRUE);
-    x = mk_si_get_sysprop(x, MK_SI_structure_include);
+    x = mk_si_get_sysprop(x, (mkcl_object) &MK_SI_structure_include);
   } while (x != mk_cl_Cnil);
   return(FALSE);
 }
 #endif /* !CLOS */
 
-struct mkcl_cfun mk_si_structure_subtype_p_cfunobj = MKCL_CFUN2(mk_si_structure_subtype_p, MK_SI_structure_subtype_p);
+struct mkcl_cfun mk_si_structure_subtype_p_cfunobj = MKCL_CFUN2(mk_si_structure_subtype_p, (mkcl_object) &MK_SI_structure_subtype_p);
 
 mkcl_object
 mk_si_structure_subtype_p(MKCL, mkcl_object x, mkcl_object y)
@@ -61,7 +61,7 @@ mk_si_structure_subtype_p(MKCL, mkcl_object x, mkcl_object y)
 	     && _mkcl_structure_subtypep(MKCL_STYPE(x), y)) ? mk_cl_Ct : mk_cl_Cnil));
 }
 
-struct mkcl_cfun mk_si_make_structure_cfunobj = MKCL_CFUN_VA(mk_si_make_structure, MK_SI_make_structure);
+struct mkcl_cfun mk_si_make_structure_cfunobj = MKCL_CFUN_VA(mk_si_make_structure, (mkcl_object) &MK_SI_make_structure);
 
 mkcl_object mk_si_make_structure(MKCL, mkcl_narg narg, mkcl_object type, ...)
 {
@@ -70,7 +70,7 @@ mkcl_object mk_si_make_structure(MKCL, mkcl_narg narg, mkcl_object type, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, MK_SI_make_structure, 0, narg, type, args);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_SI_make_structure, 0, narg, type, args);
 
     x = mkcl_alloc_raw_structure(env, type, --narg);
 
@@ -91,7 +91,7 @@ mkcl_copy_structure(MKCL, mkcl_object x)
   mkcl_object y;
 
   if (!mk_si_structurep(env, x))
-    mkcl_FEwrong_type_argument(env, MK_CL_structure, x);
+    mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_CL_structure, x);
   y = mkcl_alloc_object(env, MKCL_T_STRUCTURE);
   MKCL_STYPE(y) = MKCL_STYPE(x);
   MKCL_SLENGTH(y) = j = MKCL_SLENGTH(x);
@@ -103,7 +103,7 @@ mkcl_copy_structure(MKCL, mkcl_object x)
 }
 #endif /* !CLOS */
 
-struct mkcl_cfun mk_cl_copy_structure_cfunobj = MKCL_CFUN1(mk_cl_copy_structure, MK_CL_copy_structure);
+struct mkcl_cfun mk_cl_copy_structure_cfunobj = MKCL_CFUN1(mk_cl_copy_structure, (mkcl_object) &MK_CL_copy_structure);
 
 mkcl_object
 mk_cl_copy_structure(MKCL, mkcl_object s)
@@ -111,41 +111,41 @@ mk_cl_copy_structure(MKCL, mkcl_object s)
   mkcl_call_stack_check(env);
   switch (mkcl_type_of(s)) {
   case mkcl_t_instance:
-    if (_mkcl_structure_subtypep(MKCL_CLASS_OF(s), MK_CL_structure_object))
+    if (_mkcl_structure_subtypep(MKCL_CLASS_OF(s), (mkcl_object) &MK_CL_structure_object))
       s = mkcl_copy_structure(env, s);
     else
-      mkcl_FEwrong_type_argument(env, MK_CL_structure, s);
+      mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_CL_structure, s);
     break;
   case mkcl_t_structure:
     s = mkcl_copy_structure(env, s);
     break;
   default:
-    mkcl_FEwrong_type_argument(env, MK_CL_structure, s);
+    mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_CL_structure, s);
   }
   mkcl_return_value(s);
 }
 
 
-struct mkcl_cfun mk_si_structure_name_cfunobj = MKCL_CFUN1(mk_si_structure_name, MK_SI_structure_name);
+struct mkcl_cfun mk_si_structure_name_cfunobj = MKCL_CFUN1(mk_si_structure_name, (mkcl_object) &MK_SI_structure_name);
 /* Kept only for compatibility. One should use class-of or type-of. */
 mkcl_object
 mk_si_structure_name(MKCL, mkcl_object s)
 {
   mkcl_call_stack_check(env);
   if (!mk_si_structurep(env, s))
-    mkcl_FEwrong_type_argument(env, MK_CL_structure, s);
+    mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_CL_structure, s);
   else
     { mkcl_return_value(MKCL_SNAME(s)); }
 }
 
-struct mkcl_cfun mk_si_structure_length_cfunobj = MKCL_CFUN1(mk_si_structure_length, MK_SI_structure_length);
+struct mkcl_cfun mk_si_structure_length_cfunobj = MKCL_CFUN1(mk_si_structure_length, (mkcl_object) &MK_SI_structure_length);
 
 mkcl_object
 mk_si_structure_length(MKCL, mkcl_object s)
 {
   mkcl_call_stack_check(env);
   if (!mk_si_structurep(env, s))
-    mkcl_FEwrong_type_argument(env, MK_CL_structure, s);
+    mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_CL_structure, s);
   else
     { mkcl_return_value(mkcl_make_unsigned_integer(env, MKCL_SLENGTH(s))); }
 }
@@ -153,10 +153,10 @@ mk_si_structure_length(MKCL, mkcl_object s)
 void
 mkcl_FEtype_error_structure_index(MKCL, mkcl_object s, mkcl_object ndx)
 {
-  mk_cl_error(env, 5, MK_MKCL_invalid_slot, MK_KEY_name, ndx, MK_KEY_instance, s);
+  mk_cl_error(env, 5, (mkcl_object) &MK_MKCL_invalid_slot, (mkcl_object) &MK_KEY_name, ndx, (mkcl_object) &MK_KEY_instance, s);
 }
 
-struct mkcl_cfun mk_si_structure_ref_cfunobj = MKCL_CFUN3(mk_si_structure_ref, MK_SI_structure_ref);
+struct mkcl_cfun mk_si_structure_ref_cfunobj = MKCL_CFUN3(mk_si_structure_ref, (mkcl_object) &MK_SI_structure_ref);
 
 mkcl_object
 mk_si_structure_ref(MKCL, mkcl_object x, mkcl_object name, mkcl_object index)
@@ -173,7 +173,7 @@ mk_si_structure_ref(MKCL, mkcl_object x, mkcl_object name, mkcl_object index)
   { mkcl_return_value(MKCL_SLOT(x, i)); }
 }
 
-struct mkcl_cfun mk_si_structure_set_cfunobj = MKCL_CFUN4(mk_si_structure_set, MK_SI_structure_set);
+struct mkcl_cfun mk_si_structure_set_cfunobj = MKCL_CFUN4(mk_si_structure_set, (mkcl_object) &MK_SI_structure_set);
 
 mkcl_object
 mk_si_structure_set(MKCL, mkcl_object x, mkcl_object name, mkcl_object index, mkcl_object val)
@@ -190,13 +190,13 @@ mk_si_structure_set(MKCL, mkcl_object x, mkcl_object name, mkcl_object index, mk
   { MKCL_SLOT(x, i) = val; mkcl_return_value(val); }
 }
 
-struct mkcl_cfun mk_si_structurep_cfunobj = MKCL_CFUN1(mk_si_structurep, MK_SI_structurep);
+struct mkcl_cfun mk_si_structurep_cfunobj = MKCL_CFUN1(mk_si_structurep, (mkcl_object) &MK_SI_structurep);
 
 mkcl_object
 mk_si_structurep(MKCL, mkcl_object s)
 {
   mkcl_call_stack_check(env);
-  if (MKCL_INSTANCEP(s) && _mkcl_structure_subtypep(MKCL_CLASS_OF(s), MK_CL_structure_object))
+  if (MKCL_INSTANCEP(s) && _mkcl_structure_subtypep(MKCL_CLASS_OF(s), (mkcl_object) &MK_CL_structure_object))
     { mkcl_return_value(mk_cl_Ct); }
 #if 0 /* !CLOS */
   if (mkcl_type_of(s) == mkcl_t_structure)
