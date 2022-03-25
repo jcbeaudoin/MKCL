@@ -341,10 +341,10 @@ mkcl_min$(EXE): $(LIBRARIES) mkclmin.@LIBEXT@ mkclmintop.@LIBEXT@ c/cinit.o .gdb
 c/cinit.o: c/GNUmakefile c/cinit.c c/mkcl/mkcl.h
 	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile cinit.o
 
-c/all_symbols_min.o: c/GNUmakefile c/all_symbols.c c/symbols_list.h c/symbols_list2.h c/mkcl/mkcl.h
+c/all_symbols_min.o: c/GNUmakefile c/all_symbols.c c/mkcl/mkcl.h
 	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile all_symbols_min.o
 
-c/all_symbols.o: c/GNUmakefile c/all_symbols.c c/symbols_list.h c/symbols_list2.h c/mkcl/mkcl.h
+c/all_symbols.o: c/GNUmakefile c/all_symbols.c c/mkcl/mkcl.h
 	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile all_symbols.o
 
 lsp/config.lsp: lsp/config.pre
@@ -438,7 +438,7 @@ c/mkcl/mkcl-gc.h: c/mkcl/gc/gc.h
 	touch $@
 
 
-c/mkcl/mkcl-cmp.h: c/mkcl/mkcl.h c/symbols_list.h
+c/mkcl/mkcl-cmp.h: c/mkcl/mkcl.h
 	touch $@
 
 c/mkcl/mkcl.h: $(MKCL_HFILES)
@@ -637,6 +637,4 @@ c/makefile.depend: c/*.c c/*.h c/arch/*.c c/mkcl/mkcl.h $(MKCL_HFILES)
 c/GNUmakefile: c/Makefile.in c/makefile.depend
 	cd c; $(MAKE) GNUmakefile
 
-c/symbols_list2.h: c/symbols_list.h
-	cd c; $(MAKE) symbols_list2.h
 
