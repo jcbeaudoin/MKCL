@@ -8,6 +8,9 @@
 
 mkcl_object mkcl_setup_package_mt(void)
 {
+#if MKCL_WINDOWS
+  InitializeCriticalSection(&(mkcl_package_mt.lock));
+#endif
   return (mkcl_object) &mkcl_package_mt;
 }
 
