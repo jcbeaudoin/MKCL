@@ -465,10 +465,13 @@ int main(int argc, char * argv[])
   init_gray_package();
   
 
-  if ( strcmp(program_name, "build_package_GRAY") == 0 )
+  if ( strcmp(program_name, "build_package_GRAY" PROGRAM_SUFFIX) == 0 )
     print_gray_package();
-  else if ( strcmp(program_name, "expose_package_GRAY") == 0 )
+  else if ( strcmp(program_name, "expose_package_GRAY" PROGRAM_SUFFIX) == 0 )
     expose_gray_package();
+  else
+    { printf("\nDon't know this program name: %s\n", program_name); exit(2); }
+
 
   return 0;
 }

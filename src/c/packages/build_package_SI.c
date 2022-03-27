@@ -1324,10 +1324,13 @@ int main(int argc, char * argv[])
   init_si_package();
   
 
-  if ( strcmp(program_name, "build_package_SI") == 0 )
+  if ( strcmp(program_name, "build_package_SI" PROGRAM_SUFFIX) == 0 )
     print_si_package();
-  else if ( strcmp(program_name, "expose_package_SI") == 0 )
+  else if ( strcmp(program_name, "expose_package_SI" PROGRAM_SUFFIX) == 0 )
     expose_si_package();
+  else
+    { printf("\nDon't know this program name: %s\n", program_name); exit(2); }
+
 
   return 0;
 }

@@ -57,3 +57,13 @@ extern struct mkcl_package mkcl_package_ffi;
       NULL, /* _C_name */						\
       NULL /* _name */							\
       }
+
+
+#ifdef MKCL_WINDOWS
+# define PROGRAM_SUFFIX ".exe"
+#else
+# define PROGRAM_SUFFIX ""
+#endif
+
+
+/*------------------*/

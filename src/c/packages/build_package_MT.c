@@ -560,10 +560,13 @@ int main(int argc, char * argv[])
   init_mt_package();
   
 
-  if ( strcmp(program_name, "build_package_MT") == 0 )
+  if ( strcmp(program_name, "build_package_MT" PROGRAM_SUFFIX) == 0 )
     print_mt_package();
-  else if ( strcmp(program_name, "expose_package_MT") == 0 )
+  else if ( strcmp(program_name, "expose_package_MT" PROGRAM_SUFFIX) == 0 )
     expose_mt_package();
+  else
+    { printf("\nDon't know this program name: %s\n", program_name); exit(2); }
+
 
   return 0;
 }

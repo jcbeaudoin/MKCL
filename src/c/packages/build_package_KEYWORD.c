@@ -441,10 +441,13 @@ int main(int argc, char * argv[])
   
   init_keyword_package();
 
-  if ( strcmp(program_name, "build_package_KEYWORD") == 0 )
+  if ( strcmp(program_name, "build_package_KEYWORD" PROGRAM_SUFFIX) == 0 )
     print_keyword_package();
-  else if ( strcmp(program_name, "expose_package_KEYWORD") == 0 )
+  else if ( strcmp(program_name, "expose_package_KEYWORD" PROGRAM_SUFFIX) == 0 )
     expose_keyword_package();
+  else
+    { printf("\nDon't know this program name: %s\n", program_name); exit(2); }
+
 
   return 0;
 }

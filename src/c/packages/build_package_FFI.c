@@ -415,16 +415,27 @@ void expose_ffi_package(void)
     }
 }
 
+
 int main(int argc, char * argv[])
 {
   char * program_name = basename(strdup(argv[0]));
   init_ffi_package();
-  
 
-  if ( strcmp(program_name, "build_package_FFI") == 0 )
+#if 0
+  if (argc != 2) { printf("\n%s usage: %s <output filename>\n", program_name, program_name); exit(1); }
+  
+  printf("\nAbout to redirect to: %s\n", argv[1]);
+  FILE * new_stdout = freopen(argv[1], "w", stdout);
+
+  if (new_stdout == NULL) { perror("Output redirection failed!"); exit(2); }
+#endif
+  
+  if ( strcmp(program_name, "build_package_FFI" PROGRAM_SUFFIX) == 0 )
     print_ffi_package();
-  else if ( strcmp(program_name, "expose_package_FFI") == 0 )
+  else if ( strcmp(program_name, "expose_package_FFI" PROGRAM_SUFFIX) == 0 )
     expose_ffi_package();
+  else
+    { printf("\nDon't know this program name: %s\n", program_name); exit(2); }
 
   return 0;
 }

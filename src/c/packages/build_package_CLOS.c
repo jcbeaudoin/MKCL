@@ -513,10 +513,13 @@ int main(int argc, char * argv[])
   init_clos_package();
   
 
-  if ( strcmp(program_name, "build_package_CLOS") == 0 )
+  if ( strcmp(program_name, "build_package_CLOS" PROGRAM_SUFFIX) == 0 )
     print_clos_package();
-  else if ( strcmp(program_name, "expose_package_CLOS") == 0 )
+  else if ( strcmp(program_name, "expose_package_CLOS" PROGRAM_SUFFIX) == 0 )
     expose_clos_package();
+  else
+    { printf("\nDon't know this program name: %s\n", program_name); exit(2); }
+
 
   return 0;
 }

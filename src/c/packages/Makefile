@@ -11,7 +11,7 @@
 #  See file '../../../Copyright' for full details.
 #
 
-CFLAGS= -I../ -D_GNU_SOURCE -DMKCL_PACKAGE_BUILDER -fno-strict-aliasing -fPIC -O2
+CFLAGS= -I../ -D_GNU_SOURCE -DMKCL_PACKAGE_BUILDER -fno-strict-aliasing -O2
 
 all: build_package_FFI expose_package_FFI build_package_MT expose_package_MT build_package_GRAY expose_package_GRAY build_package_MKCL expose_package_MKCL build_package_CLOS expose_package_CLOS build_package_KEYWORD expose_package_KEYWORD build_package_SI expose_package_SI build_package_CL expose_package_CL
 
@@ -67,31 +67,31 @@ expose_package_CL: build_package_CL.o hash.o
 	$(CC) $(LDFLAGS) -o $@ build_package_CL.o hash.o
 
 test_FFI.o: test_FFI.c FFI_package.h FFI_package_core.h
-	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -fPIC -O0 -g -c test_FFI.c -o test_FFI.o
+	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -O2 -c test_FFI.c -o test_FFI.o
 
 test_MT.o: test_MT.c MT_package.h MT_package_core.h
-	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -fPIC -O0 -g -c test_MT.c -o test_MT.o
+	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -O2 -c test_MT.c -o test_MT.o
 
 test_GRAY.o: test_GRAY.c GRAY_package.h GRAY_package_core.h
-	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -fPIC -O0 -g -c test_GRAY.c -o test_GRAY.o
+	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -O2 -c test_GRAY.c -o test_GRAY.o
 
 test_MKCL.o: test_MKCL.c MKCL_package.h MKCL_package_core.h
-	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -fPIC -O0 -g -c test_MKCL.c -o test_MKCL.o
+	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -O2 -c test_MKCL.c -o test_MKCL.o
 
 test_CLOS.o: test_CLOS.c CLOS_package.h CLOS_package_core.h
-	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -fPIC -O0 -g -c test_CLOS.c -o test_CLOS.o
+	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -O2 -c test_CLOS.c -o test_CLOS.o
 
 test_KEYWORD.o: test_KEYWORD.c KEYWORD_package.h KEYWORD_package_core.h
-	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -fPIC -O0 -g -c test_KEYWORD.c -o test_KEYWORD.o
+	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -O2 -c test_KEYWORD.c -o test_KEYWORD.o
 
 test_SI.o: test_SI.c SI_package.h SI_package_core.h
-	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -fPIC -O0 -g -c test_SI.c -o test_SI.o
+	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -O2 -c test_SI.c -o test_SI.o
 
 test_CL.o: test_CL.c CL_package.h CL_package_core.h
-	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -fPIC -O0 -g -c test_CL.c -o test_CL.o
+	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -O2 -c test_CL.c -o test_CL.o
 
 test_USER.o: test_USER.c USER_package.h
-	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -fPIC -O0 -g -c test_USER.c -o test_USER.o
+	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -O2 -c test_USER.c -o test_USER.o
 
 test: test_FFI.o test_MT.o test_GRAY.o test_MKCL.o test_CLOS.o test_KEYWORD.o test_SI.o test_CL.o test_USER.o
 
