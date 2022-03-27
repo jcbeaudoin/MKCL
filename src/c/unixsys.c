@@ -145,7 +145,7 @@ mkcl_object mk_mkcl_run_command(MKCL, mkcl_narg narg, mkcl_object command, mkcl_
   {
     mkcl_object real_name = mk_cl_Cnil;
     
-    MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, (mkcl_object) &MK_MKCL_run_command, narg, 2, directory, (mkcl_object) &MK_KEY_real-name, &real_name);
+    MKCL_RECEIVE_1_KEYWORD_ARGUMENT(env, (mkcl_object) &MK_MKCL_run_command, narg, 2, directory, (mkcl_object) &MK_KEY_real_name, &real_name);
     mkcl_dynamic_extent_OSstring(env, os_command, command);
     mkcl_dynamic_extent_OSstring(env, os_new_directory, (mkcl_Null(directory) ? mkcl_core.empty_base_string : directory));
     wchar_t * os_raw_new_directory = NULL;

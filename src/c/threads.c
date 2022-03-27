@@ -2169,7 +2169,7 @@ interrupt_thread_internal(MKCL, mkcl_object thread, mkcl_object function, mkcl_i
       }
     else if ( failure )
       {
-	if ( reason == MK_MT_thread_sleeping)
+	if ( reason == ((mkcl_object) &MK_MT_thread_sleeping) )
 	  {
 #if MKCL_DEBUG_INTERRUPT_MASK
 	    mk_cl_error(env, 7, (mkcl_object) &MK_MT_thread_sleeping,
@@ -2202,7 +2202,7 @@ static void clear_semaphore(MKCL, sem_t * sem)
 
   do {
     MKCL_LIBC_NO_INTR(env, rc = sem_trywait(sem));
-  } while ( rc == 0 || errno == EINTR);
+  } while ( rc == 0 || errno == EINTR );
   if (rc && errno != EAGAIN)
     mkcl_FElibc_error(env, "clear_semaphore failed on sem_trywait", 0);
 }
