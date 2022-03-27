@@ -245,6 +245,14 @@ static struct exposed_symbol const exposed_symbols[] = {
   { SYMBOL_NAME("WRITE"), "MK_KEY_write" },
   { SYMBOL_NAME("X86"), "MK_KEY_x86" },
   { SYMBOL_NAME("X86-64"), "MK_KEY_x86_64" },
+  { SYMBOL_NAME("MINGW32"), "MK_KEY_mingw32" },
+  { SYMBOL_NAME("MINGW64"), "MK_KEY_mingw64" },
+  { SYMBOL_NAME("MSVC"), "MK_KEY_msvc" },
+  { SYMBOL_NAME("WINDOWS"), "MK_KEY_windows" },
+  { SYMBOL_NAME("ANDROID"), "MK_KEY_android" },
+  { SYMBOL_NAME("FREEBSD"), "MK_KEY_freebsd" },
+  { SYMBOL_NAME("ARM"), "MK_KEY_arm" },
+  { SYMBOL_NAME("AARCH64"), "MK_KEY_aarch64" },
 };
 
 
