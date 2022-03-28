@@ -13,7 +13,6 @@
 
 #include "build_package.h"
 
-
 #include "FFI_package.h"
 
 
@@ -211,7 +210,7 @@ void print_ffi_internal_symbol_initializers(void)
       printf("mk_cl_Cnil, "); /* properly_named_class */
       printf("mk_cl_Cnil, "); /* sys_plist */
       printf("MKCL_NOT_A_SPECIAL_INDEX, "); /* special_index */
-      printf("%luUL, ", sym->hashed_name); /* hashed_name */
+      printf(MKCL_HASH_VALUE_FORMAT ", ", sym->hashed_name); /* hashed_name */
       printf("(mkcl_object) &ffi_internal_C_names[%lu], ", i); /* C_name */
       printf("NULL, "); /* _C_name */
       printf("NULL, "); /* _name */
@@ -245,7 +244,7 @@ void print_ffi_external_symbol_initializers(void)
       printf("mk_cl_Cnil, "); /* properly_named_class */
       printf("mk_cl_Cnil, "); /* sys_plist */
       printf("MKCL_NOT_A_SPECIAL_INDEX, "); /* special_index */
-      printf("%luUL, ", sym->hashed_name); /* hashed_name */
+      printf(MKCL_HASH_VALUE_FORMAT ", ", sym->hashed_name); /* hashed_name */
       printf("(mkcl_object) &ffi_external_C_names[%lu], ", i); /* C_name */
       printf("NULL, "); /* _C_name */
       printf("NULL, "); /* _name */
@@ -282,7 +281,7 @@ void print_ffi_internal_hashtable_entry_initializers(void)
 	  mkcl_index sym_index = ffi_internal_symbol_index((struct mkcl_symbol *) entry->value);
 
 	  printf("(mkcl_object) &mkcl_ffi_internal_symbol_names[%lu], ", sym_index);
-	  printf("%luUL, ", entry->hashed_key);
+	  printf(MKCL_HASH_VALUE_FORMAT ", ", entry->hashed_key);
 	  printf("(mkcl_object) &mkcl_ffi_internal_symbols[%lu], ", sym_index);
 	}
       printf("}, \n");
@@ -334,7 +333,7 @@ void print_ffi_external_hashtable_entry_initializers(void)
 	  mkcl_index sym_index = ffi_external_symbol_index((struct mkcl_symbol *) entry->value);
 
 	  printf("(mkcl_object) &mkcl_ffi_external_symbol_names[%lu], ", sym_index);
-	  printf("%luUL, ", entry->hashed_key);
+	  printf(MKCL_HASH_VALUE_FORMAT ", ", entry->hashed_key);
 	  printf("(mkcl_object) &mkcl_ffi_external_symbols[%lu], ", sym_index);
 	}
       printf("}, \n");

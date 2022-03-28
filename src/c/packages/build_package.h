@@ -65,5 +65,10 @@ extern struct mkcl_package mkcl_package_ffi;
 # define PROGRAM_SUFFIX ""
 #endif
 
+#if MKCL_WINDOWS && __WIN64__
+# define MKCL_HASH_VALUE_FORMAT "%lluULL"
+#else
+# define MKCL_HASH_VALUE_FORMAT "%luUL"
+#endif
 
 /*------------------*/
