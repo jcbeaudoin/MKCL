@@ -102,6 +102,7 @@ extern "C" {
 
   /* all_symbols.c */
 
+#if 0
   typedef struct mkcl_symbol_initializer {
     const char *name;
     mkcl_word type;
@@ -114,6 +115,7 @@ extern "C" {
   extern MKCL_API const mkcl_index mkcl_root_symbols_count;
 
 #define MKCL_SYM(name,code) ((mkcl_object) (mkcl_root_symbols+(code)))
+#endif
 
   /* cfun.c */
 
@@ -571,21 +573,21 @@ extern "C" {
   extern mkcl_object _mkcl_alloc_package(MKCL, mkcl_object name);
   extern mkcl_object _mkcl_alloc_sized_package(MKCL, mkcl_object name, mkcl_index internal_count, mkcl_index external_count);
 
-  extern struct mkcl_symbol mkcl_ffi_external_symbols[];
-  extern struct mkcl_symbol mkcl_ffi_internal_symbols[];
-  extern struct mkcl_symbol mkcl_mt_external_symbols[];
-  extern struct mkcl_symbol mkcl_mt_internal_symbols[];
-  extern struct mkcl_symbol mkcl_mkcl_external_symbols[];
-  extern struct mkcl_symbol mkcl_mkcl_internal_symbols[];
-  extern struct mkcl_symbol mkcl_clos_external_symbols[];
-  extern struct mkcl_symbol mkcl_clos_internal_symbols[];
-  extern struct mkcl_symbol mkcl_gray_external_symbols[];
-  extern struct mkcl_symbol mkcl_gray_internal_symbols[];
-  extern struct mkcl_symbol mkcl_keyword_external_symbols[];
-  extern struct mkcl_symbol mkcl_si_external_symbols[];
-  extern struct mkcl_symbol mkcl_si_internal_symbols[];
-  extern struct mkcl_symbol mkcl_cl_external_symbols[];
-  extern struct mkcl_symbol mkcl_cl_internal_symbols[];
+  extern MKCL_API struct mkcl_symbol mkcl_ffi_external_symbols[];
+  extern MKCL_API struct mkcl_symbol mkcl_ffi_internal_symbols[];
+  extern MKCL_API struct mkcl_symbol mkcl_mt_external_symbols[];
+  extern MKCL_API struct mkcl_symbol mkcl_mt_internal_symbols[];
+  extern MKCL_API struct mkcl_symbol mkcl_mkcl_external_symbols[];
+  extern MKCL_API struct mkcl_symbol mkcl_mkcl_internal_symbols[];
+  extern MKCL_API struct mkcl_symbol mkcl_clos_external_symbols[];
+  extern MKCL_API struct mkcl_symbol mkcl_clos_internal_symbols[];
+  extern MKCL_API struct mkcl_symbol mkcl_gray_external_symbols[];
+  extern MKCL_API struct mkcl_symbol mkcl_gray_internal_symbols[];
+  extern MKCL_API struct mkcl_symbol mkcl_keyword_external_symbols[];
+  extern MKCL_API struct mkcl_symbol mkcl_si_external_symbols[];
+  extern MKCL_API struct mkcl_symbol mkcl_si_internal_symbols[];
+  extern MKCL_API struct mkcl_symbol mkcl_cl_external_symbols[];
+  extern MKCL_API struct mkcl_symbol mkcl_cl_internal_symbols[];
 
 
   /* print.d */
