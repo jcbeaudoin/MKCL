@@ -144,14 +144,6 @@ c/mkcl/config.h: c/mkcl/config.h.in config.status
 
 mkcl-small$(EXE) lsp.a $(LSP_LIBRARIES) encodings: lsp/git_describe.lsp compile.lsp lsp/config.lsp cmp/cmpdefs.lsp lsp/*.lsp clos/*.lsp cmp/*.lsp c/mkcl/mkcl-cmp.h c/mkcl/config.h BUILD-STAMP mkcl_min$(EXE) mkcltop.@LIBEXT@
 	./mkcl_min$(EXE) compile
-	for i in $(LSP_LIBRARIES) ; do \
-	  if test -s $$i ; then \
-	    case $$i in \
-	      *.dll) $(INSTALL_LIBRARY) $$i ./bin/ ;; \
-	      *) ;; \
-	    esac \
-	  fi \
-	done
 
 
 ext-dir-exists:
