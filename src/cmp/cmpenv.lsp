@@ -100,7 +100,7 @@
 	    (warn "Found function declaration for local macro ~A" fname)
 	    (push (list fun
 			(function-arg-types arg-types)
-			(si::function-return-type return-types))
+			(si::validate-function-return-type return-types))
 		  *function-declarations*)))
       (warn "In (DECLARE (FTYPE ...)): ~s is not a valid function name" fname)))
 
