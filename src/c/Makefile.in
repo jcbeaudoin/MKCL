@@ -116,49 +116,49 @@ mkcl/internal.h: $(EXPOSE_SYMBOLS_H_IN_MKCL)
 mkcl/expose_symbols_in_FFI.h: packages/expose_symbols_in_FFI.h
 	cp $< $@
 
-packages/expose_symbols_in_FFI.h:
+packages/expose_symbols_in_FFI.h: packages/FFI_package_base.h packages/build_package_FFI.c
 	cd packages; $(MAKE) expose_symbols_in_FFI.h
 
 mkcl/expose_symbols_in_MT.h: packages/expose_symbols_in_MT.h
 	cp $< $@
 
-packages/expose_symbols_in_MT.h:
+packages/expose_symbols_in_MT.h: packages/MT_package_base.h packages/build_package_MT.c
 	cd packages; $(MAKE) expose_symbols_in_MT.h
 
 mkcl/expose_symbols_in_MKCL.h: packages/expose_symbols_in_MKCL.h
 	cp $< $@
 
-packages/expose_symbols_in_MKCL.h:
+packages/expose_symbols_in_MKCL.h: packages/MKCL_package_base.h packages/build_package_MKCL.c
 	cd packages; $(MAKE) expose_symbols_in_MKCL.h
 
 mkcl/expose_symbols_in_CLOS.h: packages/expose_symbols_in_CLOS.h
 	cp $< $@
 
-packages/expose_symbols_in_CLOS.h:
+packages/expose_symbols_in_CLOS.h: packages/CLOS_package_base.h packages/build_package_CLOS.c
 	cd packages; $(MAKE) expose_symbols_in_CLOS.h
 
 mkcl/expose_symbols_in_GRAY.h: packages/expose_symbols_in_GRAY.h
 	cp $< $@
 
-packages/expose_symbols_in_GRAY.h:
+packages/expose_symbols_in_GRAY.h: packages/GRAY_package_base.h packages/build_package_GRAY.c
 	cd packages; $(MAKE) expose_symbols_in_GRAY.h
 
 mkcl/expose_symbols_in_KEYWORD.h: packages/expose_symbols_in_KEYWORD.h
 	cp $< $@
 
-packages/expose_symbols_in_KEYWORD.h:
+packages/expose_symbols_in_KEYWORD.h: packages/KEYWORD_package_base.h packages/build_package_KEYWORD.c
 	cd packages; $(MAKE) expose_symbols_in_KEYWORD.h
 
 mkcl/expose_symbols_in_SI.h: packages/expose_symbols_in_SI.h
 	cp $< $@
 
-packages/expose_symbols_in_SI.h:
+packages/expose_symbols_in_SI.h: packages/SI_package_base.h packages/build_package_SI.c
 	cd packages; $(MAKE) expose_symbols_in_SI.h
 
 mkcl/expose_symbols_in_CL.h: packages/expose_symbols_in_CL.h
 	cp $< $@
 
-packages/expose_symbols_in_CL.h:
+packages/expose_symbols_in_CL.h: packages/CL_package_base.h packages/build_package_CL.c
 	cd packages; $(MAKE) expose_symbols_in_CL.h
 
 
@@ -182,10 +182,11 @@ clean:
 	$(RM) $(OBJS) $(OBJS:%.o=%.s) all_symbols_min.o all_symbols.o cinit.o core core.* a.out
 	$(RM) $(PACKAGES_OBJS) $(PACKAGES_OBJS:%.o=%_min.o)
 	$(RM) mkcl/gc/*.h $(EXPOSE_SYMBOLS_H_IN_MKCL)
+	$(RM) GNUmakefile
 	cd packages; $(MAKE) clean
 
 distclean: clean
-	$(RM) GNUmakefile makefile.depend
+	$(RM) makefile.depend
 	$(RM) Makefile
 	cd packages; $(MAKE) distclean
 
@@ -229,7 +230,7 @@ all_packages.o: GNUmakefile all_packages.c mkcl/mkcl.h
 
 packages/FFI_package.h: packages/FFI_package_base.h packages/FFI_package_core.h
 
-packages/FFI_package_core.h:
+packages/FFI_package_core.h: packages/FFI_package_base.h packages/build_package_FFI.c
 	cd packages; $(MAKE) FFI_package_core.h
 
 package_FFI_min.o: GNUmakefile package_FFI.c packages/FFI_package.h mkcl/mkcl.h mkcl/internal.h
@@ -240,7 +241,7 @@ package_FFI.o: GNUmakefile package_FFI.c packages/FFI_package.h mkcl/mkcl.h mkcl
 
 packages/MT_package.h: packages/MT_package_base.h packages/MT_package_core.h
 
-packages/MT_package_core.h:
+packages/MT_package_core.h: packages/MT_package_base.h packages/build_package_MT.c
 	cd packages; $(MAKE) MT_package_core.h
 
 package_MT_min.o: GNUmakefile package_MT.c packages/MT_package.h mkcl/mkcl.h mkcl/internal.h
@@ -251,7 +252,7 @@ package_MT.o: GNUmakefile package_MT.c packages/MT_package.h mkcl/mkcl.h mkcl/in
 
 packages/MKCL_package.h: packages/MKCL_package_base.h packages/MKCL_package_core.h
 
-packages/MKCL_package_core.h:
+packages/MKCL_package_core.h: packages/MKCL_package_base.h packages/build_package_MKCL.c
 	cd packages; $(MAKE) MKCL_package_core.h
 
 package_MKCL_min.o: GNUmakefile package_MKCL.c packages/MKCL_package.h mkcl/mkcl.h mkcl/internal.h
@@ -262,7 +263,7 @@ package_MKCL.o: GNUmakefile package_MKCL.c packages/MKCL_package.h mkcl/mkcl.h m
 
 packages/CLOS_package.h: packages/CLOS_package_base.h packages/CLOS_package_core.h
 
-packages/CLOS_package_core.h:
+packages/CLOS_package_core.h: packages/CLOS_package_base.h packages/build_package_CLOS.c
 	cd packages; $(MAKE) CLOS_package_core.h
 
 package_CLOS_min.o: GNUmakefile package_CLOS.c packages/CLOS_package.h mkcl/mkcl.h mkcl/internal.h
@@ -273,7 +274,7 @@ package_CLOS.o: GNUmakefile package_CLOS.c packages/CLOS_package.h mkcl/mkcl.h m
 
 packages/GRAY_package.h: packages/GRAY_package_base.h packages/GRAY_package_core.h
 
-packages/GRAY_package_core.h:
+packages/GRAY_package_core.h: packages/GRAY_package_base.h packages/build_package_GRAY.c
 	cd packages; $(MAKE) GRAY_package_core.h
 
 package_GRAY_min.o: GNUmakefile package_GRAY.c packages/GRAY_package.h mkcl/mkcl.h mkcl/internal.h
@@ -284,7 +285,7 @@ package_GRAY.o: GNUmakefile package_GRAY.c packages/GRAY_package.h mkcl/mkcl.h m
 
 packages/KEYWORD_package.h: packages/KEYWORD_package_base.h packages/KEYWORD_package_core.h
 
-packages/KEYWORD_package_core.h:
+packages/KEYWORD_package_core.h: packages/KEYWORD_package_base.h packages/build_package_KEYWORD.c
 	cd packages; $(MAKE) KEYWORD_package_core.h
 
 package_KEYWORD_min.o: GNUmakefile package_KEYWORD.c packages/KEYWORD_package.h mkcl/mkcl.h mkcl/internal.h
@@ -295,7 +296,7 @@ package_KEYWORD.o: GNUmakefile package_KEYWORD.c packages/KEYWORD_package.h mkcl
 
 packages/SI_package.h: packages/SI_package_base.h packages/SI_package_core.h
 
-packages/SI_package_core.h:
+packages/SI_package_core.h: packages/SI_package_base.h packages/build_package_SI.c
 	cd packages; $(MAKE) SI_package_core.h
 
 package_SI_min.o: GNUmakefile package_SI.c packages/SI_package.h mkcl/mkcl.h mkcl/internal.h
@@ -306,7 +307,7 @@ package_SI.o: GNUmakefile package_SI.c packages/SI_package.h mkcl/mkcl.h mkcl/in
 
 packages/CL_package.h: packages/CL_package_base.h packages/CL_package_core.h
 
-packages/CL_package_core.h:
+packages/CL_package_core.h: packages/CL_package_base.h packages/build_package_CL.c
 	cd packages; $(MAKE) CL_package_core.h
 
 package_CL_min.o: GNUmakefile package_CL.c packages/CL_package.h mkcl/mkcl.h mkcl/internal.h
