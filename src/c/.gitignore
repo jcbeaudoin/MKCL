@@ -5,3 +5,4 @@
 /Makefile
 /symbols_list2.h
 /*.s
+/*_min.c
