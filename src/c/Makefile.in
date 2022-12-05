@@ -68,6 +68,8 @@ EXPOSE_SYMBOLS_H_IN_MKCL =  mkcl/expose_symbols_in_CL.h 	\
                             mkcl/expose_symbols_in_MT.h 	\
                             mkcl/expose_symbols_in_FFI.h
 
+PACKAGES_CORE = packages/FFI_package_core.h packages/MT_package_core.h packages/MKCL_package_core.h packages/CLOS_package_core.h packages/GRAY_package_core.h packages/KEYWORD_package_core.h packages/SI_package_core.h packages/CL_package_core.h
+
 PACKAGES_OBJS = all_packages.o package_FFI.o package_MT.o package_MKCL.o package_CLOS.o package_GRAY.o package_KEYWORD.o package_SI.o package_CL.o package_USER.o
 
 OBJS	= symbol.o package.o list.o \
@@ -367,7 +369,7 @@ Makefile: Makefile.in ../config.status
 #
 #
 
-makefile.depend: $(DCFILES) *.h arch/*.c cinit.c all_symbols.c $(PACKAGES_OBJS:%.o=%.c) $(PACKAGES_OBJS:%.o=%_min.c) mkcl/mkcl.h $(MKCL_HFILES)
+makefile.depend: $(DCFILES) *.h arch/*.c cinit.c all_symbols.c $(PACKAGES_OBJS:%.o=%.c) $(PACKAGES_OBJS:%.o=%_min.c) mkcl/mkcl.h $(MKCL_HFILES) $(PACKAGES_CORE)
 	$(RM) makefile.depend
 	for i in $^; do \
 	  case $$i in \
