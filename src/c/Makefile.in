@@ -369,7 +369,7 @@ Makefile: Makefile.in ../config.status
 #
 #
 
-makefile.depend: $(DCFILES) *.h arch/*.c cinit.c all_symbols.c $(PACKAGES_OBJS:%.o=%.c) $(PACKAGES_OBJS:%.o=%_min.c) mkcl/mkcl.h $(MKCL_HFILES) $(PACKAGES_CORE)
+makefile.depend: $(DCFILES) *.h arch/*.c cinit.c all_symbols.c all_symbols_min.c $(PACKAGES_OBJS:%.o=%.c) $(PACKAGES_OBJS:%.o=%_min.c) mkcl/mkcl.h $(MKCL_HFILES) $(PACKAGES_CORE)
 	$(RM) makefile.depend
 	for i in $^; do \
 	  case $$i in \
