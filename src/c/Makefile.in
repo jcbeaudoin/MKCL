@@ -179,8 +179,10 @@ packages/expose_symbols_in_CL.h: packages/CL_package_base.h packages/build_packa
 	$(RANLIB) $@
 
 clean:
-	$(RM) $(OBJS) $(OBJS:%.o=%.s) all_symbols_min.o all_symbols.o cinit.o core core.* a.out
-	$(RM) $(PACKAGES_OBJS) $(PACKAGES_OBJS:%.o=%_min.o)
+	$(RM) $(OBJS) $(OBJS:%.o=%.s)
+	$(RM) all_symbols_min.o all_symbols_min.c all_symbols.o
+	$(RM) cinit.o core core.* a.out
+	$(RM) $(PACKAGES_OBJS) $(PACKAGES_OBJS:%.o=%_min.o) $(PACKAGES_OBJS:%.o=%_min.c)
 	$(RM) mkcl/gc/*.h $(EXPOSE_SYMBOLS_H_IN_MKCL)
 	$(RM) GNUmakefile
 	cd packages; $(MAKE) clean
@@ -213,8 +215,11 @@ arch/ffi_x86.o: arch/ffi_x86.c
 #
 # These files are interrelated
 #
-all_symbols_min.o: GNUmakefile all_symbols.c mkcl/mkcl.h
-	$(CC) $(CFLAGS) -DMKCL_MIN -c all_symbols.c -o $@
+all_symbols_min.c: all_symbols.c
+	cp all_symbols.c all_symbols_min.c
+
+all_symbols_min.o: GNUmakefile all_symbols_min.c mkcl/mkcl.h
+	$(CC) $(CFLAGS) -DMKCL_MIN -c all_symbols_min.c -o $@
 
 all_symbols.o: GNUmakefile all_symbols.c mkcl/mkcl.h
 	$(CC) $(CFLAGS) -c all_symbols.c -o $@
@@ -222,8 +227,11 @@ all_symbols.o: GNUmakefile all_symbols.c mkcl/mkcl.h
 cinit.o: GNUmakefile cinit.c
 	$(CC) $(CFLAGS) -c cinit.c -o $@
 
-all_packages_min.o: GNUmakefile all_packages.c mkcl/mkcl.h
-	$(CC) $(CFLAGS) -DMKCL_MIN -c all_packages.c -o $@
+all_packages_min.c: all_packages.c
+	cp all_packages.c all_packages_min.c
+
+all_packages_min.o: GNUmakefile all_packages_min.c mkcl/mkcl.h
+	$(CC) $(CFLAGS) -DMKCL_MIN -c all_packages_min.c -o $@
 
 all_packages.o: GNUmakefile all_packages.c mkcl/mkcl.h
 	$(CC) $(CFLAGS) -c all_packages.c -o $@
@@ -233,8 +241,11 @@ packages/FFI_package.h: packages/FFI_package_base.h packages/FFI_package_core.h
 packages/FFI_package_core.h: packages/FFI_package_base.h packages/build_package_FFI.c
 	cd packages; $(MAKE) FFI_package_core.h
 
-package_FFI_min.o: GNUmakefile package_FFI.c packages/FFI_package.h mkcl/mkcl.h mkcl/internal.h
-	$(CC) $(CFLAGS) -DMKCL_MIN -c package_FFI.c -o $@
+package_FFI_min.c: package_FFI.c
+	cp package_FFI.c package_FFI_min.c
+
+package_FFI_min.o: GNUmakefile package_FFI_min.c packages/FFI_package.h mkcl/mkcl.h mkcl/internal.h
+	$(CC) $(CFLAGS) -DMKCL_MIN -c package_FFI_min.c -o $@
 
 package_FFI.o: GNUmakefile package_FFI.c packages/FFI_package.h mkcl/mkcl.h mkcl/internal.h
 	$(CC) $(CFLAGS) -c package_FFI.c -o $@
@@ -244,8 +255,11 @@ packages/MT_package.h: packages/MT_package_base.h packages/MT_package_core.h
 packages/MT_package_core.h: packages/MT_package_base.h packages/build_package_MT.c
 	cd packages; $(MAKE) MT_package_core.h
 
-package_MT_min.o: GNUmakefile package_MT.c packages/MT_package.h mkcl/mkcl.h mkcl/internal.h
-	$(CC) $(CFLAGS) -DMKCL_MIN -c package_MT.c -o $@
+package_MT_min.c: package_MT.c
+	cp package_MT.c package_MT_min.c
+
+package_MT_min.o: GNUmakefile package_MT_min.c packages/MT_package.h mkcl/mkcl.h mkcl/internal.h
+	$(CC) $(CFLAGS) -DMKCL_MIN -c package_MT_min.c -o $@
 
 package_MT.o: GNUmakefile package_MT.c packages/MT_package.h mkcl/mkcl.h mkcl/internal.h
 	$(CC) $(CFLAGS) -c package_MT.c -o $@
@@ -255,8 +269,11 @@ packages/MKCL_package.h: packages/MKCL_package_base.h packages/MKCL_package_core
 packages/MKCL_package_core.h: packages/MKCL_package_base.h packages/build_package_MKCL.c
 	cd packages; $(MAKE) MKCL_package_core.h
 
-package_MKCL_min.o: GNUmakefile package_MKCL.c packages/MKCL_package.h mkcl/mkcl.h mkcl/internal.h
-	$(CC) $(CFLAGS) -DMKCL_MIN -c package_MKCL.c -o $@
+package_MKCL_min.c: package_MKCL.c
+	cp package_MKCL.c package_MKCL_min.c
+
+package_MKCL_min.o: GNUmakefile package_MKCL_min.c packages/MKCL_package.h mkcl/mkcl.h mkcl/internal.h
+	$(CC) $(CFLAGS) -DMKCL_MIN -c package_MKCL_min.c -o $@
 
 package_MKCL.o: GNUmakefile package_MKCL.c packages/MKCL_package.h mkcl/mkcl.h mkcl/internal.h
 	$(CC) $(CFLAGS) -c package_MKCL.c -o $@
@@ -266,8 +283,11 @@ packages/CLOS_package.h: packages/CLOS_package_base.h packages/CLOS_package_core
 packages/CLOS_package_core.h: packages/CLOS_package_base.h packages/build_package_CLOS.c
 	cd packages; $(MAKE) CLOS_package_core.h
 
-package_CLOS_min.o: GNUmakefile package_CLOS.c packages/CLOS_package.h mkcl/mkcl.h mkcl/internal.h
-	$(CC) $(CFLAGS) -DMKCL_MIN -c package_CLOS.c -o $@
+package_CLOS_min.c: package_CLOS.c
+	cp package_CLOS.c package_CLOS_min.c
+
+package_CLOS_min.o: GNUmakefile package_CLOS_min.c packages/CLOS_package.h mkcl/mkcl.h mkcl/internal.h
+	$(CC) $(CFLAGS) -DMKCL_MIN -c package_CLOS_min.c -o $@
 
 package_CLOS.o: GNUmakefile package_CLOS.c packages/CLOS_package.h mkcl/mkcl.h mkcl/internal.h
 	$(CC) $(CFLAGS) -c package_CLOS.c -o $@
@@ -277,8 +297,11 @@ packages/GRAY_package.h: packages/GRAY_package_base.h packages/GRAY_package_core
 packages/GRAY_package_core.h: packages/GRAY_package_base.h packages/build_package_GRAY.c
 	cd packages; $(MAKE) GRAY_package_core.h
 
-package_GRAY_min.o: GNUmakefile package_GRAY.c packages/GRAY_package.h mkcl/mkcl.h mkcl/internal.h
-	$(CC) $(CFLAGS) -DMKCL_MIN -c package_GRAY.c -o $@
+package_GRAY_min.c: package_GRAY.c
+	cp package_GRAY.c package_GRAY_min.c
+
+package_GRAY_min.o: GNUmakefile package_GRAY_min.c packages/GRAY_package.h mkcl/mkcl.h mkcl/internal.h
+	$(CC) $(CFLAGS) -DMKCL_MIN -c package_GRAY_min.c -o $@
 
 package_GRAY.o: GNUmakefile package_GRAY.c packages/GRAY_package.h mkcl/mkcl.h mkcl/internal.h
 	$(CC) $(CFLAGS) -c package_GRAY.c -o $@
@@ -288,8 +311,11 @@ packages/KEYWORD_package.h: packages/KEYWORD_package_base.h packages/KEYWORD_pac
 packages/KEYWORD_package_core.h: packages/KEYWORD_package_base.h packages/build_package_KEYWORD.c
 	cd packages; $(MAKE) KEYWORD_package_core.h
 
-package_KEYWORD_min.o: GNUmakefile package_KEYWORD.c packages/KEYWORD_package.h mkcl/mkcl.h mkcl/internal.h
-	$(CC) $(CFLAGS) -DMKCL_MIN -c package_KEYWORD.c -o $@
+package_KEYWORD_min.c: package_KEYWORD.c
+	cp package_KEYWORD.c package_KEYWORD_min.c
+
+package_KEYWORD_min.o: GNUmakefile package_KEYWORD_min.c packages/KEYWORD_package.h mkcl/mkcl.h mkcl/internal.h
+	$(CC) $(CFLAGS) -DMKCL_MIN -c package_KEYWORD_min.c -o $@
 
 package_KEYWORD.o: GNUmakefile package_KEYWORD.c packages/KEYWORD_package.h mkcl/mkcl.h mkcl/internal.h
 	$(CC) $(CFLAGS) -c package_KEYWORD.c -o $@
@@ -299,8 +325,11 @@ packages/SI_package.h: packages/SI_package_base.h packages/SI_package_core.h
 packages/SI_package_core.h: packages/SI_package_base.h packages/build_package_SI.c
 	cd packages; $(MAKE) SI_package_core.h
 
-package_SI_min.o: GNUmakefile package_SI.c packages/SI_package.h mkcl/mkcl.h mkcl/internal.h
-	$(CC) $(CFLAGS) -DMKCL_MIN -c package_SI.c -o $@
+package_SI_min.c: package_SI.c
+	cp package_SI.c package_SI_min.c
+
+package_SI_min.o: GNUmakefile package_SI_min.c packages/SI_package.h mkcl/mkcl.h mkcl/internal.h
+	$(CC) $(CFLAGS) -DMKCL_MIN -c package_SI_min.c -o $@
 
 package_SI.o: GNUmakefile package_SI.c packages/SI_package.h mkcl/mkcl.h mkcl/internal.h
 	$(CC) $(CFLAGS) -c package_SI.c -o $@
@@ -310,15 +339,21 @@ packages/CL_package.h: packages/CL_package_base.h packages/CL_package_core.h
 packages/CL_package_core.h: packages/CL_package_base.h packages/build_package_CL.c
 	cd packages; $(MAKE) CL_package_core.h
 
-package_CL_min.o: GNUmakefile package_CL.c packages/CL_package.h mkcl/mkcl.h mkcl/internal.h
-	$(CC) $(CFLAGS) -DMKCL_MIN -c package_CL.c -o $@
+package_CL_min.c: package_CL.c
+	cp package_CL.c package_CL_min.c
+
+package_CL_min.o: GNUmakefile package_CL_min.c packages/CL_package.h mkcl/mkcl.h mkcl/internal.h
+	$(CC) $(CFLAGS) -DMKCL_MIN -c package_CL_min.c -o $@
 
 package_CL.o: GNUmakefile package_CL.c packages/CL_package.h mkcl/mkcl.h mkcl/internal.h
 	$(CC) $(CFLAGS) -c package_CL.c -o $@
 
 
-package_USER_min.o: GNUmakefile package_USER.c packages/USER_package.h mkcl/mkcl.h mkcl/internal.h
-	$(CC) $(CFLAGS) -DMKCL_MIN -c package_USER.c -o $@
+package_USER_min.c: package_USER.c
+	cp package_USER.c package_USER_min.c
+
+package_USER_min.o: GNUmakefile package_USER_min.c packages/USER_package.h mkcl/mkcl.h mkcl/internal.h
+	$(CC) $(CFLAGS) -DMKCL_MIN -c package_USER_min.c -o $@
 
 package_USER.o: GNUmakefile package_USER.c packages/USER_package.h mkcl/mkcl.h mkcl/internal.h
 	$(CC) $(CFLAGS) -c package_USER.c -o $@
@@ -332,7 +367,7 @@ Makefile: Makefile.in ../config.status
 #
 #
 
-makefile.depend: $(DCFILES) *.h arch/*.c cinit.c all_symbols.c all_packages.c mkcl/mkcl.h $(MKCL_HFILES)
+makefile.depend: $(DCFILES) *.h arch/*.c cinit.c all_symbols.c $(PACKAGES_OBJS:%.o=%.c) $(PACKAGES_OBJS:%.o=%_min.c) mkcl/mkcl.h $(MKCL_HFILES)
 	$(RM) makefile.depend
 	for i in $^; do \
 	  case $$i in \

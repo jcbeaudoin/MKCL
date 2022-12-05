@@ -410,10 +410,10 @@ libmkcc1.a: ../contrib/tinycc/libmkcc1.a
 mkclmin.@LIBEXT@: c/GNUmakefile c/mkcl/mkcl.h $(MKCL_HFILES) c/*.c c/arch/*.c c/*.h
 	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile ../mkclmin.@LIBEXT@
 
-mkclmintop.@LIBEXT@: c/GNUmakefile c/all_symbols_min.o
+mkclmintop.@LIBEXT@: c/GNUmakefile c/all_symbols_min.o c/all_packages.c c/package_*.c c/packages/*.c c/packages/*.h
 	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile ../mkclmintop.@LIBEXT@
 
-mkcltop.@LIBEXT@: c/GNUmakefile c/all_symbols.o
+mkcltop.@LIBEXT@: c/GNUmakefile c/all_symbols.o c/all_packages.c c/package_*.c c/packages/*.c c/packages/*.h
 	cd c; $(MAKE) GNUmakefile; $(MAKE) -f GNUmakefile ../mkcltop.@LIBEXT@
 
 gc/.libs/@LIBPREFIX@gc.@LIBEXT@: gc/*.c gc/include/*.h gc/include/*/*.h
