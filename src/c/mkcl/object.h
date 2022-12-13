@@ -70,60 +70,64 @@ extern "C" {
     mkcl_t_fixnum = 3,	   /* immediate fixnum */     /* number */
     /* The most specific numeric types come first. Assumed by
        some routines, like mk_cl_expt */
-    mkcl_t_bignum             = ( 1 << 2 ) | mkcl_t_object,   /* number */ /* bin0, 0 to 7 */
-    mkcl_t_ratio              = ( 2 << 2 ) | mkcl_t_object,   /* number */
-    mkcl_t_singlefloat        = ( 3 << 2 ) | mkcl_t_object,   /* number */
-    mkcl_t_doublefloat        = ( 4 << 2 ) | mkcl_t_object,   /* number */
-    mkcl_t_longfloat          = ( 5 << 2 ) | mkcl_t_object,   /* number */
-    mkcl_t_complex            = ( 6 << 2 ) | mkcl_t_object,   /* number */
-    mkcl_t_reserved_bin0_7    = ( 7 << 2 ) | mkcl_t_object,   /* number */
-    mkcl_t_symbol             = ( 8 << 2 ) | mkcl_t_object,   /* bin1, 8 to 15 */
-    mkcl_t_cons               = ( 9 << 2 ) | mkcl_t_object,
-    mkcl_t_package            = ( 10 << 2 ) | mkcl_t_object,
-    mkcl_t_array              = ( 11 << 2 ) | mkcl_t_object,
-    mkcl_t_vector             = ( 12 << 2 ) | mkcl_t_object,  /* vectorial */
-    mkcl_t_string             = ( 13 << 2 ) | mkcl_t_object,  /* vectorial */
-    mkcl_t_base_string        = ( 14 << 2 ) | mkcl_t_object,  /* vectorial */
-    mkcl_t_bitvector          = ( 15 << 2 ) | mkcl_t_object,  /* vectorial */
-    mkcl_t_cfun               = ( 16 << 2 ) | mkcl_t_object,  /* functional */ /* bin2, 16 to 23 */
-    mkcl_t_cclosure           = ( 17 << 2 ) | mkcl_t_object,  /* functional */
-    mkcl_t_bytecode           = ( 18 << 2 ) | mkcl_t_object,  /* functional */
-    mkcl_t_bclosure           = ( 19 << 2 ) | mkcl_t_object,  /* functional */
-    mkcl_t_instance           = ( 20 << 2 ) | mkcl_t_object,  /* functional */
-    mkcl_t_old_cfunfixed      = ( 21 << 2 ) | mkcl_t_object,  /* functional */ /* deprecated */
-    mkcl_t_reserved_bin2_6    = ( 22 << 2 ) | mkcl_t_object,  /* functional */
-    mkcl_t_reserved_bin2_7    = ( 23 << 2 ) | mkcl_t_object,  /* functional */
-    mkcl_t_hashtable          = ( 24 << 2 ) | mkcl_t_object,  /* bin3, 24 to 31 */
-    mkcl_t_stream             = ( 25 << 2 ) | mkcl_t_object,
-    mkcl_t_random             = ( 26 << 2 ) | mkcl_t_object,
-    mkcl_t_readtable          = ( 27 << 2 ) | mkcl_t_object,
-    mkcl_t_pathname           = ( 28 << 2 ) | mkcl_t_object,
-    mkcl_t_structure          = ( 29 << 2 ) | mkcl_t_object,
-    mkcl_t_thread             = ( 30 << 2 ) | mkcl_t_object,
-    mkcl_t_lock               = ( 31 << 2 ) | mkcl_t_object,
-    mkcl_t_rwlock             = ( 32 << 2 ) | mkcl_t_object,  /* bin4, 32 to 39 */
-    mkcl_t_semaphore          = ( 33 << 2 ) | mkcl_t_object,
-    mkcl_t_condition_variable = ( 34 << 2 ) | mkcl_t_object,
-    mkcl_t_codeblock          = ( 35 << 2 ) | mkcl_t_object,
-    mkcl_t_foreign            = ( 36 << 2 ) | mkcl_t_object,
-    mkcl_t_temp_stack_frame   = ( 37 << 2 ) | mkcl_t_object,
-    mkcl_t_cdisplay           = ( 38 << 2 ) | mkcl_t_object,
-    mkcl_t_clevel_block       = ( 39 << 2 ) | mkcl_t_object,
-    mkcl_t_cmp_dbg_lex_level  = ( 40 << 2 ) | mkcl_t_object,  /* bin5, 40 to 47 */
-    mkcl_t_pin_bag            = ( 41 << 2 ) | mkcl_t_object,  /* not really used yet. JCB */
-    mkcl_t_pin                = ( 42 << 2 ) | mkcl_t_object,  /* not really used yet. JCB */
-#if 1
-    mkcl_t_UTF_8              = ( 43 << 2 ) | mkcl_t_object,
-    mkcl_t_UTF_16             = ( 44 << 2 ) | mkcl_t_object,
-    mkcl_t_process            = ( 45 << 2 ) | mkcl_t_object,
+    mkcl_t_bignum              = ( 1 << 2 ) | mkcl_t_object,   /* number */ /* bin0, 0 to 7 */
+    mkcl_t_ratio               = ( 2 << 2 ) | mkcl_t_object,   /* number */
+    mkcl_t_singlefloat         = ( 3 << 2 ) | mkcl_t_object,   /* number */
+    mkcl_t_doublefloat         = ( 4 << 2 ) | mkcl_t_object,   /* number */
+    mkcl_t_longfloat           = ( 5 << 2 ) | mkcl_t_object,   /* number */
+    mkcl_t_complex             = ( 6 << 2 ) | mkcl_t_object,   /* number */
+    mkcl_t_reserved_bin0_7     = ( 7 << 2 ) | mkcl_t_object,   /* number */
+    mkcl_t_symbol              = ( 8 << 2 ) | mkcl_t_object,   /* bin1, 8 to 15 */
+    mkcl_t_cons                = ( 9 << 2 ) | mkcl_t_object,
+    mkcl_t_package             = ( 10 << 2 ) | mkcl_t_object,
+    mkcl_t_array               = ( 11 << 2 ) | mkcl_t_object,
+    mkcl_t_vector              = ( 12 << 2 ) | mkcl_t_object,  /* vectorial */
+    mkcl_t_string              = ( 13 << 2 ) | mkcl_t_object,  /* vectorial */
+    mkcl_t_base_string         = ( 14 << 2 ) | mkcl_t_object,  /* vectorial */
+    mkcl_t_bitvector           = ( 15 << 2 ) | mkcl_t_object,  /* vectorial */
+    mkcl_t_cfun                = ( 16 << 2 ) | mkcl_t_object,  /* functional */ /* bin2, 16 to 23 */
+    mkcl_t_cclosure            = ( 17 << 2 ) | mkcl_t_object,  /* functional */
+    mkcl_t_bytecode            = ( 18 << 2 ) | mkcl_t_object,  /* functional */
+    mkcl_t_bclosure            = ( 19 << 2 ) | mkcl_t_object,  /* functional */
+    mkcl_t_instance            = ( 20 << 2 ) | mkcl_t_object,  /* functional */
+    mkcl_t_old_cfunfixed       = ( 21 << 2 ) | mkcl_t_object,  /* functional */ /* deprecated */
+    mkcl_t_parsed_code         = ( 22 << 2 ) | mkcl_t_object,  /* functional */
+    mkcl_t_parsed_code_closure = ( 23 << 2 ) | mkcl_t_object,  /* functional */
+    mkcl_t_hashtable           = ( 24 << 2 ) | mkcl_t_object,  /* bin3, 24 to 31 */
+    mkcl_t_stream              = ( 25 << 2 ) | mkcl_t_object,
+    mkcl_t_random              = ( 26 << 2 ) | mkcl_t_object,
+    mkcl_t_readtable           = ( 27 << 2 ) | mkcl_t_object,
+    mkcl_t_pathname            = ( 28 << 2 ) | mkcl_t_object,
+    mkcl_t_structure           = ( 29 << 2 ) | mkcl_t_object,
+    mkcl_t_thread              = ( 30 << 2 ) | mkcl_t_object,
+    mkcl_t_lock                = ( 31 << 2 ) | mkcl_t_object,
+    mkcl_t_rwlock              = ( 32 << 2 ) | mkcl_t_object,  /* bin4, 32 to 39 */
+    mkcl_t_semaphore           = ( 33 << 2 ) | mkcl_t_object,
+    mkcl_t_condition_variable  = ( 34 << 2 ) | mkcl_t_object,
+    mkcl_t_codeblock           = ( 35 << 2 ) | mkcl_t_object,
+    mkcl_t_foreign             = ( 36 << 2 ) | mkcl_t_object,
+    mkcl_t_temp_stack_frame    = ( 37 << 2 ) | mkcl_t_object,
+    mkcl_t_cdisplay            = ( 38 << 2 ) | mkcl_t_object,
+    mkcl_t_clevel_block        = ( 39 << 2 ) | mkcl_t_object,
+    mkcl_t_cmp_dbg_lex_level   = ( 40 << 2 ) | mkcl_t_object,  /* bin5, 40 to 47 */
+    mkcl_t_pin_bag             = ( 41 << 2 ) | mkcl_t_object,  /* not really used yet. JCB */
+    mkcl_t_pin                 = ( 42 << 2 ) | mkcl_t_object,  /* not really used yet. JCB */
+    mkcl_t_UTF_8               = ( 43 << 2 ) | mkcl_t_object,
+    mkcl_t_UTF_16              = ( 44 << 2 ) | mkcl_t_object,
+    mkcl_t_process             = ( 45 << 2 ) | mkcl_t_object,
+#if 0
+    mkcl_t_reserved_bin5_6     = ( 46 << 2 ) | mkcl_t_object,
+    mkcl_t_reserved_bin5_7     = ( 47 << 2 ) | mkcl_t_object,
 #else
-    mkcl_t_reserved_bin5_3    = ( 43 << 2 ) | mkcl_t_object,
-    mkcl_t_reserved_bin5_4    = ( 44 << 2 ) | mkcl_t_object,
-    mkcl_t_reserved_bin5_5    = ( 45 << 2 ) | mkcl_t_object,
+    mkcl_t_proto_closure       = ( 46 << 2 ) | mkcl_t_object,
+    mkcl_t_lexical_environment = ( 47 << 2 ) | mkcl_t_object,
 #endif
-    mkcl_t_reserved_bin5_6    = ( 46 << 2 ) | mkcl_t_object,
-    mkcl_t_reserved_bin5_7    = ( 47 << 2 ) | mkcl_t_object,
     /* bin6, 48 to 55 */
+    mkcl_t_variable_info       = ( 48 << 2 ) | mkcl_t_object,
+    mkcl_t_function_info       = ( 49 << 2 ) | mkcl_t_object,
+    mkcl_t_block_info          = ( 50 << 2 ) | mkcl_t_object,
+    mkcl_t_go_tag_info         = ( 51 << 2 ) | mkcl_t_object,
+    mkcl_t_special_operator    = ( 52 << 2 ) | mkcl_t_object,
     /* bin7, 56 to 63 */
     /* Marks the end of the range of valid type tags. */
     mkcl_t_end                = ( 63 << 2 ) | mkcl_t_object
@@ -280,7 +284,7 @@ extern "C" {
     mkcl_stp_constant = 1,
     mkcl_stp_special = 2,
     mkcl_stp_macro = 4,
-    mkcl_stp_special_form = 8
+    mkcl_stp_special_operator = 8
   };
 
 #define mkcl_check_symbol(e, x) if (!MKCL_SYMBOLP(x)) mkcl_FEtype_error_symbol(e, x);
@@ -809,6 +813,31 @@ extern "C" {
     mkcl_object owner;
   };
 
+  struct mkcl_parsed_code {
+    MKCL_HEADER;
+    struct mkcl_function_entry_points f;
+    mkcl_object name;		/*  function name  */
+    mkcl_object body_code;
+    mkcl_object requireds;
+    mkcl_object optionals;
+    mkcl_object rest;
+    mkcl_object keyargs;
+    mkcl_object owner;
+  };
+
+  struct mkcl_parsed_code_closure {
+    MKCL_HEADER;
+    struct mkcl_function_entry_points f;
+    mkcl_object name;		/*  function name  */
+    mkcl_object body_code;
+    mkcl_object requireds;
+    mkcl_object optionals;
+    mkcl_object rest;
+    mkcl_object keyargs;
+    mkcl_object closure_env;           /*  closure environment display */
+    mkcl_object owner;
+  };
+
   /* Beware that the layout of struct mkcl_cfun is related to the one
      of struct mkcl_instance when it is used as generic function object.
      Please read note just above definition of struct mkcl_instance.
@@ -1134,6 +1163,71 @@ extern "C" {
     void * const * var_locations;
   };
 
+  struct mkcl_lexical_environment
+  {
+    MKCL_HEADER;
+    mkcl_index level;
+    mkcl_index innermost_lambda_level;
+    struct mkcl_lexical_environment * up;
+    mkcl_object variables;
+    mkcl_object var_declarations;
+    mkcl_object functions;
+    mkcl_object fun_declarations;
+    mkcl_object blocks;
+    mkcl_object go_tags;
+    mkcl_object quality_declarations;
+  };
+
+  struct mkcl_variable_information
+  {
+    MKCL_HEADER;
+    mkcl_object name;
+    mkcl_object * location; /* premature optimization??? */
+    mkcl_index level;
+    mkcl_index index;
+    mkcl_object type;
+  };
+
+  struct mkcl_function_information
+  {
+    MKCL_HEADER;
+    mkcl_object name;
+    mkcl_index required_count;
+    mkcl_index optional_count;
+    mkcl_index keyword_arguments;
+    bool allow_other_keys;
+    mkcl_object rest_argument;
+    mkcl_object ftype;
+    mkcl_object funobj;
+  };
+
+  struct mkcl_block_information
+  {
+    MKCL_HEADER;
+    mkcl_object name;
+  };
+
+  struct mkcl_go_tag_information
+  {
+    MKCL_HEADER;
+    mkcl_object identifier;
+  };
+
+  struct mkcl_proto_closure
+  {
+    MKCL_HEADER1(dynamic_extent);
+    mkcl_object outer;
+    mkcl_object display;
+  };
+
+  struct mkcl_special_operator
+  {
+    MKCL_HEADER;
+    mkcl_object name;
+    mkcl_object evaluator;
+    mkcl_object parser;
+  };
+
 
   /*
     Definition of lispunion.
@@ -1183,6 +1277,20 @@ extern "C" {
     struct mkcl_UTF_8       UTF_8;
     struct mkcl_UTF_16      UTF_16;
     struct mkcl_process     process;
+
+    struct mkcl_parsed_code pfun;
+    struct mkcl_parsed_code_closure pclosure;
+
+    struct mkcl_proto_closure proto;
+    struct mkcl_lexical_environment lex_env;
+
+    struct mkcl_variable_information var_info;
+    struct mkcl_function_information fun_info;
+    struct mkcl_block_information block_info;
+    struct mkcl_go_tag_information tag_info;
+
+    struct mkcl_special_operator spec_op;
+
   };
 
   /*
@@ -1196,7 +1304,11 @@ extern "C" {
   typedef struct {
     va_list args;
     mkcl_object *sp;
+#if 0
     int narg;
+#else
+    mkcl_narg narg;
+#endif
   } mkcl_va_list[1]; /* What is that subscript doing here!?! JCB
 			It turns mkcl_va_list into an array type of 1 element.
 			Among other things this allows some fine control during

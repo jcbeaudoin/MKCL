@@ -76,8 +76,8 @@ mkcl_object mk_si_fset(MKCL, mkcl_narg narg, mkcl_object fname, mkcl_object def,
     }
     mflag = !mkcl_Null(macro);
     type = mkcl_symbol_type(env, sym);
-    if ((type & mkcl_stp_special_form) && !mflag) {
-      mkcl_FEerror(env, "Given that ~S is a special form, ~S cannot be defined as a function.",
+    if ((type & mkcl_stp_special_operator) && !mflag) {
+      mkcl_FEerror(env, "Given that ~S is a special operator, ~S cannot be defined as a function.",
                    2, sym, fname);
     }
     if (MKCL_SYMBOLP(fname)) {
@@ -128,9 +128,12 @@ mk_cl_fmakunbound(MKCL, mkcl_object fname)
 			 "Ignore lock and proceed", 2, fname, pack);
   }
   if (MKCL_SYMBOLP(fname)) {
-    if (mkcl_Null(sym)) sym = ((mkcl_object) &mk_cl_Cnil_symbol);
-    mkcl_symbol_type_set(env, sym, mkcl_symbol_type(env, sym) & ~mkcl_stp_macro);
-    MKCL_SYM_FUN(sym) = mk_cl_Cnil;
+    if (!(mkcl_symbol_type(env, sym) & mkcl_stp_special_operator)) /* don't fmakunbound special_ops! */
+      {
+        if (mkcl_Null(sym)) sym = ((mkcl_object) &mk_cl_Cnil_symbol);
+        mkcl_symbol_type_set(env, sym, mkcl_symbol_type(env, sym) & ~mkcl_stp_macro);
+        MKCL_SYM_FUN(sym) = mk_cl_Cnil;
+      }
   } else {
     mk_si_rem_sysprop(env, sym, (mkcl_object) &MK_SI_setf_symbol);
     mk_si_rem_sysprop(env, sym, (mkcl_object) &MK_SI_setf_lambda);

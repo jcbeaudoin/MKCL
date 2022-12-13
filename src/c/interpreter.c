@@ -564,7 +564,7 @@ mkcl_interpret(MKCL, mkcl_object frame, mkcl_object lex_env, mkcl_object bytecod
 	}
 	break;
       case mkcl_t_symbol:
-	if (reg0->symbol.stype & mkcl_stp_macro)
+	if (reg0->symbol.stype & (mkcl_stp_macro | mkcl_stp_special_operator))
 	  mkcl_FEundefined_function(env, x);
 	reg0 = MKCL_SYM_FUN(reg0);
 	if (mkcl_Null(reg0))

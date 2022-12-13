@@ -325,7 +325,7 @@ void init_mkcl_package(void)
 
       if (sym)
 	{
-	  sym->stype |= mkcl_stp_special_form;
+	  sym->stype |= mkcl_stp_special_operator;
 	  sym->gfdef = (mkcl_object) &mkcl_mkcl_declare_special_operators[i].function_object_denotator;
 	}
       else
@@ -392,7 +392,7 @@ const char * symbol_type(struct mkcl_symbol * sym)
     case mkcl_stp_constant: return "mkcl_stp_constant";
     case mkcl_stp_special: return "mkcl_stp_special";
     case mkcl_stp_macro: return "mkcl_stp_macro";
-    case mkcl_stp_special_form: return "mkcl_stp_special_form";
+    case mkcl_stp_special_operator: return "mkcl_stp_special_operator";
     default: return "";
     }
 }

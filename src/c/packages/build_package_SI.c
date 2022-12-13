@@ -290,6 +290,31 @@ struct mkcl_function_declaration mkcl_si_declare_lisp_functions[] = {
   {SYMBOL_NAME("ANSI-OUTPUT-STREAM-P"), FUN_DENOT("&mk_si_ansi_output_stream_p_cfunobj")},
   {SYMBOL_NAME("ANSI-OPEN-STREAM-P"), FUN_DENOT("&mk_si_ansi_open_stream_p_cfunobj")},
   {SYMBOL_NAME("ANSI-STREAM-ELEMENT-TYPE"), FUN_DENOT("&mk_si_ansi_stream_element_type_cfunobj")},
+  {SYMBOL_NAME("PARSED-BLOCK"), FUN_DENOT("&mk_si_parsed_block_cfunobj")},
+  {SYMBOL_NAME("PARSED-CATCH"), FUN_DENOT("&mk_si_parsed_catch_cfunobj")},
+  {SYMBOL_NAME("PARSED-EVAL-WHEN"), FUN_DENOT("&mk_si_parsed_eval_when_cfunobj")},
+  {SYMBOL_NAME("PARSED-FLET"), FUN_DENOT("&mk_si_parsed_flet_cfunobj")},
+  {SYMBOL_NAME("PARSED-FUNCTION"), FUN_DENOT("&mk_si_parsed_function_cfunobj")},
+  {SYMBOL_NAME("PARSED-GO"), FUN_DENOT("&mk_si_parsed_go_cfunobj")},
+  {SYMBOL_NAME("PARSED-IF"), FUN_DENOT("&mk_si_parsed_if_cfunobj")},
+  {SYMBOL_NAME("PARSED-LABELS"), FUN_DENOT("&mk_si_parsed_labels_cfunobj")},
+  {SYMBOL_NAME("PARSED-LET"), FUN_DENOT("&mk_si_parsed_let_cfunobj")},
+  {SYMBOL_NAME("PARSED-LET*"), FUN_DENOT("&mk_si_parsed_letX_cfunobj")},
+  {SYMBOL_NAME("PARSED-LOAD-TIME-VALUE"), FUN_DENOT("&mk_si_parsed_load_time_value_cfunobj")},
+  {SYMBOL_NAME("PARSED-LOCALLY"), FUN_DENOT("&mk_si_parsed_locally_cfunobj")},
+  {SYMBOL_NAME("PARSED-MACROLET"), FUN_DENOT("&mk_si_parsed_macrolet_cfunobj")},
+  {SYMBOL_NAME("PARSED-MULTIPLE-VALUE-CALL"), FUN_DENOT("&mk_si_parsed_multiple_value_call_cfunobj")},
+  {SYMBOL_NAME("PARSED-MULTIPLE-VALUE-PROG1"), FUN_DENOT("&mk_si_parsed_multiple_value_prog1_cfunobj")},
+  {SYMBOL_NAME("PARSED-PROGN"), FUN_DENOT("&mk_si_parsed_progn_cfunobj")},
+  {SYMBOL_NAME("PARSED-PROGV"), FUN_DENOT("&mk_si_parsed_progv_cfunobj")},
+  {SYMBOL_NAME("PARSED-QUOTE"), FUN_DENOT("&mk_si_parsed_quote_cfunobj")},
+  {SYMBOL_NAME("PARSED-RETURN-FROM"), FUN_DENOT("&mk_si_parsed_return_from_cfunobj")},
+  {SYMBOL_NAME("PARSED-SETQ"), FUN_DENOT("&mk_si_parsed_setq_cfunobj")},
+  {SYMBOL_NAME("PARSED-SYMBOL-MACROLET"), FUN_DENOT("&mk_si_parsed_symbol_macrolet_cfunobj")},
+  {SYMBOL_NAME("PARSED-TAGBODY"), FUN_DENOT("&mk_si_parsed_tagbody_cfunobj")},
+  {SYMBOL_NAME("PARSED-THE"), FUN_DENOT("&mk_si_parsed_the_cfunobj")},
+  {SYMBOL_NAME("PARSED-THROW"), FUN_DENOT("&mk_si_parsed_throw_cfunobj")},
+  {SYMBOL_NAME("PARSED-UNWIND-PROTECT"), FUN_DENOT("&mk_si_parsed_unwind_protect_cfunobj")},
 };
 
 struct mkcl_function_declaration mkcl_si_declare_macros[] = {
@@ -887,6 +912,56 @@ static struct exposed_symbol const exposed_symbols[] = {
   {SYMBOL_NAME("+READING-FASL-FILE+"), "MK_SI_CONSTANT_reading_fasl_file"},
   {SYMBOL_NAME("+SHUTDOWN-GATE+"), "MK_SI_CONSTANT_shutdown_gate"},
   {SYMBOL_NAME("UNBOUND"), "MK_SI_CONSTANT_unbound"},
+  {SYMBOL_NAME("PARSE-BLOCK"), "MK_SI_parse_block"},
+  {SYMBOL_NAME("PARSE-CATCH"), "MK_SI_parse_catch"},
+  {SYMBOL_NAME("PARSE-EVAL-WHEN"), "MK_SI_parse_eval_when"},
+  {SYMBOL_NAME("PARSE-FLET"), "MK_SI_parse_flet"},
+  {SYMBOL_NAME("PARSE-FUNCTION"), "MK_SI_parse_function"},
+  {SYMBOL_NAME("PARSE-GO"), "MK_SI_parse_go"},
+  {SYMBOL_NAME("PARSE-IF"), "MK_SI_parse_if"},
+  {SYMBOL_NAME("PARSE-LABELS"), "MK_SI_parse_labels"},
+  {SYMBOL_NAME("PARSE-LET"), "MK_SI_parse_let"},
+  {SYMBOL_NAME("PARSE-LET*"), "MK_SI_parse_letX"},
+  {SYMBOL_NAME("PARSE-LOAD-TIME-VALUE"), "MK_SI_parse_load_time_value"},
+  {SYMBOL_NAME("PARSE-LOCALLY"), "MK_SI_parse_locally"},
+  {SYMBOL_NAME("PARSE-MACROLET"), "MK_SI_parse_macrolet"},
+  {SYMBOL_NAME("PARSE-MULTIPLE-VALUE-CALL"), "MK_SI_parse_multiple_value_call"},
+  {SYMBOL_NAME("PARSE-MULTIPLE-VALUE-PROG1"), "MK_SI_parse_multiple_value_prog1"},
+  {SYMBOL_NAME("PARSE-PROGN"), "MK_SI_parse_progn"},
+  {SYMBOL_NAME("PARSE-PROGV"), "MK_SI_parse_progv"},
+  {SYMBOL_NAME("PARSE-QUOTE"), "MK_SI_parse_quote"},
+  {SYMBOL_NAME("PARSE-RETURN-FROM"), "MK_SI_parse_return_from"},
+  {SYMBOL_NAME("PARSE-SETQ"), "MK_SI_parse_setq"},
+  {SYMBOL_NAME("PARSE-SYMBOL-MACROLET"), "MK_SI_parse_symbol_macrolet"},
+  {SYMBOL_NAME("PARSE-TAGBODY"), "MK_SI_parse_tagbody"},
+  {SYMBOL_NAME("PARSE-THE"), "MK_SI_parse_the"},
+  {SYMBOL_NAME("PARSE-THROW"), "MK_SI_parse_throw"},
+  {SYMBOL_NAME("PARSE-UNWIND-PROTECT"), "MK_SI_parse_unwind_protect"},
+  {SYMBOL_NAME("PARSED-BLOCK"), "MK_SI_parsed_block"},
+  {SYMBOL_NAME("PARSED-CATCH"), "MK_SI_parsed_catch"},
+  {SYMBOL_NAME("PARSED-EVAL-WHEN"), "MK_SI_parsed_eval_when"},
+  {SYMBOL_NAME("PARSED-FLET"), "MK_SI_parsed_flet"},
+  {SYMBOL_NAME("PARSED-FUNCTION"), "MK_SI_parsed_function"},
+  {SYMBOL_NAME("PARSED-GO"), "MK_SI_parsed_go"},
+  {SYMBOL_NAME("PARSED-IF"), "MK_SI_parsed_if"},
+  {SYMBOL_NAME("PARSED-LABELS"), "MK_SI_parsed_labels"},
+  {SYMBOL_NAME("PARSED-LET"), "MK_SI_parsed_let"},
+  {SYMBOL_NAME("PARSED-LET*"), "MK_SI_parsed_letX"},
+  {SYMBOL_NAME("PARSED-LOAD-TIME-VALUE"), "MK_SI_parsed_load_time_value"},
+  {SYMBOL_NAME("PARSED-LOCALLY"), "MK_SI_parsed_locally"},
+  {SYMBOL_NAME("PARSED-MACROLET"), "MK_SI_parsed_macrolet"},
+  {SYMBOL_NAME("PARSED-MULTIPLE-VALUE-CALL"), "MK_SI_parsed_multiple_value_call"},
+  {SYMBOL_NAME("PARSED-MULTIPLE-VALUE-PROG1"), "MK_SI_parsed_multiple_value_prog1"},
+  {SYMBOL_NAME("PARSED-PROGN"), "MK_SI_parsed_progn"},
+  {SYMBOL_NAME("PARSED-PROGV"), "MK_SI_parsed_progv"},
+  {SYMBOL_NAME("PARSED-QUOTE"), "MK_SI_parsed_quote"},
+  {SYMBOL_NAME("PARSED-RETURN-FROM"), "MK_SI_parsed_return_from"},
+  {SYMBOL_NAME("PARSED-SETQ"), "MK_SI_parsed_setq"},
+  {SYMBOL_NAME("PARSED-SYMBOL-MACROLET"), "MK_SI_parsed_symbol_macrolet"},
+  {SYMBOL_NAME("PARSED-TAGBODY"), "MK_SI_parsed_tagbody"},
+  {SYMBOL_NAME("PARSED-THE"), "MK_SI_parsed_the"},
+  {SYMBOL_NAME("PARSED-THROW"), "MK_SI_parsed_throw"},
+  {SYMBOL_NAME("PARSED-UNWIND-PROTECT"), "MK_SI_parsed_unwind_protect"},
 };
 
 
@@ -1020,7 +1095,7 @@ void init_si_package(void)
 
       if (sym)
 	{
-	  sym->stype |= mkcl_stp_special_form;
+	  sym->stype |= mkcl_stp_special_operator;
 	  sym->gfdef = (mkcl_object) &mkcl_si_declare_special_operators[i].function_object_denotator;
 	}
       else
@@ -1087,7 +1162,7 @@ const char * symbol_type(struct mkcl_symbol * sym)
     case mkcl_stp_constant: return "mkcl_stp_constant";
     case mkcl_stp_special: return "mkcl_stp_special";
     case mkcl_stp_macro: return "mkcl_stp_macro";
-    case mkcl_stp_special_form: return "mkcl_stp_special_form";
+    case mkcl_stp_special_operator: return "mkcl_stp_special_operator";
     default: return "";
     }
 }

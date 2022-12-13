@@ -50,7 +50,7 @@ mkcl_apply_from_temp_stack_frame(MKCL, mkcl_object frame, mkcl_object x)
     }
     goto AGAIN;
   case mkcl_t_symbol:
-    if (fun->symbol.stype & mkcl_stp_macro)
+    if (fun->symbol.stype & (mkcl_stp_macro | mkcl_stp_special_operator))
       mkcl_FEundefined_function(env, x);
     fun = MKCL_SYM_FUN(fun);
     goto AGAIN;

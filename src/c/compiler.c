@@ -2180,7 +2180,7 @@ compile_form(MKCL, mkcl_object stmt, int flags)
       goto BEGIN;
     }
   }
-  if (mkcl_symbol_type(env, function) & mkcl_stp_special_form)
+  if (mkcl_symbol_type(env, function) & mkcl_stp_special_operator)
     mkcl_FEprogram_error(env, "BYTECOMPILE-FORM: Found no macroexpander for special form ~S.", 1, function);
  ORDINARY_CALL:
   /*
