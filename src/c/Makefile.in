@@ -74,6 +74,7 @@ PACKAGES_OBJS = all_packages.o package_FFI.o package_MT.o package_MKCL.o package
 
 OBJS	= symbol.o package.o list.o \
 	apply.o eval.o interpreter.o compiler.o disassembler.o \
+	special_ops.o parser.o eval_parsed_forms.o \
 	instance.o gfun.o reference.o character.o \
 	file.o read.o print.o error.o string.o cfun.o \
 	typespec.o assignment.o \
@@ -182,7 +183,7 @@ packages/expose_symbols_in_CL.h: packages/CL_package_base.h packages/build_packa
 
 clean:
 	$(RM) $(OBJS) $(OBJS:%.o=%.s)
-	$(RM) all_symbols_min.o all_symbols_min.c all_symbols.o
+	$(RM) main.o all_symbols_min.o all_symbols_min.c all_symbols.o
 	$(RM) cinit.o core core.* a.out
 	$(RM) $(PACKAGES_OBJS) $(PACKAGES_OBJS:%.o=%_min.o) $(PACKAGES_OBJS:%.o=%_min.c)
 	$(RM) mkcl/gc/*.h $(EXPOSE_SYMBOLS_H_IN_MKCL)

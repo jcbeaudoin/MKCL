@@ -926,7 +926,7 @@ extern "C" {
 	    env->function = fun;
 	    return fun;
 	  } else if (mkcl_unlikely( obj_type == mkcl_t_symbol )) {
-	    if (fun->symbol.stype & mkcl_stp_macro)
+	    if (fun->symbol.stype & (mkcl_stp_macro | mkcl_stp_special_operator))
 	      mkcl_FEundefined_function(env, fun);
 	    fun = MKCL_SYM_FUN(fun);
 	  } else

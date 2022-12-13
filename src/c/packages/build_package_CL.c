@@ -586,9 +586,29 @@ struct mkcl_function_declaration mkcl_cl_declare_lisp_functions[] = {
 };
 
 struct mkcl_function_declaration mkcl_cl_declare_macros[] = {
+  {SYMBOL_NAME("LAMBDA"), FUN_DENOT("mk_cl_Cnil")},
+  {SYMBOL_NAME("CASE"), FUN_DENOT("mk_cl_Cnil")},
+  {SYMBOL_NAME("COND"), FUN_DENOT("mk_cl_Cnil")},
+  {SYMBOL_NAME("DO"), FUN_DENOT("mk_cl_Cnil")},
+  {SYMBOL_NAME("DO*"), FUN_DENOT("mk_cl_Cnil")},
+  {SYMBOL_NAME("DOLIST"), FUN_DENOT("mk_cl_Cnil")},
+  {SYMBOL_NAME("DOTIMES"), FUN_DENOT("mk_cl_Cnil")},
+  {SYMBOL_NAME("MULTIPLE-VALUE-BIND"), FUN_DENOT("mk_cl_Cnil")},
+  {SYMBOL_NAME("MULTIPLE-VALUE-LIST"), FUN_DENOT("mk_cl_Cnil")},
+  {SYMBOL_NAME("MULTIPLE-VALUE-SETQ"), FUN_DENOT("mk_cl_Cnil")},
+  {SYMBOL_NAME("NTH-VALUE"), FUN_DENOT("mk_cl_Cnil")},
+  {SYMBOL_NAME("PROG"), FUN_DENOT("mk_cl_Cnil")},
+  {SYMBOL_NAME("PROG*"), FUN_DENOT("mk_cl_Cnil")},
+  {SYMBOL_NAME("PROG1"), FUN_DENOT("mk_cl_Cnil")},
+  {SYMBOL_NAME("PROG2"), FUN_DENOT("mk_cl_Cnil")},
+  {SYMBOL_NAME("PSETQ"), FUN_DENOT("mk_cl_Cnil")},
+  {SYMBOL_NAME("RETURN"), FUN_DENOT("mk_cl_Cnil")},
+  {SYMBOL_NAME("UNLESS"), FUN_DENOT("mk_cl_Cnil")},
+  {SYMBOL_NAME("WHEN"), FUN_DENOT("mk_cl_Cnil")},
 };
 
 struct mkcl_function_declaration mkcl_cl_declare_special_operators[] = {
+#if 0
   {SYMBOL_NAME("BLOCK"), FUN_DENOT("mk_cl_Cnil")},
   {SYMBOL_NAME("CATCH"), FUN_DENOT("mk_cl_Cnil")},
   {SYMBOL_NAME("EVAL-WHEN"), FUN_DENOT("mk_cl_Cnil")},
@@ -614,6 +634,33 @@ struct mkcl_function_declaration mkcl_cl_declare_special_operators[] = {
   {SYMBOL_NAME("THE"), FUN_DENOT("mk_cl_Cnil")},
   {SYMBOL_NAME("THROW"), FUN_DENOT("mk_cl_Cnil")},
   {SYMBOL_NAME("UNWIND-PROTECT"), FUN_DENOT("mk_cl_Cnil")},
+#else
+  {SYMBOL_NAME("BLOCK"), FUN_DENOT("&mkcl_special_op_block")},
+  {SYMBOL_NAME("CATCH"), FUN_DENOT("&mkcl_special_op_catch")},
+  {SYMBOL_NAME("EVAL-WHEN"), FUN_DENOT("&mkcl_special_op_eval_when")},
+  {SYMBOL_NAME("FLET"), FUN_DENOT("&mkcl_special_op_flet")},
+  {SYMBOL_NAME("FUNCTION"), FUN_DENOT("&mkcl_special_op_function")},
+  {SYMBOL_NAME("GO"), FUN_DENOT("&mkcl_special_op_go")},
+  {SYMBOL_NAME("IF"), FUN_DENOT("&mkcl_special_op_if")},
+  {SYMBOL_NAME("LABELS"), FUN_DENOT("&mkcl_special_op_labels")},
+  {SYMBOL_NAME("LET"), FUN_DENOT("&mkcl_special_op_let")},
+  {SYMBOL_NAME("LET*"), FUN_DENOT("&mkcl_special_op_letX")},
+  {SYMBOL_NAME("LOAD-TIME-VALUE"), FUN_DENOT("&mkcl_special_op_load_time_value")},
+  {SYMBOL_NAME("LOCALLY"), FUN_DENOT("&mkcl_special_op_locally")},
+  {SYMBOL_NAME("MACROLET"), FUN_DENOT("&mkcl_special_op_macrolet")},
+  {SYMBOL_NAME("MULTIPLE-VALUE-CALL"), FUN_DENOT("&mkcl_special_op_multiple_value_call")},
+  {SYMBOL_NAME("MULTIPLE-VALUE-PROG1"), FUN_DENOT("&mkcl_special_op_multiple_value_prog1")},
+  {SYMBOL_NAME("PROGN"), FUN_DENOT("&mkcl_special_op_progn")},
+  {SYMBOL_NAME("PROGV"), FUN_DENOT("&mkcl_special_op_progv")},
+  {SYMBOL_NAME("QUOTE"), FUN_DENOT("&mkcl_special_op_quote")},
+  {SYMBOL_NAME("RETURN-FROM"), FUN_DENOT("&mkcl_special_op_return_from")},
+  {SYMBOL_NAME("SETQ"), FUN_DENOT("&mkcl_special_op_setq")},
+  {SYMBOL_NAME("SYMBOL-MACROLET"), FUN_DENOT("&mkcl_special_op_symbol_macrolet")},
+  {SYMBOL_NAME("TAGBODY"), FUN_DENOT("&mkcl_special_op_tagbody")},
+  {SYMBOL_NAME("THE"), FUN_DENOT("&mkcl_special_op_the")},
+  {SYMBOL_NAME("THROW"), FUN_DENOT("&mkcl_special_op_throw")},
+  {SYMBOL_NAME("UNWIND-PROTECT"), FUN_DENOT("&mkcl_special_op_unwind_protect")},
+#endif
   /* {SYMBOL_NAME("LAMBDA"), FUN_DENOT("mk_cl_Cnil")}, */
   /* {SYMBOL_NAME("CASE"), FUN_DENOT("mk_cl_Cnil")}, */
   /* {SYMBOL_NAME("COND"), FUN_DENOT("mk_cl_Cnil")}, */
@@ -1409,6 +1456,7 @@ static struct exposed_symbol const exposed_symbols[] = {
   { SYMBOL_NAME("TANH"), "MK_CL_tanh" },
   { SYMBOL_NAME("TENTH"), "MK_CL_tenth" },
   { SYMBOL_NAME("TERPRI"), "MK_CL_terpri" },
+  { SYMBOL_NAME("THE"), "MK_CL_the" },
   { SYMBOL_NAME("THIRD"), "MK_CL_third" },
   { SYMBOL_NAME("THROW"), "MK_CL_throw" },
   { SYMBOL_NAME("TRANSLATE-PATHNAME"), "MK_CL_translate_pathname" },
@@ -1663,7 +1711,7 @@ void init_cl_package(void)
 
       if (sym)
 	{
-	  sym->stype |= mkcl_stp_special_form;
+	  sym->stype |= mkcl_stp_special_operator;
 	  sym->gfdef = (mkcl_object) &mkcl_cl_declare_special_operators[i].function_object_denotator;
 	}
       else
@@ -1730,7 +1778,7 @@ const char * symbol_type(struct mkcl_symbol * sym)
     case mkcl_stp_constant: return "mkcl_stp_constant";
     case mkcl_stp_special: return "mkcl_stp_special";
     case mkcl_stp_macro: return "mkcl_stp_macro";
-    case mkcl_stp_special_form: return "mkcl_stp_special_form";
+    case mkcl_stp_special_operator: return "mkcl_stp_special_operator";
     default: return "";
     }
 }

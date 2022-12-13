@@ -181,7 +181,7 @@ const char * symbol_type(struct mkcl_symbol * sym)
     case mkcl_stp_constant: return "mkcl_stp_constant";
     case mkcl_stp_special: return "mkcl_stp_special";
     case mkcl_stp_macro: return "mkcl_stp_macro";
-    case mkcl_stp_special_form: return "mkcl_stp_special_form";
+    case mkcl_stp_special_operator: return "mkcl_stp_special_operator";
     default: return "";
     }
 }

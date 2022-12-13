@@ -402,13 +402,13 @@ extern "C" {
 #if 0
 #define mkcl_setup_for_rest(env, fun_name, min_arg, narg, last_fixed_arg, rest_varname) \
   mkcl_va_list rest_varname;                                            \
-  mkcl_va_start(env, rest_varname, last_fixed_arg, (narg), (min_arg)); \
+  mkcl_va_start(env, rest_varname, last_fixed_arg, (narg), (min_arg));  \
   if ((narg) < (min_arg)) mkcl_FEwrong_num_arguments(env, (fun_name), (min_arg), -1, (narg)); else {}
 #else
 #define mkcl_setup_for_rest(env, fun_name, min_arg, narg, last_fixed_arg, rest_varname) \
-  mkcl_va_list rest_varname;                                            \
-  mkcl_va_start(env, rest_varname, last_fixed_arg, (narg), (min_arg)); \
-  mkcl_check_minimal_arg_count(env, fun_name, narg, min_arg);
+    mkcl_va_list rest_varname;                                          \
+    mkcl_va_start(env, rest_varname, last_fixed_arg, (narg), (min_arg)); \
+    mkcl_check_minimal_arg_count(env, fun_name, narg, min_arg);
 #endif
 
 #define MKCL_RECEIVE_0_KEYWORD_ARGUMENTS(env, fname, narg, nreq, last_fixed_arg) \
@@ -416,7 +416,7 @@ extern "C" {
   if ((narg) > (nreq)) {                                                \
     mkcl_va_list ARGS;                                                  \
     mkcl_va_start(env, ARGS, last_fixed_arg, narg, nreq);               \
-    mkcl_receive_0_keyword_arguments(env, fname, ARGS);                \
+    mkcl_receive_0_keyword_arguments(env, fname, ARGS);                 \
     mkcl_va_end(ARGS);                                                  \
   }
 

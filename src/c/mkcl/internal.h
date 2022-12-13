@@ -589,6 +589,89 @@ extern "C" {
   extern MKCL_API struct mkcl_symbol mkcl_cl_external_symbols[];
   extern MKCL_API struct mkcl_symbol mkcl_cl_internal_symbols[];
 
+  /* eval_parsed_op.c */
+
+  extern struct mkcl_cfun mk_si_parsed_block_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_catch_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_eval_when_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_flet_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_function_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_go_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_if_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_labels_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_let_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_letX_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_load_time_value_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_locally_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_macrolet_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_multiple_value_call_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_multiple_value_prog1_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_progn_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_progv_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_quote_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_return_from_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_setq_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_symbol_macrolet_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_tagbody_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_the_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_throw_cfunobj;
+  extern struct mkcl_cfun mk_si_parsed_unwind_protect_cfunobj;
+
+
+  /* parser.c */
+
+  extern struct mkcl_cfun mk_si_parse_block_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_catch_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_eval_when_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_flet_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_function_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_go_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_if_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_labels_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_let_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_letX_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_load_time_value_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_locally_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_macrolet_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_multiple_value_call_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_multiple_value_prog1_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_progn_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_progv_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_quote_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_return_from_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_setq_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_symbol_macrolet_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_tagbody_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_the_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_throw_cfunobj;
+  extern struct mkcl_cfun mk_si_parse_unwind_protect_cfunobj;
+
+  extern mkcl_object mk_si_parse_block(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_catch(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_eval_when(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_flet(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_function(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_go(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_if(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_labels(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_let(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_letX(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_load_time_value(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_locally(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_macrolet(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_multiple_value_call(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_multiple_value_prog1(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_progn(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_progv(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_quote(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_return_from(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_setq(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_symbol_macrolet(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_tagbody(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_the(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_throw(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+  extern mkcl_object mk_si_parse_unwind_protect(MKCL, mkcl_narg narg, mkcl_object spath, mkcl_object lex_env, mkcl_object name, ...);
+
 
   /* print.d */
 
@@ -643,6 +726,35 @@ extern "C" {
 
   /* read.d */
 #define MKCL_RTABSIZE	MKCL_BASE_CHAR_CODE_LIMIT	/*  read table size  */
+
+  /* special_ops.c */
+
+  extern struct mkcl_special_operator mkcl_special_op_block;
+  extern struct mkcl_special_operator mkcl_special_op_catch;
+  extern struct mkcl_special_operator mkcl_special_op_eval_when;
+  extern struct mkcl_special_operator mkcl_special_op_flet;
+  extern struct mkcl_special_operator mkcl_special_op_function;
+  extern struct mkcl_special_operator mkcl_special_op_go;
+  extern struct mkcl_special_operator mkcl_special_op_if;
+  extern struct mkcl_special_operator mkcl_special_op_labels;
+  extern struct mkcl_special_operator mkcl_special_op_let;
+  extern struct mkcl_special_operator mkcl_special_op_letX;
+  extern struct mkcl_special_operator mkcl_special_op_load_time_value;
+  extern struct mkcl_special_operator mkcl_special_op_locally;
+  extern struct mkcl_special_operator mkcl_special_op_macrolet;
+  extern struct mkcl_special_operator mkcl_special_op_multiple_value_call;
+  extern struct mkcl_special_operator mkcl_special_op_multiple_value_prog1;
+  extern struct mkcl_special_operator mkcl_special_op_progn;
+  extern struct mkcl_special_operator mkcl_special_op_progv;
+  extern struct mkcl_special_operator mkcl_special_op_quote;
+  extern struct mkcl_special_operator mkcl_special_op_return_from;
+  extern struct mkcl_special_operator mkcl_special_op_setq;
+  extern struct mkcl_special_operator mkcl_special_op_symbol_macrolet;
+  extern struct mkcl_special_operator mkcl_special_op_tagbody;
+  extern struct mkcl_special_operator mkcl_special_op_the;
+  extern struct mkcl_special_operator mkcl_special_op_throw;
+  extern struct mkcl_special_operator mkcl_special_op_unwind_protect;
+
 
   /* time.d */
 

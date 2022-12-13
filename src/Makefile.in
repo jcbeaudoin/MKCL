@@ -609,15 +609,15 @@ distclean: uninstall-local clean
 	$(RM) Makefile bare.lsp compile.pre
 
 realclean: distclean
-	$(RM) *~ c/*~ c/arch/*~
+	$(RM) *~
 	$(RM) lsp/*~ clos/*~ cmp/*~
 
-TAGS: lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre c/*.c c/*.h c/arch/*.c c/mkcl/*.dh c/mkcl/[!C]*.h
+TAGS: lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre c/*.c c/*.h c/arch/*.c c/mkcl/*.dh c/mkcl/[!C]*.h c/packages/*.c
 	if type etags >/dev/null 2>&1; then  \
 	  if etags --help | grep -q -e "--language-force"; then \
-	    etags -R lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre --language-force=c c/*.c c/*.h c/arch/*.c c/mkcl/*.dh c/mkcl/[!C]*.h; \
+	    etags -R lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre --language-force=c c/*.c c/*.h c/arch/*.c c/mkcl/*.dh c/mkcl/[!C]*.h c/packages/*.c; \
 	  else \
-	    etags -R lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre --language=c c/*.c c/*.h c/arch/*.c c/mkcl/*.dh c/mkcl/[!C]*.h; \
+	    etags -R lsp/*.lsp lsp/config.pre clos/*.lsp cmp/*.lsp cmp/cmpdefs.pre --language=c c/*.c c/*.h c/arch/*.c c/mkcl/*.dh c/mkcl/[!C]*.h c/packages/*.c; \
 	  fi \
 	else touch TAGS; fi
 
