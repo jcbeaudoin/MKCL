@@ -1894,7 +1894,7 @@
 
     (proclaim-function readtablep (t) t :predicate t)
     (proclaim-function set-syntax-from-char (t t &optional t t) t)
-    (proclaim-function set-macro-character (t t &optional t) t)
+    (proclaim-function set-macro-character (t t &optional t t) t)
     (proclaim-function get-macro-character (t &optional t) t)
     (proclaim-function make-dispatch-macro-character (t &optional t t) t)
     (proclaim-function set-dispatch-macro-character (t t t &optional t) t)
