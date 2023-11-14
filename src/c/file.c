@@ -1388,7 +1388,7 @@ mk_clos_stream_read_char(MKCL, mkcl_object strm)
     value = MKCL_CHAR_CODE(output);
   else if (MKCL_FIXNUMP(output))
     value = mkcl_fixnum_to_word(output);
-  else if (output == mk_cl_Cnil)
+  else if ((output == mk_cl_Cnil) || ((mkcl_object) &MK_KEY_eof))
     return EOF;
   else
     value = -1;
