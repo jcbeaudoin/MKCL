@@ -72,8 +72,9 @@
 	     (cmperr "Invalid SATISFIES typespec: ~S" type))
 	   `(if (funcall #',function ,object) t nil))
 	  ((eq first 'EQL)
-	   (unless (and (setq aux (car rest)) (endp (cdr rest)))
+	   (unless (endp (cdr rest))
 	     (cmperr "Invalid EQL typespec: ~S" type))
+           (setq aux (car rest))
 	   `(,(if (numberp aux) 'EQL 'EQ) ,aux ,object)
 	   )
 	  ;;
