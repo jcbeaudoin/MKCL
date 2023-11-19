@@ -611,7 +611,8 @@
 ;; TERPRI
 
 (defmethod stream-terpri ((stream fundamental-character-output-stream))
-  (stream-write-char stream #\Newline))
+  (stream-write-char stream #\Newline)
+  nil)
 
 (defmethod stream-terpri ((stream ansi-stream))
   (cl:terpri stream))
