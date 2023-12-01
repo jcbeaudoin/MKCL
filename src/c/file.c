@@ -1370,7 +1370,9 @@ mk_clos_stream_write_octet(MKCL, mkcl_object strm, unsigned char *c, mkcl_index 
 static mkcl_object
 mk_clos_stream_read_byte(MKCL, mkcl_object strm)
 {
-  return mkcl_funcall1(env, MK_GRAY_stream_read_byte.gfdef, strm);
+  mkcl_object output = mkcl_funcall1(env, MK_GRAY_stream_read_byte.gfdef, strm);
+
+  return (output == (mkcl_object) &MK_KEY_eof) ? mk_cl_Cnil : output;
 }
 
 static void
