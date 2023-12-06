@@ -1741,11 +1741,14 @@ mkcl_object mk_cl_read_line(MKCL, mkcl_narg narg, ...)
     strm = stream_or_default_input(env, strm);
     if (mkcl_type_of(strm) != mkcl_t_stream) {
       token = mkcl_funcall1(env, MK_GRAY_stream_read_line.gfdef, strm);
-      if (!mkcl_Null(MKCL_VALUES(1))) {
-        c = EOF;
-        goto EOFCHK;
+      if (!mkcl_Null(MKCL_VALUES(1)) && (mkcl_string_length(env, token) == 0)) {
+        if (!mkcl_Null(eof_errorp))
+          mkcl_FEend_of_file(env, strm);
+        else
+          mkcl_return_2_values(eof_value, MKCL_VALUES(1));
       }
-      return token;
+
+      mkcl_return_2_values(token, MKCL_VALUES(1));
     }
     token = mk_si_get_buffer_string(env);
     do {
@@ -1754,7 +1757,6 @@ mkcl_object mk_cl_read_line(MKCL, mkcl_narg narg, ...)
         break;
       mkcl_string_push_extend(env, token, c);
     } while(1);
-  EOFCHK:
     if (c == EOF && TOKEN_STRING_FILLP(token) == 0) {
       if (!mkcl_Null(eof_errorp))
         mkcl_FEend_of_file(env, strm);
