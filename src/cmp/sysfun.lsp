@@ -641,7 +641,7 @@
     #+(or x86-64 aarch64)
     (def-inline si:row-major-aset :always ((array mkcl:natural32) fixnum fixnum) :fixnum "mkcl_fixnum_to_word(mkcl_aset_index_b32(env, #0, #1, MKCL_MAKE_FIXNUM(#2)))")
     #+(or x86-64 aarch64)
-    (def-inline si:row-major-aset :always ((array mkcl:natural32) fixnum fixnum) :void "mkcl_aset_index_b32(env, #0, #1, MKCL_MAKE_FIXNUM(#2)))")
+    (def-inline si:row-major-aset :always ((array mkcl:natural32) fixnum fixnum) :void "mkcl_aset_index_b32(env, #0, #1, MKCL_MAKE_FIXNUM(#2))")
     #+(or x86-64 aarch64)
     (def-inline si:row-major-aset :always ((array mkcl:natural32) fixnum mkcl:natural32) :uint32-t "mkcl_aset_index_b32_raw(env, #0, #1, #2)")
     (def-inline si:row-major-aset :always ((array mkcl:integer32) fixnum fixnum) :fixnum "mkcl_fixnum_to_word(mkcl_aset_index_i32(env, #0, #1, MKCL_MAKE_FIXNUM(#2)))")
