@@ -70,7 +70,7 @@ mkcl_object mk_si_make_structure(MKCL, mkcl_narg narg, mkcl_object type, ...)
 
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, (mkcl_object) &MK_SI_make_structure, 0, narg, type, args);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_SI_make_structure, 1, narg, type, args);
 
     x = mkcl_alloc_raw_structure(env, type, --narg);
 
