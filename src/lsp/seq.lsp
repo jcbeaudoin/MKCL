@@ -125,6 +125,7 @@
 Creates and returns a sequence of the given TYPE and LENGTH.  If INITIAL-
 ELEMENT is given, then it becomes the elements of the created sequence.  The
 default value of INITIAL-ELEMENT depends on TYPE."
+  (setq type (si::expand-deftype type))
   (multiple-value-bind (element-type length)
       (closest-sequence-type type)
     (cond ((eq element-type 'LIST)
