@@ -601,7 +601,7 @@ mkcl_object mk_si_put_properties(MKCL, mkcl_narg narg, mkcl_object sym, ...)
 {
   mkcl_call_stack_check(env);
   {
-    mkcl_setup_for_rest(env, (mkcl_object) &MK_SI_put_properties, 0, narg, sym, ind_values);
+    mkcl_setup_for_rest(env, (mkcl_object) &MK_SI_put_properties, 1, narg, sym, ind_values);
 
     while (--narg >= 2) {
       mkcl_object prop = mkcl_va_arg(ind_values);
