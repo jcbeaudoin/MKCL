@@ -429,8 +429,8 @@ mkcl_object mk_cl_tree_equal(MKCL, mkcl_narg narg, mkcl_object x, mkcl_object y,
 
     struct cl_test t;
     mkcl_object output;
-    mkcl_object test;
-    mkcl_object test_not;
+    mkcl_object test = mk_cl_Cnil;
+    mkcl_object test_not = mk_cl_Cnil;
     MKCL_RECEIVE_2_KEYWORD_ARGUMENTS(env, (mkcl_object) &MK_CL_tree_equal, narg, 2, y, (mkcl_object) &MK_KEY_test, &test, (mkcl_object) &MK_KEY_test_not, &test_not);
 
     setup_test(env, &t, mk_cl_Cnil, test, test_not, mk_cl_Cnil);
