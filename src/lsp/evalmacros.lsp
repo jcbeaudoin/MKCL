@@ -170,7 +170,7 @@ The loop is normally terminated by a non-local exit."
       (print function)
       (setq function `(si::bc-disassemble #',function)))
 
-    `(define-when (:load-toplevel :execute) ;;progn
+    `(define-when (:compile-toplevel :load-toplevel :execute) ;;progn
        (put-sysprop ',name 'sys::compiler-macro ,function)
        ,@(si::expand-set-documentation name 'function doc-string)
        ,(si:register-with-pde whole)
@@ -424,7 +424,7 @@ values of the last FORM.  If no FORM is given, returns NIL."
 	((specialp symbol)
 	 (simple-program-error "DEFINE-SYMBOL-MACRO: cannot redefine a special variable, ~A" symbol))
 	(t
-	 `(define-when (:load-toplevel :execute) ;;progn
+	 `(define-when (:compile-toplevel :load-toplevel :execute) ;;progn
 	   (put-sysprop ',symbol 'si::symbol-macro
 			(lambda (form env) (declare (ignore form env)) ',expansion))
 	   ,(si:register-with-pde whole)
