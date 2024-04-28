@@ -75,7 +75,7 @@
 	   (unless (endp (cdr rest))
 	     (cmperr "Invalid EQL typespec: ~S" type))
            (setq aux (car rest))
-	   `(,(if (numberp aux) 'EQL 'EQ) ,aux ,object)
+	   `(,(if (numberp aux) 'EQL 'EQ) ',aux ,object)
 	   )
 	  ;;
 	  ;; Detect inconsistencies in the provided type. If we run at low
