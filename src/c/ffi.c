@@ -774,7 +774,7 @@ mkcl_object mk_si_call_cfun(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_object r
   {
     void *cfun = mkcl_foreign_raw_pointer(env, fun);
     enum mkcl_ffi_tag return_type_tag = mkcl_foreign_type_code(env, return_type);
-    mkcl_object cc_type = mk_cl_Cnil;
+    mkcl_object cc_type = (mkcl_object) &MK_KEY_cdecl;
     MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_SI_call_cfun, narg, 4, args, &cc_type);
 
     struct mkcl_fficall *fficall = mkcl_fficall_prepare(env, return_type, arg_types, cc_type);
@@ -819,7 +819,7 @@ mkcl_object mk_si_make_dynamic_callback(MKCL, mkcl_narg narg, mkcl_object fun, m
 
     mkcl_object data;
     mkcl_object cbk;
-    mkcl_object cctype = mk_cl_Cnil;
+    mkcl_object cctype = (mkcl_object) &MK_KEY_cdecl;
     MKCL_RECEIVE_1_OPTIONAL_ARGUMENT(env, (mkcl_object) &MK_SI_make_dynamic_callback, narg, 4, argtypes, &cctype);
 
     data = mk_cl_list(env, 3, fun, rtype, argtypes);
