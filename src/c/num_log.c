@@ -807,25 +807,58 @@ mk_si_bit_array_op(MKCL, mkcl_object o, mkcl_object x, mkcl_object y, mkcl_objec
   ro = r->vector.bit_offset;
   op = fixnum_operations[coerce_to_logical_operator(env, o)];
 
-#define	set_high(place, nbits, value)					\
-  (place)=((place)&~(-0400>>(nbits)))|((value)&(-0400>>(nbits)))
+#define outer_byte_mask (-1 << CHAR_BIT)
+#define inner_byte_mask ~(outer_byte_mask)
+#define off_bit(offset) (CHAR_BIT - (offset))
 
-#define	set_low(place, nbits, value)					\
-  (place)=((place)&(-0400>>(8-(nbits))))|((value)&~(-0400>>(8-(nbits))))
+/* Set high nbits to those in value. */
+#define	set_high(place, nbits, value)	                       \
+  (place) = ((place) &~ (outer_byte_mask >> (nbits)))          \
+            | ((value) & (outer_byte_mask >> (nbits)))
 
-#define	extract_byte(integer, pointer, index, offset)			\
-  (integer) = (pointer)[(index)+1] & 0377;				\
-  (integer) = ((pointer)[index]<<(offset))|((integer)>>(8-(offset)))
+/* Set low nbits to those in value. */
+#define	set_low(place, nbits, value)		               \
+  (place) = ((place) & (outer_byte_mask >> off_bit(nbits)))    \
+            | ((value) &~ (outer_byte_mask >> off_bit(nbits)))
 
-#define	store_byte(pointer, index, offset, value)		\
-  set_low((pointer)[index], 8-(offset), (value)>>(offset));	\
-  set_high((pointer)[(index)+1], offset, (value)<<(8-(offset)))
+#if MKCL_LSB_FIRST
+#define	extract_byte(integer, pointer, index, offset)               \
+  (integer) = (pointer)[(index)+1] & inner_byte_mask;               \
+  (integer) = ((pointer)[index] >> (offset))                        \
+              | ((integer) << off_bit(offset))
+
+/* Since we have LSB first, the low bits of the value are offset
+   towards the high end of pointer[index], and the high bits of
+   the value are spilled into the low bits of pointer[index+1]. */
+#define store_byte(pointer, index, offset, value)                   \
+  set_high((pointer)[index], off_bit(offset), (value) << offset);   \
+  set_low((pointer)[(index)+1], offset, (value) >> off_bit(offset))
+
+#define set_first set_low
+#else /* !MKCL_LSB_FIRST */
+#define set_first set_high
+
+  /* We have MSB first, so the current byte is offset
+     towards the low end. Part of it spills into the
+     following byte. */
+#define	extract_byte(integer, pointer, index, offset)                   \
+  (integer) = (pointer)[(index)+1] & inner_byte_mask;                   \
+  (integer) = ((pointer)[index] << (offset))                            \
+              | ((integer) >> off_bit(offset))
+
+/* Here, since we have MSB first, the high bits of the value are
+   offset towards the low end of pointer[index], and the low bits
+   of the value are spilled into the high bits of pointer[index+1]. */
+#define	store_byte(pointer, index, offset, value)		        \
+  set_low((pointer)[index], off_bit(offset), (value) >> (offset));	\
+  set_high((pointer)[(index)+1], offset, (value) << off_bit(offset))
+#endif /* MKCL_LSB_FIRST */
 
   if (xo == 0 && yo == 0 && ro == 0) {
     for (n = d/8, i = 0;  i < n;  i++)
       rp[i] = (*op)(xp[i], yp[i]);
     if ((j = d%8) > 0)
-      set_high(rp[n], j, (*op)(xp[n], yp[n]));
+      set_first(rp[n], j, (*op)(xp[n], yp[n]));
     if (!replace)
       mkcl_return_value(r);
   } else {
@@ -836,7 +869,7 @@ mk_si_bit_array_op(MKCL, mkcl_object o, mkcl_object x, mkcl_object y, mkcl_objec
 	if ((j = d%8) == 0)
 	  break;
 	extract_byte(ri, rp, n, ro);
-	set_high(ri, j, (*op)(xi, yi));
+	set_first(ri, j, (*op)(xi, yi));
       } else
 	ri = (*op)(xi, yi);
       store_byte(rp, i, ro, ri);
@@ -851,7 +884,7 @@ mk_si_bit_array_op(MKCL, mkcl_object o, mkcl_object x, mkcl_object y, mkcl_objec
       if ((j = d%8) == 0)
 	break;
       extract_byte(ri, rp, n, ro);
-      set_high(ri, j, r->vector.self.bit[n]);
+      set_first(ri, j, r->vector.self.bit[n]);
     } else
       ri = r->vector.self.bit[i];
     store_byte(rp, i, ro, ri);
