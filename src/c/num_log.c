@@ -408,7 +408,7 @@ mkcl_ash(MKCL, mkcl_object x, mkcl_word w)
       mpz_div_2exp(y->big.big_num, x->big.big_num, bits);
   } else {
     if (MKCL_FIXNUMP(x)) {
-      const mkcl_word shift_out_mask = ((((mkcl_word) 1) << w) - 1) << (MKCL_WORD_BITS - 1 - w);
+      const mkcl_word shift_out_mask = ((((mkcl_index) 1) << (1 + w)) - 1) << (MKCL_WORD_BITS - 1 - w);
 
       if ((w >= (MKCL_WORD_BITS - 2)) || (((mkcl_word) x) & shift_out_mask))
 	{ /* some bits will overflow into a bignum */
@@ -427,7 +427,7 @@ mkcl_ash(MKCL, mkcl_object x, mkcl_word w)
 	  return MKCL_MAKE_FIXNUM(i);
 	}
     }
-    mpz_mul_2exp(y->big.big_num, x->big.big_num, (unsigned long)w);
+    mpz_mul_2exp(y->big.big_num, x->big.big_num, ((mkcl_index) w));
   }
   return(_mkcl_big_register_normalize(env, y));
 }
