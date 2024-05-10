@@ -792,15 +792,12 @@ mk_si_bit_array_op(MKCL, mkcl_object o, mkcl_object x, mkcl_object y, mkcl_objec
     }
   L2:
     if (mkcl_Null(r)) {
-      r = mkcl_alloc_raw_array(env);
-      r->array.self.t = NULL;
-      r->array.displaced = mk_cl_Cnil;
-      r->array.rank = x->array.rank;
-      r->array.dims = x->array.dims;
-      r->array.elttype = mkcl_aet_bit;
-      r->array.dim = x->array.dim;
-      r->array.adjustable = FALSE;
-      mkcl_array_allocself(env, r);
+      r = mk_si_make_pure_array(env, (mkcl_object) &MK_CL_bit,
+                                mk_cl_array_dimensions(env, x),
+                                mk_cl_Cnil, /* not adjustable */
+                                mk_cl_Cnil, /* no fill pointer */
+                                mk_cl_Cnil, /* not displaced */
+                                MKCL_MAKE_FIXNUM(0));
     }
   }
   rp = r->vector.self.bit;
