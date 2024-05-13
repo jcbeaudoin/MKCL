@@ -357,18 +357,28 @@ and is not adjustable."
 (dolist (l +known-typep-predicates+)
   (put-sysprop (car l) 'TYPE-PREDICATE (cdr l)))
 
-(defconstant +upgraded-array-element-types+
-  '#.(append '(NIL BASE-CHAR #+unicode CHARACTER BIT MKCL:INTEGER8 MKCL:NATURAL8)
-             '(MKCL:INTEGER16 MKCL:NATURAL16)
-             '(MKCL:INTEGER32 MKCL:NATURAL32)
-             (when (< 32 cl-word-bits 64) '(MKCL::CL-WORD MKCL::CL-INDEX))
-             '(MKCL:INTEGER64 MKCL:NATURAL64)
-             (when (< 64 cl-word-bits) '(MKCL::CL-WORD MKCL::CL-INDEX))
-             '(SINGLE-FLOAT DOUBLE-FLOAT T)))
 
-(defconstant +fixed-array-element-types+
+(defconstant +unsigned-upgraded-array-element-types+
+  '#.(append '(BIT BASE-CHAR #+unicode CHARACTER MKCL:NATURAL8 MKCL:NATURAL16 MKCL:NATURAL32)
+             (when (< 32 cl-word-bits 64) '(MKCL::CL-INDEX))
+             '(MKCL:NATURAL64)
+             (when (< 64 cl-word-bits) '(MKCL::CL-INDEX))))
+
+(defconstant +unsigned-fixed-array-element-types+
+  '#.(append (unless (< 64 cl-word-bits) '(MKCL::CL-INDEX))))
+
+
+(defconstant +signed-upgraded-array-element-types+
+  '#.(append '(MKCL:INTEGER8 MKCL:INTEGER16 MKCL:INTEGER32)
+             (when (< 32 cl-word-bits 64) '(MKCL::CL-WORD))
+             '(MKCL:INTEGER64)
+             (when (< 64 cl-word-bits) '(MKCL::CL-WORD))
+             '(SINGLE-FLOAT DOUBLE-FLOAT)))
+
+(defconstant +signed-fixed-array-element-types+
   '#.(append '(FIXNUM)
-	     (unless (< 64 cl-word-bits) '(MKCL::CL-WORD MKCL::CL-INDEX))))
+	     (unless (< 64 cl-word-bits) '(MKCL::CL-WORD))))
+
 
 (defun upgraded-array-element-type (element-type &optional env)
   (declare (ignore env))
@@ -377,14 +387,20 @@ and is not adjustable."
     (declare (type (integer 0 127) hash))
     (if (and record (eq (car record) element-type))
 	(cdr record)
-	(let ((answer (cond ((member element-type +fixed-array-element-types+ :test #'eq)
-			     element-type)
-			    ((member element-type +upgraded-array-element-types+ :test #'eq)
-			     element-type)
-			    (t
-			     (dolist (v +upgraded-array-element-types+ 'T)
-			       (when (subtypep element-type v)
-				 (return v)))))))
+      (let ((answer (cond ((member element-type +unsigned-fixed-array-element-types+ :test #'eq)
+			   element-type)
+			  ((member element-type +unsigned-upgraded-array-element-types+ :test #'eq)
+			   element-type)
+			  ((member element-type +signed-fixed-array-element-types+ :test #'eq)
+			   element-type)
+			  ((member element-type +signed-upgraded-array-element-types+ :test #'eq)
+			   element-type)
+			  (t (or (dolist (v +unsigned-upgraded-array-element-types+)
+                                   (when (subtypep element-type v)
+                                     (return v)))
+                                 (dolist (v +signed-upgraded-array-element-types+ 'T)
+                                   (when (subtypep element-type v)
+                                     (return v))))))))
 	  (setf (aref *upgraded-array-element-type-cache* hash)
 		(cons element-type answer))
 	  answer))))
@@ -1082,10 +1098,15 @@ if not possible."
   (multiple-value-bind (array-class elt-type dimensions)
       (parse-array-type type)
     (cond ((eq elt-type '*)
-	   (canonical-type `(OR ,@(mapcar #'(lambda (type) `(,array-class ,type ,dimensions))
-					  +upgraded-array-element-types+)
+           (canonical-type `(OR ,@(mapcar #'(lambda (type) `(,array-class ,type ,dimensions))
+					  +unsigned-upgraded-array-element-types+)
 				,@(mapcar #'(lambda (type) `(,array-class ,type ,dimensions))
-					  +fixed-array-element-types+)
+					  +unsigned-fixed-array-element-types+)
+				,@(mapcar #'(lambda (type) `(,array-class ,type ,dimensions))
+					  +signed-upgraded-array-element-types+)
+				,@(mapcar #'(lambda (type) `(,array-class ,type ,dimensions))
+					  +signed-fixed-array-element-types+)
+                                (,array-class T ,dimensions)
 				)))
 	  ((find-registered-tag (setq type (list array-class elt-type dimensions))))
 	  (t
@@ -1107,14 +1128,20 @@ if not possible."
 ;;
 (defun fast-upgraded-array-element-type (type)
   (cond ((eql type '*) '*)
-	((member type +fixed-array-element-types+ :test #'eq)
+	((member type +unsigned-fixed-array-element-types+ :test #'eq)
 	 type)
-	((member type +upgraded-array-element-types+ :test #'eq)
+	((member type +unsigned-upgraded-array-element-types+ :test #'eq)
 	 type)
-	(t
-	 (dolist (other-type +upgraded-array-element-types+ 'T)
-	   (when (fast-subtypep type other-type)
-	     (return other-type))))))
+	((member type +signed-fixed-array-element-types+ :test #'eq)
+	 type)
+	((member type +signed-upgraded-array-element-types+ :test #'eq)
+	 type)
+	(t (or (dolist (other-type +unsigned-upgraded-array-element-types+)
+                 (when (fast-subtypep type other-type)
+                   (return other-type)))
+               (dolist (other-type +signed-upgraded-array-element-types+ 'T)
+                 (when (fast-subtypep type other-type)
+                   (return other-type)))))))
 
 ;;
 ;; This canonicalizes the array type into the form
