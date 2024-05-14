@@ -442,26 +442,27 @@ Returns the original value of the leftmost PLACE."
 Saves the values of PLACEs, and then assigns to each PLACE the saved value of
 the PLACE to its right.  The rightmost PLACE gets the value of the leftmost
 PLACE.  Returns NIL."
-  (let (var-val-pairs-list stores-list store-forms access-forms
-        (last-stores 0)) ;; 0 is not a valid list of store variables and marks it as such until replacement.
-    (dolist (place (reverse places))
-      (multiple-value-bind (vars vals stores store-form access-form)
-          (get-setf-expansion place env)
-        (push (mapcar #'list vars vals) var-val-pairs-list)
-        (when (eql 0 last-stores) (setq last-stores stores))
-        (push stores stores-list)
-        (push store-form store-forms)
-        (push access-form access-forms)))
-    `(let* ,(car var-val-pairs-list)
-       (multiple-value-bind ,last-stores ,(car access-forms)
-         ,(labels ((rotatef-expand (var-val-pairs-list stores-list access-forms store-forms)
-                     (if access-forms
-                         `(let* ,(car var-val-pairs-list)
-                            (multiple-value-bind ,(car stores-list) ,(car access-forms)
-                              ,(rotatef-expand (cdr var-val-pairs-list) (cdr stores-list) (cdr access-forms) store-forms)))
-                       `(progn ,@store-forms))))
-            (rotatef-expand (cdr var-val-pairs-list) stores-list (cdr access-forms) store-forms)))
-       nil)))
+  (when places
+    (let (var-val-pairs-list stores-list store-forms access-forms
+          (last-stores 0)) ;; 0 is not a valid list of store variables and marks it as such until replacement.
+      (dolist (place (reverse places))
+        (multiple-value-bind (vars vals stores store-form access-form)
+            (get-setf-expansion place env)
+          (push (mapcar #'list vars vals) var-val-pairs-list)
+          (when (eql 0 last-stores) (setq last-stores stores))
+          (push stores stores-list)
+          (push store-form store-forms)
+          (push access-form access-forms)))
+      `(let* ,(car var-val-pairs-list)
+         (multiple-value-bind ,last-stores ,(car access-forms)
+           ,(labels ((rotatef-expand (var-val-pairs-list stores-list access-forms store-forms)
+                       (if access-forms
+                           `(let* ,(car var-val-pairs-list)
+                              (multiple-value-bind ,(car stores-list) ,(car access-forms)
+                                ,(rotatef-expand (cdr var-val-pairs-list) (cdr stores-list) (cdr access-forms) store-forms)))
+                           `(progn ,@store-forms))))
+              (rotatef-expand (cdr var-val-pairs-list) stores-list (cdr access-forms) store-forms)))
+         nil))))
 
 
 ;;; DEFINE-MODIFY-MACRO macro, by Bruno Haible.
