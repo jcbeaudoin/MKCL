@@ -364,20 +364,16 @@ and is not adjustable."
              '(MKCL:NATURAL64)
              (when (< 64 cl-word-bits) '(MKCL::CL-INDEX))))
 
-(defconstant +unsigned-fixed-array-element-types+
-  '#.(append (unless (< 64 cl-word-bits) '(MKCL::CL-INDEX))))
-
-
 (defconstant +signed-upgraded-array-element-types+
-  '#.(append '(MKCL:INTEGER8 MKCL:INTEGER16 MKCL:INTEGER32)
+  '#.(append '(MKCL:INTEGER8 MKCL:INTEGER16)
+             (when (<= (- cl-word-bits 2) 32) '(FIXNUM))
+             (when (< cl-word-bits 32) '(MKCL::CL-WORD))
+             '(MKCL:INTEGER32)
+             (when (and (< 32 (- cl-word-bits 2)) (<= (- cl-word-bits 2) 64)) '(FIXNUM))
              (when (< 32 cl-word-bits 64) '(MKCL::CL-WORD))
              '(MKCL:INTEGER64)
-             (when (< 64 cl-word-bits) '(MKCL::CL-WORD))
+             (when (< 64 cl-word-bits) '(FIXNUM MKCL::CL-WORD))
              '(SINGLE-FLOAT DOUBLE-FLOAT)))
-
-(defconstant +signed-fixed-array-element-types+
-  '#.(append '(FIXNUM)
-	     (unless (< 64 cl-word-bits) '(MKCL::CL-WORD))))
 
 
 (defun upgraded-array-element-type (element-type &optional env)
@@ -387,11 +383,8 @@ and is not adjustable."
     (declare (type (integer 0 127) hash))
     (if (and record (eq (car record) element-type))
 	(cdr record)
-      (let ((answer (cond ((member element-type +unsigned-fixed-array-element-types+ :test #'eq)
-			   element-type)
+      (let ((answer (cond ((eq element-type nil) nil)
 			  ((member element-type +unsigned-upgraded-array-element-types+ :test #'eq)
-			   element-type)
-			  ((member element-type +signed-fixed-array-element-types+ :test #'eq)
 			   element-type)
 			  ((member element-type +signed-upgraded-array-element-types+ :test #'eq)
 			   element-type)
@@ -1101,11 +1094,7 @@ if not possible."
            (canonical-type `(OR ,@(mapcar #'(lambda (type) `(,array-class ,type ,dimensions))
 					  +unsigned-upgraded-array-element-types+)
 				,@(mapcar #'(lambda (type) `(,array-class ,type ,dimensions))
-					  +unsigned-fixed-array-element-types+)
-				,@(mapcar #'(lambda (type) `(,array-class ,type ,dimensions))
 					  +signed-upgraded-array-element-types+)
-				,@(mapcar #'(lambda (type) `(,array-class ,type ,dimensions))
-					  +signed-fixed-array-element-types+)
                                 (,array-class T ,dimensions)
 				)))
 	  ((find-registered-tag (setq type (list array-class elt-type dimensions))))
@@ -1127,12 +1116,9 @@ if not possible."
 ;; that have been already registered.
 ;;
 (defun fast-upgraded-array-element-type (type)
-  (cond ((eql type '*) '*)
-	((member type +unsigned-fixed-array-element-types+ :test #'eq)
-	 type)
+  (cond ((eq type '*) '*)
+        ((eq type nil) nil)
 	((member type +unsigned-upgraded-array-element-types+ :test #'eq)
-	 type)
-	((member type +signed-fixed-array-element-types+ :test #'eq)
 	 type)
 	((member type +signed-upgraded-array-element-types+ :test #'eq)
 	 type)
