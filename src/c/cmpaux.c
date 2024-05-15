@@ -443,6 +443,9 @@ void mkcl_receive_N_keyword_arguments(MKCL, const mkcl_object fname, mkcl_va_lis
         if (keyword == key_params[i].key_symbol)
           if (!key_params[i].key_arg_seen)
             { *(key_params[i].key_var_ref) = value; key_params[i].key_arg_seen = true; goto NEXT_ARG; }
+          else
+            goto NEXT_ARG;
+
       }
     if (keyword == ((mkcl_object) &MK_KEY_allow_other_keys))
       {
