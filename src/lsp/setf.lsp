@@ -15,61 +15,71 @@
 
 (in-package "SYSTEM")
 
-#-(and) ;; moved to a flet.
-(defun check-stores-number (context stores-list n)
-  (unless (= (length stores-list) n)
-    (error "~d store-variables expected in setf form ~a." n context)))
-
-#-(and) ;; moved to a flet
-(defun setf-structure-access (struct type index newvalue)
-  (cond
-    ((or (eq type 'list) (eq type 'vector))
-     `(sys:elt-set ,struct ,index ,newvalue))
-    ((consp type)
-     `(si::aset ,newvalue (the ,type ,struct) ,index))
-    (t `(sys::structure-set ,struct ',type ,index ,newvalue))))
-
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun extract-environment-parameter (lambda-list &optional (prefix (string '#:env)))
+    "Extract the &environment parameter from LAMBDA-LIST. If no &environment parameter
+is found, and the optional PREFIX is non-null, then make such a parameter via GENSYM.
+In this case, the third return value is true to indicate that a symbol was generated."
+    ;; ANSI 3.4.4 says that "&environment can only appear at the top level of a macro
+    ;; lambda list, and can only appear once, but can appear anywhere in that list."
+    ;; There may be differences of opinion on whether this rule applies to defsetf
+    ;; lambda lists, or if instead the rule applies only to defmacro lambda lists.
+    (let ((environment-tail (member '&environment lambda-list :test #'eq)))
+      (cond (environment-tail
+             (let ((preceding-lambda-list (ldiff lambda-list environment-tail)))
+               (when (member '&environment (cdr environment-tail) :test #'eq)
+                 (error "&ENVIRONMENT appears twice in lambda list: ~S." lambda-list))
+               (setq lambda-list (nconc preceding-lambda-list (cddr environment-tail)))
+               (let ((environment-parameter (cadr environment-tail)))
+                 (unless (symbolp environment-parameter)
+                   (error "Not a symbol: ~S." environment-parameter))
+                 (values lambda-list environment-parameter))))
+            (prefix (values lambda-list (gensym prefix) t))
+            (t (values lambda-list nil))))))
 
 ;;; DEFSETF macro.
 (defmacro defsetf (access-fn &rest rest)
   "Syntax: (defsetf symbol update-fun [doc])
 	or
-	(defsetf symbol lambda-list (store-var) {decl | doc}* {form}*)
+	(defsetf symbol lambda-list (store-var*) {decl | doc}* {form}*)
 Defines an expansion
 	(setf (SYMBOL arg1 ... argn) value)
 	=> (UPDATE-FUN arg1 ... argn value)
 	   or
 	   (let* ((temp1 ARG1) ... (tempn ARGn) (temp0 value)) rest)
 where REST is the value of the last FORM with parameters in LAMBDA-LIST bound
-to the symbols TEMP1 ... TEMPn and with STORE-VAR bound to the symbol TEMP0.
+to the symbols TEMP1 ... TEMPn and with STORE-VARS similarly bound to gensyms.
 The doc-string DOC, if supplied, is saved as a SETF doc and can be retrieved
 by (documentation 'SYMBOL 'setf)."
   (cond ((and (car rest) (or (symbolp (car rest)) (functionp (car rest))))
          `(define-when (compile load eval)
-	    (put-sysprop ',access-fn 'SETF-UPDATE-FN ',(car rest))
-	    (rem-sysprop ',access-fn 'SETF-LAMBDA)
+            (put-sysprop ',access-fn 'SETF-UPDATE-FN ',(car rest))
+            (rem-sysprop ',access-fn 'SETF-LAMBDA)
+            (rem-sysprop ',access-fn 'SETF-STORES)
 	    (rem-sysprop ',access-fn 'SETF-METHOD)
 	    (rem-sysprop ',access-fn 'SETF-SYMBOL)
 	    ,@(si::expand-set-documentation access-fn 'setf (cadr rest))
 	    ',access-fn))
-	(t
-	 (flet ((check-stores-number (context stores-list n)
-		  (unless (= (length stores-list) n)
-		    (error "~d store-variables expected in setf form ~a." n context))))
-	   (let* ((store (second rest))
-		  (args (first rest))
-		  (body+ (cddr rest))
-		  )
-	     (multiple-value-bind (decls body doc)
-	         (process-declarations body+ t)
-	       (check-stores-number 'DEFSETF store 1)
-	       `(define-when (compile load eval)
-		  (put-sysprop ',access-fn 'SETF-LAMBDA #'(lambda (,@store ,@args) (declare ,@decls) (block ,access-fn ,@body)))
-		  (rem-sysprop ',access-fn 'SETF-UPDATE-FN)
-		  (rem-sysprop ',access-fn 'SETF-METHOD)
-		  (rem-sysprop ',access-fn 'SETF-SYMBOL)
-		  ,@(si::expand-set-documentation access-fn 'setf doc)
-		  ',access-fn)))))))
+        ;; This is the long-form defsetf.
+	(t (destructuring-bind (lambda-list stores . body+) rest
+             (multiple-value-bind (lambda-list env dummy-env-p)
+                 (extract-environment-parameter lambda-list)
+               (multiple-value-bind (decls body doc)
+                   (process-declarations body+ t)
+                 (when dummy-env-p
+                   (push `(ignore ,env) decls))
+                 `(define-when (compile load eval)
+                    (put-sysprop ',access-fn 'SETF-LAMBDA
+                                 #'(lambda (,env ,@stores ,@lambda-list)
+                                     ,@(when decls `((declare ,@decls)))
+                                     (block ,access-fn ,@body)))
+                    ;; Save info so we can make gensyms for expansion.
+                    (put-sysprop ',access-fn 'SETF-STORES ',stores)
+                    (rem-sysprop ',access-fn 'SETF-UPDATE-FN)
+                    (rem-sysprop ',access-fn 'SETF-METHOD)
+                    (rem-sysprop ',access-fn 'SETF-SYMBOL)
+                    ,@(si::expand-set-documentation access-fn 'setf doc)
+                    ',access-fn)))))))
 
 
 ;;; DEFINE-SETF-METHOD macro.
@@ -94,23 +104,24 @@ expanded into
 	  storing-form)
 The doc-string DOC, if supplied, is saved as a SETF doc and can be retrieved
 by (DOCUMENTATION 'SYMBOL 'SETF)."
-  (let ((env (member '&environment args :test #'eq)))
-    (if env
-	(setq args (cons (second env)
-			 (nconc (ldiff args env) (cddr env))))
-	(progn
-	  (setq env (gensym))
-	  (setq args (cons env args))
-	  (push `(declare (ignore ,env)) body+))))
-  (multiple-value-bind (decls body doc)
-      (process-declarations body+ t)
-  `(define-when (compile load eval)
-     (put-sysprop ',access-fn 'SETF-METHOD #'(lambda ,args (declare ,@decls) (block ,access-fn ,@body)))
-     (rem-sysprop ',access-fn 'SETF-LAMBDA)
-     (rem-sysprop ',access-fn 'SETF-UPDATE-FN)
-     (rem-sysprop ',access-fn 'SETF-SYMBOL)
-     ,@(si::expand-set-documentation access-fn 'setf doc)
-     ',access-fn)))
+  (multiple-value-bind (args env dummy-env-p)
+      (extract-environment-parameter args)
+    (multiple-value-bind (decls body doc)
+        (process-declarations body+ t)
+      (when dummy-env-p
+        (push `(ignore ,env) decls))
+      `(define-when (compile load eval)
+         (put-sysprop ',access-fn 'SETF-METHOD
+                      #'(lambda (,env ,@args)
+                          (declare ,@decls)
+                          (block ,access-fn
+                            ,@body)))
+         (rem-sysprop ',access-fn 'SETF-LAMBDA)
+         (rem-sysprop ',access-fn 'SETF-STORES)
+         (rem-sysprop ',access-fn 'SETF-UPDATE-FN)
+         (rem-sysprop ',access-fn 'SETF-SYMBOL)
+         ,@(si::expand-set-documentation access-fn 'setf doc)
+         ',access-fn))))
 
 
 ;;;; get-setf-expansion.
@@ -126,7 +137,7 @@ Does not check if the third gang is a single-element list."
 	       (setq item (gensym))
 	       (push item names))
 	     (push item all-args))
-	   (values (gensym) (nreverse names) (nreverse values) (nreverse all-args))))
+           (values (gensym) (nreverse names) (nreverse values) (nreverse all-args))))
     ;; Note that macroexpansion of SETF arguments can only be done via
     ;; MACROEXPAND-1 [ANSI 5.1.2.7]
     (cond ((symbolp form)
@@ -138,6 +149,32 @@ Does not check if the third gang is a single-element list."
 	   (error "Cannot get the setf-method of ~S." form))
 	  ((setq f (get-sysprop (car form) 'SETF-METHOD))
 	   (apply f env (cdr form)))
+          ((setq f (get-sysprop (car form) 'SETF-LAMBDA))
+           (let ((stores (get-sysprop (car form) 'SETF-STORES)))
+             (flet ((gen (prefix) (gensym (symbol-name prefix))))
+               (let (temporary-variables temporary-values args)
+                 (dolist (argument-form (cdr form))
+                   ;; The following expression is also in RENAME-ARGUMENTS.
+                   ;; Perhaps it could be (constantp argument-form) instead?
+                   (if (or (fixnump argument-form)
+                           (keywordp argument-form))
+                       (push argument-form args)
+                       (let ((renamed-form (gensym "TEMP")))
+                         (push renamed-form temporary-variables)
+                         (push argument-form temporary-values)
+                         (push renamed-form args))))
+                 ;; (APPLY F) will have as many store variables
+                 ;; directly following the environment argument
+                 ;; as are in the system property SETF-STORES.
+                 (let* ((args (nreverse args))
+                        (stores (mapcar #'gen stores))
+                        (rest-args (append stores args)))
+                   ;; STORES are renamed from SETF-STORES.
+                   (values (nreverse temporary-variables)
+                           (nreverse temporary-values)
+                           stores
+                           (apply f env rest-args)
+                           `(,(car form) ,@args)))))))
 	  (t
 	   (flet ((setf-structure-access (struct type index newvalue)
                     (cond
@@ -154,14 +191,12 @@ Does not check if the third gang is a single-element list."
 			      `(,f ,@all ,store))
 			     ((setq f (get-sysprop name 'STRUCTURE-ACCESS))
 			      (setf-structure-access (car all) (car f) (cdr f) store))
-			     ((setq f (get-sysprop (car form) 'SETF-LAMBDA))
-			      (apply f store all))
 			     ((and (setq f (macroexpand-1 form env)) (not (equal f form)))
 			      (return-from get-setf-expansion
 					   (get-setf-expansion f env)))
 			     (t
 			      `(funcall #'(SETF ,name) ,store ,@all))))
-				    (values vars inits (list store) writer (cons name all)))))))))
+                 (values vars inits (list store) writer (cons name all)))))))))
 
 ;;;; SETF definitions.
 
