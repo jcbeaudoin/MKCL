@@ -76,6 +76,7 @@ by (documentation 'SYMBOL 'setf)."
                     ;; Save info so we can make gensyms for expansion.
                     (put-sysprop ',access-fn 'SETF-STORES ',stores)
                     (rem-sysprop ',access-fn 'SETF-UPDATE-FN)
+                    (rem-sysprop ',access-fn 'SETF-METHOD)
                     (rem-sysprop ',access-fn 'SETF-SYMBOL)
                     ,@(si::expand-set-documentation access-fn 'setf doc)
                     ',access-fn)))))))
@@ -153,6 +154,8 @@ Does not check if the third gang is a single-element list."
              (flet ((gen (prefix) (gensym (symbol-name prefix))))
                (let (temporary-variables temporary-values args)
                  (dolist (argument-form (cdr form))
+                   ;; The following expression is also in RENAME-ARGUMENTS.
+                   ;; Perhaps it could be (constantp argument-form) instead?
                    (if (or (fixnump argument-form)
                            (keywordp argument-form))
                        (push argument-form args)
