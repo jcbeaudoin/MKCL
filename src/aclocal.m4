@@ -8,14 +8,26 @@ AC_DEFUN([AC_C_LONG_LONG],
 if test "$GCC" = yes; then
   ac_cv_c_long_long=yes
 else
-  AC_TRY_COMPILE(,[long long int i;],
-  ac_cv_c_long_long=yes,
-  ac_cv_c_long_long=no)
+  dnl AC_TRY_COMPILE(,[long long int i;],
+  dnl ac_cv_c_long_long=yes,
+  dnl ac_cv_c_long_long=no)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[
+{
+  long long int i = -1;
+  if (i == 0)
+    return 0;
+  return 1;
+}]])],[ac_cv_c_long_long=yes],[ac_cv_c_long_long=no])
 fi
 if test $ac_cv_c_long_long = yes; then
   AC_RUN_IFELSE([AC_LANG_SOURCE([[#include <stdio.h>
 #include <stdlib.h>
-int main() {
+#if __STDC__
+int main(void)
+#else
+int main()
+#endif
+{
   const char *int_type;
   int bits;
   unsigned long long x = 1;
@@ -425,19 +437,33 @@ AC_SUBST(MKCL_FILE_CNT)
 if test -z "${MKCL_FILE_CNT}"; then
 MKCL_FILE_CNT=0
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <stdio.h>]], [[
-int main() {
+#if __STDC__
+int main(void)
+#else
+int main()
+#endif
+{
   FILE *f = fopen("conftestval","w");
   if ((f)->_IO_read_end - (f)->_IO_read_ptr)
     return 1;
 }]])],[MKCL_FILE_CNT=1],[])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <stdio.h>]], [[
-int main() {
+#if __STDC__
+int main(void)
+#else
+int main()
+#endif
+{
   FILE *f = fopen("conftestval","w");
   if ((f)->_r)
     return 1;
 }]])],[MKCL_FILE_CNT=2],[])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <stdio.h>]], [[
-int main() {
+#if __STDC__
+int main(void) {
+#else
+int main()
+#endif
   FILE *f = fopen("conftestval","w");
   if ((f)->_cnt)
     return 1;
@@ -603,7 +629,6 @@ AC_DEFUN(MKCL_STACK_DIRECTION,[
 if test -z "${MKCL_STACK_DIR}" ; then
   AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <stdio.h>
-/* This code is in antique K&R style, deliberately. */
 
 #if __GNUC__ >= 4
 int f2() __attribute__((noinline));
@@ -612,13 +637,21 @@ int f2();
 #endif
 
 int f1() {
+#if __STDC__
+  extern int (* f_ptr)(char *); /* Try really hard to prevent inlining of next call. */
+#else
   extern int (* f_ptr)(); /* Try really hard to prevent inlining of next call. */
+#endif
   char d = 0;
   return f_ptr(&d);
 }
 
+#if __STDC__
+int f2(char * mark)
+#else
 int f2(mark)
   char * mark;
+#endif
 {
   char c = 0;
   /* The purpose of this printf call is to prevent the compiler
@@ -630,9 +663,18 @@ int f2(mark)
   return &c - mark;
 }
 
+#if __STDC__
+int (* f_ptr)(char *) = NULL;
+#else
 int (* f_ptr)() = NULL;
+#endif
 
-int main() {
+#if __STDC__
+int main(void)
+#else
+int main()
+#endif
+{
   f_ptr = f2;
   if (f1() > 0)
     return 1;
@@ -674,7 +716,13 @@ if test -z "${CL_FIXNUM_TYPE}" ; then
   AC_RUN_IFELSE([AC_LANG_SOURCE([[#include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-int main() {
+
+#if __STDC__
+int main(void)
+#else
+int main()
+#endif
+{
   const char *int_type;
   int bits;
   FILE *f=fopen("conftestval", "w");
@@ -740,7 +788,13 @@ AC_MSG_CHECKING(character sequence for end of line)
 if test -z "${MKCL_NEWLINE}" ; then
 AC_RUN_IFELSE([AC_LANG_SOURCE([[#include <stdio.h>
 #include <stdlib.h>
-int main() {
+
+#if __STDC__
+int main(void)
+#else
+int main()
+#endif
+{
   FILE *f = fopen("conftestval","w");
   int c1, c2;
   char *output;
@@ -874,9 +928,18 @@ dnl Provides a test for the existance of the __thread declaration and
 dnl defines WITH___THREAD if it is found
 AC_DEFUN([MKCL___THREAD],
 [AC_CACHE_CHECK(for __thread local data, ac_cv_mkcl___thread,
-AC_TRY_COMPILE(,[static __thread void *data;],
-   ac_cv_mkcl___thread=yes,
-   ac_cv_mkcl___thread=no))
+dnl AC_TRY_COMPILE(,[static __thread void *data;],
+dnl    ac_cv_mkcl___thread=yes,
+dnl    ac_cv_mkcl___thread=no)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[
+{
+static __thread void *data;
+
+  if (data == 0)
+    return 0;
+  return 1;
+}]])],[ac_cv_mkcl___thread=yes],[ac_cv_mkcl___thread=no])
+   )
 dnl We deactivate this test because it seems to slow down MKCL A LOT!!!
 ])
 

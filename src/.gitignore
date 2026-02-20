@@ -37,3 +37,4 @@ lib/
 include/
 .gdbinit
 lsp/git_describe.lsp
+autom4te.cache/
