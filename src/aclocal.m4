@@ -630,8 +630,12 @@ if test -z "${MKCL_STACK_DIR}" ; then
   AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <stdio.h>
 
-#if __GNUC__ >= 4
-int f2() __attribute__((noinline));
+#if __STDC__
+# if __GNUC__ >= 4
+int f2(char *) __attribute__((noinline));
+# else
+int f2(char *);
+# endif
 #else
 int f2();
 #endif
