@@ -1215,8 +1215,15 @@ sharp_R_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
   mkcl_return_value((read_number(env, in, radix, MKCL_CODE_CHAR('R'))));
 }
 
-#define sharp_A_reader void_reader
-#define sharp_S_reader void_reader
+static mkcl_object
+sharp_void_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
+{
+  /*  no result  */
+  mkcl_return_no_value;
+}
+
+#define sharp_A_reader sharp_void_reader
+#define sharp_S_reader sharp_void_reader
 
 
 static mkcl_base_string_object(sharp_label_marker, "sharp");
@@ -1356,11 +1363,11 @@ sharp_sharp_reader(MKCL, mkcl_object in, mkcl_object c, mkcl_object d)
 
 
 
-#define sharp_plus_reader void_reader
-#define sharp_minus_reader void_reader
-#define sharp_less_than_reader void_reader
-#define sharp_whitespace_reader void_reader
-#define sharp_right_parenthesis_reader void_reader
+#define sharp_plus_reader sharp_void_reader
+#define sharp_minus_reader sharp_void_reader
+#define sharp_less_than_reader sharp_void_reader
+#define sharp_whitespace_reader sharp_void_reader
+#define sharp_right_parenthesis_reader sharp_void_reader
 
 static mkcl_object
 sharp_vertical_bar_reader(MKCL, mkcl_object in, mkcl_object ch, mkcl_object d)
@@ -2438,8 +2445,8 @@ extra_argument(MKCL, int c, mkcl_object stream, mkcl_object d)
 }
 
 
-#define	make_cf2(e,f)	mkcl_make_cfun(e, (f), mk_cl_Cnil, NULL, 2, NULL)
-#define	make_cf3(e,f)	mkcl_make_cfun(e, (f), mk_cl_Cnil, NULL, 3, NULL)
+#define	make_cf2(e,f)	mkcl_make_cfun2(e, (f), mk_cl_Cnil, NULL, NULL)
+#define	make_cf3(e,f)	mkcl_make_cfun3(e, (f), mk_cl_Cnil, NULL, NULL)
 
 void
 mkcl_init_read(MKCL)
@@ -2725,11 +2732,32 @@ mkcl_read_VV(MKCL,
 	  mkcl_object * anchor = prototype->anchor;
 	  mkcl_index nb_fun_refs = prototype->nb_fun_refs;
 	  mkcl_object * fun_ref_sym_locs = prototype->fun_ref_syms;
-	  mkcl_object cfun
-	    = (narg < 0)
-	    ? mkcl_make_cfun_va(env, prototype->f.entry, fname, block, anchor)
-	    : mkcl_make_cfun(env, (mkcl_objectfn_fixed) prototype->f.entry,
-			     fname, block, narg, anchor);
+	  mkcl_object cfun;
+
+	  switch (narg)
+	    {
+	    case 0:
+	      cfun = mkcl_make_cfun0(env, (mkcl_objectfn_fixed0) prototype->f.entry, fname, block, anchor);
+	      break;
+	    case 1:
+	      cfun = mkcl_make_cfun1(env, (mkcl_objectfn_fixed1) prototype->f.entry, fname, block, anchor);
+	      break;
+	    case 2:
+	      cfun = mkcl_make_cfun2(env, (mkcl_objectfn_fixed2) prototype->f.entry, fname, block, anchor);
+	      break;
+	    case 3:
+	      cfun = mkcl_make_cfun3(env, (mkcl_objectfn_fixed3) prototype->f.entry, fname, block, anchor);
+	      break;
+	    case 4:
+	      cfun = mkcl_make_cfun4(env, (mkcl_objectfn_fixed4) prototype->f.entry, fname, block, anchor);
+	      break;
+	    default:
+	      cfun = ((narg < 0)
+		      ? mkcl_make_cfun_va(env, prototype->f.entry, fname, block, anchor)
+		      : mkcl_make_cfunN(env, (mkcl_objectfn_fixed) prototype->f.entry,
+					fname, block, narg, anchor));
+	      break;
+	    }
 	  mkcl_build_named_cfun_fun_ref_syms(env, cfun, VV, fun_ref_sym_locs, nb_fun_refs);
 	  /* Add source file info */
 	  if (position != MKCL_MAKE_FIXNUM(-1)) {

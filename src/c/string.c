@@ -3356,7 +3356,7 @@ mkcl_object mk_si_utf_16Plus(MKCL, mkcl_narg narg, ...)
 }
 
 
-struct mkcl_cfun mk_si_utf_16E_cfunobj = MKCL_CFUN1(mk_si_utf_16E, (mkcl_object) &MK_SI_utf_16E);
+struct mkcl_cfun mk_si_utf_16E_cfunobj = MKCL_CFUN2(mk_si_utf_16E, (mkcl_object) &MK_SI_utf_16E);
 
 mkcl_object mk_si_utf_16E(MKCL, mkcl_object u1, mkcl_object u2)
 {

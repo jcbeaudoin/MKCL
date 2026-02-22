@@ -25,9 +25,9 @@ struct cl_test {
   mkcl_object (*key_c_function)(MKCL, struct cl_test *, mkcl_object);
   mkcl_env env;
   mkcl_object key_function;
-  mkcl_objectfn_fixed key_fn;
+  mkcl_objectfn_fixed1 key_fn;
   mkcl_object test_function;
-  mkcl_objectfn_fixed test_fn;
+  mkcl_objectfn_fixed2 test_fn;
   mkcl_object item_compared;
 };
 
@@ -109,20 +109,20 @@ setup_test(MKCL, struct cl_test *t, mkcl_object item, mkcl_object test,
     } else {
       t->test_c_function = test_compare;
       t->test_function = mkcl_validate_function(env, test);
-      t->test_fn = t->test_function->cfun.f._[2];
+      t->test_fn = t->test_function->cfun.f._2;
     }
   } else if (test_not != mk_cl_Cnil) {
     t->test_c_function = test_compare_not;
     test_not = mk_si_coerce_to_function(env, test_not);
     t->test_function = mkcl_validate_function(env, test_not);
-    t->test_fn = t->test_function->cfun.f._[2];
+    t->test_fn = t->test_function->cfun.f._2;
   } else {
     t->test_c_function = test_eql;
   }
   if (key != mk_cl_Cnil) {
     key = mk_si_coerce_to_function(env, key);
     t->key_function = mkcl_validate_function(env, key);
-    t->key_fn = t->key_function->cfun.f._[1];
+    t->key_fn = t->key_function->cfun.f._1;
     t->key_c_function = key_function;
   } else {
     t->key_c_function = key_identity;

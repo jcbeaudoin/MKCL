@@ -380,7 +380,6 @@ extern "C" {
 
   /* apply.c */
 
-  extern MKCL_API mkcl_object mkcl_APPLY_fixed(MKCL, mkcl_narg n, mkcl_object (*f)(), mkcl_object *x);
   extern MKCL_API mkcl_object mkcl_APPLY(MKCL, mkcl_narg n, mkcl_object fun, mkcl_object *x);
 
   /* array.c */
@@ -501,14 +500,18 @@ extern "C" {
   extern struct mkcl_cfun mk_si_compiled_function_block_cfunobj;
   extern struct mkcl_cfun mk_si_compiled_function_file_cfunobj;
 
-  extern MKCL_API mkcl_object mkcl_make_cfun(MKCL, mkcl_objectfn_fixed c_function, mkcl_object name, mkcl_object block, int narg, mkcl_object * anchor);
+  extern MKCL_API mkcl_object mkcl_make_cfun0(MKCL, mkcl_objectfn_fixed0 c_function, mkcl_object name, mkcl_object block, mkcl_object * anchor);
+  extern MKCL_API mkcl_object mkcl_make_cfun1(MKCL, mkcl_objectfn_fixed1 c_function, mkcl_object name, mkcl_object block, mkcl_object * anchor);
+  extern MKCL_API mkcl_object mkcl_make_cfun2(MKCL, mkcl_objectfn_fixed2 c_function, mkcl_object name, mkcl_object block, mkcl_object * anchor);
+  extern MKCL_API mkcl_object mkcl_make_cfun3(MKCL, mkcl_objectfn_fixed3 c_function, mkcl_object name, mkcl_object block, mkcl_object * anchor);
+  extern MKCL_API mkcl_object mkcl_make_cfun4(MKCL, mkcl_objectfn_fixed4 c_function, mkcl_object name, mkcl_object block, mkcl_object * anchor);
+  extern MKCL_API mkcl_object mkcl_make_cfunN(MKCL, mkcl_objectfn_fixed c_function, mkcl_object name, mkcl_object block, mkcl_narg narg, mkcl_object * anchor);
+
   extern MKCL_API mkcl_object mkcl_make_cfun_va(MKCL, mkcl_objectfn c_function, mkcl_object name, mkcl_object block, mkcl_object * anchor);
   extern MKCL_API void mkcl_build_named_cfun_fun_ref_syms(MKCL, mkcl_object fun, mkcl_object * VV, mkcl_object * fun_ref_sym_locs, mkcl_index nb_fun_refs);
   extern MKCL_API mkcl_object mkcl_fix_lambda_fun_refs(MKCL, mkcl_object * VV, mkcl_object * fun_ref_syms_locs, mkcl_index nb_fun_refs, mkcl_object fun);
   extern MKCL_API mkcl_object mkcl_fix_lex_local_fun_refs(MKCL, mkcl_object producer, mkcl_object fun);
 
-  extern MKCL_API mkcl_object mkcl_debug_make_cfun(MKCL, mkcl_objectfn_fixed c_function, mkcl_object name, mkcl_object cblock, int narg, mkcl_object * anchor, char * source, int position);
-  extern MKCL_API mkcl_object mkcl_debug_make_cfun_va(MKCL, mkcl_objectfn c_function, mkcl_object name, mkcl_object cblock, mkcl_object * anchor, char * source, int position);
   extern MKCL_API mkcl_object mkcl_build_cdisplay(MKCL, mkcl_object producer, mkcl_object cenv, mkcl_index depth);
 
   extern MKCL_API mkcl_object mkcl_make_cclosure(MKCL, mkcl_object producer, mkcl_objectfn_fixed c_function, int narg, mkcl_index depth, mkcl_object syms_cenv, mkcl_object cenv, mkcl_object block, int position);
@@ -947,11 +950,11 @@ extern "C" {
       mkcl_FEinvalid_function(env, fun);
   }
 
-#define mkcl_funcall0(e, fun) (mkcl_validate_function(e, fun)->cfun.f._[0](e))
-#define mkcl_funcall1(e, fun, a0) (mkcl_validate_function(e, fun)->cfun.f._[1](e, a0))
-#define mkcl_funcall2(e, fun, a0, a1) (mkcl_validate_function(e, fun)->cfun.f._[2](e, a0, a1))
-#define mkcl_funcall3(e, fun, a0, a1, a2) (mkcl_validate_function(e, fun)->cfun.f._[3](e, a0, a1, a2))
-#define mkcl_funcall4(e, fun, a0, a1, a2, a3) (mkcl_validate_function(e, fun)->cfun.f._[4](e, a0, a1, a2, a3))
+#define mkcl_funcall0(e, fun) (mkcl_validate_function(e, fun)->cfun.f._0(e))
+#define mkcl_funcall1(e, fun, a0) (mkcl_validate_function(e, fun)->cfun.f._1(e, a0))
+#define mkcl_funcall2(e, fun, a0, a1) (mkcl_validate_function(e, fun)->cfun.f._2(e, a0, a1))
+#define mkcl_funcall3(e, fun, a0, a1, a2) (mkcl_validate_function(e, fun)->cfun.f._3(e, a0, a1, a2))
+#define mkcl_funcall4(e, fun, a0, a1, a2, a3) (mkcl_validate_function(e, fun)->cfun.f._4(e, a0, a1, a2, a3))
 
 
 

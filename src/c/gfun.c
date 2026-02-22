@@ -24,7 +24,7 @@
 static mkcl_object generic_function_dispatch_vararg(MKCL, mkcl_narg, ...);
 
 mkcl_object
-mkcl_FEnot_funcallable_fixed(MKCL)
+mkcl_FEnot_funcallable_fixed0(MKCL)
 {
   mkcl_object fun = env->function;
   mkcl_FEerror(env, "Not a funcallable instance ~A.", 1, fun);
@@ -32,9 +32,33 @@ mkcl_FEnot_funcallable_fixed(MKCL)
 }
 
 mkcl_object
+mkcl_FEnot_funcallable_fixed1(MKCL, mkcl_object a1)
+{
+  return mkcl_FEnot_funcallable_fixed0(env);
+}
+
+mkcl_object
+mkcl_FEnot_funcallable_fixed2(MKCL, mkcl_object a1, mkcl_object a2)
+{
+  return mkcl_FEnot_funcallable_fixed0(env);
+}
+
+mkcl_object
+mkcl_FEnot_funcallable_fixed3(MKCL, mkcl_object a1, mkcl_object a2, mkcl_object a3)
+{
+  return mkcl_FEnot_funcallable_fixed0(env);
+}
+
+mkcl_object
+mkcl_FEnot_funcallable_fixed4(MKCL, mkcl_object a1, mkcl_object a2, mkcl_object a3, mkcl_object a4)
+{
+  return mkcl_FEnot_funcallable_fixed0(env);
+}
+
+mkcl_object
 mkcl_FEnot_funcallable_vararg(MKCL, mkcl_narg narg, ...)
 {
-  return mkcl_FEnot_funcallable_fixed(env);
+  return mkcl_FEnot_funcallable_fixed0(env);
 }
 
 static mkcl_object
@@ -163,11 +187,11 @@ mk_si_set_raw_funcallable(MKCL, mkcl_object instance, mkcl_object function)
       instance->instance.length  = length;
       instance->instance.isgf = 0; /* Could it be MKCL_NOT_FUNCALLABLE? */
       instance->instance.f.entry = mkcl_FEnot_funcallable_vararg;
-      instance->instance.f._[0] = mkcl_FEnot_funcallable_fixed;
-      instance->instance.f._[1] = mkcl_FEnot_funcallable_fixed;
-      instance->instance.f._[2] = mkcl_FEnot_funcallable_fixed;
-      instance->instance.f._[3] = mkcl_FEnot_funcallable_fixed;
-      instance->instance.f._[4] = mkcl_FEnot_funcallable_fixed;
+      instance->instance.f._0 = mkcl_FEnot_funcallable_fixed0;
+      instance->instance.f._1 = mkcl_FEnot_funcallable_fixed1;
+      instance->instance.f._2 = mkcl_FEnot_funcallable_fixed2;
+      instance->instance.f._3 = mkcl_FEnot_funcallable_fixed3;
+      instance->instance.f._4 = mkcl_FEnot_funcallable_fixed4;
     }
   } else {
     if (instance->instance.isgf == 0) {
@@ -178,11 +202,11 @@ mk_si_set_raw_funcallable(MKCL, mkcl_object instance, mkcl_object function)
       instance->instance.length  = length;
       instance->instance.isgf    = 2; /* Could it be MKCL_USER_DISPATCH? */
       instance->instance.f.entry = user_function_dispatch;
-      instance->instance.f._[0] = user_function_dispatch_f0;
-      instance->instance.f._[1] = user_function_dispatch_f1;
-      instance->instance.f._[2] = user_function_dispatch_f2;
-      instance->instance.f._[3] = user_function_dispatch_f3;
-      instance->instance.f._[4] = user_function_dispatch_f4;
+      instance->instance.f._0 = user_function_dispatch_f0;
+      instance->instance.f._1 = user_function_dispatch_f1;
+      instance->instance.f._2 = user_function_dispatch_f2;
+      instance->instance.f._3 = user_function_dispatch_f3;
+      instance->instance.f._4 = user_function_dispatch_f4;
     }
     instance->instance.slots[instance->instance.length-1] = function;
   }
@@ -204,19 +228,19 @@ mk_clos_set_funcallable_instance_function(MKCL, mkcl_object x, mkcl_object funct
   if (function_or_t == mk_cl_Ct) {
     x->instance.isgf = MKCL_STANDARD_DISPATCH;
     x->instance.f.entry = generic_function_dispatch_vararg;
-    x->instance.f._[0] = generic_function_dispatch_f0;
-    x->instance.f._[1] = generic_function_dispatch_f1;
-    x->instance.f._[2] = generic_function_dispatch_f2;
-    x->instance.f._[3] = generic_function_dispatch_f3;
-    x->instance.f._[4] = generic_function_dispatch_f4;
+    x->instance.f._0 = generic_function_dispatch_f0;
+    x->instance.f._1 = generic_function_dispatch_f1;
+    x->instance.f._2 = generic_function_dispatch_f2;
+    x->instance.f._3 = generic_function_dispatch_f3;
+    x->instance.f._4 = generic_function_dispatch_f4;
   } else if (function_or_t == mk_cl_Cnil) {
     x->instance.isgf = MKCL_NOT_FUNCALLABLE;
     x->instance.f.entry = mkcl_FEnot_funcallable_vararg;
-    x->instance.f._[0] = mkcl_FEnot_funcallable_fixed;
-    x->instance.f._[1] = mkcl_FEnot_funcallable_fixed;
-    x->instance.f._[2] = mkcl_FEnot_funcallable_fixed;
-    x->instance.f._[3] = mkcl_FEnot_funcallable_fixed;
-    x->instance.f._[4] = mkcl_FEnot_funcallable_fixed;
+    x->instance.f._0 = mkcl_FEnot_funcallable_fixed0;
+    x->instance.f._1 = mkcl_FEnot_funcallable_fixed1;
+    x->instance.f._2 = mkcl_FEnot_funcallable_fixed2;
+    x->instance.f._3 = mkcl_FEnot_funcallable_fixed3;
+    x->instance.f._4 = mkcl_FEnot_funcallable_fixed4;
   } else if (mkcl_Null(mk_cl_functionp(env, function_or_t))) {
     mkcl_FEwrong_type_argument(env, (mkcl_object) &MK_CL_function, function_or_t);
   } else {
@@ -224,11 +248,11 @@ mk_clos_set_funcallable_instance_function(MKCL, mkcl_object x, mkcl_object funct
     x->instance.slots[x->instance.length - 1] = function_or_t;
     x->instance.isgf = MKCL_USER_DISPATCH;
     x->instance.f.entry = user_function_dispatch;
-    x->instance.f._[0] = user_function_dispatch_f0;
-    x->instance.f._[1] = user_function_dispatch_f1;
-    x->instance.f._[2] = user_function_dispatch_f2;
-    x->instance.f._[3] = user_function_dispatch_f3;
-    x->instance.f._[4] = user_function_dispatch_f4;
+    x->instance.f._0 = user_function_dispatch_f0;
+    x->instance.f._1 = user_function_dispatch_f1;
+    x->instance.f._2 = user_function_dispatch_f2;
+    x->instance.f._3 = user_function_dispatch_f3;
+    x->instance.f._4 = user_function_dispatch_f4;
   }
   mkcl_return_value(x);
 }

@@ -122,10 +122,10 @@ extern "C" {
   bool mkcl_equal_cfun(MKCL, struct mkcl_cfun * fun0, struct mkcl_cfun * fun1);
 
   mkcl_object mkcl_wrong_num_args_cfun_0(MKCL);
-  mkcl_object mkcl_wrong_num_args_cfun_1(MKCL);
-  mkcl_object mkcl_wrong_num_args_cfun_2(MKCL);
-  mkcl_object mkcl_wrong_num_args_cfun_3(MKCL);
-  mkcl_object mkcl_wrong_num_args_cfun_4(MKCL);
+  mkcl_object mkcl_wrong_num_args_cfun_1(MKCL, mkcl_object arg1);
+  mkcl_object mkcl_wrong_num_args_cfun_2(MKCL, mkcl_object arg1, mkcl_object arg2);
+  mkcl_object mkcl_wrong_num_args_cfun_3(MKCL, mkcl_object arg1, mkcl_object arg2, mkcl_object arg3);
+  mkcl_object mkcl_wrong_num_args_cfun_4(MKCL, mkcl_object arg1, mkcl_object arg2, mkcl_object arg3, mkcl_object arg4);
   mkcl_object mkcl_wrong_num_args_cfun_va(MKCL, mkcl_narg narg, ...);
 
 
@@ -134,140 +134,130 @@ extern "C" {
     mkcl_t_cfun, 0, 0, 0,			\
       {						\
 	mkcl_wrong_num_args_cfun_va,		\
-	  {					\
-	    fun,				\
-	      mkcl_wrong_num_args_cfun_1,	\
-	      mkcl_wrong_num_args_cfun_2,	\
-	      mkcl_wrong_num_args_cfun_3,	\
-	      mkcl_wrong_num_args_cfun_4	\
-	      }					\
-      },					\
+	  fun,					\
+	  mkcl_wrong_num_args_cfun_1,		\
+	  mkcl_wrong_num_args_cfun_2,		\
+	  mkcl_wrong_num_args_cfun_3,		\
+	  mkcl_wrong_num_args_cfun_4		\
+	  },					\
       name,					\
-	MKCL_OBJNULL,				\
-	fun,					\
-	mk_cl_Cnil,				\
-	MKCL_MAKE_FIXNUM(-1),			\
-	0,					\
-	NULL,					\
-	0,					\
-	NULL,					\
-	NULL,					\
-	mk_cl_Cnil,				\
-	mk_cl_Cnil,				\
-	#fun					\
-	}
+      MKCL_OBJNULL,				\
+      (mkcl_objectfn_fixedN) fun,		\
+      mk_cl_Cnil,				\
+      MKCL_MAKE_FIXNUM(-1),			\
+      0,					\
+      NULL,					\
+      0,					\
+      NULL,					\
+      NULL,					\
+      mk_cl_Cnil,				\
+      mk_cl_Cnil,				\
+      #fun					\
+      }
 
 #define MKCL_CFUN1(fun, name)			\
   {						\
     mkcl_t_cfun, 0, 0, 0,			\
       {						\
 	mkcl_wrong_num_args_cfun_va,		\
-	  {					\
-	    mkcl_wrong_num_args_cfun_0,		\
-	      fun,				\
-	      mkcl_wrong_num_args_cfun_2,	\
-	      mkcl_wrong_num_args_cfun_3,	\
-	      mkcl_wrong_num_args_cfun_4	\
-	      }					\
-      },					\
+	  mkcl_wrong_num_args_cfun_0,		\
+	  fun,					\
+	  mkcl_wrong_num_args_cfun_2,		\
+	  mkcl_wrong_num_args_cfun_3,		\
+	  mkcl_wrong_num_args_cfun_4		\
+	  },					\
       name,					\
-	MKCL_OBJNULL,				\
-	fun,					\
-	mk_cl_Cnil,				\
-	MKCL_MAKE_FIXNUM(-1),			\
-	1,					\
-	NULL,					\
-	0,					\
-	NULL,					\
-	NULL,					\
-	mk_cl_Cnil,				\
-	mk_cl_Cnil,				\
-	#fun					\
-	}
+      MKCL_OBJNULL,				\
+      (mkcl_objectfn_fixedN) fun,		\
+      mk_cl_Cnil,				\
+      MKCL_MAKE_FIXNUM(-1),			\
+      1,					\
+      NULL,					\
+      0,					\
+      NULL,					\
+      NULL,					\
+      mk_cl_Cnil,				\
+      mk_cl_Cnil,				\
+      #fun					\
+      }
 
 #define MKCL_CFUN2(fun, name)			\
   {						\
     mkcl_t_cfun, 0, 0, 0,			\
       {						\
 	mkcl_wrong_num_args_cfun_va,		\
-	  {					\
-	    mkcl_wrong_num_args_cfun_0,		\
-	      mkcl_wrong_num_args_cfun_1,	\
-	      fun,				\
-	      mkcl_wrong_num_args_cfun_3,	\
-	      mkcl_wrong_num_args_cfun_4	\
-	      }					\
-      },					\
+	  mkcl_wrong_num_args_cfun_0,		\
+	  mkcl_wrong_num_args_cfun_1,		\
+	  fun,					\
+	  mkcl_wrong_num_args_cfun_3,		\
+	  mkcl_wrong_num_args_cfun_4		\
+	  },					\
       name,					\
-	MKCL_OBJNULL,				\
-	fun,					\
-	mk_cl_Cnil,				\
-	MKCL_MAKE_FIXNUM(-1),			\
-	2,					\
-	NULL,					\
-	0,					\
-	NULL,					\
-	NULL,					\
-	mk_cl_Cnil,				\
-	mk_cl_Cnil,				\
-	#fun					\
-	}
+      MKCL_OBJNULL,				\
+      (mkcl_objectfn_fixedN) fun,		\
+      mk_cl_Cnil,				\
+      MKCL_MAKE_FIXNUM(-1),			\
+      2,					\
+      NULL,					\
+      0,					\
+      NULL,					\
+      NULL,					\
+      mk_cl_Cnil,				\
+      mk_cl_Cnil,				\
+      #fun					\
+      }
 
 #define MKCL_CFUN3(fun, name)			\
   {						\
     mkcl_t_cfun, 0, 0, 0,			\
       {						\
 	mkcl_wrong_num_args_cfun_va,		\
-	  {					\
-	    mkcl_wrong_num_args_cfun_0,		\
-	      mkcl_wrong_num_args_cfun_1,	\
-	      mkcl_wrong_num_args_cfun_2,	\
-	      fun,				\
-	      mkcl_wrong_num_args_cfun_4	\
-	      }					\
-      },					\
+	  mkcl_wrong_num_args_cfun_0,		\
+	  mkcl_wrong_num_args_cfun_1,		\
+	  mkcl_wrong_num_args_cfun_2,		\
+	  fun,					\
+	  mkcl_wrong_num_args_cfun_4		\
+	  },					\
       name,					\
-	MKCL_OBJNULL,				\
-	fun,					\
-	mk_cl_Cnil,				\
-	MKCL_MAKE_FIXNUM(-1),			\
-	3,					\
-	NULL,					\
-	0,					\
-	NULL,					\
-	NULL,					\
-	mk_cl_Cnil,				\
-	mk_cl_Cnil,				\
-	#fun					\
-	}
+      MKCL_OBJNULL,				\
+      (mkcl_objectfn_fixedN) fun,		\
+      mk_cl_Cnil,				\
+      MKCL_MAKE_FIXNUM(-1),			\
+      3,					\
+      NULL,					\
+      0,					\
+      NULL,					\
+      NULL,					\
+      mk_cl_Cnil,				\
+      mk_cl_Cnil,				\
+      #fun					\
+      }
 
 #define MKCL_CFUN4(fun, name)			\
   {						\
     mkcl_t_cfun, 0, 0, 0,			\
       {						\
 	mkcl_wrong_num_args_cfun_va,		\
-	  {					\
-	    mkcl_wrong_num_args_cfun_0,		\
-	      mkcl_wrong_num_args_cfun_1,	\
-	      mkcl_wrong_num_args_cfun_2,	\
-	      mkcl_wrong_num_args_cfun_3,	\
-	      fun				\
-	      }					\
-      },					\
+	  mkcl_wrong_num_args_cfun_0,		\
+	  mkcl_wrong_num_args_cfun_1,		\
+	  mkcl_wrong_num_args_cfun_2,		\
+	  mkcl_wrong_num_args_cfun_3,		\
+	  fun					\
+	  },					\
       name,					\
-	MKCL_OBJNULL,				\
-	fun,					\
-	mk_cl_Cnil,				\
-	MKCL_MAKE_FIXNUM(-1),			\
-	4,					\
-	NULL,					\
-	0,					\
-	NULL,					\
-	NULL,					\
-	mk_cl_Cnil,				\
-	mk_cl_Cnil,				\
-	#fun					\
-	}
+      MKCL_OBJNULL,				\
+      (mkcl_objectfn_fixedN) fun,		\
+      mk_cl_Cnil,				\
+      MKCL_MAKE_FIXNUM(-1),			\
+      4,					\
+      NULL,					\
+      0,					\
+      NULL,					\
+      NULL,					\
+      mk_cl_Cnil,				\
+      mk_cl_Cnil,				\
+      #fun					\
+      }
 
 
   mkcl_object mkcl_fun_va_trampoline_f0(MKCL);
@@ -278,31 +268,29 @@ extern "C" {
 
 #define MKCL_CFUN_VA(fun, name)			\
   {						\
-    mkcl_t_cfun, 0, 0, 0,			\
+  mkcl_t_cfun, 0, 0, 0,				\
     {						\
       ((mkcl_objectfn) fun),			\
-      {						\
 	mkcl_fun_va_trampoline_f0,		\
 	mkcl_fun_va_trampoline_f1,		\
 	mkcl_fun_va_trampoline_f2,		\
 	mkcl_fun_va_trampoline_f3,		\
 	mkcl_fun_va_trampoline_f4		\
-      }						\
-    },						\
-      name,					\
-	MKCL_OBJNULL,				\
-	NULL,					\
-	mk_cl_Cnil,				\
-	MKCL_MAKE_FIXNUM(-1),			\
-	-1,					\
-	NULL,					\
-	0,					\
-	NULL,					\
-	NULL,					\
-	mk_cl_Cnil,				\
-	mk_cl_Cnil,				\
-	#fun					\
-	}
+	},					\
+    name,					\
+    MKCL_OBJNULL,				\
+    NULL,					\
+    mk_cl_Cnil,					\
+    MKCL_MAKE_FIXNUM(-1),			\
+    -1,						\
+    NULL,					\
+    0,						\
+    NULL,					\
+    NULL,					\
+    mk_cl_Cnil,					\
+    mk_cl_Cnil,					\
+    #fun					\
+    }
 
 
 
@@ -565,7 +553,11 @@ extern "C" {
 #define MKCL_GFUN_COMB(x) ((x)->instance.slots[2]) /* hardcoded from clos/kernel.lsp */
 
   extern mkcl_object mkcl_FEnot_funcallable_vararg(MKCL, mkcl_narg narg, ...);
-  extern mkcl_object mkcl_FEnot_funcallable_fixed();
+  extern mkcl_object mkcl_FEnot_funcallable_fixed0(MKCL);
+  extern mkcl_object mkcl_FEnot_funcallable_fixed1(MKCL, mkcl_object a1);
+  extern mkcl_object mkcl_FEnot_funcallable_fixed2(MKCL, mkcl_object a1, mkcl_object a2);
+  extern mkcl_object mkcl_FEnot_funcallable_fixed3(MKCL, mkcl_object a1, mkcl_object a2, mkcl_object a3);
+  extern mkcl_object mkcl_FEnot_funcallable_fixed4(MKCL, mkcl_object a1, mkcl_object a2, mkcl_object a3, mkcl_object a4);
 
   /* package.d */
 

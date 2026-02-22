@@ -258,11 +258,11 @@ close_around(MKCL, mkcl_object producer, mkcl_object fun, mkcl_object lex)
   v->bclosure.code = fun;
   v->bclosure.lex = lex;
   v->bclosure.f.entry = _mkcl_bclosure_dispatch_vararg;
-  v->bclosure.f._[0] = _mkcl_bclosure_dispatch_f0;
-  v->bclosure.f._[1] = _mkcl_bclosure_dispatch_f1;
-  v->bclosure.f._[2] = _mkcl_bclosure_dispatch_f2;
-  v->bclosure.f._[3] = _mkcl_bclosure_dispatch_f3;
-  v->bclosure.f._[4] = _mkcl_bclosure_dispatch_f4;
+  v->bclosure.f._0 = _mkcl_bclosure_dispatch_f0;
+  v->bclosure.f._1 = _mkcl_bclosure_dispatch_f1;
+  v->bclosure.f._2 = _mkcl_bclosure_dispatch_f2;
+  v->bclosure.f._3 = _mkcl_bclosure_dispatch_f3;
+  v->bclosure.f._4 = _mkcl_bclosure_dispatch_f4;
   v->bclosure.producer = producer;
   v->bclosure.name = mk_si_compiled_function_name(env, fun);
 
@@ -455,10 +455,11 @@ mkcl_interpret(MKCL, mkcl_object frame, mkcl_object lex_env, mkcl_object bytecod
 
     CASE(OP_CALLG1); {
       mkcl_object s, fun;
-      mkcl_objectfn_fixed f;
+      mkcl_object (*f)(MKCL, mkcl_object);
+
       GET_DATA(s, vector, data);
       fun = MKCL_SYM_FUN(s);
-      f = fun->cfun.f._[1];
+      f = fun->cfun.f._1;
       SETUP_ENV(env);
       env->function = fun;
       reg0 = f(env, reg0);
@@ -467,10 +468,11 @@ mkcl_interpret(MKCL, mkcl_object frame, mkcl_object lex_env, mkcl_object bytecod
 
     CASE(OP_CALLG2); {
       mkcl_object s, fun;
-      mkcl_objectfn_fixed f;
+      mkcl_object (*f)(MKCL, mkcl_object, mkcl_object);
+
       GET_DATA(s, vector, data);
       fun = MKCL_SYM_FUN(s);
-      f = fun->cfun.f._[2];
+      f = fun->cfun.f._2;
       SETUP_ENV(env);
       env->function = fun;
       reg0 = f(env, MKCL_TEMP_STACK_POP_UNSAFE(env), reg0);
@@ -541,10 +543,8 @@ mkcl_interpret(MKCL, mkcl_object frame, mkcl_object lex_env, mkcl_object bytecod
 	    reg0 = mkcl_APPLY(env, narg, reg0, frame_aux.base);
 	  else if ( narg != func_narg )
 	    mkcl_FEwrong_num_arguments(env, reg0, func_narg, func_narg, narg);
-	  else if ( narg < MKCL_MAX_FAST_FUNC_DISPATCH )
-	    reg0 = mkcl_APPLY_fixed(env, narg, reg0->cfun.f._[narg], frame_aux.base);
 	  else
-	    reg0 = mkcl_APPLY_fixed(env, narg, reg0->cfun.old_entry_fixed, frame_aux.base);
+	    reg0 = mkcl_APPLY(env, narg, reg0, frame_aux.base);
 	}
 	break;
       case mkcl_t_cclosure:

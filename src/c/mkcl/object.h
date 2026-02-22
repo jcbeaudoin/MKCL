@@ -145,7 +145,13 @@ extern "C" {
   typedef mkcl_object mkcl_return;
   typedef mkcl_word mkcl_narg;
   typedef mkcl_object (*mkcl_objectfn)(__MKCL, mkcl_narg narg, ...);
-  typedef mkcl_object (*mkcl_objectfn_fixed)();
+  typedef void * mkcl_objectfn_fixed;
+  typedef mkcl_object (*mkcl_objectfn_fixed0)(__MKCL);
+  typedef mkcl_object (*mkcl_objectfn_fixed1)(__MKCL, mkcl_object);
+  typedef mkcl_object (*mkcl_objectfn_fixed2)(__MKCL, mkcl_object, mkcl_object);
+  typedef mkcl_object (*mkcl_objectfn_fixed3)(__MKCL, mkcl_object, mkcl_object, mkcl_object);
+  typedef mkcl_object (*mkcl_objectfn_fixed4)(__MKCL, mkcl_object, mkcl_object, mkcl_object, mkcl_object);
+  typedef mkcl_object (*mkcl_objectfn_fixedN)();
 
   typedef mkcl_index mkcl_hash_value;
 
@@ -786,7 +792,11 @@ extern "C" {
 
   struct mkcl_function_entry_points {
     mkcl_objectfn entry;	/*  general entry address  */
-    mkcl_objectfn_fixed _[MKCL_MAX_FAST_FUNC_DISPATCH];  /* fast entry addresses */
+    mkcl_objectfn_fixed0 _0;
+    mkcl_objectfn_fixed1 _1;
+    mkcl_objectfn_fixed2 _2;
+    mkcl_objectfn_fixed3 _3;
+    mkcl_objectfn_fixed4 _4;
   };
 
   struct mkcl_bytecode {
@@ -1304,11 +1314,7 @@ extern "C" {
   typedef struct {
     va_list args;
     mkcl_object *sp;
-#if 0
-    int narg;
-#else
     mkcl_narg narg;
-#endif
   } mkcl_va_list[1]; /* What is that subscript doing here!?! JCB
 			It turns mkcl_va_list into an array type of 1 element.
 			Among other things this allows some fine control during

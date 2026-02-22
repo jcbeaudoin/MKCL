@@ -89,11 +89,11 @@ mk_cl_funcall(MKCL, mkcl_narg narg, mkcl_object function, ...)
 	    const mkcl_objectfn fn = fun->cfun.f.entry;
 
 	    switch (n) {
-	    case 0: output = fun->cfun.f._[0](env); break;
-	    case 1: output = fun->cfun.f._[1](env, sp[0]); break;
-	    case 2: output = fun->cfun.f._[2](env, sp[0],sp[1]); break;
-	    case 3: output = fun->cfun.f._[3](env, sp[0],sp[1],sp[2]); break;
-	    case 4: output = fun->cfun.f._[4](env, sp[0],sp[1],sp[2],sp[3]); break;
+	    case 0: output = fun->cfun.f._0(env); break;
+	    case 1: output = fun->cfun.f._1(env, sp[0]); break;
+	    case 2: output = fun->cfun.f._2(env, sp[0],sp[1]); break;
+	    case 3: output = fun->cfun.f._3(env, sp[0],sp[1],sp[2]); break;
+	    case 4: output = fun->cfun.f._4(env, sp[0],sp[1],sp[2],sp[3]); break;
 	    case 5: output = (*fn)(env, n, sp[0],sp[1],sp[2],sp[3],sp[4]); break;
 	    case 6: output = (*fn)(env, n, sp[0],sp[1],sp[2],sp[3],sp[4],sp[5]); break;
 	    case 7: output = (*fn)(env, n, sp[0],sp[1],sp[2],sp[3],sp[4],sp[5],sp[6]); break;
@@ -106,11 +106,11 @@ mk_cl_funcall(MKCL, mkcl_narg narg, mkcl_object function, ...)
 	    const mkcl_objectfn fn = fun->cclosure.f.entry;
 
 	    switch (n) {
-	    case 0: output = fun->cclosure.f._[0](env); break;
-	    case 1: output = fun->cclosure.f._[1](env, sp[0]); break;
-	    case 2: output = fun->cclosure.f._[2](env, sp[0],sp[1]); break;
-	    case 3: output = fun->cclosure.f._[3](env, sp[0],sp[1],sp[2]); break;
-	    case 4: output = fun->cclosure.f._[4](env, sp[0],sp[1],sp[2],sp[3]); break;
+	    case 0: output = fun->cclosure.f._0(env); break;
+	    case 1: output = fun->cclosure.f._1(env, sp[0]); break;
+	    case 2: output = fun->cclosure.f._2(env, sp[0],sp[1]); break;
+	    case 3: output = fun->cclosure.f._3(env, sp[0],sp[1],sp[2]); break;
+	    case 4: output = fun->cclosure.f._4(env, sp[0],sp[1],sp[2],sp[3]); break;
 	    case 5: output = (*fn)(env, n, sp[0],sp[1],sp[2],sp[3],sp[4]); break;
 	    case 6: output = (*fn)(env, n, sp[0],sp[1],sp[2],sp[3],sp[4],sp[5]); break;
 	    case 7: output = (*fn)(env, n, sp[0],sp[1],sp[2],sp[3],sp[4],sp[5],sp[6]); break;
@@ -153,11 +153,11 @@ mkcl_object mk_cl_apply(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_object lasta
               const mkcl_objectfn fn = fun->cfun.f.entry;
 
               switch (n) {
-              case 0: return fun->cfun.f._[0](env); break;
-              case 1: return fun->cfun.f._[1](env, sp[0]); break;
-              case 2: return fun->cfun.f._[2](env, sp[0],sp[1]); break;
-              case 3: return fun->cfun.f._[3](env, sp[0],sp[1],sp[2]); break;
-              case 4: return fun->cfun.f._[4](env, sp[0],sp[1],sp[2],sp[3]); break;
+              case 0: return fun->cfun.f._0(env); break;
+              case 1: return fun->cfun.f._1(env, sp[0]); break;
+              case 2: return fun->cfun.f._2(env, sp[0],sp[1]); break;
+              case 3: return fun->cfun.f._3(env, sp[0],sp[1],sp[2]); break;
+              case 4: return fun->cfun.f._4(env, sp[0],sp[1],sp[2],sp[3]); break;
               case 5: return (*fn)(env, n, sp[0],sp[1],sp[2],sp[3],sp[4]); break;
               case 6: return (*fn)(env, n, sp[0],sp[1],sp[2],sp[3],sp[4],sp[5]); break;
               case 7: return (*fn)(env, n, sp[0],sp[1],sp[2],sp[3],sp[4],sp[5],sp[6]); break;
@@ -170,11 +170,11 @@ mkcl_object mk_cl_apply(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_object lasta
               const mkcl_objectfn fn = fun->cclosure.f.entry;
 
               switch (n) {
-              case 0: return fun->cclosure.f._[0](env); break;
-              case 1: return fun->cclosure.f._[1](env, sp[0]); break;
-              case 2: return fun->cclosure.f._[2](env, sp[0],sp[1]); break;
-              case 3: return fun->cclosure.f._[3](env, sp[0],sp[1],sp[2]); break;
-              case 4: return fun->cclosure.f._[4](env, sp[0],sp[1],sp[2],sp[3]); break;
+              case 0: return fun->cclosure.f._0(env); break;
+              case 1: return fun->cclosure.f._1(env, sp[0]); break;
+              case 2: return fun->cclosure.f._2(env, sp[0],sp[1]); break;
+              case 3: return fun->cclosure.f._3(env, sp[0],sp[1],sp[2]); break;
+              case 4: return fun->cclosure.f._4(env, sp[0],sp[1],sp[2],sp[3]); break;
               case 5: return (*fn)(env, n, sp[0],sp[1],sp[2],sp[3],sp[4]); break;
               case 6: return (*fn)(env, n, sp[0],sp[1],sp[2],sp[3],sp[4],sp[5]); break;
               case 7: return (*fn)(env, n, sp[0],sp[1],sp[2],sp[3],sp[4],sp[5],sp[6]); break;
@@ -224,11 +224,11 @@ mkcl_object mk_cl_apply(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_object lasta
               const mkcl_objectfn fn = fun->cfun.f.entry;
 
               switch (n) {
-              case 0: out = fun->cfun.f._[0](env); break;
-              case 1: out = fun->cfun.f._[1](env, sp[0]); break;
-              case 2: out = fun->cfun.f._[2](env, sp[0],sp[1]); break;
-              case 3: out = fun->cfun.f._[3](env, sp[0],sp[1],sp[2]); break;
-              case 4: out = fun->cfun.f._[4](env, sp[0],sp[1],sp[2],sp[3]); break;
+              case 0: out = fun->cfun.f._0(env); break;
+              case 1: out = fun->cfun.f._1(env, sp[0]); break;
+              case 2: out = fun->cfun.f._2(env, sp[0],sp[1]); break;
+              case 3: out = fun->cfun.f._3(env, sp[0],sp[1],sp[2]); break;
+              case 4: out = fun->cfun.f._4(env, sp[0],sp[1],sp[2],sp[3]); break;
               case 5: out = (*fn)(env, n, sp[0],sp[1],sp[2],sp[3],sp[4]); break;
               case 6: out = (*fn)(env, n, sp[0],sp[1],sp[2],sp[3],sp[4],sp[5]); break;
               case 7: out = (*fn)(env, n, sp[0],sp[1],sp[2],sp[3],sp[4],sp[5],sp[6]); break;
@@ -241,11 +241,11 @@ mkcl_object mk_cl_apply(MKCL, mkcl_narg narg, mkcl_object fun, mkcl_object lasta
               const mkcl_objectfn fn = fun->cclosure.f.entry;
 
               switch (n) {
-              case 0: out = fun->cclosure.f._[0](env); break;
-              case 1: out = fun->cclosure.f._[1](env, sp[0]); break;
-              case 2: out = fun->cclosure.f._[2](env, sp[0],sp[1]); break;
-              case 3: out = fun->cclosure.f._[3](env, sp[0],sp[1],sp[2]); break;
-              case 4: out = fun->cclosure.f._[4](env, sp[0],sp[1],sp[2],sp[3]); break;
+              case 0: out = fun->cclosure.f._0(env); break;
+              case 1: out = fun->cclosure.f._1(env, sp[0]); break;
+              case 2: out = fun->cclosure.f._2(env, sp[0],sp[1]); break;
+              case 3: out = fun->cclosure.f._3(env, sp[0],sp[1],sp[2]); break;
+              case 4: out = fun->cclosure.f._4(env, sp[0],sp[1],sp[2],sp[3]); break;
               case 5: out = (*fn)(env, n, sp[0],sp[1],sp[2],sp[3],sp[4]); break;
               case 6: out = (*fn)(env, n, sp[0],sp[1],sp[2],sp[3],sp[4],sp[5]); break;
               case 7: out = (*fn)(env, n, sp[0],sp[1],sp[2],sp[3],sp[4],sp[5],sp[6]); break;

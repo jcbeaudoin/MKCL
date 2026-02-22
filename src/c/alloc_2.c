@@ -460,11 +460,11 @@ mkcl_alloc_raw_instance(MKCL, mkcl_index nb_slots)
   i->instance.sig = mk_cl_Ct; /* sure to never be a valid signature since it cannot be a list. */
 
   i->instance.f.entry = mkcl_FEnot_funcallable_vararg;
-  i->instance.f._[0] = mkcl_FEnot_funcallable_fixed;
-  i->instance.f._[1] = mkcl_FEnot_funcallable_fixed;
-  i->instance.f._[2] = mkcl_FEnot_funcallable_fixed;
-  i->instance.f._[3] = mkcl_FEnot_funcallable_fixed;
-  i->instance.f._[4] = mkcl_FEnot_funcallable_fixed;
+  i->instance.f._0 = mkcl_FEnot_funcallable_fixed0;
+  i->instance.f._1 = mkcl_FEnot_funcallable_fixed1;
+  i->instance.f._2 = mkcl_FEnot_funcallable_fixed2;
+  i->instance.f._3 = mkcl_FEnot_funcallable_fixed3;
+  i->instance.f._4 = mkcl_FEnot_funcallable_fixed4;
   return i;
 }
 

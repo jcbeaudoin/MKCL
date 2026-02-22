@@ -5119,7 +5119,7 @@ mk_cl_streamp(MKCL, mkcl_object strm)
  * OTHER TOOLS
  */
 
-struct mkcl_cfun mk_si_copy_stream_cfunobj = MKCL_CFUN1(mk_si_copy_stream, (mkcl_object) &MK_SI_copy_stream);
+struct mkcl_cfun mk_si_copy_stream_cfunobj = MKCL_CFUN2(mk_si_copy_stream, (mkcl_object) &MK_SI_copy_stream);
 
 mkcl_object
 mk_si_copy_stream(MKCL, mkcl_object in, mkcl_object out)

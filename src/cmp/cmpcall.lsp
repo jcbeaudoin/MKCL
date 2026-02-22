@@ -278,7 +278,7 @@
 	  ;; Calls to functions named by (setf <symbol>) go through here
 	  ;; but only after they were processed by fdefinition. JCB
 	  (if (< nargs 5)
-	      (wt "(env->function=" fun-loc ")->cfun.f._[" nargs "](env")
+	      (wt "(env->function=" fun-loc ")->cfun.f._" nargs "(env")
 	    (wt "(env->function=" fun-loc ")->cfun.f.entry(env," nargs)
 	    )
 	  )
@@ -295,7 +295,7 @@
 		)
 	      )
 	    (if (< nargs 5)
-		(wt "->cfun.f._[" nargs "](env")
+		(wt "->cfun.f._" nargs "(env")
 	      (wt "->cfun.f.entry(env," nargs))
 	    )
 	(progn
@@ -304,7 +304,7 @@
 	  ;; what goes through here is mostly from funcalls and applys. JCB
 	  (wt "mkcl_validate_function(env," fun-loc ")")
 	  (if (< nargs 5)
-	      (wt "->cfun.f._[" nargs "](env")
+	      (wt "->cfun.f._" nargs "(env")
 	    (wt "->cfun.f.entry(env," nargs))
 	  )
 	)

@@ -188,11 +188,11 @@ asm_end(MKCL, mkcl_index beginning, mkcl_object definition) {
 	}
 
         bytecode->bytecode.f.entry =  _mkcl_bytecode_dispatch_vararg;
-	bytecode->bytecode.f._[0] = _mkcl_bytecode_dispatch_f0;
-	bytecode->bytecode.f._[1] = _mkcl_bytecode_dispatch_f1;
-	bytecode->bytecode.f._[2] = _mkcl_bytecode_dispatch_f2;
-	bytecode->bytecode.f._[3] = _mkcl_bytecode_dispatch_f3;
-	bytecode->bytecode.f._[4] = _mkcl_bytecode_dispatch_f4;
+	bytecode->bytecode.f._0 = _mkcl_bytecode_dispatch_f0;
+	bytecode->bytecode.f._1 = _mkcl_bytecode_dispatch_f1;
+	bytecode->bytecode.f._2 = _mkcl_bytecode_dispatch_f2;
+	bytecode->bytecode.f._3 = _mkcl_bytecode_dispatch_f3;
+	bytecode->bytecode.f._4 = _mkcl_bytecode_dispatch_f4;
 
         mkcl_set_function_source_file_info(env, bytecode, (file == MKCL_OBJNULL)? mk_cl_Cnil : file,
                                           (file == MKCL_OBJNULL)? mk_cl_Cnil : end_position);
