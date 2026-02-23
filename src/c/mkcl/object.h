@@ -151,7 +151,6 @@ extern "C" {
   typedef mkcl_object (*mkcl_objectfn_fixed2)(__MKCL, mkcl_object, mkcl_object);
   typedef mkcl_object (*mkcl_objectfn_fixed3)(__MKCL, mkcl_object, mkcl_object, mkcl_object);
   typedef mkcl_object (*mkcl_objectfn_fixed4)(__MKCL, mkcl_object, mkcl_object, mkcl_object, mkcl_object);
-  typedef mkcl_object (*mkcl_objectfn_fixedN)();
 
   typedef mkcl_index mkcl_hash_value;
 

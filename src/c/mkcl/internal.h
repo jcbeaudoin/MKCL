@@ -142,7 +142,7 @@ extern "C" {
 	  },					\
       name,					\
       MKCL_OBJNULL,				\
-      (mkcl_objectfn_fixedN) fun,		\
+      fun,					\
       mk_cl_Cnil,				\
       MKCL_MAKE_FIXNUM(-1),			\
       0,					\
@@ -168,7 +168,7 @@ extern "C" {
 	  },					\
       name,					\
       MKCL_OBJNULL,				\
-      (mkcl_objectfn_fixedN) fun,		\
+      fun,					\
       mk_cl_Cnil,				\
       MKCL_MAKE_FIXNUM(-1),			\
       1,					\
@@ -194,7 +194,7 @@ extern "C" {
 	  },					\
       name,					\
       MKCL_OBJNULL,				\
-      (mkcl_objectfn_fixedN) fun,		\
+      fun,					\
       mk_cl_Cnil,				\
       MKCL_MAKE_FIXNUM(-1),			\
       2,					\
@@ -220,7 +220,7 @@ extern "C" {
 	  },					\
       name,					\
       MKCL_OBJNULL,				\
-      (mkcl_objectfn_fixedN) fun,		\
+      fun,					\
       mk_cl_Cnil,				\
       MKCL_MAKE_FIXNUM(-1),			\
       3,					\
@@ -246,7 +246,7 @@ extern "C" {
 	  },					\
       name,					\
       MKCL_OBJNULL,				\
-      (mkcl_objectfn_fixedN) fun,		\
+      fun,					\
       mk_cl_Cnil,				\
       MKCL_MAKE_FIXNUM(-1),			\
       4,					\
