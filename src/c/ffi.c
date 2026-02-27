@@ -51,6 +51,7 @@ static mkcl_object const mkcl_foreign_type_table[] = {
   (mkcl_object) &MK_KEY_double_imaginary,
   (mkcl_object) &MK_KEY_long_double_imaginary,
 #endif
+  (mkcl_object) &MK_KEY_struct,  /* should be :struct */
   (mkcl_object) &MK_KEY_void
 };
 
@@ -81,6 +82,7 @@ static unsigned int const mkcl_foreign_type_size[] = {
   sizeof(double _Imaginary),
   sizeof(long double _Imaginary),
 #endif
+  0, /* sizeof(some struct) */
   0 /* sizeof(void) */
 };
 

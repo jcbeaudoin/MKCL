@@ -461,6 +461,8 @@ extern "C" {
     char *buffer_sp;
     size_t buffer_size;
     union mkcl_ffi_values output;
+    char * return_struct_buffer;
+    size_t return_struct_size;
     enum mkcl_ffi_calling_convention cc;
     struct mkcl_fficall_reg *registers;
     char * buffer;

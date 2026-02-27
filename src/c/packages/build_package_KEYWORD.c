@@ -253,6 +253,10 @@ static struct exposed_symbol const exposed_symbols[] = {
   { SYMBOL_NAME("FREEBSD"), "MK_KEY_freebsd" },
   { SYMBOL_NAME("ARM"), "MK_KEY_arm" },
   { SYMBOL_NAME("AARCH64"), "MK_KEY_aarch64" },
+  { SYMBOL_NAME("STRUCT"), "MK_KEY_struct" },
+  { SYMBOL_NAME("UNION"), "MK_KEY_union" },
+  { SYMBOL_NAME("POINTER"), "MK_KEY_pointer" },
+  { SYMBOL_NAME("ENUM"), "MK_KEY_enum" },
 };
 
 

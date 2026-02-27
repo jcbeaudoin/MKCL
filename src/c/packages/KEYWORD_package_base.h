@@ -191,6 +191,8 @@ static struct mkcl_base_string const mkcl_keyword_external_symbol_names[] = {
   SYMBOL_NAME("POINTER-SELF"),
   SYMBOL_NAME("POINTER-VOID"),
   SYMBOL_NAME("SHORT"),
+  SYMBOL_NAME("POINTER"),
+  SYMBOL_NAME("ENUM"),
   SYMBOL_NAME("STRUCT"),
   SYMBOL_NAME("UNION"),
   SYMBOL_NAME("VOID"),
