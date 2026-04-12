@@ -122,7 +122,7 @@ CONTRIB_STATIC_LIBS = ext/asdf.a ext/asdf3.a ext/asdf2.a $(CONTRIB_FASLS:%.fasb=
 MKCL_STATIC_PARTS = mkcltop.@LIBEXT@ lsp.a mkclmin.@LIBEXT@
 
 
-all: base contribs
+all: base contribs .gdbinit
 
 base: mkcc$(EXE) mkcl-config $(TARGETS) help.doc
 
@@ -323,7 +323,7 @@ help.doc: dump-doc.lsp mkcl-small$(EXE) doc/help.lsp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load dump-doc.lsp
 
 
-mkcl_min$(EXE): $(LIBRARIES) mkclmin.@LIBEXT@ mkclmintop.@LIBEXT@ c/cinit.o .gdbinit
+mkcl_min$(EXE): $(LIBRARIES) mkclmin.@LIBEXT@ mkclmintop.@LIBEXT@ c/cinit.o
 	$(CC) $(LDFLAGS) -o $@ c/cinit.o mkclmintop.@LIBEXT@ mkclmin.@LIBEXT@ $(LIBRARIES) $(LIBS)
 
 
