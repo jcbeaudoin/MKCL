@@ -25,7 +25,7 @@
 ;;;
 (build-module "MAKE"
               '("../contrib/defsystem/defsystem.lisp")
-              :destdir "./ext/" #|:prefix "EXT"|#
+              :destdir (ensure-directories-exist (pathname "./ext/defsystem/"))
 	      )
 
 

@@ -15,58 +15,62 @@ CFLAGS= -I../ -D_GNU_SOURCE -DMKCL_PACKAGE_BUILDER -fno-strict-aliasing -O2
 
 #all: build_package_FFI expose_package_FFI build_package_MT expose_package_MT build_package_GRAY expose_package_GRAY build_package_MKCL expose_package_MKCL build_package_CLOS expose_package_CLOS build_package_KEYWORD expose_package_KEYWORD build_package_SI expose_package_SI build_package_CL expose_package_CL
 
-all: FFI_package_core.h expose_symbols_in_FFI.h MT_package_core.h expose_symbols_in_MT.h GRAY_package_core.h expose_symbols_in_GRAY.h MKCL_package_core.h expose_symbols_in_MKCL.h CLOS_package_core.h expose_symbols_in_CLOS.h KEYWORD_package_core.h expose_symbols_in_KEYWORD.h SI_package_core.h expose_symbols_in_SI.h CL_package_core.h expose_symbols_in_CL.h
+all: packages_built
+
+packages_built: FFI_package_core.h expose_symbols_in_FFI.h MT_package_core.h expose_symbols_in_MT.h GRAY_package_core.h expose_symbols_in_GRAY.h MKCL_package_core.h expose_symbols_in_MKCL.h CLOS_package_core.h expose_symbols_in_CLOS.h KEYWORD_package_core.h expose_symbols_in_KEYWORD.h SI_package_core.h expose_symbols_in_SI.h CL_package_core.h expose_symbols_in_CL.h
+	touch packages_built
+
 
 LIB_OBJS = 
 
 
-build_package_FFI: build_package_FFI.o package_hash.o 
-	$(CC) $(LDFLAGS) -o $@ build_package_FFI.o package_hash.o
+build_package_FFI: build_package_FFI.o build_package_FFI_hash.o 
+	$(CC) $(LDFLAGS) -o $@ build_package_FFI.o build_package_FFI_hash.o
 
-expose_package_FFI: build_package_FFI.o package_hash.o
-	$(CC) $(LDFLAGS) -o $@ build_package_FFI.o package_hash.o
+expose_package_FFI: expose_package_FFI.o expose_package_FFI_hash.o
+	$(CC) $(LDFLAGS) -o $@ expose_package_FFI.o expose_package_FFI_hash.o
 
-build_package_MT: build_package_MT.o package_hash.o
-	$(CC) $(LDFLAGS) -o $@ build_package_MT.o package_hash.o
+build_package_MT: build_package_MT.o build_package_MT_hash.o
+	$(CC) $(LDFLAGS) -o $@ build_package_MT.o build_package_MT_hash.o
 
-expose_package_MT: build_package_MT.o package_hash.o
-	$(CC) $(LDFLAGS) -o $@ build_package_MT.o package_hash.o
+expose_package_MT: expose_package_MT.o expose_package_MT_hash.o
+	$(CC) $(LDFLAGS) -o $@ expose_package_MT.o expose_package_MT_hash.o
 
-build_package_GRAY: build_package_GRAY.o package_hash.o
-	$(CC) $(LDFLAGS) -o $@ build_package_GRAY.o package_hash.o
+build_package_GRAY: build_package_GRAY.o build_package_GRAY_hash.o
+	$(CC) $(LDFLAGS) -o $@ build_package_GRAY.o build_package_GRAY_hash.o
 
-expose_package_GRAY: build_package_GRAY.o package_hash.o
-	$(CC) $(LDFLAGS) -o $@ build_package_GRAY.o package_hash.o
+expose_package_GRAY: expose_package_GRAY.o expose_package_GRAY_hash.o
+	$(CC) $(LDFLAGS) -o $@ expose_package_GRAY.o expose_package_GRAY_hash.o
 
-build_package_MKCL: build_package_MKCL.o package_hash.o
-	$(CC) $(LDFLAGS) -o $@ build_package_MKCL.o package_hash.o
+build_package_MKCL: build_package_MKCL.o build_package_MKCL_hash.o
+	$(CC) $(LDFLAGS) -o $@ build_package_MKCL.o build_package_MKCL_hash.o
 
-expose_package_MKCL: build_package_MKCL.o package_hash.o
-	$(CC) $(LDFLAGS) -o $@ build_package_MKCL.o package_hash.o
+expose_package_MKCL: expose_package_MKCL.o expose_package_MKCL_hash.o
+	$(CC) $(LDFLAGS) -o $@ expose_package_MKCL.o expose_package_MKCL_hash.o
 
-build_package_CLOS: build_package_CLOS.o package_hash.o
-	$(CC) $(LDFLAGS) -o $@ build_package_CLOS.o package_hash.o
+build_package_CLOS: build_package_CLOS.o build_package_CLOS_hash.o
+	$(CC) $(LDFLAGS) -o $@ build_package_CLOS.o build_package_CLOS_hash.o
 
-expose_package_CLOS: build_package_CLOS.o package_hash.o
-	$(CC) $(LDFLAGS) -o $@ build_package_CLOS.o package_hash.o
+expose_package_CLOS: expose_package_CLOS.o expose_package_CLOS_hash.o
+	$(CC) $(LDFLAGS) -o $@ expose_package_CLOS.o expose_package_CLOS_hash.o
 
-build_package_KEYWORD: build_package_KEYWORD.o package_hash.o
-	$(CC) $(LDFLAGS) -o $@ build_package_KEYWORD.o package_hash.o
+build_package_KEYWORD: build_package_KEYWORD.o build_package_KEYWORD_hash.o
+	$(CC) $(LDFLAGS) -o $@ build_package_KEYWORD.o build_package_KEYWORD_hash.o
 
-expose_package_KEYWORD: build_package_KEYWORD.o package_hash.o
-	$(CC) $(LDFLAGS) -o $@ build_package_KEYWORD.o package_hash.o
+expose_package_KEYWORD: expose_package_KEYWORD.o expose_package_KEYWORD_hash.o
+	$(CC) $(LDFLAGS) -o $@ expose_package_KEYWORD.o expose_package_KEYWORD_hash.o
 
-build_package_SI: build_package_SI.o package_hash.o
-	$(CC) $(LDFLAGS) -o $@ build_package_SI.o package_hash.o
+build_package_SI: build_package_SI.o build_package_SI_hash.o
+	$(CC) $(LDFLAGS) -o $@ build_package_SI.o build_package_SI_hash.o
 
-expose_package_SI: build_package_SI.o package_hash.o
-	$(CC) $(LDFLAGS) -o $@ build_package_SI.o package_hash.o
+expose_package_SI: expose_package_SI.o expose_package_SI_hash.o
+	$(CC) $(LDFLAGS) -o $@ expose_package_SI.o expose_package_SI_hash.o
 
-build_package_CL: build_package_CL.o package_hash.o
-	$(CC) $(LDFLAGS) -o $@ build_package_CL.o package_hash.o
+build_package_CL: build_package_CL.o build_package_CL_hash.o
+	$(CC) $(LDFLAGS) -o $@ build_package_CL.o build_package_CL_hash.o
 
-expose_package_CL: build_package_CL.o package_hash.o
-	$(CC) $(LDFLAGS) -o $@ build_package_CL.o package_hash.o
+expose_package_CL: expose_package_CL.o expose_package_CL_hash.o
+	$(CC) $(LDFLAGS) -o $@ expose_package_CL.o expose_package_CL_hash.o
 
 test_FFI.o: test_FFI.c FFI_package.h FFI_package_core.h
 	$(CC) -I../ -D_GNU_SOURCE -fno-strict-aliasing -O2 -c test_FFI.c -o test_FFI.o
@@ -98,6 +102,7 @@ test_USER.o: test_USER.c USER_package.h
 test: test_FFI.o test_MT.o test_GRAY.o test_MKCL.o test_CLOS.o test_KEYWORD.o test_SI.o test_CL.o test_USER.o
 
 clean:
+	rm -f packages_built
 	rm -f *.o $(LIB_OBJS) TAGS
 	rm -f build_package_FFI expose_package_FFI
 	rm -f build_package_MT expose_package_MT
@@ -137,23 +142,104 @@ MT_package.h: MT_package_core_stubs.h MT_package_base.h
 
 FFI_package.h: FFI_package_core_stubs.h FFI_package_base.h
 
-build_package_FFI.o: build_package.h FFI_package.h FFI_package_core_stubs.h FFI_package_base.h
+build_package_FFI.o: build_package_FFI.c build_package.h FFI_package.h FFI_package_core_stubs.h FFI_package_base.h
+	$(CC) $(CFLAGS) -o $@ -c build_package_FFI.c
 
-build_package_MT.o: build_package.h MT_package.h MT_package_core_stubs.h MT_package_base.h
+expose_package_FFI.o: build_package_FFI.c build_package.h FFI_package.h FFI_package_core_stubs.h FFI_package_base.h
+	$(CC) $(CFLAGS) -o $@ -c build_package_FFI.c
 
-build_package_MKCL.o: build_package.h MKCL_package.h MKCL_package_core_stubs.h MKCL_package_base.h
+build_package_MT.o: build_package_MT.c build_package.h MT_package.h MT_package_core_stubs.h MT_package_base.h
+	$(CC) $(CFLAGS) -o $@ -c build_package_MT.c
 
-build_package_CLOS.o: build_package.h CLOS_package.h CLOS_package_core_stubs.h CLOS_package_base.h
+expose_package_MT.o: build_package_MT.c build_package.h MT_package.h MT_package_core_stubs.h MT_package_base.h
+	$(CC) $(CFLAGS) -o $@ -c build_package_MT.c
 
-build_package_GRAY.o: build_package.h GRAY_package.h GRAY_package_core_stubs.h GRAY_package_base.h
+build_package_MKCL.o: build_package_MKCL.c build_package.h MKCL_package.h MKCL_package_core_stubs.h MKCL_package_base.h
+	$(CC) $(CFLAGS) -o $@ -c build_package_MKCL.c
 
-build_package_KEYWORD.o: build_package.h KEYWORD_package.h KEYWORD_package_core_stubs.h KEYWORD_package_base.h
+expose_package_MKCL.o: build_package_MKCL.c build_package.h MKCL_package.h MKCL_package_core_stubs.h MKCL_package_base.h
+	$(CC) $(CFLAGS) -o $@ -c build_package_MKCL.c
 
-build_package_SI.o: build_package.h SI_package.h SI_package_core_stubs.h SI_package_base.h
+build_package_CLOS.o: build_package_CLOS.c build_package.h CLOS_package.h CLOS_package_core_stubs.h CLOS_package_base.h
+	$(CC) $(CFLAGS) -o $@ -c build_package_CLOS.c
 
-build_package_CL.o: build_package.h CL_package.h CL_package_core_stubs.h CL_package_base.h
+expose_package_CLOS.o: build_package_CLOS.c build_package.h CLOS_package.h CLOS_package_core_stubs.h CLOS_package_base.h
+	$(CC) $(CFLAGS) -o $@ -c build_package_CLOS.c
 
-package_hash.o: build_package.h ../newhash.h
+build_package_GRAY.o: build_package_GRAY.c build_package.h GRAY_package.h GRAY_package_core_stubs.h GRAY_package_base.h
+	$(CC) $(CFLAGS) -o $@ -c build_package_GRAY.c
+
+expose_package_GRAY.o: build_package_GRAY.c build_package.h GRAY_package.h GRAY_package_core_stubs.h GRAY_package_base.h
+	$(CC) $(CFLAGS) -o $@ -c build_package_GRAY.c
+
+build_package_KEYWORD.o: build_package_KEYWORD.c build_package.h KEYWORD_package.h KEYWORD_package_core_stubs.h KEYWORD_package_base.h
+	$(CC) $(CFLAGS) -o $@ -c build_package_KEYWORD.c
+
+expose_package_KEYWORD.o: build_package_KEYWORD.c build_package.h KEYWORD_package.h KEYWORD_package_core_stubs.h KEYWORD_package_base.h
+	$(CC) $(CFLAGS) -o $@ -c build_package_KEYWORD.c
+
+build_package_SI.o: build_package_SI.c build_package.h SI_package.h SI_package_core_stubs.h SI_package_base.h
+	$(CC) $(CFLAGS) -o $@ -c build_package_SI.c
+
+expose_package_SI.o: build_package_SI.c build_package.h SI_package.h SI_package_core_stubs.h SI_package_base.h
+	$(CC) $(CFLAGS) -o $@ -c build_package_SI.c
+
+build_package_CL.o: build_package_CL.c build_package.h CL_package.h CL_package_core_stubs.h CL_package_base.h
+	$(CC) $(CFLAGS) -o $@ -c build_package_CL.c
+
+expose_package_CL.o: build_package_CL.c build_package.h CL_package.h CL_package_core_stubs.h CL_package_base.h
+	$(CC) $(CFLAGS) -o $@ -c build_package_CL.c
+
+# package_hash.o: package_hash.c build_package.h ../newhash.h
+# 	$(CC) $(CFLAGS) -o $@ -c package_hash.c
+
+expose_package_FFI_hash.o: package_hash.c build_package.h ../newhash.h
+	$(CC) $(CFLAGS) -o $@ -c package_hash.c
+
+expose_package_MT_hash.o: package_hash.c build_package.h ../newhash.h
+	$(CC) $(CFLAGS) -o $@ -c package_hash.c
+
+expose_package_GRAY_hash.o: package_hash.c build_package.h ../newhash.h
+	$(CC) $(CFLAGS) -o $@ -c package_hash.c
+
+expose_package_MKCL_hash.o: package_hash.c build_package.h ../newhash.h
+	$(CC) $(CFLAGS) -o $@ -c package_hash.c
+
+expose_package_CLOS_hash.o: package_hash.c build_package.h ../newhash.h
+	$(CC) $(CFLAGS) -o $@ -c package_hash.c
+
+expose_package_KEYWORD_hash.o: package_hash.c build_package.h ../newhash.h
+	$(CC) $(CFLAGS) -o $@ -c package_hash.c
+
+expose_package_SI_hash.o: package_hash.c build_package.h ../newhash.h
+	$(CC) $(CFLAGS) -o $@ -c package_hash.c
+
+expose_package_CL_hash.o: package_hash.c build_package.h ../newhash.h
+	$(CC) $(CFLAGS) -o $@ -c package_hash.c
+
+build_package_FFI_hash.o: package_hash.c build_package.h ../newhash.h
+	$(CC) $(CFLAGS) -o $@ -c package_hash.c
+
+build_package_MT_hash.o: package_hash.c build_package.h ../newhash.h
+	$(CC) $(CFLAGS) -o $@ -c package_hash.c
+
+build_package_GRAY_hash.o: package_hash.c build_package.h ../newhash.h
+	$(CC) $(CFLAGS) -o $@ -c package_hash.c
+
+build_package_MKCL_hash.o: package_hash.c build_package.h ../newhash.h
+	$(CC) $(CFLAGS) -o $@ -c package_hash.c
+
+build_package_CLOS_hash.o: package_hash.c build_package.h ../newhash.h
+	$(CC) $(CFLAGS) -o $@ -c package_hash.c
+
+build_package_KEYWORD_hash.o: package_hash.c build_package.h ../newhash.h
+	$(CC) $(CFLAGS) -o $@ -c package_hash.c
+
+build_package_SI_hash.o: package_hash.c build_package.h ../newhash.h
+	$(CC) $(CFLAGS) -o $@ -c package_hash.c
+
+build_package_CL_hash.o: package_hash.c build_package.h ../newhash.h
+	$(CC) $(CFLAGS) -o $@ -c package_hash.c
 
 CL_package_core.h: build_package_CL
 	./build_package_CL >$@

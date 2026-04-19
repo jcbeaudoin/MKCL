@@ -26,7 +26,7 @@
 ;;;
 (build-module "WALKER"
               '("../contrib/walker/walk.lsp")
-              :destdir "./ext/" #|:prefix "EXT"|#
+              :destdir (ensure-directories-exist (pathname "./ext/walker/"))
 	      )
 
 

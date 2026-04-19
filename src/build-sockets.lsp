@@ -28,7 +28,7 @@
 (clean-up "./ext/" sources)
 (build-module "SOCKETS"
 	      sources
-	      :destdir "./ext/" #|:prefix "EXT"|#
+	      :destdir (ensure-directories-exist (pathname "./ext/sockets/"))
 	      )
 
 (mkcl:quit :exit-code 0) ;; signal to "make" that all is well.

@@ -25,7 +25,7 @@
 ;;;
 (build-module "profile"
               '("../contrib/profile/profile.lisp")
-              :destdir "./ext/" #|:prefix "EXT"|#
+              :destdir (ensure-directories-exist (pathname "./ext/profile/"))
 	      )
 
 (mkcl:quit :exit-code 0) ;; signal to "make" that all is well.

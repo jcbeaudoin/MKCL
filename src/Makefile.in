@@ -122,17 +122,23 @@ CONTRIB_STATIC_LIBS = ext/asdf.a ext/asdf3.a ext/asdf2.a $(CONTRIB_FASLS:%.fasb=
 MKCL_STATIC_PARTS = mkcltop.@LIBEXT@ lsp.a mkclmin.@LIBEXT@
 
 
-all: base contribs .gdbinit
+.PHONY:	all base contribs extension-contribs asdf-contribs
 
-base: mkcc$(EXE) mkcl-config $(TARGETS) help.doc
+.NOTPARALLEL: base
+
+all: base .WAIT contribs .gdbinit
+
+base: mkcc$(EXE) mkcl-config mkcl-small$(EXE) $(TARGETS) help.doc
 
 contribs: extension-contribs asdf-contribs
 
-extension-contribs: ../contrib/unicode/UnicodeData.txt $(EXTENSION_CONTRIB_FASLS) $(EXTENSION_CONTRIB_ASDS) $(EXTENSION_CONTRIB_AS2S)
+#extension-contribs: ../contrib/unicode/UnicodeData.txt $(EXTENSION_CONTRIB_FASLS) $(EXTENSION_CONTRIB_ASDS) $(EXTENSION_CONTRIB_AS2S)
 
-asdf-contribs: $(ASDF_FASLS) $(ASDF2_FASLS) $(ASDF_CONTRIB_FASLS) $(ASDF_CONTRIB_STATIC_LIBS) $(ASDF_CONTRIB_ASDS) $(ASDF_CONTRIB_AS2S)
+extension-contribs: ../contrib/unicode/UnicodeData.txt $(EXTENSION_CONTRIB_FASLS) # $(EXTENSION_CONTRIB_ASDS) $(EXTENSION_CONTRIB_AS2S)
 
-.PHONY:	all base contribs extension-contribs asdf-contribs
+#asdf-contribs: $(ASDF_FASLS) $(ASDF2_FASLS) $(ASDF_CONTRIB_FASLS) $(ASDF_CONTRIB_STATIC_LIBS) $(ASDF_CONTRIB_ASDS) $(ASDF_CONTRIB_AS2S)
+
+asdf-contribs: $(ASDF_FASLS) $(ASDF2_FASLS) ext/uiop.fasb asdf-stage/cffi.fasb .WAIT asdf-stage/bordeaux-threads.fasb asdf-stage/fiveam.fasb asdf-stage/rt.fasb .WAIT $(ASDF_CONTRIB_AS2S)
 
 Makefile: Makefile.in config.status
 	./config.status
@@ -175,30 +181,62 @@ ext/uiop.fasb ext/uiop.a ext/uiop.asd ext/uiop.as2: mkcl-small$(EXE) ext-dir-exi
 
 ext/BYTECMP.fasb ext/BYTECMP.a ext/bytecmp.asd ext/bytecmp.as2: mkcl-small$(EXE) ext-dir-exists build-bytecmp.lsp cmp/CMP.fasb compile-utils.lsp ../contrib/bytecmp/bytecmp.lsp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-bytecmp.lsp
+	cp ./ext/bytecmp/bytecmp.asd ./ext/
+	cp ./ext/bytecmp/bytecmp.as2 ./ext/
+	cp ./ext/bytecmp/BYTECMP.fasb ./ext/
+	cp ./ext/bytecmp/BYTECMP.a ./ext/
 
 ext/MAKE.fasb ext/MAKE.a ext/make.asd ext/make.as2: mkcl-small$(EXE) ext-dir-exists build-defsystem.lsp cmp/CMP.fasb compile-utils.lsp ../contrib/defsystem/defsystem.lisp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-defsystem.lsp
+	cp ./ext/defsystem/make.asd ./ext/
+	cp ./ext/defsystem/make.as2 ./ext/
+	cp ./ext/defsystem/MAKE.fasb ./ext/
+	cp ./ext/defsystem/MAKE.a ./ext/
 
 ext/profile.fasb ext/profile.a ext/profile.asd ext/profile.as2: mkcl-small$(EXE) ext-dir-exists build-profile.lsp cmp/CMP.fasb compile-utils.lsp ../contrib/profile/profile.lisp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-profile.lsp
+	cp ./ext/profile/profile.asd ./ext/
+	cp ./ext/profile/profile.as2 ./ext/
+	cp ./ext/profile/profile.fasb ./ext/
+	cp ./ext/profile/profile.a ./ext/
 
 ../contrib/sockets/package.lisp: ../contrib/sockets/sockets.lisp
 	touch ../contrib/sockets/package.lisp
 
 ext/SOCKETS.fasb ext/SOCKETS.a ext/sockets.asd ext/sockets.as2: mkcl-small$(EXE) ext-dir-exists build-sockets.lsp cmp/CMP.fasb compile-utils.lsp ../contrib/sockets/*.lisp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-sockets.lsp
+	cp ./ext/sockets/sockets.asd ./ext/
+	cp ./ext/sockets/sockets.as2 ./ext/
+	cp ./ext/sockets/SOCKETS.fasb ./ext/
+	cp ./ext/sockets/SOCKETS.a ./ext/
 
 ext/mk-unix.fasb ext/mk-unix.a ext/mk-unix.asd ext/mk-unix.as2: mkcl-small$(EXE) ext-dir-exists build-mk-unix.lsp cmp/CMP.fasb compile-utils.lsp ../contrib/mk-unix/*.lsp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-mk-unix.lsp
+	cp ./ext/mk-unix/mk-unix.asd ./ext/
+	cp ./ext/mk-unix/mk-unix.as2 ./ext/
+	cp ./ext/mk-unix/mk-unix.fasb ./ext/
+	cp ./ext/mk-unix/mk-unix.a ./ext/
 
 ext/SERVE-EVENT.fasb ext/SERVE-EVENT.a ext/serve-event.asd ext/serve-event.as2: mkcl-small$(EXE) ext-dir-exists build-serve-event.lsp cmp/CMP.fasb compile-utils.lsp ../contrib/serve-event/serve-event.lisp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-serve-event.lsp
+	cp ./ext/serve-event/serve-event.asd ./ext/
+	cp ./ext/serve-event/serve-event.as2 ./ext/
+	cp ./ext/serve-event/SERVE-EVENT.fasb ./ext/
+	cp ./ext/serve-event/SERVE-EVENT.a ./ext/
 
 ext/WALKER.fasb ext/WALKER.a ext/walker.asd ext/walker.as2: mkcl-small$(EXE) ext-dir-exists build-walker.lsp cmp/CMP.fasb compile-utils.lsp ../contrib/walker/walk.lsp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-walker.lsp
+	cp ./ext/walker/walker.asd ./ext/
+	cp ./ext/walker/walker.as2 ./ext/
+	cp ./ext/walker/WALKER.fasb ./ext/
+	cp ./ext/walker/WALKER.a ./ext/
 
 ext/UNICODE-NAMES.fasb ext/UNICODE-NAMES.a ext/unicode-names.asd ext/unicode-names.as2: mkcl-small$(EXE) ext-dir-exists build-unicode-names.lsp cmp/CMP.fasb compile-utils.lsp ../contrib/unicode/unicode-names.lsp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-unicode-names.lsp
+	cp ./ext/unicode-names/unicode-names.asd ./ext/
+	cp ./ext/unicode-names/unicode-names.as2 ./ext/
+	cp ./ext/unicode-names/UNICODE-NAMES.fasb ./ext/
+	cp ./ext/unicode-names/UNICODE-NAMES.a ./ext/
 
 
 
@@ -319,7 +357,7 @@ mkcl$(EXE): mkcl-small$(EXE) cmp/CMP.fasb build-mkcl.lsp
 mkcl-full$(EXE): mkcl-small$(EXE) build-full-mkcl.lsp ext/asdf.a ext/profile.a ext/SERVE-EVENT.a ext/SOCKETS.a ext/mk-unix.a
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-full-mkcl.lsp --  ext/asdf.a ext/profile.a ext/SERVE-EVENT.a ext/SOCKETS.a ext/mk-unix.a
 
-help.doc: dump-doc.lsp mkcl-small$(EXE) doc/help.lsp
+help.doc: mkcl-small$(EXE) dump-doc.lsp doc/help.lsp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load dump-doc.lsp
 
 

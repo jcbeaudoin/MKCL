@@ -26,7 +26,7 @@
 ;;;
 (build-module "BYTECMP"
               '("../contrib/bytecmp/bytecmp.lsp")
-              :destdir "./ext/" #|:prefix "EXT"|#
+              :destdir (ensure-directories-exist (pathname "./ext/bytecmp/"))
 	      )
 
 

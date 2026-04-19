@@ -22,7 +22,7 @@
 
 (build-module "SERVE-EVENT"
 	      '("../contrib/serve-event/serve-event.lisp")
-	      :destdir "./ext/" #|:prefix "EXT"|#
+	      :destdir (ensure-directories-exist (pathname "./ext/serve-event/"))
 	      )
 
 (mkcl:quit :exit-code 0) ;; signal to "make" that all is well.

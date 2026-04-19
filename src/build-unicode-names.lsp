@@ -25,7 +25,7 @@
 ;;;
 (build-module "UNICODE-NAMES"
               '("../contrib/unicode/unicode-names.lsp")
-              :destdir "./ext/" #|:prefix "EXT"|#
+              :destdir (ensure-directories-exist (pathname "./ext/unicode-names/"))
 	      )
 
 

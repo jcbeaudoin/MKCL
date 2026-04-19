@@ -25,7 +25,7 @@
 ;;;
 (build-module "mk-unix"
 	      '("../contrib/mk-unix/mk-unix.lsp")
-	      :destdir "./ext/" #|:prefix "EXT"|#
+	      :destdir (ensure-directories-exist (pathname "./ext/mk-unix/"))
 	      )
 
 (mkcl:quit :exit-code 0) ;; signal to "make" that all is well.
