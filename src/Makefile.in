@@ -76,6 +76,7 @@ ASDF2_FASLS = ext/asdf2.fasb ../contrib/asdf2-bundle/asdf2-bundle.fas
 ASDF_FASLS = ext/asdf.fasb ext/asdf3.fasb
 
 EXTENSION_CONTRIB_FASLS = \
+                ext/uiop.fasb \
                 ext/BYTECMP.fasb \
                 ext/MAKE.fasb \
                 ext/profile.fasb \
@@ -96,7 +97,6 @@ EXTENSION_CONTRIB_ASDS = \
                 ext/unicode-names.asd
 
 ASDF_CONTRIB_FASLS = \
-                ext/uiop.fasb \
                 asdf-stage/trivial-features.fasb \
                 asdf-stage/trivial-garbage.fasb \
                 asdf-stage/trivial-backtrace.fasb \
@@ -122,23 +122,25 @@ CONTRIB_STATIC_LIBS = ext/asdf.a ext/asdf3.a ext/asdf2.a $(CONTRIB_FASLS:%.fasb=
 MKCL_STATIC_PARTS = mkcltop.@LIBEXT@ lsp.a mkclmin.@LIBEXT@
 
 
-.PHONY:	all base contribs extension-contribs asdf-contribs
+.PHONY:	all base contribs extension-contribs asdf-cores asdf-contrib-core asdf-contrib-extra asdf-contribs .WAIT
 
-.NOTPARALLEL: base
+.NOTPARALLEL: base asdf-contribs
 
-all: base .WAIT contribs .gdbinit
+all: base contribs .gdbinit
 
 base: mkcc$(EXE) mkcl-config mkcl-small$(EXE) $(TARGETS) help.doc
 
 contribs: extension-contribs asdf-contribs
 
-#extension-contribs: ../contrib/unicode/UnicodeData.txt $(EXTENSION_CONTRIB_FASLS) $(EXTENSION_CONTRIB_ASDS) $(EXTENSION_CONTRIB_AS2S)
-
 extension-contribs: ../contrib/unicode/UnicodeData.txt $(EXTENSION_CONTRIB_FASLS) # $(EXTENSION_CONTRIB_ASDS) $(EXTENSION_CONTRIB_AS2S)
 
-#asdf-contribs: $(ASDF_FASLS) $(ASDF2_FASLS) $(ASDF_CONTRIB_FASLS) $(ASDF_CONTRIB_STATIC_LIBS) $(ASDF_CONTRIB_ASDS) $(ASDF_CONTRIB_AS2S)
+asdf-contribs: asdf-cores asdf-contrib-core asdf-contrib-extra $(ASDF_CONTRIB_AS2S)
 
-asdf-contribs: $(ASDF_FASLS) $(ASDF2_FASLS) ext/uiop.fasb asdf-stage/cffi.fasb .WAIT asdf-stage/bordeaux-threads.fasb asdf-stage/fiveam.fasb asdf-stage/rt.fasb .WAIT $(ASDF_CONTRIB_AS2S)
+asdf-cores: $(ASDF_FASLS) $(ASDF2_FASLS)
+
+asdf-contrib-core: asdf-stage/cffi.fasb
+
+asdf-contrib-extra: asdf-stage/bordeaux-threads.fasb asdf-stage/fiveam.fasb asdf-stage/rt.fasb asdf-stage/trivial-garbage.fasb
 
 Makefile: Makefile.in config.status
 	./config.status
@@ -171,7 +173,7 @@ ext/asdf.fasb ext/asdf.a: mkcl-small$(EXE) ext-dir-exists build-asdf.lsp cmp/CMP
 	(cd ../contrib/asdf/; $(MAKE) build/asdf.lisp)
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf.lsp
 
-ext/uiop.fasb ext/uiop.a ext/uiop.asd ext/uiop.as2: mkcl-small$(EXE) ext-dir-exists build-uiop.lsp cmp/CMP.fasb compile-utils.lsp ext/asdf.fasb ../contrib/asdf/uiop/*.lisp
+ext/uiop.fasb ext/uiop.a ext/uiop.asd ext/uiop.as2: mkcl-small$(EXE) ext-dir-exists build-uiop.lsp cmp/CMP.fasb compile-utils.lsp ../contrib/asdf/uiop/*.lisp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-uiop.lsp
 	cp ./ext/uiop/uiop.fasb ./ext/
 	cp ./ext/uiop/uiop.a ./ext/
