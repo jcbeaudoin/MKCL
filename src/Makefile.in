@@ -158,6 +158,7 @@ mkcl-small$(EXE): lsp.a
 
 encodings: mkcl-small$(EXE) ../contrib/encodings/generate.lisp build-encodings.lsp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-encodings.lsp
+	touch encodings
 
 
 ext-dir-exists:
