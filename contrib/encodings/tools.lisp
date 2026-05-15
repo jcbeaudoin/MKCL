@@ -141,6 +141,7 @@
 		  (push byte-list output))))
 	 finally (return (nreverse output))))))
 
+#-(and)
 (defun mapping-hash-table (mapping)
   (loop with hash = (make-hash-table :size (floor (* 1.5 (length mapping)))
 				     :test 'eq)
@@ -164,7 +165,7 @@
       (write-byte (length mapping-array) s)
       (write-sequence mapping-array s))))
 
-(defun copy-file (in out &key verbose)
+(defun our-copy-file (in out &key verbose)
   (let ((buffer (make-array 8192 :element-type '(unsigned-byte 8))))
     (when verbose (format t "~%;;; Copying ~A to ~A" in out))
     (with-open-file (sin in :direction :input :element-type '(unsigned-byte 8))
@@ -174,6 +175,7 @@
 	   until (zerop nbytes)
 	   do (write-sequence buffer sout :end nbytes))))))
 
+#-(and)
 (defun all-valid-unicode-chars (mapping)
   (cond ((consp mapping)
 	 (loop for sublist on mapping
@@ -189,6 +191,7 @@
 	(t
 	 (error "Unknown encoding"))))
 
+#-(and)
 (defun compare-hashes (h1 h2)
   (flet ((h1-in-h2 (h1 h2)
 	   (loop for k being the hash-key in h1 using (hash-value v)

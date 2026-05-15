@@ -26,7 +26,7 @@
 			     (read-mapping name))))
 	      (dump-mapping-array mapping orig)))
 	  )
-	(copy-file orig copy :verbose *generate-verbose*)))
+	(our-copy-file orig copy :verbose *generate-verbose*)))
 
 (defconstant +aliases+
   '((:us-ascii :ascii)
@@ -95,6 +95,6 @@
 			       (format out "(defparameter mk-ext::~A (si::make-encoding :~A))~%" alias name))))
 
 ;;(copy-file "../contrib/encodings/tools.lisp" "./ENCODINGS/tools.lisp" :verbose *generate-verbose*)
-(copy-file "../contrib/encodings/ISO-2022-JP" #P"BUILD:ENCODINGS;ISO-2022-JP" :verbose *generate-verbose*)
-(copy-file "../contrib/encodings/ISO-2022-JP-1" #P"BUILD:ENCODINGS;ISO-2022-JP-1" :verbose *generate-verbose*)
+(our-copy-file "../contrib/encodings/ISO-2022-JP" #P"BUILD:ENCODINGS;ISO-2022-JP" :verbose *generate-verbose*)
+(our-copy-file "../contrib/encodings/ISO-2022-JP-1" #P"BUILD:ENCODINGS;ISO-2022-JP-1" :verbose *generate-verbose*)
 (when *generate-verbose* (terpri) (terpri))
