@@ -128,7 +128,7 @@ MKCL_STATIC_PARTS = mkcltop.@LIBEXT@ lsp.a mkclmin.@LIBEXT@
 
 all: base contribs .gdbinit
 
-base: mkcc$(EXE) mkcl-config mkcl-small$(EXE) $(TARGETS) help.doc
+base: mkcc$(EXE) mkcl-config mkcl-small$(EXE) $(TARGETS) help.doc encodings
 
 contribs: extension-contribs asdf-contribs
 
@@ -150,8 +150,14 @@ c/mkcl/config.h: c/mkcl/config.h.in config.status
 	touch c/mkcl/config.h
 
 
-mkcl-small$(EXE) lsp.a $(LSP_LIBRARIES) encodings: lsp/git_describe.lsp compile.lsp lsp/config.lsp cmp/cmpdefs.lsp lsp/*.lsp clos/*.lsp cmp/*.lsp c/mkcl/mkcl-cmp.h c/mkcl/config.h BUILD-STAMP mkcl_min$(EXE) mkcltop.@LIBEXT@
+lsp.a $(LSP_LIBRARIES): lsp/git_describe.lsp compile.lsp lsp/config.lsp cmp/cmpdefs.lsp lsp/*.lsp clos/*.lsp cmp/*.lsp c/mkcl/mkcl-cmp.h c/mkcl/config.h BUILD-STAMP mkcl_min$(EXE) mkcltop.@LIBEXT@
 	./mkcl_min$(EXE) compile
+
+mkcl-small$(EXE): lsp.a $(LSP_LIBRARIES) mkcl_min$(EXE) mkcltop.@LIBEXT@
+	echo "(progn (build-mkcl-small) (mkcl::quit :exit-code 0))" | ./mkcl_min$(EXE) build-mkcl-small.lsp
+
+encodings: mkcl-small$(EXE) ../contrib/encodings/generate.lisp build-encodings.lsp
+	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-encodings.lsp
 
 
 ext-dir-exists:

@@ -82,42 +82,6 @@
   )
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;
-;;; THE FINAL EXECUTABLE
-;;;
-
-(terpri) (princ ";;; About to build main executable mkcl.")
-
-#+unix
-(unless (compiler:build-program
-	 "mkcl-small"
-	 :use-mkcl-shared-libraries nil ;; force static linking
-	 ;;:extra-ld-flags "-pg"  ;; for profiling
-	 )
-  (mkcl:quit :exit-code 1))
-
-
-#+windows
-(let ((target-name #+msvc "mkcl2" #+(or mingw32 mingw64) "mkcl-small"))
-  (unless (compiler:build-program
-	   target-name
-	   )
-    (mkcl:quit :exit-code 1))
-  )
-
-(terpri) (princ ";;; Generating supplemental character encoding external support files.")
-
-(defvar *generate-verbose*)
-(setq *generate-verbose* nil) ;; Makes the generate.lisp script more verbose.
-
-(defvar *update-mapping*)
-(setq *update-mapping* nil) ;; Setting this to something other than nil may result in network activity.
-
-#+UNICODE
-(load "../contrib/encodings/generate.lisp" :external-format '(:ascii :lf))
-
-
 
 (terpri)
 (princ ";;; All done in compile.lsp!")
