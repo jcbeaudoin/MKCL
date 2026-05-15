@@ -16,7 +16,7 @@
       compiler::*mkcl-library-directory* (truename (pathname "."))
       )
 
-(setq compiler::*trace-cc* t)
+;;; (setq compiler::*trace-cc* t)
 
 (defun build-mkcl-small ()
   (terpri) (princ ";;; About to build main executable mkcl.")

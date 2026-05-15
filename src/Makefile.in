@@ -153,7 +153,7 @@ c/mkcl/config.h: c/mkcl/config.h.in config.status
 lsp.a $(LSP_LIBRARIES): lsp/git_describe.lsp compile.lsp lsp/config.lsp cmp/cmpdefs.lsp lsp/*.lsp clos/*.lsp cmp/*.lsp c/mkcl/mkcl-cmp.h c/mkcl/config.h BUILD-STAMP mkcl_min$(EXE) mkcltop.@LIBEXT@
 	./mkcl_min$(EXE) compile
 
-mkcl-small$(EXE): lsp.a $(LSP_LIBRARIES) mkcl_min$(EXE) mkcltop.@LIBEXT@
+mkcl-small$(EXE): lsp.a
 	echo "(progn (build-mkcl-small) (mkcl::quit :exit-code 0))" | ./mkcl_min$(EXE) build-mkcl-small.lsp
 
 encodings: mkcl-small$(EXE) ../contrib/encodings/generate.lisp build-encodings.lsp
