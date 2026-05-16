@@ -140,7 +140,7 @@
 				(not (or compiler-note warning compiler-error)))
 			   #'handle-note) ;; not really expected...
 			  )
-             (mt:with-lock (mt::+load-compile-lock+)
+             (progn ;; mt:with-lock (mt::+load-compile-lock+) ;; make lock tighter on pass 1.  JCB 2026/05/05
 	        (let ,+init-env-form+
                   (with-compilation-unit ()
                      ,@body)))))

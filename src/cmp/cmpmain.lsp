@@ -1051,16 +1051,17 @@ compiled successfully, returns the pathname of the compiled file."
 
 	 ;; Read in the source code.
 	 (with-open-file 
-	  (*compiler-input* input-file #|:direction :input|# :external-format external-format)
-	  (do* ((si:*source-location* (cons *compile-file-pathname* 0))
-		(form (read-safely *compiler-input* eof) (read-safely *compiler-input* eof))
-		(*compile-file-end-position* (mkcl::file-character-position *compiler-input*)
-                                             (mkcl::file-character-position *compiler-input*))
-		)
-	       ((eq form eof))
+	     (*compiler-input* input-file #|:direction :input|# :external-format external-format)
+           (mt:with-lock (mt::+load-compile-lock+)  ;;  protect source reading and macro expansion. JCB 2026/05/05
+	     (do* ((si:*source-location* (cons *compile-file-pathname* 0))
+		   (form (read-safely *compiler-input* eof) (read-safely *compiler-input* eof))
+		   (*compile-file-end-position* (mkcl::file-character-position *compiler-input*)
+						(mkcl::file-character-position *compiler-input*))
+		   )
+		  ((eq form eof))
 	       (when form
 		 (setf (cdr si:*source-location*) *compile-file-end-position*)
-		 (t1expr form))))
+		 (t1expr form)))))
 
 	 ;;(when *trace-compiler-memory* (format t "~&compile-file after read: ~S.~%" (si:sample-allocation-statistics)))
 
@@ -1184,7 +1185,8 @@ returned as the value of COMPILE."
 	(with-compiler-env
 	 (compiler-conditions)
 	 (data-init)
-	 (t1expr form)
+         (mt:with-lock (mt::+load-compile-lock+)  ;; protect macro expansion. JCB 2026/05/05
+	   (t1expr form))
 	 (let (#+(or mingw32 mingw64 msvc cygwin)(*self-destructing-fasl* t))
 	   (compiler-pass2 c-pathname h-pathname data-pathname init-name :input-designator (format nil "~A" definition)))
 
@@ -1275,7 +1277,8 @@ from the C language code.  NIL means \"do not create the file\"."
       (unwind-protect
 	   (progn
 	     (data-init)
-	     (t1expr disassembled-form)
+             (mt:with-lock (mt::+load-compile-lock+)  ;; protect macro expansion.  JCB 2026/05/05
+	       (t1expr disassembled-form))
 	     (wt-nl1 "#include " *cmpinclude*)
 	     (ctop-write (compute-init-name "foo" :kind :fasl)
 			 (if h-file h-file "")
