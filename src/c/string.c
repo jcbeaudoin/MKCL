@@ -2016,7 +2016,7 @@ mkcl_search_in_base_string(MKCL, mkcl_object str1, mkcl_object str2)
 
   while (start2 + len1 <= end2)
     {
-      mkcl_base_char * base = memchr(&(self2[start2]), ch0, end2 - start2);
+      const mkcl_base_char * base = memchr(&(self2[start2]), ch0, end2 - start2);
 
       if (base && ((start2 = base - self2) + len1 <= end2))
 	{
