@@ -78,7 +78,8 @@
 (in-package "COMPILER")
 
 (defmacro proclaim-function (name arg-types return-type
-				  &key no-sp-change predicate no-side-effects)
+			     &key no-sp-change predicate no-side-effects
+			     &aux (required-arg-count 0))
   (unless (eq '* arg-types)
     (multiple-value-setq (required-arg-count arg-types) (si::validate-arg-typespec arg-types)))
   (unless (eq '* return-type)
