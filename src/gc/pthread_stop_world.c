@@ -805,47 +805,53 @@ MK_GC_INNER void MK_GC_start_world(void)
     pthread_t self = pthread_self();
     register int i;
     register MK_GC_thread p;
-#   ifndef MK_GC_OPENBSD_UTHREADS
-      register int n_live_threads = 0;
-      register int result;
-#   endif
+#  ifndef MK_GC_OPENBSD_UTHREADS
 #   ifdef MK_GC_NETBSD_THREADS_WORKAROUND
+    register int n_live_threads = 0;
+#   endif
+    register int result;
+#  endif
+#  ifdef MK_GC_NETBSD_THREADS_WORKAROUND
       int code;
-#   endif
+#  endif
 
-#   ifdef DEBUG_THREADS
+#  ifdef DEBUG_THREADS
       MK_GC_log_printf("World starting\n");
-#   endif
+#  endif
 
-#   ifndef MK_GC_OPENBSD_UTHREADS
+#  ifndef MK_GC_OPENBSD_UTHREADS
       MK_AO_store(&MK_GC_world_is_stopped, FALSE);
-#   endif
+#  endif
     for (i = 0; i < THREAD_TABLE_SZ; i++) {
       for (p = MK_GC_threads[i]; p != 0; p = p -> next) {
         if (!THREAD_EQUAL(p -> id, self)) {
             if (p -> flags & FINISHED) continue;
             if (p -> thread_blocked) continue;
-#           ifndef MK_GC_OPENBSD_UTHREADS
-              n_live_threads++;
-#           endif
-#           ifdef DEBUG_THREADS
+#  ifndef MK_GC_OPENBSD_UTHREADS
+#   ifdef MK_GC_NETBSD_THREADS_WORKAROUND
+	    n_live_threads++;
+#   endif
+#  endif
+#  ifdef DEBUG_THREADS
               MK_GC_log_printf("Sending restart signal to %p\n", (void *)p->id);
-#           endif
+#  endif
 
-#         ifdef MK_GC_OPENBSD_UTHREADS
+#  ifdef MK_GC_OPENBSD_UTHREADS
             if (pthread_resume_np(p -> id) != 0)
               ABORT("pthread_resume_np failed");
-#         else
-#           if 1 /* JCB */ || !defined(PLATFORM_ANDROID)
+#  else
+#   if 1 /* JCB */ || !defined(PLATFORM_ANDROID)
               result = pthread_kill(p -> id, MK_GC_sig_thr_restart);
-#           else
+#   else
               result = android_thread_kill(p -> kernel_id,
                                            MK_GC_sig_thr_restart);
-#           endif
+#   endif
             switch(result) {
                 case ESRCH:
                     /* Not really there anymore.  Possible? */
+#   ifdef MK_GC_NETBSD_THREADS_WORKAROUND
                     n_live_threads--;
+#   endif
                     break;
                 case 0:
                     break;
@@ -853,11 +859,11 @@ MK_GC_INNER void MK_GC_start_world(void)
                     ABORT_ARG1("pthread_kill failed at resume",
                                ": errcode= %d", result);
             }
-#         endif
+#  endif
         }
       }
     }
-#   ifdef MK_GC_NETBSD_THREADS_WORKAROUND
+#  ifdef MK_GC_NETBSD_THREADS_WORKAROUND
       for (i = 0; i < n_live_threads; i++) {
         while (0 != (code = sem_wait(&MK_GC_restart_ack_sem))) {
           if (errno != EINTR) {
@@ -866,10 +872,10 @@ MK_GC_INNER void MK_GC_start_world(void)
           }
         }
       }
-#   endif
-#   ifdef DEBUG_THREADS
+#  endif
+#  ifdef DEBUG_THREADS
       MK_GC_log_printf("World started\n");
-#   endif
+#  endif
 
       { /* JCB */
 	if (sigaction(SIGSEGV, &old_sigsegv, NULL))
@@ -877,9 +883,9 @@ MK_GC_INNER void MK_GC_start_world(void)
       }
 
 # else /* NACL */
-#   ifdef DEBUG_THREADS
+#  ifdef DEBUG_THREADS
       MK_GC_log_printf("World starting...\n");
-#   endif
+#  endif
     MK_GC_nacl_park_threads_now = 0;
 # endif
 }
