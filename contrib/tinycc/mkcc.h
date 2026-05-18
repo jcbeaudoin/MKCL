@@ -1172,8 +1172,8 @@ ST_DATA struct MKCCState *mkcc_state;
 ST_FUNC char *pstrcpy(char *buf, int buf_size, const char *s);
 ST_FUNC char *pstrcat(char *buf, int buf_size, const char *s);
 ST_FUNC char *pstrncpy(char *out, const char *in, size_t num);
-PUB_FUNC char *mkcc_basename(const char *name);
-PUB_FUNC char *mkcc_fileextension (const char *name);
+PUB_FUNC const char *mkcc_basename(const char *name);
+PUB_FUNC const char *mkcc_fileextension (const char *name);
 
 #ifndef MEM_DEBUG
 PUB_FUNC void mkcc_free(void *ptr);

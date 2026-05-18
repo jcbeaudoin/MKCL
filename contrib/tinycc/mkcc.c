@@ -162,7 +162,7 @@ static void exec_other_mkcc(MKCCState *s, char **argv, const char *optarg)
         case 32: target = "i386";
 #endif
             pstrcpy(child_path, sizeof child_path - 40, argv[0]);
-            child_name = mkcc_basename(child_path);
+            child_name = (char *) mkcc_basename(child_path);
             strcpy(child_name, target);
 #ifdef MKCC_TARGET_PE
             strcat(child_name, "-win32");
@@ -194,7 +194,7 @@ static void gen_makedeps(MKCCState *s, const char *target, const char *filename)
         /* compute filename automatically
          * dir/file.o -> dir/file.d             */
         pstrcpy(buf, sizeof(buf), target);
-        ext = mkcc_fileextension(buf);
+        ext = (char *) mkcc_fileextension(buf);
         pstrcpy(ext, sizeof(buf) - (ext-buf), ".d");
         filename = buf;
     }
@@ -223,7 +223,7 @@ static char *default_outputfile(MKCCState *s, const char *first_file)
     if (first_file && strcmp(first_file, "-"))
         name = mkcc_basename(first_file);
     pstrcpy(buf, sizeof(buf), name);
-    ext = mkcc_fileextension(buf);
+    ext = (char *) mkcc_fileextension(buf);
 #ifdef MKCC_TARGET_PE
     if (s->output_type == MKCC_OUTPUT_DLL)
         strcpy(ext, ".dll");

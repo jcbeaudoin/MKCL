@@ -172,9 +172,9 @@ ST_FUNC char *pstrncpy(char *out, const char *in, size_t num)
 }
 
 /* extract the basename of a file */
-PUB_FUNC char *mkcc_basename(const char *name)
+PUB_FUNC const char *mkcc_basename(const char *name)
 {
-    char *p = strchr(name, 0);
+    const char *p = strchr(name, 0);
     while (p > name && !IS_DIRSEP(p[-1]))
         --p;
     return p;
@@ -184,10 +184,10 @@ PUB_FUNC char *mkcc_basename(const char *name)
  *
  * (if no extension, return pointer to end-of-string)
  */
-PUB_FUNC char *mkcc_fileextension (const char *name)
+PUB_FUNC const char *mkcc_fileextension (const char *name)
 {
-    char *b = mkcc_basename(name);
-    char *e = strrchr(b, '.');
+    const char *b = mkcc_basename(name);
+    const char *e = strrchr(b, '.');
     return e ? e : strchr(b, 0);
 }
 
