@@ -1,6 +1,6 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
 ;;;;
-;;;;  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2012, 2026, Jean-Claude Beaudoin.
 ;;;;
 ;;;;  This program is free software; you can redistribute it and/or
 ;;;;  modify it under the terms of the GNU Lesser General Public
@@ -16,11 +16,11 @@
 
 (load "cmp/load.lsp" :external-format '(:ascii :lf))
 
-(load "compile-utils" :external-format '(:ascii :lf))
+(load "parallel-compile-utils" :external-format '(:ascii :lf))
 
-(build-module "CMP" +cmp-module-files+ 
-	      :destdir (pathname "./cmp/")
-	      )
-
-(mkcl:quit :exit-code 0) ;; signal to "make" that all is well.
+(defun build-cmp ()
+  (build-module "CMP" +cmp-module-files+
+		:destdir (pathname "./cmp/")
+		)
+  )
 

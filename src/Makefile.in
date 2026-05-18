@@ -150,10 +150,10 @@ c/mkcl/config.h: c/mkcl/config.h.in config.status
 	touch c/mkcl/config.h
 
 
-lsp.a $(LSP_LIBRARIES): lsp/git_describe.lsp compile.lsp lsp/config.lsp cmp/cmpdefs.lsp lsp/*.lsp clos/*.lsp cmp/*.lsp c/mkcl/mkcl-cmp.h c/mkcl/config.h BUILD-STAMP mkcl_min$(EXE) mkcltop.@LIBEXT@
-	./mkcl_min$(EXE) compile
+lsp.a $(LSP_LIBRARIES): lsp/git_describe.lsp compile.lsp parallel-compile-utils.lsp lsp/config.lsp cmp/cmpdefs.lsp lsp/*.lsp clos/*.lsp cmp/*.lsp c/mkcl/mkcl-cmp.h c/mkcl/config.h BUILD-STAMP mkcl_min$(EXE) mkcltop.@LIBEXT@
+	echo "(progn (compile-and-build-libs) (mkcl:quit :exit-code 0))" | ./mkcl_min$(EXE) compile.lsp
 
-mkcl-small$(EXE): lsp.a
+mkcl-small$(EXE): lsp.a build-mkcl-small.lsp bare.lsp
 	echo "(progn (build-mkcl-small) (mkcl::quit :exit-code 0))" | ./mkcl_min$(EXE) build-mkcl-small.lsp
 
 encodings: mkcl-small$(EXE) ../contrib/encodings/generate.lisp build-encodings.lsp
@@ -354,8 +354,8 @@ asdf-stage/rt.as2: asdf-stage/rt.fasb mkcl-small$(EXE) asdf-stage-dir-exists bui
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- rt ../contrib/rt*/ ./asdf-stage/
 
 
-cmp/CMP.fasb cmp/CMP.a cmp/CMP.asd cmp/CMP.as2: mkcl-small$(EXE) cmp/*.lsp build-cmp.lsp
-	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-cmp.lsp
+cmp/CMP.fasb cmp/CMP.a cmp/CMP.asd cmp/CMP.as2: mkcl-small$(EXE) cmp/*.lsp build-cmp.lsp parallel-compile-utils.lsp
+	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-cmp.lsp -eval "(progn (build-cmp) (mkcl:quit :exit-code 0))"
 
 mkcl-dyn: mkcl-small$(EXE) cmp/CMP.fasb build-dynamic-mkcl.lsp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-dynamic-mkcl.lsp

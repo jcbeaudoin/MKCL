@@ -1,6 +1,6 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
 ;;;;
-;;;;  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2012, 2026, Jean-Claude Beaudoin.
 ;;;;  Copyright by a number of previous anonymous authors
 ;;;;            presumed to be the same as for the rest of MKCL.
 ;;;;
@@ -14,8 +14,9 @@
 ;;; @configure_input@
 ;;;
 ;;; This is the "compile" file for building MKCL. The purpose of this file is
-;;;	- Compile the core of the Common-Lisp library (lsp, clos)
-;;;	- Build an executable
+;;;	- Compile the whole of the Common-Lisp library (lsp, clos),
+;;;	- Build a static library of the whole set,
+;;;	- Build a shared library version of some whole set.
 ;;;
 
 (progn
@@ -41,7 +42,7 @@
   )
 
 
-(load "compile-utils.lsp" :external-format '(:ascii :lf))
+(load "parallel-compile-utils.lsp" :external-format '(:ascii :lf))
 
 ;;;
 ;;; * Trick to make names shorter in C files
@@ -54,39 +55,34 @@
 ;;; * Compile and link Common-Lisp base library
 ;;;
 
-(let* (#+windows (compiler::*cc-flags* (concatenate 'string "-DMKCL_API " compiler::*cc-flags*))
-       #+windows (compiler::*fast-compile-cc-flags* (concatenate 'string "-DMKCL_API " compiler::*fast-compile-cc-flags*))
-       (lsp-objects (compile-if-old "./lsp/" +lisp-module-files+ :fasl-p nil))
-       )
-  (setq lsp-objects (append lsp-objects (compile-if-old "./clos/" +clos-module-files+ :fasl-p nil)))
+(defun compile-and-build-libs ()
+  (let* (#+windows
+	 (compiler::*cc-flags* (concatenate 'string "-DMKCL_API " compiler::*cc-flags*))
+	 #+windows
+	 (compiler::*fast-compile-cc-flags* (concatenate 'string "-DMKCL_API " compiler::*fast-compile-cc-flags*))
+	 (lsp-objects (compile-if-old "./lsp/" +lisp-module-files+))
+	 )
+    (setq lsp-objects (append lsp-objects (compile-if-old "./clos/" +clos-module-files+)))
 
-  (format t "~&;;About to build static library lsp.a~%")
-  (unless (compiler:build-static-library "lsp" :lisp-object-files lsp-objects)
-    (mkcl:quit :exit-code 1))
-  (format t "~&;;Done building lsp.a!~%"))
+    (format t "~&;;About to build static library lsp.a~%")
+    (unless (compiler:build-static-library "lsp" :lisp-object-files lsp-objects)
+      (mkcl:quit :exit-code 1))
+    (format t "~&;;Done building lsp.a!~%"))
 
 ;;;
 ;;;
-(let* ((extra-ld-flags #+unix (mkcl:bstr+ "-Wl,-soname,mkcl_" (si:mkcl-version) ".@SHAREDEXT@")))
-  (format t "~&;;About to build shared library mkcl_~A.@SHAREDEXT@~%" (si:mkcl-version))
-  (unless (compiler:build-shared-library (mkcl:bstr+ "mkcl_" (si:mkcl-version) ".@SHAREDEXT@")
-					 :extra-ld-flags extra-ld-flags
-					 :object-files `("mkcltop.a"
-                                                         "lsp.@LIBEXT@"
-                                                         "mkclmin.@LIBEXT@"
-                                                         ,@(mkcl:split-string "@LIBRARIES@" #\space)
-                                                         )
-					 )
-    (mkcl:quit :exit-code 1))
-  (format t "~&;;Done building shared library mkcl_~A.@SHAREDEXT@!~%" (si:mkcl-version))
+  (let* ((extra-ld-flags #+unix (mkcl:bstr+ "-Wl,-soname,mkcl_" (si:mkcl-version) ".@SHAREDEXT@")))
+    (format t "~&;;About to build shared library mkcl_~A.@SHAREDEXT@~%" (si:mkcl-version))
+    (unless (compiler:build-shared-library (mkcl:bstr+ "mkcl_" (si:mkcl-version) ".@SHAREDEXT@")
+					   :extra-ld-flags extra-ld-flags
+					   :object-files `("mkcltop.a"
+                                                           "lsp.@LIBEXT@"
+                                                           "mkclmin.@LIBEXT@"
+                                                           ,@(mkcl:split-string "@LIBRARIES@" #\space)
+                                                           )
+					   )
+      (mkcl:quit :exit-code 1))
+    (format t "~&;;Done building shared library mkcl_~A.@SHAREDEXT@!~%" (si:mkcl-version))
+    )
   )
-
-
-
-(terpri)
-(princ ";;; All done in compile.lsp!")
-(terpri)
-(finish-output)
-
-(mkcl:quit :exit-code 0) ;; signal to "make" that all is well.
 
