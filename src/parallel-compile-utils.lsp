@@ -34,7 +34,7 @@
   ;;(setq compiler::*compiler-break-enable* t) ;; enter debugger on compiler internal error
   (setq compiler::*delete-compiler-internal-files* nil)
   (setq *compile-extra-options* '(:c-file t :data-file t :h-file t))
-  (proclaim '(optimize (debug 3) (speed 1) (compilation-speed 1))) ;; full debug info
+  ;;(proclaim '(optimize (debug 3) (speed 1) (compilation-speed 1))) ;; full debug info
   ;;(proclaim '(optimize (debug 3) (speed 1))) ;; full debug info
   ;;(proclaim '(optimize (debug 0) (speed 3) (compilation-speed 3)))
   ;;(proclaim '(optimize (debug 0) (speed 3)))
@@ -241,14 +241,15 @@
 	   (setq result (compiler::build-bundle destname :lisp-object-files objects))
 	   (unless result
 	     (clean-up destdir sources)
-	     (format t "~&Bailing out from build-module fasl step!~%") (finish-output)
+	     (format t "~&Bailing out from build-module fasl step! result = ~S~%" result) (finish-output)
 	     (mkcl:quit :exit-code 1)) ;; exit if fasl build failed.
 	   )
-	 (progn
+	 (let (result)
 	   (format t "~&(compiler::build-static-library ~S :lisp-object-files ~S)" destname objects)
-	   (unless (compiler::build-static-library destname :lisp-object-files objects)
+	   (setq result (compiler::build-static-library destname :lisp-object-files objects))
+	   (unless result
 	     (clean-up destdir sources)
-	     (format t "~&Bailing out from build-module static library step!~%") (finish-output)
+	     (format t "~&Bailing out from build-module static library step! result = ~S~%" result) (finish-output)
 	     (mkcl:quit :exit-code 1)))
 	 (terpri))))))
 
