@@ -886,7 +886,17 @@ AC_DEFUN([MKCL_FFI],[
 AC_MSG_CHECKING([whether we can dynamically build calls to C functions])
 case "${host_cpu}" in
    i686 | i586 | pentium* | athlon* )
-	EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_x86.o"
+        case "${host_os}" in
+            linux*)
+                EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_x86_linux.o"
+                ;;
+#            mingw*)
+#                EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_x86_mingw.o"
+#                ;;
+            *)
+                EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_x86.o" # valid fallback?
+                ;;
+        esac
 	if test "${enable_asmapply}" = "yes" ; then
 		EXTRA_OBJS="${EXTRA_OBJS} apply_x86.o"
 		AC_DEFINE(MKCL_ASM_APPLY)
