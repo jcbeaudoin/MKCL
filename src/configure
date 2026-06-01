@@ -7219,9 +7219,9 @@ case "${host_cpu}" in
             linux*)
                 EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_x86_linux.o"
                 ;;
-#            mingw*)
-#                EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_x86_mingw.o"
-#                ;;
+            mingw*)
+                EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_x86_mingw32.o"
+                ;;
             *)
                 EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_x86.o" # valid fallback?
                 ;;
@@ -7240,8 +7240,11 @@ case "${host_cpu}" in
 	  EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_x86.o"
 	else
             case "${host_os}" in
+                linux*)
+                    EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_x86_64_linux.o"
+                    ;;
                 mingw*)
-	            EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_x86_64_w64.o"
+	            EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_x86_64_mingw64.o"
                     ;;
                 *)
 	            EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_x86_64.o"
@@ -7251,11 +7254,11 @@ case "${host_cpu}" in
 	dynamic_ffi=yes
 	;;
    aarch64 )
-        EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_aarch64.o"
+        EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_aarch64_linux.o"
 	dynamic_ffi=yes
         ;;
    arm* )
-        EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_arm.o"
+        EXTRA_OBJS="${EXTRA_OBJS} arch/ffi_arm_linux.o"
 	dynamic_ffi=yes
         ;;
    *)
