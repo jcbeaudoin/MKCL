@@ -360,10 +360,10 @@ cmp/CMP.fasb cmp/CMP.a cmp/CMP.asd cmp/CMP.as2: mkcl-small$(EXE) cmp/*.lsp build
 mkcl-dyn: mkcl-small$(EXE) cmp/CMP.fasb build-dynamic-mkcl.lsp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-dynamic-mkcl.lsp
 
-mkcl$(EXE): mkcl-small$(EXE) cmp/CMP.fasb build-mkcl.lsp
+mkcl$(EXE): mkcl-small$(EXE) cmp/CMP.a build-mkcl.lsp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-mkcl.lsp
 
-mkcl-full$(EXE): mkcl-small$(EXE) build-full-mkcl.lsp ext/asdf.a ext/profile.a ext/SERVE-EVENT.a ext/SOCKETS.a ext/mk-unix.a
+mkcl-full$(EXE): mkcl-small$(EXE) cmp/CMP.a build-full-mkcl.lsp ext/asdf.a ext/profile.a ext/SERVE-EVENT.a ext/SOCKETS.a ext/mk-unix.a
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-full-mkcl.lsp --  ext/asdf.a ext/profile.a ext/SERVE-EVENT.a ext/SOCKETS.a ext/mk-unix.a
 
 help.doc: mkcl-small$(EXE) dump-doc.lsp doc/help.lsp

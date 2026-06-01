@@ -12,13 +12,14 @@
 ;;;
 ;;;
 (push :mkcl-bootstrap *features*)
+(defvar result nil)
 
-;;(load "cmp/CMP.fasb")
+;;(load "cmp/CMP.fasb") ;; cannot be used if we push :mkcl-bootstrap on *features*.
 (load "cmp/load.lsp" :external-format '(:ascii :lf))
 
 ;;(proclaim '(optimize (debug 1))) ;; faster, no debug info.
 (proclaim '(optimize (debug 0))) ;; faster, no debug info.
-#-(and)
+#+(and)
 (progn
   (setq compiler::*compiler-break-enable* t) ;; enter debugger on compiler internal error
   (setq compiler::*delete-compiler-internal-files* nil)
@@ -40,17 +41,16 @@
       )
 
 #+unix
-(unless (compiler::build-program
+(setq result (compiler::build-program
 	 "mkcl"
 	 :lisp-object-files '( "cmp/CMP.a" ) ;; list of pre-loads.
 	 :use-mkcl-shared-libraries nil ;; force static linking
 	 ;;:extra-ld-flags "-pg"  ;; for profiling
-	 )
-  (mkcl:quit :exit-code 1))
+	 ))
 
 
 #+windows
-(unless (compiler::build-program
+(set result (compiler::build-program
 	 "mkcl"
 	 :lisp-object-files '( "cmp/CMP.a" ) ;; list of pre-loads.
 ;;	 :extra-ld-flags "-Wl,--stack,0x800000" ;; Stack of 8MB. ;; behaves badly on MinGW64. 
@@ -61,9 +61,13 @@
 					(TERPRI))
 				(SI::TOP-LEVEL))
 |#
-	 )
+	 ))
+
+(unless result
+  (format t "~&Bailing out from build-program with result = ~S~%" result) (finish-output)
   (mkcl:quit :exit-code 1))
 
 
+(format t "~&Executable mkcl properly built with result = ~S~%" result) (finish-output)
 (mkcl:quit :exit-code 0) ;; tell make that all is well.
 
