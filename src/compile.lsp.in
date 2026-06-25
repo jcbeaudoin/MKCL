@@ -55,7 +55,7 @@
 ;;; * Compile and link Common-Lisp base library
 ;;;
 
-(defun compile-and-build-libs ()
+(defun compile-and-build-lib ()
   (let* (#+windows
 	 (compiler::*cc-flags* (concatenate 'string "-DMKCL_API " compiler::*cc-flags*))
 	 #+windows
@@ -67,10 +67,11 @@
     (format t "~&;;About to build static library lsp.a~%")
     (unless (compiler:build-static-library "lsp" :lisp-object-files lsp-objects)
       (mkcl:quit :exit-code 1))
-    (format t "~&;;Done building lsp.a!~%"))
+    (format t "~&;;Done building lsp.a!~%")))
 
 ;;;
 ;;;
+(defun build-shared-lib ()
   (let* ((extra-ld-flags #+unix (mkcl:bstr+ "-Wl,-soname,mkcl_" (si:mkcl-version) ".@SHAREDEXT@")))
     (format t "~&;;About to build shared library mkcl_~A.@SHAREDEXT@~%" (si:mkcl-version))
     (unless (compiler:build-shared-library (mkcl:bstr+ "mkcl_" (si:mkcl-version) ".@SHAREDEXT@")

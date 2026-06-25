@@ -18,6 +18,8 @@
 ;;;
 ;;(proclaim '(optimize (debug 1))) ;; faster, no debug info.
 (proclaim '(optimize (debug 0))) ;; faster, no debug info.
+;;(proclaim '(optimize (debug 3) (speed 1))) ;; full debug info
+
 #-(and)
 (progn
   ;;(setq compiler::*compiler-break-enable* t) ;; enter debugger on compiler internal error
@@ -192,4 +194,58 @@
 	     (mkcl:quit :exit-code 1)))
 	 (terpri))))))
 
+
+
+(defun compile-and-build-lib (name sources
+			      &key
+				(destdir "")
+			      &aux (*break-enable* t)
+				)
+  (handler-bind 
+     ((condition #'(lambda (c)
+		     (unless (subtypep (type-of c) 'warning)
+		       (format t "~&compile-and-build-lib failed on condition: ~A~%" c)
+		       (break)
+		       (finish-output)
+		       (clean-up destdir sources)
+		       (format t "~&Bailing out from compile-and-build-lib condition handler!~%") (finish-output)
+		       (mkcl:quit :exit-code 1)))))
+   (let* ((destname (make-pathname :name name :defaults destdir))
+          (objects (compile-if-old destdir sources))
+	  result
+	  )
+     (format t "~&(compiler::build-static-library ~S :lisp-object-files ~S)" destname objects)
+     (setq result (compiler::build-static-library destname :lisp-object-files objects))
+     (unless result
+       (clean-up destdir sources)
+       (format t "~&Bailing out from compile-and-build-lib static library step! result = ~S~%" result) (finish-output)
+       (mkcl:quit :exit-code 1))
+     )
+   (terpri)))
+
+(defun build-fasb (name lisp-object-files
+		   &key
+		     (destdir "")
+		   &aux (*break-enable* t)
+		     )
+  (handler-bind 
+     ((condition #'(lambda (c)
+		     (unless (subtypep (type-of c) 'warning)
+		       (format t "~&build-fasb failed on condition: ~A~%" c)
+		       (break)
+		       (finish-output)
+		       (clean-up destdir sources)
+		       (format t "~&Bailing out from build-fasb condition handler!~%") (finish-output)
+		       (mkcl:quit :exit-code 1)))))
+    (let* ((destname (make-pathname :name name :defaults destdir))
+	   result
+          )
+      (format t "~&(compiler::build-bundle ~S :lisp-object-files ~S)" destname lisp-object-files)
+      (setq result (compiler::build-bundle destname :lisp-object-files lisp-object-files))
+      (unless result
+	(clean-up destdir sources)
+	(format t "~&Bailing out from build-fasb step! result = ~S~%" result) (finish-output)
+	(mkcl:quit :exit-code 1)) ;; exit if fasl build failed.
+      )
+    (terpri)))
 

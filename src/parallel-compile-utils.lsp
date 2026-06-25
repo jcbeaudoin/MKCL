@@ -29,6 +29,8 @@
 
 ;;(proclaim '(optimize (debug 1))) ;; faster, no debug info.
 (proclaim '(optimize (debug 0))) ;; faster, no debug info.
+;;(proclaim '(optimize (debug 3) (speed 1))) ;; full debug info
+
 #+debug-compilation
 (progn
   ;;(setq compiler::*compiler-break-enable* t) ;; enter debugger on compiler internal error
@@ -183,74 +185,60 @@
     (nreverse objects)))
 
 
-(defun build-substitute-as2-file (asdf-module-name name destdir system-attribs) ;; This is for ASDF 2
-  (with-open-file (*standard-output* (make-pathname :name asdf-module-name :type "as2" :defaults destdir)
-                   :direction :output :if-exists :supersede :if-does-not-exist :create)
-    (pprint `(defsystem ,asdf-module-name
-               :components ((:bundle ,(string name)))
-	       ,@system-attribs
-	       ))
-    (terpri)))
 
-(defun build-substitute-asd-file (asdf-module-name name destdir system-attribs) ;; This is for ASDF 3 (and later hopefully)
-  (with-open-file (*standard-output* (make-pathname :name asdf-module-name :type "asd" :defaults destdir)
-                   :direction :output :if-exists :supersede :if-does-not-exist :create)
-    (format *standard-output* "(defsystem ~S~%~
-                                 ~12T:class ASDF/BUNDLE::PREBUILT-SYSTEM~%~
-                                 ~12T:depends-on nil~%~
-                                 ~12T:components ((:compiled-file ~S~:*))~%~
-                                 ~12T:lib \"~A.a\"~%~
-                                 ~12T~{ ~S~})~%" asdf-module-name (string name) system-attribs)
-    (terpri)))
-
-(defun build-module (name sources &key
-			  (builtin nil) ;; deprecated! JCB
-			  (destdir "")
-                          (version nil)
-			  ((:prefix si::*init-function-prefix*) "EXT")
-			  &aux (*break-enable* t)
-			  )
+(defun compile-and-build-lib (name sources
+			      &key
+				(destdir "")
+			      &aux (*break-enable* t)
+				)
   (handler-bind 
      ((condition #'(lambda (c)
 		     (unless (subtypep (type-of c) 'warning)
-		       (format t "~&build-module failed on condition: ~A~%" c)
+		       (format t "~&compile-and-build-lib failed on condition: ~A~%" c)
 		       (break)
 		       (finish-output)
 		       (clean-up destdir sources)
-		       (format t "~&Bailing out from build-module condition handler!~%") (finish-output)
+		       (format t "~&Bailing out from compile-and-build-lib condition handler!~%") (finish-output)
 		       (mkcl:quit :exit-code 1)))))
-   (let* ((asdf-module-name (string-downcase name)) ;; ASDF is hell-bent on downcasing system names by default.
-          (destname (make-pathname :name name :defaults destdir))
-          (system-attribs (when version (list :version version)))
+   (let* ((destname (make-pathname :name name :defaults destdir))
+          (objects (compile-if-old destdir sources))
+	  result
+	  )
+     (format t "~&(compiler::build-static-library ~S :lisp-object-files ~S)" destname objects)
+     (setq result (compiler::build-static-library destname :lisp-object-files objects))
+     (unless result
+       (clean-up destdir sources)
+       (format t "~&Bailing out from compile-and-build-lib static library step! result = ~S~%" result) (finish-output)
+       (mkcl:quit :exit-code 1))
+     )
+   (terpri)))
+
+(defun build-fasb (name lisp-object-files
+		   &key
+		     (destdir "")
+		   &aux (*break-enable* t)
+		     )
+  (handler-bind 
+     ((condition #'(lambda (c)
+		     (unless (subtypep (type-of c) 'warning)
+		       (format t "~&build-fasb failed on condition: ~A~%" c)
+		       (break)
+		       (finish-output)
+		       (clean-up destdir sources)
+		       (format t "~&Bailing out from build-fasb condition handler!~%") (finish-output)
+		       (mkcl:quit :exit-code 1)))))
+    (let* ((destname (make-pathname :name name :defaults destdir))
+	   result
           )
-     (unless (probe-file destdir)  ;; ensure destdir exists.
-       (si::mkdir destdir #o0777))
-     (unless (find asdf-module-name '("asdf" "asdf2" "asdf3") :test #'equalp)
-       (build-substitute-as2-file asdf-module-name name destdir system-attribs)
-       (build-substitute-asd-file asdf-module-name name destdir system-attribs))
-     (if builtin
-	 (let* ((objects (compile-if-old destdir sources)))
-	   (unless (compiler::build-static-library destname :lisp-object-files objects)
-	     (clean-up destdir sources)
-	     (mkcl:quit :exit-code 1))
-	   )
-       (let* ((objects (compile-if-old destdir sources))
-	      )
-	 (let (result)
-	   (format t "~&(compiler::build-bundle ~S :lisp-object-files ~S)" destname objects)
-	   (setq result (compiler::build-bundle destname :lisp-object-files objects))
-	   (unless result
-	     (clean-up destdir sources)
-	     (format t "~&Bailing out from build-module fasl step! result = ~S~%" result) (finish-output)
-	     (mkcl:quit :exit-code 1)) ;; exit if fasl build failed.
-	   )
-	 (let (result)
-	   (format t "~&(compiler::build-static-library ~S :lisp-object-files ~S)" destname objects)
-	   (setq result (compiler::build-static-library destname :lisp-object-files objects))
-	   (unless result
-	     (clean-up destdir sources)
-	     (format t "~&Bailing out from build-module static library step! result = ~S~%" result) (finish-output)
-	     (mkcl:quit :exit-code 1)))
-	 (terpri))))))
+      (format t "~&(compiler::build-bundle ~S :lisp-object-files ~S)" destname lisp-object-files)
+      (setq result (compiler::build-bundle destname :lisp-object-files lisp-object-files))
+      (unless result
+	(clean-up destdir sources)
+	(format t "~&Bailing out from build-fasb step! result = ~S~%" result) (finish-output)
+	(mkcl:quit :exit-code 1)) ;; exit if fasl build failed.
+      )
+    (terpri)))
 
 
+
+;;;

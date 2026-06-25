@@ -19,7 +19,7 @@
 ;;; (setq compiler::*trace-cc* t)
 
 (defun build-mkcl-small ()
-  (terpri) (princ ";;; About to build main executable mkcl.") (terpri)
+  (terpri) (princ ";;; About to build main executable mkcl-small.") (terpri)
 
   #+unix
   (unless (compiler:build-program

@@ -14,13 +14,33 @@
 
 ;;(setq compiler::*trace-cc* t)
 
-(load "cmp/load.lsp" :external-format '(:ascii :lf))
+(if (probe-file "./cmp/CMP.fasb")
+    (load "./cmp/CMP.fasb")
+  (load "cmp/load.lsp" :external-format '(:ascii :lf)))
 
 (load "parallel-compile-utils" :external-format '(:ascii :lf))
 
-(defun build-cmp ()
-  (build-module "CMP" +cmp-module-files+
-		:destdir (pathname "./cmp/")
+(defvar cmp-dir (pathname "./cmp/"))
+
+(unless (probe-file cmp-dir)  ;; ensure destdir exists.
+  (si::mkdir cmp-dir #o0777))
+
+(defun compile-and-build-cmp-lib ()
+  (compile-and-build-lib "CMP" +cmp-module-files+
+			 :destdir cmp-dir
+			 )
+  )
+
+(defun build-cmp-fasb ()
+  (build-fasb "CMP" (list "./cmp/CMP.a")
+		:destdir cmp-dir
 		)
   )
 
+(defun build-CMP-asdf-support-file ()
+  (build-module-asdf-support-file "CMP" :destdir cmp-dir))
+
+(defun build-CMP-asdf2-support-file ()
+  (build-module-asdf2-support-file "CMP" :destdir cmp-dir))
+
+;;;

@@ -128,13 +128,15 @@ MKCL_STATIC_PARTS = mkcltop.@LIBEXT@ lsp.a mkclmin.@LIBEXT@
 
 all: base contribs .gdbinit
 
-base: mkcc$(EXE) mkcl-config mkcl-small$(EXE) $(TARGETS) help.doc encodings
+base: mkcc$(EXE) mkcl-config mkcl-small$(EXE) $(TARGETS) $(LSP_LIBRARIES) cmp/CMP.fasb help.doc encodings
 
 contribs: extension-contribs asdf-contribs
 
 extension-contribs: ../contrib/unicode/UnicodeData.txt $(EXTENSION_CONTRIB_FASLS) # $(EXTENSION_CONTRIB_ASDS) $(EXTENSION_CONTRIB_AS2S)
 
-asdf-contribs: asdf-cores asdf-contrib-core asdf-contrib-extra $(ASDF_CONTRIB_AS2S)
+asdf-contribs: asdf-cores asdf-contrib-core asdf-contrib-extra asdf-support-files
+
+asdf-support-files: cmp/cmp.asd cmp/cmp.as2 $(ASDF_CONTRIB_AS2S)
 
 asdf-cores: $(ASDF_FASLS) $(ASDF2_FASLS)
 
@@ -150,10 +152,13 @@ c/mkcl/config.h: c/mkcl/config.h.in config.status
 	touch c/mkcl/config.h
 
 
-lsp.a $(LSP_LIBRARIES): lsp/git_describe.lsp compile.lsp parallel-compile-utils.lsp lsp/config.lsp cmp/cmpdefs.lsp lsp/*.lsp clos/*.lsp cmp/*.lsp c/mkcl/mkcl-cmp.h c/mkcl/config.h BUILD-STAMP mkcl_min$(EXE) mkcltop.@LIBEXT@
-	echo "(progn (compile-and-build-libs) (mkcl:quit :exit-code 0))" | ./mkcl_min$(EXE) compile.lsp
+lsp.a : lsp/git_describe.lsp compile.lsp parallel-compile-utils.lsp lsp/config.lsp cmp/cmpdefs.lsp lsp/*.lsp clos/*.lsp cmp/*.lsp c/mkcl/mkcl-cmp.h c/mkcl/config.h BUILD-STAMP mkcl_min$(EXE)
+	echo "(progn (compile-and-build-lib) (mkcl:quit :exit-code 0))" | ./mkcl_min$(EXE) compile.lsp
 
-mkcl-small$(EXE): lsp.a build-mkcl-small.lsp bare.lsp
+$(LSP_LIBRARIES): lsp.a compile.lsp parallel-compile-utils.lsp cmp/cmpdefs.lsp cmp/*.lsp c/mkcl/mkcl-cmp.h mkcl_min$(EXE) mkcltop.@LIBEXT@
+	echo "(progn (build-shared-lib) (mkcl:quit :exit-code 0))" | ./mkcl_min$(EXE) compile.lsp
+
+mkcl-small$(EXE): lsp.a build-mkcl-small.lsp bare.lsp mkcltop.@LIBEXT@
 	echo "(progn (build-mkcl-small) (mkcl::quit :exit-code 0))" | ./mkcl_min$(EXE) build-mkcl-small.lsp
 
 encodings: mkcl-small$(EXE) ../contrib/encodings/generate.lisp build-encodings.lsp
@@ -171,14 +176,17 @@ asdf-stage-dir-exists:
 
 ext/asdf2.fasb ext/asdf2.a: mkcl-small$(EXE) ext-dir-exists build-asdf2.lsp cmp/CMP.fasb compile-utils.lsp ../contrib/asdf2/*.lisp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf2.lsp
+	cp ./ext/asdf2/asdf2.fasb ./ext/asdf2/asdf2.a ./ext/
 
 ext/asdf3.fasb ext/asdf3.a: mkcl-small$(EXE) ext-dir-exists build-asdf3.lsp cmp/CMP.fasb compile-utils.lsp ../contrib/asdf3/*.lisp
 	(cd ../contrib/asdf3/; $(MAKE) build/asdf.lisp; mv -f build/asdf.lisp build/asdf3.lisp)
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf3.lsp
+	cp ./ext/asdf3/asdf3.fasb ./ext/asdf3/asdf3.a ./ext/
 
 ext/asdf.fasb ext/asdf.a: mkcl-small$(EXE) ext-dir-exists build-asdf.lsp cmp/CMP.fasb compile-utils.lsp ../contrib/asdf/*.lisp
 	(cd ../contrib/asdf/; $(MAKE) build/asdf.lisp)
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf.lsp
+	cp ./ext/asdf/asdf.fasb ./ext/asdf/asdf.a ./ext/
 
 ext/uiop.fasb ext/uiop.a ext/uiop.asd ext/uiop.as2: mkcl-small$(EXE) ext-dir-exists build-uiop.lsp cmp/CMP.fasb compile-utils.lsp ../contrib/asdf/uiop/*.lisp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-uiop.lsp
@@ -354,8 +362,19 @@ asdf-stage/rt.as2: asdf-stage/rt.fasb mkcl-small$(EXE) asdf-stage-dir-exists bui
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-contrib-as2.lsp -- rt ../contrib/rt*/ ./asdf-stage/
 
 
-cmp/CMP.fasb cmp/CMP.a cmp/CMP.asd cmp/CMP.as2: mkcl-small$(EXE) cmp/*.lsp build-cmp.lsp parallel-compile-utils.lsp
-	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-cmp.lsp -eval "(progn (build-cmp) (mkcl:quit :exit-code 0))"
+cmp/CMP.a: mkcl-small$(EXE) cmp/*.lsp build-cmp.lsp parallel-compile-utils.lsp
+	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-cmp.lsp -eval "(progn (compile-and-build-cmp-lib) (mkcl:quit :exit-code 0))"
+
+cmp/CMP.fasb: mkcl-small$(EXE) cmp/CMP.a build-cmp.lsp parallel-compile-utils.lsp
+	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-cmp.lsp -eval "(progn (build-cmp-fasb) (mkcl:quit :exit-code 0))"
+
+cmp/cmp.asd: mkcl-small$(EXE) cmp/CMP.fasb build-cmp.lsp parallel-compile-utils.lsp
+	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-support-files.lsp -eval "(progn (build-module-asdf-support-file \"CMP\" :destdir \"./cmp/\") (mkcl:quit :exit-code 0))"
+
+cmp/cmp.as2: mkcl-small$(EXE) cmp/CMP.fasb build-cmp.lsp parallel-compile-utils.lsp
+#	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-cmp.lsp -eval "(progn (build-CMP-asdf2-support-file) (mkcl:quit :exit-code 0))"
+	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-asdf-support-files.lsp -eval "(progn (build-module-asdf2-support-file \"CMP\" :destdir \"./cmp/\") (mkcl:quit :exit-code 0))"
+
 
 mkcl-dyn: mkcl-small$(EXE) cmp/CMP.fasb build-dynamic-mkcl.lsp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-dynamic-mkcl.lsp

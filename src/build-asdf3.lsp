@@ -25,7 +25,7 @@
 ;;;
 (build-module "asdf3"
               '("../contrib/asdf3/build/asdf3.lisp")
-              :destdir "./ext/"
+              :destdir (ensure-directories-exist (pathname "./ext/asdf3/"))
 	      )
 
 (mkcl:quit :exit-code 0) ;; signal to "make" that all is well.
