@@ -555,7 +555,7 @@ subsequence is found.  Returns NIL otherwise."
    (with-start-end start2 end2 sequence2  
     (with-tests (test test-not key)
       (if (not from-end)
-	  (loop
+	  (si::simple-loop
 	     (do ((i1 start1 (1+ i1))
 		  (i2 start2 (1+ i2)))
 		 ((>= i1 end1) (return-from search start2))
@@ -565,7 +565,7 @@ subsequence is found.  Returns NIL otherwise."
 				(key (elt sequence2 i2)))
 		 (return nil)))
 	     (incf start2))
-	  (loop
+	  (si::simple-loop
 	     (do ((i1 (1- end1) (1- i1))
 		  (i2 (1- end2) (1- i2)))
 		 ((< i1 start1) (return-from search (the fixnum (1+ i2))))
@@ -651,17 +651,20 @@ evaluates to NIL.  See STABLE-SORT."
       (let* ((j start) (k end) (d (elt seq start)) (kd (funcall key d)))
             (declare (fixnum j k))
         (block outer-loop
-          (loop (loop (decf k)
-                      (unless (< j k) (return-from outer-loop))
-                      (when (funcall pred (funcall key (elt seq k)) kd)
-                            (return)))
-                (loop (incf j)
-                      (unless (< j k) (return-from outer-loop))
-                      (unless (funcall pred (funcall key (elt seq j)) kd)
-                              (return)))
-                (let ((temp (elt seq j)))
-                  (setf (elt seq j) (elt seq k)
-                        (elt seq k) temp))))
+          (si::simple-loop
+	    (si::simple-loop
+	      (decf k)
+              (unless (< j k) (return-from outer-loop))
+              (when (funcall pred (funcall key (elt seq k)) kd)
+                (return)))
+            (si::simple-loop
+	      (incf j)
+              (unless (< j k) (return-from outer-loop))
+              (unless (funcall pred (funcall key (elt seq j)) kd)
+                (return)))
+            (let ((temp (elt seq j)))
+              (setf (elt seq j) (elt seq k)
+                    (elt seq k) temp))))
         (setf (elt seq start) (elt seq j)
               (elt seq j) d)
         (quick-sort seq start j pred key)

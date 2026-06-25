@@ -117,30 +117,30 @@ Evaluates FORM, outputs the realtime and runtime used for the evaluation to
   "Args: (integer &optional (timezone (si::get-local-time-zone)))
 Returns as nine values the day-and-time represented by INTEGER.  See GET-
 DECODED-TIME."
-(loop
-  (let* ((ut orig-ut) sec min hour day month year dow days)
-    (unless tz-p
-      (setq tz (get-local-time-zone)))
-    (decf ut (round (* (+ tz (if dstp -1 0)) 3600)))
-    (multiple-value-setq (ut sec) (floor ut 60))
-    (multiple-value-setq (ut min) (floor ut 60))
-    (multiple-value-setq (days hour) (floor ut 24))
-    (setq dow (mod days 7))
-    (setq year (+ 1900 (floor days 366))) ; Guess!
-    (do ((x))
-        ((< (setq x (- days (number-of-days-from-1900 year)))
-            (if (leap-year-p year) 366 365))
-         (setq day (1+ x)))
-      (incf year))
-    (when (leap-year-p year)
-      (cond ((= day 60) (setf month 2 day 29))
-	    ((> day 60) (decf day))))
-    (unless month
-      (setq month (position day month-startdays :test #'<=)
-	    day (- day (svref month-startdays (1- month)))))
-    (if (and (not tz-p) (daylight-saving-time-p orig-ut year))
-	(setf tz-p t dstp t)
-	(return (values sec min hour day month year dow dstp tz))))))
+  (si::simple-loop
+   (let* ((ut orig-ut) sec min hour day month year dow days)
+     (unless tz-p
+       (setq tz (get-local-time-zone)))
+     (decf ut (round (* (+ tz (if dstp -1 0)) 3600)))
+     (multiple-value-setq (ut sec) (floor ut 60))
+     (multiple-value-setq (ut min) (floor ut 60))
+     (multiple-value-setq (days hour) (floor ut 24))
+     (setq dow (mod days 7))
+     (setq year (+ 1900 (floor days 366))) ; Guess!
+     (do ((x))
+         ((< (setq x (- days (number-of-days-from-1900 year)))
+             (if (leap-year-p year) 366 365))
+          (setq day (1+ x)))
+       (incf year))
+     (when (leap-year-p year)
+       (cond ((= day 60) (setf month 2 day 29))
+	     ((> day 60) (decf day))))
+     (unless month
+       (setq month (position day month-startdays :test #'<=)
+	     day (- day (svref month-startdays (1- month)))))
+     (if (and (not tz-p) (daylight-saving-time-p orig-ut year))
+	 (setf tz-p t dstp t)
+	 (return (values sec min hour day month year dow dstp tz))))))
 
 (defun encode-universal-time (sec min hour day month year &optional tz)
   "Args: (second minute hour date month year

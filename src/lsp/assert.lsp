@@ -249,7 +249,7 @@ a new value of PLACE from the user and searches an appropriate TYPE again.
 Repeats this process until the value of PLACE becomes of one of the TYPEs."
   (if (constantp keyplace) (return-from ctypecase `(etypecase ,keyplace ,@clauses)))
   ;;(setq clauses (remove-otherwise-from-clauses clauses)) ;; what is the relevance of this? '(OTHERWISE) is not a valid type. JCB
-  `(loop
+  `(si::simple-loop
     (let ((,key ,keyplace))
       (declare (ignorable ,key))
       ,@(mapcar #'(lambda (l)

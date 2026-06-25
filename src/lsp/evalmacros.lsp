@@ -134,18 +134,17 @@ VARIABLE doc and can be retrieved by (DOCUMENTATION 'SYMBOL 'VARIABLE)."
           (si::register-global ',var)))
     ',var))
 
-
-(let ()
+;;(let ()
   ;; We enclose this macro in a LET form so that it is no longer
   ;; a toplevel form. This solves the problem of this simple LOOP
   ;; replacing the more complex form in loop3.lsp when evalmacros.lsp
   ;; gets compiled.
-  (defmacro loop (&rest body &aux (tag (gensym)))
+  (defmacro simple-loop (&rest body &aux (tag (gensym)))
     "Syntax: (loop {form}*)
 Establishes a NIL block and executes FORMs repeatedly.
 The loop is normally terminated by a non-local exit."
     `(BLOCK NIL (TAGBODY ,tag (PROGN ,@body) (GO ,tag))))
-  )
+;;  )
 
 (defmacro lambda (&rest body)
   `(function (lambda ,@body)))
@@ -312,24 +311,26 @@ values of the last FORM.  If no FORM is given, returns NIL."
   #+(and)
   (let ((label (gensym))
 	(exit (gensym)))
-    `(TAGBODY
-        (GO ,exit)
-      ,label
-        ,@body
-      ,exit
-	(when ,test (GO ,label)))))
+    `(progn #|BLOCK NIL|#
+       (TAGBODY
+	  (GO ,exit)
+	,label
+	  ,@body
+	,exit
+	  (when ,test (GO ,label))))))
 
 (defmacro sys::until (test &body body)
   ;;(while-until test body 'unless)
   #+(and)
   (let ((label (gensym))
 	(exit (gensym)))
-    `(TAGBODY
-        (GO ,exit)
-      ,label
-        ,@body
-      ,exit
-	(unless ,test (GO ,label)))))
+    `(progn #|BLOCK NIL|#
+       (TAGBODY
+          (GO ,exit)
+	,label
+          ,@body
+	,exit
+	  (unless ,test (GO ,label))))))
 
 #|
 (defmacro case (keyform &rest clauses &aux (form nil) (key (gensym)))

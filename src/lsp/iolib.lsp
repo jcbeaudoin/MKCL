@@ -905,12 +905,14 @@ where CREATED is true only if we succeeded on creating all directories."
               (handler-case
                (unwind-protect
                    (if (subtypep (stream-element-type input) 'character)
-                       (loop (let ((byte (read-char input nil :eof)))
-                               (when (eq byte :eof) (return :done))
-                               (write-char byte (process-input subprocess))))
-                     (loop (let ((byte (read-byte input nil :eof)))
-                             (when (eq byte :eof) (return :done))
-                             (write-byte byte (process-input subprocess)))))
+                       (si::simple-loop
+			 (let ((byte (read-char input nil :eof)))
+                           (when (eq byte :eof) (return :done))
+                           (write-char byte (process-input subprocess))))
+                     (si::simple-loop
+		       (let ((byte (read-byte input nil :eof)))
+                         (when (eq byte :eof) (return :done))
+                         (write-byte byte (process-input subprocess)))))
                  (ignore-errors (close input))
                  (ignore-errors (close (process-input subprocess))))
                (serious-condition (a-condition) ;; This is a universal muffler on anything that may have gone wrong.
@@ -928,18 +930,21 @@ where CREATED is true only if we succeeded on creating all directories."
               (handler-case
                (unwind-protect
                    (if (subtypep (stream-element-type output) 'character)
-                       (loop (let ((byte (read-char (process-output subprocess) nil :eof)))
-                               (when (eq byte :eof) (return :done))
-                               (write-char byte output)))
-                     (loop (let ((byte (read-byte (process-output subprocess) nil :eof)))
-                             (when (eq byte :eof) (return :done))
-                             (write-byte byte output))))
+                       (si::simple-loop
+			 (let ((byte (read-char (process-output subprocess) nil :eof)))
+                           (when (eq byte :eof) (return :done))
+                           (write-char byte output)))
+                     (si::simple-loop
+		       (let ((byte (read-byte (process-output subprocess) nil :eof)))
+                         (when (eq byte :eof) (return :done))
+                         (write-byte byte output))))
                  (ignore-errors (close (process-output subprocess)))
                  (ignore-errors (close output)))
                (serious-condition (a-condition) ;; This is a universal muffler on anything that may have gone wrong.
                  ;; Here we should log something to the Central Thread Logging facility.
                  a-condition))))))
     (setf (process-from-worker subprocess) worker)))
+
 
 (defun launch-error-from-subprocess-worker (err-output subprocess)
   (let ((worker
@@ -949,12 +954,14 @@ where CREATED is true only if we succeeded on creating all directories."
               (handler-case
                (unwind-protect
                    (if (subtypep (stream-element-type err-output) 'character)
-                       (loop (let ((byte (read-char (process-error subprocess) nil :eof)))
-                               (when (eq byte :eof) (return :done))
-                               (write-char byte err-output)))
-                     (loop (let ((byte (read-byte (process-error subprocess) nil :eof)))
-                             (when (eq byte :eof) (return :done))
-                             (write-byte byte err-output))))
+                       (si::simple-loop
+			 (let ((byte (read-char (process-error subprocess) nil :eof)))
+                           (when (eq byte :eof) (return :done))
+                           (write-char byte err-output)))
+                     (si::simple-loop
+		       (let ((byte (read-byte (process-error subprocess) nil :eof)))
+                         (when (eq byte :eof) (return :done))
+                         (write-byte byte err-output))))
                  (ignore-errors (close (process-error subprocess)))
                  (ignore-errors (close err-output)))
                (serious-condition (a-condition) ;; This is a universal muffler on anything that may have gone wrong.
@@ -1064,7 +1071,7 @@ where CREATED is true only if we succeeded on creating all directories."
         (handler-case
          (progn
            (file-position stream 0) ;; rewind
-           (loop
+           (si::simple-loop
             (let ((ch (read-char stream nil :eof)))
               (when (eq ch :eof) (setq character-position nil) (return)) ;; Hit the end prematurely.
               (multiple-value-setq (position character-position) (file-position stream))

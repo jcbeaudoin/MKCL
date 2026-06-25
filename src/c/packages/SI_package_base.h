@@ -1845,6 +1845,7 @@ struct mkcl_base_string const mkcl_si_internal_symbol_names[] = {
   SYMBOL_NAME("PARSED-THE"),
   SYMBOL_NAME("PARSED-THROW"),
   SYMBOL_NAME("PARSED-UNWIND-PROTECT"),
+  SYMBOL_NAME("SIMPLE-LOOP"),
 };
 
 
