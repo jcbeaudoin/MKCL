@@ -1,6 +1,6 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
 ;;;;
-;;;;  Copyright (c) 2016, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2016, 2026, Jean-Claude Beaudoin.
 ;;;;
 ;;;;  This program is free software; you can redistribute it and/or
 ;;;;  modify it under the terms of the GNU Lesser General Public
@@ -23,10 +23,31 @@
 ;;;
 ;;; * Sockets library.
 ;;;
+(defun build-mk-unix-module ()
 (build-module "mk-unix"
 	      '("../contrib/mk-unix/mk-unix.lsp")
 	      :destdir (ensure-directories-exist (pathname "./ext/mk-unix/"))
 	      )
+)
 
-(mkcl:quit :exit-code 0) ;; signal to "make" that all is well.
+
+(defun compile-mk-unix-lib ()
+  (build-module "mk-unix"
+		'("../contrib/mk-unix/mk-unix.lsp")
+		:destdir (ensure-directories-exist (pathname "./ext/mk-unix/"))
+		)
+  )
+
+(defun build-mk-unix-fasb ()
+  (build-fasb "mk-unix"
+	      '("./ext/mk-unix.a")
+	      :destdir (ensure-directories-exist (pathname "./ext/mk-unix/"))
+	      )
+  )
+
+(defun build-mk-unix-asd-file ()
+  (build-substitute-asd-file "mk-unix" "mk-unix" (pathname "./ext/mk-unix/") nil))
+
+(defun build-mk-unix-as2-file ()
+  (build-substitute-as2-file "mk-unix" "mk-unix" (pathname "./ext/mk-unix/") nil))
 

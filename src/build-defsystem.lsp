@@ -1,6 +1,6 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
 ;;;;
-;;;;  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2012, 2026, Jean-Claude Beaudoin.
 ;;;;
 ;;;;  This program is free software; you can redistribute it and/or
 ;;;;  modify it under the terms of the GNU Lesser General Public
@@ -23,11 +23,33 @@
 ;;;
 ;;; * DEFSYSTEM
 ;;;
-(build-module "MAKE"
-              '("../contrib/defsystem/defsystem.lisp")
-              :destdir (ensure-directories-exist (pathname "./ext/defsystem/"))
+
+(defun build-MAKE-module ()
+  (build-module "MAKE"
+		'("../contrib/defsystem/defsystem.lisp")
+		:destdir (ensure-directories-exist (pathname "./ext/defsystem/"))
+		)
+  )
+
+(defun compile-MAKE-lib ()
+  (build-module "MAKE"
+		'("../contrib/defsystem/defsystem.lisp")
+		:destdir (ensure-directories-exist (pathname "./ext/defsystem/"))
+		)
+  )
+
+(defun build-MAKE-fasb ()
+  (build-fasb "MAKE"
+	      '("./ext/MAKE.a")
+	      :destdir (ensure-directories-exist (pathname "./ext/defsystem/"))
 	      )
+  )
+
+(defun build-MAKE-asd-file ()
+  (build-substitute-asd-file "make" "MAKE" (pathname "./ext/defsystem/") nil))
+
+(defun build-MAKE-as2-file ()
+  (build-substitute-as2-file "make" "MAKE" (pathname "./ext/defsystem/") nil))
 
 
-(mkcl:quit :exit-code 0) ;; signal to "make" that all is well.
 

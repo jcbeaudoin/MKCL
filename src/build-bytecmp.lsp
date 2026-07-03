@@ -1,6 +1,6 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
 ;;;;
-;;;;  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2012, 2026, Jean-Claude Beaudoin.
 ;;;;
 ;;;;  This program is free software; you can redistribute it and/or
 ;;;;  modify it under the terms of the GNU Lesser General Public
@@ -24,11 +24,30 @@
 ;;;
 ;;; * BYTECMP
 ;;;
-(build-module "BYTECMP"
-              '("../contrib/bytecmp/bytecmp.lsp")
-              :destdir (ensure-directories-exist (pathname "./ext/bytecmp/"))
+(defun build-bytecmp-module ()
+  (build-module "BYTECMP"
+		'("../contrib/bytecmp/bytecmp.lsp")
+		:destdir (ensure-directories-exist (pathname "./ext/bytecmp/"))
+		)
+  )
+
+(defun compile-BYTECMP-lib ()
+  (build-module "BYTECMP"
+		'("../contrib/bytecmp/bytecmp.lsp")
+		:destdir (ensure-directories-exist (pathname "./ext/bytecmp/"))
+		)
+  )
+
+(defun build-BYTECMP-fasb ()
+  (build-fasb "BYTECMP"
+	      '("./ext/BYTECMP.a")
+	      :destdir (ensure-directories-exist (pathname "./ext/bytecmp/"))
 	      )
+  )
 
+(defun build-BYTECMP-asd-file ()
+  (build-substitute-asd-file "bytecmp" "BYTECMP" (pathname "./ext/bytecmp/") nil))
 
-(mkcl:quit :exit-code 0) ;; signal to "make" that all is well.
+(defun build-BYTECMP-as2-file ()
+  (build-substitute-as2-file "bytecmp" "BYTECMP" (pathname "./ext/bytecmp/") nil))
 

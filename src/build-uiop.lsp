@@ -1,6 +1,6 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
 ;;;;
-;;;;  Copyright (c) 2010-2019, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2019, 2026, Jean-Claude Beaudoin.
 ;;;;
 ;;;;  This program is free software; you can redistribute it and/or
 ;;;;  modify it under the terms of the GNU Lesser General Public
@@ -41,8 +41,30 @@
   "../contrib/asdf/uiop/driver.lisp"
   ))
 
-(build-module "uiop" +uiop-module-files+ :version "3.3.3"
-              :destdir (ensure-directories-exist (pathname "./ext/uiop/"))
-	      )
+(defun build-uiop-module ()
+  (build-module "uiop" +uiop-module-files+ :version "3.3.3"
+		:destdir (ensure-directories-exist (pathname "./ext/uiop/"))
+		)
+  )
 
-(mkcl:quit :exit-code 0) ;; signal to "make" that all is well.
+(defun compile-uiop-lib ()
+  (build-module "uiop"
+		+uiop-module-files+
+		:destdir (ensure-directories-exist (pathname "./ext/uiop/"))
+		)
+  )
+
+(defun build-uiop-fasb ()
+  (build-fasb "uiop"
+	      '("./ext/uiop.a")
+	      :destdir (ensure-directories-exist (pathname "./ext/uiop/"))
+	      )
+  )
+
+(defun build-uiop-asd-file ()
+  (build-substitute-asd-file "uiop" "uiop" (pathname "./ext/uiop/") :version "3.3.3"))
+
+(defun build-uiop-as2-file ()
+  (build-substitute-as2-file "uiop" "uiop" (pathname "./ext/uiop/") :version "3.3.3"))
+
+;;(mkcl:quit :exit-code 0) ;; signal to "make" that all is well.

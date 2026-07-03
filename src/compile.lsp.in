@@ -20,26 +20,28 @@
 ;;;
 
 (progn
-  (setq *package* (find-package "SYSTEM"))
+  ;;(setq *package* (find-package "SYSTEM"))
   (setq *features* (cons :mkcl-bootstrap *features*))
   )
 
 ;;;
 ;;; * Ensure that we have the whole of Common-Lisp before we start to compile
 ;;;
-;;(load "bare.lsp" :verbose nil)
-(let ((real-start (get-internal-real-time))
-      (run-start (get-internal-run-time))
-      real-end run-end)
-  (load "bare.lsp" :verbose nil :external-format '(:ascii :lf))
-  (setq run-end (get-internal-run-time)
-	real-end (get-internal-real-time))
-  (format *trace-output*
-	  "~2&load real time : ~,3F secs~%~
-           load run time  : ~,3F secs~2%"
-	  (/ (- real-end real-start) internal-time-units-per-second)
-	  (/ (- run-end run-start) internal-time-units-per-second))
-  )
+(if (si::memq :mkcl-min *features*)
+    (let ((user::real-start (get-internal-real-time))
+	  (user::run-start (get-internal-run-time))
+	  user::real-end user::run-end
+	  (*package* *package*))
+      (load "bare.lsp" :verbose nil :external-format '(:ascii :lf))
+      (setq user::run-end (get-internal-run-time)
+	    user::real-end (get-internal-real-time))
+      (format *trace-output*
+	      "~2&load real time : ~,3F secs~%~
+                  load run time  : ~,3F secs~2%"
+	      (/ (- user::real-end user::real-start) internal-time-units-per-second)
+	      (/ (- user::run-end user::run-start) internal-time-units-per-second))
+      )
+    (load "cmp/CMP.fasb"))
 
 
 (load "parallel-compile-utils.lsp" :external-format '(:ascii :lf))

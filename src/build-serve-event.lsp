@@ -1,6 +1,6 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
 ;;;;
-;;;;  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2012, 2026, Jean-Claude Beaudoin.
 ;;;;
 ;;;;  This program is free software; you can redistribute it and/or
 ;;;;  modify it under the terms of the GNU Lesser General Public
@@ -20,10 +20,31 @@
 
 ;;(setq compiler::*trace-cc* t)
 
-(build-module "SERVE-EVENT"
-	      '("../contrib/serve-event/serve-event.lisp")
+(defun build-serve-event-module ()
+  (build-module "SERVE-EVENT"
+		'("../contrib/serve-event/serve-event.lisp")
+		:destdir (ensure-directories-exist (pathname "./ext/serve-event/"))
+		)
+  )
+
+(defun compile-SERVE-EVENT-lib ()
+  (build-module "SERVE-EVENT"
+		'("../contrib/serve-event/serve-event.lisp")
+		:destdir (ensure-directories-exist (pathname "./ext/serve-event/"))
+		)
+  )
+
+(defun build-SERVE-EVENT-fasb ()
+  (build-fasb "SERVE-EVENT"
+	      '("./ext/SERVE-EVENT.a")
 	      :destdir (ensure-directories-exist (pathname "./ext/serve-event/"))
 	      )
+  )
 
-(mkcl:quit :exit-code 0) ;; signal to "make" that all is well.
+(defun build-SERVE-EVENT-asd-file ()
+  (build-substitute-asd-file "serve-event" "SERVE-EVENT" (pathname "./ext/serve-event/") nil))
+
+(defun build-SERVE-EVENT-as2-file ()
+  (build-substitute-as2-file "serve-event" "SERVE-EVENT" (pathname "./ext/serve-event/") nil))
+
 

@@ -1,6 +1,6 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
 ;;;;
-;;;;  Copyright (c) 2010-2012, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2010-2012, 2026, Jean-Claude Beaudoin.
 ;;;;
 ;;;;  This program is free software; you can redistribute it and/or
 ;;;;  modify it under the terms of the GNU Lesser General Public
@@ -24,11 +24,31 @@
 ;;;
 ;;; * BYTECMP
 ;;;
-(build-module "WALKER"
-              '("../contrib/walker/walk.lsp")
-              :destdir (ensure-directories-exist (pathname "./ext/walker/"))
+(defun build-walker-module ()
+  (build-module "WALKER"
+		'("../contrib/walker/walk.lsp")
+		:destdir (ensure-directories-exist (pathname "./ext/walker/"))
+		)
+  )
+
+(defun compile-WALKER-lib ()
+  (build-module "WALKER"
+		'("../contrib/walker/walk.lsp")
+		:destdir (ensure-directories-exist (pathname "./ext/walker/"))
+		)
+  )
+
+(defun build-WALKER-fasb ()
+  (build-fasb "WALKER"
+	      '("./ext/WALKER.a")
+	      :destdir (ensure-directories-exist (pathname "./ext/walker/"))
 	      )
+  )
 
+(defun build-WALKER-asd-file ()
+  (build-substitute-asd-file "walker" "WALKER" (pathname "./ext/walker/") nil))
 
-(mkcl:quit :exit-code 0) ;; signal to "make" that all is well.
+(defun build-WALKER-as2-file ()
+  (build-substitute-as2-file "walker" "WALKER" (pathname "./ext/walker/") nil))
+
 

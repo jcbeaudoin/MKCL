@@ -1,6 +1,6 @@
 ;;;;  -*- Mode: Lisp; Syntax: Common-Lisp; Package: SYSTEM -*-
 ;;;;
-;;;;  Copyright (c) 2014, Jean-Claude Beaudoin.
+;;;;  Copyright (c) 2014, 2026, Jean-Claude Beaudoin.
 ;;;;
 ;;;;  This program is free software; you can redistribute it and/or
 ;;;;  modify it under the terms of the GNU Lesser General Public
@@ -23,10 +23,26 @@
 ;;;
 ;;; * ASDF
 ;;;
-(build-module "asdf2"
-              '("../contrib/asdf2/asdf2.lisp")
-              :destdir (ensure-directories-exist (pathname "./ext/asdf2/"))
-	      )
+(defun build-asdf-module ()
+  (build-module "asdf2"
+		'("../contrib/asdf2/asdf2.lisp")
+		:destdir (ensure-directories-exist (pathname "./ext/asdf2/"))
+		)
+  )
 
-(mkcl:quit :exit-code 0) ;; signal to "make" that all is well.
+
+(defun compile-asdf-lib ()
+  (compile-and-build-lib "asdf2"
+			 '("../contrib/asdf2/asdf2.lisp")
+			 :destdir (ensure-directories-exist (pathname "./ext/asdf2/"))
+			 )
+  )
+
+
+(defun build-asdf-fasb ()
+  (build-fasb "asdf2"
+		'("./ext/asdf2.a")
+		:destdir (ensure-directories-exist (pathname "./ext/asdf2/"))
+		)
+  )
 
