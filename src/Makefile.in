@@ -128,7 +128,7 @@ MKCL_STATIC_PARTS = mkcltop.@LIBEXT@ lsp.a mkclmin.@LIBEXT@
 
 all: base contribs .gdbinit
 
-base: mkcc$(EXE) mkcl-config mkcl-small$(EXE) $(TARGETS) $(LSP_LIBRARIES) cmp/CMP.fasb help.doc encodings
+base: mkcc$(EXE) mkcl-config mkcl-small$(EXE) cmp/CMP.fasb $(TARGETS) $(LSP_LIBRARIES) help.doc encodings
 
 contribs: extension-contribs asdf-contribs
 
@@ -489,10 +489,10 @@ cmp/cmp.as2: mkcl-small$(EXE) cmp/CMP.fasb build-cmp.lsp parallel-compile-utils.
 mkcl-dyn: mkcl-small$(EXE) cmp/CMP.fasb build-dynamic-mkcl.lsp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-dynamic-mkcl.lsp
 
-mkcl$(EXE): mkcl-small$(EXE) cmp/CMP.a build-mkcl.lsp
+mkcl$(EXE): mkcl-small$(EXE) cmp/CMP.fasb build-mkcl.lsp
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-mkcl.lsp
 
-mkcl-full$(EXE): mkcl-small$(EXE) cmp/CMP.a build-full-mkcl.lsp ext/asdf.a ext/profile.a ext/SERVE-EVENT.a ext/SOCKETS.a ext/mk-unix.a
+mkcl-full$(EXE): mkcl-small$(EXE) cmp/CMP.fasb build-full-mkcl.lsp ext/asdf.a ext/profile.a ext/SERVE-EVENT.a ext/SOCKETS.a ext/mk-unix.a
 	./mkcl-small$(EXE) -norc -q --external-format "(:ascii :lf)" -load build-full-mkcl.lsp --  ext/asdf.a ext/profile.a ext/SERVE-EVENT.a ext/SOCKETS.a ext/mk-unix.a
 
 help.doc: mkcl-small$(EXE) dump-doc.lsp doc/help.lsp
